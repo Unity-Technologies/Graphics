@@ -67,24 +67,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // AO estimation.
             cmd.GetTemporaryRT(Uniforms._TempTex1, width / downsize, height / downsize, 0, kFilter, kFormat, kRWMode);
             cmd.SetGlobalTexture(Uniforms._MainTex, depthID);
-            Utilities.DrawFullScreen(cmd, m_Material, hdCamera, Uniforms._TempTex1, null, 0);
+            Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 0);
 
             // Denoising (horizontal pass).
             cmd.GetTemporaryRT(Uniforms._TempTex2, width, height, 0, kFilter, kFormat, kRWMode);
             cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-            Utilities.DrawFullScreen(cmd, m_Material, hdCamera, Uniforms._TempTex2, null, 1);
+            Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex2, null, 1);
             cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
             // Denoising (vertical pass).
             cmd.GetTemporaryRT(Uniforms._TempTex1, width, height, 0, kFilter, kFormat, kRWMode);
             cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex2);
-            Utilities.DrawFullScreen(cmd, m_Material, hdCamera, Uniforms._TempTex1, null, 2);
+            Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 2);
             cmd.ReleaseTemporaryRT(Uniforms._TempTex2);
 
             // Final filtering
             cmd.GetTemporaryRT(Uniforms._AOBuffer, width, height, 0, kFilter, kFormat, kRWMode);
             cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-            Utilities.DrawFullScreen(cmd, m_Material, hdCamera, Uniforms._AOBuffer, null, 3);
+            Utilities.DrawFullScreen(cmd, m_Material, Uniforms._AOBuffer, null, 3);
             cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
             // Setup texture for lighting pass (automagic of unity)

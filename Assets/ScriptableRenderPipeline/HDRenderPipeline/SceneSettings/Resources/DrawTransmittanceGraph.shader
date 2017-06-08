@@ -50,7 +50,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.vertex   = TransformWorldToHClip(input.vertex);
+                // GUI code set up by Unity - do not modify.
+                output.vertex   = mul(unity_MatrixVP, float4(input.vertex, 1));
                 output.texcoord = input.texcoord.xy;
                 return output;
             }
