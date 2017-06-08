@@ -96,7 +96,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	float fSy = g_mScrProjection[1].y;
 	float fCy = g_mScrProjection[1].z;
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
 #else
 	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
@@ -243,10 +243,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToClustTileRatio)-1))>>log2BigTileToClustTileRatio;
 	const int bigTileIdx = (tileIDX.y>>log2BigTileToClustTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToClustTileRatio);		// map the idx to 64x64 tiles
-	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
+	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
-		int l = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1];
+		int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
 #else
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
@@ -275,7 +275,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	float fTileFarPlane = GetLinearDepth(dpt_ma);
 #else
 	float fTileFarPlane = -GetLinearDepth(dpt_ma);
@@ -408,7 +408,7 @@ float4 FetchPlane(int l, int p)
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
 {
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
 #else
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
@@ -462,7 +462,7 @@ float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
 	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 	float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
 	float z = (i&4)==0 ? g_fNearPlane : fTileFarPlane;
-#if !USE_LEFTHAND_CAMERASPACE
+#if !USE_LEFT_HAND_CAMERA_SPACE
 	z = -z;
 #endif
 	return GetViewPosFromLinDepth( float2(x, y), z);

@@ -212,11 +212,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
     #endif
 #else
-    #ifdef SURFACE_GRADIENT
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent when using surface gradient
-    #else
-    surfaceData.tangentWS = input.worldToTangent[0].xyz;
-    #endif
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
 #ifdef _ANISOTROPYMAP
@@ -239,8 +235,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _THICKNESSMAP
     surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
-
-    surfaceData.thickness = 1 - surfaceData.thickness; // Reverse for artists
 
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP

@@ -137,37 +137,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [GenerateHLSL]
-        public class LightFeatureFlags
+        public enum LightFeatureFlags
         {
-            public static uint FEATURE_FLAG_LIGHT_PUNCTUAL    = 1 << 0;
-            public static uint FEATURE_FLAG_LIGHT_AREA        = 1 << 1;
-            public static uint FEATURE_FLAG_LIGHT_DIRECTIONAL = 1 << 2;
-            public static uint FEATURE_FLAG_LIGHT_PROJECTOR   = 1 << 3;
-            public static uint FEATURE_FLAG_LIGHT_ENV         = 1 << 4;
-            public static uint FEATURE_FLAG_LIGHT_SKY         = 1 << 5;
+            Punctual    = 1 << 0,
+            Area        = 1 << 1,
+            Directional = 1 << 2,
+            Projector   = 1 << 3,
+            Env         = 1 << 4,
+            Sky         = 1 << 5
         }
 
         [GenerateHLSL]
         public class LightDefinitions
         {
-            public static int MAX_NR_LIGHTS_PER_CAMERA = 1024;
-            public static int MAX_NR_BIGTILE_LIGHTS_PLUSONE = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
-            public static float VIEWPORT_SCALE_Z = 1.0f;
+            public static int s_MaxNrLightsPerCamera = 1024;
+            public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
+            public static float s_ViewportScaleZ = 1.0f;
 
             // enable unity's original left-hand shader camera space (right-hand internally in unity).
-            public static int USE_LEFTHAND_CAMERASPACE = 1;
+            public static int s_UseLeftHandCameraSpace = 1;
 
-            public static int TILE_SIZE_FPTL = 16;
-            public static int TILE_SIZE_CLUSTERED = 32;
-
-            // flags
-            public static int IS_CIRCULAR_SPOT_SHAPE = 1;
-            public static int HAS_COOKIE_TEXTURE = 2;
-            public static int IS_BOX_PROJECTED = 4;
-            public static int HAS_SHADOW = 8;
+            public static int s_TileSizeFptl = 16;
+            public static int s_TileSizeClustered = 32;
 
             // feature variants
-            public static int NUM_FEATURE_VARIANTS = 16;
+            public static int s_NumFeatureVariants = 16;
         }
 
         [GenerateHLSL]
@@ -329,8 +323,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_shadeOpaqueDirectFptlKernel;
             static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
             static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
-            static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.NUM_FEATURE_VARIANTS];
-            static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.NUM_FEATURE_VARIANTS];
+            static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.s_NumFeatureVariants];
+            static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
             static ComputeBuffer s_LightVolumeDataBuffer = null;
             static ComputeBuffer s_ConvexBoundsBuffer = null;
@@ -423,22 +417,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int GetNumTileFtplX(Camera camera)
             {
-                return (camera.pixelWidth + (LightDefinitions.TILE_SIZE_FPTL - 1)) / LightDefinitions.TILE_SIZE_FPTL;
+                return (camera.pixelWidth + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
             }
 
             int GetNumTileFtplY(Camera camera)
             {
-                return (camera.pixelHeight + (LightDefinitions.TILE_SIZE_FPTL - 1)) / LightDefinitions.TILE_SIZE_FPTL;
+                return (camera.pixelHeight + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
             }
 
             int GetNumTileClusteredX(Camera camera)
             {
-                return (camera.pixelWidth + (LightDefinitions.TILE_SIZE_CLUSTERED - 1)) / LightDefinitions.TILE_SIZE_CLUSTERED;
+                return (camera.pixelWidth + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
             }
 
             int GetNumTileClusteredY(Camera camera)
             {
-                return (camera.pixelHeight + (LightDefinitions.TILE_SIZE_CLUSTERED - 1)) / LightDefinitions.TILE_SIZE_CLUSTERED;
+                return (camera.pixelHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
             }
 
             bool GetFeatureVariantsEnabled()
@@ -486,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
                 s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
                 s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
-                s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.NUM_FEATURE_VARIANTS * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
+                s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.s_NumFeatureVariants * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
 
                 if (m_TileSettings.enableClustered)
                 {
@@ -508,7 +502,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_shadeOpaqueDirectClusteredDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered_DebugDisplay");
                 s_shadeOpaqueDirectFptlDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl_DebugDisplay");
 
-                for (int variant = 0; variant < LightDefinitions.NUM_FEATURE_VARIANTS; variant++)
+                for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
                     s_shadeOpaqueIndirectClusteredKernels[variant] = shadeOpaqueShader.FindKernel("ShadeOpaque_Indirect_Clustered_Variant" + variant);
                     s_shadeOpaqueIndirectFptlKernels[variant] = shadeOpaqueShader.FindKernel("ShadeOpaque_Indirect_Fptl_Variant" + variant);
@@ -694,19 +688,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void AllocResolutionDependentBuffers(int width, int height)
             {
-                var nrTilesX = (width + LightDefinitions.TILE_SIZE_FPTL - 1) / LightDefinitions.TILE_SIZE_FPTL;
-                var nrTilesY = (height + LightDefinitions.TILE_SIZE_FPTL - 1) / LightDefinitions.TILE_SIZE_FPTL;
+                var nrTilesX = (width + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
+                var nrTilesY = (height + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTiles = nrTilesX * nrTilesY;
                 const int capacityUShortsPerTile = 32;
                 const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1;        // room for 31 lights and a nrLights value.
 
                 s_LightList = new ComputeBuffer((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
-                s_TileList = new ComputeBuffer((int)LightDefinitions.NUM_FEATURE_VARIANTS * nrTiles, sizeof(uint));
+                s_TileList = new ComputeBuffer((int)LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint));
 
                 if (m_TileSettings.enableClustered)
                 {
-                    var nrClustersX = (width + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
-                    var nrClustersY = (height + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
+                    var nrClustersX = (width + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
+                    var nrClustersY = (height + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
                     var nrClusterTiles = nrClustersX * nrClustersY;
 
                     s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint));
@@ -723,14 +717,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var nrBigTilesX = (width + 63) / 64;
                     var nrBigTilesY = (height + 63) / 64;
                     var nrBigTiles = nrBigTilesX * nrBigTilesY;
-                    s_BigTileLightList = new ComputeBuffer(LightDefinitions.MAX_NR_BIGTILE_LIGHTS_PLUSONE * nrBigTiles, sizeof(uint));
+                    s_BigTileLightList = new ComputeBuffer(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint));
                 }
             }
 
             static Matrix4x4 GetFlipMatrix()
             {
                 Matrix4x4 flip = Matrix4x4.identity;
-                bool isLeftHand = ((int)LightDefinitions.USE_LEFTHAND_CAMERASPACE) != 0;
+                bool isLeftHand = ((int)LightDefinitions.s_UseLeftHandCameraSpace) != 0;
                 if (isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
                 return flip;
             }
@@ -967,8 +961,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightPos = worldToView.MultiplyPoint(lightPos);
                     lightVolumeData.radiusSq = range * range;
                     lightVolumeData.cotan = cota;
-                    lightVolumeData.featureFlags = (gpuLightType == GPULightType.Spot) ? LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL
-                                                                                       : LightFeatureFlags.FEATURE_FLAG_LIGHT_PROJECTOR;
+                    lightVolumeData.featureFlags = (gpuLightType == GPULightType.Spot) ? (uint)LightFeatureFlags.Punctual
+                                                                                       : (uint)LightFeatureFlags.Projector;
                 }
                 else if (gpuLightType == GPULightType.Point)
                 {
@@ -993,7 +987,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = vz;
                     lightVolumeData.lightPos = bound.center;
                     lightVolumeData.radiusSq = range * range;
-                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL;
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
                 }
                 else if (gpuLightType == GPULightType.Rectangle)
                 {
@@ -1021,7 +1015,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = zAxisVS;
                     lightVolumeData.boxInnerDist = dimensions;
                     lightVolumeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
-                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_AREA;
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
                 }
                 else if (gpuLightType == GPULightType.Line)
                 {
@@ -1046,7 +1040,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = zAxisVS;
                     lightVolumeData.boxInnerDist = new Vector3(lightData.size.x * 0.5f, 0.01f, 0.01f);
                     lightVolumeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
-                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_AREA;
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
                 }
                 else if (gpuLightType == GPULightType.ProjectorOrtho)
                 {
@@ -1072,7 +1066,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ   = zAxisVS;
                     lightVolumeData.boxInnerDist = halfDims;                                                  // No idea what this is. Document your code
                     lightVolumeData.boxInvRange.Set(1.0f / halfDims.x, 1.0f / halfDims.y, 1.0f / halfDims.z); // No idea what this is. Document your code
-                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PROJECTOR;
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Projector;
                 }
                 else
                 {
@@ -1164,7 +1158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 lightVolumeData.lightCategory = (uint)LightCategory.Env;
                 lightVolumeData.lightVolume = (uint)lightVolumeType;
-                lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_ENV;
+                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
 
                 lightVolumeData.lightPos = Cw;
                 lightVolumeData.lightAxisX = vx;
@@ -1596,11 +1590,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         uint baseFeatureFlags = 0;
                         if (m_lightList.directionalLights.Count > 0)
                         {
-                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_DIRECTIONAL;
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                         }
                         if (Shader.GetGlobalInt("_EnvLightSkyEnabled") != 0)
                         {
-                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_SKY;
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
                         }
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileList", s_TileList);
@@ -1920,7 +1914,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             int numVariants = 1;
                             if (enableFeatureVariants)
-                                numVariants = LightDefinitions.NUM_FEATURE_VARIANTS;
+                                numVariants = LightDefinitions.s_NumFeatureVariants;
 
                             for (int variant = 0; variant < numVariants; variant++)
                             {

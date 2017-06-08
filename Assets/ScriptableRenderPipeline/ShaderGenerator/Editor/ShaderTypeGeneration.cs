@@ -158,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering
             public string fieldName;
             public Type fieldType;
             public bool isDirection;
-            public bool isSRGB;            
+            public bool isSRGB;
         }
 
         void Error(string error)
@@ -449,7 +449,7 @@ namespace UnityEditor.Experimental.Rendering
             if (!attr.needParamDebug)
                 return shaderText;
 
-            // Specific to HDRenderPipeline            
+            // Specific to HDRenderPipeline
             string lowerStructName = type.Name.ToLower();
 
             shaderText += "//\n";
@@ -470,7 +470,7 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ".xxx * 0.5 + 0.5;\n";
                     }
-                    else 
+                    else
                     {
                         shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ".xxx;\n";
                     }
@@ -485,10 +485,10 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + " * 0.5 + 0.5;\n";
                     }
-                    else 
+                    else
                     {
                         shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ";\n";
-                    }                    
+                    }
                 }
                 else if (debugField.fieldType == typeof(Vector4))
                 {
@@ -504,9 +504,9 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 else // This case left is suppose to be a complex structure. Either we don't support it or it is an enum. Consider it is an enum with GetIndexColor, user can override it if he want.
                 {
-                    shaderText += "            result = GetIndexColor(" + lowerStructName + "." + debugField.fieldName + ");\n";       
+                    shaderText += "            result = GetIndexColor(" + lowerStructName + "." + debugField.fieldName + ");\n";
                 }
-                
+
                 if (debugField.isSRGB)
                 {
                     shaderText += "            needLinearToSRGB = true;\n";
@@ -516,7 +516,7 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             shaderText += "    }\n";
-            shaderText += "}\n";            
+            shaderText += "}\n";
 
             return shaderText;
         }
@@ -571,16 +571,24 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     if (field.FieldType.IsPrimitive)
                     {
-                        m_Statics[field.Name] = field.GetValue(null).ToString();
+                        // Unity convention is to start static of constant with k_ or s_, remove this part
+                        string name = InsertUnderscore(field.Name);
+                        if (name.StartsWith("k_") || name.StartsWith("s_"))
+                        {
+                            name = name.Substring(2);
+                        }
+                        string defineName = name.ToUpper();
+                        m_Statics[defineName] = field.GetValue(null).ToString();
                     }
                     continue;
                 }
 
                 if (attr.needParamDebug)
                 {
-                    string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
+                    string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
+                    className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
                     string name = InsertUnderscore(field.Name);
-                    string defineName = ("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper();
+                    string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
                     m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
                     bool isDirection = false;

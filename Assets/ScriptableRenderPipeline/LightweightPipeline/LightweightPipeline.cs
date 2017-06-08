@@ -46,31 +46,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int          shadowResolution;
     }
 
-    public class LightweightPipeline : RenderPipeline, IComparer<VisibleLight>
+    public class LightweightPipeline : RenderPipeline
     {
         private readonly LightweightPipelineAsset m_Asset;
 
-        private static readonly int kMaxCascades = 4;
-        private static readonly int kMaxLights = 8;
+        // Max amount of visible lights. This controls the lights constant buffers in shader but not the max shaded lights.
+        // Lights are set per-object and the max shaded lights for each object are controlled by the max pixel lights in pipeline asset and kMaxVertexLights.
+        private static readonly int kMaxVisibleLights = 16;
         private static readonly int kMaxVertexLights = 4;
-        private int m_ShadowLightIndex = -1;
+
+        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightColors = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightAttenuations = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLights];
+
+        // Amount of light indices buffer set per object.
+        // TODO: Change cullresults to return amount of renderers so we can allocate/reallocate enough buffer data
+        // As off now allocating a enough buffer to hold a scene that should enough for a small demo/game
+        private static readonly int kMaxLightIndices = 1024 * kMaxVisibleLights;
+        private ComputeBuffer m_LightIndexListBuffer;
+
+        private static readonly int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
-        private readonly int[] m_LightTypePriority = new int[4] {2, 1, 2, 0}; // Spot and Point lights have max priority
         private int m_ShadowMapProperty;
+        private int m_ShadowLightIndex = -1;
         private RenderTargetIdentifier m_ShadowMapRTID;
         private int m_DepthBufferBits = 24;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
 
-        private static readonly ShaderPassName m_ForwardBasePassName = new ShaderPassName("LightweightForward");
-
-        private Vector4[] m_LightPositions = new Vector4[kMaxLights];
-        private Vector4[] m_LightColors = new Vector4[kMaxLights];
-        private Vector4[] m_LightAttenuations = new Vector4[kMaxLights];
-        private Vector4[] m_LightSpotDirections = new Vector4[kMaxLights];
-
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
 
+        private static readonly ShaderPassName m_ForwardBasePassName = new ShaderPassName("LightweightForward") ;
+        
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
@@ -79,16 +87,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowMapProperty = Shader.PropertyToID("_ShadowMap");
             m_ShadowMapRTID = new RenderTargetIdentifier(m_ShadowMapProperty);
             Shader.globalRenderPipeline = "LightweightPipeline";
+
+            // TODO: Change cullresults to return amount of renderers so we can allocate/reallocate enough buffer data
+            m_LightIndexListBuffer = new ComputeBuffer(kMaxLightIndices, sizeof(uint));
         }
 
         public override void Dispose()
         {
             Shader.globalRenderPipeline = "";
+            m_LightIndexListBuffer.Dispose();
         }
 
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            base.Render(context, cameras);
+            base.Render(context, cameras); 
 
             foreach (Camera camera in cameras)
             {
@@ -104,12 +116,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 int pixelLightsCount, vertexLightsCount;
                 GetMaxSupportedLights(visibleLights.Length, out pixelLightsCount, out vertexLightsCount);
 
-                SortLights(ref visibleLights, pixelLightsCount);
-
                 // TODO: Add remaining lights to SH
 
                 // Render Shadow Map
                 bool shadowsRendered = false;
+                InitializeMainShadowLightIndex(visibleLights);
                 if (m_ShadowLightIndex > -1)
                     shadowsRendered = RenderShadows(cull, visibleLights[m_ShadowLightIndex], context);
 
@@ -124,6 +135,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.Dispose();
 
                 // Setup light and shadow shader constants
+                cull.FillLightIndices(m_LightIndexListBuffer);
                 SetupLightShaderVariables(visibleLights, pixelLightsCount, vertexLightsCount, context);
                 if (shadowsRendered)
                     SetupShadowShaderVariables(context, m_ShadowCasterCascadesCount);
@@ -139,6 +151,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (m_Asset.EnableAmbientProbe)
                     settings.rendererConfiguration |= RendererConfiguration.PerObjectLightProbe;
+
+                settings.rendererConfiguration |= RendererConfiguration.ProvideLightIndices;
 
                 context.DrawRenderers(ref settings);
 
@@ -193,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void InitializeLightData()
         {
-            for (int i = 0; i < kMaxLights; ++i)
+            for (int i = 0; i < kMaxVisibleLights; ++i)
             {
                 m_LightPositions[i] = Vector4.zero;
                 m_LightColors[i] = Vector4.zero;
@@ -204,10 +218,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupLightShaderVariables(VisibleLight[] lights, int pixelLightCount, int vertexLightCount, ScriptableRenderContext context)
         {
-            int totalLightCount = pixelLightCount + vertexLightCount;
             InitializeLightData();
 
-            for (int i = 0; i < totalLightCount; ++i)
+            int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
+            for (int i = 0; i < maxLights; ++i)
             {
                 VisibleLight currLight = lights[i];
                 if (currLight.lightType == LightType.Directional)
@@ -240,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
                 else
                 {
-                    m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+                    m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f) ;
                     m_LightAttenuations[i] = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
                 }
             }
@@ -250,9 +264,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-            float shadowMinNormalBias = m_Asset.ShadowMinNormalBias;
-            float shadowNormalBias = m_Asset.ShadowNormalBias;
-            cmd.SetGlobalVector("globalLightData", new Vector4(pixelLightCount, totalLightCount, shadowMinNormalBias, shadowNormalBias));
+            cmd.SetGlobalBuffer("globalLightIndexList", m_LightIndexListBuffer);
+            cmd.SetGlobalVector("globalLightData", new Vector4(pixelLightCount, m_ShadowLightIndex, m_Asset.ShadowMinNormalBias, m_Asset.ShadowNormalBias));
             SetShaderKeywords(cmd, vertexLightCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -393,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return resolution;
         }
 
-        void SetupShadowShaderVariables(ScriptableRenderContext context, int cascadeCount)
+        private void SetupShadowShaderVariables(ScriptableRenderContext context, int cascadeCount)
         {
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
@@ -420,7 +433,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             setupShadow.Dispose();
         }
 
-        void SetShaderKeywords(CommandBuffer cmd, bool vertexLightSupport)
+        private void SetShaderKeywords(CommandBuffer cmd, bool vertexLightSupport)
         {
             if (vertexLightSupport)
                 cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
@@ -445,49 +458,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.DisableShaderKeyword("_LIGHT_PROBES_ON");
         }
 
-        // Finds main light and main shadow casters and places them in the beginning of array.
-        // Sort the remaining array based on custom IComparer criteria.
-        private void SortLights(ref VisibleLight[] lights, int pixelLightsCount)
+        private void InitializeMainShadowLightIndex(VisibleLight[] lights)
         {
             m_ShadowLightIndex = -1;
-            if (lights.Length == 0)
-                return;
-
-            bool shadowsSupported = m_Asset.CurrShadowType != ShadowType.NO_SHADOW && pixelLightsCount > 0;
-            int mainLightIndex = -1;
-
+            float maxIntensity = -1;
             for (int i = 0; i < lights.Length; ++i)
             {
-                VisibleLight currLight = lights[i];
-                if (currLight.lightType == LightType.Directional)
-                    if (mainLightIndex == -1 || currLight.light.intensity > lights[mainLightIndex].light.intensity)
-                        mainLightIndex = i;
-
-                if (shadowsSupported && (currLight.light.shadows != LightShadows.None) && IsSupportedShadowType(currLight.lightType))
-                    // Prefer directional shadows, if not sort by intensity
-                    if (m_ShadowLightIndex == -1 || currLight.lightType > lights[m_ShadowLightIndex].lightType)
-                        m_ShadowLightIndex = i;
+                Light light = lights[i].light;
+                if (light.shadows != LightShadows.None && IsSupportedShadowType(light.type) && light.intensity > maxIntensity)
+                {
+                    m_ShadowLightIndex = i;
+                    maxIntensity = light.intensity;
+                }
             }
-
-            // If supports a single directional light only, main light is main shadow light.
-            if (pixelLightsCount == 1 && m_ShadowLightIndex > -1)
-                mainLightIndex = m_ShadowLightIndex;
-
-            int startIndex = 0;
-            if (mainLightIndex > -1)
-            {
-                SwapLights(ref lights, 0, mainLightIndex);
-                startIndex++;
-            }
-
-            if (mainLightIndex != m_ShadowLightIndex && m_ShadowLightIndex > 0)
-            {
-                SwapLights(ref lights, 1, m_ShadowLightIndex);
-                m_ShadowLightIndex = 1;
-                startIndex++;
-            }
-
-            Array.Sort(lights, startIndex, lights.Length - startIndex, this);
         }
 
         private bool IsSupportedShadowType(LightType type)
@@ -495,27 +478,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return (type == LightType.Directional || type == LightType.Spot);
         }
 
-        private void SwapLights(ref VisibleLight[] lights, int lhsIndex, int rhsIndex)
-        {
-            if (lhsIndex == rhsIndex)
-                return;
-
-            VisibleLight temp = lights[lhsIndex];
-            lights[lhsIndex] = lights[rhsIndex];
-            lights[rhsIndex] = temp;
-        }
-
-        // Prioritizes Spot and Point lights by intensity. If any directional light, it will be the main
-        // light and will not be considered in the computation.
-        // TODO: Move to a better sorting solution, e.g, prioritize lights per object.
-        public int Compare(VisibleLight lhs, VisibleLight rhs)
-        {
-            int lhsLightTypePriority = m_LightTypePriority[(int)lhs.lightType];
-            int rhsLightTypePriority = m_LightTypePriority[(int)rhs.lightType];
-            if (lhsLightTypePriority != rhsLightTypePriority)
-                return rhsLightTypePriority - lhsLightTypePriority;
-
-            return (int)(rhs.light.intensity - lhs.light.intensity);
-        }
     }
 }
