@@ -58,7 +58,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if ((ShadowMapDebugMode)shadowDebug.GetValue() == ShadowMapDebugMode.VisualizeShadowMap)
                 {
                     EditorGUI.indentLevel++;
-                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMapIndexDebug).handler.OnEditorGUI();
+                    DebugItem shadowSelectionDebug = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowSelectionDebug);
+                    shadowSelectionDebug.handler.OnEditorGUI();
+                    if(!(bool)shadowSelectionDebug.GetValue())
+                        m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMapIndexDebug).handler.OnEditorGUI();
                     EditorGUI.indentLevel--;
                 }
                 if ((ShadowMapDebugMode)shadowDebug.GetValue() == ShadowMapDebugMode.VisualizeAtlas)

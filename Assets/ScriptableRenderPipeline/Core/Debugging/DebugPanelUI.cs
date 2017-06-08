@@ -67,8 +67,12 @@ namespace UnityEngine.Experimental.Rendering
             m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
-                DebugItemHandler handler = m_DebugPanel.GetDebugItem(i).handler; // Should never be null, we have at least the default handler
-                m_ItemsUI.Add(handler.BuildGUI(parent));
+                DebugItem item = m_DebugPanel.GetDebugItem(i);
+                if(!((item.flags & DebugItemFlag.EditorOnly) != 0))
+                {
+                    DebugItemHandler handler = item.handler; // Should never be null, we have at least the default handler
+                    m_ItemsUI.Add(handler.BuildGUI(parent));
+                }
             }
         }
 
