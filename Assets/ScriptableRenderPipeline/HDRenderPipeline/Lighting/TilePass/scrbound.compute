@@ -283,7 +283,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 					vMax.xy = bMa ? min(vMax.xy, vMa) : vMax.xy;
 				}
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 				if((center.z-radius)>0.0)
 				{
 					float4 vPosF = mul(g_mProjection, float4(0,0,center.z-radius,1));
@@ -438,7 +438,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 	float4 planeY = EvalPlanePair(validY, float2(pos_view_space.y, pos_view_space.z), r);
 
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	planeX = planeX.zwxy;		// need to swap left/right and top/bottom planes when using left hand system
 	planeY = planeY.zwxy;
 #endif
