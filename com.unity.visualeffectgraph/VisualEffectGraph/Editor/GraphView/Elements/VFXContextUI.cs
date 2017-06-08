@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -42,6 +42,7 @@ namespace UnityEditor.VFX.UI
         VisualContainer     m_FlowOutputConnectorContainer;
         VisualContainer     m_NodeContainer;
         BlockContainer      m_BlockContainer;
+        VisualContainer     m_InsideContainer;
 
         VisualElement       m_DragDisplay;
 
@@ -79,7 +80,12 @@ namespace UnityEditor.VFX.UI
                 name = "NodeContents",
                 clipChildren = false
             };
-            m_NodeContainer.clipChildren = false;
+
+            m_InsideContainer = new VisualContainer()
+            {
+                name = "Inside",
+                clipChildren = false
+            };
 
             AddChild(m_NodeContainer);
 
@@ -108,10 +114,11 @@ namespace UnityEditor.VFX.UI
 
             m_HeaderContainer.AddChild(m_HeaderSpace);
 
-            m_NodeContainer.AddChild(m_Header);
+            m_InsideContainer.AddChild(m_Header);
 
 
             m_OwnData = new VFXContextSlotContainerUI();
+            m_OwnData.RemoveFromClassList("node");
             m_Header.AddChild(m_HeaderContainer);
             m_Header.AddChild(m_OwnData);
 
@@ -122,7 +129,7 @@ namespace UnityEditor.VFX.UI
 
             m_BlockContainer.AddManipulator(new ClickSelector());
 
-            m_NodeContainer.AddChild(m_BlockContainer);
+            m_InsideContainer.AddChild(m_BlockContainer);
 
 
             m_Footer = new VisualContainer() {
@@ -139,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
             m_Footer.AddChild(m_FlowOutputConnectorContainer);
 
-            m_NodeContainer.AddChild(m_Footer);
+            m_InsideContainer.AddChild(m_Footer);
             /*
             m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
             {
@@ -157,6 +164,8 @@ namespace UnityEditor.VFX.UI
                 return EventPropagation.Continue;
             }));
             */
+
+            m_NodeContainer.AddChild(m_InsideContainer);
             typeFactory = new GraphViewTypeFactory();
             typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
             typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
@@ -478,12 +487,12 @@ namespace UnityEditor.VFX.UI
             if (presenter.context.outputType == VFXDataType.kNone)
             {
                 if (m_Footer.parent != null)
-                    m_NodeContainer.RemoveChild(m_Footer);
+                    m_InsideContainer.RemoveChild(m_Footer);
             }
             else
             {
                 if (m_Footer.parent == null)
-                    m_NodeContainer.AddChild(m_Footer);
+                    m_InsideContainer.AddChild(m_Footer);
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
                 m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
             }

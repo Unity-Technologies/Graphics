@@ -299,6 +299,12 @@ namespace UnityEditor.VFX.UI
                 // Detach from graph
                 context.Detach();
             }
+            else if (element is VFXBlockPresenter)
+            {
+                var block = element as VFXBlockPresenter;
+
+                block.contextPresenter.RemoveBlock(block.block);
+            }
             else if (element is VFXSlotContainerPresenter)
             {
                 var operatorPresenter = element as VFXSlotContainerPresenter;
@@ -343,12 +349,6 @@ namespace UnityEditor.VFX.UI
                         slot.UnlinkAll();
                     }
                 }
-            }
-            else if (element is VFXBlockPresenter)
-            {
-                var block = element as VFXBlockPresenter;
-
-                block.contextPresenter.RemoveBlock(block.block);
             }
             else
             {
