@@ -265,8 +265,9 @@ namespace UnityEngine.Experimental.Rendering
     public class DebugItemHandlerFloatMinMax
         : DefaultDebugItemHandler
     {
-        float m_Min = 0.0f;
-        float m_Max = 1.0f;
+        protected float m_Min = 0.0f;
+        protected float m_Max = 1.0f;
+
         public DebugItemHandlerFloatMinMax(float min, float max)
         {
             m_Min = min;
@@ -288,6 +289,41 @@ namespace UnityEngine.Experimental.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 m_DebugItem.SetValue(value);
+                return true;
+            }
+
+            return false;
+        }
+#endif
+    }
+
+    public class DebugItemHandlerUIntMinMax
+    : DefaultDebugItemHandler
+    {
+        protected uint m_Min = 0;
+        protected uint m_Max = 1;
+
+        public DebugItemHandlerUIntMinMax(uint min, uint max)
+        {
+            m_Min = min;
+            m_Max = max;
+        }
+
+        public override void ClampValues(Func<object> getter, Action<object> setter)
+        {
+            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+        }
+
+#if UNITY_EDITOR
+        public override bool OnEditorGUIImpl()
+        {
+            Initialize();
+
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.IntSlider(m_DebugItem.name, (int)(uint)m_DebugItem.GetValue(), (int)m_Min, (int)m_Max);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_DebugItem.SetValue((uint)value);
                 return true;
             }
 

@@ -1188,6 +1188,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_ShadowRequests.Count;
             }
 
+            public int GetShadowAtlasCount()
+            {
+                return (int)m_ShadowMgr.GetShadowMapCount();
+            }
+
             public void UpdateCullingParameters(ref CullingParameters cullingParams)
             {
                 m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
@@ -2122,37 +2127,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-
-                if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
+                using (new Utilities.ProfilingSample("Display Shadows", renderContext))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
-                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, x, y, overlaySize, overlaySize);
-                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
-
-                        // TODO: @Julien exchange shadowmapIndex by lightIndex and draw all slide like below
-                        /*
-                        for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
+                        uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount(lightingDebug.shadowMapIndex);
+                        for (uint i = 0; i < faceCount; ++i )
                         {
-                            ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
-
-                            Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
-                                    (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
-                                    (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
-                                    (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
-
-                            propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
-
-                            debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-
-                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                            m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, i, x, y, overlaySize, overlaySize);
+                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                         }
-                        */
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, -1, x, y, overlaySize, overlaySize);
+                        m_ShadowMgr.DisplayShadowAtlas(renderContext, m_DebugDisplayShadowMap, lightingDebug.shadowAtlasIndex, x, y, overlaySize, overlaySize);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }

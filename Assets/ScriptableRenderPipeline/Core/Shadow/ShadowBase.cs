@@ -380,6 +380,13 @@ namespace UnityEngine.Experimental.Rendering
             id = texIdx << 24 | sampIdx << 16 | slice;
         }
 
+        public void UnpackShadowmapId(out uint texIdx, out uint sampIdx, out uint slice)
+        {
+            texIdx = (id >> 24) & 0xff;
+            sampIdx = (id >> 16) & 0xff;
+            slice = (id & 0xffff);
+        }
+
         public void PackShadowType( GPUShadowType type, GPUShadowAlgorithm algorithm )
         {
             shadowType = (uint)type << ShadowConstants.Bits.k_GPUShadowAlgorithm | (uint) algorithm;
@@ -711,6 +718,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
+        abstract public void DisplayShadowMap(ScriptableRenderContext renderContext, Material displayMaterial, Vector4 scaleBias, float screenX, float screenY, float screenSizeX, float screenSizeY);
     }
 
     interface IShadowManager
@@ -728,20 +736,28 @@ namespace UnityEngine.Experimental.Rendering
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
         void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         // Debug function to display a shadow at the screen coordinate with the provided material.
-        void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        void DisplayShadowAtlas(ScriptableRenderContext renderContext, Material displayMaterial, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
         void BindResources( ScriptableRenderContext renderContext );
         // Fixes up some parameters within the cullResults
         void UpdateCullingParameters( ref CullingParameters cullingParams );
+
+        uint GetShadowMapCount();
+
+        uint GetShadowRequestCount();
+
+        uint GetShadowRequestFaceCount(uint requestIndex);
     }
 
     abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
     {
         public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
-        public  abstract void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        public  abstract void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        public  abstract void DisplayShadowAtlas(ScriptableRenderContext renderContext, Material displayMaterial, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
         public  abstract void SyncData();
         public  abstract void BindResources( ScriptableRenderContext renderContext );
         public  abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
@@ -751,5 +767,10 @@ namespace UnityEngine.Experimental.Rendering
         protected abstract void PruneShadowCasters( Camera camera, VisibleLight[] lights, ref VectorArray<int> shadowRequests, ref VectorArray<ShadowmapBase.ShadowRequest> requestsGranted, out uint totalRequestCount );
         // allocate the shadow requests in the shadow map, only is called if shadowsCount > 0 - may modify shadowRequests and shadowsCount
         protected abstract void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
+
+        public abstract uint GetShadowMapCount();
+        public abstract uint GetShadowRequestCount();
+        public abstract uint GetShadowRequestFaceCount(uint requestIndex);
+
     }
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop
