@@ -98,6 +98,8 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
 
     #ifdef SURFACE_GRADIENT
     // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
+
+    // TODO: For surface gradient we must invert or mirror the normal just after the interpolation. It will allow to work with layered with all basis. Currently it is not the case
     #endif
 #endif
 }
@@ -108,7 +110,8 @@ void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout fl
     #ifdef SURFACE_GRADIENT
     normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
     #else
-    normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
+    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+    normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
     #endif
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.

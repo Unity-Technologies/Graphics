@@ -5,7 +5,7 @@
 #ifndef BUILTINDATA_CS_HLSL
 #define BUILTINDATA_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Builtin.BuiltinData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Builtin+BuiltinData:  static fields
 //
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY (100)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING (101)
@@ -17,12 +17,12 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (107)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Builtin.LightTransportData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData:  static fields
 //
 #define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR (120)
 #define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR (121)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin.BuiltinData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin+BuiltinData
 // PackingRules = Exact
 struct BuiltinData
 {
@@ -36,7 +36,7 @@ struct BuiltinData
     float depthOffset;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin.LightTransportData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData
 // PackingRules = Exact
 struct LightTransportData
 {
