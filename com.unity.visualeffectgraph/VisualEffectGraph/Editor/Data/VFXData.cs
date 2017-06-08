@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.VFX
 {
@@ -153,12 +154,12 @@ namespace UnityEditor.VFX
         // Collect attribute expressions linked to a context
         private void CollectInputAttributes(VFXContext context, VFXExpressionGraph graph)
         {
-            foreach (var slot in context.inputSlots)
-                AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+            foreach (var slot in context.inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                    AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
 
             foreach (var block in context.children)
-                foreach (var slot in block.inputSlots)
-                    AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+                foreach (var slot in block.inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                        AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
         }
 
         // Collect attribute expressions recursively
