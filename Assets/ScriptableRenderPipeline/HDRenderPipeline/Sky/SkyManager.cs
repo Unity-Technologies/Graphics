@@ -99,12 +99,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Texture skyReflection { get { return m_SkyboxGGXCubemapRT; } }
 
-        protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
+        protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix)
         {
-            Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
-            Vector4 vertData1 = new Vector4(1.0f, -1.0f, 1.0f, 1.0f);
-            Vector4 vertData2 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-            Vector4 vertData3 = new Vector4(-1.0f, 1.0f, 1.0f, 1.0f);
+            Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 0.0f, 1.0f);
+            Vector4 vertData1 = new Vector4( 1.0f, -1.0f, 0.0f, 1.0f);
+            Vector4 vertData2 = new Vector4( 1.0f,  1.0f, 0.0f, 1.0f);
+            Vector4 vertData3 = new Vector4(-1.0f,  1.0f, 0.0f, 1.0f);
 
             Vector3[] vertData = new Vector3[4];
             vertData[0] = new Vector3(vertData0.x, vertData0.y, vertData0.z);
@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 direction2 = (posWorldSpace2 / posWorldSpace2.w - cameraPos);
             Vector4 direction3 = (posWorldSpace3 / posWorldSpace3.w - cameraPos);
 
-            if (SystemInfo.graphicsUVStartsAtTop && !forceUVBottom)
+            if (SystemInfo.graphicsUVStartsAtTop)
             {
                 eyeVectorData[3] = new Vector3(direction0.x, direction0.y, direction0.z).normalized;
                 eyeVectorData[2] = new Vector3(direction1.x, direction1.y, direction1.z).normalized;
@@ -251,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
                     m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
-                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
+                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i]);
                 }
             }
         }
@@ -447,10 +447,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_BuiltinParameters.renderContext = renderContext;
                     m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
+                    m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.screenSize = camera.screenSize;
-                    m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
+                    m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 

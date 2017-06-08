@@ -237,38 +237,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static HDCamera GetHDCamera(Camera camera)
         {
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms (different Z value ranges etc.)
+            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+
             HDCamera hdCamera = new HDCamera();
-            hdCamera.camera = camera;
-            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-            // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            var gpuVP = gpuProj * camera.worldToCameraMatrix;
-
-            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-            Vector4 invProjectionParam = new Vector4(gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
-                    gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
-                    -1.0f / gpuProj.m23,
-                    (-gpuProj.m22
-                     + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
-                     + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23);
-
-            hdCamera.viewProjectionMatrix    = gpuVP;
-            hdCamera.invViewProjectionMatrix = gpuVP.inverse;
-            hdCamera.invProjectionMatrix     = gpuProj.inverse;
-            hdCamera.invProjectionParam      = invProjectionParam;
+            hdCamera.viewMatrix = camera.worldToCameraMatrix;
+            hdCamera.projMatrix = projMatrix;
+            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);;
+            hdCamera.camera     = camera;
 
             return hdCamera;
         }
-
-        public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
+        public static void SetupGlobalHDCamera(HDCamera hdCamera, CommandBuffer cmd)
         {
+            cmd.SetGlobalMatrix("_ViewMatrix",        hdCamera.viewMatrix);
+            cmd.SetGlobalMatrix("_InvViewMatrix",     hdCamera.viewMatrix.inverse);
+            cmd.SetGlobalMatrix("_ProjMatrix",        hdCamera.projMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.projMatrix.inverse);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",    hdCamera.viewProjMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
+            cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjParam);
+            cmd.SetGlobalVector("_ScreenSize",        hdCamera.screenSize);
+        }
+
+        // Does not modify global settings. Used for shadows, low res. rendering, etc.
+        public static void OverrideGlobalHDCamera(HDCamera hdCamera, Material material)
+        {
+            material.SetMatrix("_ViewMatrix",        hdCamera.viewMatrix);
+            material.SetMatrix("_InvViewMatrix",     hdCamera.viewMatrix.inverse);
+            material.SetMatrix("_ProjMatrix",        hdCamera.projMatrix);
+            material.SetMatrix("_InvProjMatrix",     hdCamera.projMatrix.inverse);
+            material.SetMatrix("_ViewProjMatrix",    hdCamera.viewProjMatrix);
+            material.SetMatrix("_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
+            material.SetVector("_InvProjParam",      hdCamera.invProjParam);
             material.SetVector("_ScreenSize",        hdCamera.screenSize);
-            material.SetMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
-            material.SetMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
-            material.SetMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
-            material.SetVector("_InvProjParam",      hdCamera.invProjectionParam);
+        }
+
+        public static void SetupComputeShaderHDCamera(HDCamera hdCamera, ComputeShader cs, CommandBuffer cmd)
+        {
+            SetMatrixCS(cmd,          cs, "_ViewMatrix",        hdCamera.viewMatrix);
+            SetMatrixCS(cmd,          cs, "_InvViewMatrix",     hdCamera.viewMatrix.inverse);
+            SetMatrixCS(cmd,          cs, "_ProjMatrix",        hdCamera.projMatrix);
+            SetMatrixCS(cmd,          cs, "_InvProjMatrix",     hdCamera.projMatrix.inverse);
+            SetMatrixCS(cmd,          cs, "_ViewProjMatrix",    hdCamera.viewProjMatrix);
+            SetMatrixCS(cmd,          cs, "_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, "_InvProjParam",      hdCamera.invProjParam);
+            cmd.SetComputeVectorParam(cs, "_ScreenSize",        hdCamera.screenSize);
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#
@@ -336,38 +351,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -375,7 +387,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
             // we pass the first color target as the depth target. If it has 0 depth bits,
             // no depth target ends up being bound.
-            DrawFullScreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
+            DrawFullScreen(commandBuffer, material, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
 
         // Helper to help to display debug info on screen

@@ -200,14 +200,31 @@ CBUFFER_START(UnityVelocityPass)
     float _MotionVectorDepthBias;
 CBUFFER_END
 
-// ----------------------------------------------------------------------------
-
 // TODO: move this to constant buffer by Pass
-float4   _ScreenSize;
-float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
-float4x4 _InvViewProjMatrix;
+float4x4 _ViewMatrix;
+float4x4 _InvViewMatrix;
+float4x4 _ProjMatrix;
 float4x4 _InvProjMatrix;
+float4x4 _ViewProjMatrix;
+float4x4 _InvViewProjMatrix;
 float4   _InvProjParam;
+float4   _ScreenSize;
+
+/****************************************************************************/
+/*                            HDCAMERA OVERRIDES                            */
+/****************************************************************************/
+
+#define UNITY_MATRIX_M     unity_ObjectToWorld
+#define UNITY_MATRIX_I_M   unity_WorldToObject
+#define UNITY_MATRIX_V     _ViewMatrix
+#define UNITY_MATRIX_I_V   _InvViewMatrix
+#define UNITY_MATRIX_P     _ProjMatrix
+#define UNITY_MATRIX_I_P   _InvProjMatrix
+#define UNITY_MATRIX_VP    _ViewProjMatrix
+#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
+#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 
 float4x4 GetWorldToViewMatrix()
 {
@@ -216,12 +233,12 @@ float4x4 GetWorldToViewMatrix()
 
 float4x4 GetObjectToWorldMatrix()
 {
-    return unity_ObjectToWorld;
+    return UNITY_MATRIX_M;
 }
 
 float4x4 GetWorldToObjectMatrix()
 {
-    return unity_WorldToObject;
+    return UNITY_MATRIX_I_M;
 }
 
 // Transform to homogenous clip space
@@ -356,7 +373,7 @@ float3 TransformTangentToObject(float3 dirTS, float3x3 worldToTangent)
 {
     // Use transpose transformation to go from tangent to world as the matrix is orthogonal
     float3 normalWS = mul(dirTS, worldToTangent);
-    return mul((float3x3)unity_WorldToObject, normalWS);
+    return mul((float3x3)GetWorldToObjectMatrix(), normalWS);
 }
 
 float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)

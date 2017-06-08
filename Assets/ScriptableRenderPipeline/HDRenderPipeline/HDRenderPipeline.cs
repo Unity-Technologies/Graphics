@@ -26,12 +26,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public struct HDCamera
     {
-        public Camera    camera;
+        public Matrix4x4 viewMatrix;
+        public Matrix4x4 projMatrix;
         public Vector4   screenSize;
-        public Matrix4x4 viewProjectionMatrix;
-        public Matrix4x4 invViewProjectionMatrix;
-        public Matrix4x4 invProjectionMatrix;
-        public Vector4   invProjectionParam;
+        public Camera    camera;
+
+        public Matrix4x4 viewProjMatrix
+        {
+            get { return projMatrix * viewMatrix; }
+        }
+
+        public Vector4   invProjParam
+        {
+            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+            get { var p = projMatrix; return new Vector4(p.m20 / (p.m00 * p.m23), p.m21 / (p.m11 * p.m23), -1.0f / p.m23, (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23); }
+        }
     }
 
     public class GBufferManager
@@ -290,11 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
-            cmd.SetGlobalVector("_ScreenSize",        hdCamera.screenSize);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
-            cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjectionParam);
+            Utilities.SetupGlobalHDCamera(hdCamera, cmd);
 
             // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
 
@@ -403,6 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.SetupCameraProperties(camera);
 
             HDCamera hdCamera = Utilities.GetHDCamera(camera);
+            PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -439,8 +445,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                     m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT);
                 }
-
-                PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                 // must be call after BuildGPULightLists.
@@ -599,8 +603,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render GBuffer opaque
                 if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
-                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
-
                     // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
                     // TODO: Bind depth textures
                     var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
@@ -659,7 +661,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
             m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
 
-            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

@@ -33,7 +33,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     {
         // TODO: implement SV_vertexID full screen quad
         Varyings output;
-        output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
+        output.positionCS = float4(input.positionCS.x, -input.positionCS.y, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
         output.eyeVector = input.eyeVector;
 
         return output;
