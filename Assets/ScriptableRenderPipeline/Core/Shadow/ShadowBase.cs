@@ -750,6 +750,8 @@ namespace UnityEngine.Experimental.Rendering
         uint GetShadowRequestCount();
 
         uint GetShadowRequestFaceCount(uint requestIndex);
+
+        int GetShadowRequestIndex(Light light);
     }
 
     abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
@@ -771,6 +773,7 @@ namespace UnityEngine.Experimental.Rendering
         public abstract uint GetShadowMapCount();
         public abstract uint GetShadowRequestCount();
         public abstract uint GetShadowRequestFaceCount(uint requestIndex);
+        public abstract int GetShadowRequestIndex(Light light);
 
     }
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop

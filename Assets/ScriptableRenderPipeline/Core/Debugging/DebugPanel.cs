@@ -9,7 +9,8 @@ namespace UnityEngine.Experimental.Rendering
     public enum DebugItemFlag
     {
         None,
-        DynamicDisplay
+        DynamicDisplay,
+        EditorOnly
     }
 
     public class DebugItem

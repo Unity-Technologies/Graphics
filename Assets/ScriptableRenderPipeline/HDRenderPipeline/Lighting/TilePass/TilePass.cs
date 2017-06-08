@@ -2125,11 +2125,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
-                        uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount(lightingDebug.shadowMapIndex);
-                        for (uint i = 0; i < faceCount; ++i )
+                        int index = (int)lightingDebug.shadowMapIndex;
+
+#if UNITY_EDITOR
+                        if(lightingDebug.shadowDebugUseSelection)
                         {
-                            m_ShadowMgr.DisplayShadows(renderContext, (int)lightingDebug.shadowMapIndex, i, x, y, overlaySize, overlaySize);
-                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                            index = -1;
+                            if (UnityEditor.Selection.activeObject is GameObject)
+                            {
+                                GameObject go = UnityEditor.Selection.activeObject as GameObject;
+                                Light light = go.GetComponent<Light>();
+                                if (light != null)
+                                {
+                                    index = m_ShadowMgr.GetShadowRequestIndex(light);
+                                }
+                            }
+                        }
+#endif
+
+                        if(index != -1)
+                        {
+                            uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
+                            for (uint i = 0; i < faceCount; ++i)
+                            {
+                                m_ShadowMgr.DisplayShadows(renderContext, index, i, x, y, overlaySize, overlaySize);
+                                Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                            }
                         }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)

@@ -1048,6 +1048,17 @@ namespace UnityEngine.Experimental.Rendering
                 return m_TmpRequests[requestIndex].facecount;
         }
 
+        public override int GetShadowRequestIndex(Light light)
+        {
+            for(int i = 0 ; i < m_TmpRequests.Count() ; ++i)
+            {
+                if (m_TmpRequests[(uint)i].instanceId == light.GetInstanceID())
+                    return i;
+            }
+
+            return -1;
+        }
+
         public ShadowManager( ShadowSettings shadowSettings, ref ShadowContext.CtxtInit ctxtInitializer, ShadowmapBase[] shadowmaps )
         {
             m_ShadowSettings = shadowSettings;

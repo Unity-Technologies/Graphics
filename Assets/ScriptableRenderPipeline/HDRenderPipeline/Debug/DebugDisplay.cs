@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public static string kEnableShadowDebug = "Enable Shadows";
         public static string kShadowDebugMode = "Shadow Debug Mode";
+        public static string kShadowSelectionDebug = "Use Selection";
         public static string kShadowMapIndexDebug = "Shadow Map Index";
         public static string kShadowAtlasIndexDebug = "Shadow Atlas Index";
         public static string kLightingDebugMode = "Lighting Debug Mode";
@@ -117,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kEnableShadowDebug, () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>(kShadowDebugMode, () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kShadowSelectionDebug, () => lightingDebugSettings.shadowDebugUseSelection, (value) => lightingDebugSettings.shadowDebugUseSelection = (bool)value, DebugItemFlag.EditorOnly);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowMapIndexDebug, () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowIndex(1));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowAtlasIndexDebug, () => lightingDebugSettings.shadowAtlasIndex, (value) => lightingDebugSettings.shadowAtlasIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowAtlasIndex(1));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, FullScreenDebugMode>(kFullScreenDebugMode, () => lightingDebugSettings.fullScreenDebugMode, (value) => lightingDebugSettings.fullScreenDebugMode = (FullScreenDebugMode)value);
@@ -417,6 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
         public bool                 enableShadows = true;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
+        public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
         public uint                 shadowAtlasIndex = 0;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
