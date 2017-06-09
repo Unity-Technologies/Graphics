@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UIElements.GraphView;
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UpdateInfos(bool expanded)
+        public virtual void UpdateInfos(bool expanded)
         {
             anchorType = model.property.type;
         }

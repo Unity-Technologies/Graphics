@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,11 @@ namespace UnityEditor.VFX.UI
         public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
         {
             base.Init(model, scPresenter);
+        }
+
+        public override void UpdateInfos(bool expanded)
+        {
+            anchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
         }
     }
 
