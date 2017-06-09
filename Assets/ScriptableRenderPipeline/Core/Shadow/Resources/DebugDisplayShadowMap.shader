@@ -45,11 +45,32 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
             HLSLPROGRAM
 
             #pragma vertex Vert
-            #pragma fragment FragAtlas
+            #pragma fragment FragRegular
             
-            float4 FragAtlas(Varyings input) : SV_Target
+            float4 FragRegular(Varyings input) : SV_Target
             {
                 return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).xxxx;
+            }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "VarianceShadow"
+            ZTest Off
+            Blend One Zero
+            Cull Off
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment FragVariance
+            
+            float4 FragVariance(Varyings input) : SV_Target
+            {
+                return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).rgba; // Might want something more clever like a channel selector.
             }
 
             ENDHLSL
