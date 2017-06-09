@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF
     _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF
-    _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+    _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE _SPECULAROCCLUSIONMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -98,7 +98,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularOcclusionMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 524019d263762af4caa9ace94c74c38e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap:
@@ -177,7 +177,7 @@ Material:
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.99607843, b: 0.8117647, a: 1}
+    - _BaseColor: {r: 0.7490196, g: 0.54901963, b: 0.39215687, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

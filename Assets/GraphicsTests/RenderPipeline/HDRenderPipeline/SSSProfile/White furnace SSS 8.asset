@@ -11,13 +11,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6e7465350bf0d248b4799d98e18cd24, type: 3}
   m_Name: White furnace SSS 8
   m_EditorClassIdentifier: 
-  surfaceAlbedo: {r: 1, g: 1, b: 1, a: 1}
+  surfaceAlbedo: {r: 1, g: 0, b: 0, a: 1}
   volumeAlbedo: {r: 1, g: 1, b: 1, a: 1}
-  lenVolMeanFreePath: 0.5
-  texturingMode: 0
+  lenVolMeanFreePath: 0.8
+  texturingMode: 1
   transmissionMode: 0
   thicknessRemap: {x: 0, y: 5}
-  worldScale: 1
+  worldScale: 0.01
   settingsIndex: 7
   m_SurfaceShapeParam: {x: 2.08, y: 2.08, z: 2.08}
   m_VolumeShapeParam: {x: 2.08, y: 2.08, z: 2.08}
