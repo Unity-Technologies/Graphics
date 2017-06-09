@@ -225,7 +225,8 @@ namespace UnityEngine.Experimental.Rendering
         public void OnEditorGUI()
         {
             s_UIChanged = false;
-            m_DebugPanelUIs[m_ActivePanelIndex].OnEditorGUI();
+            if(!m_DebugPanelUIs[m_ActivePanelIndex].empty)
+                m_DebugPanelUIs[m_ActivePanelIndex].OnEditorGUI();
             if(s_UIChanged)
             {
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();

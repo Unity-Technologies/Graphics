@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering
         protected List<DebugItemUI> m_ItemsUI = new List<DebugItemUI>();
         protected int               m_SelectedItem = -1;
 
+        public bool empty { get { return m_DebugPanel.itemCount == 0; } }
+
         public int itemCount { get { return m_ItemsUI.Count; } }
 
         public DebugPanelUI()
