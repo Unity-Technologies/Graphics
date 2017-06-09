@@ -2,14 +2,10 @@
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMMON
 
 #include "../../../../ShaderLibrary/Common.hlsl"
-
 #include "../../../ShaderConfig.cs.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
 #include "../../../Material/Material.hlsl"
-
-TEXTURE2D(_CameraDepthTexture);
-SAMPLER2D(sampler_CameraDepthTexture);
 
 DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
@@ -53,17 +49,14 @@ float GradientNoise(float2 uv)
     return frac(52.9829189 * frac(f));
 }
 
-// Boundary check for depth sampler
-// (returns a very large value if it lies out of bounds)
-float CheckBounds(float2 uv, float d)
+// Check if the depth value is valid.
+bool CheckDepth(float rawDepth)
 {
-    float ob = any(uv < 0) + any(uv > 1);
 #if defined(UNITY_REVERSED_Z)
-    ob += (d <= 0.00001);
+    return rawDepth > 0.00001;
 #else
-    ob += (d >= 0.99999);
+    return rawDepth < 0.99999;
 #endif
-    return ob * 1e8;
 }
 
 // AO/normal packed format conversion
@@ -82,15 +75,12 @@ half3 GetPackedNormal(half4 p)
     return p.yzw * 2.0 - 1.0;
 }
 
-// Depth/normal sampling
-float SampleDepth(uint2 unPositionSS)
+half3 SampleNormal(uint2 unPositionSS)
 {
-    float z = LOAD_TEXTURE2D(_CameraDepthTexture, unPositionSS).x;
-    return LinearEyeDepth(z, _ZBufferParams) + CheckBounds(float2(0.5, 0.5), z); // TODO: We should use the stencil to not affect the sky and save CheckBounds cost - also uv can't be out of bounds on xy... so put a constant here
-}
-
-half3 SampleNormal(BSDFData bsdfData)
-{
+    float3 unused;
+    BSDFData bsdfData;
+    FETCH_GBUFFER(gbuffer, _GBufferTexture, unPositionSS);
+    DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
     return mul((float3x3)unity_WorldToCamera, bsdfData.normalWS);
 }
 
@@ -98,16 +88,6 @@ half3 SampleNormal(BSDFData bsdfData)
 half CompareNormal(half3 d1, half3 d2)
 {
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
-}
-
-// TODO: Test. We may need to use full matrix here to reconver VS position as it may not work in case of oblique projection (planar reflection)
-
-// Reconstruct view-space position from UV and depth.
-// p11_22 = (unity_CameraProjection._11, unity_CameraProjection._22)
-// p13_31 = (unity_CameraProjection._13, unity_CameraProjection._23)
-float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
-{
-    return float3((uv * 2.0 - 1.0 - p13_31) / p11_22 * depth, depth);
 }
 
 // Default vertex shader
