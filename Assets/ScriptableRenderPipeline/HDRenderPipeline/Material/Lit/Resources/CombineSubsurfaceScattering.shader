@@ -72,7 +72,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float3 ComputeBilateralWeight(float3 S, float r, float t, float rcpDistScale, float rcpPdf)
             {
             #if (SSS_BILATERAL == 0)
-                float t = 0;
+                t = 0;
             #endif
                 // Reducing the integration distance is equivalent to stretching the integration axis.
                 float3 valX = KernelValCircle(sqrt(r * r + t * t) * rcpDistScale, S);
