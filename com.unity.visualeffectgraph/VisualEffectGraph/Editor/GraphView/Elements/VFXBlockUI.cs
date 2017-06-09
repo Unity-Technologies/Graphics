@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             AddManipulator(new SelectionDropper(HandleDropEvent));
 
+            pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.InsertChild(0, m_EnableToggle);
         }
