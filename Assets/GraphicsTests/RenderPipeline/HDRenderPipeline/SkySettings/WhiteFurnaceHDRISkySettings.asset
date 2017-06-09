@@ -18,4 +18,4 @@ MonoBehaviour:
   updateMode: 0
   updatePeriod: 0
   lightingOverride: {fileID: 0}
-  skyHDRI: {fileID: 8900000, guid: 76fc0f0515e8a4c4ba4b5442a45f1323, type: 3}
+  skyHDRI: {fileID: 8900000, guid: 26cb387aa4dbe8c4087d52e06b99434e, type: 3}
