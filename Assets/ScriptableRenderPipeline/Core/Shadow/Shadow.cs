@@ -581,7 +581,7 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
-            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("RegularShadow"), MeshTopology.Triangles, 3, 1, propertyBlock);
+            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
             debugCB.Dispose();
@@ -999,6 +999,22 @@ namespace UnityEngine.Experimental.Rendering
                 i++;
             }
            base.PostUpdate( frameId, cb, rendertargetSlice, lights );
+        }
+
+        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        {
+            CommandBuffer debugCB = new CommandBuffer();
+            debugCB.name = "";
+
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            propertyBlock.SetTexture("_AtlasTexture", m_Shadowmap);
+            propertyBlock.SetVector("_TextureScaleBias", scaleBias);
+            propertyBlock.SetFloat("_TextureSlice", (float)slice);
+            debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
+            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
+
+            renderContext.ExecuteCommandBuffer(debugCB);
+            debugCB.Dispose();
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
