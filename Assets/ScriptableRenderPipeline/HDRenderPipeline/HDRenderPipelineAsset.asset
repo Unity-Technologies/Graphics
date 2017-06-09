@@ -17,10 +17,9 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 2
+    numProfiles: 1
     profiles:
-    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
-    - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
+    - {fileID: 0}
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
@@ -40,6 +39,5 @@ MonoBehaviour:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
-  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
-    type: 2}
-  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_DefaultDiffuseMaterial: {fileID: 0}
+  m_DefaultShader: {fileID: 0}

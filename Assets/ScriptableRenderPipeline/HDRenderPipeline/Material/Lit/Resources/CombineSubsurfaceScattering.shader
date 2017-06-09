@@ -30,6 +30,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma fragment Frag
 
             #define SSS_PASS              1
+            #define SSS_BILATERAL         1
             #define SSS_DEBUG             0
             #define MILLIMETERS_PER_METER 1000
 
@@ -70,6 +71,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Computes F(x)/P(x), s.t. x = sqrt(r^2 + t^2).
             float3 ComputeBilateralWeight(float3 S, float r, float t, float rcpDistScale, float rcpPdf)
             {
+            #if (SSS_BILATERAL == 0)
+                t = 0;
+            #endif
                 // Reducing the integration distance is equivalent to stretching the integration axis.
                 float3 valX = KernelValCircle(sqrt(r * r + t * t) * rcpDistScale, S);
 
