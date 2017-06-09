@@ -120,6 +120,13 @@ namespace UnityEditor.VFX
             return new VFXExpressionMul(v, invLengthVector);
         }
 
+		static public VFXExpression Fmod(VFXExpression x, VFXExpression y)
+		{
+			//frac(x / y) * y
+			var div = new VFXExpressionDivide(x, y);
+			return new VFXExpressionMul(VFXOperatorUtility.Frac(div), y);
+		}
+
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
             if (expression.ValueType == VFXValueType.kFloat)
