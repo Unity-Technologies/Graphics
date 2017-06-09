@@ -32,6 +32,13 @@
 //
 #define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.StencilLightingUsage:  static fields
+//
+#define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
+#define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
+#define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
 // PackingRules = Exact
 struct LightData

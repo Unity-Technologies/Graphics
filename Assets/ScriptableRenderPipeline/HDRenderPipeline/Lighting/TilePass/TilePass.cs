@@ -145,6 +145,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static uint FEATURE_FLAG_LIGHT_PROJECTOR   = 1 << 3;
             public static uint FEATURE_FLAG_LIGHT_ENV         = 1 << 4;
             public static uint FEATURE_FLAG_LIGHT_SKY         = 1 << 5;
+            public static uint FEATURE_FLAG_LIGHT_MASK        = 0xFFF;
+            public static uint FEATURE_FLAG_MATERIAL_MASK     = 0xF000;   // don't use all bits just to be safe from signed and/or float conversions :/
         }
 
         [GenerateHLSL]
@@ -209,7 +211,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableTileAndCluster; // For debug / test
             public bool enableSplitLightEvaluation;
             public bool enableComputeLightEvaluation;
-            public bool enableComputeFeatureVariants;
+            public bool enableComputeLightVariants;
+            public bool enableComputeMaterialVariants;
 
             // clustered light list specific buffers and data begin
             public bool enableClustered;
@@ -235,7 +238,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableTileAndCluster = true;
                 enableSplitLightEvaluation = true;
                 enableComputeLightEvaluation = false;
-                enableComputeFeatureVariants = false;
+                enableComputeLightVariants = false;
+                enableComputeMaterialVariants = false;
 
                 enableClustered = true;
                 enableFptlForOpaqueWhenClustered = true;
@@ -317,6 +321,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private ComputeShader buildPerBigTileLightListShader { get { return m_Resources.buildPerBigTileLightListShader; } }
             private ComputeShader buildPerVoxelLightListShader { get { return m_Resources.buildPerVoxelLightListShader; } }
 
+            private ComputeShader buildMaterialFlagsShader { get { return m_Resources.buildMaterialFlagsShader; } }
+            private ComputeShader buildDispatchIndirectShader { get { return m_Resources.buildDispatchIndirectShader; } }
             private ComputeShader clearDispatchIndirectShader { get { return m_Resources.clearDispatchIndirectShader; } }
             private ComputeShader shadeOpaqueShader { get { return m_Resources.shadeOpaqueShader; } }
 
@@ -325,6 +331,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_GenListPerVoxelKernel;
             static int s_ClearVoxelAtomicKernel;
             static int s_ClearDispatchIndirectKernel;
+            static int s_BuildDispatchIndirectKernel;
+            static int s_BuildMaterialFlagsWriteKernel;
+            static int s_BuildMaterialFlagsOrKernel;
             static int s_shadeOpaqueDirectClusteredKernel;
             static int s_shadeOpaqueDirectFptlKernel;
             static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
@@ -337,6 +346,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_AABBBoundsBuffer = null;
             static ComputeBuffer s_LightList = null;
             static ComputeBuffer s_TileList = null;
+            static ComputeBuffer s_TileFeatureFlags = null;
             static ComputeBuffer s_DispatchIndirectBuffer = null;
 
             static ComputeBuffer s_BigTileLightList = null;        // used for pre-pass coarse culling on 64x64 tiles
@@ -446,7 +456,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             bool GetFeatureVariantsEnabled()
             {
-                return m_TileSettings.enableComputeLightEvaluation && m_TileSettings.enableComputeFeatureVariants && !(m_TileSettings.enableClustered && !m_TileSettings.enableFptlForOpaqueWhenClustered);
+                return m_TileSettings.enableComputeLightEvaluation && (m_TileSettings.enableComputeLightVariants || m_TileSettings.enableComputeMaterialVariants) && !(m_TileSettings.enableClustered && !m_TileSettings.enableFptlForOpaqueWhenClustered);
             }
 
             TileSettings m_TileSettings = null;
@@ -504,7 +514,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
                 }
 
+                s_BuildDispatchIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDispatchIndirect");
                 s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
+
+                s_BuildMaterialFlagsOrKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Or");
+                s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Write");
 
                 s_shadeOpaqueDirectClusteredKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered");
                 s_shadeOpaqueDirectFptlKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl");
@@ -519,6 +533,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_LightList = null;
                 s_TileList = null;
+                s_TileFeatureFlags = null;
 
                 string[] tileKeywords = {"LIGHTLOOP_TILE_DIRECT", "LIGHTLOOP_TILE_INDIRECT", "LIGHTLOOP_TILE_ALL"};
 
@@ -674,7 +689,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public bool NeedResize()
             {
-                return s_LightList == null || s_TileList == null ||
+                return s_LightList == null || s_TileList == null || s_TileFeatureFlags == null ||
                     (s_BigTileLightList == null && m_TileSettings.enableBigTilePrepass) ||
                     (s_PerVoxelLightLists == null && m_TileSettings.enableClustered);
             }
@@ -683,6 +698,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Utilities.SafeRelease(s_LightList);
                 Utilities.SafeRelease(s_TileList);
+                Utilities.SafeRelease(s_TileFeatureFlags);
 
                 // enableClustered
                 Utilities.SafeRelease(s_PerVoxelLightLists);
@@ -708,6 +724,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_LightList = new ComputeBuffer((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
                 s_TileList = new ComputeBuffer((int)LightDefinitions.NUM_FEATURE_VARIANTS * nrTiles, sizeof(uint));
+                s_TileFeatureFlags = new ComputeBuffer(nrTilesX * nrTilesY, sizeof(uint));
 
                 if (m_TileSettings.enableClustered)
                 {
@@ -1562,12 +1579,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
                 }
 
+                var numTilesX = GetNumTileFtplX(camera);
+                var numTilesY = GetNumTileFtplY(camera);
+                var numTiles = numTilesX * numTilesY;
                 bool enableFeatureVariants = GetFeatureVariantsEnabled();
-                if (enableFeatureVariants)
-                {
-                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
-                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-                }
 
                 if (usingFptl)       // optimized for opaques only
                 {
@@ -1586,12 +1601,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_TileSettings.enableBigTilePrepass)
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
 
-
-                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
-                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
-                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
-                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
-
                     if (enableFeatureVariants)
                     {
                         uint baseFeatureFlags = 0;
@@ -1603,19 +1612,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_SKY;
                         }
-                        cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
-                        cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileList", s_TileList);
+                        if (!m_TileSettings.enableComputeMaterialVariants)
+                        {
+                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_MATERIAL_MASK;
+                        }
                         cmd.SetComputeIntParam(buildPerTileLightListShader, "g_BaseFeatureFlags", (int)baseFeatureFlags);
+                        cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileFeatureFlags", s_TileFeatureFlags);
                     }
 
-                    var numTilesX = GetNumTileFtplX(camera);
-                    var numTilesY = GetNumTileFtplY(camera);
                     cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
                 }
 
                 if (m_TileSettings.enableClustered)        // works for transparencies too.
                 {
                     VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
+                }
+
+                if (enableFeatureVariants)
+                {
+                    // material classification
+                    if(m_TileSettings.enableComputeMaterialVariants)
+                    {
+                        int buildMaterialFlagsKernel = s_BuildMaterialFlagsOrKernel;
+
+                        uint baseFeatureFlags = 0;
+                        if (!m_TileSettings.enableComputeLightVariants)
+                        {
+                            buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
+                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_MASK;
+                        }
+
+                        cmd.SetComputeIntParam(buildMaterialFlagsShader, "g_BaseFeatureFlags", (int)baseFeatureFlags);
+                        cmd.SetComputeIntParams(buildMaterialFlagsShader, "g_viDimensions", new int[2] { w, h });
+                        cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "g_TileFeatureFlags", s_TileFeatureFlags);
+
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "g_depth_tex", cameraDepthBufferRT);
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
+
+                        cmd.DispatchCompute(buildMaterialFlagsShader, buildMaterialFlagsKernel, numTilesX, numTilesY, 1);
+                    }
+
+                    // clear dispatch indirect buffer
+                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
+                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+
+                    // add tiles to indirect buffer
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, "g_TileList", s_TileList);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, "g_TileFeatureFlags", s_TileFeatureFlags);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, "g_NumTiles", numTiles);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, "g_NumTilesX", numTilesX);
+                    cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
                 }
 
                 loop.ExecuteCommandBuffer(cmd);

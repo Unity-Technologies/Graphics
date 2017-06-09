@@ -30,6 +30,8 @@
 #define FEATURE_FLAG_LIGHT_PROJECTOR (8)
 #define FEATURE_FLAG_LIGHT_ENV (16)
 #define FEATURE_FLAG_LIGHT_SKY (32)
+#define FEATURE_FLAG_LIGHT_MASK (4095)
+#define FEATURE_FLAG_MATERIAL_MASK (61440)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields

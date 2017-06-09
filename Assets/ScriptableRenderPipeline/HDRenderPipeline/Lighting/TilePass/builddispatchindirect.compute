@@ -1,0 +1,33 @@
+#pragma kernel BuildDispatchIndirect
+
+
+#include "TilePass.cs.hlsl"
+
+#define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+#include "../../Material/Material.hlsl" // This includes Material.hlsl
+
+#include "FeatureFlags.hlsl"
+
+RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );	// Indirect arguments have to be in a _buffer_, not a structured buffer
+RWStructuredBuffer<uint> g_TileList;
+StructuredBuffer<uint> g_TileFeatureFlags;
+
+uniform uint g_NumTiles;
+uniform uint g_NumTilesX;
+
+[numthreads(64, 1, 1)]
+void BuildDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
+{
+	if (dispatchThreadId >= g_NumTiles)
+		return;
+
+	uint featureFlags = g_TileFeatureFlags[dispatchThreadId];
+
+	uint tileY = (dispatchThreadId + 0.5f) / (float)g_NumTilesX;	// Integer division is extremely expensive, so we better avoid it
+	uint tileX = dispatchThreadId - tileY * g_NumTilesX;
+
+	uint variant = FeatureFlagsToTileVariant(featureFlags);
+	uint offset;
+	InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+	g_TileList[variant * g_NumTiles + offset] = (tileY << 16) | tileX;
+}
