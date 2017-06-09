@@ -58,9 +58,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -89,9 +89,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -120,9 +120,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -154,15 +154,15 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsTrue(newBlock is VFXAllType);
 
-            Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+            Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-            var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+            var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
             Assert.NotNull(blockPresenter);
 
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXContextDataInputAnchorPresenter && (t as VFXContextDataInputAnchorPresenter).name == "aVector3").Count());
 
-            VFXSlot slot = blockPresenter.Model.inputSlots.First(t => t.name == "aVector3");
+            VFXSlot slot = blockPresenter.block.inputSlots.First(t => t.name == "aVector3");
 
 
             var aVector3Presenter = blockPresenter.allChildren.Where(t => t is VFXContextDataInputAnchorPresenter && (t as VFXContextDataInputAnchorPresenter).name == "aVector3").First() as VFXContextDataInputAnchorPresenter;
@@ -205,9 +205,9 @@ namespace UnityEditor.VFX.Test
         {
             CreateTestAsset();
 
-            Func<IVFXSlotContainer, VFXNodePresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
@@ -251,9 +251,9 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoAddOperator()
         {
             CreateTestAsset();
-            Func<VFXNodePresenter[]> fnAllOperatorPresenter = delegate()
+            Func<VFXSlotContainerPresenter[]> fnAllOperatorPresenter = delegate()
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.OfType<VFXOperatorPresenter>().ToArray();
                 };
 
@@ -308,9 +308,9 @@ namespace UnityEditor.VFX.Test
 
             CreateTestAsset();
 
-            Func<Type, VFXNodePresenter> fnFindPresenter = delegate(Type type)
+            Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -354,9 +354,9 @@ namespace UnityEditor.VFX.Test
                     m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
                 };
 
-            Func<Type, VFXNodePresenter> fnFindPresenter = delegate(Type type)
+            Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -451,9 +451,9 @@ namespace UnityEditor.VFX.Test
         {
             CreateTestAsset();
 
-            Func<IVFXSlotContainer, VFXNodePresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 

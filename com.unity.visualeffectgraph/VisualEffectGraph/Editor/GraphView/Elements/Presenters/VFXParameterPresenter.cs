@@ -4,41 +4,59 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterPresenter : VFXNodePresenter, IVFXPresenter, IPropertyRMProvider
+    class VFXParameterOutputDataAnchorPresenter : VFXDataAnchorPresenter
     {
-        [SerializeField]
-        private string m_exposedName;
-        [SerializeField]
-        private bool m_exposed;
+        public override Direction direction
+        { get { return Direction.Output; } }
+    }
+    class VFXParameterSlotContainerPresenter : VFXSlotContainerPresenter
+    {
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        {
+            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
+            anchor.Init(slot, this);
+            anchor.anchorType = slot.property.type;
+            anchor.name = slot.property.type.UserFriendlyName();
+            return anchor;
+        }
+    }
+    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
+    {
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        {
+            base.Init(model, viewPresenter);
+            title = parameter.outputSlots[0].property.type.UserFriendlyName() + " " + model.m_OnEnabledCount;
+
+            exposed = parameter.exposed;
+            exposedName = parameter.exposedName;
+        }
 
         public string exposedName
         {
-            get { return m_exposedName; }
+            get { return parameter.exposedName; }
             set
             {
-                m_exposedName = value;
-                if (parameter.exposedName != m_exposedName)
+                if (parameter.exposedName != value)
                 {
                     Undo.RecordObject(parameter, "Exposed Name");
-                    parameter.exposedName = m_exposedName;
+                    parameter.exposedName = value;
                 }
             }
         }
         public bool exposed
         {
-            get { return m_exposed; }
+            get { return parameter.exposed; }
             set
             {
-                m_exposed = value;
-                if (parameter.exposed != m_exposed)
+                if (parameter.exposed != value)
                 {
                     Undo.RecordObject(parameter, "Exposed");
-                    parameter.exposed = m_exposed;
+                    parameter.exposed = value;
                 }
             }
         }
 
-        private VFXParameter parameter { get { return node as VFXParameter; } }
+        private VFXParameter parameter { get { return model as VFXParameter; } }
 
         bool IPropertyRMProvider.expanded
         {
@@ -54,16 +72,12 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                VFXParameter model = this.model as VFXParameter;
-
-                return model.GetOutputSlot(0).value;
+                return parameter.GetOutputSlot(0).value;
             }
             set
             {
-                VFXParameter model = this.model as VFXParameter;
-
-                Undo.RecordObject(model, "Change Value");
-                model.GetOutputSlot(0).value = value;
+                Undo.RecordObject(parameter, "Change Value");
+                parameter.GetOutputSlot(0).value = value;
             }
         }
 
@@ -81,25 +95,6 @@ namespace UnityEditor.VFX.UI
 
         int IPropertyRMProvider.depth { get { return 0; }}
 
-        protected override NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
-        {
-            var anchor = base.CreateAnchorPresenter(slot, direction);
-            anchor.anchorType = slot.property.type;
-            anchor.name = slot.property.type.Name;
-            return anchor;
-        }
-
-        protected override void Reset()
-        {
-            if (parameter != null)
-            {
-                title = node.outputSlots[0].property.type.UserFriendlyName() + " " + node.m_OnEnabledCount;
-                exposed = parameter.exposed;
-                exposedName = parameter.exposedName;
-            }
-            base.Reset();
-        }
-
         void IPropertyRMProvider.ExpandPath()
         {
             throw new NotImplementedException();
@@ -112,7 +107,7 @@ namespace UnityEditor.VFX.UI
 
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
-            return new UnityEngine.Object[] { this, model, node.outputSlots[0] };
+            return new UnityEngine.Object[] { this, model, parameter.outputSlots[0] };
         }
     }
 }

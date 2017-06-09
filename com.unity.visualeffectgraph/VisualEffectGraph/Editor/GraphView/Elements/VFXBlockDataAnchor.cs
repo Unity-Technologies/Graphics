@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -41,9 +41,18 @@ namespace UnityEditor.VFX.UI
                 {
                     Vector2 globaCenter = position.position + (Vector2)GetLocalCenter();
 
-                    Vector2 from = globaCenter - new Vector2(9, 0);
+                    Vector2 from = globaCenter - new Vector2(10, 0);
                     Vector2 to = globaCenter + new Vector2(5, 0);
-                    Handles.DrawBezier(from, to, to, from, edge.borderColor, null, 2);
+
+                    GraphView view = this.GetFirstAncestorOfType<GraphView>();
+
+                    float realWidth = edge.presenter.selected ? edge.borderWidth * 2 : edge.borderWidth;
+                    if (realWidth * view.scale < 1.5f)
+                    {
+                        realWidth = 1.5f / view.scale;
+                    }
+
+                    VFXFlowEdge.RenderLine(from, to, edge.borderColor, realWidth);
                 }
             }
         }

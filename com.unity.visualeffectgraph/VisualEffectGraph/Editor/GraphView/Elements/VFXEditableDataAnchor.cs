@@ -154,7 +154,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_GUIStyles.ConfigureForElement(this);
 
-                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXContextDataAnchorPresenter>(), m_GUIStyles);
+                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
 
                 if (changed)
                 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -42,14 +42,15 @@ namespace UnityEditor.VFX.UI
         VisualContainer     m_FlowOutputConnectorContainer;
         VisualContainer     m_NodeContainer;
         BlockContainer      m_BlockContainer;
+        VisualContainer     m_InsideContainer;
 
         VisualElement       m_DragDisplay;
 
-        VFXSlotContainerUI  m_OwnData;
+        VFXContextSlotContainerUI  m_OwnData;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
-        public VFXSlotContainerUI ownData { get { return m_OwnData; }}
+        public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
 
         public VFXContextUI()
         {
@@ -79,7 +80,12 @@ namespace UnityEditor.VFX.UI
                 name = "NodeContents",
                 clipChildren = false
             };
-            m_NodeContainer.clipChildren = false;
+
+            m_InsideContainer = new VisualContainer()
+            {
+                name = "Inside",
+                clipChildren = false
+            };
 
             AddChild(m_NodeContainer);
 
@@ -108,10 +114,11 @@ namespace UnityEditor.VFX.UI
 
             m_HeaderContainer.AddChild(m_HeaderSpace);
 
-            m_NodeContainer.AddChild(m_Header);
+            m_InsideContainer.AddChild(m_Header);
 
 
-            m_OwnData = new VFXSlotContainerUI();
+            m_OwnData = new VFXContextSlotContainerUI();
+            m_OwnData.RemoveFromClassList("node");
             m_Header.AddChild(m_HeaderContainer);
             m_Header.AddChild(m_OwnData);
 
@@ -122,7 +129,7 @@ namespace UnityEditor.VFX.UI
 
             m_BlockContainer.AddManipulator(new ClickSelector());
 
-            m_NodeContainer.AddChild(m_BlockContainer);
+            m_InsideContainer.AddChild(m_BlockContainer);
 
 
             m_Footer = new VisualContainer() {
@@ -139,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
             m_Footer.AddChild(m_FlowOutputConnectorContainer);
 
-            m_NodeContainer.AddChild(m_Footer);
+            m_InsideContainer.AddChild(m_Footer);
             /*
             m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
             {
@@ -157,6 +164,8 @@ namespace UnityEditor.VFX.UI
                 return EventPropagation.Continue;
             }));
             */
+
+            m_NodeContainer.AddChild(m_InsideContainer);
             typeFactory = new GraphViewTypeFactory();
             typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
             typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
@@ -187,7 +196,7 @@ namespace UnityEditor.VFX.UI
                     accept = false;
                     break;
                 }
-                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().Model))
+                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().block))
                 {
                     accept = false;
                     break;
@@ -279,7 +288,7 @@ namespace UnityEditor.VFX.UI
             foreach (var blockui in blocksUI)
             {
                 VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                presenter.AddBlock(-1, blockPres.Model);
+                presenter.AddBlock(-1, blockPres.block);
             }
 
             m_DragStarted = false;
@@ -333,7 +342,7 @@ namespace UnityEditor.VFX.UI
                 return;
 
             VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
+            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().block);
         }
 
         private void InstantiateBlock(VFXBlockPresenter blockPresenter)
@@ -374,7 +383,7 @@ namespace UnityEditor.VFX.UI
             }
             foreach (var blockPresenter in blockPresenters)
             {
-                if (blockPresenter.Model != null)
+                if (blockPresenter.block != null)
                 {
                     VFXBlockUI blockUI;
                     if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
@@ -478,19 +487,19 @@ namespace UnityEditor.VFX.UI
             if (presenter.context.outputType == VFXDataType.kNone)
             {
                 if (m_Footer.parent != null)
-                    m_NodeContainer.RemoveChild(m_Footer);
+                    m_InsideContainer.RemoveChild(m_Footer);
             }
             else
             {
                 if (m_Footer.parent == null)
-                    m_NodeContainer.AddChild(m_Footer);
+                    m_InsideContainer.AddChild(m_Footer);
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
                 m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
             }
 
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
 
-            foreach (var inanchorpresenter in presenter.inputAnchors)
+            foreach (var inanchorpresenter in presenter.flowInputAnchors)
             {
                 var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == inanchorpresenter);
                 if (existing == null)
@@ -513,7 +522,7 @@ namespace UnityEditor.VFX.UI
 
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
-            foreach (var outanchorpresenter in presenter.outputAnchors)
+            foreach (var outanchorpresenter in presenter.flowOutputAnchors)
             {
                 var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
                 if (existing == null)
@@ -537,9 +546,9 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
 
 
-            m_OwnData.presenter = presenter.slotContainerPresenter;
+            m_OwnData.presenter = presenter;
 
-            bool slotsVisible = presenter.slotContainerPresenter.inputAnchors.Count > 0;
+            bool slotsVisible = presenter.inputAnchors.Count() > 0;
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.AddChild(m_OwnData);

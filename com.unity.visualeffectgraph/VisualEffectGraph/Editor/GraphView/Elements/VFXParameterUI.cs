@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UI
             leftContainer.clipChildren = false;
             rightContainer.clipChildren = false;
             outputContainer.clipChildren = false;
+            m_CollapseButton.visible = false;
             AddToClassList("VFXNodeUI");
         }
 
@@ -44,7 +45,7 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                GetPresenter<VFXNodePresenter>().viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
+                GetPresenter<VFXSlotContainerPresenter>().viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
     }

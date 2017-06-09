@@ -1,4 +1,4 @@
-.VFXSlotContainerUI.node.horizontal {
+.VFXContextSlotContainerUI.node.horizontal {
 	background-color: #2C2C2C;
 	flex:1;
 	align-items:stretch;
@@ -7,7 +7,7 @@
 	border-color:rgba(0,0,0,0);
 }
 
-.VFXSlotContainerUI.node.horizontal #pane
+.VFXContextSlotContainerUI.node.horizontal #pane
 {
 	border-left: 2;
 	border-top: 2;
@@ -16,34 +16,34 @@
 	flex-direction:column;
 	flex:1;
 }
-.VFXSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
+.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
 {
 	width:-1;
 	background-color:rgba(0,0,0,0);
 }
 
-.VFXSlotContainerUI  .propertyrm
+.VFXContextSlotContainerUI  .propertyrm
 {
 	margin-left:12;
 }
 
-.VFXSlotContainerUI.VFXNodeUI.node.horizontal #pane > #right
+.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #right
 {
 	width:0;
 	visible:false;
 }
 
-.VFXSlotContainerUI.horizontal.node #pane > #left
+.VFXContextSlotContainerUI.horizontal.node #pane > #left
 {
 	width:-1;
 	background-color: #363636;
 }
 
-.VFXSlotContainerUI.node.horizontal #title {
+.VFXContextSlotContainerUI.node.horizontal #title {
 	flex-direction:row;
 }
 
-.VFXSlotContainerUI.node.horizontal #title Button
+.VFXContextSlotContainerUI.node.horizontal #title Button
 {
 	min-width:40;
 	height:17;
@@ -54,21 +54,21 @@
 	border-color:#FFFFFF;
 }
 
-.VFXSlotContainerUI.node.horizontal #left > #title > Label {
+.VFXContextSlotContainerUI.node.horizontal #left > #title > Label {
 	text-color: #c4c4c4;
 	font-style: bold;
 	text-alignment: middle-left;
 	flex: 1;
 }
-.VFXSlotContainerUI.node.horizontal:disabled #left > #title > Label {
+.VFXContextSlotContainerUI.node.horizontal:disabled #left > #title > Label {
 	text-color: #333;
 }
 
-.VFXSlotContainerUI.node.horizontal:disabled {
+.VFXContextSlotContainerUI.node.horizontal:disabled {
 	background-color: #F00;
 }
 
-.VFXSlotContainerUI.node.horizontal #left > #title > Button {
+.VFXContextSlotContainerUI.node.horizontal #left > #title > Button {
 	text-color: rgb(153, 153, 153);
 	min-width:50;
 	margin-right: 6;
@@ -78,21 +78,16 @@
 	text-alignment: middle-center;
 }
 
-.VFXSlotContainerUI #pane #left VisualContainer#input
+.VFXContextSlotContainerUI #pane #left VisualContainer#input
 {
 	flex:1;
 	align-items: stretch;
 	padding-bottom:3;
 }
 
-.VFXSlotContainerUI #pane #left VisualContainer#output
+.VFXContextSlotContainerUI #pane #left VisualContainer#output
 {
 	flex:1;
 	align-items: stretch;
 	padding-bottom:3;
-}
-
-VFXSlotContainerUI.VFXSlotContainerUI.node.horizontal
-{
-	background-color:#414141;
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 
             if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
             {
-                to = to + new Vector2(-7, 0);
+                to = to + new Vector2(-10, 0);
             }
 
 
@@ -76,7 +76,14 @@ namespace UnityEditor.VFX.UI
             GetTangents(orientation, from, to, out points, out tangents);
 
 
-            VFXFlowEdge.RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgePresenter.selected ? edgeWidth * 2 : edgeWidth);
+            GraphView view = this.GetFirstAncestorOfType<GraphView>();
+
+            float realWidth = edgePresenter.selected ? edgeWidth * 2 : edgeWidth;
+            if (realWidth * view.scale < 1.5f)
+            {
+                realWidth = 1.5f / view.scale;
+            }
+            VFXFlowEdge.RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, realWidth);
             /*if (edgePresenter.selected)
             {
                 Handles.DrawBezier(points[0] + Vector3.down, points[1] + Vector3.down , tangents[0] + Vector3.down , tangents[1] + Vector3.down , edgeColor, null, 2f);

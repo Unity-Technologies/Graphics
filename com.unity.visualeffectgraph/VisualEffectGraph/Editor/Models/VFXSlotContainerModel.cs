@@ -24,14 +24,34 @@ namespace UnityEditor.VFX
 
         void Invalidate(VFXModel.InvalidationCause cause);
         void UpdateOutputs();
+
+        void SetSettingValue(string name, object value);
+
+        object settings {get; }
+
+        bool expanded { get; set; }
     }
 
-    class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
+    abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
         public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
+
+
+        public object settings { get { return m_Settings != null ? m_Settings.Get() : null; } }
+
+        public bool expanded { get; set; }
+
+        [SerializeField]
+        private VFXSerializableObject m_Settings;
+
+
+        public T GetSettings<T>() where T : class
+        {
+            return m_Settings != null ? m_Settings.Get<T>() : null;
+        }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
         public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
@@ -86,8 +106,14 @@ namespace UnityEditor.VFX
             return "OutputProperties";
         }
 
+        protected string GetSettingsTypeName()
+        {
+            return "Settings";
+        }
+
         protected VFXSlotContainerModel()
         {
+            InitSettings();
         }
 
         public override void OnEnable()
@@ -216,6 +242,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void InitSettings()
+        {
+            System.Type type = GetType().GetNestedType(GetSettingsTypeName());
+            if (type != null)
+            {
+                if (!type.IsClass)
+                {
+                    Debug.LogError("Settings type must be a class:" + type.FullName);
+                    return;
+                }
+                m_Settings = new VFXSerializableObject(type);
+            }
+        }
+
         public void ExpandPath(string fieldPath)
         {
             m_expandedPaths.Add(fieldPath);
@@ -252,5 +292,16 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         List<VFXSlot> m_OutputSlots;
+
+        public void SetSettingValue(string name, object value)
+        {
+            object sett = m_Settings.Get();
+            if (settings != null)
+                settings.GetType().GetField(name).SetValue(sett, value);
+
+            m_Settings.Set(sett);
+
+            Invalidate(InvalidationCause.kParamChanged);
+        }
     }
 }

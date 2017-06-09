@@ -22,6 +22,17 @@ namespace UnityEditor.VFX.UI
             return new IntField(m_Label);
         }
     }
+    class EnumPropertyRM : SimplePropertyRM<int>
+    {
+        public EnumPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override ValueControl<int> CreateField()
+        {
+            return new EnumField(m_Label, m_Provider.anchorType);
+        }
+    }
 
     class FloatPropertyRM : SimplePropertyRM<float>
     {

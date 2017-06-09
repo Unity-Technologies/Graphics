@@ -243,6 +243,9 @@ namespace UnityEditor.VFX
 
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
+
+                    foreach (var data in models.OfType<VFXData>())
+                        data.CollectAttributes(expressionGraph);
                 }
                 catch (Exception e)
                 {

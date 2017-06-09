@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -9,16 +9,18 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerUI : VFXNodeUI
+    class VFXContextSlotContainerUI : VFXSlotContainerUI
     {
-        public VFXSlotContainerUI()
+        public VFXContextSlotContainerUI()
         {
             forceNotififcationOnAdd = true;
-            pickingMode = PickingMode.Position;
+            pickingMode = PickingMode.Ignore;
 
             leftContainer.alignContent = Align.Stretch;
 
-            AddToClassList("VFXSlotContainerUI");
+            
+
+            AddToClassList("VFXContextSlotContainerUI");
         }
 
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
@@ -48,7 +50,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXSlotContainerPresenter>();
+            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
 
             if (presenter == null)
                 return;

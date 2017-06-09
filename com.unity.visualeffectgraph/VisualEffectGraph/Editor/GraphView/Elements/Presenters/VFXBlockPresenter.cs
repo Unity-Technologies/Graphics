@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockPresenter : VFXSlotContainerPresenter
+    class VFXBlockPresenter : VFXContextSlotContainerPresenter
     {
         protected new void OnEnable()
         {
@@ -21,40 +21,16 @@ namespace UnityEditor.VFX.UI
         public void Init(VFXBlock model, VFXContextPresenter contextPresenter)
         {
             base.Init(model, contextPresenter);
-
-
-            //OnInvalidate(Model, VFXModel.InvalidationCause.kStructureChanged);
         }
 
-        void UpdateSlots(Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList, bool expanded)
+        public VFXBlock block
         {
-            foreach (VFXSlot slot in slotList)
-            {
-                VFXContextDataInputAnchorPresenter propPresenter = GetPropertyPresenter(slot);
-
-                if (propPresenter == null)
-                {
-                    propPresenter = AddDataAnchor(slot);
-                }
-                newAnchors[slot] = propPresenter;
-
-                propPresenter.UpdateInfos(expanded);
-                inputAnchors.Add(propPresenter);
-
-                UpdateSlots(newAnchors, slot.children, expanded && slot.expanded);
-            }
+            get { return model as VFXBlock; }
         }
-
-        public VFXBlock Model
-        {
-            get { return slotContainer as VFXBlock; }
-        }
-
-        public override bool enabled { get {return Model.enabled; } }
 
         public int index
         {
-            get { return m_ContextPresenter.blockPresenters.FindIndex(t => t == this); }
+            get { return contextPresenter.FindBlockIndexOf(this); }
         }
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)

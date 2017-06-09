@@ -9,122 +9,152 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerPresenter : VFXLinkablePresenter
+    class VFXSlotContainerPresenter : NodePresenter
     {
-        public override IVFXSlotContainer slotContainer { get { return m_Model; } }
-        protected new void OnEnable()
+        public VFXModel model { get { return m_Model; } }
+        public VFXViewPresenter viewPresenter { get { return m_ViewPresenter; } }
+
+        public override Rect position
         {
+            get
+            {
+                return base.position;
+            }
+
+            set
+            {
+                base.position = value;
+                Undo.RecordObject(model, "Position");
+                model.position = position.position;
+            }
+        }
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, m_Model };
         }
 
-        protected VFXContextDataInputAnchorPresenter AddDataAnchor(VFXSlot slot)
-        {
-            VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
-            anchorPresenter.Init(slotContainer as VFXModel, slot, this);
-            ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
-
-            return anchorPresenter;
-        }
-
-        public void Init(IVFXSlotContainer model, VFXContextPresenter contextPresenter)
+        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             m_Model = model;
-            if (m_Model == null)
+            m_ViewPresenter = viewPresenter;
+
+            base.position = new Rect(model.position, Vector2.one);
+
+            object settings = slotContainer.settings;
+            if (settings != null)
             {
-                Debug.LogError("Model must not be null");
+                m_Settings = new VFXSettingPresenter[settings.GetType().GetFields().Length];
+                int cpt = 0;
+                foreach (var member in settings.GetType().GetFields())
+                {
+                    VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
+
+                    settingPresenter.Init(this.slotContainer, member.Name, member.FieldType);
+                    m_Settings[cpt++] = settingPresenter;
+                }
             }
-            m_ContextPresenter = contextPresenter;
-            base.Init(contextPresenter.ViewPresenter);
-
+            OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
             //TODO unregister when the block is destroyed
-            (m_Model as VFXModel).onInvalidateDelegate += OnInvalidate;
-
-            OnInvalidate((m_Model as VFXModel), VFXModel.InvalidationCause.kStructureChanged);
+            m_Model.onInvalidateDelegate += OnInvalidate;
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (model is IVFXSlotContainer && cause == VFXModel.InvalidationCause.kStructureChanged)
+            if (model as IVFXSlotContainer == slotContainer && cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 var inputs = inputAnchors;
-                inputAnchors.Clear();
-                Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter>();
+                m_InputAnchors.Clear();
+                List<NodeAnchorPresenter> newAnchors = new List<NodeAnchorPresenter>();
 
-                IVFXSlotContainer block = m_Model as IVFXSlotContainer;
-                UpdateSlots(newAnchors, block.inputSlots, true);
-                m_Anchors = newAnchors;
+                UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+
+                foreach (var anchor in inputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                {
+                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
+                }
+                m_InputAnchors = newAnchors;
+                newAnchors = new List<NodeAnchorPresenter>();
+                UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
+
+                foreach (var anchor in outputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                {
+                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
+                }
+                m_OutputAnchors = newAnchors;
             }
         }
 
-        void UpdateSlots(Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList, bool expanded)
+        void UpdateSlots(List<NodeAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             foreach (VFXSlot slot in slotList)
             {
-                VFXContextDataInputAnchorPresenter propPresenter = GetPropertyPresenter(slot);
+                VFXDataAnchorPresenter propPresenter = GetPropertyPresenter(slot, input);
 
                 if (propPresenter == null)
                 {
-                    propPresenter = AddDataAnchor(slot);
+                    propPresenter = AddDataAnchor(slot, input);
                 }
-                newAnchors[slot] = propPresenter;
+                newAnchors.Add(propPresenter);
+                viewPresenter.RegisterDataAnchorPresenter(propPresenter);
 
                 propPresenter.UpdateInfos(expanded);
-                inputAnchors.Add(propPresenter);
 
-                UpdateSlots(newAnchors, slot.children, expanded && slot.expanded);
+                UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
             }
         }
 
-        public override UnityEngine.Object[] GetObjectsToWatch()
+        public VFXDataAnchorPresenter GetPropertyPresenter(VFXSlot slot, bool input)
         {
-            return new UnityEngine.Object[] { this, m_Model as VFXModel};
-        }
+            VFXDataAnchorPresenter result = null;
 
-        public VFXContextPresenter ContextPresenter
-        {
-            get { return m_ContextPresenter; }
-        }
-
-        public VFXContextDataInputAnchorPresenter GetPropertyPresenter(VFXSlot slot)
-        {
-            VFXContextDataInputAnchorPresenter result = null;
-
-            m_Anchors.TryGetValue(slot, out result);
+            if (input)
+                result = inputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+            else
+                result = outputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
 
             return result;
         }
 
-        public static bool IsTypeExpandable(System.Type type)
+        protected virtual VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
         {
-            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && !type.IsEnum && type != typeof(Gradient);
+            return null;
         }
 
-        static bool ShouldSkipLevel(Type type)
+        public IVFXSlotContainer slotContainer { get { return m_Model as IVFXSlotContainer; } }
+
+        public IEnumerable<VFXSettingPresenter> settings
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+            get { return m_Settings; }
         }
 
-        bool ShouldIgnoreMember(Type type, FieldInfo field)
+        public virtual bool enabled
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+            get { return true; }
         }
 
-        public override IEnumerable<GraphElementPresenter> allChildren
+        public bool expanded
         {
             get
             {
-                foreach (var kv in m_Anchors)
+                return slotContainer.expanded;
+            }
+
+            set
+            {
+                if (value != slotContainer.expanded)
                 {
-                    yield return kv.Value;
+                    Undo.RecordObject(slotContainer as UnityEngine.Object, "Collapse");
+                    slotContainer.expanded = value;
                 }
             }
         }
-        [SerializeField]
-        private Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> m_Anchors = new Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter>();
 
         [SerializeField]
-        private IVFXSlotContainer m_Model;
+        protected VFXModel         m_Model;
 
+        [SerializeField]
+        private VFXSettingPresenter[] m_Settings;
 
-        protected VFXContextPresenter m_ContextPresenter;
+        protected VFXViewPresenter m_ViewPresenter;
     }
 }

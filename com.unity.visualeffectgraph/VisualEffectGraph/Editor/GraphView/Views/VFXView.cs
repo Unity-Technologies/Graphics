@@ -205,7 +205,7 @@ namespace UnityEditor.VFX.UI
                 GetPresenter<VFXViewPresenter>().GetGraph().AddChild(context);
             }
 
-            var operators = selection.OfType<Node>().Select(p => p.GetPresenter<VFXNodePresenter>().node.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
+            var operators = selection.OfType<Node>().Select(p => p.GetPresenter<VFXSlotContainerPresenter>().model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
             foreach (var op in operators)
             {
                 op.position = op.position + new Vector2(50, 50);

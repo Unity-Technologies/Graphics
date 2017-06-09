@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -100,6 +100,37 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
+        public static void RenderLine(Vector2 start, Vector2 end,Color color,float edgeWidth)
+        {
+            if (VLineMat == null)
+            {
+                VLineMat = new Material(Shader.Find("Unlit/AALine"));
+            }
+            VLineMat.SetPass(0);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(color);
+
+            Vector2 dir = (end - start).normalized;
+            Vector2 norm = new Vector2(dir.y, -dir.x);
+
+            float halfWidth = edgeWidth * 0.5f + 0.5f;
+
+            float vertexHalfWidth = halfWidth + 2;
+            Vector2 edge = norm * vertexHalfWidth;
+
+            GL.TexCoord3(0, -vertexHalfWidth, halfWidth);
+            GL.Vertex(start - edge);
+            GL.TexCoord3(0, vertexHalfWidth, halfWidth);
+            GL.Vertex(start + edge);
+
+            GL.TexCoord3(1, -vertexHalfWidth, halfWidth);
+            GL.Vertex(end - edge);
+            GL.TexCoord3(1, vertexHalfWidth, halfWidth);
+            GL.Vertex(end + edge);
+
+            GL.End();
+        }
+
         public static void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
         {
             if (VLineMat == null)
@@ -120,9 +151,14 @@ namespace UnityEditor.VFX.UI
             //GL.Vertex(start);
 
             float cpt = (start - end).magnitude / 5;
+            if (cpt < 3)
+                cpt = 3;
 
 
-            float halfWidth = edgeWidth * 0.5f;
+            float halfWidth = edgeWidth * 0.5f + 0.5f;
+
+            float vertexHalfWidth = halfWidth + 2;
+
             for (float t = 1 / cpt; t < 1; t += 1 / cpt)
             {
                 float minT = 1 - t;
@@ -132,12 +168,11 @@ namespace UnityEditor.VFX.UI
                     3 * minT * minT * t * tStart +
                     minT * minT * minT * start;
 
+                edge = norm * vertexHalfWidth;
 
-                edge = norm * (halfWidth + 1);
-
-                GL.TexCoord3(t, -halfWidth - 1, halfWidth);
+                GL.TexCoord3(t, -vertexHalfWidth, halfWidth);
                 GL.Vertex(prevPos - edge);
-                GL.TexCoord3(t, 1 + halfWidth, halfWidth);
+                GL.TexCoord3(t, vertexHalfWidth, halfWidth);
                 GL.Vertex(prevPos + edge);
 
                 dir = (pos - prevPos).normalized;
@@ -148,11 +183,11 @@ namespace UnityEditor.VFX.UI
 
             dir = (end - prevPos).normalized;
             norm = new Vector2(dir.y, -dir.x);
-            edge = norm * (halfWidth + 1);
+            edge = norm * vertexHalfWidth;
 
-            GL.TexCoord3(1, -halfWidth - 1, halfWidth);
+            GL.TexCoord3(1, -vertexHalfWidth, halfWidth);
             GL.Vertex(end - edge);
-            GL.TexCoord3(1, 1 + halfWidth, halfWidth);
+            GL.TexCoord3(1, vertexHalfWidth, halfWidth);
             GL.Vertex(end + edge);
 
             GL.End();

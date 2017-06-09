@@ -6,11 +6,34 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorPresenter : VFXNodePresenter
+    class VFXOperatorSlotContainerPresenter : VFXSlotContainerPresenter
     {
-        [SerializeField]
-        public int m_dirtyHack;
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        {
+            VFXOperatorAnchorPresenter anchor;
+            if (input)
+            {
+                anchor = CreateInstance<VFXInputOperatorAnchorPresenter>();
+            }
+            else
+            {
+                anchor = CreateInstance<VFXOutputOperatorAnchorPresenter>();
+            }
+            anchor.Init(slot, this);
 
+            var expression = slot.GetExpression();
+            anchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
+            if (expression == null)
+            {
+                anchor.name = "Empty";
+            }
+            return anchor;
+        }
+    }
+
+
+    class VFXOperatorPresenter : VFXOperatorSlotContainerPresenter
+    {
         [SerializeField]
         private object m_settings;
         public object settings
@@ -23,37 +46,21 @@ namespace UnityEditor.VFX.UI
             {
                 Undo.RecordObject(Operator, "Settings");
                 Operator.settings = value;
-                m_dirtyHack++;
             }
         }
 
-        private VFXOperator Operator
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        {
+            base.Init(model, viewPresenter);
+            title = Operator.name + " " + Operator.m_OnEnabledCount;
+        }
+
+        public VFXOperator Operator
         {
             get
             {
-                return node as VFXOperator;
+                return model as VFXOperator;
             }
-        }
-
-        protected override NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
-        {
-            var anchor = base.CreateAnchorPresenter(slot, direction);
-            var expression = slot.GetExpression();
-            anchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
-            if (expression == null)
-            {
-                anchor.name = "Empty";
-            }
-            return anchor;
-        }
-
-        protected override void Reset()
-        {
-            if (Operator != null)
-            {
-                title = node.name + " " + node.m_OnEnabledCount;
-            }
-            base.Reset();
         }
     }
 }

@@ -133,25 +133,31 @@ namespace UnityEditor.VFX.UI
 
             Type type = presenter.anchorType;
 
-            while (type != typeof(object) && type != null)
+            if (type.IsEnum)
             {
-                if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                propertyType = typeof(EnumPropertyRM);
+            }
+            else
+            {
+                while (type != typeof(object) && type != null)
                 {
-                    foreach (var inter in type.GetInterfaces())
+                    if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
-                        if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                        foreach (var inter in type.GetInterfaces())
                         {
-                            break;
+                            if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                            {
+                                break;
+                            }
                         }
                     }
+                    if (propertyType != null)
+                    {
+                        break;
+                    }
+                    type = type.BaseType;
                 }
-                if (propertyType != null)
-                {
-                    break;
-                }
-                type = type.BaseType;
             }
-
             return propertyType != null ? System.Activator.CreateInstance(propertyType, new object[] {presenter, labelWidth}) as PropertyRM : null;
         }
 

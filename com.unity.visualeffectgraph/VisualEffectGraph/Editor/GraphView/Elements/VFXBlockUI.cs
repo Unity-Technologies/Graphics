@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXSlotContainerUI, IDropTarget
+    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
     {
         Toggle m_EnableToggle;
 
@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             AddManipulator(new SelectionDropper(HandleDropEvent));
 
+            pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.InsertChild(0, m_EnableToggle);
         }
@@ -25,7 +26,7 @@ namespace UnityEditor.VFX.UI
         {
             var presenter = GetPresenter<VFXBlockPresenter>();
 
-            presenter.Model.enabled = !presenter.Model.enabled;
+            presenter.block.enabled = !presenter.block.enabled;
         }
 
         public override void OnSelected()
@@ -90,8 +91,8 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             var presenter = GetPresenter<VFXBlockPresenter>();
 
-            presenter.Model.collapsed = !presenter.expanded;
-            this.enabled = m_EnableToggle.on = presenter.Model.enabled;
+            presenter.block.collapsed = !presenter.expanded;
+            this.enabled = m_EnableToggle.on = presenter.block.enabled;
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
@@ -117,7 +118,7 @@ namespace UnityEditor.VFX.UI
             IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());
 
             VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
-            VFXContextPresenter contextPresenter = blockPresenter.ContextPresenter;
+            VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
 
             if (context.CanDrop(draggedBlocksUI, this))
             {

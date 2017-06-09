@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             VFXContextUI endContext = null;
             foreach (var node in view.GetAllContexts())
             {
-                if (node.localBound.Contains(position))
+                if (node.globalBound.Contains(position))
                 {
                     endContext = node;
                 }
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
                 if (presenter.direction == Direction.Input)
                 {
-                    foreach (var outputAnchor in nodePresenter.outputAnchors)
+                    foreach (var outputAnchor in nodePresenter.flowOutputAnchors)
                     {
                         if (compatibleAnchors.Contains(outputAnchor))
                         {
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    foreach (var inputAnchor in nodePresenter.inputAnchors)
+                    foreach (var inputAnchor in nodePresenter.flowInputAnchors)
                     {
                         if (compatibleAnchors.Contains(inputAnchor))
                         {
@@ -138,8 +138,8 @@ namespace UnityEditor.VFX.UI
                         VFXContextPresenter newContextPresenter = viewPresenter.elements.OfType<VFXContextPresenter>().FirstOrDefault(t => t.model == newContext);
 
                         VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
-                        edgePresenter.input = presenter.direction == Direction.Input ? presenter : newContextPresenter.inputAnchors[0];
-                        edgePresenter.output = presenter.direction == Direction.Output ? presenter : newContextPresenter.outputAnchors[0];
+                        edgePresenter.input = presenter.direction == Direction.Input ? presenter : newContextPresenter.flowInputAnchors.First();
+                        edgePresenter.output = presenter.direction == Direction.Output ? presenter : newContextPresenter.flowOutputAnchors.First();
 
                         viewPresenter.AddElement(edgePresenter);
                     }
