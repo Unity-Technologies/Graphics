@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var div = new VFXExpressionDivide(inputExpression[0], inputExpression[1]);
-            return new[] { VFXOperatorUtility.Frac(div) };
+            return new[] { new VFXExpressionMul(VFXOperatorUtility.Frac(div), inputExpression[1]) };
         }
     }
 }
