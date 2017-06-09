@@ -17,21 +17,23 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 1
+    numProfiles: 3
     profiles:
+    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
+    - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
     - {fileID: 0}
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
-    enableComputeLightEvaluation: 1
-    enableComputeLightVariants: 1
-    enableComputeMaterialVariants: 1
+    enableComputeLightEvaluation: 0
+    enableComputeLightVariants: 0
+    enableComputeMaterialVariants: 0
     enableClustered: 1
     enableFptlForOpaqueWhenClustered: 1
     enableBigTilePrepass: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    tileDebugByCategory: 16
+    tileDebugByCategory: 0
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
