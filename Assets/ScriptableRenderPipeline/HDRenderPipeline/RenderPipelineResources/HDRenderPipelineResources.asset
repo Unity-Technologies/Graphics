@@ -24,6 +24,8 @@ MonoBehaviour:
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
   clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
     type: 3}
+  buildDispatchIndirectShader: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14,
+    type: 3}
   buildScreenAABBShader: {fileID: 7200000, guid: 728dce960f8a9c44bbc3abb3b851d8f6,
     type: 3}
   buildPerTileLightListShader: {fileID: 7200000, guid: 65af3444cbf4b3747a4dead7ee00cfee,
@@ -32,11 +34,9 @@ MonoBehaviour:
     type: 3}
   buildPerVoxelLightListShader: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196,
     type: 3}
+  buildMaterialFlagsShader: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08,
+    type: 3}
   shadeOpaqueShader: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
-  drawGaussianProfileShader: {fileID: 4800000, guid: 2e8a76823cb2af944b4b45169f2649f9,
-    type: 3}
-  drawTransmittanceGraphShader: {fileID: 4800000, guid: 4517edda0467bb14489d5eccc9973ba2,
-    type: 3}
   blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
   buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
     type: 3}

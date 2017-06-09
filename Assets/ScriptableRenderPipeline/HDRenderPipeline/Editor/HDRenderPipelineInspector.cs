@@ -47,7 +47,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered", "Toggle");
             public readonly GUIContent enableSplitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
-            public readonly GUIContent enableComputeFeatureVariants = new GUIContent("Enable Compute Features Variants", "Toggle");
+            public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants", "Toggle");
+            public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants", "Toggle");
             public readonly GUIContent enableClustered = new GUIContent("Enable clustered", "Toggle");
             public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered", "Toggle");
             public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
@@ -76,7 +77,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableTileAndCluster;
         SerializedProperty m_enableSplitLightEvaluation;
         SerializedProperty m_enableComputeLightEvaluation;
-        SerializedProperty m_enableComputeFeatureVariants;
+        SerializedProperty m_enableComputeLightVariants;
+        SerializedProperty m_enableComputeMaterialVariants;
         SerializedProperty m_enableClustered;
         SerializedProperty m_enableFptlForOpaqueWhenClustered;
         SerializedProperty m_enableBigTilePrepass;
@@ -110,7 +112,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_enableTileAndCluster = FindProperty(x => x.tileSettings.enableTileAndCluster);
             m_enableSplitLightEvaluation = FindProperty(x => x.tileSettings.enableSplitLightEvaluation);
             m_enableComputeLightEvaluation = FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
-            m_enableComputeFeatureVariants = FindProperty(x => x.tileSettings.enableComputeFeatureVariants);
+            m_enableComputeLightVariants = FindProperty(x => x.tileSettings.enableComputeLightVariants);
+            m_enableComputeMaterialVariants = FindProperty(x => x.tileSettings.enableComputeMaterialVariants);
             m_enableClustered = FindProperty(x => x.tileSettings.enableClustered);
             m_enableFptlForOpaqueWhenClustered = FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
             m_enableBigTilePrepass = FindProperty(x => x.tileSettings.enableBigTilePrepass);
@@ -159,7 +162,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_enableTileAndCluster, styles.enableTileAndCluster);
             EditorGUILayout.PropertyField(m_enableSplitLightEvaluation, styles.enableSplitLightEvaluation);
             EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
-            EditorGUILayout.PropertyField(m_enableComputeFeatureVariants, styles.enableComputeFeatureVariants);
+            EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
+            EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);
             EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
             EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
             EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
