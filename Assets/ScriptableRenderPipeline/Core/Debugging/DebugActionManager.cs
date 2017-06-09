@@ -323,20 +323,20 @@ namespace UnityEngine.Experimental.Rendering
             public enum Axis { X, Y, Third, Fourth, Fifth, Sixth, Seventh, Eigth }
             public enum Joy { All, First, Second }
 
-            public string	name;
-            public string	desc;
-            public string	btnNegative;
-            public string	btnPositive;
-            public string	altBtnNegative;
-            public string	altBtnPositive;
-            public float	gravity;
-            public float	deadZone;
-            public float	sensitivity;
-            public bool		snap;
-            public bool		invert;
-            public Kind		kind;
-            public Axis		axis;
-            public Joy		joystick;
+            public string	name = "";
+            public string	desc = "";
+            public string	btnNegative = "";
+            public string	btnPositive = "";
+            public string	altBtnNegative = "";
+            public string	altBtnPositive = "";
+            public float	gravity = 0.0f;
+            public float	deadZone = 0.0f;
+            public float	sensitivity = 0.0f;
+            public bool		snap = false;
+            public bool		invert = false;
+            public Kind		kind = Kind.Axis;
+            public Axis		axis = Axis.X;
+            public Joy		joystick = Joy.All;
 
             bool InputAlreadyRegistered(string name, Kind kind, UnityEditor.SerializedProperty spAxes)
             {

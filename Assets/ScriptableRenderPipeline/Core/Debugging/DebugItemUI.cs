@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering
         protected GameObject    m_Root = null;
         protected DebugItem     m_DebugItem = null;
 
-        public bool dynamicDisplay { get { return m_DebugItem.dynamicDisplay; } }
+        public bool dynamicDisplay { get { return (m_DebugItem.flags & DebugItemFlag.DynamicDisplay) != 0; } }
 
         protected DebugItemUI(DebugItem debugItem)
         {

@@ -204,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_PersistentPanelRoot.SetActive(false);
 
-            DebugMenuUI.CreateTextElement("DebugMenuTitle", "Debug Menu", 14, TextAnchor.MiddleCenter, m_MainPanelLayout);
+            DebugMenuUI.CreateTextElement("DebugMenuTitle", "Debug Window", 14, TextAnchor.MiddleCenter, m_MainPanelLayout);
 
             m_DebugMenuManager.GetPersistentDebugPanel().panelUI.BuildGUI(m_PersistentPanelLayout);
             m_PersistentDebugPanelUI = m_DebugMenuManager.GetPersistentDebugPanel().panelUI;
@@ -225,7 +225,8 @@ namespace UnityEngine.Experimental.Rendering
         public void OnEditorGUI()
         {
             s_UIChanged = false;
-            m_DebugPanelUIs[m_ActivePanelIndex].OnEditorGUI();
+            if(!m_DebugPanelUIs[m_ActivePanelIndex].empty)
+                m_DebugPanelUIs[m_ActivePanelIndex].OnEditorGUI();
             if(s_UIChanged)
             {
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();

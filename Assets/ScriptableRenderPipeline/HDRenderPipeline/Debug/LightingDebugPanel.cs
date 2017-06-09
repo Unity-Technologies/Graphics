@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -8,6 +9,40 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    public class DebugItemHandlerShadowAtlasIndex
+        : DebugItemHandlerUIntMinMax
+    {
+        public DebugItemHandlerShadowAtlasIndex(uint max)
+            : base(0, max)
+        {
+
+        }
+
+        public override void ClampValues(Func<object> getter, Action<object> setter)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            m_Max = (uint)hdPipeline.GetShadowAtlasCount() - 1;
+            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+        }
+    }
+
+    public class DebugItemHandlerShadowIndex
+    : DebugItemHandlerUIntMinMax
+    {
+        public DebugItemHandlerShadowIndex(uint max)
+            : base(0, max)
+        {
+
+        }
+
+        public override void ClampValues(Func<object> getter, Action<object> setter)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            m_Max = (uint)hdPipeline.GetCurrentShadowCount() - 1;
+            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+        }
+    }
+
     public class LightingDebugPanelUI
         : DebugPanelUI
     {
@@ -23,9 +58,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if ((ShadowMapDebugMode)shadowDebug.GetValue() == ShadowMapDebugMode.VisualizeShadowMap)
                 {
                     EditorGUI.indentLevel++;
-                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMapIndexDebug).handler.OnEditorGUI();
+                    DebugItem shadowSelectionDebug = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowSelectionDebug);
+                    shadowSelectionDebug.handler.OnEditorGUI();
+                    if(!(bool)shadowSelectionDebug.GetValue())
+                        m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMapIndexDebug).handler.OnEditorGUI();
                     EditorGUI.indentLevel--;
                 }
+                if ((ShadowMapDebugMode)shadowDebug.GetValue() == ShadowMapDebugMode.VisualizeAtlas)
+                {
+                    EditorGUI.indentLevel++;
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowAtlasIndexDebug).handler.OnEditorGUI();
+                    EditorGUI.indentLevel--;
+                }
+
                 DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
                 lightingDebugModeItem.handler.OnEditorGUI();
                 if ((DebugLightingMode)lightingDebugModeItem.GetValue() == DebugLightingMode.SpecularLighting)

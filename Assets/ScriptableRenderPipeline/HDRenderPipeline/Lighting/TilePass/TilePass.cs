@@ -392,9 +392,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Light m_CurrentSunLight = null;
             public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
-            // For displaying shadow map
-            Material m_DebugDisplayShadowMap;
-
             // shadow related stuff
             FrameId                 m_FrameId = new FrameId();
             ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
@@ -587,7 +584,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial(m_Resources.debugViewTilesShader);
-                m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial(m_Resources.debugDisplayShadowMapShader);
 
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
@@ -651,8 +647,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterialSRT);
                 Utilities.Destroy(m_SingleDeferredMaterialMRT);
-
-                Utilities.Destroy(m_DebugDisplayShadowMap);
 
                 Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
@@ -1180,6 +1174,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int GetCurrentShadowCount()
             {
                 return m_ShadowRequests.Count;
+            }
+
+            public int GetShadowAtlasCount()
+            {
+                return (int)m_ShadowMgr.GetShadowMapCount();
             }
 
             public void UpdateCullingParameters(ref CullingParameters cullingParams)
@@ -2116,37 +2115,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-
-                if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
+                using (new Utilities.ProfilingSample("Display Shadows", renderContext))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
-                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, x, y, overlaySize, overlaySize);
-                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                        int index = (int)lightingDebug.shadowMapIndex;
 
-                        // TODO: @Julien exchange shadowmapIndex by lightIndex and draw all slide like below
-                        /*
-                        for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
+#if UNITY_EDITOR
+                        if(lightingDebug.shadowDebugUseSelection)
                         {
-                            ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
-
-                            Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
-                                    (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
-                                    (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
-                                    (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
-
-                            propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
-
-                            debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-
-                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                            index = -1;
+                            if (UnityEditor.Selection.activeObject is GameObject)
+                            {
+                                GameObject go = UnityEditor.Selection.activeObject as GameObject;
+                                Light light = go.GetComponent<Light>();
+                                if (light != null)
+                                {
+                                    index = m_ShadowMgr.GetShadowRequestIndex(light);
+                                }
+                            }
                         }
-                        */
+#endif
+
+                        if(index != -1)
+                        {
+                            uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
+                            for (uint i = 0; i < faceCount; ++i)
+                            {
+                                m_ShadowMgr.DisplayShadow(renderContext, index, i, x, y, overlaySize, overlaySize);
+                                Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                            }
+                        }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, -1, x, y, overlaySize, overlaySize);
+                        m_ShadowMgr.DisplayShadowMap(renderContext, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }
