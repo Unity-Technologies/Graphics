@@ -6,11 +6,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 
         #include "../../../ShaderLibrary/Common.hlsl"
 
-        #define SHADOW_TILEPASS // TODO: Not sure it must be define, ask uygar
-        #include "../../../ShaderLibrary/Shadow/Shadow.hlsl"
-        #undef SHADOW_TILEPASS
-
         float4 _TextureScaleBias;
+        float _TextureSlice;
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE2D_ARRAY(_AtlasTexture);
 
@@ -52,7 +49,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
             
             float4 FragAtlas(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, 0).xxxx;
+                return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).xxxx;
             }
 
             ENDHLSL
