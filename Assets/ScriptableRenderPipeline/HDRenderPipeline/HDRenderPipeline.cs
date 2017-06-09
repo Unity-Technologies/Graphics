@@ -127,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
+        public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
@@ -135,6 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Debugging
         public DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
         private int m_DebugFullScreenTempRT;
+        private bool m_FullScreenDebugPushed = false;
 
         public SubsurfaceScatteringSettings sssSettings
         {
@@ -143,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-        private SkySettings m_SkySettings;
+        private SkySettings m_SkySettings = null;
         private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
 
         public CommonSettings.Settings commonSettingsToUse
@@ -500,7 +502,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
-                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
+                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
@@ -884,6 +886,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if(debugMode == m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode)
             {
+                m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 cb.Blit(textureID, m_DebugFullScreenTempRT);
             }
@@ -895,12 +898,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.camera.cameraType == CameraType.Reflection || camera.camera.cameraType == CameraType.Preview)
                 return;
 
+            // We make sure the depth buffer is bound because we need it to write depth at near plane for overlays otherwise the editor grid end up visible in them.
+            Utilities.SetRenderTarget(renderContext, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
+
             CommandBuffer debugCB = new CommandBuffer();
             debugCB.name = "Render Debug";
 
             // First render full screen debug texture
-            if(m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode != FullScreenDebugMode.None)
+            if(m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
             {
+                m_FullScreenDebugPushed = false;
                 debugCB.SetGlobalTexture("_DebugFullScreenTexture", m_DebugFullScreenTempRT);
                 m_DebugFullScreen.SetFloat("_FullScreenDebugMode", (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
                 Utilities.DrawFullScreen(debugCB, m_DebugFullScreen, camera, BuiltinRenderTextureType.CameraTarget);

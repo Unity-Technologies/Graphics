@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering
         protected List<DebugItemUI> m_ItemsUI = new List<DebugItemUI>();
         protected int               m_SelectedItem = -1;
 
+        public bool empty { get { return m_DebugPanel.itemCount == 0; } }
+
         public int itemCount { get { return m_ItemsUI.Count; } }
 
         public DebugPanelUI()
@@ -67,8 +69,12 @@ namespace UnityEngine.Experimental.Rendering
             m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
-                DebugItemHandler handler = m_DebugPanel.GetDebugItem(i).handler; // Should never be null, we have at least the default handler
-                m_ItemsUI.Add(handler.BuildGUI(parent));
+                DebugItem item = m_DebugPanel.GetDebugItem(i);
+                if(!((item.flags & DebugItemFlag.EditorOnly) != 0))
+                {
+                    DebugItemHandler handler = item.handler; // Should never be null, we have at least the default handler
+                    m_ItemsUI.Add(handler.BuildGUI(parent));
+                }
             }
         }
 

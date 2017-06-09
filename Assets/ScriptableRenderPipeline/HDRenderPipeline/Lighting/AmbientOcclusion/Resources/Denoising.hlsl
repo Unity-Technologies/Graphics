@@ -37,13 +37,7 @@ half4 Frag(Varyings input) : SV_Target
     half4 p2b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + delta * 3.2307692308);
 
 #if defined(AO_DENOISE_CENTER_NORMAL)
-
-    half3 unused;
-    BSDFData bsdfData;
-    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-    DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
-
-    half3 n0 = SampleNormal(bsdfData);
+    half3 n0 = SampleNormal(posInput.unPositionSS);
 #else
     half3 n0 = GetPackedNormal(p0);
 #endif

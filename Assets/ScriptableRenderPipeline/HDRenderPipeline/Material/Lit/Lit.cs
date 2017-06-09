@@ -15,12 +15,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         [GenerateHLSL]
-        public class MaterialFeatureFlags
+        public enum MaterialFeatureFlags
         {
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS      = 1 << 12;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 13;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 14;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO    = 1 << 15;
+            LitSSS      = 1 << 12,
+            LitStandard = 1 << 13,
+            LitSpecular = 1 << 14,
+            LitAniso    = 1 << 15
         }
 
         //-----------------------------------------------------------------------------
