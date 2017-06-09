@@ -11,10 +11,10 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         private DebugMenuState m_DebugMenuState;
 
-        [MenuItem("HDRenderPipeline/Debug Menu")]
+        [MenuItem("HDRenderPipeline/Debug Window")]
         static void DisplayDebugMenu()
         {
-            var window = EditorWindow.GetWindow<DebugMenuEditor>("Debug Menu");
+            var window = EditorWindow.GetWindow<DebugMenuEditor>("Debug Window");
             window.Show();
         }
 

@@ -5,6 +5,14 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    [Flags]
+    public enum DebugItemFlag
+    {
+        None,
+        DynamicDisplay,
+        EditorOnly
+    }
+
     public class DebugItem
     {
         static public event Action<DebugItem> OnItemDirty;
@@ -12,11 +20,11 @@ namespace UnityEngine.Experimental.Rendering
         public Type             type            { get { return m_Type; } }
         public string           name            { get { return m_Name; } }
         public string           panelName       { get { return m_PanelName; } }
-        public DebugItemHandler handler          { get { return m_Handler; } }
-        public bool             dynamicDisplay  { get { return m_DynamicDisplay; } }
+        public DebugItemHandler handler         { get { return m_Handler; } }
+        public DebugItemFlag    flags           { get { return m_Flags; } }
         public bool             readOnly        { get { return m_Setter == null; } }
 
-        public DebugItem(string name, string panelName, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
+        public DebugItem(string name, string panelName, Type type, Func<object> getter, Action<object> setter, DebugItemFlag flags = DebugItemFlag.None, DebugItemHandler handler = null)
         {
             m_Type = type;
             m_Setter = setter;
@@ -24,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Name = name;
             m_PanelName = panelName;
             m_Handler = handler;
-            m_DynamicDisplay = dynamicDisplay;
+            m_Flags = flags;
         }
 
         public Type GetItemType()
@@ -56,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering
         string              m_Name;
         string              m_PanelName;
         DebugItemHandler    m_Handler = null;
-        bool                m_DynamicDisplay = false;
+        DebugItemFlag       m_Flags = DebugItemFlag.None;
     }
 
     public class DebugPanel
@@ -109,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugPanelUI.RebuildGUI();
         }
 
-        public void AddDebugItem<ItemType>(string itemName, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
+        public void AddDebugItem<ItemType>(string itemName, Func<object> getter, Action<object> setter, DebugItemFlag flags = DebugItemFlag.None, DebugItemHandler handler = null)
         {
             if (handler == null)
                 handler = new DefaultDebugItemHandler();
@@ -118,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering
             if (oldItem != null)
                 RemoveDebugItem(oldItem);
 
-            DebugItem newItem = new DebugItem(itemName, m_Name, typeof(ItemType), getter, setter, dynamicDisplay, handler);
+            DebugItem newItem = new DebugItem(itemName, m_Name, typeof(ItemType), getter, setter, flags, handler);
             handler.SetDebugItem(newItem);
             m_Items.Add(newItem);
         }
