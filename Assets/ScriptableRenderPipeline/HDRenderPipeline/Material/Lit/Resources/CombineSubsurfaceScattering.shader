@@ -75,14 +75,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 t = 0;
             #endif
                 // Reducing the integration distance is equivalent to stretching the integration axis.
-                float3 valX = KernelValCircle(sqrt(r * r + t * t) * rcpDistScale, S);
+                float3 val = KernelValCircle(sqrt(r * r + t * t) * rcpDistScale, S);
 
-                // The reciprocal of the PDF could be reinterpreted as a 'dx' term in Int{F(x)dx}.
-                // As we shift the location of the value on the curve during integration,
-                // the length of the segment 'dx' under the curve changes approximately linearly.
-                float rcpPdfX = rcpPdf * (1 + abs(t) / r);
-
-                return valX * rcpPdfX;
+                // Rescaling of the PDF is handled via 'totalWeight'.
+                return val * rcpPdf;
             }
 
             #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
