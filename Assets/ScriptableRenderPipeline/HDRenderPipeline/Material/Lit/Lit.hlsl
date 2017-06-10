@@ -758,7 +758,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL));
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL));  // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -862,7 +862,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * attenuation;
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x , saturate(-NdotL)) * attenuation;  // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -945,7 +945,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * clipFactor;
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL)) * clipFactor; // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
