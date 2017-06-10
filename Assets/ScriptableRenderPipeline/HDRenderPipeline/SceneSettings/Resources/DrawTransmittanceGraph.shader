@@ -29,7 +29,6 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             //-------------------------------------------------------------------------------------
 
             float4 _VolumeAlbedo, _VolumeShapeParam, _ThicknessRemap;
-            float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
             // Implementation
