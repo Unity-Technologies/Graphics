@@ -32,7 +32,7 @@ float F_Transm_Schlick(float f0, float f90, float u)
 
 float F_Transm_Schlick(float f0, float u)
 {
-    return F_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
+    return F_Transm_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
 }
 
 float3 F_Schlick(float3 f0, float f90, float u)
