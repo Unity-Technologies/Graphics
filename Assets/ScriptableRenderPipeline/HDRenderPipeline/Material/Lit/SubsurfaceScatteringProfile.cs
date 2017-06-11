@@ -467,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent SSSText = new GUIContent("Subsurface scattering options", "Subsurface scattering options");
             public readonly GUIContent transmissionText = new GUIContent("Transmission options", "Transmission options");
-            
+
 
             public Styles()
             {
@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 GUILayout.Label(styles.SSSText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);                
+                EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
                 GUI.enabled = false;
                 EditorGUILayout.PropertyField(m_KernelSize, styles.sssProfileKernelSize);
                 GUI.enabled = true;
