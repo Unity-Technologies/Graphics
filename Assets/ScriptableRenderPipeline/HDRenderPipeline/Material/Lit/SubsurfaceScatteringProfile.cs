@@ -77,6 +77,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Evaluate the fit for diffuse surface transmission.
             // We substitute s = 1 / d in all formulas. so s = m_SurfaceShapeParam
+            m_SurfaceShapeParam.x = 1.0f / Mathf.Max(scatteringDistance.r, 0.001f);
+            m_SurfaceShapeParam.y = 1.0f / Mathf.Max(scatteringDistance.g, 0.001f);
+            m_SurfaceShapeParam.z = 1.0f / Mathf.Max(scatteringDistance.b, 0.001f);
             m_VolumeShapeParam.x  = FindFitForS(volumeAlbedo.r);
             m_VolumeShapeParam.y  = FindFitForS(volumeAlbedo.g);
             m_VolumeShapeParam.z  = FindFitForS(volumeAlbedo.b);
