@@ -38,7 +38,8 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                GetPresenter<VFXParameterPresenter>().viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
+                var viewPresenter = GetPresenter<VFXSlotContainerPresenter>().viewPresenter;
+                viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 
