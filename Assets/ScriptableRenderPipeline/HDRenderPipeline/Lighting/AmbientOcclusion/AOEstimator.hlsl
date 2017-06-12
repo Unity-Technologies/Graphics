@@ -1,7 +1,5 @@
-#ifndef UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_ESTIMATION
-#define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_ESTIMATION
-
-#include "CommonAmbientOcclusion.hlsl"
+#ifndef UNITY_HDRENDERPIPELINE_SSAO_AOESTIMATOR
+#define UNITY_HDRENDERPIPELINE_SSAO_AOESTIMATOR
 
 half _Intensity;
 float _Radius;
@@ -18,7 +16,7 @@ float3 SampleInsideHemisphere(float2 uv, half3 norm, int index)
 }
 
 // Distance-based AO estimator based on Morgan 2011 http://goo.gl/2iz3P
-half4 Frag(Varyings input) : SV_Target
+half4 FragAO(Varyings input) : SV_Target
 {
     PositionInputs posInput = GetPositionInput(input.positionCS.xy / _Downsample, _ScreenSize.zw);
 
@@ -60,4 +58,4 @@ half4 Frag(Varyings input) : SV_Target
     return PackAONormal(ao, norm_o);
 }
 
-#endif // UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_ESTIMATION
+#endif // UNITY_HDRENDERPIPELINE_SSAO_AOESTIMATOR

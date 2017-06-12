@@ -33,9 +33,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ScreenSpaceAmbientOcclusionEffect()
         {}
 
-        public void Build(RenderPipelineResources renderPipelinesResources)
+        public void Build(RenderPipelineResources renderPipelineResources)
         {
-            m_Material = Utilities.CreateEngineMaterial("Hidden/HDPipeline/ScreenSpace/AmbientOcclusion");
+            m_Material = Utilities.CreateEngineMaterial(renderPipelineResources.screenSpaceAmbientOcclusionShader);
             m_Material.hideFlags = HideFlags.DontSave;
         }
 
