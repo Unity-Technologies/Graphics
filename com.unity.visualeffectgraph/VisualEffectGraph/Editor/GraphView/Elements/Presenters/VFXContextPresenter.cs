@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -176,15 +176,17 @@ namespace UnityEditor.VFX.UI
                 this.ReorderBlock(insertIndex++, draggedBlock.block);
             }
         }
+
         public override IEnumerable<GraphElementPresenter> allElements
         {
-            get{
-            return inputAnchors.Cast<GraphElementPresenter>()
-                .Concat(outputAnchors.Cast<GraphElementPresenter>())
-                .Concat(flowInputAnchors.Cast<GraphElementPresenter>())
-                .Concat(flowOutputAnchors.Cast<GraphElementPresenter>())
-                .Concat(blockPresenters.Cast<GraphElementPresenter>());
+            get
+            {
+                return inputAnchors.Cast<GraphElementPresenter>()
+                    .Concat(outputAnchors.Cast<GraphElementPresenter>())
+                    .Concat(flowInputAnchors.Cast<GraphElementPresenter>())
+                    .Concat(flowOutputAnchors.Cast<GraphElementPresenter>())
+                    .Concat(blockPresenters.Cast<GraphElementPresenter>());
             }
-         }
+        }
     }
 }

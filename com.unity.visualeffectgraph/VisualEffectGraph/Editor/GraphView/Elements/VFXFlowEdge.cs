@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
-        public static void RenderLine(Vector2 start, Vector2 end,Color color,float edgeWidth)
+        public static void RenderLine(Vector2 start, Vector2 end, Color color, float edgeWidth)
         {
             if (VLineMat == null)
             {

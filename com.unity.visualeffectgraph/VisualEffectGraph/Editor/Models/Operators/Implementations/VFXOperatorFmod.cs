@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-			return new[] { VFXOperatorUtility.Fmod(inputExpression[0], inputExpression[1]) };
+            return new[] { VFXOperatorUtility.Fmod(inputExpression[0], inputExpression[1]) };
         }
     }
 }
