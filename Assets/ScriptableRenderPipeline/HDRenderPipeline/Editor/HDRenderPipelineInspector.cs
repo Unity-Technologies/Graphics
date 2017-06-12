@@ -89,6 +89,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_RenderingUseDepthPrepass = null;
 
         // Subsurface Scattering Settings
+        // Old SSS Model >>>
+        SerializedProperty m_UseDisneySSS = null;
+        // <<< Old SSS Model
         SerializedProperty m_Profiles = null;
         SerializedProperty m_NumProfiles = null;
 
@@ -133,6 +136,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
 
             // Subsurface Scattering Settings
+            // Old SSS Model >>>
+            m_UseDisneySSS = FindProperty(x => x.sssSettings.useDisneySSS);
+            // <<< Old SSS Model
             m_Profiles    = FindProperty(x => x.sssSettings.profiles);
             m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
         }
@@ -186,6 +192,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
 
+            // Old SSS Model >>>
+            EditorGUILayout.PropertyField(m_UseDisneySSS);
+            // <<< Old SSS Model
             EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
 
             for (int i = 0, n = m_Profiles.arraySize; i < n; i++)

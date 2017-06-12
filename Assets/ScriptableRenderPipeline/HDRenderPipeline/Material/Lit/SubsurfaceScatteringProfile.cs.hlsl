@@ -14,6 +14,8 @@
 #define SSS_LOD_THRESHOLD (4)
 #define SSS_TRSM_MODE_NONE (0)
 #define SSS_TRSM_MODE_THIN (1)
+#define SSS_BASIC_N_SAMPLES (11)
+#define SSS_BASIC_DISTANCE_SCALE (3)
 
 
 #endif
