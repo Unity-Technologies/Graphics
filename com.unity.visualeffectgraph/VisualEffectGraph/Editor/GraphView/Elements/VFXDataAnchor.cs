@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -198,10 +198,10 @@ namespace UnityEditor.VFX.UI
             }
             else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
+                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(position - new Vector2(360, 0), parameterDesc);
+                    VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position )- new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }

@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
                     var contextDesc = VFXLibrary.GetContexts().FirstOrDefault(t => t.CreateInstance().contextType == targetContextType);
                     if (contextDesc != null)
                     {
-                        VFXContext newContext = viewPresenter.AddVFXContext(position - new Vector2(188, presenter.direction == Direction.Input ? 92 : 16), contextDesc);
+                        VFXContext newContext = viewPresenter.AddVFXContext(view.contentViewContainer.GlobalToBound(position) - new Vector2(188, presenter.direction == Direction.Input ? 92 : 16), contextDesc);
 
                         VFXContextPresenter newContextPresenter = viewPresenter.elements.OfType<VFXContextPresenter>().FirstOrDefault(t => t.model == newContext);
 
