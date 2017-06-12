@@ -11,52 +11,58 @@
 
 float F_Schlick(float f0, float f90, float u)
 {
-    float x     = 1.0 - u;
-    float x5    = x * x;
-    x5          = x5 * x5 * x;
-    return (f90 - f0) * x5 + f0; // sub mul mul mul sub mad
+    float x  = 1.0 - u;
+    float x2 = x * x;
+    float x5 = x * x2 * x2;
+    return (f90 - f0) * x5 + f0;                // sub mul mul mul sub mad
 }
 
 float F_Schlick(float f0, float u)
 {
-    return F_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
-}
-
-float F_Transm_Schlick(float f0, float f90, float u)
-{
-    float x     = 1.0 - u;
-    float x5    = x * x;
-    x5          = x5 * x5 * x;
-    return (1.0 - f0) - x5 * (f90 - f0); // sub mul mul mul sub sub mad
-}
-
-float F_Transm_Schlick(float f0, float u)
-{
-    return F_Transm_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
+    return F_Schlick(f0, 1.0, u);               // sub mul mul mul sub mad
 }
 
 float3 F_Schlick(float3 f0, float f90, float u)
 {
-    float x     = 1.0 - u;
-    float x5    = x * x;
-    x5          = x5 * x5 * x;
-    return (float3(f90, f90, f90) - f0) * x5 + f0; // sub mul mul mul sub*3 mad*3
+    float x  = 1.0 - u;
+    float x2 = x * x;
+    float x5 = x * x2 * x2;
+    return f0 * (1.0 - x5) + (f90 * x5);        // sub mul mul mul sub mul mad*3
 }
 
 float3 F_Schlick(float3 f0, float u)
 {
-    float x     = 1.0 - u;
-    float x5    = x * x;
-    x5          = x5 * x5 * x;
-    return f0 * (1.0 - x5) + float3(x5, x5, x5); // sub mul mul mul sub mad*3
+    return F_Schlick(f0, 1.0, u);               // sub mul mul mul sub mad*3
 }
 
-float3 F_Transm_Schlick(float3 f0, float u)
+// Does not handle TIR.
+float F_Transm_Schlick(float f0, float f90, float u)
 {
     float x  = 1.0 - u;
     float x2 = x * x;
-    float y  = 1.0 - x2 * x2 * x;
-    return y - y * f0; // sub mul mul mad mad*3
+    float x5 = x * x2 * x2;
+    return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad
+}
+
+// Does not handle TIR.
+float F_Transm_Schlick(float f0, float u)
+{
+    return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad
+}
+
+// Does not handle TIR.
+float3 F_Transm_Schlick(float3 f0, float f90, float u)
+{
+    float x  = 1.0 - u;
+    float x2 = x * x;
+    float x5 = x * x2 * x2;
+    return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad*3
+}
+
+// Does not handle TIR.
+float3 F_Transm_Schlick(float3 f0, float u)
+{
+    return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad*3
 }
 
 //-----------------------------------------------------------------------------
