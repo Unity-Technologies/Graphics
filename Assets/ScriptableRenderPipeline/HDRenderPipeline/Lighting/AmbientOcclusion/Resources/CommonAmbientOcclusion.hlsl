@@ -27,20 +27,6 @@ static const float kBeta = 0.002;
 // A small value used for avoiding self-occlusion.
 static const float kEpsilon = 1e-6;
 
-float2 SinCos(float theta)
-{
-    float sn, cs;
-    sincos(theta, sn, cs);
-    return float2(sn, cs);
-}
-
-// Pseudo random number generator with 2D coordinates
-float UVRandom(float u, float v)
-{
-    float f = dot(float2(12.9898, 78.233), float2(u, v));
-    return frac(43758.5453 * sin(f));
-}
-
 // Interleaved gradient function from Jimenez 2014 http://goo.gl/eomGso
 float GradientNoise(float2 uv)
 {

@@ -43,7 +43,7 @@ half4 Frag(Varyings input) : SV_Target
         // Project the sample point and get the view-space position.
         float2 spos_s1 = float2(dot(unity_CameraProjection[0].xyz, vpos_s1),
                                 dot(unity_CameraProjection[1].xyz, vpos_s1));
-        float2 uv_s1_01 = (spos_s1 / vpos_s1.z + 1.0) * 0.5;
+        float2 uv_s1_01 = saturate((spos_s1 / vpos_s1.z + 1.0) * 0.5);
         float depth_s1_raw = LOAD_TEXTURE2D(_MainDepthTexture, uint2(uv_s1_01 * _ScreenSize.xy)).x;
         float3 vpos_s2 = ComputeViewSpacePosition(uv_s1_01, depth_s1_raw, _InvProjMatrix);
 
