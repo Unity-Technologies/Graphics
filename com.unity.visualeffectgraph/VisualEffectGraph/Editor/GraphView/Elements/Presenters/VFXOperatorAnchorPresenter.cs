@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,10 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateInfos(bool expanded)
         {
-            anchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
+            if (model.GetExpression() != null)
+                anchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
+            else
+                base.UpdateInfos(expanded);
         }
     }
 

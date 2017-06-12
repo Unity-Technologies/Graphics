@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateSlots(List<NodeAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
-            foreach (VFXSlot slot in slotList)
+            foreach (VFXSlot slot in slotList.ToArray())
             {
                 VFXDataAnchorPresenter propPresenter = GetPropertyPresenter(slot, input);
 
