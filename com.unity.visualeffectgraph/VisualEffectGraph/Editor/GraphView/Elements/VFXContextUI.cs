@@ -279,7 +279,7 @@ namespace UnityEditor.VFX.UI
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             DragFinished();
-            IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
+            IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
             if (!CanDrop(blocksUI, null))
                 return EventPropagation.Stop;
 
