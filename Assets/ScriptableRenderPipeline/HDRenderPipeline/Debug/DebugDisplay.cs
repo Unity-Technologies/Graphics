@@ -21,6 +21,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kShadowSelectionDebug = "Use Selection";
         public static string kShadowMapIndexDebug = "Shadow Map Index";
         public static string kShadowAtlasIndexDebug = "Shadow Atlas Index";
+        public static string kShadowMinValueDebug = "Shadow Range Min Value";
+        public static string kShadowMaxValueDebug = "Shadow Range Max Value";
         public static string kLightingDebugMode = "Lighting Debug Mode";
         public static string kOverrideSmoothnessDebug = "Override Smoothness";
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
@@ -121,6 +123,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kShadowSelectionDebug, () => lightingDebugSettings.shadowDebugUseSelection, (value) => lightingDebugSettings.shadowDebugUseSelection = (bool)value, DebugItemFlag.EditorOnly);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowMapIndexDebug, () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowIndex(1));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowAtlasIndexDebug, () => lightingDebugSettings.shadowAtlasIndex, (value) => lightingDebugSettings.shadowAtlasIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowAtlasIndex(1));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, FullScreenDebugMode>(kFullScreenDebugMode, () => lightingDebugSettings.fullScreenDebugMode, (value) => lightingDebugSettings.fullScreenDebugMode = (FullScreenDebugMode)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
@@ -422,6 +426,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
         public uint                 shadowAtlasIndex = 0;
+        public float                shadowMinValue = 0.0f;
+        public float                shadowMaxValue = 1.0f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
 
         public bool                 overrideSmoothness = false;

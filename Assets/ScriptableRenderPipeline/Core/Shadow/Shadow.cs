@@ -580,15 +580,18 @@ namespace UnityEngine.Experimental.Rendering
             // Nothing to do for this implementation here, as the atlas is reconstructed each frame, instead of keeping state across frames
         }
 
-        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             CommandBuffer debugCB = new CommandBuffer();
             debugCB.name = "";
+
+            Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetTexture("_AtlasTexture", m_Shadowmap);
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
+            propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
@@ -1015,15 +1018,18 @@ namespace UnityEngine.Experimental.Rendering
            base.PostUpdate( frameId, cb, rendertargetSlice, lights );
         }
 
-        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             CommandBuffer debugCB = new CommandBuffer();
             debugCB.name = "";
+
+            Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetTexture("_AtlasTexture", m_Shadowmap);
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
+            propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
@@ -1349,7 +1355,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void DisplayShadow(ScriptableRenderContext renderContext, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        public override void DisplayShadow(ScriptableRenderContext renderContext, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (m_ShadowIndices.Count() == 0)
                 return;
@@ -1360,16 +1366,16 @@ namespace UnityEngine.Experimental.Rendering
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
             uint texID, samplerID, slice;
             faceData.UnpackShadowmapId(out texID, out samplerID, out slice);
-            m_Shadowmaps[texID].DisplayShadowMap(renderContext, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY);
+            m_Shadowmaps[texID].DisplayShadowMap(renderContext, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
-        public override void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        public override void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if(m_Shadowmaps.Length == 0)
                 return;
 
             uint index = Math.Max(0, Math.Min((uint)(m_Shadowmaps.Length - 1), shadowMapIndex));
-            m_Shadowmaps[index].DisplayShadowMap(renderContext, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY);
+            m_Shadowmaps[index].DisplayShadowMap(renderContext, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public override void SyncData()

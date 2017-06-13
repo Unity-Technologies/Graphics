@@ -2193,14 +2193,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
                             for (uint i = 0; i < faceCount; ++i)
                             {
-                                m_ShadowMgr.DisplayShadow(renderContext, index, i, x, y, overlaySize, overlaySize);
+                                m_ShadowMgr.DisplayShadow(renderContext, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                                 Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                             }
                         }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        m_ShadowMgr.DisplayShadowMap(renderContext, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize);
+                        m_ShadowMgr.DisplayShadowMap(renderContext, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }

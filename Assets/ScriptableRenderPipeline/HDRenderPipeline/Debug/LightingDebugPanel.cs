@@ -70,6 +70,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowAtlasIndexDebug).handler.OnEditorGUI();
                     EditorGUI.indentLevel--;
                 }
+                DebugItem shadowMinValue = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMinValueDebug);
+                shadowMinValue.handler.OnEditorGUI();
+                DebugItem shadowMaxValue = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMaxValueDebug);
+                shadowMaxValue.handler.OnEditorGUI();
 
                 DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
                 lightingDebugModeItem.handler.OnEditorGUI();
