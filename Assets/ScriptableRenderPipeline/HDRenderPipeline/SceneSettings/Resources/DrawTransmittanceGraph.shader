@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _VolumeAlbedo, _VolumeShapeParam, _ThicknessRemap;
+            float4 _ShapeParam, _TransmissionTint, _ThicknessRemap;
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -57,10 +57,10 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             float4 Frag(Varyings input) : SV_Target
             {
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 T = ComputeTransmittance(_VolumeShapeParam.rgb, float3(1, 1, 1), d, 1);
+                float3 T = ComputeTransmittance(_ShapeParam.rgb, float3(1, 1, 1), d, 1);
 
                 // Apply gamma for visualization only. Do not apply gamma to the color.
-                return float4(pow(T, 1.0 / 3) * _VolumeAlbedo.rgb, 1);
+                return float4(pow(T, 1.0 / 3) * _TransmissionTint.rgb, 1);
             }
             ENDHLSL
         }
