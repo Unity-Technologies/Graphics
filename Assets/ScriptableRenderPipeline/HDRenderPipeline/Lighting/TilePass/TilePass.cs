@@ -1534,7 +1534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var projscr = temp * proj;
                 var invProjscr = projscr.inverse;
 
-                var cmd = new CommandBuffer() { name = "" };
+                var cmd = CommandBufferPool.Get("");
                 cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
 
                 // generate screen-space AABBs (used for both fptl and clustered).
@@ -1663,7 +1663,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 loop.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
             }
 
             // This is a workaround for global properties not being accessible from compute.
@@ -1803,7 +1803,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void PushGlobalParams(Camera camera, ScriptableRenderContext loop, ComputeShader computeShader, int kernelIndex)
             {
-                var cmd = new CommandBuffer { name = "Push Global Parameters" };
+                var cmd = CommandBufferPool.Get("Push Global Parameters");
 
                 // Shadows
                 m_ShadowMgr.SyncData();
@@ -1813,7 +1813,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalPropertyRedirect(null, 0, null);
 
                 loop.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
             }
 
 #if UNITY_EDITOR
@@ -1849,7 +1849,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
-                var cmd = new CommandBuffer();
+                var cmd = CommandBufferPool.Get();
                 cmd.name = "Tiled Lighting Debug";
 
                 bool bUseClusteredForDeferred = !usingFptl;
@@ -1906,7 +1906,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalPropertyRedirect(null, 0, null);
 
                 renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
             }
 
             public void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
@@ -1918,7 +1918,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), renderContext))
                 {
-                    var cmd = new CommandBuffer();
+                    var cmd = CommandBufferPool.Get();
                     cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
 
                     var camera = hdCamera.camera;
@@ -2132,7 +2132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     SetGlobalPropertyRedirect(null, 0, null);
 
                     renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
+                    
                 } // TilePass - Deferred Lighting Pass
             }
 
@@ -2141,7 +2141,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
 
-                var cmd = new CommandBuffer();
+                var cmd = CommandBufferPool.Get();
 
                 if (!m_TileSettings.enableTileAndCluster)
                 {
@@ -2160,7 +2160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
             }
 
             public void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)

@@ -173,11 +173,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set shader constants.
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
-            var cmd = new CommandBuffer { name = "" };
+            var cmd = CommandBufferPool.Get("");
 
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
         }
     }
 }

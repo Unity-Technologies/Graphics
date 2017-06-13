@@ -435,11 +435,10 @@ namespace UnityEngine.Experimental.Rendering
 
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
-                var cb = new CommandBuffer();
+                var cb = CommandBufferPool.Get();
                 cb.name = "Shadowmap.EnableShadowKeyword";
                 cb.EnableShaderKeyword(m_ShaderKeyword);
                 renderContext.ExecuteCommandBuffer( cb );
-                cb.Dispose();
             }
 
             // loop for generating each individual shadowmap
@@ -451,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering
                 if( !cullResults.GetShadowCasterBounds( m_EntryCache[i].key.visibleIdx, out bounds ) )
                     continue;
 
-                var cb = new CommandBuffer();
+                var cb = CommandBufferPool.Get();
                 uint entrySlice = m_EntryCache[i].current.slice;
                 if( entrySlice != curSlice )
                 {
@@ -471,7 +470,6 @@ namespace UnityEngine.Experimental.Rendering
                 cb.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cb.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 renderContext.ExecuteCommandBuffer( cb );
-                cb.Dispose();
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
@@ -479,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // post update
-            var cblast = new CommandBuffer();
+            var cblast = CommandBufferPool.Get();
             PostUpdate( frameId, cblast, curSlice, lights );
             if( !string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
@@ -487,7 +485,6 @@ namespace UnityEngine.Experimental.Rendering
                 cblast.DisableShaderKeyword( m_ShaderKeyword );
             }
             renderContext.ExecuteCommandBuffer( cblast );
-            cblast.Dispose();
 
             m_ActiveEntriesCount = 0;
 
@@ -582,7 +579,7 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = new CommandBuffer();
+            CommandBuffer debugCB = CommandBufferPool.Get();
             debugCB.name = "";
 
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -596,7 +593,6 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
-            debugCB.Dispose();
         }
     }
 
@@ -1020,7 +1016,7 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = new CommandBuffer();
+            CommandBuffer debugCB = CommandBufferPool.Get();
             debugCB.name = "";
 
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -1034,7 +1030,6 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
-            debugCB.Dispose();
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1389,11 +1384,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sm.Fill( m_ShadowCtxt );
             }
-            CommandBuffer cb = new CommandBuffer(); // <- can we just keep this around or does this have to be newed every frame?
+            CommandBuffer cb = CommandBufferPool.Get(); // <- can we just keep this around or does this have to be newed every frame?
             cb.name = "Bind resources to GPU";
             m_ShadowCtxt.BindResources( cb );
             renderContext.ExecuteCommandBuffer( cb );
-            cb.Dispose();
         }
 
         // resets the shadow slot counters and returns the sum of all slots

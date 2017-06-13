@@ -53,13 +53,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.name = "";
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
@@ -79,13 +79,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.name = "";
             cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
@@ -100,18 +100,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.name = "";
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
         }
 
         public static void ClearCubemap(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, Color clearColor)
         {
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.name = "";
 
             for(int i = 0 ; i < 6 ; ++i)
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
         }
 
         // Miscellanous
@@ -207,11 +207,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext = _renderloop;
                 name = _name;
 
-                CommandBuffer cmd = new CommandBuffer();
+                CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.name = "";
                 cmd.BeginSample(name);
                 renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
             }
 
             ~ProfilingSample()
@@ -232,11 +232,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (disposing)
                 {
-                    CommandBuffer cmd = new CommandBuffer();
+                    CommandBuffer cmd = CommandBufferPool.Get();
                     cmd.name = "";
                     cmd.EndSample(name);
                     renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
+                    
                 }
 
                 disposed = true;

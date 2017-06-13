@@ -273,11 +273,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_isInit)
                 return;
 
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.name = "Init PreFGD";
             cmd.Blit(null, new RenderTargetIdentifier(m_PreIntegratedFGD), m_InitPreFGD, 0);
             renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            
 
             m_isInit = true;
         }
