@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering
     public class ShadowAtlas : ShadowmapBase, IDisposable
     {
         public const uint k_MaxCascadesInShader = 4;
-        protected readonly RenderTexture              m_Shadowmap;
-        protected readonly RenderTargetIdentifier     m_ShadowmapId;
         protected readonly int                        m_TempDepthId;
+        protected          RenderTexture              m_Shadowmap;
+        protected          RenderTargetIdentifier     m_ShadowmapId;
         protected          VectorArray<CachedEntry>   m_EntryCache = new VectorArray<CachedEntry>( 0, true );
         protected          uint                       m_ActiveEntriesCount;
         protected          FrameId                    m_FrameId;
@@ -99,18 +99,27 @@ namespace UnityEngine.Experimental.Rendering
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
-            m_Shadowmap             = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
-            m_Shadowmap.hideFlags   = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
-            m_Shadowmap.dimension   = TextureDimension.Tex2DArray;
-            m_Shadowmap.volumeDepth = (int) m_Slices;
-            m_ShadowmapId           = new RenderTargetIdentifier( m_Shadowmap );
-
             if( !IsNativeDepth() )
             {
                 m_TempDepthId = Shader.PropertyToID( "Temporary Shadowmap Depth" );
             }
 
             Initialize( init );
+        }
+
+        public override void CreateShadowmap()
+        {
+            m_Shadowmap = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
+            CreateShadowmap( m_Shadowmap );
+        }
+
+        virtual protected void CreateShadowmap( RenderTexture shadowmap )
+        {
+            m_Shadowmap.hideFlags   = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
+            m_Shadowmap.dimension   = TextureDimension.Tex2DArray;
+            m_Shadowmap.volumeDepth = (int) m_Slices;
+
+            m_ShadowmapId = new RenderTargetIdentifier( m_Shadowmap );
         }
 
         override protected void Register( GPUShadowType type, ShadowRegistry registry )
@@ -650,7 +659,6 @@ namespace UnityEngine.Experimental.Rendering
             m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.RGFloat  || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf) ? Flags.channels_2 : 0;
             m_Flags |= SystemInfo.usesReversedZBuffer ? Flags.reversed_z : 0;
 
-            m_Shadowmap.enableRandomWrite = true;
             m_SampleCount  = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
             m_MomentBlurCS = Resources.Load<ComputeShader>( "ShadowBlurMoments" );
 
@@ -678,6 +686,12 @@ namespace UnityEngine.Experimental.Rendering
                 for( int j = 0; j < m_BlurWeights[i].Length; ++j )
                     m_BlurWeights[i][j] *= weightSum;
             }
+        }
+
+        override protected void CreateShadowmap( RenderTexture shadowmap )
+        {
+            shadowmap.enableRandomWrite = true;
+            base.CreateShadowmap( shadowmap );
         }
 
         private void FillBlurWeights( int idx )
@@ -1094,6 +1108,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Shadowmaps = shadowmaps;
             foreach( var sm in shadowmaps )
             {
+                sm.CreateShadowmap();
                 sm.Register( this );
                 sm.ReserveSlots( m_ShadowCtxt );
                 ShadowmapBase.ShadowSupport smsupport = sm.QueryShadowSupport();
