@@ -8,6 +8,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 
         float4 _TextureScaleBias;
         float _TextureSlice;
+        float2 _ValidRange;
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE2D_ARRAY(_AtlasTexture);
 
@@ -49,7 +50,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
             
             float4 FragRegular(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).xxxx;
+                return saturate( (SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).x - _ValidRange.x) * _ValidRange.y ).xxxx;
             }
 
             ENDHLSL
@@ -70,7 +71,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
             
             float4 FragVariance(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).rgba; // Might want something more clever like a channel selector.
+                return saturate((SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).x - _ValidRange.x) * _ValidRange.y).xxxx;
             }
 
             ENDHLSL
