@@ -17,11 +17,9 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 3
+    numProfiles: 1
     profiles:
-    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
     - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
-    - {fileID: 0}
     useDisneySSS: 1
   tileSettings:
     enableTileAndCluster: 1
