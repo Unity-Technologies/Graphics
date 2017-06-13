@@ -757,6 +757,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
                 Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+                context.ExecuteCommandBuffer(cmd); // Does not work if I don't execute the command buffer in between the draws.
 
                 // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
