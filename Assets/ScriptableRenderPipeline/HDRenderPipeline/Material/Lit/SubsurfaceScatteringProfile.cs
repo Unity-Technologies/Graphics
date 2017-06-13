@@ -447,6 +447,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 profiles[i].thicknessRemap.x = Mathf.Clamp(profiles[i].thicknessRemap.x, 0, profiles[i].thicknessRemap.y);
                 profiles[i].worldScale       = Mathf.Max(profiles[i].worldScale, 0.001f);
 
+                // Old SSS Model >>>
+                Color c = new Color();
+
+                c.r = Mathf.Max(0.05f, profiles[i].scatterDistance1.r);
+                c.g = Mathf.Max(0.05f, profiles[i].scatterDistance1.g);
+                c.b = Mathf.Max(0.05f, profiles[i].scatterDistance1.b);
+                c.a = 0.0f;
+
+                profiles[i].scatterDistance1 = c;
+
+                c.r = Mathf.Max(0.05f, profiles[i].scatterDistance2.r);
+                c.g = Mathf.Max(0.05f, profiles[i].scatterDistance2.g);
+                c.b = Mathf.Max(0.05f, profiles[i].scatterDistance2.b);
+                c.a = 0.0f;
+
+                profiles[i].scatterDistance2 = c;
+                // <<< Old SSS Model
+
                 profiles[i].BuildKernel();
             }
 
