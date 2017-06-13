@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [ColorUsage(false, true, 0f, 8f, 0.125f, 3f)]
         public Color            scatteringDistance;         // Per color channel (no meaningful units)
+        [ColorUsage(false)]
         public Color            transmissionTint;           // Color, 0 to 1
         public TexturingMode    texturingMode;
         public TransmissionMode transmissionMode;
