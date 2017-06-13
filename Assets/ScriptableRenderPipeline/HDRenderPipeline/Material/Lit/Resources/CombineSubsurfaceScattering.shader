@@ -189,7 +189,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 shapeParam  = _ShapeParams[profileID].rgb;
                 float  maxDistance = _ShapeParams[profileID].a;
             #else
-                float maxDistance  = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
+                float  maxDistance = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
             #endif
 
                 // Reconstruct the view-space position.
@@ -211,13 +211,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 centerPosition   = posInput.unPositionSS;
                 float3 centerIrradiance = LOAD_TEXTURE2D(_IrradianceSource, centerPosition).rgb;
 
-                float  maxDistInPixels  = maxDistance * max(scaledPixPerMm.x, scaledPixPerMm.y);
+                float  maxDistInPixels  = maxDistance * min(FLT_MAX, max(scaledPixPerMm.x, scaledPixPerMm.y));
 
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
                 // We use the value of 1 instead of 0.5 as an optimization.
                 [branch]
-                if (distScale == 0 || maxDistInPixels < 1)
+                if (maxDistInPixels < 1)
                 {
                     #if SSS_DEBUG
                         return float4(0, 0, 1, 1);
@@ -292,10 +292,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
                 // We use the value of 1 instead of 0.5 as an optimization.
-                float maxDistInPixels = scaledStepSize * maxDistance;
+                float maxDistInPixels = scaledStepSize * min(FLT_MAX, maxDistance);
 
                 [branch]
-                if (distScale == 0 || maxDistInPixels < 1)
+                if (maxDistInPixels < 1)
                 {
                     return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
                 }
