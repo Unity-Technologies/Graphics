@@ -63,7 +63,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
         #ifdef SSS_MODEL_DISNEY
-            float4 _SurfaceShapeParams[SSS_N_PROFILES];                                  // RGB = S = 1 / D, A = filter radius
             float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
         #else
@@ -187,8 +186,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 int    profileID   = bsdfData.subsurfaceProfile;
                 float  distScale   = bsdfData.subsurfaceRadius;
             #ifdef SSS_MODEL_DISNEY
-                float3 shapeParam  = _SurfaceShapeParams[profileID].rgb;
-                float  maxDistance = _SurfaceShapeParams[profileID].a;
+                float3 shapeParam  = _ShapeParams[profileID].rgb;
+                float  maxDistance = _ShapeParams[profileID].a;
             #else
                 float maxDistance  = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
             #endif

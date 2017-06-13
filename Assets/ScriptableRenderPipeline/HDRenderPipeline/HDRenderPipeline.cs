@@ -390,8 +390,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
-            cmd.SetGlobalVectorArray("_VolumeShapeParams",       sssParameters.volumeShapeParams);
-            cmd.SetGlobalVectorArray("_VolumeAlbedos",           sssParameters.volumeAlbedos);
+            cmd.SetGlobalVectorArray("_ShapeParams",             sssParameters.shapeParams);
+            cmd.SetGlobalVectorArray("_TransmissionTints",       sssParameters.transmissionTints);
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -740,7 +740,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_FilterAndCombineSubsurfaceScattering, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", true);
 
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
-                m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_SurfaceShapeParams",    sssParameters.surfaceShapeParams);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
