@@ -752,13 +752,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_FilterAndCombineSubsurfaceScattering, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", false);
 
                 // Perform the vertical SSS filtering pass.
-                m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic", sssParameters.filterKernelsBasic);
+                m_FilterSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
+                m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                 m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
                 Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
 
                 // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-                m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic", sssParameters.filterKernelsBasic);
+                m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
+                m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                 m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
                 Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
