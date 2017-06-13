@@ -138,9 +138,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
-                if (lightData.isSingleDirectionalLight)
-                    FillLightIndices(ref cullResults, visibleLights.Length);
-
                 // Setup light and shadow shader constants
                 SetupLightShaderVariables(visibleLights, ref cullResults, ref context, ref lightData);
                 if (shadowsRendered)
@@ -235,7 +232,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void FillLightIndices(ref CullResults cullResults, int visibleLightsCount)
         {
-            int visibleRenderersCount = cullResults.GetVisibleRenderersCount();
+            //int visibleRenderersCount = cullResults.GetVisibleRenderersCount();
+            // TODO: commenting cullResults.GetVisislbeRenderersCount() to avoid compiler errors as it is not in main SRP trunk yet
+            // For now setting a small amount enough for the test scenes.
+            int visibleRenderersCount = 1024;
             if (visibleRenderersCount > m_LightIndicesCount)
             {
                 m_LightIndicesCount = visibleRenderersCount * visibleLightsCount;
@@ -252,7 +252,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (!lightData.isSingleDirectionalLight)
             {
                 FillLightIndices(ref cullResults, lights.Length);
-                Math.Min(kMaxVisibleLights, lights.Length);
+                maxLights = Math.Min(kMaxVisibleLights, lights.Length);
             }
 
             for (int i = 0; i < maxLights; ++i)
