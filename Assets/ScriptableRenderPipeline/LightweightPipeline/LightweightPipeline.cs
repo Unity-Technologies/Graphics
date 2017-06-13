@@ -95,6 +95,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Dispose()
         {
+            base.Dispose();
+
             Shader.globalRenderPipeline = "";
             if (m_LightIndexListBuffer != null)
             {
