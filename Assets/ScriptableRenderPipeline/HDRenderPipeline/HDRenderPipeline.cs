@@ -471,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set camera constant buffer
             // TODO...
 
-            CullingParameters cullingParams;
+            ScriptableCullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
             {
                 renderContext.Submit();

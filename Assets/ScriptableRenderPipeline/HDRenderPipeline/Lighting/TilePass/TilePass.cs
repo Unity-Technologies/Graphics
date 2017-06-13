@@ -1199,7 +1199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return (int)m_ShadowMgr.GetShadowMapCount();
             }
 
-            public void UpdateCullingParameters(ref CullingParameters cullingParams)
+            public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
             {
                 m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
             }
