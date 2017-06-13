@@ -20,6 +20,7 @@ MonoBehaviour:
     numProfiles: 1
     profiles:
     - {fileID: 0}
+    useDisneySSS: 1
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
