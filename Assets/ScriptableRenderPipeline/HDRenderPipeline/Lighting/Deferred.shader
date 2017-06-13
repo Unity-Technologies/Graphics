@@ -119,6 +119,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #ifdef OUTPUT_SPLIT_LIGHTING
                 outputs.specularLighting = float4(specularLighting, 1.0);
                 outputs.diffuseLighting  = diffuseLighting;
+                #if defined(LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
+                    // Force non-0 indirect lighting to avoid SSS artifacts.
+                    outputs.diffuseLighting.r = max(outputs.diffuseLighting.r, 0.000001);
+                #endif
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif
