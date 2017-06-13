@@ -26,6 +26,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: ddaf41b7427b3fd47bc7bac7812e5718, type: 2}
     - {fileID: 11400000, guid: dc541e973df211847aba972f43546b0d, type: 2}
     - {fileID: 11400000, guid: a8a8b8a9d5ccbc4459d89b42a231764f, type: 2}
+    useDisneySSS: 1
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
