@@ -723,6 +723,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
+        abstract public void CreateShadowmap();
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
         abstract public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY);
     }
