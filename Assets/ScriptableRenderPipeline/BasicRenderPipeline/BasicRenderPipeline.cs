@@ -36,6 +36,7 @@ public class BasicRenderPipelineInstance : RenderPipeline
     {
         base.Render(renderContext, cameras);
         BasicRendering.Render(renderContext, cameras);
+        CommandBufferPool.EndOfFrame();
     }
 }
 
@@ -58,7 +59,7 @@ public static class BasicRendering
             context.SetupCameraProperties(camera);
 
             // clear depth buffer
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.ClearRenderTarget(true, false, Color.black);
             context.ExecuteCommandBuffer(cmd);
             cmd.Release();
@@ -159,7 +160,7 @@ public static class BasicRendering
         GetShaderConstantsFromNormalizedSH(ref ambientSH, shConstants);
 
         // setup global shader variables to contain all the data computed above
-        CommandBuffer cmd = new CommandBuffer();
+        CommandBuffer cmd = CommandBufferPool.Get();
         cmd.SetGlobalVectorArray("globalLightColor", lightColors);
         cmd.SetGlobalVectorArray("globalLightPos", lightPositions);
         cmd.SetGlobalVectorArray("globalLightSpotDir", lightSpotDirections);
@@ -167,7 +168,6 @@ public static class BasicRendering
         cmd.SetGlobalVector("globalLightCount", new Vector4(lightCount, 0, 0, 0));
         cmd.SetGlobalVectorArray("globalSH", shConstants);
         context.ExecuteCommandBuffer(cmd);
-        cmd.Dispose();
     }
 
     // Prepare L2 spherical harmonics values for efficient evaluation in a shader
