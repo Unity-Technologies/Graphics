@@ -30,7 +30,7 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
             if (!camera.enabled)
                 continue;
 
-            CullingParameters cullingParams;
+            ScriptableCullingParameters cullingParams;
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);
 

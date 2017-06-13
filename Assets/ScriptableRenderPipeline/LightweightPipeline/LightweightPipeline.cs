@@ -110,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             foreach (Camera camera in cameras)
             {
-                CullingParameters cullingParameters;
+                ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(camera, out cullingParameters))
                     continue;
 

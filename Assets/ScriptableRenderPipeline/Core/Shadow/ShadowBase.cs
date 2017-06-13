@@ -750,7 +750,7 @@ namespace UnityEngine.Experimental.Rendering
         // Binds resources to shader stages just before rendering the lighting pass
         void BindResources( ScriptableRenderContext renderContext );
         // Fixes up some parameters within the cullResults
-        void UpdateCullingParameters( ref CullingParameters cullingParams );
+        void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
 
         uint GetShadowMapCount();
         uint GetShadowMapSliceCount(uint shadowMapIndex);
@@ -770,7 +770,7 @@ namespace UnityEngine.Experimental.Rendering
         public  abstract void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         public  abstract void SyncData();
         public  abstract void BindResources( ScriptableRenderContext renderContext );
-        public  abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
+        public  abstract void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
         // sort the shadow requests in descending priority - may only modify shadowRequests
         protected abstract void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests );
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount

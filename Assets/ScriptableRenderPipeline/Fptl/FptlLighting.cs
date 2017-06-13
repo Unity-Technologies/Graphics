@@ -1076,7 +1076,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         {
             foreach (var camera in cameras)
             {
-                CullingParameters cullingParams;
+                ScriptableCullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 

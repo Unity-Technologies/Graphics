@@ -1146,7 +1146,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        public override void UpdateCullingParameters( ref CullingParameters cullingParams )
+        public override void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams )
         {
             cullingParams.shadowDistance = Mathf.Min( m_ShadowSettings.maxShadowDistance, cullingParams.shadowDistance );
         }
