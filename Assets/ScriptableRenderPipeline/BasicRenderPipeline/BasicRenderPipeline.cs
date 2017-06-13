@@ -48,7 +48,7 @@ public static class BasicRendering
         foreach (var camera in cameras)
         {
             // Culling
-            CullingParameters cullingParams;
+            ScriptableCullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
                 continue;
             CullResults cull = CullResults.Cull(ref cullingParams, context);

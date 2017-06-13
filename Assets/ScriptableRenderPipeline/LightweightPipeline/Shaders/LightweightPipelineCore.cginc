@@ -57,8 +57,10 @@ half4 globalLightAtten[MAX_VISIBLE_LIGHTS];
 float4  globalLightData; // x: pixelLightCount, y = shadowLightIndex, z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
 
 // Per object light list data
+#ifndef _SINGLE_DIRECTIONAL_LIGHT
 half4 unity_LightIndicesOffsetAndCount;
 StructuredBuffer<uint> globalLightIndexList;
+#endif
 
 half _Shininess;
 samplerCUBE _Cube;
