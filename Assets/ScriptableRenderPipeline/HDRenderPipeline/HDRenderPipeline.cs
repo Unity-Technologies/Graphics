@@ -403,7 +403,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
-            // We use the Disney transmission code with the parameters of Jimenez in order not to add an extra shader variant.
+            // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
+            // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
+            // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
+            // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
+            // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
             cmd.SetGlobalVectorArray("_ShapeParams",             sssParameters.useDisneySSS ? sssParameters.shapeParams : sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalVectorArray("_TransmissionTints",       sssParameters.transmissionTints);
 
