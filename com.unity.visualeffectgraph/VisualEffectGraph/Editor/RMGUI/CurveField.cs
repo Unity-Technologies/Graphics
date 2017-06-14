@@ -76,8 +76,8 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            int previewWidth = (int)m_Curve.position.width;
-            int previewHeight = (int)m_Curve.position.height;
+            int previewWidth = (int)m_Curve.layout.width;
+            int previewHeight = (int)m_Curve.layout.height;
 
             if (previewHeight > 0 && previewWidth > 0)
             {

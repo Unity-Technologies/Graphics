@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
 
                 if (edge != null)
                 {
-                    Vector2 globaCenter = position.position + (Vector2)GetLocalCenter();
+                    Vector2 globaCenter = layout.position + (Vector2)GetLocalCenter();
 
                     Vector2 from = globaCenter - new Vector2(10, 0);
                     Vector2 to = globaCenter + new Vector2(5, 0);

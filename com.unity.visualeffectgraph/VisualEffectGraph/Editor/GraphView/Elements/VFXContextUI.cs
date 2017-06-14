@@ -216,17 +216,17 @@ namespace UnityEditor.VFX.UI
             Vector2 position;
             if (target != null)
             {
-                position = target.position.position;
+                position = target.layout.position;
                 if (after)
                 {
-                    position.y += target.position.height;
+                    position.y += target.layout.height;
                 }
             }
             else
             {
                 if (after)
                 {
-                    position.y = m_BlockContainer.position.height;
+                    position.y = m_BlockContainer.layout.height;
                 }
                 else
                 {

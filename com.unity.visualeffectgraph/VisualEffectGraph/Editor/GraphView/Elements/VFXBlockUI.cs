@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
 
-            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > position.height / 2);
+            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
 
             return EventPropagation.Stop;
         }
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.UI
 
             if (context.CanDrop(draggedBlocksUI, this))
             {
-                contextPresenter.BlocksDropped(blockPresenter, pos.y > position.height / 2, draggedBlocks);
+                contextPresenter.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocks);
             }
             else
             {

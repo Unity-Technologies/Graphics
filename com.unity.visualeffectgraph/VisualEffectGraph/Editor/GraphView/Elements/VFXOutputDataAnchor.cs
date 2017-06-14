@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool ContainsPoint(Vector2 localPoint)
         {
-            return position.Contains(localPoint);
+            return layout.Contains(localPoint);
             //return GraphElement.ContainsPoint(localPoint);
             // Here local point comes without position offset...
             //localPoint -= position.position;
