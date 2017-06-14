@@ -507,6 +507,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             InitAndClearBuffer(camera, renderContext);
 
+            PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
+
             RenderDepthPrepass(cullResults, camera, renderContext);
 
             // Forward opaque with deferred/cluster tile require that we fill the depth buffer
@@ -536,8 +538,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                     m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT);
                 }
-
-                PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                 // must be call after BuildGPULightLists.
