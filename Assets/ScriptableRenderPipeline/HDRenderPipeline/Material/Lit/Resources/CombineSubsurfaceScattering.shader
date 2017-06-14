@@ -314,6 +314,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     [flatten]
                     if (any(sampleIrradiance))
                     {
+                    #if (SSS_BILATERAL != 0)
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
@@ -321,6 +322,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                         float zDistance   = unitScale * sampleDepth - (unitScale * centerPosVS.z);
                         sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
+                    #endif
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;
