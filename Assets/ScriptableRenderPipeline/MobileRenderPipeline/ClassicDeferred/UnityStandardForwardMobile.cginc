@@ -217,11 +217,90 @@ float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3
   		}
   		else if (gPerLightData[lightIndex].x == SPHERE_LIGHT)
   		{
+  			float3 vLp = gLightPos[lightIndex].xyz;
 
+            float3 toLight  = vLp - vP;
+            float dist = length(toLight);
+            float3 vL = toLight / dist;
+            float3 vLw = mul((float3x3) g_mViewToWorld, vL).xyz;        //unity_CameraToWorld
+
+            float atten = 1;
+//            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
+//            float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
+//
+//            float4 cookieColor = float4(1,1,1,1);
+//
+//            const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
+//            [branch]if(bHasCookie)
+//            {
+//                float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
+//                cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
+//                atten *= cookieColor.w;
+//            }
+
+			int shadowIdx = asint(gPerLightData[lightIndex].y);
+			[branch]
+			if (shadowIdx >= 0)
+			{
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw);
+				atten *= shadow;
+			}
+
+            UnityLight light;
+            light.color.xyz = gLightColor[lightIndex].xyz*atten; //*cookieColor.xyz;
+            light.dir.xyz = vLw;
+
+            ints += EvalMaterial(light, ind);
   		}
   		else if (gPerLightData[lightIndex].x == SPOT_LIGHT)
   		{
+            float3 vLp = gLightPos[lightIndex].xyz;
 
+            float3 toLight  = vLp - vP;
+            float dist = length(toLight);
+            float3 vL = toLight / dist;
+
+            // mine
+//            float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
+//			colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
+//			float atten = colorCookie.w;
+//			atten *= uvCookie.w < 0;
+//
+//			float att = dot(tolight, tolight) * _LightPos.w;
+//			atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
+
+			float atten = 1;
+			// mortens
+//            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
+//            float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
+//
+//            // spot attenuation
+//            const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
+//            float2 cookCoord = (-lgtDat.cotan)*float2( dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
+//
+//            const bool bHasCookie = (lgtDat.flags&IS_CIRCULAR_SPOT_SHAPE)==0;       // all square spots have cookies
+//            float d0 = 0.65;
+//            float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(cookCoord)));
+//            [branch]if(bHasCookie)
+//            {
+//                cookCoord = cookCoord*0.5 + 0.5;
+//                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.sliceIndex), 0.0);
+//            }
+//            atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
+
+			int shadowIdx = asint(gPerLightData[lightIndex].y);
+			[branch]
+			if (shadowIdx >= 0)
+			{
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+				atten *= shadow;
+			}
+
+            UnityLight light;
+            light.color.xyz = gLightColor[lightIndex].xyz*atten; //*angularAtt.xyz;
+            light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
+
+            ints += EvalMaterial(light, ind);
   		}
     }
 
