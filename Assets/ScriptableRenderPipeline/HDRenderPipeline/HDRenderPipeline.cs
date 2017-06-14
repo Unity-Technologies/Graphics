@@ -403,7 +403,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
-            cmd.SetGlobalVectorArray("_ShapeParams",             sssParameters.shapeParams);
+            // We use the Disney transmission code with the parameters of Jimenez in order not to add an extra shader variant.
+            cmd.SetGlobalVectorArray("_ShapeParams",             sssParameters.useDisneySSS ? sssParameters.shapeParams : sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalVectorArray("_TransmissionTints",       sssParameters.transmissionTints);
 
             renderContext.ExecuteCommandBuffer(cmd);
