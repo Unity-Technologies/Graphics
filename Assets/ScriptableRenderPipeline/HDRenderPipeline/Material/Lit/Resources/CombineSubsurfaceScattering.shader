@@ -133,6 +133,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* Our blur is energy-preserving, so 'centerWeight' should be set to 0.  */ \
                     /* We do not terminate the loop since we want to gather the contribution */ \
                     /* of the remaining samples (e.g. in case of hair covering skin).        */ \
+                    /* Note: See comment in the output of deferred.shader                    */ \
                     /*************************************************************************/ \
                 }                                                                               \
             }
