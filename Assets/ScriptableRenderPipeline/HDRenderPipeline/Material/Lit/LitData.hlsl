@@ -14,6 +14,18 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     // Note that data input above can be use to sample into lightmap (like normal)
     builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
+    // It is safe to call this function here as surfaceData have been filled
+    // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+    if (bsdfData.enableTransmission)
+    {
+        // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
+        // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
+        // TODO: optimize more this code.
+        // Add GI transmission contribution by resampling the GI for inverted vertex normal
+        builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
+    }
+
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
 
