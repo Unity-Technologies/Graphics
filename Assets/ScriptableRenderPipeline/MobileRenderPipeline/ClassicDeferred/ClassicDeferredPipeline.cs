@@ -183,7 +183,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			m_ShadowMgr = null;
 		}
 	}
-		
+
+	// TODO: define this using LightDefintions.cs
+	public static int SPOT_LIGHT = 0;
+	public static int SPHERE_LIGHT = 1;
+	public static int BOX_LIGHT = 2;
+	public static int DIRECTIONAL_LIGHT = 3;
+
 	const int k_MaxLights = 10;
 	const int k_MaxShadowmapPerLights = 6;
 	const int k_MaxDirectionalSplit = 4;
@@ -192,11 +198,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	Vector4[] m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
 	Vector4[] m_Shadow3X3PCFTerms = new Vector4[4];
 
-
+	// arrays for shader data
+	private Vector4[] m_LightData = new Vector4[k_MaxLights]; // x:Light_type, y:ShadowIndex z:w:UNUSED
 	private Vector4[] m_LightPositions = new Vector4[k_MaxLights];
 	private Vector4[] m_LightColors = new Vector4[k_MaxLights];
-	private Vector4[] m_LightAttenuations = new Vector4[k_MaxLights];
-	private Vector4[] m_LightSpotDirections = new Vector4[k_MaxLights];
+	private Vector4[] m_LightDirections = new Vector4[k_MaxLights];
+	private Matrix4x4[] m_LightMatrix = new Matrix4x4[k_MaxLights];
+	private Matrix4x4[] m_WorldToLightMatrix = new Matrix4x4[k_MaxLights];
 
 	[NonSerialized]
 	private int m_shadowBufferID;
@@ -368,24 +376,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		// present frame buffer.
 		FinalPass(loop);
-	}
-
-	void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
-	{
-		var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
-
-		loop.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
-
-		var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardBase"))
-		{
-			sorting = { flags = SortFlags.CommonOpaque }
-		};
-		settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-		if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
-		else settings.inputFilter.SetQueuesTransparent();
-
-		loop.DrawRenderers(ref settings);
 	}
 
 	static Matrix4x4 GetFlipMatrix()
@@ -800,107 +790,106 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		loop.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
 	}
+		
+	void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
+	{
 
+		SetupLightShaderVariables (cull, camera, loop);
 
-/// <summary>
-///  Light list construction
-/// </summary>
- 
+		var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
+		{
+			sorting = { flags = SortFlags.CommonOpaque }
+		};
+		settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+		if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
+		else settings.inputFilter.SetQueuesTransparent();
+
+		loop.DrawRenderers(ref settings);
+	}
+
 	private void InitializeLightData()
 	{
 		for (int i = 0; i < k_MaxLights; ++i)
 		{
-			m_LightPositions[i] = Vector4.zero;
+			m_LightData [i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 			m_LightColors[i] = Vector4.zero;
-			m_LightAttenuations[i] = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-			m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+			m_LightDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+			m_LightPositions[i] = Vector4.zero;
+			m_LightMatrix[i] = Matrix4x4.identity;
+			m_WorldToLightMatrix[i] = Matrix4x4.identity;
 		}
 	}
 
-	private void SetupLightShaderVariables(VisibleLight[] lights, int pixelLightCount, ScriptableRenderContext context)
+	private void SetupLightShaderVariables(CullResults cull, Camera camera, ScriptableRenderContext context)
 	{
-		int totalLightCount = pixelLightCount;
+		int totalLightCount = cull.visibleLights.Length;
 		InitializeLightData();
 
 		for (int i = 0; i < totalLightCount; ++i)
 		{
-			VisibleLight currLight = lights[i];
-			if (currLight.lightType == LightType.Directional)
-			{
-				Vector4 dir = -currLight.localToWorld.GetColumn(2);
-				m_LightPositions[i] = new Vector4(dir.x, dir.y, dir.z, 0.0f);
-			}
-			else
-			{
-				Vector4 pos = currLight.localToWorld.GetColumn(3);
-				m_LightPositions[i] = new Vector4(pos.x, pos.y, pos.z, 1.0f);
-			}
+			VisibleLight light = cull.visibleLights [i];
 
-			m_LightColors[i] = currLight.finalColor;
+			Vector3 lightPos = light.localToWorld.GetColumn (3); //position
+			Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
+			float range = light.range;
+			float rangeSq = light.range * light.range;
+			var lightToWorld = light.localToWorld;
+			var worldToLight = lightToWorld.inverse;
 
-			float rangeSq = currLight.range * currLight.range;
-			float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
+			m_WorldToLightMatrix[i] = worldToLight;
 
-			if (currLight.lightType == LightType.Spot)
-			{
-				Vector4 dir = currLight.localToWorld.GetColumn(2);
-				m_LightSpotDirections[i] = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+			//postiions and directions
+			m_LightPositions [i] = new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / rangeSq);
+			m_LightDirections [i] = new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f);
 
-				float spotAngle = Mathf.Deg2Rad * currLight.spotAngle;
-				float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
-				float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
-				float angleRange = cosInneAngle - cosOuterAngle;
-				m_LightAttenuations[i] = new Vector4(cosOuterAngle,
-					Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
-			}
-			else
-			{
-				m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-				m_LightAttenuations[i] = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+			//shadow index
+			int shadowIdx;
+			float lightShadowNDXOrNot = m_ShadowIndices.TryGetValue(i, out shadowIdx ) ? (float) shadowIdx : -1.0f;
+			m_LightData[i].y = lightShadowNDXOrNot;
+
+			// color
+			m_LightColors [i] = light.finalColor;
+
+			if (light.lightType == LightType.Point) {
+				m_LightData[i].x = SPHERE_LIGHT;
+				//RenderPointLight (light, cmd, props, renderAsQuad, intersectsNear, true);
+
+			} else if (light.lightType == LightType.Spot) {
+				m_LightData[i].x = SPOT_LIGHT;
+
+				float chsa = GetCotanHalfSpotAngle (light.spotAngle);
+
+				// Setup Light Matrix
+				Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
+				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+				Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
+				m_LightMatrix[i] = temp2 * temp1 * temp3 * worldToLight;
+
+			} else if (light.lightType == LightType.Directional) {
+				m_LightData[i].x = DIRECTIONAL_LIGHT;
+
+				// Setup Light Matrix
+				float scale = 1.0f / light.light.cookieSize;
+				Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
+				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+				m_LightMatrix[i] = temp2 * temp1 * worldToLight;
+
 			}
 		}
 
-		CommandBuffer cmd = new CommandBuffer() {name = "SetupShadowShaderConstants"};
-		cmd.SetGlobalVectorArray("globalLightPos", m_LightPositions);
-		cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
-		cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
-		cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-		cmd.SetGlobalFloat("globalLightData", (float)pixelLightCount);
+		CommandBuffer cmd = new CommandBuffer() {name = "SetupShaderConstants"};
+
+		cmd.SetGlobalVectorArray("gLightData", m_LightData);
+		cmd.SetGlobalVectorArray("gLightColor", m_LightColors);
+		cmd.SetGlobalVectorArray("gLightDirection", m_LightDirections);
+		cmd.SetGlobalVectorArray("gLightPos", m_LightPositions);
+		cmd.SetGlobalMatrixArray("gLightMatrix", m_LightMatrix);
+		cmd.SetGlobalMatrixArray("gWorldToLightMatrix", m_WorldToLightMatrix);
+		cmd.SetGlobalVector("gData", new Vector4(totalLightCount, 0, 0, 0));
+
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
 	}
 }
 
-//}
 
-
-
-/*
-		void RenderForwardAddLight(Camera camera, CullResults inputs, CommandBuffer cmd, ScriptableRenderContext loop)
-		{
-			int lightCount = inputs.visibleLights.Length;
-			for (int lightNum = 0; lightNum < lightCount; lightNum++) 
-			{
-			
-				VisibleLight light = inputs.visibleLights[lightNum];
-				Vector4 lightInfo;
-				if (light.lightType == LightType.Directional)
-				{
-					Vector3 worldPos = light.localToWorld;
-					lightInfo = new Vector4 (worldPos.x, worldPos.y, worldPos.z, 1.0);
-				}
-				else {
-					Vector3 worldPos = -light.localToWorld;
-					lightInfo = new Vector4 (worldPos.x, worldPos.y, worldPos.z, 0.0);
-				}
-				
-				var props = new MaterialPropertyBlock ();
-				props.SetVector ("_WorldSpaceLightPos0", lightInfo);
-				
-			}
-	
-			
-		}
-
-
-*/
