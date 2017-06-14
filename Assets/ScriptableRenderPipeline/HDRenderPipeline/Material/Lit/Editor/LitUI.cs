@@ -52,9 +52,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Subsurface
             public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
             public static GUIContent subsurfaceRadiusText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
-            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map", "Determines the range of the blur.");
+            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
-            public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
 
             // Specular color
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
@@ -314,7 +314,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
-            m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
+
+            if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard)
+            {
+                m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
+            }
+
             m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
 
             if (useEmissiveMask)
