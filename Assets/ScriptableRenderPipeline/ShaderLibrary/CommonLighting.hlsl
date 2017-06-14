@@ -206,33 +206,23 @@ float3 GetViewShiftedNormal(float3 N, float3 V, float NdotV, float minNdotV)
     return N;
 }
 
-// Generates an orthonormal basis from a unit vector.
+// Generates an orthonormal right-handed basis from a unit vector.
+// Ref: http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
 float3x3 GetLocalFrame(float3 localZ)
 {
-    float3 upVector = abs(localZ.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
-    float3 localX   = normalize(cross(upVector, localZ));
-    float3 localY   = cross(localZ, localX);
+    float x  = localZ.x;
+    float y  = localZ.y;
+    float z  = localZ.z;
+    float sz = z >= 0 ? 1 : -1;
+    float a  = 1 / (sz + z);
+    float ya = y * a;
+    float b  = x * ya;
+    float c  = x * sz;
+
+    float3 localX = float3(c * x * a - 1, sz * b, c);
+    float3 localY = float3(b, y * ya - sz, y);
 
     return float3x3(localX, localY, localZ);
 }
-
-// TODO: test
-/*
-// http://orbit.dtu.dk/files/57573287/onb_frisvad_jgt2012.pdf
-void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
-{
-    if (N.z < -0.999) // Handle the singularity
-    {
-        tangentX = float3(0.0, -1.0, 0.0);
-        tangentY = float3(-1.0, 0.0, 0.0);
-        return ;
-    }
-
-    float a     = 1.0 / (1.0 + N.z);
-    float b     = -N.x * N.y * a;
-    tangentX    = float3(1.0 - N.x * N.x * a , b, -N.x);
-    tangentY    = float3(b, 1.0 - N.y * N.y * a, -N.y);
-}
-*/
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
