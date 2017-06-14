@@ -132,6 +132,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* Our blur is energy-preserving, so 'centerWeight' should be set to 0.  */ \
                     /* We do not terminate the loop since we want to gather the contribution */ \
                     /* of the remaining samples (e.g. in case of hair covering skin).        */ \
+                    /* Note: See comment in the output of deferred.shader                    */ \
                     /*************************************************************************/ \
                 }                                                                               \
             }
@@ -260,12 +261,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // Compute the filtering direction.
             #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                float2 unitDir  = float2(1, 0);
+                float2 unitDirection = float2(1, 0);
             #else
-                float2 unitDir  = float2(0, 1);
+                float2 unitDirection = float2(0, 1);
             #endif
 
-                float2   scaledDirection  = pixelsPerCm * unitDir;
+                float2   scaledDirection  = pixelsPerCm * unitDirection;
                 float    phi              = 0; // Random rotation; unused for now
                 float2x2 rotationMatrix   = float2x2(cos(phi), -sin(phi), sin(phi), cos(phi));
                 float2   rotatedDirection = mul(rotationMatrix, scaledDirection);
