@@ -193,7 +193,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
 
             // Old SSS Model >>>
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_UseDisneySSS);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                hdPipeline.CreateSssMaterials(m_UseDisneySSS.boolValue);
+            }
             // <<< Old SSS Model
             EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
 
