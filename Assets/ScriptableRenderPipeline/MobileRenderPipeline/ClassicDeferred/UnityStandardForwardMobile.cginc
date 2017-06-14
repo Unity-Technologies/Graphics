@@ -126,6 +126,8 @@ float4x4 g_mWorldToView;        // used for reflection only
 float4x4 g_mScrProjection;
 float4x4 g_mInvScrProjection;
 
+sampler2D _LightTextureB0;
+
 static FragmentCommonData gdata;
 static float occlusion;
 
@@ -184,7 +186,7 @@ float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
     return occlusion * UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
 }
 
-float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3 Vworld)
+float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 {
     UnityIndirect ind;
     UNITY_INITIALIZE_OUTPUT(UnityIndirect, ind);
@@ -211,7 +213,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3
 	        
 	        UnityLight light;
 	        light.color.xyz = gLightColor[lightIndex].xyz * atten;
-	        light.dir.xyz = mul((float3x3) g_mViewToWorld, -gLightDirection[lightIndex]).xyz;
+	        light.dir.xyz = -gLightDirection[lightIndex].xyz;
 
 	        ints += EvalMaterial(light, ind);
   		}
@@ -219,17 +221,14 @@ float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3
   		{
   			float3 vLp = gLightPos[lightIndex].xyz;
 
-            float3 toLight  = vLp - vP;
+            float3 toLight  = vLp - vPw;
             float dist = length(toLight);
-            float3 vL = toLight / dist;
-            float3 vLw = mul((float3x3) g_mViewToWorld, vL).xyz;        //unity_CameraToWorld
+            float3 vLw = toLight / dist;
 
-            float atten = 1;
-//            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
-//            float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
-//
+            float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
+			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
+
 //            float4 cookieColor = float4(1,1,1,1);
-//
 //            const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
 //            [branch]if(bHasCookie)
 //            {
@@ -256,37 +255,28 @@ float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3
   		{
             float3 vLp = gLightPos[lightIndex].xyz;
 
-            float3 toLight  = vLp - vP;
+            float3 toLight  = vLp - vPw;
             float dist = length(toLight);
-            float3 vL = toLight / dist;
+            float3 vLw = toLight / dist;
 
-            // mine
-//            float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
-//			colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
-//			float atten = colorCookie.w;
-//			atten *= uvCookie.w < 0;
-//
-//			float att = dot(tolight, tolight) * _LightPos.w;
-//			atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
+            // distance atten
+			float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
+			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
-			float atten = 1;
-			// mortens
-//            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
-//            float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
-//
-//            // spot attenuation
-//            const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
-//            float2 cookCoord = (-lgtDat.cotan)*float2( dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
-//
-//            const bool bHasCookie = (lgtDat.flags&IS_CIRCULAR_SPOT_SHAPE)==0;       // all square spots have cookies
-//            float d0 = 0.65;
-//            float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(cookCoord)));
+            // spot attenuation -- programatic no cookie
+            //const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
+            //float2 cookCoord = (-lgtDat.cotan)*float2( dot(vLw, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
+
+            float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
+            float2 cookCoord = uvCookie.xy / uvCookie.w;
+
+            float d0 = 0.65;
+            float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(2*cookCoord-1)));
 //            [branch]if(bHasCookie)
 //            {
-//                cookCoord = cookCoord*0.5 + 0.5;
 //                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.sliceIndex), 0.0);
 //            }
-//            atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
+            atten *= angularAtt.w*(-uvCookie.w>0.0);                           // finally apply this to the dist att.
 
 			int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
@@ -298,7 +288,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3
 
             UnityLight light;
             light.color.xyz = gLightColor[lightIndex].xyz*atten; //*angularAtt.xyz;
-            light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
+            light.dir.xyz = vLw.xyz;     //unity_CameraToWorld
 
             ints += EvalMaterial(light, ind);
   		}
@@ -313,21 +303,24 @@ void GetCountAndStart(out uint start, out uint nrLights, uint model)
     nrLights = model==REFLECTION_LIGHT ? g_numReflectionProbes : g_numLights;
 }
 
-float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vP, float3 vPw, float3 Vworld)
+float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vPw, float3 Vworld)
 {
     uint start = 0, numLights = 0;
     GetCountAndStart(start, numLights, DIRECT_LIGHT);
 
     numLightsProcessed = numLights;     // mainly for debugging/heat maps
-    return RenderLightList(start, numLights, vP, vPw, Vworld);
+    return RenderLightList(start, numLights, vPw, Vworld);
 }
                             
 half4 fragForward(VertexOutputForwardNew i) : SV_Target
 {
-	float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
-    float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
-    float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
-    float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     // not same as unity_CameraToWorld
+	//float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
+    //float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
+    //float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
+    //float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     // not same as unity_CameraToWorld
+
+    float3 vPw = i.posWorld;
+    float3 Vworld = normalize(_WorldSpaceCameraPos.xyz - vPw);
 
 #ifdef _PARALLAXMAP
     half3 tangent = i.tangentToWorldAndParallax[0].xyz;
@@ -349,7 +342,7 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
     float3 res = 0;
 
     // direct light contributions
-    res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    res += ExecuteLightList(numLightsProcessed, pixCoord, vPw, Vworld);
 
     // specular GI
     //res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
