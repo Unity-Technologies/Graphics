@@ -62,13 +62,21 @@ VertexOutputForwardNew vertForward(VertexInput v)
 // todo: put this is LightDefinitions common file
 #define MAX_LIGHTS 10
 
-float4 gLightData[MAX_LIGHTS];
+float4 gPerLightData[MAX_LIGHTS];
 half4 gLightColor[MAX_LIGHTS];
 float4 gLightPos[MAX_LIGHTS];
 half4 gLightDirection[MAX_LIGHTS];
 float4x4 gLightMatrix[MAX_LIGHTS];
 float4x4 gWorldToLightMatrix[MAX_LIGHTS];
-float4  gData;
+float4  gLightData;
+
+float4x4 g_mViewToWorld;
+float4x4 g_mWorldToView;        // used for reflection only
+float4x4 g_mScrProjection;
+float4x4 g_mInvScrProjection;
+
+static FragmentCommonData gdata;
+static float occlusion;
 
 struct LightInput
 {
@@ -80,6 +88,33 @@ struct LightInput
     float4x4 worldToLightMat;
 };
 
+float GetLinearZFromSVPosW(float posW)
+{
+#if USE_LEFTHAND_CAMERASPACE
+    float linZ = posW;
+#else
+    float linZ = -posW;
+#endif
+
+    return linZ;
+}
+
+float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
+{
+    float fSx = g_mScrProjection[0].x;
+    //float fCx = g_mScrProjection[2].x;
+    float fCx = g_mScrProjection[0].z;
+    float fSy = g_mScrProjection[1].y;
+    //float fCy = g_mScrProjection[2].y;
+    float fCy = g_mScrProjection[1].z;
+
+#if USE_LEFTHAND_CAMERASPACE
+    return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+#else
+    return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
+#endif
+}
+
 #define INITIALIZE_LIGHT(light, lightIndex) \
 							light.lightData = gLightData[lightIndex]; \
                             light.pos = gLightPos[lightIndex]; \
@@ -90,17 +125,50 @@ struct LightInput
 
 half4 fragForward(VertexOutputForwardNew i) : SV_Target
 {
-	half4 ret = half4(1, 0, 0, 0.5);
+	float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
+    float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
+    float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
+    float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     // not same as unity_CameraToWorld
 
-	for (int lightIndex = 0; lightIndex < gData.x; ++lightIndex)
-    {
-    	LightInput light;
-    	INITIALIZE_LIGHT(light, lightIndex);
+#ifdef _PARALLAXMAP
+    half3 tangent = i.tangentToWorldAndParallax[0].xyz;
+    half3 bitangent = i.tangentToWorldAndParallax[1].xyz;
+    half3 normal = i.tangentToWorldAndParallax[2].xyz;
+    float3 vDirForParallax = float3( dot(tangent, Vworld), dot(bitangent, Vworld), dot(normal, Vworld));
+#else
+    float3 vDirForParallax = Vworld;
+#endif
+    gdata = FragmentSetup(i.tex, -Vworld, vDirForParallax, i.tangentToWorldAndParallax, vPw);       // eyeVec = -Vworld
 
-    	ret += 0.01*light.color;
-    }
+    uint2 pixCoord = ((uint2) i.pos.xy);
+
+    float atten = 1.0;
+    occlusion = Occlusion(i.tex.xy);
+    UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, DummyLight(), false);
+
+    uint numLightsProcessed = 0, numReflectionsProcessed = 0;
+    float3 res = 0;
+
+    // direct light contributions
+    //res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+
+    // specular GI
+    //res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
+
+    // diffuse GI
+    res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
+    res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
+
+//	for (int lightIndex = 0; lightIndex < gData.x; ++lightIndex)
+//    {
+//    	LightInput light;
+//    	INITIALIZE_LIGHT(light, lightIndex);
+//
+//
+//    }
 	
-	return ret;
+	return OutputForward (float4(res,1.0), gdata.alpha);
+
 }
 
 #endif

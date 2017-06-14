@@ -807,6 +807,16 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		loop.DrawRenderers(ref settings);
 	}
 
+	static Matrix4x4 CameraToWorld(Camera camera)
+	{
+		return camera.cameraToWorldMatrix * GetFlipMatrix();
+	}
+
+	static Matrix4x4 CameraProjection(Camera camera)
+	{
+		return camera.projectionMatrix * GetFlipMatrix();
+	}
+
 	private void InitializeLightData()
 	{
 		for (int i = 0; i < k_MaxLights; ++i)
@@ -824,6 +834,20 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		int totalLightCount = cull.visibleLights.Length;
 		InitializeLightData();
+
+		var w = camera.pixelWidth;
+		var h = camera.pixelHeight;
+		Matrix4x4 viewToWorld = CameraToWorld (camera);
+
+		// camera to screen matrix (and it's inverse)
+		var proj = CameraProjection(camera);
+		var temp = new Matrix4x4();
+		temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
+		temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
+		temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+		temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+		var projscr = temp * proj;
+		var invProjscr = projscr.inverse;
 
 		for (int i = 0; i < totalLightCount; ++i)
 		{
@@ -879,13 +903,18 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		CommandBuffer cmd = new CommandBuffer() {name = "SetupShaderConstants"};
 
-		cmd.SetGlobalVectorArray("gLightData", m_LightData);
+		cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
+		cmd.SetGlobalMatrix("g_mWorldToView", viewToWorld.inverse);
+		cmd.SetGlobalMatrix("g_mScrProjection", projscr);
+		cmd.SetGlobalMatrix("g_mInvScrProjection", invProjscr);
+
+		cmd.SetGlobalVectorArray("gPerLightData", m_LightData);
 		cmd.SetGlobalVectorArray("gLightColor", m_LightColors);
 		cmd.SetGlobalVectorArray("gLightDirection", m_LightDirections);
 		cmd.SetGlobalVectorArray("gLightPos", m_LightPositions);
 		cmd.SetGlobalMatrixArray("gLightMatrix", m_LightMatrix);
 		cmd.SetGlobalMatrixArray("gWorldToLightMatrix", m_WorldToLightMatrix);
-		cmd.SetGlobalVector("gData", new Vector4(totalLightCount, 0, 0, 0));
+		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, 0, 0, 0));
 
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
