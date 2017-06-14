@@ -271,7 +271,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2   rotatedDirection = mul(rotationMatrix, scaledDirection);
 
                 // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
-            #if (RBG_BILATERAL_WEIGHTS != 0)
+            #if RBG_BILATERAL_WEIGHTS
                 float3 halfRcpVariance = _HalfRcpWeightedVariances[profileID].rgb;
             #else
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
@@ -311,7 +311,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     [flatten]
                     if (any(sampleIrradiance))
                     {
-                    #if (SSS_BILATERAL != 0)
+                    #if SSS_BILATERAL
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
