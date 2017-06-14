@@ -106,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
+        CullResults m_CullResults;
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
@@ -117,9 +118,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     continue;
 
                 cullingParameters.shadowDistance = m_ShadowSettings.maxShadowDistance;
-                CullResults cullResults = CullResults.Cull(ref cullingParameters, context);
+                CullResults.Cull(ref cullingParameters, context,ref m_CullResults);
 
-                VisibleLight[] visibleLights = cullResults.visibleLights;
+                VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
 
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
@@ -128,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bool shadowsRendered = false;
                 InitializeMainShadowLightIndex(visibleLights);
                 if (m_ShadowLightIndex > -1)
-                    shadowsRendered = RenderShadows(ref cullResults, ref visibleLights[m_ShadowLightIndex], ref context);
+                    shadowsRendered = RenderShadows(ref m_CullResults, ref visibleLights[m_ShadowLightIndex], ref context);
 
                 // Setup camera matrices and RT
                 context.SetupCameraProperties(camera);
@@ -141,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 
 
                 // Setup light and shadow shader constants
-                SetupLightShaderVariables(visibleLights, ref cullResults, ref context, ref lightData);
+                SetupLightShaderVariables(visibleLights, ref m_CullResults, ref context, ref lightData);
                 if (shadowsRendered)
                     SetupShadowShaderVariables(ref context, m_ShadowCasterCascadesCount);
 
@@ -156,12 +157,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     configuration |= RendererConfiguration.ProvideLightIndices;
 
                 // Render Opaques
-                var litSettings = new DrawRendererSettings(cullResults, camera, m_LitPassName);
+                var litSettings = new DrawRendererSettings(m_CullResults, camera, m_LitPassName);
                 litSettings.sorting.flags = SortFlags.CommonOpaque;
                 litSettings.inputFilter.SetQueuesOpaque();
                 litSettings.rendererConfiguration = configuration;
 
-                var unlitSettings = new DrawRendererSettings(cullResults, camera, m_UnlitPassName);
+                var unlitSettings = new DrawRendererSettings(m_CullResults, camera, m_UnlitPassName);
                 unlitSettings.sorting.flags = SortFlags.CommonOpaque;
                 unlitSettings.inputFilter.SetQueuesOpaque();
 

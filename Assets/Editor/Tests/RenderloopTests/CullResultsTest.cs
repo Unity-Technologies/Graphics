@@ -7,14 +7,14 @@ public class CullResultsTest
 {
     void InspectCullResults(Camera camera, CullResults cullResults, ScriptableRenderContext renderContext)
     {
-        VisibleReflectionProbe[] probes = cullResults.visibleReflectionProbes;
+        VisibleReflectionProbe[] probes = cullResults.visibleReflectionProbes.ToArray();
 
         Assert.AreEqual(1, probes.Length, "Incorrect reflection probe count");
 
         VisibleReflectionProbe probeA = probes[0];
         Assert.NotNull(probeA.texture, "probe texture");
 
-        VisibleLight[] lights = cullResults.visibleLights;
+        VisibleLight[] lights = cullResults.visibleLights.ToArray();
         Assert.AreEqual(3, lights.Length, "Incorrect light count");
 
         LightType[] expectedTypes = new LightType[] { LightType.Directional, LightType.Spot, LightType.Point };

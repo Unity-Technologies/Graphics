@@ -431,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
         {
-            var profilingSample = new HDPipeline.Utilities.ProfilingSample("Shadowmap" + m_TexSlot, renderContext);
+            var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), renderContext);
 
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
@@ -455,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering
                 if( entrySlice != curSlice )
                 {
                     Debug.Assert( curSlice == uint.MaxValue || entrySlice >= curSlice, "Entries in the entry cache are not ordered in slice order." );
-                    cb.name = "Shadowmap.Update.Slice" + entrySlice;
+                    cb.name = string.Format("Shadowmap.Update.Slice{0}", entrySlice);
 
                     if( curSlice != uint.MaxValue )
                     {
@@ -465,7 +465,7 @@ namespace UnityEngine.Experimental.Rendering
                     PreUpdate( frameId, cb, curSlice );
                 }
 
-                cb.name = "Shadowmap.Update - slice: " + curSlice + ", vp.x: " + m_EntryCache[i].current.viewport.x + ", vp.y: " + m_EntryCache[i].current.viewport.y + ", vp.w: " + m_EntryCache[i].current.viewport.width + ", vp.h: " + m_EntryCache[i].current.viewport.height;
+                cb.name = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
                 cb.SetViewport( m_EntryCache[i].current.viewport );
                 cb.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cb.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
