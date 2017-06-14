@@ -8,6 +8,46 @@
 #include "UnityStandardConfig.cginc"
 #include "UnityStandardCore.cginc"
 
+#define MAX_SHADOW_LIGHTS 10
+#define MAX_SHADOWMAP_PER_LIGHT 6
+#define MAX_DIRECTIONAL_SPLIT  4
+
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
+#define SHADOW_FPTL
+#	if defined(SHADER_API_D3D11)
+#		include "../../ShaderLibrary/API/D3D11.hlsl"
+#	elif defined(SHADER_API_PSSL)
+#		include "../../ShaderLibrary/API/PSSL.hlsl"
+#	elif defined(SHADER_API_XBOXONE)
+#		include "../../ShaderLibrary/API/D3D11.hlsl"
+#		include "../../ShaderLibrary/API/D3D11_1.hlsl"
+#	elif defined(SHADER_API_METAL)
+#		include "../../ShaderLibrary/API/Metal.hlsl"
+#	else
+#		error unsupported shader api
+#	endif
+#	include "../../ShaderLibrary/API/Validate.hlsl"
+#	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
+#undef SHADOW_FPTL
+
+CBUFFER_START(ShadowLightData)
+
+float4 g_vShadow3x3PCFTerms0;
+float4 g_vShadow3x3PCFTerms1;
+float4 g_vShadow3x3PCFTerms2;
+float4 g_vShadow3x3PCFTerms3;
+
+float4 g_vDirShadowSplitSpheres[MAX_DIRECTIONAL_SPLIT];
+float4x4 g_matWorldToShadow[MAX_SHADOW_LIGHTS * MAX_SHADOWMAP_PER_LIGHT];
+
+CBUFFER_END
+
 struct VertexOutputForwardNew
 {
     float4 pos                          : SV_POSITION;
@@ -62,6 +102,14 @@ VertexOutputForwardNew vertForward(VertexInput v)
 // todo: put this is LightDefinitions common file
 #define MAX_LIGHTS 10
 
+#define USE_LEFTHAND_CAMERASPACE (0)
+#define DIRECT_LIGHT (0)
+#define REFLECTION_LIGHT (1)
+#define SPOT_LIGHT (0)
+#define SPHERE_LIGHT (1)
+#define BOX_LIGHT (2)
+#define DIRECTIONAL_LIGHT (3)
+
 float4 gPerLightData[MAX_LIGHTS];
 half4 gLightColor[MAX_LIGHTS];
 float4 gLightPos[MAX_LIGHTS];
@@ -69,6 +117,9 @@ half4 gLightDirection[MAX_LIGHTS];
 float4x4 gLightMatrix[MAX_LIGHTS];
 float4x4 gWorldToLightMatrix[MAX_LIGHTS];
 float4  gLightData;
+
+int g_numLights;
+int g_numReflectionProbes;
 
 float4x4 g_mViewToWorld;
 float4x4 g_mWorldToView;        // used for reflection only
@@ -116,13 +167,82 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 }
 
 #define INITIALIZE_LIGHT(light, lightIndex) \
-							light.lightData = gLightData[lightIndex]; \
+							light.lightData = gPerLightData[lightIndex]; \
                             light.pos = gLightPos[lightIndex]; \
                             light.color = gLightColor[lightIndex]; \
                             light.lightDir = gLightDirection[lightIndex]; \
                             light.lightMat = gLightMatrix[lightIndex]; \
                             light.worldToLightMat = gWorldToLightMatrix[lightIndex];
 
+float3 EvalMaterial(UnityLight light, UnityIndirect ind)
+{
+    return UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
+}
+
+float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
+{
+    return occlusion * UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
+}
+
+float3 RenderLightList(uint start, uint numLights, float3 vP, float3 vPw, float3 Vworld)
+{
+    UnityIndirect ind;
+    UNITY_INITIALIZE_OUTPUT(UnityIndirect, ind);
+    ind.diffuse = 0;
+    ind.specular = 0;
+
+    ShadowContext shadowContext = InitShadowContext();
+
+    float3 ints = 0;
+
+    for (int lightIndex = 0; lightIndex < gLightData.x; ++lightIndex)
+    {
+    	 float atten = 1;
+
+  		if (gPerLightData[lightIndex].x == DIRECTIONAL_LIGHT) 
+  		{
+	  		int shadowIdx = asint(gPerLightData[lightIndex].y);
+			[branch]
+			if (shadowIdx >= 0)
+			{
+				float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+				atten *= shadow;
+			}
+	        
+	        UnityLight light;
+	        light.color.xyz = gLightColor[lightIndex].xyz * atten;
+	        light.dir.xyz = mul((float3x3) g_mViewToWorld, -gLightDirection[lightIndex]).xyz;
+
+	        ints += EvalMaterial(light, ind);
+  		}
+  		else if (gPerLightData[lightIndex].x == SPHERE_LIGHT)
+  		{
+
+  		}
+  		else if (gPerLightData[lightIndex].x == SPOT_LIGHT)
+  		{
+
+  		}
+    }
+
+    return ints;
+}
+
+void GetCountAndStart(out uint start, out uint nrLights, uint model)
+{
+    start = model==REFLECTION_LIGHT ? g_numLights : 0;  // offset by numLights entries
+    nrLights = model==REFLECTION_LIGHT ? g_numReflectionProbes : g_numLights;
+}
+
+float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vP, float3 vPw, float3 Vworld)
+{
+    uint start = 0, numLights = 0;
+    GetCountAndStart(start, numLights, DIRECT_LIGHT);
+
+    numLightsProcessed = numLights;     // mainly for debugging/heat maps
+    return RenderLightList(start, numLights, vP, vPw, Vworld);
+}
+                            
 half4 fragForward(VertexOutputForwardNew i) : SV_Target
 {
 	float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
@@ -150,7 +270,7 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
     float3 res = 0;
 
     // direct light contributions
-    //res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
     // specular GI
     //res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
@@ -158,15 +278,7 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
     // diffuse GI
     res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
     res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
-
-//	for (int lightIndex = 0; lightIndex < gData.x; ++lightIndex)
-//    {
-//    	LightInput light;
-//    	INITIALIZE_LIGHT(light, lightIndex);
-//
-//
-//    }
-	
+    	
 	return OutputForward (float4(res,1.0), gdata.alpha);
 
 }
