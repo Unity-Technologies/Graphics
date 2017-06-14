@@ -195,16 +195,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return sb.ToString();
         }
 
-        public class ProfilingSample
+        public struct ProfilingSample
             : IDisposable
         {
-            bool        disposed = false;
+            bool        disposed;
             ScriptableRenderContext  renderContext;
             string      name;
 
             public ProfilingSample(string _name, ScriptableRenderContext _renderloop)
             {
                 renderContext = _renderloop;
+                disposed = false;
                 name = _name;
 
                 CommandBuffer cmd = CommandBufferPool.Get();
@@ -213,19 +214,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.ExecuteCommandBuffer(cmd);
                 
             }
-
-            ~ProfilingSample()
-            {
-                Dispose(false);
-            }
-
+            
             public void Dispose()
             {
                 Dispose(true);
             }
 
             // Protected implementation of Dispose pattern.
-            protected virtual void Dispose(bool disposing)
+            void Dispose(bool disposing)
             {
                 if (disposed)
                     return;
@@ -290,40 +286,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#
+        static List<float> m_FloatListdata = new List<float>();
         public static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
         {
-            var data = new float[16];
+            m_FloatListdata.Clear();
 
             for (int c = 0; c < 4; c++)
                 for (int r = 0; r < 4; r++)
-                    data[4 * c + r] = mat[r, c];
+                    m_FloatListdata.Add(mat[r, c]);
 
-            cmd.SetComputeFloatParams(shadercs, name, data);
+            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
         }
 
         public static void SetMatrixArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4[] matArray)
         {
             int numMatrices = matArray.Length;
-            var data = new float[numMatrices * 16];
 
+            m_FloatListdata.Clear();
+            
             for (int n = 0; n < numMatrices; n++)
                 for (int c = 0; c < 4; c++)
                     for (int r = 0; r < 4; r++)
-                        data[16 * n + 4 * c + r] = matArray[n][r, c];
+                        m_FloatListdata.Add(matArray[n][r, c]);
 
-            cmd.SetComputeFloatParams(shadercs, name, data);
+            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
         }
 
         public static void SetVectorArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Vector4[] vecArray)
         {
             int numVectors = vecArray.Length;
-            var data = new float[numVectors * 4];
+            m_FloatListdata.Clear();
 
             for (int n = 0; n < numVectors; n++)
                 for (int i = 0; i < 4; i++)
-                    data[4 * n + i] = vecArray[n][i];
+                    m_FloatListdata.Add(vecArray[n][i]);
 
-            cmd.SetComputeFloatParams(shadercs, name, data);
+            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
         }
 
         public static void SetKeyword(Material m, string keyword, bool state)

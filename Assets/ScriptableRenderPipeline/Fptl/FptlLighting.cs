@@ -738,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     dirLightCount++;
                 }
             }
-            s_DirLightList.SetData(lights.ToArray());
+            s_DirLightList.SetData(lights);
 
             return dirLightCount;
         }
@@ -750,8 +750,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 m_FrameId.frameCount++;
                 // get the indices for all lights that want to have shadows
                 m_ShadowRequests.Clear();
-                m_ShadowRequests.Capacity = inputs.visibleLights.Length;
-                int lcnt = inputs.visibleLights.Length;
+                m_ShadowRequests.Capacity = inputs.visibleLights.Count;
+                int lcnt = inputs.visibleLights.Count;
                 for (int i = 0; i < lcnt; ++i)
                 {
                     VisibleLight vl = inputs.visibleLights[i];
@@ -762,7 +762,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 uint shadowRequestCount = (uint)m_ShadowRequests.Count;
                 int[] shadowRequests = m_ShadowRequests.ToArray();
                 int[] shadowDataIndices;
-                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
+                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights.ToArray(),
                     ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                 // update the visibleLights with the shadow information
@@ -805,8 +805,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
 
-            var numLights = inputs.visibleLights.Length;
-            var numProbes = probes.Length;
+            var numLights = inputs.visibleLights.Count;
+            var numProbes = probes.Count;
             var numVolumes = numLights + numProbes;
 
 
@@ -1073,6 +1073,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return numLightsOut + numProbesOut;
         }
 
+        CullResults m_CullResults;
         public void Render(ScriptableRenderContext renderContext, IEnumerable<Camera> cameras)
         {
             foreach (var camera in cameras)
@@ -1082,9 +1083,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     continue;
 
                 m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
-
-                var cullResults = CullResults.Cull(ref cullingParams, renderContext);
-                ExecuteRenderLoop(camera, cullResults, renderContext);
+                
+                CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
+                ExecuteRenderLoop(camera, m_CullResults, renderContext);
             }
 
             renderContext.Submit();
@@ -1131,7 +1132,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
 
-            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
+            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights.ToArray() );
             m_ShadowMgr.SyncData();
             m_ShadowMgr.BindResources( loop );
 
@@ -1152,7 +1153,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (enableClustered) RenderForward(cullResults, camera, loop, false);
 
             // debug views.
-            if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
+            if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Count);
 
             // present frame buffer.
             FinalPass(loop);
