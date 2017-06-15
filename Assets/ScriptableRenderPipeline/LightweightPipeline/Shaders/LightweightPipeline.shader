@@ -137,7 +137,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             half4 frag(v2f i) : SV_Target
             {
-                half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
+                half4 diffuseAlpha = Tex2DLinearRGBA(_MainTex, i.uv01.xy);
                 half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
                 half alpha = diffuseAlpha.a * _Color.a;
 
