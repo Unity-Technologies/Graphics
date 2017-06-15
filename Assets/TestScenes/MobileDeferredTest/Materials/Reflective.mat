@@ -8,9 +8,10 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Reflective
   m_Shader: {fileID: 4800000, guid: b262af00aeb504b0a8eba68d77150908, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
@@ -63,13 +64,13 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 1
+    - _Glossiness: 0.694
     - _GlossyReflections: 1
-    - _Metallic: 0.084
+    - _Metallic: 0.917
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _SmoothnessTextureChannel: 0
+    - _SmoothnessTextureChannel: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
