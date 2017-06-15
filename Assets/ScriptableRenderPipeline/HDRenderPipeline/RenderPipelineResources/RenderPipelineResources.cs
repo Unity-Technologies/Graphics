@@ -34,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // instance.drawSssProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawSssProfile.shader");
             // instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawTransmittanceGraph.shader");
 
+            instance.cameraMotionVectors = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/RenderPipelineResources/CameraMotionVectors.shader");
+
             // Sky
             instance.blitCubemap = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BlitCubemap.shader");
             instance.buildProbabilityTables = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BuildProbabilityTables.compute");
@@ -72,6 +74,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
         // public Shader drawSssProfile;
         // public Shader drawTransmittanceGraphShader;
+
+        public Shader cameraMotionVectors;
 
         // Sky
         public Shader blitCubemap;

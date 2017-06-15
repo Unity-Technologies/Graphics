@@ -192,12 +192,10 @@ TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityVelocityPass)
-    float4x4 _NonJitteredVP;
-    float4x4 _PreviousVP;
-    float4x4 _PreviousM;
-    bool _HasLastPositionData;
-    bool _ForceNoMotion;
-    float _MotionVectorDepthBias;
+    float4x4 unity_MatrixNonJitteredVP;
+    float4x4 unity_MatrixPreviousVP;
+    float4x4 unity_MatrixPreviousM;
+    float4 unity_MotionVectorsParams;
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
@@ -205,6 +203,7 @@ CBUFFER_END
 // TODO: move this to constant buffer by Pass
 float4   _ScreenSize;
 float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
+float4x4 _PrevViewProjMatrix;
 float4x4 _InvViewProjMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
