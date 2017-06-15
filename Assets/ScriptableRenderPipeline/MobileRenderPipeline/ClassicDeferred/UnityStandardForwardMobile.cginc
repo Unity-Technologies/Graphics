@@ -127,6 +127,8 @@ float4x4 g_mScrProjection;
 float4x4 g_mInvScrProjection;
 
 sampler2D _LightTextureB0;
+UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
+//UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
 
 static FragmentCommonData gdata;
 static float occlusion;
@@ -228,8 +230,8 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
             float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
 			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
-//            float4 cookieColor = float4(1,1,1,1);
-//            const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
+            float4 cookieColor = float4(1,1,1,1);
+//            const bool bHasCookie = gPerLightData[lightIndex].z > 0;
 //            [branch]if(bHasCookie)
 //            {
 //                float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
@@ -246,7 +248,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			}
 
             UnityLight light;
-            light.color.xyz = gLightColor[lightIndex].xyz*atten; //*cookieColor.xyz;
+            light.color.xyz = gLightColor[lightIndex].xyz*atten*cookieColor.xyz;
             light.dir.xyz = vLw;
 
             ints += EvalMaterial(light, ind);
@@ -272,10 +274,11 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
             float d0 = 0.65;
             float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(2*cookCoord-1)));
-//            [branch]if(bHasCookie)
-//            {
-//                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.sliceIndex), 0.0);
-//            }
+            const bool bHasCookie = gPerLightData[lightIndex].z > 0;
+            [branch]if(bHasCookie)
+            {
+               angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
+            }
             atten *= angularAtt.w*(-uvCookie.w>0.0);                           // finally apply this to the dist att.
 
 			int shadowIdx = asint(gPerLightData[lightIndex].y);
@@ -287,7 +290,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			}
 
             UnityLight light;
-            light.color.xyz = gLightColor[lightIndex].xyz*atten; //*angularAtt.xyz;
+            light.color.xyz = gLightColor[lightIndex].xyz*atten*angularAtt.xyz;
             light.dir.xyz = vLw.xyz;     //unity_CameraToWorld
 
             ints += EvalMaterial(light, ind);

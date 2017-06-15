@@ -206,23 +206,25 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private Matrix4x4[] m_LightMatrix = new Matrix4x4[k_MaxLights];
 	private Matrix4x4[] m_WorldToLightMatrix = new Matrix4x4[k_MaxLights];
 
-	[NonSerialized]
-	private int m_shadowBufferID;
-
+	[SerializeField]
+	TextureSettings m_TextureSettings = TextureSettings.Default;
 	public Mesh m_PointLightMesh;
 	public float PointLightMeshScaleFactor = 2.0f;
-
 	public Mesh m_SpotLightMesh;
 	public float SpotLightMeshScaleFactor = 1.0f;
-
 	public Mesh m_QuadMesh;
 	public Mesh m_BoxMesh;
-
 	public Texture m_DefaultSpotCookie;
-
 	public Shader finalPassShader;
 	public Shader deferredShader;
 	public Shader deferredReflectionShader;
+
+	[NonSerialized]
+	private TextureCache2D m_CookieTexArray;
+	//private TextureCacheCubemap m_CubeCookieTexArray;
+	//private TextureCacheCubemap m_CubeReflTexArray;
+
+	private int m_shadowBufferID;
 
 	private static int s_GBufferAlbedo;
 	private static int s_GBufferSpecRough;
@@ -258,6 +260,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		if (m_ReflectionMaterial) DestroyImmediate (m_ReflectionMaterial);
 		if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
 		if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
+
+		m_CookieTexArray.Release();
+		//m_CubeCookieTexArray.Release();
+		//m_CubeReflTexArray.Release();
 
 		DeinitShadowSystem();
 	}
@@ -324,6 +330,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_ReflectionNearAndFarClipMaterial.SetInt("_CullMode", (int)CullMode.Off);
 		m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
 					
+		m_CookieTexArray = new TextureCache2D();
+		//m_CubeCookieTexArray = new TextureCacheCubemap();
+		//m_CubeReflTexArray = new TextureCacheCubemap();
+		m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+		//m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+		//m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
 		m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
@@ -331,6 +344,14 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		InitShadowSystem(m_ShadowSettings);
 
 		m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
+	}
+
+	void NewFrame()
+	{
+		// update texture caches
+		m_CookieTexArray.NewFrame();
+		//m_CubeCookieTexArray.NewFrame();
+		//m_CubeReflTexArray.NewFrame();
 	}
 
 	public void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
@@ -352,6 +373,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 	{
+		NewFrame ();
+
 		UpdateShadowConstants (camera, cullResults);
 
 		m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
@@ -821,7 +844,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		for (int i = 0; i < k_MaxLights; ++i)
 		{
-			m_LightData [i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+			m_LightData [i] = new Vector4(0.0f, 0.0f, -1.0f, 0.0f);
 			m_LightColors[i] = Vector4.zero;
 			m_LightDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 			m_LightPositions[i] = Vector4.zero;
@@ -876,7 +899,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 			if (light.lightType == LightType.Point) {
 				m_LightData[i].x = SPHERE_LIGHT;
-				//RenderPointLight (light, cmd, props, renderAsQuad, intersectsNear, true);
+
+//				if (light.light.cookie != null)
+//					m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
 
 			} else if (light.lightType == LightType.Spot) {
 				m_LightData[i].x = SPOT_LIGHT;
@@ -889,6 +914,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
 				m_LightMatrix[i] = temp2 * temp1 * temp3 * worldToLight;
 
+				if (light.light.cookie != null)
+					m_LightData [i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+				else
+					m_LightData [i].z = m_CookieTexArray.FetchSlice (m_DefaultSpotCookie);
+				
 			} else if (light.lightType == LightType.Directional) {
 				m_LightData[i].x = DIRECTIONAL_LIGHT;
 
@@ -915,6 +945,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalMatrixArray("gLightMatrix", m_LightMatrix);
 		cmd.SetGlobalMatrixArray("gWorldToLightMatrix", m_WorldToLightMatrix);
 		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, 0, 0, 0));
+
+		cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
+		//cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
+		//cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
