@@ -1876,7 +1876,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (GetFeatureVariantsEnabled())
                     {
                         // featureVariants
-                        Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
+                        hdCamera.SetupMaterial(m_DebugViewTilesMaterial);
                         m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
                         m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
                         m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
@@ -1893,7 +1893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else if (m_TileSettings.tileDebugByCategory != TileSettings.TileDebug.None)
                 {
                     // lightCategories
-                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
+                    hdCamera.SetupMaterial(m_DebugViewTilesMaterial);
                     m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
                     m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
                     m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");

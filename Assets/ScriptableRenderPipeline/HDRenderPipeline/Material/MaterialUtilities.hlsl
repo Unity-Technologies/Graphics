@@ -78,7 +78,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
-    return (positionCS.xy - previousPositionCS.xy) * _ForceNoMotion;
+    return (positionCS.xy - previousPositionCS.xy) * unity_MotionVectorsParams.y;
 #else
     return float2(0.0, 0.0);
 #endif
