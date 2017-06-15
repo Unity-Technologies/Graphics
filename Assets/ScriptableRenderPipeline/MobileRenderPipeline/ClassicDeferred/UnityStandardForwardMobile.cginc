@@ -236,7 +236,6 @@ float3 RenderReflectionList(uint start, uint numReflProbes, float3 vP, float3 vN
 
         half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_ABSTRACT_CUBE_ARRAY(_reflCubeTextures), lgtDat.sliceIndex, float4(lgtDat.lightIntensity, lgtDat.decodeExp, 0.0, 0.0), g);
 
-
         UnityIndirect ind;
         ind.diffuse = 0;
         ind.specular = env0;// * data.occlusion;
@@ -252,7 +251,6 @@ float3 RenderReflectionList(uint start, uint numReflProbes, float3 vP, float3 vN
         half falloff = saturate(1.0 - length(distance)/blendDistance);
 
         ints = lerp(ints, rgb, falloff);
-
     }
 
     return ints;
@@ -390,7 +388,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
             // distance atten
 			float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
-			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
+			float atten = tex2Dlod (_LightTextureB0, float4(att.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
             // For debug: spot attenuation -- programatic no cookie
             //const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
