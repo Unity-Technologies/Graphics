@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
@@ -25,14 +25,124 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-    public struct HDCamera
+    // This holds all the matrix data we need for rendering, including data from the previous frame
+    // (which is the main reason why we need to keep them around for a minimum of one frame).
+    // HDCameras are automatically created & updated from a source camera and will be destroyed if
+    // not used during a frame.
+    public class HDCamera
     {
-        public Camera    camera;
-        public Vector4   screenSize;
-        public Matrix4x4 viewProjectionMatrix;
-        public Matrix4x4 invViewProjectionMatrix;
-        public Matrix4x4 invProjectionMatrix;
-        public Vector4   invProjectionParam;
+        public readonly Camera camera;
+
+        public Vector4   screenSize { get; private set; }
+        public Matrix4x4 viewProjectionMatrix { get; private set; }
+        public Matrix4x4 prevViewProjectionMatrix { get; private set; }
+        public Matrix4x4 invViewProjectionMatrix { get; private set; }
+        public Matrix4x4 invProjectionMatrix { get; private set; }
+        public Vector4   invProjectionParam { get; private set; }
+
+        // The only way to reliably keep track of a frame change right now is to compare the frame
+        // count Unity gives us. We need this as a single camera could be rendered several times per
+        // frame and some matrices only have to be computed once. Realistically this shouldn't
+        // happen, but you never know...
+        int m_LastFrameActive;
+
+        // Always true for cameras that just got added to the pool - needed for previous matrices to
+        // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
+        bool m_FirstFrame;
+
+        public HDCamera(Camera camera)
+        {
+            this.camera = camera;
+            Reset();
+        }
+
+        public void Update()
+        {
+            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+            // (different Z value ranges etc.)
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuVP = gpuProj * camera.worldToCameraMatrix;
+
+            // A camera could be rendered multiple time per frame, only updates the previous viewproj if needed
+            if (m_LastFrameActive != Time.frameCount)
+            {
+                prevViewProjectionMatrix = !m_FirstFrame
+                    ? viewProjectionMatrix
+                    : gpuVP;
+
+                m_FirstFrame = false;
+            }
+
+            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+            var invProjParam = new Vector4(
+                gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
+                gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
+                -1.0f / gpuProj.m23,
+                (-gpuProj.m22
+                + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
+                + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23
+            );
+
+            viewProjectionMatrix = gpuVP;
+            invViewProjectionMatrix = gpuVP.inverse;
+            invProjectionMatrix = gpuProj.inverse;
+            invProjectionParam = invProjParam;
+
+            m_LastFrameActive = Time.frameCount;
+        }
+
+        public void SetupMaterial(Material material)
+        {
+            material.SetVector("_ScreenSize",         screenSize);
+            material.SetMatrix("_ViewProjMatrix",     viewProjectionMatrix);
+            material.SetMatrix("_PrevViewProjMatrix", prevViewProjectionMatrix);
+            material.SetMatrix("_InvViewProjMatrix",  invViewProjectionMatrix);
+            material.SetMatrix("_InvProjMatrix",      invProjectionMatrix);
+            material.SetVector("_InvProjParam",       invProjectionParam);
+        }
+
+        public void Reset()
+        {
+            m_LastFrameActive = -1;
+            m_FirstFrame = true;
+        }
+        
+        static Dictionary<Camera, HDCamera> m_Cameras = new Dictionary<Camera, HDCamera>();
+        static List<Camera> m_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
+
+        // Grab the HDCamera tied to a given Camera and update it.
+        public static HDCamera Get(Camera camera)
+        {
+            HDCamera hdcam;
+
+            if (!m_Cameras.TryGetValue(camera, out hdcam))
+            {
+                hdcam = new HDCamera(camera);
+                m_Cameras.Add(camera, hdcam);
+            }
+
+            hdcam.Update();
+            return hdcam;
+        }
+
+        // Look for any camera that hasn't been used in the last frame and remove them for the pool.
+        public static void CleanUnused()
+        {
+            int frameCheck = Time.frameCount - 1;
+
+            foreach (var kvp in m_Cameras)
+            {
+                if (kvp.Value.m_LastFrameActive != frameCheck)
+                    m_Cleanup.Add(kvp.Key);
+            }
+
+            foreach (var cam in m_Cleanup)
+                m_Cameras.Remove(cam);
+
+            m_Cleanup.Clear();
+        }
     }
 
     public class GBufferManager
@@ -88,6 +198,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_FilterSubsurfaceScattering;
         // <<< Old SSS Model
 
+        Material m_CameraMotionVectorsMaterial;
+
         Material m_DebugViewMaterialGBuffer;
         Material m_DebugDisplayLatlong;
         Material m_DebugFullScreen;
@@ -133,6 +245,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Detect when windows size is changing
         int m_CurrentWidth;
         int m_CurrentHeight;
+
+        // Use to detect frame changes
+        int m_FrameCount;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -221,6 +336,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraFilteringBufferRT = new RenderTargetIdentifier(m_CameraFilteringBuffer);
             CreateSssMaterials(sssSettings.useDisneySSS);
             // <<< Old SSS Model
+
+            m_CameraMotionVectorsMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
 
@@ -380,11 +497,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
-            cmd.SetGlobalVector("_ScreenSize",        hdCamera.screenSize);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
-            cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjectionParam);
+            cmd.SetGlobalVector("_ScreenSize",         hdCamera.screenSize);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",     hdCamera.viewProjectionMatrix);
+            cmd.SetGlobalMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjectionMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix",  hdCamera.invViewProjectionMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",      hdCamera.invProjectionMatrix);
+            cmd.SetGlobalVector("_InvProjParam",       hdCamera.invProjectionParam);
 
             // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
 
@@ -462,6 +580,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SupportedRenderingFeatures.active = s_NeededFeatures;
 #endif
 
+            if (m_FrameCount != Time.frameCount)
+            {
+                HDCamera.CleanUnused();
+                m_FrameCount = Time.frameCount;
+            }
+
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
 
@@ -504,7 +628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.SetupCameraProperties(camera);
 
-            HDCamera hdCamera = Utilities.GetHDCamera(camera);
+            var hdCamera = HDCamera.Get(camera);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -587,7 +711,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
+                    RenderVelocity(cullResults, hdCamera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
@@ -701,7 +825,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render GBuffer opaque
                 if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
-                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
+                    hdCamera.SetupMaterial(m_DebugViewMaterialGBuffer);
 
                     // TODO: Bind depth textures
                     var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
@@ -844,7 +968,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderVelocity(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
+        void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext)
         {
             using (new Utilities.ProfilingSample("Velocity", renderContext))
             {
@@ -852,16 +976,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if ((ShaderConfig.s_VelocityInGbuffer == 1) || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                     return;
 
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
+                // These flags are still required in SRP or the engine won't compute previous model matrices...
+                // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
+                hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+
+                int w = (int)hdcam.screenSize.x;
+                int h = (int)hdcam.screenSize.y;
 
                 var cmd = new CommandBuffer { name = "" };
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
+                cmd.Blit(BuiltinRenderTextureType.None, m_VelocityBufferRT, m_CameraMotionVectorsMaterial, 0);
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
-
-                RenderOpaqueRenderList(cullResults, camera, renderContext, "MotionVectors");
+                
+                RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, "MotionVectors", RendererConfiguration.PerObjectMotionVectors);
             }
         }
 
@@ -897,6 +1026,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (postProcessLayer != null && postProcessLayer.enabled)
                 {
                     cmd.SetGlobalTexture("_CameraDepthTexture", GetDepthTexture());
+                    cmd.SetGlobalTexture("_CameraMotionVectorsTexture", m_VelocityBufferRT);
 
                     var context = m_PostProcessContext;
                     context.Reset();
@@ -904,7 +1034,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     context.destination = BuiltinRenderTextureType.CameraTarget;
                     context.command = cmd;
                     context.camera = camera;
-                    context.sourceFormat = RenderTextureFormat.ARGBHalf; // ?
+                    context.sourceFormat = RenderTextureFormat.ARGBHalf;
                     context.flip = true;
 
                     postProcessLayer.Render(context);
