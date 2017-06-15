@@ -948,16 +948,20 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		//eyePlane.SetNormalAndPosition(viewDirNormalized, camera.transform.position);
 
 		int probeCount = cull.visibleReflectionProbes.Length;
+		int finalProbeCount = probeCount;
 		var lightData = new SFiniteLightData[probeCount];
+		int idx = 0;
 
 		for (int i = 0; i < probeCount; ++i) {
 			var rl = cull.visibleReflectionProbes [i];
 
 			// always a box for now
 			var cubemap = rl.texture;
-			if (cubemap == null)
+			if (cubemap == null) {
+				Debug.Log ("empty cubemap texture");
+				finalProbeCount--;
 				continue;
-
+			}
 			var lgtData = new SFiniteLightData();
 			lgtData.flags = 0;
 
@@ -1007,7 +1011,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			lgtData.lightType = (uint)LightDefinitions.BOX_LIGHT;
 			lgtData.lightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
 
-			lightData [i] = lgtData;
+			lightData [idx++] = lgtData;
 		}
 
 		s_LightDataBuffer.SetData(lightData);
@@ -1025,7 +1029,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalVectorArray("gLightPos", m_LightPositions);
 		cmd.SetGlobalMatrixArray("gLightMatrix", m_LightMatrix);
 		cmd.SetGlobalMatrixArray("gWorldToLightMatrix", m_WorldToLightMatrix);
-		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, probeCount, 0, 0));
+		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, finalProbeCount, 0, 0));
 
 		cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
 		//cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
