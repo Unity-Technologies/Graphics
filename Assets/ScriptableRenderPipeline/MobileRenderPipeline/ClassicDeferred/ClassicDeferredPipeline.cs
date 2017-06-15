@@ -928,6 +928,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
 				m_LightMatrix[i] = temp2 * temp1 * worldToLight;
 
+				if (light.light.cookie != null)
+					m_LightData [i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+
 			}
 		}
 

@@ -68,13 +68,6 @@ CBUFFER_END
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
 
-// UNITY_DECLARE_TEX2D(_LightTextureB0);
-// sampler2D _LightTextureB0;
-// UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
-// UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
-
-// StructuredBuffer<DirectionalLight> g_dirLightData;
-
 //debug
 //float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 //{

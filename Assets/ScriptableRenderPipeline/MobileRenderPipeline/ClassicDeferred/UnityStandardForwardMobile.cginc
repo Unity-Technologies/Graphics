@@ -8,6 +8,8 @@
 #include "UnityStandardConfig.cginc"
 #include "UnityStandardCore.cginc"
 
+#include "ShaderBase.h"
+
 #define MAX_SHADOW_LIGHTS 10
 #define MAX_SHADOWMAP_PER_LIGHT 6
 #define MAX_DIRECTIONAL_SPLIT  4
@@ -201,10 +203,10 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
     for (int lightIndex = 0; lightIndex < gLightData.x; ++lightIndex)
     {
-    	 float atten = 1;
-
   		if (gPerLightData[lightIndex].x == DIRECTIONAL_LIGHT) 
   		{
+  			float atten = 1;
+
 	  		int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
 			if (shadowIdx >= 0)
@@ -212,9 +214,19 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 				float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
 				atten *= shadow;
 			}
-	        
+
+			float4 cookieColor = float4(1,1,1,1);
+//			float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
+//            float2 cookCoord = uvCookie.xy / uvCookie.w;
+//			const bool bHasCookie = gPerLightData[lightIndex].z > 0;
+//            [branch]if(bHasCookie)
+//            {
+//       			cookieColor *= UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
+//       			atten *= (-cookieColor.w>0.0);
+//            }
+
 	        UnityLight light;
-	        light.color.xyz = gLightColor[lightIndex].xyz * atten;
+	        light.color.xyz = gLightColor[lightIndex].xyz*atten*cookieColor.xyz;
 	        light.dir.xyz = -gLightDirection[lightIndex].xyz;
 
 	        ints += EvalMaterial(light, ind);
@@ -265,7 +277,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
 			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
-            // spot attenuation -- programatic no cookie
+            // For debug: spot attenuation -- programatic no cookie
             //const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
             //float2 cookCoord = (-lgtDat.cotan)*float2( dot(vLw, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
 
