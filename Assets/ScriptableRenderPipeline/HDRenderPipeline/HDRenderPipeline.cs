@@ -25,6 +25,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    // This holds all the matrix data we need for rendering, including data from the previous frame
+    // (which is the main reason why we need to keep them around for a minimum of one frame).
+    // HDCameras are automatically created & updated from a source camera and will be destroyed if
+    // not used during a frame.
     public class HDCamera
     {
         public readonly Camera camera;
@@ -36,7 +40,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 invProjectionMatrix { get; private set; }
         public Vector4   invProjectionParam { get; private set; }
 
+        // The only way to reliably keep track of a frame change right now is to compare the frame
+        // count Unity gives us. We need this as a single camera could be rendered several times per
+        // frame and some matrices only have to be computed once. Realistically this shouldn't
+        // happen, but you never know...
         int m_LastFrameActive;
+
+        // Always true for cameras that just got added to the pool - needed for previous matrices to
+        // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         bool m_FirstFrame;
 
         public HDCamera(Camera camera)
@@ -101,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Dictionary<Camera, HDCamera> m_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> m_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
+        // Grab the HDCamera tied to a given Camera and update it.
         public static HDCamera Get(Camera camera)
         {
             HDCamera hdcam;
@@ -115,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdcam;
         }
 
+        // Look for any camera that hasn't been used in the last frame and remove them for the pool.
         public static void CleanUnused()
         {
             int frameCheck = Time.frameCount - 1;
