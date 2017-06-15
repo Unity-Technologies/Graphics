@@ -977,6 +977,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
+                // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 int w = (int)hdcam.screenSize.x;
