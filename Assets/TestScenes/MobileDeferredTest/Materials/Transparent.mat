@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Transparent
   m_Shader: {fileID: 4800000, guid: b262af00aeb504b0a8eba68d77150908, type: 3}
-  m_ShaderKeywords: _ALPHABLEND_ON _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+  m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -60,18 +60,18 @@ Material:
     - _Cutoff: 0.215
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
-    - _GlossMapScale: 0.208
-    - _Glossiness: 0
+    - _GlossMapScale: 0.313
+    - _Glossiness: 1
     - _GlossyReflections: 1
-    - _Metallic: 0.444
-    - _Mode: 2
+    - _Metallic: 0
+    - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 1
     - _SpecularHighlights: 1
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 0.597}
+    - _Color: {r: 1, g: 1, b: 1, a: 0.472}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
