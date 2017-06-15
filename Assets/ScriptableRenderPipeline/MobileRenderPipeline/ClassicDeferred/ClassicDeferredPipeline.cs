@@ -222,9 +222,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	[NonSerialized]
 	private TextureCache2D m_CookieTexArray;
 	//private TextureCacheCubemap m_CubeCookieTexArray;
-	//private TextureCacheCubemap m_CubeReflTexArray;
+	private TextureCacheCubemap m_CubeReflTexArray;
 
 	private int m_shadowBufferID;
+
+	private static ComputeBuffer s_LightDataBuffer;
 
 	private static int s_GBufferAlbedo;
 	private static int s_GBufferSpecRough;
@@ -261,9 +263,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
 		if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
 
+		s_LightDataBuffer.Release();
+
 		m_CookieTexArray.Release();
 		//m_CubeCookieTexArray.Release();
-		//m_CubeReflTexArray.Release();
+		m_CubeReflTexArray.Release();
 
 		DeinitShadowSystem();
 	}
@@ -332,10 +336,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 					
 		m_CookieTexArray = new TextureCache2D();
 		//m_CubeCookieTexArray = new TextureCacheCubemap();
-		//m_CubeReflTexArray = new TextureCacheCubemap();
+		m_CubeReflTexArray = new TextureCacheCubemap();
 		m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
 		//m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-		//m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+		m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+
+		// TODO: decide on better max reflection probes
+		s_LightDataBuffer = new ComputeBuffer(k_MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
 
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
@@ -351,7 +358,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		// update texture caches
 		m_CookieTexArray.NewFrame();
 		//m_CubeCookieTexArray.NewFrame();
-		//m_CubeReflTexArray.NewFrame();
+		m_CubeReflTexArray.NewFrame();
 	}
 
 	public void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
@@ -860,7 +867,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		var w = camera.pixelWidth;
 		var h = camera.pixelHeight;
-		Matrix4x4 viewToWorld = CameraToWorld (camera);
+		var viewToWorld = CameraToWorld (camera);
+		var worldToView = WorldToCamera(camera);
 
 		// camera to screen matrix (and it's inverse)
 		var proj = CameraProjection(camera);
@@ -934,6 +942,76 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			}
 		}
 
+		//var viewDir = viewToWorld.GetColumn(2);
+		//var viewDirNormalized = -1 * Vector3.Normalize(new Vector3 (viewDir.x, viewDir.y, viewDir.z));
+		//Plane eyePlane = new Plane ();
+		//eyePlane.SetNormalAndPosition(viewDirNormalized, camera.transform.position);
+
+		int probeCount = cull.visibleReflectionProbes.Length;
+		var lightData = new SFiniteLightData[probeCount];
+
+		for (int i = 0; i < probeCount; ++i) {
+			var rl = cull.visibleReflectionProbes [i];
+
+			// always a box for now
+			var cubemap = rl.texture;
+			if (cubemap == null)
+				continue;
+
+			var lgtData = new SFiniteLightData();
+			lgtData.flags = 0;
+
+			var bnds = rl.bounds;
+			var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
+			var blendDistance = rl.blendDistance;
+			var mat = rl.localToWorld;
+
+			var boxProj = (rl.boxProjection != 0);
+			var decodeVals = rl.hdr;
+
+			// C is reflection volume center in world space (NOT same as cube map capture point)
+			var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+			//Vector3 C = bnds.center;        // P + boxOffset;
+			var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
+			var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
+
+			Vector3 vx = mat.GetColumn(0);
+			Vector3 vy = mat.GetColumn(1);
+			Vector3 vz = mat.GetColumn(2);
+
+			// transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+			vx = worldToView.MultiplyVector(vx);
+			vy = worldToView.MultiplyVector(vy);
+			vz = worldToView.MultiplyVector(vz);
+
+			var Cw = worldToView.MultiplyPoint(C);
+
+			if (boxProj) lgtData.flags |= LightDefinitions.IS_BOX_PROJECTED;
+
+			lgtData.lightPos = Cw;
+			lgtData.lightAxisX = vx;
+			lgtData.lightAxisY = vy;
+			lgtData.lightAxisZ = vz;
+			lgtData.localCubeCapturePoint = -boxOffset;
+			lgtData.probeBlendDistance = blendDistance;
+
+			lgtData.lightIntensity = decodeVals.x;
+			lgtData.decodeExp = decodeVals.y;
+
+			lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+
+			var delta = combinedExtent - e;
+			lgtData.boxInnerDist = e;
+			lgtData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+
+			lgtData.lightType = (uint)LightDefinitions.BOX_LIGHT;
+			lgtData.lightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+
+			lightData [i] = lgtData;
+		}
+
+		s_LightDataBuffer.SetData(lightData);
+
 		CommandBuffer cmd = new CommandBuffer() {name = "SetupShaderConstants"};
 
 		cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
@@ -947,11 +1025,18 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalVectorArray("gLightPos", m_LightPositions);
 		cmd.SetGlobalMatrixArray("gLightMatrix", m_LightMatrix);
 		cmd.SetGlobalMatrixArray("gWorldToLightMatrix", m_WorldToLightMatrix);
-		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, 0, 0, 0));
+		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, probeCount, 0, 0));
 
 		cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
 		//cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
-		//cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
+		cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
+
+		cmd.SetGlobalBuffer("g_vProbeData", s_LightDataBuffer);
+		var topCube = ReflectionProbe.defaultTexture;
+		var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
+		cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
+		cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
+		cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
 
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
