@@ -139,6 +139,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CommonSettings: {fileID: 0}
   m_SkySettings: {fileID: 11400000, guid: 245dfc670a730de41a5e45f522c87b5a, type: 2}
+  m_SsaoSettings: {fileID: 0}
 --- !u!4 &132845888
 Transform:
   m_ObjectHideFlags: 0
@@ -296,6 +297,11 @@ MonoBehaviour:
   archetype: 0
   lightLength: 0
   lightWidth: 0
+  shadowCascadeCount: 4
+  shadowCascadeRatios:
+  - 0.05
+  - 0.2
+  - 0.3
   shadowAlgorithm: 0
   shadowVariant: 4
   shadowPrecision: 0
@@ -391,7 +397,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1022909298}
   m_LocalRotation: {x: -0, y: 0.8358581, z: -0.54894555, w: 0}
-  m_LocalPosition: {x: 0, y: 8.37, z: 4.02}
+  m_LocalPosition: {x: 0, y: 12, z: 4.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -408,7 +414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20dfc007a9a74ad8a2bfd0d59abe398, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderPipeline: {fileID: 11400000, guid: a744a4bd47b92b54d908e003dc49a1a2, type: 2}
+  renderPipeline: {fileID: 11400000, guid: c6b8fc12516a4434f9ec8ea872147e68, type: 2}
   cameraToUse: {fileID: 1022909302}
   hdr: 1
   width: 1280
@@ -440,6 +446,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1

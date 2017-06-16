@@ -54,12 +54,12 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
-uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
+uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
-float4 _VolumeShapeParams[SSS_N_PROFILES];  // RGB = S = 1 / D; A = unused
-float4 _VolumeAlbedos[SSS_N_PROFILES];      // RGB = color, A = unused
+float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
+float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = color, A = unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -144,28 +144,35 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
-    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE;
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
     bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
 
     if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = ComputeTransmittance(_VolumeShapeParams[subsurfaceProfile].rgb,
-                                                      _VolumeAlbedos[subsurfaceProfile].rgb,
+        bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
+                                                      _TransmissionTints[subsurfaceProfile].rgb,
                                                       bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
 
-    // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-    if (performPostScatterTexturing)
+#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
+    if (0)
+#else
+    if (_EnableSSSAndTransmission > 0) // If we globally disable SSS effect, don't modify diffuseColor
+#endif
     {
-    #ifndef SSS_PASS
-        bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-    #endif
-    }
-    else
-    {
-        bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+        if (performPostScatterTexturing)
+        {
+        #ifndef SSS_PASS
+            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
+        #endif
+        }
+        else
+        {
+            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        }
     }
 }
 
@@ -361,9 +368,9 @@ void DecodeFromGBuffer(
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
-    int supportsStandard = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_STANDARD | FEATURE_FLAG_MATERIAL_LIT_ANISO)) != 0;
-    int supportsSSS = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SSS)) != 0;
-    int supportsSpecular = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SPECULAR)) != 0;
+    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
+    int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
+    int supportsSpecular = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
 
     if(supportsStandard + supportsSSS + supportsSpecular > 1)
     {
@@ -385,7 +392,7 @@ void DecodeFromGBuffer(
         float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
 
-        if ((featureFlags & FEATURE_FLAG_MATERIAL_LIT_ANISO) && (featureFlags & FEATURE_FLAG_MATERIAL_LIT_STANDARD) == 0 || anisotropy > 0)
+        if ((featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0 || anisotropy > 0)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
         }
@@ -445,15 +452,15 @@ uint MaterialFeatureFlagsFromGBuffer(
     uint featureFlags = 0;
     if (materialId == MATERIALID_LIT_STANDARD)
     {
-        featureFlags |= (anisotropy > 0) ? FEATURE_FLAG_MATERIAL_LIT_ANISO : FEATURE_FLAG_MATERIAL_LIT_STANDARD;
+        featureFlags |= (anisotropy > 0) ? MATERIALFEATUREFLAGS_LIT_ANISO : MATERIALFEATUREFLAGS_LIT_STANDARD;
     }
     else if (materialId == MATERIALID_LIT_SSS)
     {
-        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SSS;
+        featureFlags |= MATERIALFEATUREFLAGS_LIT_SSS;
     }
     else if (materialId == MATERIALID_LIT_SPECULAR)
     {
-        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SPECULAR;
+        featureFlags |= MATERIALFEATUREFLAGS_LIT_SPECULAR;
     }
     return featureFlags;
 }
@@ -751,7 +758,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL));
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL));  // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -855,7 +862,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * attenuation;
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x , saturate(-NdotL)) * attenuation;  // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -938,7 +945,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * clipFactor;
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL)) * clipFactor; // Transmission is only valid for dielectric
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;

@@ -1,22 +1,14 @@
 namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
-    public struct TextureSettings
+    public class TextureSettings
     {
-        public int spotCookieSize;
-        public int pointCookieSize;
-        public int reflectionCubemapSize;
+        public const int kDefaultSpotCookieSize = 128;
+        public const int kDefaultPointCookieSize = 512;
+        public const int kDefaultReflectionCubemapSize = 128;
 
-        public static TextureSettings Default
-        {
-            get
-            {
-                TextureSettings settings = new TextureSettings();
-                settings.spotCookieSize = 128;
-                settings.pointCookieSize = 512;
-                settings.reflectionCubemapSize = 128;
-                return settings;
-            }
-        }
+        public int spotCookieSize = kDefaultSpotCookieSize;
+        public int pointCookieSize = kDefaultPointCookieSize;
+        public int reflectionCubemapSize = kDefaultReflectionCubemapSize;
     }
 }

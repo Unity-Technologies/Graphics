@@ -47,8 +47,15 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(v2f i, float3 offset)
+inline half ComputeShadowAttenuation(v2f i, float bias)
 {
+#if _NORMALMAP
+    float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
+#else
+    float3 vertexNormal = i.normal;
+#endif
+    float3 offset = vertexNormal * bias;
+
     float3 posWorldOffsetNormal = i.posWS + offset;
     int cascadeIndex = 0;
 

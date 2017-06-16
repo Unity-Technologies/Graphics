@@ -10,12 +10,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SerializeField]
             bool m_Enable;
 
-            [SerializeField]
+            [SerializeField, Range(0, 2)]
             float m_Intensity;
             [SerializeField]
             float m_Radius;
 
-            [SerializeField]
+            [SerializeField, Range(1, 32)]
             int m_SampleCount;
             [SerializeField]
             bool m_Downsampling;
@@ -26,11 +26,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int sampleCount { set { m_SampleCount = value; OnValidate(); } get { return m_SampleCount; } }
             public bool downsampling { set { m_Downsampling = value; } get { return m_Downsampling; } }
 
-            void OnValidate()
+            public void OnValidate()
             {
-                m_Intensity = Mathf.Min(2, Mathf.Max(0, m_Intensity));
+                m_Intensity = Mathf.Clamp(m_Intensity, 0, 2);
                 m_Radius = Mathf.Max(0, m_Radius);
-                m_SampleCount = Mathf.Min(1, Mathf.Max(32, m_SampleCount));
+                m_SampleCount = Mathf.Clamp(m_SampleCount, 1, 32);
             }
 
             public static readonly Settings s_Defaultsettings = new Settings
@@ -50,6 +50,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_Settings; }
             set { m_Settings = value; }
+        }
+
+        public void OnValidate()
+        {
+            m_Settings.OnValidate();
         }
     }
 }

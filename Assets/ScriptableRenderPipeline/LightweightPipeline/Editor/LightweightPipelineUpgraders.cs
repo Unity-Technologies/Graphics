@@ -106,49 +106,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public static void UpdateMaterialKeywords(Material material)
         {
-            UpdateMaterialBlendMode(material);
+            LightweightShaderHelper.SetMaterialBlendMode(material);
             UpdateMaterialSpecularSource(material);
             UpdateMaterialReflectionSource(material);
-            SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-            SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
-            SetKeyword(material, "_EMISSION", material.GetTexture("_EmissionMap"));
-        }
-
-        private static void UpdateMaterialBlendMode(Material material)
-        {
-            UpgradeBlendMode mode = (UpgradeBlendMode)material.GetFloat("_Mode");
-            switch (mode)
-            {
-                case UpgradeBlendMode.Opaque:
-                    material.SetOverrideTag("RenderType", "");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetInt("_ZWrite", 1);
-                    SetKeyword(material, "_ALPHATEST_ON", false);
-                    SetKeyword(material, "_ALPHABLEND_ON", false);
-                    material.renderQueue = -1;
-                    break;
-
-                case UpgradeBlendMode.Cutout:
-                    material.SetOverrideTag("RenderType", "Transparent");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetInt("_ZWrite", 1);
-                    SetKeyword(material, "_ALPHATEST_ON", true);
-                    SetKeyword(material, "_ALPHABLEND_ON", false);
-                    material.renderQueue = (int)RenderQueue.AlphaTest;
-                    break;
-
-                case UpgradeBlendMode.Alpha:
-                    material.SetOverrideTag("RenderType", "Transparent");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    material.SetInt("_ZWrite", 0);
-                    SetKeyword(material, "_ALPHATEST_ON", false);
-                    SetKeyword(material, "_ALPHABLEND_ON", true);
-                    material.renderQueue = (int)RenderQueue.Transparent;
-                    break;
-            }
+            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+            LightweightShaderHelper.SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
+            LightweightShaderHelper.SetKeyword(material, "_EMISSION", material.GetTexture("_EmissionMap"));
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
@@ -156,56 +119,48 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             SpecularSource specSource = (SpecularSource)material.GetFloat("_SpecSource");
             if (specSource == SpecularSource.NoSpecular)
             {
-                SetKeyword(material, "_SPECGLOSSMAP", false);
-                SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
-                SetKeyword(material, "_SPECULAR_COLOR", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", false);
             }
             else if (specSource == SpecularSource.SpecularTextureAndColor && material.GetTexture("_SpecGlossMap"))
             {
                 GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
                 if (glossSource == GlossinessSource.BaseAlpha)
                 {
-                    SetKeyword(material, "_SPECGLOSSMAP", false);
-                    SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", true);
+                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
+                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", true);
                 }
                 else
                 {
-                    SetKeyword(material, "_SPECGLOSSMAP", true);
-                    SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
+                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", true);
+                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
                 }
 
-                SetKeyword(material, "_SPECULAR_COLOR", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", false);
             }
             else
             {
-                SetKeyword(material, "_SPECGLOSSMAP", false);
-                SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
-                SetKeyword(material, "_SPECULAR_COLOR", true);
+                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
+                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", true);
             }
         }
 
         private static void UpdateMaterialReflectionSource(Material material)
         {
-            SetKeyword(material, "_REFLECTION_CUBEMAP", false);
-            SetKeyword(material, "_REFLECTION_PROBE", false);
+            LightweightShaderHelper.SetKeyword(material, "_REFLECTION_CUBEMAP", false);
+            LightweightShaderHelper.SetKeyword(material, "_REFLECTION_PROBE", false);
 
             ReflectionSource reflectionSource = (ReflectionSource)material.GetFloat("_ReflectionSource");
             if (reflectionSource == ReflectionSource.Cubemap && material.GetTexture("_Cube"))
             {
-                SetKeyword(material, "_REFLECTION_CUBEMAP", true);
+                LightweightShaderHelper.SetKeyword(material, "_REFLECTION_CUBEMAP", true);
             }
             else if (reflectionSource == ReflectionSource.ReflectionProbe)
             {
-                SetKeyword(material, "_REFLECTION_PROBE", true);
+                LightweightShaderHelper.SetKeyword(material, "_REFLECTION_PROBE", true);
             }
-        }
-
-        private static void SetKeyword(Material material, string keyword, bool enable)
-        {
-            if (enable)
-                material.EnableKeyword(keyword);
-            else
-                material.DisableKeyword(keyword);
         }
     }
 

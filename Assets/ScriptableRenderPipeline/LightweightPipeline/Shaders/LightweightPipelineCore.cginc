@@ -1,4 +1,4 @@
-#define MAX_LIGHTS 8
+#define MAX_VISIBLE_LIGHTS 16
 
 #define INITIALIZE_LIGHT(light, lightIndex) \
                             light.pos = globalLightPos[lightIndex]; \
@@ -12,6 +12,18 @@
 
 #if defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
 #define _SHADOW_CASCADES
+#endif
+
+
+#if (defined(UNITY_COLORSPACE_GAMMA) || SHADER_TARGET < 30) && defined(LIGHTWEIGHT_FORCE_LINEAR)
+// Ideally we want an approximation of gamma curve 2.0 to save ALU on GPU but as off now it won't match the GammaToLinear conversion of props in engine
+//#define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
+//#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR(sRGB) sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h)
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linRGB) max(1.055h * pow(max(linRGB, 0.h), 0.416666667h) - 0.055h, 0.h)
+#else
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
 #endif
 
 struct LightInput
@@ -50,11 +62,17 @@ struct v2f
 // The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 // unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
 // we use world space positions instead of view space.
-half4 globalLightColor[MAX_LIGHTS];
-float4 globalLightPos[MAX_LIGHTS];
-half4 globalLightSpotDir[MAX_LIGHTS];
-half4 globalLightAtten[MAX_LIGHTS];
-float4  globalLightData; // x: pixelLightCount, y = totalLightCount (pixel + vert), z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
+half4 globalLightColor[MAX_VISIBLE_LIGHTS];
+float4 globalLightPos[MAX_VISIBLE_LIGHTS];
+half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
+half4 globalLightAtten[MAX_VISIBLE_LIGHTS];
+float4  globalLightData; // x: pixelLightCount, y = shadowLightIndex, z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
+
+// Per object light list data
+#ifndef _SINGLE_DIRECTIONAL_LIGHT
+half4 unity_LightIndicesOffsetAndCount;
+StructuredBuffer<uint> globalLightIndexList;
+#endif
 
 half _Shininess;
 samplerCUBE _Cube;
@@ -63,6 +81,17 @@ half4 _ReflectColor;
 #ifdef _SHADOWS
 #include "LightweightPipelineShadows.cginc"
 #endif
+
+inline half3 Tex2DLinearRGB(sampler2D s, half2 uv)
+{
+    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(s, uv).rgb);
+}
+
+inline half4 Tex2DLinearRGBA(sampler2D s, half2 uv)
+{
+    half4 color = tex2D(s, uv);
+    return half4(LIGHTWEIGHT_GAMMA_TO_LINEAR(color.rgb), color.a);
+}
 
 inline void NormalMap(v2f i, out half3 normal)
 {
@@ -81,9 +110,9 @@ inline void NormalMap(v2f i, out half3 normal)
 inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 {
 #ifdef _SPECGLOSSMAP
-    specularGloss = tex2D(_SpecGlossMap, uv) * _SpecColor;
+    specularGloss = Tex2DLinearRGBA(_SpecGlossMap, uv) * _SpecColor;
 #elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss = tex2D(_SpecGlossMap, uv) * _SpecColor;
+    specularGloss = Tex2DLinearRGBA(_SpecGlossMap, uv) * _SpecColor;
     specularGloss.a = alpha;
 #else
     specularGloss = _SpecColor;
@@ -93,7 +122,7 @@ inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 inline void Emission(half2 uv, inout half3 color)
 {
 #ifdef _EMISSION
-    color += tex2D(_EmissionMap, uv) * _EmissionColor;
+    color += Tex2DLinearRGB(_EmissionMap, uv) * _EmissionColor;
 #else
     color += _EmissionColor;
 #endif
@@ -102,9 +131,9 @@ inline void Emission(half2 uv, inout half3 color)
 half4 OutputColor(half3 color, half alpha)
 {
 #ifdef _ALPHABLEND_ON
-    return half4(color, alpha);
+    return LIGHTWEIGHT_LINEAR_TO_GAMMA(half4(color, alpha));
 #else
-    return half4(color, 1);
+    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);
 #endif
 }
 

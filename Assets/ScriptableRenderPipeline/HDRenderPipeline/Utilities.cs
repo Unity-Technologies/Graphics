@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using UnityEngine.Rendering;
-
 using UnityObject = UnityEngine.Object;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,17 +16,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearDepth = 2
     }
 
-    [Flags]
-    public enum StencilBits
-    {
-        None   = 0,                         // 0
-        SSS    = 1 + Lit.MaterialId.LitSSS, // 1
-        NonSSS = 2 + Lit.MaterialId.LitSSS, // 2
-        All    = 255                        // 0xFF
-    }
-
     public class Utilities
     {
+        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
+        {
+            List<RenderPipelineMaterial> materialList = new List<RenderPipelineMaterial>();
+
+            var baseType = typeof(RenderPipelineMaterial);
+            var assembly = baseType.Assembly;
+
+            System.Type[] types = assembly.GetTypes();
+            foreach (System.Type type in types)
+            {
+                if (type.IsSubclassOf(baseType))
+                {
+                    // Create an instance object of the given type
+                    var obj = (RenderPipelineMaterial)Activator.CreateInstance(type);
+                    materialList.Add(obj);
+                }
+            }
+
+            // Note: If there is a need for an optimization in the future of this function, user can simply fill the materialList manually by commenting the code abode and
+            // adding to the list material they used in their game.
+            //  materialList.Add(new Lit());
+            //  materialList.Add(new Unlit());
+            // ...
+
+            return materialList;
+        }
+
         public const RendererConfiguration kRendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
 
@@ -235,55 +253,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static HDCamera GetHDCamera(Camera camera)
-        {
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms (different Z value ranges etc.)
-            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
-
-            HDCamera hdCamera = new HDCamera();
-
-            hdCamera.viewMatrix = camera.worldToCameraMatrix;
-            hdCamera.projMatrix = projMatrix;
-            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);;
-            hdCamera.camera     = camera;
-
-            return hdCamera;
-        }
         public static void SetupGlobalHDCamera(HDCamera hdCamera, CommandBuffer cmd)
         {
-            cmd.SetGlobalMatrix("_ViewMatrix",        hdCamera.viewMatrix);
-            cmd.SetGlobalMatrix("_InvViewMatrix",     hdCamera.viewMatrix.inverse);
-            cmd.SetGlobalMatrix("_ProjMatrix",        hdCamera.projMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.projMatrix.inverse);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",    hdCamera.viewProjMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
-            cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjParam);
-            cmd.SetGlobalVector("_ScreenSize",        hdCamera.screenSize);
+            cmd.SetGlobalMatrix("_ViewMatrix",         hdCamera.viewMatrix);
+            cmd.SetGlobalMatrix("_InvViewMatrix",      hdCamera.viewMatrix.inverse);
+            cmd.SetGlobalMatrix("_ProjMatrix",         hdCamera.projMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",      hdCamera.projMatrix.inverse);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",     hdCamera.viewProjMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
+            cmd.SetGlobalVector("_InvProjParam",       hdCamera.invProjParam);
+            cmd.SetGlobalVector("_ScreenSize",         hdCamera.screenSize);
+            cmd.SetGlobalMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
         public static void OverrideGlobalHDCamera(HDCamera hdCamera, Material material)
         {
-            material.SetMatrix("_ViewMatrix",        hdCamera.viewMatrix);
-            material.SetMatrix("_InvViewMatrix",     hdCamera.viewMatrix.inverse);
-            material.SetMatrix("_ProjMatrix",        hdCamera.projMatrix);
-            material.SetMatrix("_InvProjMatrix",     hdCamera.projMatrix.inverse);
-            material.SetMatrix("_ViewProjMatrix",    hdCamera.viewProjMatrix);
-            material.SetMatrix("_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
-            material.SetVector("_InvProjParam",      hdCamera.invProjParam);
-            material.SetVector("_ScreenSize",        hdCamera.screenSize);
+            material.SetMatrix("_ViewMatrix",         hdCamera.viewMatrix);
+            material.SetMatrix("_InvViewMatrix",      hdCamera.viewMatrix.inverse);
+            material.SetMatrix("_ProjMatrix",         hdCamera.projMatrix);
+            material.SetMatrix("_InvProjMatrix",      hdCamera.projMatrix.inverse);
+            material.SetMatrix("_ViewProjMatrix",     hdCamera.viewProjMatrix);
+            material.SetMatrix("_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
+            material.SetVector("_InvProjParam",       hdCamera.invProjParam);
+            material.SetVector("_ScreenSize",         hdCamera.screenSize);
+            material.SetMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
         }
 
         public static void SetupComputeShaderHDCamera(HDCamera hdCamera, ComputeShader cs, CommandBuffer cmd)
         {
-            SetMatrixCS(cmd,          cs, "_ViewMatrix",        hdCamera.viewMatrix);
-            SetMatrixCS(cmd,          cs, "_InvViewMatrix",     hdCamera.viewMatrix.inverse);
-            SetMatrixCS(cmd,          cs, "_ProjMatrix",        hdCamera.projMatrix);
-            SetMatrixCS(cmd,          cs, "_InvProjMatrix",     hdCamera.projMatrix.inverse);
-            SetMatrixCS(cmd,          cs, "_ViewProjMatrix",    hdCamera.viewProjMatrix);
-            SetMatrixCS(cmd,          cs, "_InvViewProjMatrix", hdCamera.viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, "_InvProjParam",      hdCamera.invProjParam);
-            cmd.SetComputeVectorParam(cs, "_ScreenSize",        hdCamera.screenSize);
+            SetMatrixCS(cmd,          cs, "_ViewMatrix",         hdCamera.viewMatrix);
+            SetMatrixCS(cmd,          cs, "_InvViewMatrix",      hdCamera.viewMatrix.inverse);
+            SetMatrixCS(cmd,          cs, "_ProjMatrix",         hdCamera.projMatrix);
+            SetMatrixCS(cmd,          cs, "_InvProjMatrix",      hdCamera.projMatrix.inverse);
+            SetMatrixCS(cmd,          cs, "_ViewProjMatrix",     hdCamera.viewProjMatrix);
+            SetMatrixCS(cmd,          cs, "_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, "_InvProjParam",       hdCamera.invProjParam);
+            cmd.SetComputeVectorParam(cs, "_ScreenSize",         hdCamera.screenSize);
+            SetMatrixCS(cmd,          cs, "_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#
@@ -391,14 +398,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Helper to help to display debug info on screen
-        public static void NextOverlayCoord(ref float x, ref float y, float overlaySize, float width)
+        static float overlayLineHeight = -1.0f;
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, float width)
         {
-            x += overlaySize;
+            x += overlayWidth;
+            overlayLineHeight = Mathf.Max(overlayHeight, overlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if (x + overlaySize > width)
+            if (x + overlayWidth > width)
             {
                 x = 0;
-                y -= overlaySize;
+                y -= overlayLineHeight;
+                overlayLineHeight = -1.0f;
             }
         }
     }
