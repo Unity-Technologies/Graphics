@@ -641,7 +641,7 @@ float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 	float  depthBias	 = params.z;
 	float  bpp16		 = params.w;
 #if UNITY_REVERSED_Z
-	float  depth         = (1.0 - tcs.z) + depthBias;
+	float  depth         = (1.0 - tcs.z) - depthBias;
 #else
 	float  depth         = tcs.z + depthBias;
 #endif
@@ -669,7 +669,7 @@ float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 	float  depthBias	 = params.z;
 	float  bpp16		 = params.w;
 #if UNITY_REVERSED_Z
-	float  depth         = (1.0 - tcs.z) + depthBias;
+	float  depth         = (1.0 - tcs.z) - depthBias;
 #else
 	float  depth         = tcs.z + depthBias;
 #endif

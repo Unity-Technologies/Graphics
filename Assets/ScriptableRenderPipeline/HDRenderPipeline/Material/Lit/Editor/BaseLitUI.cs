@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
 
             // MaterialID
-            materialID = FindProperty(kMaterialID, props, false);
+            materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
 
             // Per pixel displacement
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
@@ -249,7 +249,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if ocde change
+        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupBaseLitKeywords(Material material)
         {
             SetupBaseUnlitKeywords(material);
@@ -280,12 +280,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             // Set the reference value for the stencil test.
-            int stencilRef = (int)StencilBits.NonSSS;
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
             if (material.HasProperty(kMaterialID))
             {
                 if ((int)material.GetFloat(kMaterialID) == (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS)
                 {
-                    stencilRef = (int)StencilBits.SSS;
+                    stencilRef = (int)StencilLightingUsage.SplitLighting;
                 }
             }
             material.SetInt(kStencilRef, stencilRef);

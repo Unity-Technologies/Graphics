@@ -17,47 +17,30 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 2
+    numProfiles: 3
     profiles:
-    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
     - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
+    - {fileID: 11400000, guid: b378ec8b14e770f48a085d537053adfe, type: 2}
+    - {fileID: 11400000, guid: 02c3836a8d1b4544a97f00fa528bb487, type: 2}
+    useDisneySSS: 1
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
     enableComputeLightEvaluation: 0
-    enableComputeFeatureVariants: 0
+    enableComputeLightVariants: 0
+    enableComputeMaterialVariants: 0
     enableClustered: 1
     enableFptlForOpaqueWhenClustered: 1
     enableBigTilePrepass: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     tileDebugByCategory: 0
-  m_ShadowSettings:
-    enabled: 1
+  shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
-    directionalLightCascadeCount: 4
-    directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
-    directionalLightNearPlaneOffset: 5
-  m_TextureSettings:
+  textureSettings:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
-  m_CommonSettings:
-    m_ShadowMaxDistance: 1000
-    m_ShadowCascadeCount: 4
-    m_ShadowCascadeSplit0: 0.05
-    m_ShadowCascadeSplit1: 0.2
-    m_ShadowCascadeSplit2: 0.3
-    m_ShadowNearPlaneOffset: 5
-  m_SkySettings: {fileID: 0}
-  m_SsaoSettings:
-    m_Enable: 0
-    m_Intensity: 1
-    m_Radius: 0.5
-    m_SampleCount: 8
-    m_Downsampling: 1
-  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
-    type: 2}
-  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_DefaultDiffuseMaterial: {fileID: 0}
+  m_DefaultShader: {fileID: 0}

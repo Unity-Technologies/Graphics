@@ -73,6 +73,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
+            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
@@ -112,10 +113,13 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 o.normal = normal;
 #endif
 
-#if defined(_VERTEX_LIGHTS)
+#if defined(_VERTEX_LIGHTS) && !defined(_SINGLE_DIRECTIONAL_LIGHT)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                for (int lightIndex = globalLightData.x; lightIndex < globalLightData.y; ++lightIndex)
+                int vertexLightStart = unity_LightIndicesOffsetAndCount.x + globalLightData.x;
+                int vertexLightEnd = vertexLightStart + (unity_LightIndicesOffsetAndCount.y - globalLightData.x);
+                for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
                 {
+                    int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightInput;
                     half NdotL;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
@@ -133,7 +137,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             half4 frag(v2f i) : SV_Target
             {
-                half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
+                half4 diffuseAlpha = Tex2DLinearRGBA(_MainTex, i.uv01.xy);
                 half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
                 half alpha = diffuseAlpha.a * _Color.a;
 
@@ -151,28 +155,35 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
                 half3 viewDir = i.viewDir.xyz;
 
-                // TODO: Restrict pixel lights by 4. This way we can keep moderate constrain for most LD project
-                // and can benefit from better data layout/avoid branching by doing vec math.
                 half3 color = half3(0, 0, 0);
-                for (int lightIndex = 0; lightIndex < globalLightData.x; ++lightIndex)
+#ifdef _SINGLE_DIRECTIONAL_LIGHT
+                LightInput lightData;
+                INITIALIZE_LIGHT(lightData, 0);
+                half  NdotL;
+                color = EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
+    #ifdef _SHADOWS
+                float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
+                color *= ComputeShadowAttenuation(i, bias);
+    #endif
+#else
+                int pixelLightEnd = unity_LightIndicesOffsetAndCount.x + min(globalLightData.x, unity_LightIndicesOffsetAndCount.y);
+                for (int lightIter = unity_LightIndicesOffsetAndCount.x; lightIter < pixelLightEnd; ++lightIter)
                 {
+                    int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightData;
                     half NdotL;
                     INITIALIZE_LIGHT(lightData, lightIndex);
                     color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
 #ifdef _SHADOWS
-                    if (lightIndex == 0)
+                    if (lightIndex == globalLightData.y)
                     {
-                        #if _NORMALMAP
-                        float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
-                        #else
-                        float3 vertexNormal = i.normal;
-                        #endif
                         float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
-                        color *= ComputeShadowAttenuation(i, vertexNormal * bias);
+                        color *= ComputeShadowAttenuation(i, bias);
                     }
 #endif
                 }
+
+#endif // SINGLE_DIRECTIONAL_LIGHT
 
                 Emission(i.uv01.xy, color);
 

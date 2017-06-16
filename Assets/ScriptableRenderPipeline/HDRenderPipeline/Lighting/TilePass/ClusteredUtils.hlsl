@@ -10,7 +10,7 @@ float GetScaleFromBase(float base)
 
 int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
 {
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
     float z = z_in;
 #else
     float z = -z_in;
@@ -47,7 +47,7 @@ float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
     float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
     res = dist + g_fNearPlane;
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
     return res;
 #else
     return -res;

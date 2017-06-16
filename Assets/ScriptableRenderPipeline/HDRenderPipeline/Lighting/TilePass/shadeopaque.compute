@@ -37,7 +37,7 @@
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant14         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant14             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=14
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant15         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant15             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=15
 
-#pragma #pragma enable_d3d11_debug_symbols
+//#pragma #pragma enable_d3d11_debug_symbols
 
 // Split lighting is required for the SSS pass.
 // Not currently possible since we need to access the stencil buffer from the compute shader.

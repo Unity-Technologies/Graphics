@@ -81,47 +81,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        // TEMP: will be remove after data upgrade
-        [MenuItem("HDRenderPipeline/Swap standard and SSS material IDs")]
-        static void SwapStandardAndSssMaterialIds()
-        {
-            try
-            {
-                Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
-                for (int i = 0, length = materials.Length; i < length; i++)
-                {
-                    Material mat = materials[i] as Material;
-
-                    EditorUtility.DisplayProgressBar(
-                        "Updating materials...",
-                        string.Format("{0} / {1}", i, length),
-                        i / (float)(length - 1));
-
-                    if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
-                    {
-                        int matID = (int)mat.GetFloat("_MaterialID");
-
-                        if (matID == 0)
-                        {
-                            matID = 1;
-                            mat.SetInt("_MaterialID", matID);
-                            EditorUtility.SetDirty(mat);
-                        }
-                        else if (matID == 1)
-                        {
-                            matID = 0;
-                            mat.SetInt("_MaterialID", matID);
-                            EditorUtility.SetDirty(mat);
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
-        }
-
         // Funtion used only to check performance of data with and without tessellation
         [MenuItem("HDRenderPipeline/Debug/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()

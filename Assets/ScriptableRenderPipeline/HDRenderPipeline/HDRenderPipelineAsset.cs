@@ -61,82 +61,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieve those properties via serialization/reflection
         // Doing it this way allow to change parameters name and still retrieve correct serialized value
 
-        // Debugging (Not persistent)
-        public DebugDisplaySettings debugDisplaySettings = new DebugDisplaySettings();
-
-        // Renderer Settings (per project)
+        // Renderer Settings
         public RenderingSettings renderingSettings = new RenderingSettings();
         public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
         public TileSettings tileSettings = new TileSettings();
 
-        // TODO: Following two settings need to be update to the serialization/reflection way like above
-        [SerializeField]
-        ShadowSettings m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField]
-        TextureSettings m_TextureSettings = TextureSettings.Default;
+        // Shadow Settings
+        public ShadowInitParameters shadowInitParams = new ShadowInitParameters();
 
-        public ShadowSettings shadowSettings
-        {
-            get { return m_ShadowSettings; }
-        }
-
-        public TextureSettings textureSettings
-        {
-            get { return m_TextureSettings; }
-            set { m_TextureSettings = value; }
-        }
-
-        // NOTE: Following settings are Asset so they need to be serialized as usual. no reflection/serialization here
-
-        // Renderer Settings (per "scene")
-        [SerializeField]
-        private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-        [SerializeField]
-        private SkySettings m_SkySettings;
-
-        public CommonSettings.Settings commonSettingsToUse
-        {
-            get
-            {
-                if (CommonSettingsSingleton.overrideSettings)
-                    return CommonSettingsSingleton.overrideSettings.settings;
-
-                return m_CommonSettings;
-            }
-        }
-
-        /*
-        public SkySettings skySettings
-        {
-            get { return m_SkySettings; }
-            set { m_SkySettings = value; }
-        }
-        */
-
-        public SkySettings skySettingsToUse
-        {
-            get
-            {
-                if (SkySettingsSingleton.overrideSettings)
-                    return SkySettingsSingleton.overrideSettings;
-
-                return m_SkySettings;
-            }
-        }
-
-        [SerializeField]
-        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
-
-        public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
-        {
-            get
-            {
-                if (ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings)
-                    return ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings.settings;
-
-                return m_SsaoSettings;
-            }
-        }
+        // Texture Settings
+        public TextureSettings textureSettings = new TextureSettings();
 
         // Default Material / Shader
 
@@ -202,39 +136,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return null;
         }
 
-        public void ApplyDebugDisplaySettings()
-        {
-            m_ShadowSettings.enabled = debugDisplaySettings.lightingDebugSettings.enableShadows;
-
-            LightingDebugSettings lightingDebugSettings = debugDisplaySettings.lightingDebugSettings;
-            Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
-            Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
-
-            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.GetDebugMaterialIndex());
-            Shader.SetGlobalInt("_DebugLightingMode", (int)debugDisplaySettings.GetDebugLightingMode());
-            Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
-            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
-        }
-
-        public void UpdateCommonSettings()
-        {
-            var commonSettings = commonSettingsToUse;
-
-            m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
-            m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
-            m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-            m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
-        }
 
         public void OnValidate()
         {
-            debugDisplaySettings.OnValidate();
             sssSettings.OnValidate();
-        }
-
-        void OnEnable()
-        {
-            debugDisplaySettings.RegisterDebug();
         }
     }
 }

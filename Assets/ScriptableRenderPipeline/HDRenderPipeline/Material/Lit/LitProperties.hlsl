@@ -101,7 +101,7 @@ float4 _UVDetailsMappingMask;
 #else // LAYERED_LIT_SHADER
 
 // Set of users variables
-#define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3
+#define PROP_DECL(type, name) type name##0, name##1, name##2, name##3
 // sampler are share by texture type inside a layered material but we need to support that a particualr layer have no texture, so we take the first sampler of available texture as the share one
 // mean we must declare all sampler
 #define PROP_DECL_TEX2D(name)\

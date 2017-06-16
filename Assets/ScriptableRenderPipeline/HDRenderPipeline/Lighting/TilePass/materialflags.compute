@@ -1,0 +1,72 @@
+#pragma kernel MaterialFlagsGen_Write		MATERIALFLAGSGEN=MaterialFlagsGen_Write
+#pragma kernel MaterialFlagsGen_Or			MATERIALFLAGSGEN=MaterialFlagsGen_Or		USE_OR
+
+//#pragma #pragma enable_d3d11_debug_symbols
+
+#include "../../../ShaderLibrary/common.hlsl"
+#include "ShaderBase.hlsl"
+#include "TilePass.cs.hlsl"
+
+#define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+#include "../../Material/Material.hlsl" // This includes Material.hlsl
+#include "FeatureFlags.hlsl"
+
+#define USE_MATERIAL_FEATURE_FLAGS
+#define NR_THREADS	64
+
+uniform uint2 g_viDimensions;
+
+Texture2D g_depth_tex : register( t0 );
+
+groupshared uint ldsFeatureFlags;
+RWStructuredBuffer<uint> g_TileFeatureFlags;
+uniform uint g_BaseFeatureFlags;
+
+DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+
+[numthreads(NR_THREADS, 1, 1)]
+void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+{
+	uint2 tileIDX = u3GroupID.xy;
+
+	uint iWidth = g_viDimensions.x;
+	uint iHeight = g_viDimensions.y;
+	uint nrTilesX = (iWidth+15)/16;
+
+	uint2 viTilLL = 16*tileIDX;
+
+	float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
+
+	if (threadID == 0)
+	{
+		ldsFeatureFlags = 0;
+	}
+	GroupMemoryBarrierWithGroupSync();
+
+	uint materialFeatureFlags = g_BaseFeatureFlags;
+	[unroll]
+	for(int i = 0; i < 4; i++)
+	{
+		int idx = i * NR_THREADS + threadID;
+		uint2 uCrd = min( uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
+
+		if (FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z)
+		{
+			PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
+			FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+			materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(gbuffer);
+		}
+	}
+
+	InterlockedOr(ldsFeatureFlags, materialFeatureFlags);	//TODO: driver might optimize this or we might have to do a manual reduction
+	GroupMemoryBarrierWithGroupSync();
+
+	if(threadID == 0)
+	{
+#ifdef USE_OR
+		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] |= ldsFeatureFlags;
+#else
+		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] = ldsFeatureFlags;
+#endif
+	}
+}

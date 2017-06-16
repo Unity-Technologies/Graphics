@@ -218,21 +218,20 @@ TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityVelocityPass)
-    float4x4 _NonJitteredVP;
-    float4x4 _PreviousVP;
-    float4x4 _PreviousM;
-    bool _HasLastPositionData;
-    bool _ForceNoMotion;
-    float _MotionVectorDepthBias;
+    float4x4 unity_MatrixNonJitteredVP;
+    float4x4 unity_MatrixPreviousVP;
+    float4x4 unity_MatrixPreviousM;
+    float4 unity_MotionVectorsParams;
 CBUFFER_END
 
 // TODO: move this to constant buffer by Pass
-float4x4 _ViewMatrix;
-float4x4 _InvViewMatrix;
-float4x4 _ProjMatrix;
-float4x4 _InvProjMatrix;
+float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
+float4x4 _ViewMatrix;
+float4x4 _ProjMatrix;
 float4x4 _InvViewProjMatrix;
+float4x4 _InvViewMatrix;
+float4x4 _InvProjMatrix;
 float4   _InvProjParam;
 float4   _ScreenSize;
 
