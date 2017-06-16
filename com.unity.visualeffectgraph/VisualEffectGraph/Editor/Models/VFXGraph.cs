@@ -121,6 +121,11 @@ namespace UnityEditor.VFX
             {
                 m_ExpressionGraphDirty = true;
             }
+
+            if (cause == VFXModel.InvalidationCause.kParamChanged)
+            {
+                m_ExpressionGraphDirty = true; //TODOPAUL : rebuild 
+            }
         }
 
         private VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
@@ -210,8 +215,7 @@ namespace UnityEditor.VFX
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
                     {
-                        int contextId = context.GetHashCode(); // TODO change that
-
+                        uint contextId = (uint)context.GetParent().GetIndex(context);
                         var cpuMapper = expressionGraph.BuildCPUMapper(context);
                         foreach (var exp in cpuMapper.expressions)
                         {
@@ -241,11 +245,34 @@ namespace UnityEditor.VFX
                     expressionSheet.values = expressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
 
+                    vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
 
                     foreach (var data in models.OfType<VFXData>())
                         data.CollectAttributes(expressionGraph);
+
+                    foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
+                    {
+                        var spawnDescs = spawnerContext.children.Select(b =>
+                        {
+                            return new VFXSpawnerDesc()
+                            {
+                                customBehavior = null,
+                                type = (b as VFXAbstractSpawner).spawnerType
+                            };
+                        }).ToArray();
+                        int spawnerIndex = vfxAsset.AddSpawner(spawnDescs, (uint)spawnerContext.GetParent().GetIndex(spawnerContext));
+                        vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
+                    }
+
+                    foreach (var component in VFXComponent.GetAllActive())
+                    {
+                        if (component.vfxAsset == vfxAsset)
+                        {
+                            component.vfxAsset = vfxAsset; //TODOPAUL : find another way to detect reload
+                        }
+                    }
                 }
                 catch (Exception e)
                 {

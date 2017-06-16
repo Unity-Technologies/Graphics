@@ -13,12 +13,13 @@ namespace UnityEditor.VFX
     {
         kNone = 0,
 
-        kInit = 1 << 0,
-        kUpdate = 1 << 1,
-        kOutput = 1 << 2,
+        kSpawner = 1 << 0,
+        kInit = 1 << 1,
+        kUpdate = 1 << 2,
+        kOutput = 1 << 3,
 
         kInitAndUpdate = kInit | kUpdate,
-        kAll = kInit | kUpdate | kOutput,
+        kAll = kInit | kUpdate | kOutput | kSpawner,
     };
 
     [Flags]
@@ -105,7 +106,7 @@ namespace UnityEditor.VFX
         public bool Accept(VFXBlock block, int index = -1)
         {
             var testedType = contextType == VFXContextType.kOutput ? inputType : outputType;
-            return ((block.compatibleContexts & contextType) != 0) && (block.compatibleData == testedType);
+            return ((block.compatibleContexts & contextType) != 0) && ((block.compatibleData & testedType) != 0);
         }
 
         protected override void OnAdded()
