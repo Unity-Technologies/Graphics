@@ -164,7 +164,7 @@ half3 WorldNormal(half4 tan2world[3])
 
 // BEGIN LAYERED_PHOTOGRAMMETRY
 #define FRAGMENT_SETUP(x) FragmentCommonData x = \
-    FragmentSetupLayeredPhotogrammetry(i.pos, i.tex, float4(i.ambientOrLightmapUV.xy, i.texUV3), i.color, i.eyeVec, i.tangentToWorldAndPackedData, IN_WORLDPOS(i));
+    FragmentSetupLayeredPhotogrammetry(i.pos, i.tex, float4(i.ambientOrLightmapUV.zw, i.texUV3), i.color, i.eyeVec, i.tangentToWorldAndPackedData, IN_WORLDPOS(i));
 
 // JIG CHECK
 #define FRAGMENT_SETUP_FWDADD(x) FragmentCommonData x = \
@@ -1257,9 +1257,9 @@ inline half4 VertexGIForward(VertexInput v, float3 posWorld, half3 normalWorld)
         ambientOrLightmapUV.rgb = ShadeSHPerVertex (normalWorld, ambientOrLightmapUV.rgb);
     #endif
 
-    #ifdef DYNAMICLIGHTMAP_ON
+    //#ifdef DYNAMICLIGHTMAP_ON
         ambientOrLightmapUV.zw = v.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-    #endif
+    //#endif
 
     return ambientOrLightmapUV;
 }
@@ -1543,9 +1543,9 @@ VertexOutputDeferred vertDeferred (VertexInput v)
     #elif UNITY_SHOULD_SAMPLE_SH
         o.ambientOrLightmapUV.rgb = ShadeSHPerVertex (normalWorld, o.ambientOrLightmapUV.rgb);
     #endif
-    #ifdef DYNAMICLIGHTMAP_ON
+    //#ifdef DYNAMICLIGHTMAP_ON
         o.ambientOrLightmapUV.zw = v.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-    #endif
+    //#endif
 
     #ifdef _PARALLAXMAP
         TANGENT_SPACE_ROTATION;
