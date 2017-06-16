@@ -38,17 +38,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma multi_compile _ SSS_FILTER_HORIZONTAL_AND_COMBINE
             // <<< Old SSS Model
 
-            #define SSS_PASS              1
-            #define SSS_BILATERAL_FILTER  1
+            // Tweak parameters for the Disney SSS below.
             #define SSS_CLAMP_COLOR_BLEED 1
+            #define SSS_BILATERAL_FILTER  1
             #define SSS_USE_TANGENT_PLANE 1
             #define SSS_DEBUG             0
 
+            // Do not modify these.
+            #define SSS_PASS              1
             #define MILLIMETERS_PER_METER 1000
-        #ifdef SSS_MODEL_BASIC
             #define CENTIMETERS_PER_METER 100
-            #define RBG_BILATERAL_WEIGHTS 0
-        #endif
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -64,10 +63,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4x4 _ViewMatrix, _ProjMatrix;                                           // TEMP: make these global
 
             float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
         #ifdef SSS_MODEL_DISNEY
+            float4x4 _ViewMatrix, _ProjMatrix;                                           // TEMP: make these global
             float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
         #else
@@ -90,9 +89,22 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
             }
 
-            // Computes F(x)/P(x). Rescaling of the PDF is handled by 'totalWeight'.
-            float3 ComputeBilateralWeight(float r, float3 S, float rcpPdf)
+            // Computes F(r)/P(r), s.t. r = sqrt(a^2 + b^2).
+            // Rescaling of the PDF is handled by 'totalWeight'.
+            float3 ComputeBilateralWeight(float a2, float b, float mmPerUnit, float3 S, float rcpPdf)
             {
+            #if (SSS_BILATERAL_FILTER == 0)
+                b = 0;
+            #endif
+
+            #if SSS_USE_TANGENT_PLANE
+                // Both 'a2' and 'b2' require unit conversion.
+                float r = sqrt(a2 + b * b) * mmPerUnit;
+            #else
+                // Only 'b2' requires unit conversion.
+                float r = sqrt(a2 + (b * mmPerUnit) * (b * mmPerUnit));
+            #endif
+
             #if SSS_CLAMP_COLOR_BLEED
                 return saturate(KernelValCircle(r, S) * rcpPdf);
             #else
@@ -100,16 +112,39 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #endif
             }
 
-            #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
-                             millimPerUnit, pixelsPerMm, totalIrradiance, totalWeight)          \
+            #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerPosVS,   \
+                             useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,       \
+                             totalIrradiance, totalWeight)                                      \
             {                                                                                   \
                 float  r   = kernel[profileID][i][0];                                           \
                 /* The relative sample position is known at compile time. */                    \
                 float  phi = TWO_PI * Fibonacci2d(i, n).y;                                      \
                 float2 vec = r * float2(cos(phi), sin(phi));                                    \
                                                                                                 \
-                float2 position   = centerPosUnSS + vec * pixelsPerMm;                          \
-                float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;            \
+                /* Compute the screen-space position and the associated irradiance. */          \
+                float2 position; float3 irradiance;                                             \
+                /* Compute the squared distance (in mm) in the screen-aligned plane. */         \
+                float dXY2;                                                                     \
+                                                                                                \
+                if (useTangentPlane)                                                            \
+                {                                                                               \
+                    /* 'vec' is given relative to the tangent frame. */                         \
+                    float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;                    \
+                    float3 positionVS = centerPosVS + relPosVS;                                 \
+                    float4 positionCS = mul(_ProjMatrix, float4(positionVS, 1));                \
+                    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;        \
+                                                                                                \
+                    position   = positionSS * _ScreenSize.xy;                                   \
+                    irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;               \
+                    dXY2       = dot(relPosVS.xy, relPosVS.xy);                                 \
+                }                                                                               \
+                else                                                                            \
+                {                                                                               \
+                    /* 'vec' is given directly in screen-space. */                              \
+                    position   = centerPosUnSS + vec * pixelsPerMm;                             \
+                    irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;               \
+                    dXY2       = r * r;                                                         \
+                }                                                                               \
                                                                                                 \
                 /* TODO: see if making this a [branch] improves performance. */                 \
                 [flatten]                                                                       \
@@ -118,9 +153,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* Apply bilateral weighting. */                                            \
                     float  z = LOAD_TEXTURE2D(_MainDepthTexture, position).r;                   \
                     float  d = LinearEyeDepth(z, _ZBufferParams);                               \
-                    float  t = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
+                    float  t = d - centerPosVS.z;                                               \
                     float  p = kernel[profileID][i][1];                                         \
-                    float3 w = ComputeBilateralWeight(sqrt(r * r + t * t), shapeParam, p);      \
+                    float3 w = ComputeBilateralWeight(dXY2, t, mmPerUnit, shapeParam, p);       \
                                                                                                 \
                     totalIrradiance += w * irradiance;                                          \
                     totalWeight     += w;                                                       \
@@ -140,8 +175,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 }                                                                               \
             }
 
-            #define SSS_LOOP(n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS,    \
-                             millimPerUnit, pixelsPerMm, totalIrradiance, totalWeight)          \
+            #define SSS_LOOP(n, kernel, profileID, shapeParam, centerPosUnSS, centerPosVS,      \
+                             useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,       \
+                             totalIrradiance, totalWeight)                                      \
             {                                                                                   \
                 float  centerRcpPdf = kernel[profileID][0][1];                                  \
                 float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;            \
@@ -149,13 +185,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 totalIrradiance = centerWeight * centerIrradiance;                              \
                 totalWeight     = centerWeight;                                                 \
                                                                                                 \
-                /* Perform integration over the screen-aligned plane in the view space. */      \
-                /* TODO: it would be more accurate to use the tangent plane instead.    */      \
+                /* Integrate over the screen-aligned or tangent plane in the view space. */     \
                 [unroll]                                                                        \
                 for (uint i = 1; i < n; i++)                                                    \
                 {                                                                               \
-                    SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
-                             millimPerUnit, pixelsPerMm, totalIrradiance, totalWeight)          \
+                    SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerPosVS,   \
+                             useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,       \
+                             totalIrradiance, totalWeight)                                      \
                 }                                                                               \
             }
 
@@ -209,97 +245,20 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             #ifdef SSS_MODEL_DISNEY
                 // Rescaling the filter is equivalent to inversely scaling the world.
-                float  metersPerUnit = _WorldScales[profileID] / distScale;
-                float  millimPerUnit = MILLIMETERS_PER_METER * metersPerUnit;
-#if SSS_USE_TANGENT_PLANE
-                [branch]
-                if (distScale == 0)
-                {
-                    #if SSS_DEBUG
-                        return float4(0, 0, 1, 1);
-                    #else
-                        return float4(bsdfData.diffuseColor * centerIrradiance, 1);
-                    #endif
-                }
+                float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID] / distScale);
+                float unitsPerMm = rcp(mmPerUnit);
 
-                UpdatePositionInput(centerDepth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
-
-                float3   normalVS = mul((float3x3)_ViewMatrix, bsdfData.normalWS);
-                // Compute the disk tangential to the surface.
-                float3x3 basisVS  = GetLocalFrame(normalVS);
-                float3   tangentX = basisVS[0] * rcp(millimPerUnit);
-                float3   tangentY = basisVS[1] * rcp(millimPerUnit);
-
-                // Accumulate filtered irradiance and bilateral weights (for renormalization).
-                float3 totalIrradiance, totalWeight;
-
-                {
-                    float  centerRcpPdf = _FilterKernelsNearField[profileID][0][1];
-                    float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;
-
-                    totalIrradiance = centerWeight * centerIrradiance;
-                    totalWeight     = centerWeight;
-
-                    [unroll]
-                    for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
-                    {
-                        float  r   = _FilterKernelsNearField[profileID][i][0];
-                        /* The relative sample position is known at compile time. */
-                        float  phi = TWO_PI * Fibonacci2d(i, SSS_N_SAMPLES_NEAR_FIELD).y;
-                        float2 vec = r * float2(cos(phi), sin(phi));
-
-                        float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
-                        float3 positionVS = centerPosVS + relPosVS;
-                        float4 positionCS = mul(_ProjMatrix, float4(positionVS, 1));
-                        float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
-                        float2 positionXY = positionSS * _ScreenSize.xy;
-                        float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, positionXY).rgb;
-
-                        /* TODO: see if making this a [branch] improves performance. */
-                        [flatten]
-                        if (any(irradiance))
-                        {
-                            /* Apply bilateral weighting. */
-                            float  z = LOAD_TEXTURE2D(_MainDepthTexture, positionXY).r;
-                            float  d = LinearEyeDepth(z, _ZBufferParams);
-                            float  t = d - positionVS.z;
-
-                            float3 x = millimPerUnit * length(relPosVS + float3(0, 0, t));
-                            float  p = _FilterKernelsNearField[profileID][i][1];
-
-                        #if SSS_BILATERAL_FILTER
-                            float3 w = ComputeBilateralWeight(x, shapeParam, p);
-                        #else
-                            float3 w = ComputeBilateralWeight(r, shapeParam, p);
-                        #endif
-
-                            totalIrradiance += w * irradiance;
-                            totalWeight     += w;
-                        }
-                        else
-                        {
-                            /*************************************************************************/
-                            /* The irradiance is 0. This could happen for 3 reasons.                 */
-                            /* Most likely, the surface fragment does not have an SSS material.      */
-                            /* Alternatively, our sample comes from a region without any geometry.   */
-                            /* Finally, the surface fragment could be completely shadowed.           */
-                            /* Our blur is energy-preserving, so 'centerWeight' should be set to 0.  */
-                            /* We do not terminate the loop since we want to gather the contribution */
-                            /* of the remaining samples (e.g. in case of hair covering skin).        */
-                            /* Note: See comment in the output of deferred.shader                    */
-                            /*************************************************************************/
-                        }
-                    }
-                }
-
-#else
                 // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
                 float2 unitsPerPixel = 2 * abs(cornerPosVS.xy - centerPosVS.xy);
-                float2 pixelsPerMm   = rcp(millimPerUnit * unitsPerPixel);
+                float2 pixelsPerMm   = rcp(unitsPerPixel) * unitsPerMm;
 
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
                 // We use the value of 1 instead of 0.5 as an optimization.
+                // N.b.: our LoD selection algorithm is the same regardless of
+                // whether we integrate over the tangent plane or not, since we
+                // don't want the orientation of the tangent plane to create
+                // divergence of execution across the warp.
                 float maxDistInPixels = maxDistance * max(pixelsPerMm.x, pixelsPerMm.y);
 
                 [branch]
@@ -312,6 +271,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     #endif
                 }
 
+                const bool useTangentPlane = SSS_USE_TANGENT_PLANE != 0;
+
+                // Compute the tangent frame in view space.
+                float3 normalVS = mul((float3x3)_ViewMatrix, bsdfData.normalWS);
+                float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
+                float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
+
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance, totalWeight;
 
@@ -323,8 +289,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         return float4(0.5, 0.5, 0, 1);
                     #else
                         SSS_LOOP(SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
-                                 profileID, shapeParam, centerPosition, centerPosVS.z,
-                                 millimPerUnit, pixelsPerMm, totalIrradiance, totalWeight)
+                                 profileID, shapeParam, centerPosition, centerPosVS,
+                                 useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,
+                                 totalIrradiance, totalWeight)
                     #endif
                 }
                 else
@@ -333,11 +300,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         return float4(1, 0, 0, 1);
                     #else
                         SSS_LOOP(SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
-                                 profileID, shapeParam, centerPosition, centerPosVS.z,
-                                 millimPerUnit, pixelsPerMm, totalIrradiance, totalWeight)
+                                 profileID, shapeParam, centerPosition, centerPosVS,
+                                 useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,
+                                 totalIrradiance, totalWeight)
                     #endif
                 }
-#endif
             #else
                 // Rescaling the filter is equivalent to inversely scaling the world.
                 float  metersPerUnit = _WorldScales[profileID] / distScale * SSS_BASIC_DISTANCE_SCALE;
@@ -399,7 +366,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     [flatten]
                     if (any(sampleIrradiance))
                     {
-                    #if SSS_BILATERAL_FILTER
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
@@ -407,7 +373,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                         float zDistance   = centimPerUnit * sampleDepth - (centimPerUnit * centerPosVS.z);
                         sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
-                    #endif
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;
