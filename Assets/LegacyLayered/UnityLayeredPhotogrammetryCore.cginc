@@ -15,6 +15,11 @@
 
 #include "AutoLight.cginc"
 
+float4x4 GetObjectToWorldMatrix()
+{
+    return unity_ObjectToWorld;
+}
+
 //-------------------------------------------------------------------------------------
 // counterpart for NormalizePerPixelNormal
 // skips normalization per-vertex and expects normalization to happen per-pixel
