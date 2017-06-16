@@ -157,10 +157,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
                 half3 color = half3(0, 0, 0);
 #ifdef _SINGLE_DIRECTIONAL_LIGHT
-                LightInput lightData;
-                INITIALIZE_LIGHT(lightData, 0);
-                half  NdotL;
-                color = EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
+                half NdotL;
+                color = EvaluateDirectionalLight(diffuse, specularGloss, normal, _LightPosition0, viewDir, NdotL) * _LightColor0;
     #ifdef _SHADOWS
                 float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
                 color *= ComputeShadowAttenuation(i, bias);

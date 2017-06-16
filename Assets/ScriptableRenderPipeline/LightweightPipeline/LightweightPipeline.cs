@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.Dispose();
 
                 // Setup light and shadow shader constants
-                SetupLightShaderVariables(visibleLights, ref cullResults, ref context, ref lightData);
+                SetupShaderLightConstants(visibleLights, ref cullResults, ref context, ref lightData);
                 if (shadowsRendered)
                     SetupShadowShaderVariables(ref context, m_ShadowCasterCascadesCount);
 
@@ -248,27 +248,49 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cullResults.FillLightIndices(m_LightIndexListBuffer);
         }
 
-        private void SetupLightShaderVariables(VisibleLight[] lights, ref CullResults cullResults, ref ScriptableRenderContext context, ref LightData lightData)
+        private void SetupShaderLightConstants(VisibleLight[] lights, ref CullResults cullResults, ref ScriptableRenderContext context, ref LightData lightData)
         {
-            int maxLights = 1;
-            if (!lightData.isSingleDirectionalLight)
-            {
-                FillLightIndices(ref cullResults, lights.Length);
-                maxLights = Math.Min(kMaxVisibleLights, lights.Length);
-            }
+            if (lightData.isSingleDirectionalLight) 
+                SetupShaderSingleDirectionalLightConstants(ref lights [0], ref context);
+            else
+                SetupShaderLightListConstants(lights, ref cullResults, ref context);
 
-            for (int i = 0; i < maxLights; ++i)
+            CommandBuffer cmd = new CommandBuffer() { name = "SetShaderKeywords" };
+            SetShaderKeywords(cmd, lightData.isSingleDirectionalLight, lightData.vertexLightsCount > 0);
+            cmd.SetGlobalVector("globalLightData", new Vector4(lightData.pixelLightsCount, m_ShadowLightIndex, m_Asset.ShadowMinNormalBias, m_Asset.ShadowNormalBias));
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
+        private void SetupShaderSingleDirectionalLightConstants(ref VisibleLight light, ref ScriptableRenderContext context)
+        {
+            Vector4 lightDir = -light.localToWorld.GetColumn(2);
+             
+            CommandBuffer cmd = new CommandBuffer() { name = "SetupLightConstants" };
+            cmd.SetGlobalVector("_LightPosition0", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
+            cmd.SetGlobalColor("_LightColor0", light.finalColor);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
+        // TODO: Perform tests on light lights memory pattern access (SOA vs AOS vs Swizzling)
+        private void SetupShaderLightListConstants(VisibleLight[] lights, ref CullResults cullResults, ref ScriptableRenderContext context)
+        {
+            FillLightIndices(ref cullResults, lights.Length);
+            int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
+
+            for (int i = 0; i < maxLights; ++i) 
             {
-                VisibleLight currLight = lights[i];
-                if (currLight.lightType == LightType.Directional)
+                VisibleLight currLight = lights [i];
+                if (currLight.lightType == LightType.Directional) 
                 {
-                    Vector4 dir = -currLight.localToWorld.GetColumn(2);
-                    m_LightPositions[i] = new Vector4(dir.x, dir.y, dir.z, 0.0f);
-                }
-                else
+                    Vector4 dir = -currLight.localToWorld.GetColumn (2);
+                    m_LightPositions [i] = new Vector4 (dir.x, dir.y, dir.z, 0.0f);
+                } 
+                else 
                 {
-                    Vector4 pos = currLight.localToWorld.GetColumn(3);
-                    m_LightPositions[i] = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+                    Vector4 pos = currLight.localToWorld.GetColumn (3);
+                    m_LightPositions [i] = new Vector4 (pos.x, pos.y, pos.z, 1.0f);
                 }
 
                 m_LightColors[i] = currLight.finalColor;
@@ -276,34 +298,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float rangeSq = currLight.range * currLight.range;
                 float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
 
-                if (currLight.lightType == LightType.Spot)
+                if (currLight.lightType == LightType.Spot) 
                 {
-                    Vector4 dir = currLight.localToWorld.GetColumn(2);
-                    m_LightSpotDirections[i] = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+                    Vector4 dir = currLight.localToWorld.GetColumn (2);
+                    m_LightSpotDirections [i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0.0f);
 
                     float spotAngle = Mathf.Deg2Rad * currLight.spotAngle;
-                    float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
-                    float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
+                    float cosOuterAngle = Mathf.Cos (spotAngle * 0.5f);
+                    float cosInneAngle = Mathf.Cos (spotAngle * 0.25f);
                     float angleRange = cosInneAngle - cosOuterAngle;
-                    m_LightAttenuations[i] = new Vector4(cosOuterAngle,
-                            Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
-                }
+                    m_LightAttenuations [i] = new Vector4 (cosOuterAngle,
+                        Mathf.Approximately (angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+                } 
                 else
                 {
-                    m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f) ;
-                    m_LightAttenuations[i] = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+                    m_LightSpotDirections [i] = new Vector4 (0.0f, 0.0f, 1.0f, 0.0f);
+                    m_LightAttenuations [i] = new Vector4 (-1.0f, 1.0f, quadAtten, rangeSq);
                 }
             }
 
-            CommandBuffer cmd = new CommandBuffer() {name = "SetupShadowShaderConstants"};
-            cmd.SetGlobalVectorArray("globalLightPos", m_LightPositions);
-            cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
-            cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
-            cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-            if (!lightData.isSingleDirectionalLight)
-                cmd.SetGlobalBuffer("globalLightIndexList", m_LightIndexListBuffer);
-            cmd.SetGlobalVector("globalLightData", new Vector4(lightData.pixelLightsCount, m_ShadowLightIndex, m_Asset.ShadowMinNormalBias, m_Asset.ShadowNormalBias));
-            SetShaderKeywords(cmd, lightData.isSingleDirectionalLight, lightData.vertexLightsCount > 0);
+            CommandBuffer cmd = new CommandBuffer () { name = "SetupShadowShaderConstants" };
+            cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
+            cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
+            cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
+            cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
+            cmd.SetGlobalBuffer ("globalLightIndexList", m_LightIndexListBuffer);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -519,6 +538,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return (type == LightType.Directional || type == LightType.Spot);
         }
-
     }
 }
