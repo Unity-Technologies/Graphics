@@ -331,7 +331,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float4 cookieColor = float4(1,1,1,1);
 //			float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
 //            float2 cookCoord = uvCookie.xy / uvCookie.w;
-//			const bool bHasCookie = gPerLightData[lightIndex].z > 0;
+//			const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
 //            [branch]if(bHasCookie)
 //            {
 //       			cookieColor *= UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
@@ -356,7 +356,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
             float4 cookieColor = float4(1,1,1,1);
-//            const bool bHasCookie = gPerLightData[lightIndex].z > 0;
+//            const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
 //            [branch]if(bHasCookie)
 //            {
 //                float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
@@ -399,7 +399,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
             float d0 = 0.65;
             float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(2*cookCoord-1)));
-            const bool bHasCookie = gPerLightData[lightIndex].z > 0;
+            const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
             [branch]if(bHasCookie)
             {
                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
