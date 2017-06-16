@@ -124,7 +124,7 @@ namespace UnityEditor.VFX
 
             if (cause == VFXModel.InvalidationCause.kParamChanged)
             {
-                m_ExpressionGraphDirty = true; //TODOPAUL : rebuild 
+                m_ExpressionGraphDirty = true; //TODOPAUL : rebuild
             }
         }
 
@@ -255,13 +255,13 @@ namespace UnityEditor.VFX
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
                         var spawnDescs = spawnerContext.children.Select(b =>
-                        {
-                            return new VFXSpawnerDesc()
                             {
-                                customBehavior = null,
-                                type = (b as VFXAbstractSpawner).spawnerType
-                            };
-                        }).ToArray();
+                                return new VFXSpawnerDesc()
+                                {
+                                    customBehavior = null,
+                                    type = (b as VFXAbstractSpawner).spawnerType
+                                };
+                            }).ToArray();
                         int spawnerIndex = vfxAsset.AddSpawner(spawnDescs, (uint)spawnerContext.GetParent().GetIndex(spawnerContext));
                         vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
                     }
