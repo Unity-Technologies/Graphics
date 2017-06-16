@@ -19,6 +19,10 @@ MonoBehaviour:
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
+  m_TextureSettings:
+    spotCookieSize: 512
+    pointCookieSize: 128
+    reflectionCubemapSize: 128
   m_PointLightMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   PointLightMeshScaleFactor: 2
   m_SpotLightMesh: {fileID: 4300000, guid: 93e85ba57f65145538a8ac97bd005d40, type: 3}
