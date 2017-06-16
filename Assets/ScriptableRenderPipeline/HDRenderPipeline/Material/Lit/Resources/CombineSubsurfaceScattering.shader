@@ -40,8 +40,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             #define SSS_PASS              1
             #define SSS_BILATERAL         1
-            #define SSS_DEBUG             0
+            #define SSS_CLAMP_BLEED       0
             #define SSS_USE_TANGENT_PLANE 0
+            #define SSS_DEBUG             0
+
             #define MILLIMETERS_PER_METER 1000
         #ifdef SSS_MODEL_BASIC
             #define CENTIMETERS_PER_METER 100
@@ -88,16 +90,14 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
             }
 
-            // Computes F(x)/P(x), s.t. x = sqrt(r^2 + t^2).
-            float3 ComputeBilateralWeight(float3 S, float r, float t, float rcpPdf)
+            // Computes F(x)/P(x). Rescaling of the PDF is handled by 'totalWeight'.
+            float3 ComputeBilateralWeight(float r, float3 S, float rcpPdf)
             {
-            #if (SSS_BILATERAL == 0)
-                t = 0;
+            #if SSS_CLAMP_BLEED
+                return saturate(KernelValCircle(r, S) * rcpPdf);
+            #else
+                return KernelValCircle(r, S) * rcpPdf;
             #endif
-                float3 val = KernelValCircle(sqrt(r * r + t * t), S);
-
-                // Rescaling of the PDF is handled by 'totalWeight'.
-                return val * rcpPdf;
             }
 
             #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
@@ -120,7 +120,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     float  d = LinearEyeDepth(z, _ZBufferParams);                               \
                     float  t = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
                     float  p = kernel[profileID][i][1];                                         \
-                    float3 w = ComputeBilateralWeight(shapeParam, r, t, p);                     \
+                    float3 w = ComputeBilateralWeight(sqrt(r * r + t * t), shapeParam, p);      \
                                                                                                 \
                     totalIrradiance += w * irradiance;                                          \
                     totalWeight     += w;                                                       \
@@ -224,8 +224,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 UpdatePositionInput(centerDepth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
-                // Compute the disk tangential to the surface.
                 float3   normalVS = mul((float3x3)_ViewMatrix, bsdfData.normalWS);
+                // Compute the disk tangential to the surface.
                 float3x3 basisVS  = GetLocalFrame(normalVS);
                 float3   tangentX = basisVS[0] * rcp(millimPerUnit);
                 float3   tangentY = basisVS[1] * rcp(millimPerUnit);
@@ -266,10 +266,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                             float3 x = millimPerUnit * length(relPosVS + float3(0, 0, t));
                             float  p = _FilterKernelsNearField[profileID][i][1];
+
                         #if SSS_BILATERAL
-                            float3 w = KernelValCircle(x, shapeParam) * p;
+                            float3 w = ComputeBilateralWeight(x, shapeParam, p);
                         #else
-                            float3 w = KernelValCircle(r, shapeParam) * p;
+                            float3 w = ComputeBilateralWeight(r, shapeParam, p);
                         #endif
 
                             totalIrradiance += w * irradiance;
