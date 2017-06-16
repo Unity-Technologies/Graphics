@@ -39,9 +39,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // <<< Old SSS Model
 
             #define SSS_PASS              1
-            #define SSS_BILATERAL         1
-            #define SSS_CLAMP_BLEED       0
-            #define SSS_USE_TANGENT_PLANE 0
+            #define SSS_BILATERAL_FILTER  1
+            #define SSS_CLAMP_COLOR_BLEED 1
+            #define SSS_USE_TANGENT_PLANE 1
             #define SSS_DEBUG             0
 
             #define MILLIMETERS_PER_METER 1000
@@ -93,7 +93,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Computes F(x)/P(x). Rescaling of the PDF is handled by 'totalWeight'.
             float3 ComputeBilateralWeight(float r, float3 S, float rcpPdf)
             {
-            #if SSS_CLAMP_BLEED
+            #if SSS_CLAMP_COLOR_BLEED
                 return saturate(KernelValCircle(r, S) * rcpPdf);
             #else
                 return KernelValCircle(r, S) * rcpPdf;
@@ -267,7 +267,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                             float3 x = millimPerUnit * length(relPosVS + float3(0, 0, t));
                             float  p = _FilterKernelsNearField[profileID][i][1];
 
-                        #if SSS_BILATERAL
+                        #if SSS_BILATERAL_FILTER
                             float3 w = ComputeBilateralWeight(x, shapeParam, p);
                         #else
                             float3 w = ComputeBilateralWeight(r, shapeParam, p);
@@ -399,7 +399,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     [flatten]
                     if (any(sampleIrradiance))
                     {
-                    #if SSS_BILATERAL
+                    #if SSS_BILATERAL_FILTER
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
