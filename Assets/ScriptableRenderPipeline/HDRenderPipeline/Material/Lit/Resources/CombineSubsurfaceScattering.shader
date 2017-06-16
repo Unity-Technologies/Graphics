@@ -39,9 +39,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // <<< Old SSS Model
 
             // Tweak parameters for the Disney SSS below.
-            #define SSS_CLAMP_COLOR_BLEED 1
             #define SSS_BILATERAL_FILTER  1
-            #define SSS_USE_TANGENT_PLANE 1
+            #define SSS_USE_TANGENT_PLANE 0
+            #define SSS_CLAMP_COLOR_BLEED 0
             #define SSS_DEBUG             0
 
             // Do not modify these.
