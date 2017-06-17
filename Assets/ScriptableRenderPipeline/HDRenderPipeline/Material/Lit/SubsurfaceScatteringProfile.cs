@@ -108,9 +108,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // ------------------------------------------------------------------------------------
             
             // Importance sample the near field kernel.
-            for (int i = 0; i < SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i++)
+            for (int i = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
-                float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = KernelCdfInverse(p, s);
                 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
@@ -122,9 +122,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MaxRadius = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
 
             // Importance sample the far field kernel.
-            for (int i = 0; i < SssConstants.SSS_N_SAMPLES_FAR_FIELD; i++)
+            for (int i = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
-                float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_FAR_FIELD);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = KernelCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
