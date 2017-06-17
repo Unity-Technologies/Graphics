@@ -41,8 +41,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Tweak parameters for the Disney SSS below.
             #define SSS_BILATERAL_FILTER  1
             #define SSS_USE_TANGENT_PLANE 0
-            #define SSS_CLAMP_COLOR_BLEED 0
-            #define SSS_DEBUG             0
+            #define SSS_CLAMP_ARTIFACT    0
+            #define SSS_DEBUG_LOD         0
+            #define SSS_DEBUG_NORMAL_VS   0
 
             // Do not modify these.
             #define SSS_PASS              1
@@ -105,7 +106,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float r = sqrt(a2 + (b * mmPerUnit) * (b * mmPerUnit));
             #endif
 
-            #if SSS_CLAMP_COLOR_BLEED
+            #if SSS_CLAMP_ARTIFACT
                 return saturate(KernelValCircle(r, S) * rcpPdf);
             #else
                 return KernelValCircle(r, S) * rcpPdf;
@@ -264,7 +265,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (distScale == 0 || maxDistInPixels < 1)
                 {
-                    #if SSS_DEBUG
+                    #if SSS_DEBUG_LOD
                         return float4(0, 0, 1, 1);
                     #else
                         return float4(bsdfData.diffuseColor * centerIrradiance, 1);
@@ -278,6 +279,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
                 float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
 
+            #if SSS_DEBUG_NORMAL_VS
+                // We expect the view-space normal to be strictly negative.
+                if (normalVS.z >= 0) return float4(1, 0, 0, 1);
+            #endif
+
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance, totalWeight;
 
@@ -285,7 +291,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (maxDistInPixels < SSS_LOD_THRESHOLD)
                 {
-                    #if SSS_DEBUG
+                    #if SSS_DEBUG_LOD
                         return float4(0.5, 0.5, 0, 1);
                     #else
                         SSS_LOOP(SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
@@ -296,7 +302,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 }
                 else
                 {
-                    #if SSS_DEBUG
+                    #if SSS_DEBUG_LOD
                         return float4(1, 0, 0, 1);
                     #else
                         SSS_LOOP(SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
