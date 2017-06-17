@@ -182,7 +182,7 @@ void OnChipDeferredCalculateLightParams (
 			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, lightDir);
 
 		#if defined (POINT_COOKIE)
-			colorCookie = texCUBElod(_LightTexture0, float4(mul(_LightMatrix0, float4(wpos,1)).xyz, 0));
+			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
 			atten *= colorCookie.w;
 		#endif //POINT_COOKIE	
 	#else
