@@ -257,4 +257,25 @@ float2 Fibonacci2d(uint i, uint sampleCount)
     }
 }
 
+// Returns the radius as the X coordinate, and the angle as the Y coordinate.
+float2 SampleDiskFibonacci(uint i, uint sampleCount)
+{
+    float2 f = Fibonacci2d(i, sampleCount);
+    return float2(f.x, TWO_PI * f.y);
+}
+
+// Returns the zenith as the X coordinate, and the azimuthal angle as the Y coordinate.
+float2 SampleHemisphereFibonacci(uint i, uint sampleCount)
+{
+    float2 f = Fibonacci2d(i, sampleCount);
+    return float2(1 - f.x, TWO_PI * f.y);
+}
+
+// Returns the zenith as the X coordinate, and the azimuthal angle as the Y coordinate.
+float2 SampleSphereFibonacci(uint i, uint sampleCount)
+{
+    float2 f = Fibonacci2d(i, sampleCount);
+    return float2(1 - 2 * f.x, TWO_PI * f.y);
+}
+
 #endif // UNITY_FIBONACCI_INCLUDED

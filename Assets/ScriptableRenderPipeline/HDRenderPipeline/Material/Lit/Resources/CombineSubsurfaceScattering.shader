@@ -119,7 +119,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {                                                                                   \
                 float  r   = kernel[profileID][i][0];                                           \
                 /* The relative sample position is known at compile time. */                    \
-                float  phi = TWO_PI * Fibonacci2d(i, n).y;                                      \
+                float  phi = SampleDiskFibonacci(i, n).y;                                       \
                 float2 vec = r * float2(cos(phi), sin(phi));                                    \
                                                                                                 \
                 /* Compute the screen-space position and the associated irradiance. */          \
