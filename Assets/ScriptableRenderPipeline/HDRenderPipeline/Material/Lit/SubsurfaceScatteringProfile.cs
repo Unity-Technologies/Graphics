@@ -93,9 +93,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Clamp to avoid artifacts.
             m_ShapeParam   = new Vector3();
-            m_ShapeParam.x = Mathf.Min(1000f, 1.0f / scatteringDistance.r);
-            m_ShapeParam.y = Mathf.Min(1000f, 1.0f / scatteringDistance.g);
-            m_ShapeParam.z = Mathf.Min(1000f, 1.0f / scatteringDistance.b);
+            m_ShapeParam.x = 1.0f / Mathf.Max(0.001f, scatteringDistance.r);
+            m_ShapeParam.y = 1.0f / Mathf.Max(0.001f, scatteringDistance.g);
+            m_ShapeParam.z = 1.0f / Mathf.Max(0.001f, scatteringDistance.b);
 
             // We importance sample the color channel with the widest scattering distance.
             float s = Mathf.Min(m_ShapeParam.x, m_ShapeParam.y, m_ShapeParam.z);
