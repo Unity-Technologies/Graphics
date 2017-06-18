@@ -180,8 +180,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                              useTangentPlane, tangentX, tangentY, mmPerUnit, pixelsPerMm,       \
                              totalIrradiance, totalWeight)                                      \
             {                                                                                   \
+                float  centerRadius = kernel[profileID][0][0];                                  \
                 float  centerRcpPdf = kernel[profileID][0][1];                                  \
-                float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;            \
+                float3 centerWeight = KernelValCircle(centerRadius, shapeParam) * centerRcpPdf; \
                                                                                                 \
                 totalIrradiance = centerWeight * centerIrradiance;                              \
                 totalWeight     = centerWeight;                                                 \
