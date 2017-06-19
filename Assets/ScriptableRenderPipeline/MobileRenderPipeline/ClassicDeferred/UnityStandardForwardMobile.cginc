@@ -126,6 +126,7 @@ float4  gLightData;
 int g_numLights;
 int g_numReflectionProbes;
 int _useLegacyCookies;
+int _transparencyShadows;
 
 float4x4 g_mViewToWorld;
 float4x4 g_mWorldToView;        // used for reflection only
@@ -323,7 +324,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
 	  		int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
-			if (shadowIdx >= 0)
+			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
 				atten *= shadow;
@@ -377,7 +378,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
 			int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
-			if (shadowIdx >= 0)
+			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw);
 				atten *= shadow;
@@ -423,7 +424,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
 			int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
-			if (shadowIdx >= 0)
+			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
 				atten *= shadow;

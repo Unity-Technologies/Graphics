@@ -209,6 +209,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	[SerializeField]
 	TextureSettings m_TextureSettings = TextureSettings.Default;
 	public bool UseLegacyCookies;
+	public bool TransparencyShadows;
 	public Mesh m_PointLightMesh;
 	public float PointLightMeshScaleFactor = 2.0f;
 	public Mesh m_SpotLightMesh;
@@ -1045,6 +1046,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
 
 		cmd.SetGlobalFloat ("_useLegacyCookies", UseLegacyCookies?1.0f:0.0f);
+		cmd.SetGlobalFloat ("_transparencyShadows", TransparencyShadows ? 1.0f : 0.0f);
 
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
