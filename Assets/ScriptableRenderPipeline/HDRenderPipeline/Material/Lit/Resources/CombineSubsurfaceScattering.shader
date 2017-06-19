@@ -281,7 +281,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
 
             #if SSS_DEBUG_NORMAL_VS
-                // We expect the view-space normal to be strictly negative.
+                // We expect the view-space normal to be front-facing.
                 if (normalVS.z >= 0) return float4(1, 0, 0, 1);
             #endif
 
