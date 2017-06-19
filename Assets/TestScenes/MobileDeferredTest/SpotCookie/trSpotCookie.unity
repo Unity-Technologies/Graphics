@@ -323,7 +323,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: c4360a0b161d74f94a37defd03725b8b, type: 3}
+  m_Cookie: {fileID: 2800000, guid: 55fd692de65e703408cbda23b0eae8d0, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
