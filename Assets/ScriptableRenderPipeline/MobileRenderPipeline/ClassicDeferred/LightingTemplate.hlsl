@@ -117,6 +117,7 @@ void OnChipDeferredFragSetup (
 static float4 debugLighting;
 
 int _LightIndexForShadowMatrixArray;
+int _useLegacyCookies;
 
 void OnChipDeferredCalculateLightParams (
 	unity_v2f_deferred i,
@@ -148,6 +149,10 @@ void OnChipDeferredCalculateLightParams (
 		
 		float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
 		colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
+		[branch]if (_useLegacyCookies) {
+			colorCookie.xyz = 1;
+		}
+
 		float atten = colorCookie.w;
 		atten *= uvCookie.w < 0;
 
@@ -167,6 +172,9 @@ void OnChipDeferredCalculateLightParams (
 
 		#if defined (DIRECTIONAL_COOKIE)
 		colorCookie = tex2Dlod (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, 0));
+		[branch]if (_useLegacyCookies) {
+			colorCookie.xyz = 1;
+		}
 		atten *= colorCookie.w;
 		#endif //DIRECTIONAL_COOKIE
 
@@ -183,6 +191,9 @@ void OnChipDeferredCalculateLightParams (
 
 		#if defined (POINT_COOKIE)
 			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
+			[branch]if (_useLegacyCookies) {
+				colorCookie.xyz = 1;
+			}
 			atten *= colorCookie.w;
 		#endif //POINT_COOKIE	
 	#else

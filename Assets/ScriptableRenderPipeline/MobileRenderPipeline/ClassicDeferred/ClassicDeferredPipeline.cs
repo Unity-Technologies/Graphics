@@ -208,6 +208,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	[SerializeField]
 	TextureSettings m_TextureSettings = TextureSettings.Default;
+	public bool UseLegacyCookies;
 	public Mesh m_PointLightMesh;
 	public float PointLightMeshScaleFactor = 2.0f;
 	public Mesh m_SpotLightMesh;
@@ -742,6 +743,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			int shadowIdx;
 			float lightShadowNDXOrNot = m_ShadowIndices.TryGetValue( (int) lightNum, out shadowIdx ) ? (float) shadowIdx : -1.0f;
 			props.SetFloat ("_LightIndexForShadowMatrixArray", lightShadowNDXOrNot);
+			props.SetFloat ("_useLegacyCookies", UseLegacyCookies?1.0f:0.0f);
 
 			Texture cookie = light.light.cookie;
 			if (cookie != null)
@@ -1041,6 +1043,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
 		cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
 		cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
+
+		cmd.SetGlobalFloat ("_useLegacyCookies", UseLegacyCookies?1.0f:0.0f);
 
 		context.ExecuteCommandBuffer(cmd);
 		cmd.Dispose();
