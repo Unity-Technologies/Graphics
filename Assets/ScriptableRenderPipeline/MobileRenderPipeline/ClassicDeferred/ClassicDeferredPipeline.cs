@@ -222,7 +222,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	[NonSerialized]
 	private TextureCache2D m_CookieTexArray;
-	//private TextureCacheCubemap m_CubeCookieTexArray;
+	private TextureCacheCubemap m_CubeCookieTexArray;
 	private TextureCacheCubemap m_CubeReflTexArray;
 
 	private int m_shadowBufferID;
@@ -267,7 +267,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		s_LightDataBuffer.Release();
 
 		m_CookieTexArray.Release();
-		//m_CubeCookieTexArray.Release();
+		m_CubeCookieTexArray.Release();
 		m_CubeReflTexArray.Release();
 
 		DeinitShadowSystem();
@@ -336,10 +336,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
 					
 		m_CookieTexArray = new TextureCache2D();
-		//m_CubeCookieTexArray = new TextureCacheCubemap();
+		m_CubeCookieTexArray = new TextureCacheCubemap();
 		m_CubeReflTexArray = new TextureCacheCubemap();
 		m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-		//m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+		m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
 		m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
 		// TODO: decide on better max reflection probes
@@ -358,7 +358,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		// update texture caches
 		m_CookieTexArray.NewFrame();
-		//m_CubeCookieTexArray.NewFrame();
+		m_CubeCookieTexArray.NewFrame();
 		m_CubeReflTexArray.NewFrame();
 	}
 
@@ -910,8 +910,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			if (light.lightType == LightType.Point) {
 				m_LightData[i].x = SPHERE_LIGHT;
 
-//				if (light.light.cookie != null)
-//					m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+				if (light.light.cookie != null)
+					m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
 
 			} else if (light.lightType == LightType.Spot) {
 				m_LightData[i].x = SPOT_LIGHT;
@@ -1034,7 +1034,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalVector("gLightData", new Vector4(totalLightCount, finalProbeCount, 0, 0));
 
 		cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
-		//cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
+		cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
 		cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
 		cmd.SetGlobalBuffer("g_vProbeData", s_LightDataBuffer);

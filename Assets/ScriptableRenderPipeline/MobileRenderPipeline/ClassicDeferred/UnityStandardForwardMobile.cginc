@@ -134,7 +134,7 @@ float4x4 g_mInvScrProjection;
 
 sampler2D _LightTextureB0;
 UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
-//UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
+UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
 
 static FragmentCommonData gdata;
 static float occlusion;
@@ -330,17 +330,22 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			}
 
 			float4 cookieColor = float4(1,1,1,1);
-//			float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
-//            float2 cookCoord = uvCookie.xy / uvCookie.w;
-//			const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
-//            [branch]if(bHasCookie)
-//            {
-//       			cookieColor *= UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
-//       			atten *= (-cookieColor.w>0.0);
-//            }
+			float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
+            float2 cookCoord = uvCookie.xy / uvCookie.w;
+			const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
+            [branch]if(bHasCookie)
+            {
+       			cookieColor = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
+       			atten *= cookieColor.w;
+            }
+            [branch]if(_useLegacyCookies)
+            {
+            	cookieColor.xyz = 1;
+            }
 
 	        UnityLight light;
-	        light.color.xyz = gLightColor[lightIndex].xyz*atten*cookieColor.xyz;
+	       	light.color.xyz = gLightColor[lightIndex].xyz*atten*cookieColor.xyz;
+
 	        light.dir.xyz = -gLightDirection[lightIndex].xyz;
 
 	        ints += EvalMaterial(light, ind);
@@ -357,13 +362,18 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
             float4 cookieColor = float4(1,1,1,1);
-//            const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
-//            [branch]if(bHasCookie)
-//            {
-//                float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
-//                cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
-//                atten *= cookieColor.w;
-//            }
+            const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
+            [branch]if(bHasCookie)
+            {
+            	float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vLw,1));
+            	float3 cookieCoord = -uvCookie.xyz / uvCookie.w;
+                cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, gPerLightData[lightIndex].z), 0.0);
+                atten *= cookieColor.w;
+            }
+            [branch]if(_useLegacyCookies)
+            {
+            	cookieColor.xyz = 1;
+            }
 
 			int shadowIdx = asint(gPerLightData[lightIndex].y);
 			[branch]
