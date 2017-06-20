@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO skybox/cubemap
 
-        [UnityEditor.MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset")]
+        [UnityEditor.MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset", false, 15)]
         static void CreateRenderPipelineResources()
         {
             var instance = CreateInstance<RenderPipelineResources>();

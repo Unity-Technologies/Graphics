@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         const string k_HDRenderPipelinePath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/HDRenderPipelineAsset.asset";
 
-        [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset")]
+        [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset", false, 16)]
         static void CreateHDRenderPipeline()
         {
             var instance = CreateInstance<HDRenderPipelineAsset>();
