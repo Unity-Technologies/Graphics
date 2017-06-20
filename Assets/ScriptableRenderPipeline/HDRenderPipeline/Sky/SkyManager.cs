@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 propertyBlock.SetFloat("_faceIndex", (float)i);
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
 
         }
@@ -366,6 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_iblFilterGgx.FilterCubemap(renderContext, input, target, mipCount, m_CubemapFaceMesh);
                 }
+                CommandBufferPool.Release(cmd);
             }
         }
 

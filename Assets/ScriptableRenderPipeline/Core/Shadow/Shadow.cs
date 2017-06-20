@@ -439,6 +439,7 @@ namespace UnityEngine.Experimental.Rendering
                 cb.name = "Shadowmap.EnableShadowKeyword";
                 cb.EnableShaderKeyword(m_ShaderKeyword);
                 renderContext.ExecuteCommandBuffer( cb );
+                CommandBufferPool.Release(cb);
             }
 
             // loop for generating each individual shadowmap
@@ -470,6 +471,7 @@ namespace UnityEngine.Experimental.Rendering
                 cb.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cb.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 renderContext.ExecuteCommandBuffer( cb );
+                CommandBufferPool.Release(cb);
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
@@ -485,6 +487,7 @@ namespace UnityEngine.Experimental.Rendering
                 cblast.DisableShaderKeyword( m_ShaderKeyword );
             }
             renderContext.ExecuteCommandBuffer( cblast );
+            CommandBufferPool.Release(cblast);
 
             m_ActiveEntriesCount = 0;
 
@@ -593,6 +596,8 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
+
+            CommandBufferPool.Release(debugCB);
         }
     }
 
@@ -1030,6 +1035,7 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
+            CommandBufferPool.Release(debugCB);
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1378,16 +1384,17 @@ namespace UnityEngine.Experimental.Rendering
             m_ShadowCtxt.SyncData();
         }
 
-        public override void BindResources( ScriptableRenderContext renderContext )
+        public override void BindResources(ScriptableRenderContext renderContext)
         {
-            foreach( var sm in m_Shadowmaps )
+            foreach (var sm in m_Shadowmaps)
             {
-                sm.Fill( m_ShadowCtxt );
+                sm.Fill(m_ShadowCtxt);
             }
             CommandBuffer cb = CommandBufferPool.Get(); // <- can we just keep this around or does this have to be newed every frame?
             cb.name = "Bind resources to GPU";
-            m_ShadowCtxt.BindResources( cb );
-            renderContext.ExecuteCommandBuffer( cb );
+            m_ShadowCtxt.BindResources(cb);
+            renderContext.ExecuteCommandBuffer(cb);
+            CommandBufferPool.Release(cb);
         }
 
         // resets the shadow slot counters and returns the sum of all slots

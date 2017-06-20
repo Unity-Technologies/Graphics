@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = CommandBufferPool.Get("Compute GGX IBL Sample Data");
                 cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
                 context.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
         }
 
@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var cmd = CommandBufferPool.Get();
                     cmd.DrawMesh(cubemapFaceMesh[face], Matrix4x4.identity, m_GgxConvolveMaterial, 0, 0, props);
                     context.ExecuteCommandBuffer(cmd);
-                    
+                    CommandBufferPool.Release(cmd);
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
             cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
             context.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
 
             m_GgxConvolveMaterial.EnableKeyword("USE_MIS");
             m_GgxConvolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);

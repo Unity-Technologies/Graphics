@@ -277,8 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.name = "Init PreFGD";
             cmd.Blit(null, new RenderTargetIdentifier(m_PreIntegratedFGD), m_InitPreFGD, 0);
             renderContext.ExecuteCommandBuffer(cmd);
-            
-
+            CommandBufferPool.Release(cmd);
             m_isInit = true;
         }
 

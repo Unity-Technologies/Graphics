@@ -533,7 +533,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVectorArray("_TransmissionTints",       sssParameters.transmissionTints);
 
             renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         bool NeedDepthBufferCopy()
@@ -564,7 +564,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetGlobalTexture("_MainDepthTexture", GetDepthTexture());
             renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         public void UpdateCommonSettings()
@@ -624,7 +624,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera == null)
             {
                 renderContext.Submit();
-                CommandBufferPool.EndOfFrame();
                 return;
             }
 
@@ -635,7 +634,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
             {
                 renderContext.Submit();
-                CommandBufferPool.EndOfFrame();
                 return;
             }
 
@@ -726,7 +724,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var cmd = CommandBufferPool.Get("Blit to final RT" );
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                     renderContext.ExecuteCommandBuffer(cmd);
-                    
+                    CommandBufferPool.Release(cmd);
+
                 }
                 else
                 {
@@ -750,11 +749,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = CommandBufferPool.Get();
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
 
             renderContext.Submit();
-            CommandBufferPool.EndOfFrame();
         }
 
         void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -851,7 +849,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var cmd = CommandBufferPool.Get("DebugViewMaterialGBuffer" );
                     cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
                     renderContext.ExecuteCommandBuffer(cmd);
-                    
+                    CommandBufferPool.Release(cmd);
                 }
 
                 // Render forward transparent
@@ -865,7 +863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = CommandBufferPool.Get("Blit DebugView Material Debug");
                 cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
         }
 
@@ -932,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             context.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
@@ -1036,7 +1034,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
                 cmd.ClearRenderTarget(false, true, Color.black); // TODO: can we avoid this clear for performance ?
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
 
                 // Only transparent object can render distortion vectors
                 RenderTransparentRenderList(cullResults, camera, renderContext, "DistortionVectors");
@@ -1072,7 +1070,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
         }
 
@@ -1141,6 +1139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             renderContext.ExecuteCommandBuffer(debugCB);
+            CommandBufferPool.Release(debugCB);
 
             m_LightLoop.RenderDebugOverlay(camera.camera, renderContext, m_DebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
         }
@@ -1176,8 +1175,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
                     
-
                     Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearDepth);
                 }
 

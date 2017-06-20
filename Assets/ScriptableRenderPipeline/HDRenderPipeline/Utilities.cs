@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         // Miscellanous
@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.name = "";
                 cmd.BeginSample(name);
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
             
             public void Dispose()
@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.name = "";
                     cmd.EndSample(name);
                     renderContext.ExecuteCommandBuffer(cmd);
-                    
+                    CommandBufferPool.Release(cmd);
                 }
 
                 disposed = true;
