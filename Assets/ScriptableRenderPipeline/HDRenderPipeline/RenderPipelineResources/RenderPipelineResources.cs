@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO skybox/cubemap
 
-        [UnityEditor.MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset")]
+        [UnityEditor.MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset", false, 15)]
         static void CreateRenderPipelineResources()
         {
             var instance = CreateInstance<RenderPipelineResources>();
@@ -33,6 +33,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
             // instance.drawSssProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawSssProfile.shader");
             // instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawTransmittanceGraph.shader");
+
+            instance.cameraMotionVectors = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/RenderPipelineResources/CameraMotionVectors.shader");
 
             // Sky
             instance.blitCubemap = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BlitCubemap.shader");
@@ -72,6 +74,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
         // public Shader drawSssProfile;
         // public Shader drawTransmittanceGraphShader;
+
+        public Shader cameraMotionVectors;
 
         // Sky
         public Shader blitCubemap;
