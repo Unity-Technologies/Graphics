@@ -13,19 +13,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return upgraders;
         }
 
-        [MenuItem("HDRenderPipeline/Upgrade Materials - Project")]
+        [MenuItem("HDRenderPipeline/Upgrader/Upgrade Materials - Project")]
         static void UpgradeMaterialsProject()
         {
             MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("HDRenderPipeline/Upgrade Materials - Selection")]
+        [MenuItem("HDRenderPipeline/Upgrader/Upgrade Materials - Selection")]
         static void UpgradeMaterialsSelection()
         {
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("HDRenderPipeline/Modify Light Intensity for Upgrade - Scene Only")]
+        [MenuItem("HDRenderPipeline/Upgrader/Modify Light Intensity for Upgrade - Scene Only")]
         static void UpgradeLights()
         {
             Light[] lights = Light.GetLights(LightType.Directional, 0);
