@@ -10,9 +10,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
-        // TODO: Currently it is not yet possible to use this feature, we need to provide previousPositionCS to the vertex shader as part of Attribute for GBuffer pass
-        // TODO: How to enable this feature only on mesh that effectively require it like skinned and moving mesh (other can be done with depth reprojection. But TAA can be an issue)
+        // TODO: It is not possible to use VelocityInGBuffer feature yet. This feature allow to render motion vectors during Gbuffer pass. However Unity have limitation today that forbid to do that.
+        // 1) Currently previousPositionCS is provide to the vertex shader with a hard coded NORMAL semantic (in the vertex declaration - See MeshRenderingData.cpp "pSecondaryFormat = gMotionVectorRenderFormat.GetVertexFormat();") mean it will overwrite the normal
+        // 2) All current available semantic (see ShaderChannelMask) are used in our Lit shader. Mean just changing the semantic is not enough, Unity need to unlock other Texcoord semantic
+        // 3) When this is solve (i.e move previousPositionCS to a free attribute semantic), Unity only support one pSecondaryFormat. Mean if we ahve a vertex color instance stream and motion vector, motion vector will overwrite vertex color stream. See MeshRenderingData.cpp
+        // All this could be fix we a new Mesh API not ready yet. Note that this feature only affect animated mesh (vertex or skin) as others use depth reprojection.
         VelocityInGBuffer = 0, // Change to 1 to enable the feature, then regenerate hlsl headers.
+        // TODO: not working yet, waiting for UINT16 RT format support
         PackGBufferInU16 = 0
     };
 

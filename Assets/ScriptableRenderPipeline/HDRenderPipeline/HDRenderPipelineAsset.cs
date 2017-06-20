@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         const string k_HDRenderPipelinePath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/HDRenderPipelineAsset.asset";
 
-        [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset")]
+        [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset", false, 16)]
         static void CreateHDRenderPipeline()
         {
             var instance = CreateInstance<HDRenderPipelineAsset>();
@@ -24,21 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If it exist, load renderPipelineResources
             instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.renderPipelineResourcesPath);
-        }
-
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
-        static void AddAdditionalLightData()
-        {
-            Light[] lights = FindObjectsOfType(typeof(Light)) as Light[];
-
-            foreach (Light light in lights)
-            {
-                // Do not add a component if there already is one.
-                if (light.GetComponent<AdditionalLightData>() == null)
-                {
-                    light.gameObject.AddComponent<AdditionalLightData>();
-                }
-            }
         }
 #endif
 
