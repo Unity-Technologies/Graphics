@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RenderPipeline/LightweightPipeline/Create Pipeline Asset")]
+        [UnityEditor.MenuItem("RenderPipeline/LightweightPipeline/Create Pipeline Asset", false, 15)]
         static void CreateLightweightPipeline()
         {
             var instance = ScriptableObject.CreateInstance<LightweightPipelineAsset>();
@@ -67,8 +67,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
         [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
         [SerializeField] private float m_ShadowDistance = 50.0f;
-        [SerializeField] private float m_MinShadowNormalBias = 0.0005f;
-        [SerializeField] private float m_ShadowNormalBias = 0.05f;
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
@@ -125,24 +123,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             private set { m_ShadowDistance = value; }
         }
 
-		public float ShadowMinNormalBias
-        {
-            get { return m_MinShadowNormalBias; }
-            private set { m_MinShadowNormalBias = value; }
-        }
-
-        public float ShadowNormalBias
-        {
-            get { return m_ShadowNormalBias; }
-            private set { m_ShadowNormalBias = value; }
-        }
-
         public int CascadeCount
         {
             get { return (int)m_ShadowCascades; }
             private set { m_ShadowCascades = (ShadowCascades)value; }
         }
-
+       
         public float Cascade2Split
         {
             get { return m_Cascade2Split; }

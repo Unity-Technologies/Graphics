@@ -67,6 +67,7 @@ StructuredBuffer<uint> globalLightIndexList;
 // The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 // unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
 // we use world space positions instead of view space.
+half4 globalLightCount;
 half4 globalLightColor[MAX_VISIBLE_LIGHTS];
 float4 globalLightPos[MAX_VISIBLE_LIGHTS];
 half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
@@ -75,7 +76,6 @@ half4 globalLightAtten[MAX_VISIBLE_LIGHTS];
 float4 _LightPosition0;
 #endif
 
-float4  globalLightData; // x: pixelLightCount, y = shadowLightIndex, z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
 half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
@@ -139,22 +139,22 @@ half4 OutputColor(half3 color, half alpha)
 #endif
 }
 
-inline half3 EvaluateDirectionalLight(half3 diffuseColor, half4 specularGloss, half3 normal, half3 lightDir, half3 viewDir, out half NdotL)
+inline half3 EvaluateDirectionalLight(half3 diffuseColor, half4 specularGloss, half3 normal, half3 lightDir, half3 viewDir)
 {
-	NdotL = saturate(dot(normal, lightDir));
-	half3 diffuse = diffuseColor * NdotL;
+    half NdotL = saturate(dot(normal, lightDir));
+    half3 diffuse = diffuseColor * NdotL;
 
 #if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR) 
-	half3 halfVec = normalize(lightDir + viewDir);
-	half NdotH = saturate(dot(normal, halfVec));
-	half3 specular = specularGloss.rgb * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
+    half3 halfVec = normalize(lightDir + viewDir);
+    half NdotH = saturate(dot(normal, halfVec));
+    half3 specular = specularGloss.rgb * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
     return diffuse + specular;
 #else
-	return diffuse;
+    return diffuse;
 #endif
 }
 
-inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir, out half NdotL)
+inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir)
 {
     float3 posToLight = lightInput.pos.xyz;
     posToLight -= posWorld * lightInput.pos.w;
@@ -169,7 +169,7 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     half cutoff = step(distanceSqr, lightInput.atten.w);
     lightAtten *= cutoff;
 
-    NdotL = saturate(dot(normal, lightDir));
+    half NdotL = saturate(dot(normal, lightDir));
 
     half3 lightColor = lightInput.color.rgb * lightAtten;
     half3 diffuse = diffuseColor * lightColor * NdotL;
