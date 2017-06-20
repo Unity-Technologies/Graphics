@@ -81,6 +81,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 5ec067c14feff4144aa09544a2326b58, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -102,6 +106,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TangentMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TangentMapOS:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -159,7 +167,7 @@ Material:
     - _SrcBlend: 1
     - _StencilRef: 1
     - _Stiffness: 1
-    - _SubsurfaceProfile: 1
+    - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1

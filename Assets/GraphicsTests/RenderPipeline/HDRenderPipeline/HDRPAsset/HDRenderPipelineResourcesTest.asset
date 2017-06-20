@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
+  m_Name: HDRenderPipelineResourcesTest
+  m_EditorClassIdentifier: 
+  debugDisplayLatlongShader: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba,
+    type: 3}
+  debugViewMaterialGBufferShader: {fileID: 4800000, guid: 439949ea1bfa91b4ba0d04269fcde33d,
+    type: 3}
+  debugViewTilesShader: {fileID: 4800000, guid: c7c2bd17b06ceb4468e14081aaf1b96f,
+    type: 3}
+  debugFullScreenShader: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf,
+    type: 3}
+  deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
+  screenSpaceAmbientOcclusionShader: {fileID: 4800000, guid: cf0db7f5267ad944dbf4326b7102c9ca,
+    type: 3}
+  clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
+    type: 3}
+  buildDispatchIndirectShader: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14,
+    type: 3}
+  buildScreenAABBShader: {fileID: 7200000, guid: 728dce960f8a9c44bbc3abb3b851d8f6,
+    type: 3}
+  buildPerTileLightListShader: {fileID: 7200000, guid: 65af3444cbf4b3747a4dead7ee00cfee,
+    type: 3}
+  buildPerBigTileLightListShader: {fileID: 7200000, guid: 5ee1f9d6e09abe045b2f5e0b784b9072,
+    type: 3}
+  buildPerVoxelLightListShader: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196,
+    type: 3}
+  buildMaterialFlagsShader: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08,
+    type: 3}
+  shadeOpaqueShader: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
+  blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
+  buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
+    type: 3}
+  computeGgxIblSampleData: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445,
+    type: 3}
+  GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
+  skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}

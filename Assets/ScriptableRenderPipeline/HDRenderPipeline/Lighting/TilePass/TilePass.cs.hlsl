@@ -24,27 +24,25 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightFeatureFlags:  static fields
 //
-#define FEATURE_FLAG_LIGHT_PUNCTUAL (1)
-#define FEATURE_FLAG_LIGHT_AREA (2)
-#define FEATURE_FLAG_LIGHT_DIRECTIONAL (4)
-#define FEATURE_FLAG_LIGHT_PROJECTOR (8)
-#define FEATURE_FLAG_LIGHT_ENV (16)
-#define FEATURE_FLAG_LIGHT_SKY (32)
+#define LIGHTFEATUREFLAGS_PUNCTUAL (1)
+#define LIGHTFEATUREFLAGS_AREA (2)
+#define LIGHTFEATUREFLAGS_DIRECTIONAL (4)
+#define LIGHTFEATUREFLAGS_PROJECTOR (8)
+#define LIGHTFEATUREFLAGS_ENV (16)
+#define LIGHTFEATUREFLAGS_SKY (32)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields
 //
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
-#define MAX_NR_BIGTILE_LIGHTS_PLUSONE (512)
+#define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)
 #define VIEWPORT_SCALE_Z (1)
-#define USE_LEFTHAND_CAMERASPACE (1)
+#define USE_LEFT_HAND_CAMERA_SPACE (1)
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
-#define IS_CIRCULAR_SPOT_SHAPE (1)
-#define HAS_COOKIE_TEXTURE (2)
-#define IS_BOX_PROJECTED (4)
-#define HAS_SHADOW (8)
 #define NUM_FEATURE_VARIANTS (16)
+#define LIGHTFEATUREFLAGS_MASK (4095)
+#define MATERIALFEATUREFLAGS_MASK (61440)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 // PackingRules = Exact

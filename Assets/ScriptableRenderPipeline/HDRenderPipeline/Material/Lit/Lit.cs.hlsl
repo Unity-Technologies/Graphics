@@ -5,7 +5,7 @@
 #ifndef LIT_CS_HLSL
 #define LIT_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialId:  static fields
 //
 #define MATERIALID_LIT_SSS (0)
 #define MATERIALID_LIT_STANDARD (1)
@@ -14,15 +14,15 @@
 #define MATERIALID_LIT_ANISO (4)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialFeatureFlags:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialFeatureFlags:  static fields
 //
-#define FEATURE_FLAG_MATERIAL_LIT_SSS (4096)
-#define FEATURE_FLAG_MATERIAL_LIT_STANDARD (8192)
-#define FEATURE_FLAG_MATERIAL_LIT_SPECULAR (16384)
-#define FEATURE_FLAG_MATERIAL_LIT_ANISO (32768)
+#define MATERIALFEATUREFLAGS_LIT_SSS (4096)
+#define MATERIALFEATUREFLAGS_LIT_STANDARD (8192)
+#define MATERIALFEATUREFLAGS_LIT_SPECULAR (16384)
+#define MATERIALFEATUREFLAGS_LIT_ANISO (32768)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION (1001)
@@ -40,14 +40,14 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1013)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.TransmissionType:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+TransmissionType:  static fields
 //
 #define TRANSMISSIONTYPE_NONE (0)
 #define TRANSMISSIONTYPE_REGULAR (1)
 #define TRANSMISSIONTYPE_THIN_OBJECT (2)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1030)
 #define DEBUGVIEW_LIT_BSDFDATA_FRESNEL0 (1031)
@@ -69,11 +69,11 @@
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1047)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit.GBufferMaterial:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
 //
 #define GBUFFERMATERIAL_COUNT (4)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -93,7 +93,7 @@ struct SurfaceData
     float3 specularColor;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
