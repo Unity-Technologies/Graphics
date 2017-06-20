@@ -422,7 +422,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
             }
             atten *= angularAtt.w*(-uvCookie.w>0.0);                           // finally apply this to the dist att.
 
-			int shadowIdx = asint(gPerLightData[lightIndex].y);
+			int shadowIdx = gPerLightData[lightIndex].y;
 			[branch]
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
@@ -432,6 +432,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
             UnityLight light;
             light.color.xyz = gLightColor[lightIndex].xyz*atten*angularAtt.xyz;
+
             light.dir.xyz = vLw.xyz;     //unity_CameraToWorld
 
             ints += EvalMaterial(light, ind);

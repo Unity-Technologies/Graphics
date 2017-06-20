@@ -852,7 +852,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		for (int i = 0; i < k_MaxLights; ++i)
 		{
-			m_LightData [i] = new Vector4(0.0f, 0.0f, -1.0f, 0.0f);
+			m_LightData [i] = new Vector4(0.0f, -1.0f, -1.0f, 0.0f);
 			m_LightColors[i] = Vector4.zero;
 			m_LightDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 			m_LightPositions[i] = Vector4.zero;
