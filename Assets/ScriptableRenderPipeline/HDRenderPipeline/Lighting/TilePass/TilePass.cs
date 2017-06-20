@@ -1663,9 +1663,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(buildDispatchIndirectShader, "g_NumTilesX", numTilesX);
                     cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
                 }
-
-                loop.ExecuteCommandBuffer(cmd);
                 
+                loop.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
 
             // This is a workaround for global properties not being accessible from compute.
@@ -1815,7 +1815,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalPropertyRedirect(null, 0, null);
 
                 loop.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
 
 #if UNITY_EDITOR
@@ -1908,7 +1908,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalPropertyRedirect(null, 0, null);
 
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
 
             public void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
@@ -2134,7 +2134,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     SetGlobalPropertyRedirect(null, 0, null);
 
                     renderContext.ExecuteCommandBuffer(cmd);
-                    
+                    CommandBufferPool.Release(cmd);
                 } // TilePass - Deferred Lighting Pass
             }
 
@@ -2162,7 +2162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
             }
 
             public void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)

@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         public static Matrix4x4 GetProjectionMatrix(Camera camera)

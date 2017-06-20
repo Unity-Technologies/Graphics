@@ -174,10 +174,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
             var cmd = CommandBufferPool.Get("");
-
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
+
         }
     }
 }

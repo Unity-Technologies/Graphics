@@ -117,7 +117,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         {
             base.Render(renderContext, cameras);
             m_Owner.Render(renderContext, cameras);
-            CommandBufferPool.EndOfFrame();
         }
     }
 
@@ -423,8 +422,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = CommandBufferPool.Get ("Create G-Buffer");
             SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
             loop.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
             
-
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
             {
@@ -450,7 +449,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
 
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
+
 
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
@@ -469,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = CommandBufferPool.Get("Forward Opaques - Depth Only" );
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
 
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
@@ -496,7 +496,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = CommandBufferPool.Get("Copy depth");
             cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
+
         }
 
         void DoTiledDeferredLighting(Camera camera, ScriptableRenderContext loop, int numLights, int numDirLights)
@@ -635,7 +636,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraTarget), new RenderTargetIdentifier(s_CameraDepthTexture));
 
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         private static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
@@ -1096,7 +1097,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = CommandBufferPool.Get("FinalPass");
             cmd.Blit(s_CameraTarget, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
+
         }
 
         void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
@@ -1164,7 +1166,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 var cmd = CommandBufferPool.Get();
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
                 loop.ExecuteCommandBuffer(cmd);
-                
+                CommandBufferPool.Release(cmd);
+
             }
             loop.Submit();
         }
@@ -1175,7 +1178,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_DebugLightBoundsMaterial.SetBuffer("g_data", s_ConvexBoundsBuffer);
             cmd.DrawProcedural(Matrix4x4.identity, m_DebugLightBoundsMaterial, 0, MeshTopology.Triangles, 12 * 3 * numLights);
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
+
         }
 
         void NewFrame()
@@ -1376,7 +1380,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
             loop.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)

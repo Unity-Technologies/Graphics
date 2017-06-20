@@ -47,7 +47,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_Command == null)
             {
-                m_Command = CommandBufferPool.Get("Ambient Occlusion");
+                m_Command = new CommandBuffer();
+                m_Command.name = "Ambient Occlusion";
             }
             else
             {

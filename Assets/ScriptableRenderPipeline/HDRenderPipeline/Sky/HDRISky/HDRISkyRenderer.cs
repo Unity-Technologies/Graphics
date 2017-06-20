@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cmd = CommandBufferPool.Get("");
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            
+            CommandBufferPool.Release(cmd);
         }
 
         public override bool IsSkyValid()

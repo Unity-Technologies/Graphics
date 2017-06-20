@@ -36,7 +36,6 @@ public class BasicRenderPipelineInstance : RenderPipeline
     {
         base.Render(renderContext, cameras);
         BasicRendering.Render(renderContext, cameras);
-        CommandBufferPool.EndOfFrame();
     }
 }
 
@@ -63,7 +62,7 @@ public static class BasicRendering
             var cmd = CommandBufferPool.Get();
             cmd.ClearRenderTarget(true, false, Color.black);
             context.ExecuteCommandBuffer(cmd);
-            cmd.Release();
+            CommandBufferPool.Release(cmd);
 
             // Setup global lighting shader variables
             SetupLightShaderVariables(cull.visibleLights, context);
@@ -169,6 +168,7 @@ public static class BasicRendering
         cmd.SetGlobalVector("globalLightCount", new Vector4(lightCount, 0, 0, 0));
         cmd.SetGlobalVectorArray("globalSH", shConstants);
         context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
     }
 
     // Prepare L2 spherical harmonics values for efficient evaluation in a shader

@@ -42,7 +42,6 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
         }
 
         renderContext.Submit();
-        CommandBufferPool.EndOfFrame();
     }
 
     public static void Run(TestDelegate renderCallback)
