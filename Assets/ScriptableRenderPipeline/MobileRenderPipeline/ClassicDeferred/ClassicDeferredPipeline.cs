@@ -14,13 +14,13 @@ class ShadowSetup : IDisposable
 	static ComputeBuffer    s_ShadowDataBuffer;
 	static ComputeBuffer    s_ShadowPayloadBuffer;
 
-	public ShadowSetup(ShadowSettings shadowSettings, out IShadowManager shadowManager)
+	public ShadowSetup(ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
 	{
 		s_ShadowDataBuffer = new ComputeBuffer(k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 		s_ShadowPayloadBuffer = new ComputeBuffer(k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowPayload)));
 		ShadowAtlas.AtlasInit atlasInit;
-		atlasInit.baseInit.width                  = (uint)shadowSettings.shadowAtlasWidth;
-		atlasInit.baseInit.height                 = (uint)shadowSettings.shadowAtlasHeight;
+		atlasInit.baseInit.width                  = (uint)shadowInit.shadowAtlasWidth;
+		atlasInit.baseInit.height                 = (uint)shadowInit.shadowAtlasHeight;
 		atlasInit.baseInit.slices                 = 1;
 		atlasInit.baseInit.shadowmapBits          = 32;
 		atlasInit.baseInit.shadowmapFormat        = RenderTextureFormat.Shadowmap;
@@ -30,8 +30,6 @@ class ShadowSetup : IDisposable
 		atlasInit.baseInit.maxPayloadCount        = 0;
 		atlasInit.baseInit.shadowSupport          = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
 		atlasInit.shaderKeyword                   = null;
-		atlasInit.cascadeCount                    = shadowSettings.directionalLightCascadeCount;
-		atlasInit.cascadeRatios                   = shadowSettings.directionalLightCascades;
 
 		m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit) };
 
@@ -161,7 +159,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	}
 		
 	[SerializeField]
-	ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+	ShadowSettings m_ShadowSettings = new ShadowSettings();
 	ShadowSetup    m_ShadowSetup;
 	IShadowManager m_ShadowMgr;
 	FrameId        m_FrameId = new FrameId();
@@ -171,7 +169,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void InitShadowSystem(ShadowSettings shadowSettings)
 	{
-		m_ShadowSetup = new ShadowSetup(shadowSettings, out m_ShadowMgr);
+		m_ShadowSetup = new ShadowSetup(new ShadowInitParameters(), shadowSettings, out m_ShadowMgr);
 	}
 
 	void DeinitShadowSystem()
@@ -207,7 +205,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private Matrix4x4[] m_WorldToLightMatrix = new Matrix4x4[k_MaxLights];
 
 	[SerializeField]
-	TextureSettings m_TextureSettings = TextureSettings.Default;
+	TextureSettings m_TextureSettings = new TextureSettings();
 	public bool UseLegacyCookies;
 	public bool TransparencyShadows;
 	public Mesh m_PointLightMesh;
@@ -367,7 +365,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		foreach (var camera in cameras) {
 			// Culling
-			CullingParameters cullingParams;
+			ScriptableCullingParameters cullingParams;
 			if (!CullResults.GetCullingParameters (camera, out cullingParams))
 				continue;
 
