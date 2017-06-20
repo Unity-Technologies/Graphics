@@ -6,7 +6,7 @@
 #pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags                  USE_FEATURE_FLAGS
 #pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags       USE_TWO_PASS_TILED_LIGHTING		USE_FEATURE_FLAGS
 
-#pragma #pragma enable_d3d11_debug_symbols
+//#pragma #pragma enable_d3d11_debug_symbols
 
 #include "../../../ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
@@ -17,20 +17,15 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
-#define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-#include "../../Material/Material.hlsl" // This include Material.hlsl
-#include "FeatureFlags.hlsl"
-
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
-#define USE_MATERIAL_FEATURE_FLAGS
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform int _EnvLightIndexShift;
-
+uniform uint g_BaseFeatureFlags;
 
 Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
@@ -67,18 +62,10 @@ groupshared int ldsCategoryListCount[LIGHTCATEGORY_COUNT];
 groupshared uint lightOffsSph;
 #endif
 
-
-uniform uint g_BaseFeatureFlags;
 #ifdef USE_FEATURE_FLAGS
 groupshared uint ldsFeatureFlags;
-RWBuffer<uint> g_DispatchIndirectBuffer;
-RWStructuredBuffer<uint> g_TileList;
-
-#ifdef USE_MATERIAL_FEATURE_FLAGS
-DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+RWStructuredBuffer<uint> g_TileFeatureFlags;
 #endif
-#endif
-
 
 //float GetLinearDepth(float3 vP)
 //{
@@ -101,7 +88,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	float fSy = g_mScrProjection[1].y;
 	float fCy = g_mScrProjection[1].z;
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
 #else
 	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
@@ -197,10 +184,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToTileRatio)-1))>>log2BigTileToTileRatio;
 	const int bigTileIdx = (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);		// map the idx to 64x64 tiles
-	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
+	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
-		int l = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1];
+		int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
 #else
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
@@ -271,41 +258,15 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 #ifdef USE_FEATURE_FLAGS
-#ifdef USE_MATERIAL_FEATURE_FLAGS
-	float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
-	uint materialFeatureFlags = 0;
-	{
-		[unroll]
-		for(int i = 0; i < 4; i++)
-		{
-			int idx = i * NR_THREADS + t;
-			uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
-			if(FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z)		// if not skydome. //TODO: reuse depths from before
-			{
-				PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
-				FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-				materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(gbuffer);
-			}
-		}
-	}
-	InterlockedOr(ldsFeatureFlags, materialFeatureFlags);	//TODO: driver might optimize this or we might have to do a manual reduction
-	GroupMemoryBarrierWithGroupSync();
-#else
-	uint materialFeatureFlags = 0xFFFFF000;
-#endif
-
 	if(t == 0)
 	{
-		uint featureFlags = g_BaseFeatureFlags | ldsFeatureFlags;
+		uint featureFlags = ldsFeatureFlags | g_BaseFeatureFlags;
 		if(ldsZMax < ldsZMin)	// is background pixel
 		{
-			featureFlags &= ~(FEATURE_FLAG_LIGHT_PUNCTUAL | FEATURE_FLAG_LIGHT_AREA | FEATURE_FLAG_LIGHT_DIRECTIONAL | FEATURE_FLAG_LIGHT_ENV | 0xFFFFF);	// list of features that are not enabled on background
+			featureFlags &= ~(LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_AREA | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | 0xFFFFF);	// list of features that are not enabled on background
 		}
 
-		uint variant = FeatureFlagsToTileVariant(featureFlags);
-		uint offset;
-		InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
-		g_TileList[variant*nrTiles + offset] = (tileIDX.y << 16) + tileIDX.x;
+		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] = featureFlags;
 	}
 #endif
 
@@ -328,7 +289,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
 			// We remap the prunedList index to the original LightData / EnvLightData indices
- 			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
+			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
 			uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
@@ -355,7 +316,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
 #else
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);

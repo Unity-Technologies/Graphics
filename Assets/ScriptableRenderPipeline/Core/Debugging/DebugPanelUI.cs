@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering
         protected List<DebugItemUI> m_ItemsUI = new List<DebugItemUI>();
         protected int               m_SelectedItem = -1;
 
+        public bool empty { get { return m_DebugPanel.itemCount == 0; } }
+
         public int itemCount { get { return m_ItemsUI.Count; } }
 
         public DebugPanelUI()
@@ -48,23 +50,31 @@ namespace UnityEngine.Experimental.Rendering
 
         public void RebuildGUI()
         {
-            for (int i = 0; i < m_Root.transform.childCount; ++i)
+            if (m_Root == null)
+                return;
+
+            foreach (Transform child in m_Root.transform)
             {
-                Object.DestroyImmediate(m_Root.transform.GetChild(i).gameObject);
+                GameObject.Destroy(child.gameObject);
             }
+
             BuildGUIImpl(m_Root);
         }
 
         // Default Implementation: just build all items with provided handler.
         public virtual void BuildGUIImpl(GameObject parent)
         {
-            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, m_Root);
+            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, parent);
 
             m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
-                DebugItemHandler handler = m_DebugPanel.GetDebugItem(i).handler; // Should never be null, we have at least the default handler
-                m_ItemsUI.Add(handler.BuildGUI(parent));
+                DebugItem item = m_DebugPanel.GetDebugItem(i);
+                if(!((item.flags & DebugItemFlag.EditorOnly) != 0))
+                {
+                    DebugItemHandler handler = item.handler; // Should never be null, we have at least the default handler
+                    m_ItemsUI.Add(handler.BuildGUI(parent));
+                }
             }
         }
 
@@ -93,6 +103,11 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
+        public void ResetSelectedItem()
+        {
+            SetSelectedItem(-1);
+        }
+
         void SetSelectedItem(int index)
         {
             if (m_SelectedItem != -1)
@@ -101,7 +116,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_SelectedItem = index;
-            m_ItemsUI[m_SelectedItem].SetSelected(true);
+            if(m_SelectedItem != -1)
+                m_ItemsUI[m_SelectedItem].SetSelected(true);
         }
 
         public void SetSelected(bool value)
@@ -166,6 +182,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Update()
         {
+            // A bit dirty... this will happen when we exit playmode.
+            // The problem happens when the persistent menu is not empty and we leave playmode.
+            // In this case, the gameObjects will be destroyed but not the ItemUIs (because we can't know when we exit playmode)
+            // To avoid accessing destroyed GameObjects we test the root...
+            if (m_Root == null)
+                return;
+
             foreach (var itemUI in m_ItemsUI)
             {
                 if (itemUI.dynamicDisplay)

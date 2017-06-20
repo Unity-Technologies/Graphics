@@ -52,6 +52,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return new LightweightPipeline(this);
         }
 
+        void OnValidate()
+        {
+            DestroyCreatedInstances();
+        }
+
         #region PipelineAssetSettings
 
         [SerializeField] private int m_MaxPixelLights = 1;

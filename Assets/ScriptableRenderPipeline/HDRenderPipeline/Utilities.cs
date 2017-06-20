@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using UnityEngine.Rendering;
-
 using UnityObject = UnityEngine.Object;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,17 +16,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearDepth = 2
     }
 
-    [Flags]
-    public enum StencilBits
-    {
-        None   = 0,                         // 0
-        SSS    = 1 + Lit.MaterialId.LitSSS, // 1
-        NonSSS = 2 + Lit.MaterialId.LitSSS, // 2
-        All    = 255                        // 0xFF
-    }
-
     public class Utilities
     {
+        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
+        {
+            List<RenderPipelineMaterial> materialList = new List<RenderPipelineMaterial>();
+
+            var baseType = typeof(RenderPipelineMaterial);
+            var assembly = baseType.Assembly;
+
+            System.Type[] types = assembly.GetTypes();
+            foreach (System.Type type in types)
+            {
+                if (type.IsSubclassOf(baseType))
+                {
+                    // Create an instance object of the given type
+                    var obj = (RenderPipelineMaterial)Activator.CreateInstance(type);
+                    materialList.Add(obj);
+                }
+            }
+
+            // Note: If there is a need for an optimization in the future of this function, user can simply fill the materialList manually by commenting the code abode and
+            // adding to the list material they used in their game.
+            //  materialList.Add(new Lit());
+            //  materialList.Add(new Unlit());
+            // ...
+
+            return materialList;
+        }
+
         public const RendererConfiguration kRendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
 
@@ -235,42 +253,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static HDCamera GetHDCamera(Camera camera)
-        {
-            HDCamera hdCamera = new HDCamera();
-            hdCamera.camera = camera;
-            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-            // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            var gpuVP = gpuProj * camera.worldToCameraMatrix;
-
-            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-            Vector4 invProjectionParam = new Vector4(gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
-                    gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
-                    -1.0f / gpuProj.m23,
-                    (-gpuProj.m22
-                     + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
-                     + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23);
-
-            hdCamera.viewProjectionMatrix    = gpuVP;
-            hdCamera.invViewProjectionMatrix = gpuVP.inverse;
-            hdCamera.invProjectionMatrix     = gpuProj.inverse;
-            hdCamera.invProjectionParam      = invProjectionParam;
-
-            return hdCamera;
-        }
-
-        public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
-        {
-            material.SetVector("_ScreenSize",        hdCamera.screenSize);
-            material.SetMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
-            material.SetMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
-            material.SetMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
-            material.SetVector("_InvProjParam",      hdCamera.invProjectionParam);
-        }
-
         // TEMP: These functions should be implemented C++ side, for now do it in C#
         public static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
         {
@@ -340,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
+            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -350,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
+            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -360,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            SetupMaterialHDCamera(camera, material);
+            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -379,14 +361,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Helper to help to display debug info on screen
-        public static void NextOverlayCoord(ref float x, ref float y, float overlaySize, float width)
+        static float overlayLineHeight = -1.0f;
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, float width)
         {
-            x += overlaySize;
+            x += overlayWidth;
+            overlayLineHeight = Mathf.Max(overlayHeight, overlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if (x + overlaySize > width)
+            if (x + overlayWidth > width)
             {
                 x = 0;
-                y -= overlaySize;
+                y -= overlayLineHeight;
+                overlayLineHeight = -1.0f;
             }
         }
     }

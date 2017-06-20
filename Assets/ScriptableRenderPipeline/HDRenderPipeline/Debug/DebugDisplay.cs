@@ -16,6 +16,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class DebugDisplaySettings
     {
+        public static string kEnableShadowDebug = "Enable Shadows";
+        public static string kShadowDebugMode = "Shadow Debug Mode";
+        public static string kShadowSelectionDebug = "Use Selection";
+        public static string kShadowMapIndexDebug = "Shadow Map Index";
+        public static string kShadowAtlasIndexDebug = "Shadow Atlas Index";
+        public static string kShadowMinValueDebug = "Shadow Range Min Value";
+        public static string kShadowMaxValueDebug = "Shadow Range Max Value";
+        public static string kLightingDebugMode = "Lighting Debug Mode";
+        public static string kOverrideSmoothnessDebug = "Override Smoothness";
+        public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
+        public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
+        public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
+        public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
+        public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
+
+
         public float debugOverlayRatio = 0.33f;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
@@ -94,28 +110,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RegisterDebug()
         {
-            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.deltaTime, null, true);
-            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time", () => Time.deltaTime * 1000.0f, null, true);
+            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.smoothDeltaTime, null, DebugItemFlag.DynamicDisplay);
+            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time (ms)", () => Time.smoothDeltaTime * 1000.0f, null, DebugItemFlag.DynamicDisplay);
 
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues));
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewVarying>("Material", "Attributes",() => materialDebugSettings.debugViewVarying, (value) => SetDebugViewVarying((Attributes.DebugViewVarying)value));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues));
 
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>("Enable Shadows", () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>("Shadow Debug Mode", () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>("Shadow Map Index", () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>("Lighting Debug Mode", () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>("Override Smoothness", () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>("Override Smoothness Value", () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, false, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>("Debug Lighting Albedo", () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Lighting", "Display Sky Reflection", () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>("Sky Reflection Mipmap", () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, false, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kEnableShadowDebug, () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>(kShadowDebugMode, () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kShadowSelectionDebug, () => lightingDebugSettings.shadowDebugUseSelection, (value) => lightingDebugSettings.shadowDebugUseSelection = (bool)value, DebugItemFlag.EditorOnly);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowMapIndexDebug, () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowIndex(1));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowAtlasIndexDebug, () => lightingDebugSettings.shadowAtlasIndex, (value) => lightingDebugSettings.shadowAtlasIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowAtlasIndex(1));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, FullScreenDebugMode>(kFullScreenDebugMode, () => lightingDebugSettings.fullScreenDebugMode, (value) => lightingDebugSettings.fullScreenDebugMode = (FullScreenDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kDebugLightingAlbedo, () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
 
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => renderingDebugSettings.enableDistortion, (value) => renderingDebugSettings.enableDistortion = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSS, (value) => renderingDebugSettings.enableSSS = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSSAndTransmission, (value) => renderingDebugSettings.enableSSSAndTransmission = (bool)value);
         }
 
         public void OnValidate()
@@ -123,7 +144,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightingDebugSettings.OnValidate();
         }
 
-        void FillWithProperties(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, string strSubNameSpace, ref int index)
+        // className include the additional "/"
+        void FillWithProperties(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, string className, ref int index)
         {
             var attributes = type.GetCustomAttributes(true);
             // Get attribute to get the start number of the value for the enum
@@ -151,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                fieldName = strSubNameSpace + fieldName;
+                fieldName = className + fieldName;
 
                 debugViewMaterialStrings[index] = new GUIContent(fieldName);
                 debugViewMaterialValues[index] = attr.paramDefinesStart + (int)localIndex;
@@ -176,57 +198,94 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        string GetSubNameSpaceName(Type type)
+        public class MaterialItem
         {
-            return type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1) + "/";
-        }
+            public String className;
+            public Type surfaceDataType;
+            public Type bsdfDataType;
+        };
 
         void BuildDebugRepresentation()
         {
             if (!isDebugViewMaterialInit)
             {
-                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
-                debugViewMaterialVaryingStrings = new GUIContent[varyingNames.Length];
-                debugViewMaterialVaryingValues = new int[varyingNames.Length];
-                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
-                debugViewMaterialGBufferStrings = new GUIContent[gbufferNames.Length + typeof(Lit.BSDFData).GetFields().Length];
-                debugViewMaterialGBufferValues = new int[gbufferNames.Length + typeof(Lit.BSDFData).GetFields().Length];
+                List<RenderPipelineMaterial> materialList = Utilities.GetRenderPipelineMaterialList();
 
-                var num = typeof(Builtin.BuiltinData).GetFields().Length * 2 // BuildtinData are duplicated for each material
-                    + typeof(Lit.SurfaceData).GetFields().Length
-                    + typeof(Unlit.SurfaceData).GetFields().Length
-                    + 1; // None
+                // TODO: Share this code to retrieve deferred material with HDRenderPipeline
+                // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
+                Type bsdfDataDeferredType = null;
+                foreach (RenderPipelineMaterial material in materialList)
+                {
+                    if (material.GetMaterialGBufferCount() > 0)
+                    {
+                        bsdfDataDeferredType = material.GetType().GetNestedType("BSDFData");
+                    }
+                }
+
+                // TODO: Handle the case of no Gbuffer material
+                Debug.Assert(bsdfDataDeferredType != null);
+
+                List<MaterialItem> materialItems = new List<MaterialItem>();
+
+                int numSurfaceDataFields = 0;
+                int numBSDFDataFields = 0;
+                foreach (RenderPipelineMaterial material in materialList)
+                {
+                    MaterialItem item = new MaterialItem();
+
+                    item.className = material.GetType().Name + "/";
+
+                    item.surfaceDataType = material.GetType().GetNestedType("SurfaceData");
+                    numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
+
+                    item.bsdfDataType = material.GetType().GetNestedType("BSDFData");
+                    numBSDFDataFields += item.bsdfDataType.GetFields().Length;
+
+                    materialItems.Add(item);
+                }
+
+                // Material properties debug
+                var num =   typeof(Builtin.BuiltinData).GetFields().Length * materialList.Count // BuildtinData are duplicated for each material
+                            + numSurfaceDataFields + 1; // +1 for None case
 
                 debugViewMaterialStrings = new GUIContent[num];
                 debugViewMaterialValues = new int[num];
-
-                num = typeof(Lit.BSDFData).GetFields().Length
-                    + typeof(Unlit.BSDFData).GetFields().Length
-                    + 1; // None
-
-                debugViewEngineStrings = new GUIContent[num];
-                debugViewEngineValues = new int[num];
-
-
-                // Special case for None since it cannot be inferred from SurfaceDAta/BuiltinData
+                // Special case for None since it cannot be inferred from SurfaceData/BuiltinData
                 debugViewMaterialStrings[0] = new GUIContent("None");
                 debugViewMaterialValues[0] = 0;
                 var index = 1;
                 // 0 is a reserved number and should not be used (allow to track error)
-                FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Lit.SurfaceData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Unlit.SurfaceData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
+                foreach (MaterialItem item in materialItems)
+                {
+                    // BuiltinData are duplicated for each material
+                    FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, item.className, ref index);
+                    FillWithProperties(item.surfaceDataType, debugViewMaterialStrings, debugViewMaterialValues, item.className, ref index);
+                }
 
-                // Engine
+                // Engine properties debug
+                num = numBSDFDataFields + 1; // +1 for None case
+                debugViewEngineStrings = new GUIContent[num];
+                debugViewEngineValues = new int[num];
+                // 0 is a reserved number and should not be used (allow to track error)
                 debugViewEngineStrings[0] = new GUIContent("None");
                 debugViewEngineValues[0] = 0;
                 index = 1;
-                FillWithProperties(typeof(Lit.BSDFData), debugViewEngineStrings, debugViewEngineValues, GetSubNameSpaceName(typeof(Lit.BSDFData)), ref index);
-                FillWithProperties(typeof(Unlit.BSDFData), debugViewEngineStrings, debugViewEngineValues, GetSubNameSpaceName(typeof(Unlit.BSDFData)), ref index);
+                foreach (MaterialItem item in materialItems)
+                {
+                    FillWithProperties(item.bsdfDataType, debugViewEngineStrings, debugViewEngineValues, item.className, ref index);
+                }
 
+                // Attributes debug
+                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
+                debugViewMaterialVaryingStrings = new GUIContent[varyingNames.Length];
+                debugViewMaterialVaryingValues = new int[varyingNames.Length];
                 index = 0;
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewVarying), debugViewMaterialVaryingStrings, debugViewMaterialVaryingValues, "", ref index);
+
+                // Gbuffer debug
+                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
+                debugViewMaterialGBufferStrings = new GUIContent[gbufferNames.Length + bsdfDataDeferredType.GetFields().Length];
+                debugViewMaterialGBufferValues = new int[gbufferNames.Length + bsdfDataDeferredType.GetFields().Length];
                 index = 0;
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewGbuffer), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);
                 FillWithProperties(typeof(Lit.BSDFData), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);
@@ -335,7 +394,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
-        public bool enableSSS = true;
+        public bool enableSSSAndTransmission = true;
     }
 
     public enum ShadowMapDebugMode
@@ -343,6 +402,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         None,
         VisualizeAtlas,
         VisualizeShadowMap
+    }
+
+    [GenerateHLSL]
+    public enum FullScreenDebugMode
+    {
+        None,
+        SSAO,
+        SSAOBeforeFiltering,
     }
 
     [Serializable]
@@ -356,7 +423,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
         public bool                 enableShadows = true;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
+        public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
+        public uint                 shadowAtlasIndex = 0;
+        public float                shadowMinValue = 0.0f;
+        public float                shadowMaxValue = 1.0f;
+        public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
 
         public bool                 overrideSmoothness = false;
         public float                overrideSmoothnessValue = 0.5f;
