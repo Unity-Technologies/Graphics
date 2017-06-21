@@ -31,9 +31,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow drawing distance");
 
-            public static GUIContent shadowMinBias = new GUIContent("Shadow Min Normal Bias Offset", "Minimum value of normal bias offset applied");
-            public static GUIContent shadowBias = new GUIContent("Shadow Normal Bias", "Normal bias offset value.");
-
             public static GUIContent shadowAtlasResolution = new GUIContent("Shadow Map Resolution",
                     "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
 
@@ -110,8 +107,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_ShadowTypeProp, Styles.shadowType);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
             EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
-            EditorGUILayout.PropertyField(m_ShadowMinNormalBiasProperty, Styles.shadowMinBias);
-            EditorGUILayout.PropertyField(m_ShadowNormalBiasProperty, Styles.shadowBias);
             EditorGUILayout.PropertyField(m_ShadowDistanceProp, Styles.shadowDistante);
             EditorGUILayout.PropertyField(m_ShadowCascadesProp, Styles.shadowCascades);
 

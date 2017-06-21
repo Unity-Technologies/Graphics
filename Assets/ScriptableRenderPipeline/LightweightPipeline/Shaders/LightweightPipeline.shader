@@ -115,15 +115,14 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
 #if defined(_VERTEX_LIGHTS) && !defined(_SINGLE_DIRECTIONAL_LIGHT)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                int vertexLightStart = unity_LightIndicesOffsetAndCount.x + globalLightData.x;
-                int vertexLightEnd = vertexLightStart + (unity_LightIndicesOffsetAndCount.y - globalLightData.x);
+                int vertexLightStart = unity_LightIndicesOffsetAndCount.x + globalLightCount.x;
+                int vertexLightEnd = vertexLightStart + (unity_LightIndicesOffsetAndCount.y - globalLightCount.x);
                 for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
                 {
                     int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightInput;
-                    half NdotL;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
-                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz, NdotL);
+                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
                 }
 #endif
 
@@ -155,31 +154,29 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
                 half3 viewDir = i.viewDir.xyz;
 
-                half3 color = half3(0, 0, 0);
 #ifdef _SINGLE_DIRECTIONAL_LIGHT
-                LightInput lightData;
-                INITIALIZE_LIGHT(lightData, 0);
-                half  NdotL;
-                color = EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
+                half3 color = EvaluateDirectionalLight(diffuse, specularGloss, normal, _LightPosition0, viewDir) * _LightColor0;
     #ifdef _SHADOWS
-                float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
-                color *= ComputeShadowAttenuation(i, bias);
+                color *= ComputeShadowAttenuation(i, _LightPosition0.xyz);
     #endif
 #else
-                int pixelLightEnd = unity_LightIndicesOffsetAndCount.x + min(globalLightData.x, unity_LightIndicesOffsetAndCount.y);
+                half3 color = half3(0, 0, 0);
+#ifdef _SHADOWS
+                half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+#endif
+                int pixelLightEnd = unity_LightIndicesOffsetAndCount.x + min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
                 for (int lightIter = unity_LightIndicesOffsetAndCount.x; lightIter < pixelLightEnd; ++lightIter)
                 {
                     int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightData;
-                    half NdotL;
                     INITIALIZE_LIGHT(lightData, lightIndex);
-                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
 #ifdef _SHADOWS
-                    if (lightIndex == globalLightData.y)
-                    {
-                        float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
-                        color *= ComputeShadowAttenuation(i, bias);
-                    }
+                    // multiplies shadowAttenuation to avoid branching.
+                    // step will only evaluate to 1 when lightIndex == _ShadowData.x (shadowLightIndex)
+                    half currLightAttenuation = shadowAttenuation * step(abs(lightIndex - _ShadowData.x), 0);
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir) * currLightAttenuation;
+#else
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir);
 #endif
                 }
 
@@ -226,7 +223,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
-            	float4 clipPos = UnityObjectToClipPos(pos);
+                float4 clipPos = UnityObjectToClipPos(pos);
 #if defined(UNITY_REVERSED_Z)
                 clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
