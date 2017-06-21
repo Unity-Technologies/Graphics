@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
+        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             Light[] lights = GameObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -17,9 +17,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (Light light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<AdditionalLightData>() == null)
+                if (light.GetComponent<HDAdditionalLightData>() == null)
                 {
-                    light.gameObject.AddComponent<AdditionalLightData>();
+                    light.gameObject.AddComponent<HDAdditionalLightData>();
+                }
+
+                if (light.GetComponent<AdditionalShadowData>() == null)
+                {
+                    light.gameObject.AddComponent<AdditionalShadowData>();
                 }
             }
         }
