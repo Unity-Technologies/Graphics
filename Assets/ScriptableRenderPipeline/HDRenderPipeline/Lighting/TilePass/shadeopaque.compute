@@ -76,8 +76,11 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
     RWTexture2D<float4> combinedLightingUAV;
 #endif
 
-#if USE_INDIRECT
+CBUFFER_START(UnityShadeOpaque)
 	uint g_TileListOffset;
+CBUFFER_END
+
+#if USE_INDIRECT
     StructuredBuffer<uint> g_TileList;
 // Indirect
 [numthreads(16, 16, 1)]
