@@ -230,6 +230,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.pixelLightsCount = Mathf.Min(lightsCount, m_Asset.MaxSupportedPixelLights);
             lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lightsCount - lightData.pixelLightsCount, kMaxVertexLights) : 0;
             lightData.isSingleDirectionalLight = lightData.pixelLightsCount == 1 && lightData.vertexLightsCount == 0 && lights[0].lightType == LightType.Directional;
+
+            // Directional light path can handle unlit.
+            if (lightsCount == 0)
+                lightData.isSingleDirectionalLight = true;
+            
             lightData.shadowsRendered = false;
 
             InitializeMainShadowLightIndex(lights, out lightData.shadowLightIndex);
@@ -253,6 +258,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
         {
+            if (lights.Length == 0)
+                return;
+
             if (lightData.isSingleDirectionalLight) 
                 SetupShaderSingleDirectionalLightConstants(ref lights [0], ref context);
             else
