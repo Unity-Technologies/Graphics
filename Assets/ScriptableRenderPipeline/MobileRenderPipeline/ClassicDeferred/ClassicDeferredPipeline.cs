@@ -829,11 +829,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
 		{
-			sorting = { flags = SortFlags.CommonOpaque }
+			sorting = { flags = opaquesOnly ? SortFlags.CommonOpaque : SortFlags.CommonTransparent }
 		};
 		settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-		if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
-		else settings.inputFilter.SetQueuesTransparent();
+		if (opaquesOnly) 
+			settings.inputFilter.SetQueuesOpaque();
+		else 
+			settings.inputFilter.SetQueuesTransparent();
 
 		loop.DrawRenderers(ref settings);
 	}
