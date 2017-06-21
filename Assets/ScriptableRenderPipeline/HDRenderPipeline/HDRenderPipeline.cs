@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LastFrameActive = -1;
             m_FirstFrame = true;
         }
-        
+
         static Dictionary<Camera, HDCamera> m_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> m_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
@@ -638,7 +638,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
-            
+
             CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
 
             Resize(camera);
@@ -650,6 +650,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
             m_MaterialList.ForEach(material => material.Bind());
+
+            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            if (additionalCameraData && additionalCameraData.renderingPath == RenderingPathHDRP.Unlit)
+            {
+                // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
+                string passName = "Forward"; // It is up to the users to only send unlit object for this camera path
+
+                using (new Utilities.ProfilingSample(passName, renderContext))
+                {
+                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor | ClearFlag.ClearDepth);
+                    RenderOpaqueRenderList(m_CullResults, camera, renderContext, passName);
+                    RenderTransparentRenderList(m_CullResults, camera, renderContext, passName);
+                }
+
+                renderContext.Submit();
+                return;
+            }
 
             InitAndClearBuffer(camera, renderContext);
 
@@ -1014,7 +1031,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.Blit(BuiltinRenderTextureType.None, m_VelocityBufferRT, m_CameraMotionVectorsMaterial, 0);
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
                 renderContext.ExecuteCommandBuffer(cmd);
-                
+
                 RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, "MotionVectors", RendererConfiguration.PerObjectMotionVectors);
             }
         }
@@ -1125,7 +1142,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float overlayRatio = m_DebugDisplaySettings.debugOverlayRatio;
             float overlaySize = Math.Min(camera.camera.pixelHeight, camera.camera.pixelWidth) * overlayRatio;
             float y = camera.camera.pixelHeight - overlaySize;
-            
+
             LightingDebugSettings lightingDebug = m_DebugDisplaySettings.lightingDebugSettings;
 
             if (lightingDebug.displaySkyReflection)
@@ -1176,7 +1193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     renderContext.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
-                    
+
                     Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearDepth);
                 }
 
