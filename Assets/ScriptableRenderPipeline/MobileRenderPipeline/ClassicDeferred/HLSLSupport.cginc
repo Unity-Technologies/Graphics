@@ -569,7 +569,7 @@
 #define UNITY_POSITION(pos) float4 pos : SV_POSITION
 #endif
 
-#if defined(SHADER_API_D3D9) || defined(SHADER_API_D3D11) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_PSP2) || defined(SHADER_API_PSSL)
+#if defined(SHADER_API_D3D9) || defined(SHADER_API_D3D11) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_PSP2) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL)
 #define UNITY_ATTEN_CHANNEL r
 #else
 #define UNITY_ATTEN_CHANNEL a
