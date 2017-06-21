@@ -200,13 +200,14 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-// TODO: move this to constant buffer by Pass
+CBUFFER_START(UnityPerPass)
 float4   _ScreenSize;
 float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
 float4x4 _PrevViewProjMatrix;
 float4x4 _InvViewProjMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
+CBUFFER_END
 
 float4x4 GetWorldToViewMatrix()
 {
