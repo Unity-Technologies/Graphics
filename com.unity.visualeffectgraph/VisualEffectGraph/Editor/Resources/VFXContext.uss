@@ -9,9 +9,15 @@ VFXContextUI {
 VFXContextUI #NodeContents
 {
 	width:368;
-	border-color: rgb(51, 51, 51);
+	-background-color:rgb(255,0,0);
+	border-color-left: rgb(51, 51, 51);
+	
+	border-color-left:rgb(255,0,0);
 	border-radius:6;
-	border-width: 1;
+	border-width-left:1;
+	border-width-right:1;
+	border-width-top:1;
+	border-width-bottom:1;
 	padding-top : 12;
 	padding-bottom : 12;
 }
@@ -36,7 +42,10 @@ VFXContextSlotContainerUI.VFXContextSlotContainerUI.horizontal
 
 VFXContextSlotContainerUI.VFXNodeUI #pane
 {
-	border-width:0;
+	border-width-left:0;
+	border-width-right:0;
+	border-width-top:0;
+	border-width-bottom:0;
 	border-top:0;
 	border-bottom:0;
 	border-left:0;
