@@ -423,7 +423,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
             loop.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-            
+
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
             {
@@ -756,7 +756,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 for (int i = 0; i < lcnt; ++i)
                 {
                     VisibleLight vl = inputs.visibleLights[i];
-                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalLightData>().shadowDimmer > 0.0f)
+                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
                         m_ShadowRequests.Add(i);
                 }
                 // pass this list to a routine that assigns shadows based on some heuristic
@@ -1084,7 +1084,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     continue;
 
                 m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
-                
+
                 CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
                 ExecuteRenderLoop(camera, m_CullResults, renderContext);
             }
@@ -1440,7 +1440,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
 
             loop.ExecuteCommandBuffer(cmd);
-            
+
         }
 
         private float PerceptualRoughnessToBlinnPhongPower(float perceptualRoughness)

@@ -14,6 +14,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer    s_ShadowDataBuffer;
         static ComputeBuffer    s_ShadowPayloadBuffer;
 
+        public static GPUShadowType HDShadowLightType(Light l)
+        {
+            // We only process light with additional data
+            var ald = l.GetComponent<HDAdditionalLightData>();
+
+            if (ald == null)
+            {
+                return ShadowRegistry.ShadowLightType(l);
+            }
+
+            GPUShadowType shadowType = GPUShadowType.Unknown;
+
+            switch (ald.archetype)
+            {
+                case LightArchetype.Punctual:
+                    shadowType = ShadowRegistry.ShadowLightType(l);
+                    break;
+                // Area and projector not supported yet
+            }
+
+            return shadowType;
+        }
+
         public ShadowSetup(ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
         {
             s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowData ) ) );
@@ -89,6 +112,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+
+            m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
+
             shadowManager = m_ShadowMgr;
         }
 
@@ -360,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // clustered light list specific buffers and data end
 
             private static GameObject s_DefaultAdditionalLightDataGameObject;
-            private static AdditionalLightData s_DefaultAdditionalLightData;
+            private static HDAdditionalLightData s_DefaultAdditionalLightData;
 
             bool usingFptl
             {
@@ -373,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            private static AdditionalLightData DefaultAdditionalLightData
+            private static HDAdditionalLightData DefaultAdditionalLightData
             {
                 get
                 {
@@ -381,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
                         s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
-                        s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
+                        s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<HDAdditionalLightData>();
                         s_DefaultAdditionalLightDataGameObject.SetActive(false);
                     }
                     return s_DefaultAdditionalLightData;
@@ -762,7 +788,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
             }
 
-            public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex)
+            public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex)
             {
                 var directionalLightData = new DirectionalLightData();
 
@@ -812,7 +838,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return 1.0f - Mathf.Clamp01((distanceToCamera - distanceFadeNear) / (fadeDistance - distanceFadeNear));
             }
 
-            public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex)
+            public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData, int lightIndex)
             {
                 var lightData = new LightData();
 
@@ -830,7 +856,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     var spotAngle = light.spotAngle;
 
-                    var innerConePercent = additionalData.GetInnerSpotPercent01();
+                    var innerConePercent = additionalLightData.GetInnerSpotPercent01();
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
@@ -851,11 +877,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
-                float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.fadeDistance);
-                float lightScale = additionalData.lightDimmer * distanceFade;
+                float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
+                float lightScale = additionalLightData.lightDimmer * distanceFade;
 
-                lightData.diffuseScale = additionalData.affectDiffuse ? lightScale * m_TileSettings.diffuseGlobalDimmer : 0.0f;
-                lightData.specularScale = additionalData.affectSpecular ? lightScale * m_TileSettings.specularGlobalDimmer : 0.0f;
+                lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_TileSettings.diffuseGlobalDimmer : 0.0f;
+                lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_TileSettings.specularGlobalDimmer : 0.0f;
 
                 if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                     return false;
@@ -877,13 +903,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                     }
 
-                    if (additionalData.archetype == LightArchetype.Projector)
+                    if (additionalLightData.archetype == LightArchetype.Projector)
                     {
                         lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                     }
                 }
-                float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.shadowFadeDistance);
-                lightData.shadowDimmer = additionalData.shadowDimmer * shadowDistanceFade;
+
+                if (additionalshadowData)
+                {
+                    float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalshadowData.shadowFadeDistance);
+                    lightData.shadowDimmer = additionalshadowData.shadowDimmer * shadowDistanceFade;
+                }
+                else
+                {
+                    lightData.shadowDimmer = 1.0f;
+                }
 
                 // fix up shadow information
                 int shadowIdx;
@@ -891,9 +925,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightData.shadowIndex = shadowIdx;
                 }
-                if (additionalData.archetype != LightArchetype.Punctual)
+                if (additionalLightData.archetype != LightArchetype.Punctual)
                 {
-                    lightData.size = new Vector2(additionalData.lightLength, additionalData.lightWidth);
+                    lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
                 }
 
                 m_lightList.lights.Add(lightData);
@@ -1220,8 +1254,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         for (int i = 0; i < lcnt; ++i)
                         {
                             VisibleLight vl = cullResults.visibleLights[i];
-                            AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
-                            if( vl.light.shadows != LightShadows.None && ald != null && ald.shadowDimmer > 0.0f )
+                            AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+                            if( vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f )
                                 m_ShadowRequests.Add( i );
                         }
                         // pass this list to a routine that assigns shadows based on some heuristic
@@ -1264,7 +1298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var light = cullResults.visibleLights[lightIndex];
 
                         // We only process light with additional data
-                        var additionalData = light.light.GetComponent<AdditionalLightData>();
+                        var additionalData = light.light.GetComponent<HDAdditionalLightData>();
 
                         if (additionalData == null)
                             additionalData = DefaultAdditionalLightData;
@@ -1374,17 +1408,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int lightIndex = (int)(sortKey & 0xFFFF);
 
                         var light = cullResults.visibleLights[lightIndex];
-                        var additionalData = light.light.GetComponent<AdditionalLightData>() ?? DefaultAdditionalLightData;
+                        var additionalLightData = light.light.GetComponent<HDAdditionalLightData>() ?? DefaultAdditionalLightData;
+                        var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex))
+                            if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                                 directionalLightcount++;
                             continue;
                         }
                         // Punctual, area, projector lights - the rendering side.
-                        if(GetLightData(shadowSettings, camera, gpuLightType, light, additionalData, lightIndex))
+                        if (GetLightData(shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                         {
                             switch (lightCategory)
                             {
@@ -1663,7 +1698,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(buildDispatchIndirectShader, "g_NumTilesX", numTilesX);
                     cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
                 }
-                
+
                 loop.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

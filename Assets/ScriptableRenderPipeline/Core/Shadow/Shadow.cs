@@ -254,11 +254,11 @@ namespace UnityEngine.Experimental.Rendering
             float[] cascadeRatios = null;
             if( sr.shadowType == GPUShadowType.Directional )
             {
-                AdditionalLightData ald = lights[sr.index].light.GetComponent<AdditionalLightData>();
-                if( !ald )
+                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+                if( !asd )
                     return false;
 
-                ald.GetShadowCascades( out cascadeCnt, out cascadeRatios );
+                asd.GetShadowCascades( out cascadeCnt, out cascadeRatios );
             }
 
 
@@ -365,15 +365,15 @@ namespace UnityEngine.Experimental.Rendering
             ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
             if( algo == ShadowAlgorithm.PCF )
             {
-                AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
-                if( !ald )
+                AdditionalShadowData asd = light.light.GetComponent<AdditionalShadowData>();
+                if( !asd )
                     return;
 
                 int shadowDataFormat;
-                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+                int[] shadowData = asd.GetShadowData( out shadowDataFormat );
                 if( !CheckDataIntegrity( algo, vari, prec, ref shadowData ) )
                 {
-                    ald.SetShadowAlgorithm( (int)algo, (int)vari, (int) prec, shadowDataFormat, shadowData );
+                    asd.SetShadowAlgorithm( (int)algo, (int)vari, (int) prec, shadowDataFormat, shadowData );
                     Debug.Log( "Fixed up shadow data for algorithm " + algo + ", variant " + vari );
                 }
 
@@ -873,13 +873,13 @@ namespace UnityEngine.Experimental.Rendering
         {
             base.WritePerLightPayload( ref light, sr, ref sd, ref payload, ref payloadOffset );
 
-            AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
-            if( !ald )
+            AdditionalShadowData asd = light.light.GetComponent<AdditionalShadowData>();
+            if( !asd )
                 return;
 
             ShadowPayload sp = new ShadowPayload();
             int shadowDataFormat;
-            int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+            int[] shadowData = asd.GetShadowData( out shadowDataFormat );
             if( shadowData == null )
                 return;
 
@@ -965,9 +965,9 @@ namespace UnityEngine.Experimental.Rendering
 
             while( i < cnt && m_EntryCache[i].current.slice == rendertargetSlice )
             {
-                AdditionalLightData ald = lights[m_EntryCache[i].key.visibleIdx].light.GetComponent<AdditionalLightData>();
+                AdditionalShadowData asd = lights[m_EntryCache[i].key.visibleIdx].light.GetComponent<AdditionalShadowData>();
                 int shadowDataFormat;
-                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+                int[] shadowData = asd.GetShadowData( out shadowDataFormat );
 
                 ShadowAlgorithm algo;
                 ShadowVariant vari;
@@ -1143,7 +1143,7 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
             // and register itself
-            AdditionalLightDataEditor.SetRegistry( this );
+            AdditionalShadowDataEditor.SetRegistry( this );
 #endif
         }
 
@@ -1256,10 +1256,10 @@ namespace UnityEngine.Experimental.Rendering
                 int facecount         = 0;
                 GPUShadowType shadowType = GPUShadowType.Point;
 
-                AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
+                AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
                 Vector3 lpos            = vl.light.transform.position;
                 float   distToCam       = (campos - lpos).magnitude;
-                bool    add             = (distToCam < ald.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
+                bool    add             = (distToCam < asd.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
 
                 if( add )
                 {
@@ -1268,7 +1268,7 @@ namespace UnityEngine.Experimental.Rendering
                         case LightType.Directional:
                             add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
                             shadowType = GPUShadowType.Directional;
-                            facecount = ald.cascadeCount;
+                            facecount = asd.cascadeCount;
                             break;
                         case LightType.Point:
                             add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;
@@ -1291,7 +1291,7 @@ namespace UnityEngine.Experimental.Rendering
                     sreq.shadowType = shadowType;
 
                     int sa, sv, sp;
-                    ald.GetShadowAlgorithm( out sa, out sv, out sp );
+                    asd.GetShadowAlgorithm( out sa, out sv, out sp );
                     sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
@@ -1313,13 +1313,11 @@ namespace UnityEngine.Experimental.Rendering
             shadowIndices.Reserve( grantedRequests.Count() );
             for( uint i = 0, cnt = grantedRequests.Count(); i < cnt; ++i )
             {
-                VisibleLight        vl  = lights[grantedRequests[i].index];
-                Light               l   = vl.light;
-                AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
+                Light l = lights[grantedRequests[i].index].light;
+                AdditionalShadowData asd = l.GetComponent<AdditionalShadowData>();
 
                 // set light specific values that are not related to the shadowmap
-                GPUShadowType shadowtype;
-                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out shadowtype );
+                GPUShadowType shadowtype = GetShadowLightType(l);
                 // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
                 sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
                 sd.normalBias = 100.0f * l.shadowNormalBias;
@@ -1329,7 +1327,7 @@ namespace UnityEngine.Experimental.Rendering
                 int smidx = 0;
                 while( smidx < k_MaxShadowmapPerType )
                 {
-                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
+                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) asd.shadowResolution, (uint) asd.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
                         break;
                     smidx++;
                 }
