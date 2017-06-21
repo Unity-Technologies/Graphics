@@ -9,9 +9,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LitSSS      = 0,
             LitStandard = 1,
-            LitSpecular = 2,
-            LitUnused   = 3,
-            LitAniso    = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
+            LitUnused0  = 2,
+            LitUnused1  = 3,
+            LitAniso    = 4, // Should be the last as it is not setup by the users but generated based on anisotropy property
+            LitSpecular = 5, // Should be the last as it is not setup by the users but generated based on anisotropy property and specular
         };
 
         [GenerateHLSL]
@@ -19,8 +20,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LitSSS      = 1 << 12,
             LitStandard = 1 << 13,
-            LitSpecular = 1 << 14,
-            LitAniso    = 1 << 15
+            LitAniso    = 1 << 14,
+            LitSpecular = 1 << 15
+        }
+
+        [GenerateHLSL]
+        public enum SpecularValue
+        {
+            Water = 0, // 0.02  Water or ice
+            Regular = 1, // 0.04 regular dieletric
+            Gemstone = 2, // 0.20
+            SpecularColor = 3 // Special case: use specular color
         }
 
         //-----------------------------------------------------------------------------
@@ -56,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
             [SurfaceDataAttributes("Specular")]
-            public float specular; // 0.02, 0.04, 0.16, 0.2
+            public SpecularValue specular;
 
             // SSS
             [SurfaceDataAttributes("Subsurface Radius")]

@@ -9,17 +9,26 @@
 //
 #define MATERIALID_LIT_SSS (0)
 #define MATERIALID_LIT_STANDARD (1)
-#define MATERIALID_LIT_SPECULAR (2)
-#define MATERIALID_LIT_UNUSED (3)
+#define MATERIALID_LIT_UNUSED0 (2)
+#define MATERIALID_LIT_UNUSED1 (3)
 #define MATERIALID_LIT_ANISO (4)
+#define MATERIALID_LIT_SPECULAR (5)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_LIT_SSS (4096)
 #define MATERIALFEATUREFLAGS_LIT_STANDARD (8192)
-#define MATERIALFEATUREFLAGS_LIT_SPECULAR (16384)
-#define MATERIALFEATUREFLAGS_LIT_ANISO (32768)
+#define MATERIALFEATUREFLAGS_LIT_ANISO (16384)
+#define MATERIALFEATUREFLAGS_LIT_SPECULAR (32768)
+
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+SpecularValue:  static fields
+//
+#define SPECULARVALUE_WATER (0)
+#define SPECULARVALUE_REGULAR (1)
+#define SPECULARVALUE_GEMSTONE (2)
+#define SPECULARVALUE_SPECULAR_COLOR (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
@@ -86,7 +95,7 @@ struct SurfaceData
     float3 tangentWS;
     float anisotropy;
     float metallic;
-    float specular;
+    int specular;
     float subsurfaceRadius;
     float thickness;
     int subsurfaceProfile;
@@ -153,7 +162,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.metallic.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
-            result = surfacedata.specular.xxx;
+            result = GetIndexColor(surfacedata.specular);
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS:
             result = surfacedata.subsurfaceRadius.xxx;

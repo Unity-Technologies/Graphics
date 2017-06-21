@@ -199,8 +199,16 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-    // TODO: In order to let the compiler optimize in case of forward rendering this need to be a variant (shader feature) and not a parameter!
-    surfaceData.materialId = _MaterialID;
+    // Having individual shader features for each materialID like this allow the compiler to optimize
+#ifdef _MATID_SSS
+    surfaceData.materialId = MATERIALID_LIT_SSS;
+#elif defined(_MATID_ANISO)
+    surfaceData.materialId = MATERIALID_LIT_ANISO;
+#elif defined(_MATID_SPECULAR)
+    surfaceData.materialId = MATERIALID_LIT_SPECULAR;
+#else // Default
+    surfaceData.materialId = MATERIALID_LIT_STANDARD;
+#endif
 
 #ifdef _TANGENTMAP
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
@@ -222,7 +230,12 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
-    surfaceData.specular = 0.04;
+#ifdef _MATID_SPECULAR
+    // To save 1bit space in GBuffer we don't store specular as materialID but in the enum of the specular value
+    surfaceData.specular = SPECULARVALUE_SPECULAR_COLOR;
+#else
+    surfaceData.specular = SPECULARVALUE_REGULAR;
+#endif
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
     surfaceData.subsurfaceRadius  = _SubsurfaceRadius;

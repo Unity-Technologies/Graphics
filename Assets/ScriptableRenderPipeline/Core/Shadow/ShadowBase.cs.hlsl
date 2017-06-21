@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/Core/Shadow/ShadowBase.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderPipeline/core/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADOWBASE_CS_HLSL

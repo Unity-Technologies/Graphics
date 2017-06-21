@@ -134,7 +134,6 @@ float _HeightCenter;
 
 float _Anisotropy;
 
-int   _MaterialID;
 int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
