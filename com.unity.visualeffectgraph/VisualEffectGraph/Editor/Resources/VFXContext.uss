@@ -10,9 +10,7 @@ VFXContextUI #NodeContents
 {
 	width:368;
 	-background-color:rgb(255,0,0);
-	border-color-left: rgb(51, 51, 51);
-	
-	border-color-left:rgb(255,0,0);
+	border-color: rgb(51, 51, 51);
 	border-radius:6;
 	border-width-left:1;
 	border-width-right:1;
