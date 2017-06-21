@@ -201,9 +201,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
-        LOD 300
-
         Pass
         {
             Name "GBuffer"  // Name is not used
