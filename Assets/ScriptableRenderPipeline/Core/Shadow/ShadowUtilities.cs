@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
         // Cubemap faces with flipped z coordinate.
         // These matrices do NOT match what we have in Skybox.cpp.
         // The C++ runtime flips y as well and requires patching up
-        // the culling state. Using these matrices keeps the winding 
+        // the culling state. Using these matrices keeps the winding
         // order, but may need some special treatment if rendering
         // into an actual cubemap.
         public static readonly Matrix4x4[] kCubemapFaces = new Matrix4x4[]
@@ -172,55 +172,6 @@ namespace UnityEngine.Experimental.Rendering
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
             // and the compound
             return proj * view;
-        }
-
-        public static bool MapLightType( LightType lt,  out HDPipeline.GPULightType gputype, out GPUShadowType shadowtype )
-        {
-            switch( lt )
-            {
-            case LightType.Spot         : gputype = HDPipeline.GPULightType.Spot;          shadowtype = GPUShadowType.Spot;        return true;
-            case LightType.Directional  : gputype = HDPipeline.GPULightType.Directional;   shadowtype = GPUShadowType.Directional; return true;
-            case LightType.Point        : gputype = HDPipeline.GPULightType.Point;         shadowtype = GPUShadowType.Point;       return true;
-            default:
-            case LightType.Area         : gputype = HDPipeline.GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return false;   // area lights by themselves can't be mapped to any GPU type
-            }
-        }
-        public static bool MapLightType(LightArchetype la, LightType lt, out GPUShadowType shadowtype)
-        {
-            switch (la)
-            {
-                case LightArchetype.Punctual:
-                    return MapLightType(lt, out shadowtype);
-                case LightArchetype.Area:
-                    shadowtype = GPUShadowType.Unknown;
-                    return true;
-                case LightArchetype.Projector:
-                    shadowtype = GPUShadowType.Unknown;
-                    return true;
-                default:
-                    shadowtype = GPUShadowType.Unknown;
-                    return false; // <- probably not what you want
-            }
-
-        }
-        public static bool MapLightType(LightType lt, out GPUShadowType shadowtype)
-        {
-            switch (lt)
-            {
-                case LightType.Spot:
-                    shadowtype = GPUShadowType.Spot;
-                    return true;
-                case LightType.Directional:
-                    shadowtype = GPUShadowType.Directional;
-                    return true;
-                case LightType.Point:
-                    shadowtype = GPUShadowType.Point;
-                    return true;
-                default:
-                case LightType.Area:
-                    shadowtype = GPUShadowType.Unknown;
-                    return false;   // area lights by themselves can't be mapped to any GPU type
-            }
         }
 
         public static GPUShadowAlgorithm Pack( ShadowAlgorithm algo, ShadowVariant vari, ShadowPrecision prec )

@@ -323,12 +323,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderContext, dest, ClearFlag.ClearNone, 0, (CubemapFace)i);
-                var cmd = new CommandBuffer { name = "" };
+                var cmd = CommandBufferPool.Get();
                 propertyBlock.SetTexture("_MainTex", source);
                 propertyBlock.SetFloat("_faceIndex", (float)i);
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
                 renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                CommandBufferPool.Release(cmd);
             }
 
         }
@@ -350,13 +350,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Copy the first mip
-                var cmd = new CommandBuffer { name = "" };
+                var cmd = CommandBufferPool.Get();
                 for (int f = 0; f < 6; f++)
                 {
                     cmd.CopyTexture(input, f, 0, target, f, 0);
                 }
                 renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                
 
                 if (m_useMIS && m_iblFilterGgx.SupportMIS)
                 {
@@ -366,6 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_iblFilterGgx.FilterCubemap(renderContext, input, target, mipCount, m_CubemapFaceMesh);
                 }
+                CommandBufferPool.Release(cmd);
             }
         }
 

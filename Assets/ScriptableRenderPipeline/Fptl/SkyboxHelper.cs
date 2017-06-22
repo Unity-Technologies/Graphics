@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            var cmd = new CommandBuffer { name = "Skybox" };
+            var cmd = CommandBufferPool.Get("Skybox");
 
             var looksLikeSixSidedShader = true;
             looksLikeSixSidedShader &= (mat.passCount == 6); // should have six passes
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
         }
 
         public static Matrix4x4 GetProjectionMatrix(Camera camera)

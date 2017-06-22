@@ -82,9 +82,6 @@ Shader "HDRenderPipeline/Unlit"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
-        LOD 300
-
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
         Pass

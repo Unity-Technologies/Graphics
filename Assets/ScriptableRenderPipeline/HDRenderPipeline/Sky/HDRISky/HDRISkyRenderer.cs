@@ -39,10 +39,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyHDRIMaterial.SetTexture("_Cubemap", m_HdriSkyParams.skyHDRI);
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
 
-            var cmd = new CommandBuffer { name = "" };
+            var cmd = CommandBufferPool.Get("");
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
         }
 
         public override bool IsSkyValid()

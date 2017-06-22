@@ -4,6 +4,12 @@ sampler2D_float _ShadowMap;
 float _PCFKernel[8];
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
+half4 _ShadowData;
+
+// In case of single directional light, shadow light dir is the same of light dir
+#ifndef _SINGLE_DIRECTIONAL_LIGHT
+half4 _ShadowLightDirection;
+#endif
 
 inline half ShadowAttenuation(float3 shadowCoord)
 {
@@ -11,10 +17,11 @@ inline half ShadowAttenuation(float3 shadowCoord)
         return 1;
 
     float depth = tex2D(_ShadowMap, shadowCoord).r;
+
 #if defined(UNITY_REVERSED_Z)
-    return step(depth, shadowCoord.z);
+    return step(depth - _ShadowData.y, shadowCoord.z);
 #else
-    return step(shadowCoord.z, depth);
+    return step(shadowCoord.z, depth + _ShadowData.y);
 #endif
 }
 
@@ -47,20 +54,22 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(v2f i, float bias)
+inline half ComputeShadowAttenuation(v2f i, half3 shadowDir)
 {
 #if _NORMALMAP
-    float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
+    half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
 #else
-    float3 vertexNormal = i.normal;
+    half3 vertexNormal = i.normal;
 #endif
-    float3 offset = vertexNormal * bias;
 
-    float3 posWorldOffsetNormal = i.posWS + offset;
+    half NdotL = dot(vertexNormal, shadowDir);
+    half bias = saturate(1.0 - NdotL) * _ShadowData.z;
+
+    float3 posWorldOffsetNormal = i.posWS + vertexNormal * bias;
+
     int cascadeIndex = 0;
-
 #ifdef _SHADOW_CASCADES
-    cascadeIndex = ComputeCascadeIndex(i.posWS);
+    cascadeIndex = ComputeCascadeIndex(posWorldOffsetNormal);
     if (cascadeIndex >= MAX_SHADOW_CASCADES)
         return 1.0;
 #endif

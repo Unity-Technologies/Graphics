@@ -38,6 +38,9 @@
 
 // uniform have _ as prefix + uppercase _LowercaseThenCamelCase
 
+// All uniforms should be in contant buffer (nothing in the global namespace).
+// The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
+
 // Structure definition that are share between C# and hlsl.
 // These structures need to be align on float4 to respectect various packing rules from sahder language.
 // This mean that these structure need to be padded.

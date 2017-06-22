@@ -224,7 +224,9 @@ CBUFFER_START(UnityVelocityPass)
     float4 unity_MotionVectorsParams;
 CBUFFER_END
 
-// TODO: move this to constant buffer by Pass
+// ----------------------------------------------------------------------------
+
+CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
 float4x4 _ViewMatrix;
@@ -234,6 +236,7 @@ float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
 float4   _ScreenSize;
+CBUFFER_END
 
 /****************************************************************************/
 /*                            HDCAMERA OVERRIDES                            */

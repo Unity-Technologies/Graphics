@@ -3,12 +3,48 @@ using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.IO;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {
-        // This script is a helper for the artists to re-synchronise all layered materials
+        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
+        static void AddAdditionalLightData()
+        {
+            Light[] lights = GameObject.FindObjectsOfType(typeof(Light)) as Light[];
+
+            foreach (Light light in lights)
+            {
+                // Do not add a component if there already is one.
+                if (light.GetComponent<HDAdditionalLightData>() == null)
+                {
+                    light.gameObject.AddComponent<HDAdditionalLightData>();
+                }
+
+                if (light.GetComponent<AdditionalShadowData>() == null)
+                {
+                    light.gameObject.AddComponent<AdditionalShadowData>();
+                }
+            }
+        }
+
+        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        static void AddAdditionalCameraData()
+        {
+            Camera[] cameras = GameObject.FindObjectsOfType(typeof(Camera)) as Camera[];
+
+            foreach (Camera camera in cameras)
+            {
+                // Do not add a component if there already is one.
+                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                {
+                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                }
+            }
+        }
+
+        // This script is a helper for the artists to re-synchronize all layered materials
         [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
@@ -37,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("HDRenderPipeline/Reset all materials keywords")]
+        [MenuItem("HDRenderPipeline/Test/Reset all materials keywords")]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -81,8 +117,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Funtion used only to check performance of data with and without tessellation
-        [MenuItem("HDRenderPipeline/Debug/Remove tessellation materials (not reversible)")]
+        // Function used only to check performance of data with and without tessellation
+        [MenuItem("HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             Object[] materials = Resources.FindObjectsOfTypeAll<Material>();

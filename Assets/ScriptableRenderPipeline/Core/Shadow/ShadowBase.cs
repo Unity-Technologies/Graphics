@@ -117,6 +117,30 @@ namespace UnityEngine.Experimental.Rendering
 
         public delegate void VariantDelegate( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataContainer );
 
+        public delegate GPUShadowType ShadowLightTypeDelegate(Light l);
+
+        // default implementation based on legacy Unity
+        static public GPUShadowType ShadowLightType(Light l)
+        {
+            GPUShadowType shadowType = GPUShadowType.Unknown;
+
+            switch (l.type)
+            {
+                case LightType.Spot:
+                    shadowType = GPUShadowType.Spot;
+                    break;
+                case LightType.Directional:
+                    shadowType = GPUShadowType.Directional;
+                    break;
+                case LightType.Point:
+                    shadowType = GPUShadowType.Point;
+                    break;
+                // area lights by themselves can't be mapped to any GPU type
+            }
+
+            return shadowType;
+        }
+
         struct Dels
         {
             public VariantDelegate low;
@@ -139,16 +163,30 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         Override[] m_GlobalOverrides = new Override[(int)GPUShadowType.MAX];
+        ShadowLightTypeDelegate m_shadowLightType;
 
         Dictionary<ShadowAlgorithm, Entry>[] m_Entries = new Dictionary<ShadowAlgorithm, Entry>[ShadowConstants.Counts.k_GPUShadowType]
                                                         {   new Dictionary<ShadowAlgorithm, Entry>(),
                                                             new Dictionary<ShadowAlgorithm, Entry>(),
                                                             new Dictionary<ShadowAlgorithm, Entry>() };
 
+        // Init default delegate
+        public ShadowRegistry() { m_shadowLightType = ShadowLightType;  }
+
         public void ClearRegistry()
         {
             foreach( var d in m_Entries )
                 d.Clear();
+        }
+
+        public GPUShadowType GetShadowLightType(Light l)
+        {
+            return m_shadowLightType(l);
+        }
+
+        public void SetShadowLightTypeDelegate(ShadowLightTypeDelegate del)
+        {
+            m_shadowLightType = del;
         }
 
         public void Register( GPUShadowType type, ShadowPrecision precision, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
@@ -233,11 +271,10 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Draw( Light l )
         {
-            AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
-            Debug.Assert(ald != null, "Light has no valid AdditionalLightData component attached.");
+            AdditionalShadowData asd = l.GetComponent<AdditionalShadowData>();
+            Debug.Assert(asd != null, "Light has no valid AdditionalShadowData component attached.");
 
-            GPUShadowType shadowType;
-            ShadowUtils.MapLightType( ald.archetype, l.type, out shadowType );
+            GPUShadowType shadowType = GetShadowLightType(l);
 
             // check if this has supported shadows
             if( (int) shadowType >= ShadowConstants.Counts.k_GPUShadowType )
@@ -255,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering
                 shadowPrecision = (int) m_GlobalOverrides[(int)shadowType].precision;
             }
             else
-                ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant, out shadowPrecision );
+                asd.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant, out shadowPrecision );
 
             DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant, (ShadowPrecision) shadowPrecision, globalOverride );
         }
@@ -325,11 +362,11 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
+            AdditionalShadowData asd = l.GetComponent<AdditionalShadowData>();
             GPUShadowAlgorithm packedAlgo = ShadowUtils.Pack( shadowAlgorithm, shadowVariant, shadowPrecision );
             int[] shadowData = null;
             if( !GUILayout.Button( "Reset", GUILayout.MaxWidth( 80.0f ) ) )
-                shadowData = ald.GetShadowData( (int) packedAlgo );
+                shadowData = asd.GetShadowData( (int) packedAlgo );
 
             UnityEditor.EditorGUILayout.EndHorizontal();
 
@@ -337,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering
                 e.variantDels[(int) shadowVariant].low( l, shadowAlgorithm, shadowVariant, shadowPrecision, ref shadowData );
             else
                 e.variantDels[(int) shadowVariant].high( l, shadowAlgorithm, shadowVariant, shadowPrecision, ref shadowData );
-            ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
+            asd.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
 
             UnityEditor.EditorGUI.indentLevel--;
 #endif

@@ -47,7 +47,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_Command == null)
             {
-                m_Command = new CommandBuffer { name = "Ambient Occlusion" };
+                m_Command = new CommandBuffer();
+                m_Command.name = "Ambient Occlusion";
             }
             else
             {
@@ -107,7 +108,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             Utilities.Destroy(m_Material);
-            if (m_Command != null) m_Command.Dispose();
         }
     }
 }
