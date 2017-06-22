@@ -120,13 +120,17 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
+static const float3 convertSpecularToValue = float3(0.02, 0.04, 0.20);
+
+void FillMaterialIdStandardData(float3 baseColor, int specular, float metallic, inout BSDFData bsdfData)
 {
     bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-    bsdfData.fresnel0 = lerp(float3(specular.xxx), baseColor, metallic);
+    float val = convertSpecularToValue[specular];
+    bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
+}
 
-    // TODO: encode specular
-
+void FillMaterialIdAnisoData(float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
+{
     bsdfData.tangentWS = tangentWS;
     bsdfData.bitangentWS = cross(normalWS, tangentWS);
     ConvertAnisotropyToRoughness(roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
@@ -193,19 +197,24 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
 
+    // IMPORTANT: In case of foward or gbuffer pass we know what we are, we don't need to check specular or aniso to know the materialId, this is because we have static compile shader feature for it
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
-        bsdfData.materialId = surfaceData.anisotropy > 0.0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
-    {
-        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
+    }
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    {
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
+        FillMaterialIdAnisoData(bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
+    }
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    {
+        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -216,9 +225,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 //-----------------------------------------------------------------------------
 // conversion function for deferred
 //-----------------------------------------------------------------------------
-
-// Tetra encoding 10:10 + 2 seems equivalent to oct 11:11, as oct is cheaper use that. Let here for future testing in reflective scene for comparison
-//#define USE_NORMAL_TETRAHEDRON_ENCODING
 
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
@@ -245,36 +251,36 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // RT1 - 10:10:10:2
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
-#ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-    // Encode normal on 20bit + 2bit (faceIndex) with tetrahedal compression
-    uint faceIndex;
-    float2 tetraNormalWS = PackNormalTetraEncode(surfaceData.normalWS, faceIndex);
-    // Store faceIndex on two bits with perceptualRoughness
-    outGBuffer1 = float4(tetraNormalWS * 0.5 + 0.5, PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), faceIndex, 4.0), PackMaterialId(surfaceData.materialId));
-#else
     // Encode normal on 20bit with oct compression + 2bit of sign
     float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
     // Store octNormalSign on two bits with perceptualRoughness
     outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), PackMaterialId(surfaceData.materialId));
-#endif
 
     // RT2 - 8:8:8:8
     if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
     {
+        // Encode specular on two bit for the enum
+        outGBuffer2 = float4(0.0, 0.0, 0.0, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
+    }
+    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
+    {
+        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 to store it in gbuffer2 instead
+        // Encode specular on two bit for the enum, must match encoding of MATERIALID_LIT_STANDARD
+        // TODO: encoding here could be optimize as we know what is the value of surfaceData.specular => (0.75294)
+        outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, surfaceData.specular, 4.0));
+    }
+    else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
+    {
+        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 and use aniso value instead to detect we are aniso
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-        // TODO: store metal and specular together, specular should be an enum (fixed value)
-        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, surfaceData.metallic);
+        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
         outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0, PackByte(surfaceData.subsurfaceProfile));
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
-    {
-        outGBuffer2 = float4(surfaceData.specularColor, 0.0);
     }
 
     // Lighting
@@ -356,61 +362,65 @@ void DecodeFromGBuffer(
     float3 baseColor = inGBuffer0.rgb;
     bsdfData.specularOcclusion = inGBuffer0.a;
 
-#ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-    int faceIndex;
-    UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, faceIndex);
-    bsdfData.normalWS = UnpackNormalTetraEncode(inGBuffer1.xy * 2.0 - 1.0, faceIndex);
-#else
     int octNormalSign;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
     inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
     inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
-#endif
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
-    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
+    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
     int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
-    int supportsSpecular = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
 
-    if(supportsStandard + supportsSSS + supportsSpecular > 1)
+    if (supportsStandard + supportsSSS > 1)
     {
         bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);   // only fetch materialid if it is not statically known from feature flags
     }
     else
     {
         // materialid is statically known. this allows the compiler to eliminate a lot of code.
-        if(supportsStandard) bsdfData.materialId = MATERIALID_LIT_STANDARD;
-        else if(supportsSSS) bsdfData.materialId = MATERIALID_LIT_SSS;
-        else bsdfData.materialId = MATERIALID_LIT_SPECULAR;
+        if (supportsStandard)
+            bsdfData.materialId = MATERIALID_LIT_STANDARD;
+        else // if (supportsSSS)
+            bsdfData.materialId = MATERIALID_LIT_SSS;
     }
 
     if (supportsStandard && bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        float metallic = inGBuffer2.a;
-        float specular = 0.04; // TODO extract spec
+        float metallic;
+        int specular;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, specular);
         float anisotropy = inGBuffer2.b;
-        float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-        FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
 
-        if ((featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0 || anisotropy > 0)
+        if (((featureFlags & MATERIALFEATUREFLAGS_LIT_SPECULAR) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0)
+            || specular == SPECULARVALUE_SPECULAR_COLOR)
+        {
+            bsdfData.materialId = MATERIALID_LIT_SPECULAR;
+            bsdfData.diffuseColor = baseColor;
+            bsdfData.fresnel0 = inGBuffer2.rgb;
+        }
+        else if ( ((featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0)
+                || anisotropy > 0)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
+            FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+            float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+            FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
         }
+        else
+        {
+            FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+        }
+
     }
-    else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
+    else // if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         float subsurfaceRadius  = inGBuffer2.x;
         float thickness         = inGBuffer2.y;
         int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
-    }
-    else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
-    {
-        bsdfData.diffuseColor = baseColor;
-        bsdfData.fresnel0 = inGBuffer2.rgb;
     }
 
     bakeDiffuseLighting = inGBuffer3.rgb;
@@ -449,21 +459,33 @@ uint MaterialFeatureFlagsFromGBuffer(
 #endif
 
     int materialId = UnpackMaterialId(inGBuffer1.a);
-    float anisotropy = inGBuffer2.b;
 
     uint featureFlags = 0;
     if (materialId == MATERIALID_LIT_STANDARD)
     {
-        featureFlags |= (anisotropy > 0) ? MATERIALFEATUREFLAGS_LIT_ANISO : MATERIALFEATUREFLAGS_LIT_STANDARD;
+        float metallic;
+        int specular;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, specular);
+        float anisotropy = inGBuffer2.b;
+
+        if (specular == SPECULARVALUE_SPECULAR_COLOR)
+        {
+            featureFlags |= MATERIALFEATUREFLAGS_LIT_SPECULAR;
+        }
+        else if (anisotropy > 0.0)
+        {
+            featureFlags |= MATERIALFEATUREFLAGS_LIT_ANISO;
+        }
+        else
+        {
+            featureFlags |= MATERIALFEATUREFLAGS_LIT_STANDARD;
+        }
     }
     else if (materialId == MATERIALID_LIT_SSS)
     {
         featureFlags |= MATERIALFEATUREFLAGS_LIT_SSS;
     }
-    else if (materialId == MATERIALID_LIT_SPECULAR)
-    {
-        featureFlags |= MATERIALFEATUREFLAGS_LIT_SPECULAR;
-    }
+
     return featureFlags;
 }
 
