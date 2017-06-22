@@ -452,11 +452,7 @@ float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vPw,
 }
 
 // fragment shader main
-#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-	half4 fragForward(VertexOutputForwardNew i) : SV_Target3
-#else
-	half4 fragForward(VertexOutputForwardNew i) : SV_Target
-#endif                                               
+half4 singlePassForward(VertexOutputForwardNew i)                               
 {
 	//float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
     //float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
