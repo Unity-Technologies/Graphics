@@ -256,10 +256,25 @@ namespace UnityEditor.VFX
                     {
                         var spawnDescs = spawnerContext.children.Select(b =>
                             {
+                                var spawner = b as VFXAbstractSpawner;
+                                if (spawner == null)
+                                {
+                                    throw new InvalidCastException("Unexpected type in spawnerContext");
+                                }
+
+                                if (spawner.spawnerType == VFXSpawnerType.kCustomCallback && spawner.customBehavior == null)
+                                {
+                                    throw new Exception("VFXAbstractSpawner excepts a custom behavior for custom callback type");
+                                }
+
+                                if (spawner.spawnerType != VFXSpawnerType.kCustomCallback && spawner.customBehavior != null)
+                                {
+                                    throw new Exception("VFXAbstractSpawner only expects a custom behavior for custom callback type");
+                                }
                                 return new VFXSpawnerDesc()
                                 {
-                                    customBehavior = null,
-                                    type = (b as VFXAbstractSpawner).spawnerType
+                                    customBehavior = spawner.customBehavior,
+                                    type = spawner.spawnerType
                                 };
                             }).ToArray();
                         int spawnerIndex = vfxAsset.AddSpawner(spawnDescs, (uint)spawnerContext.GetParent().GetIndex(spawnerContext));
