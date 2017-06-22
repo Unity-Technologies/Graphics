@@ -120,12 +120,12 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-static const float3 arraySpecularValue = float3(SPECULARVALUE_WATER, SPECULARVALUE_REGULAR, SPECULARVALUE_GEMSTONE);
+static const float3 convertSpecularToValue = float3(0.02, 0.04, 0.20);
 
 void FillMaterialIdStandardData(float3 baseColor, int specular, float metallic, inout BSDFData bsdfData)
 {
     bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-    float val = arraySpecularValue[specular];
+    float val = convertSpecularToValue[specular];
     bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
 }
 
@@ -268,7 +268,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 to store it in gbuffer2 instead
         // Encode specular on two bit for the enum, must match encoding of MATERIALID_LIT_STANDARD
-        // TODO: encoding here could be optimize as we know what is the value of surfaceData.specular
+        // TODO: encoding here could be optimize as we know what is the value of surfaceData.specular => (0.75294)
         outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, surfaceData.specular, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
@@ -404,6 +404,7 @@ void DecodeFromGBuffer(
                 || anisotropy > 0)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
+            FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
             float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
             FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
         }
@@ -411,6 +412,7 @@ void DecodeFromGBuffer(
         {
             FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
         }
+
     }
     else // if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {

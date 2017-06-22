@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public enum SpecularValue
         {
+            // Value are defined in the tab name convertSpecularToValue in lit.hlsl
             Water = 0, // 0.02  Water or ice
             Regular = 1, // 0.04 regular dieletric
             Gemstone = 2, // 0.20
