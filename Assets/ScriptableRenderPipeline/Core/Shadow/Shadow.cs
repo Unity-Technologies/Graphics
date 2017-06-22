@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 using System;
-
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering
             Object.DestroyImmediate(m_DebugMaterial);
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             for( uint i = 0, cnt = sr.facecount; i < cnt; ++i )
             {
@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
             return Reserve( frameId, ref shadowData, sr, m_TmpWidths, m_TmpHeights, ref entries, ref payload, lights );
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             if( m_FrameId.frameCount != frameId.frameCount )
                 m_ActiveEntriesCount = 0;
@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering
                 bit <<= 1;
             }
 
-            WritePerLightPayload( ref lights[sr.index], sr, ref sd, ref payload, ref originalPayloadCount );
+            WritePerLightPayload(lights, sr, ref sd, ref payload, ref originalPayloadCount );
 
             return true;
         }
@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
-        virtual protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        virtual protected void WritePerLightPayload(List<VisibleLight> lights, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
         {
             ShadowPayload sp = new ShadowPayload();
             if( sr.shadowType == GPUShadowType.Directional )
@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering
             ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
             if( algo == ShadowAlgorithm.PCF )
             {
-                AdditionalShadowData asd = light.light.GetComponent<AdditionalShadowData>();
+                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
                 if( !asd )
                     return;
 
@@ -429,7 +429,7 @@ namespace UnityEngine.Experimental.Rendering
             cb.ClearRenderTarget( true, !IsNativeDepth(), m_ClearColor );
         }
 
-        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
+        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
         {
             var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), renderContext);
 
@@ -494,7 +494,7 @@ namespace UnityEngine.Experimental.Rendering
             profilingSample.Dispose();
         }
 
-        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
+        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, List<VisibleLight> lights)
         {
             if( !IsNativeDepth() )
                 cb.ReleaseTemporaryRT( m_TempDepthId );
@@ -869,11 +869,11 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
-        override protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        override protected void WritePerLightPayload(List<VisibleLight> lights, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
         {
-            base.WritePerLightPayload( ref light, sr, ref sd, ref payload, ref payloadOffset );
+            base.WritePerLightPayload(lights, sr, ref sd, ref payload, ref payloadOffset );
 
-            AdditionalShadowData asd = light.light.GetComponent<AdditionalShadowData>();
+            AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
             if( !asd )
                 return;
 
@@ -929,7 +929,7 @@ namespace UnityEngine.Experimental.Rendering
             cb.ClearRenderTarget( true, true, m_ClearColor );
         }
 
-        protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
+        protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, List<VisibleLight> lights)
         {
             cb.name = "VSM conversion";
             if ( rendertargetSlice == uint.MaxValue )
@@ -1152,7 +1152,7 @@ namespace UnityEngine.Experimental.Rendering
             cullingParams.shadowDistance = Mathf.Min( m_ShadowSettings.maxShadowDistance, cullingParams.shadowDistance );
         }
 
-        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
+        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
         {
             shadowDataIndices = null;
 
@@ -1213,7 +1213,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        protected override void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests )
+        protected override void PrioritizeShadowCasters( Camera camera, List<VisibleLight> lights, uint shadowRequestsCount, int[] shadowRequests )
         {
             // this function simply looks at the projected area on the screen, ignoring all light types and shapes
             m_TmpSortKeys.Reset( shadowRequestsCount );
@@ -1236,7 +1236,7 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & 0xffffffff); } );
         }
 
-        protected override void PruneShadowCasters( Camera camera, VisibleLight[] lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
+        protected override void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
         {
             Debug.Assert( shadowRequests.Count() > 0 );
             // at this point the array is sorted in order of some importance determined by the prioritize function
@@ -1286,7 +1286,7 @@ namespace UnityEngine.Experimental.Rendering
                 if( add )
                 {
                     sreq.instanceId = vl.light.GetInstanceID();
-                    sreq.index      = (uint) requestIdx;
+                    sreq.index      = requestIdx;
                     sreq.facemask   = (uint) (1 << facecount) - 1;
                     sreq.shadowType = shadowType;
 
@@ -1306,7 +1306,7 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( ref shadowRequests, (long idx) => { return (int) idx; } );
         }
 
-        protected override void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
+        protected override void AllocateShadows( FrameId frameId, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
         {
             ShadowData sd = new ShadowData();
             shadowDatas.Reserve( totalGranted );
@@ -1343,7 +1343,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
+        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
         {
             using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", renderContext))
             {
