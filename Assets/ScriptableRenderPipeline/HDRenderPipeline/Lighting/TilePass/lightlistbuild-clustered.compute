@@ -19,16 +19,18 @@
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 #define CONV_HULL_TEST_ENABLED
 
-uniform int g_iNrVisibLights;
-uniform float4x4 g_mInvScrProjection;
-uniform float4x4 g_mScrProjection;
-uniform int _EnvLightIndexShift;
+CBUFFER_START(UnityLightListClustered)
+int g_iNrVisibLights;
+float4x4 g_mInvScrProjection;
+float4x4 g_mScrProjection;
+int _EnvLightIndexShift;
 
-uniform float g_fClustScale;
-uniform float g_fClustBase;
-uniform float g_fNearPlane;
-uniform float g_fFarPlane;
-uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+float g_fClustScale;
+float g_fClustBase;
+float g_fNearPlane;
+float g_fFarPlane;
+int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+CBUFFER_END
 
 #include "ClusteredUtils.hlsl"
 

@@ -339,21 +339,21 @@ void UnpackFloatInt(float val, float maxi, float precision, out float f, out int
     float t2 = (precision / maxi) / precisionMinusOne;
 
     // extract integer part
-    i = int(val / t2);
+    i = int((val / t2) + rcp(precisionMinusOne)); // + rcp(precisionMinusOne) to deal with precision issue (can't use round() as val contain the floating number
     // Now that we have i, solve formula in PackFloatInt for f
     //f = (val - t2 * float(i)) / t1 => convert in mads form
-    f = (-t2 * float(i) + val) / t1;
+    f = saturate((-t2 * float(i) + val) / t1); // Saturate in case of precision issue
 }
 
 // Define various variante for ease of read
 float PackFloatInt8bit(float f, int i, float maxi)
 {
-    return PackFloatInt(f, i, maxi, 255.0);
+    return PackFloatInt(f, i, maxi, 256.0);
 }
 
 void UnpackFloatInt8bit(float val, float maxi, out float f, out int i)
 {
-    UnpackFloatInt(val, maxi, 255.0, f, i);
+    UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
 float PackFloatInt10bit(float f, int i, float maxi)

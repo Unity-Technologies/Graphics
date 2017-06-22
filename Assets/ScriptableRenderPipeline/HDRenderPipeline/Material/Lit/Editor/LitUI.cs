@@ -291,7 +291,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap);
         }
 
-        protected void ShaderStandardInputGUI()
+        protected void ShaderAnisoInputGUI()
         {
             if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.TangentSpace)
             {
@@ -315,7 +315,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
 
-            if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard)
+            if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
             {
                 m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
             }
@@ -368,7 +368,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     ShaderSSSInputGUI(material);
                     break;
                 case Lit.MaterialId.LitStandard:
-                    ShaderStandardInputGUI();
+                    // Nothing
+                    break;
+                case Lit.MaterialId.LitAniso:
+                    ShaderAnisoInputGUI();
                     break;
                 case Lit.MaterialId.LitSpecular:
                     m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
@@ -503,6 +506,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV2");
                 material.DisableKeyword("_REQUIRE_UV3");
             }
+
+            Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
+
+            SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
+            //SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
+            SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
+            SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
         }
     }
 } // namespace UnityEditor

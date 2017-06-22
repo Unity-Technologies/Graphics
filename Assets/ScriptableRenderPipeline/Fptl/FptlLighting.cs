@@ -419,10 +419,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         static void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext loop)
         {
             // setup GBuffer for rendering
-            var cmd = new CommandBuffer { name = "Create G-Buffer" };
+            var cmd = CommandBufferPool.Get ("Create G-Buffer");
             SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
 
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
@@ -439,7 +439,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
         {
-            var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
+            var cmd = CommandBufferPool.Get(opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" );
 
             bool useFptl = opaquesOnly && usingFptl;     // requires depth pre-pass for forward opaques!
 
@@ -449,7 +449,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
 
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
+
 
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
@@ -465,10 +466,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, ScriptableRenderContext loop)
         {
-            var cmd = new CommandBuffer { name = "Forward Opaques - Depth Only" };
+            var cmd = CommandBufferPool.Get("Forward Opaques - Depth Only" );
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
 
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
@@ -492,16 +493,17 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
         {
-            var cmd = new CommandBuffer { name = "Copy depth" };
+            var cmd = CommandBufferPool.Get("Copy depth");
             cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
+
         }
 
         void DoTiledDeferredLighting(Camera camera, ScriptableRenderContext loop, int numLights, int numDirLights)
         {
             var bUseClusteredForDeferred = !usingFptl;
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
             m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -634,7 +636,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraTarget), new RenderTargetIdentifier(s_CameraDepthTexture));
 
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
         }
 
         private static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
@@ -737,7 +739,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     dirLightCount++;
                 }
             }
-            s_DirLightList.SetData(lights.ToArray());
+            s_DirLightList.SetData(lights);
 
             return dirLightCount;
         }
@@ -749,19 +751,19 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 m_FrameId.frameCount++;
                 // get the indices for all lights that want to have shadows
                 m_ShadowRequests.Clear();
-                m_ShadowRequests.Capacity = inputs.visibleLights.Length;
-                int lcnt = inputs.visibleLights.Length;
+                m_ShadowRequests.Capacity = inputs.visibleLights.Count;
+                int lcnt = inputs.visibleLights.Count;
                 for (int i = 0; i < lcnt; ++i)
                 {
                     VisibleLight vl = inputs.visibleLights[i];
-                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalLightData>().shadowDimmer > 0.0f)
+                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
                         m_ShadowRequests.Add(i);
                 }
                 // pass this list to a routine that assigns shadows based on some heuristic
                 uint shadowRequestCount = (uint)m_ShadowRequests.Count;
                 int[] shadowRequests = m_ShadowRequests.ToArray();
                 int[] shadowDataIndices;
-                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
+                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights.ToArray(),
                     ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                 // update the visibleLights with the shadow information
@@ -804,8 +806,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
 
-            var numLights = inputs.visibleLights.Length;
-            var numProbes = probes.Length;
+            var numLights = inputs.visibleLights.Count;
+            var numProbes = probes.Count;
             var numVolumes = numLights + numProbes;
 
 
@@ -1072,6 +1074,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return numLightsOut + numProbesOut;
         }
 
+        CullResults m_CullResults;
         public void Render(ScriptableRenderContext renderContext, IEnumerable<Camera> cameras)
         {
             foreach (var camera in cameras)
@@ -1082,8 +1085,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
                 m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
 
-                var cullResults = CullResults.Cull(ref cullingParams, renderContext);
-                ExecuteRenderLoop(camera, cullResults, renderContext);
+                CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
+                ExecuteRenderLoop(camera, m_CullResults, renderContext);
             }
 
             renderContext.Submit();
@@ -1091,10 +1094,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         void FinalPass(ScriptableRenderContext loop)
         {
-            var cmd = new CommandBuffer { name = "FinalPass" };
+            var cmd = CommandBufferPool.Get("FinalPass");
             cmd.Blit(s_CameraTarget, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
+
         }
 
         void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
@@ -1130,7 +1134,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
 
-            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
+            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights.ToArray() );
             m_ShadowMgr.SyncData();
             m_ShadowMgr.BindResources( loop );
 
@@ -1151,7 +1155,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (enableClustered) RenderForward(cullResults, camera, loop, false);
 
             // debug views.
-            if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
+            if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Count);
 
             // present frame buffer.
             FinalPass(loop);
@@ -1159,21 +1163,23 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             // bind depth surface for editor grid/gizmo/selection rendering
             if (camera.cameraType == CameraType.SceneView)
             {
-                var cmd = new CommandBuffer();
+                var cmd = CommandBufferPool.Get();
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
                 loop.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                CommandBufferPool.Release(cmd);
+
             }
             loop.Submit();
         }
 
         void DrawLightBoundsDebug(ScriptableRenderContext loop, int numLights)
         {
-            var cmd = new CommandBuffer { name = "DrawLightBoundsDebug" };
+            var cmd = CommandBufferPool.Get("DrawLightBoundsDebug");
             m_DebugLightBoundsMaterial.SetBuffer("g_data", s_ConvexBoundsBuffer);
             cmd.DrawProcedural(Matrix4x4.identity, m_DebugLightBoundsMaterial, 0, MeshTopology.Triangles, 12 * 3 * numLights);
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
+
         }
 
         void NewFrame()
@@ -1322,7 +1328,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
 
-            var cmd = new CommandBuffer() { name = "Build light list" };
+            var cmd = CommandBufferPool.Get("Build light list" );
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (numLights != 0)
@@ -1374,12 +1380,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
         }
 
         void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
         {
-            var cmd = new CommandBuffer { name = "Push Global Parameters" };
+            var cmd = CommandBufferPool.Get("Push Global Parameters");
 
             cmd.SetGlobalFloat("g_widthRT", (float)camera.pixelWidth);
             cmd.SetGlobalFloat("g_heightRT", (float)camera.pixelHeight);
@@ -1434,7 +1440,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
 
             loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+
         }
 
         private float PerceptualRoughnessToBlinnPhongPower(float perceptualRoughness)
