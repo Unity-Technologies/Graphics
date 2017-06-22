@@ -360,8 +360,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (distScale == 0 || maxDistInPixels < 1)
                 {
-                    return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #if SSS_DEBUG_LOD
+                        return float4(0, 0, 1, 1);
+                    #else
+                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #endif
                 }
+                
+                #if SSS_DEBUG_LOD
+                    return float4(0.5, 0.5, 0, 1);
+                #endif
 
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance = sampleWeight * sampleIrradiance;
