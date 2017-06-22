@@ -1,5 +1,5 @@
-#ifndef __SHADERBASE_H__
-#define __SHADERBASE_H__
+#ifndef __ONTILE_SHADERBASE_H__
+#define __ONTILE_SHADERBASE_H__
 
 half2 DirectionToSphericalTexCoordinate(half3 dir_in)
 {
