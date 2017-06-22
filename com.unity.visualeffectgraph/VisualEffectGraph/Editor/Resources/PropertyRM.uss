@@ -56,10 +56,10 @@
     text-color:#BBB;
 
     
-	border-width-left:0;
-	border-width-right:0;
-	border-width-top:0;
-	border-width-bottom:0;
+	border-left-width:0;
+	border-right-width:0;
+	border-top-width:0;
+	border-bottom-width:0;
     
 	-background-color:#414141;
 	background-image:resource("textfield");
@@ -112,10 +112,10 @@ BoolPropertyRM Toogle
     height:17;
     border-color:#F00;
     
-	border-width-left:2;
-	border-width-right:2;
-	border-width-top:2;
-	border-width-bottom:2;
+	border-left-width:2;
+	border-right-width:2;
+	border-top-width:2;
+	border-bottom-width:2;
 }
 
 ColorPropertyRM
@@ -134,10 +134,10 @@ ColorPropertyRM .colordisplay
 ColorPropertyRM .colorcontainer
 {
 	flex:1;
-	border-width-left:1;
-	border-width-right:1;
-	border-width-top:1;
-	border-width-bottom:1;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
     border-top:1;
     border-bottom:1;
     border-left:1;
@@ -169,10 +169,10 @@ CurveField .curve
 {
     flex:1;
     height:13;
-	border-width-left:1;
-	border-width-right:1;
-	border-width-top:1;
-	border-width-bottom:1;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
     border-color:#000;
 }
 CurvePropertyRM CurveField
