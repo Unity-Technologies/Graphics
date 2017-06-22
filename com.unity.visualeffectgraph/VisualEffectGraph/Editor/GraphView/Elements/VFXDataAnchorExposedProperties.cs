@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 
@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.UI
         const string IMPaddingProperty = "im-padding";
 
 
-        Style<Texture2D> m_SelectedFieldBackground;
-        Style<int> m_IMBorder;
-        Style<int> m_IMPadding;
+        StyleValue<Texture2D> m_SelectedFieldBackground;
+        StyleValue<int> m_IMBorder;
+        StyleValue<int> m_IMPadding;
         public Texture2D selectedFieldBackground
         {
             get
@@ -38,9 +38,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnStylesResolved(ICustomStyles styles)
+        public override void OnStyleResolved(ICustomStyle styles)
         {
-            base.OnStylesResolved(styles);
+            base.OnStyleResolved(styles);
 
             styles.ApplyCustomProperty(SelectedFieldBackgroundProperty, ref m_SelectedFieldBackground);
             styles.ApplyCustomProperty(IMBorderProperty, ref m_IMBorder);

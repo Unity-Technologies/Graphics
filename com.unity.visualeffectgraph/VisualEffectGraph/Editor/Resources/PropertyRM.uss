@@ -55,7 +55,11 @@
 {
     text-color:#BBB;
 
-    border-width:0;
+    
+	border-left-width:0;
+	border-right-width:0;
+	border-top-width:0;
+	border-bottom-width:0;
     
 	-background-color:#414141;
 	background-image:resource("textfield");
@@ -107,7 +111,11 @@ BoolPropertyRM Toogle
     width:17;
     height:17;
     border-color:#F00;
-    border-width:2;
+    
+	border-left-width:2;
+	border-right-width:2;
+	border-top-width:2;
+	border-bottom-width:2;
 }
 
 ColorPropertyRM
@@ -126,7 +134,10 @@ ColorPropertyRM .colordisplay
 ColorPropertyRM .colorcontainer
 {
 	flex:1;
-    border-width:1;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
     border-top:1;
     border-bottom:1;
     border-left:1;
@@ -158,7 +169,10 @@ CurveField .curve
 {
     flex:1;
     height:13;
-    border-width:1;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
     border-color:#000;
 }
 CurvePropertyRM CurveField

@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
 
                     GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
-                    float realWidth = edge.presenter.selected ? edge.borderWidth * 2 : edge.borderWidth;
+                    float realWidth = edge.presenter.selected ? edge.borderBottomWidth * 2 : edge.borderBottomWidth;
                     if (realWidth * view.scale < 1.5f)
                     {
                         realWidth = 1.5f / view.scale;
