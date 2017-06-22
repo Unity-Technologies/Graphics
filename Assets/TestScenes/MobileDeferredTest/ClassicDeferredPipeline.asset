@@ -18,7 +18,7 @@ MonoBehaviour:
   m_TextureSettings:
     spotCookieSize: 512
     pointCookieSize: 128
-    reflectionCubemapSize: 128
+    reflectionCubemapSize: 256
   UseLegacyCookies: 1
   TransparencyShadows: 0
   m_PointLightMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
