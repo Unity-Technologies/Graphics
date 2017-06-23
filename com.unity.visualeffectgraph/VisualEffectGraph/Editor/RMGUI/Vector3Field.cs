@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -18,9 +18,9 @@ namespace UnityEditor.VFX.UIElements
             m_Y = new FloatField("Y");
             m_Z = new FloatField("Z");
 
-            m_X.onValueChanged = OnXValueChanged;
-            m_Y.onValueChanged = OnYValueChanged;
-            m_Z.onValueChanged = OnZValueChanged;
+            m_X.OnValueChanged = OnXValueChanged;
+            m_Y.OnValueChanged = OnYValueChanged;
+            m_Z.OnValueChanged = OnZValueChanged;
         }
 
         void OnXValueChanged()

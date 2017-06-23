@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField = new EditorTextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
-            m_TextField.onTextChanged = OnTextChanged;
+            m_TextField.OnTextChanged = OnTextChanged;
         }
 
         public IntField(string label) : base(label)
@@ -36,14 +36,14 @@ namespace UnityEditor.VFX.UIElements
                 m_Label.AddManipulator(new DragValueManipulator<int>(this, null));
         }
 
-        void OnTextChanged()
+        void OnTextChanged(string str)
         {
             m_Value = 0;
             int.TryParse(m_TextField.text, out m_Value);
 
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
@@ -61,9 +61,9 @@ namespace UnityEditor.VFX.UIElements
             m_Value = value;
             ValueToGUI();
 
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 

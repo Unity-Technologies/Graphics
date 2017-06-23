@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected T m_Value;
 
-        public System.Action onValueChanged;
+        public System.Action OnValueChanged;
 
         protected abstract void ValueToGUI();
     }
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField = new EditorTextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
-            m_TextField.onTextChanged = OnTextChanged;
+            m_TextField.OnTextChanged = OnTextChanged;
         }
 
         public FloatField(string label) : base(label)
@@ -63,14 +63,14 @@ namespace UnityEditor.VFX.UIElements
             AddChild(m_TextField);
         }
 
-        void OnTextChanged()
+        void OnTextChanged(string str)
         {
             m_Value = 0;
             float.TryParse(m_TextField.text, out m_Value);
 
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
@@ -96,9 +96,9 @@ namespace UnityEditor.VFX.UIElements
             m_Value = value;
             ValueToGUI();
 
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
