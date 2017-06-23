@@ -227,9 +227,12 @@ float4   _InvProjParam;
 float4   _ScreenSize;
 CBUFFER_END
 
-#ifndef SHADER_VARIABLES_WITHOUT_MACRO_FUNCTIONALITY
+#ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
+    #include "ShaderVariablesMatrixDefsLegacyUnity.hlsl"
+#else
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
-    #include "ShaderVariablesFunctions.hlsl"
 #endif
+
+#include "ShaderVariablesFunctions.hlsl"
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

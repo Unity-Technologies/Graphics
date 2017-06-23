@@ -23,6 +23,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             //-------------------------------------------------------------------------------------
 
             #include "../../../ShaderLibrary/Common.hlsl"
+            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC
             #include "../../Material/Lit/SubsurfaceScatteringProfile.cs.hlsl"
@@ -58,8 +59,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                // GUI code set up by Unity - do not modify.
-                output.vertex   = mul(unity_MatrixVP, float4(input.vertex, 1));
+                output.vertex   = TransformWorldToHClip(input.vertex);
                 output.texcoord = input.texcoord.xy;
                 return output;
             }

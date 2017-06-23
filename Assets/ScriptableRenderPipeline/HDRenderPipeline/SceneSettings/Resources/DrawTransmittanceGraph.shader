@@ -22,6 +22,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             #include "../../../ShaderLibrary/CommonMaterial.hlsl"
             #include "../../../ShaderLibrary/Common.hlsl"
+            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
@@ -49,8 +50,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                // GUI code set up by Unity - do not modify.
-                output.vertex   = mul(unity_MatrixVP, float4(input.vertex, 1));
+                output.vertex   = TransformWorldToHClip(input.vertex);
                 output.texcoord = input.texcoord.xy;
                 return output;
             }
