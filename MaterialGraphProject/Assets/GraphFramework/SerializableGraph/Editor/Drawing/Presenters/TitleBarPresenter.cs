@@ -47,11 +47,6 @@ namespace UnityEditor.Graphing.Drawing
 			showInProjectItem.onClick += OnShowInProjectClick;
 			m_leftItems.Add(showInProjectItem);
 
-			var selectGraph = CreateInstance<TitleBarButtonPresenter>();
-			selectGraph.text = "Select Graph";
-			selectGraph.onClick += SelectGraph;
-			m_leftItems.Add(selectGraph);
-
             var optionsItem = CreateInstance<TitleBarButtonPresenter>();
 			optionsItem.text = "Time";
 			optionsItem.onClick += ToggleTime;
@@ -87,31 +82,9 @@ namespace UnityEditor.Graphing.Drawing
 			}
 			return assets;
 		}
-
-		void SelectGraph()
-		{
-			var options = FindAssets();
-			var gm = new GenericMenu ();
-			foreach (var option in options) {
-				gm.AddItem (new GUIContent (AssetDatabase.GetAssetPath (option.GetScriptableObject())), false, Callback, new CallbackData(){asset = option, owner = m_Owner});
-						
-			}
-			gm.ShowAsContext ();
-		}
-
-		void Callback(object userData)
-		{
-			if (!(userData is CallbackData))
-				return;
-
-			var cbData = (CallbackData)userData;
-			cbData.owner.ChangeSelction (cbData.asset);
-		}
-
+        
         void UpdateAsset()
         {
-			//TODO: We need two currently.. fix later
-			m_Owner.UpdateAsset ();
 			m_Owner.UpdateAsset ();
         }
 

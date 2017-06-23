@@ -1,6 +1,5 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {

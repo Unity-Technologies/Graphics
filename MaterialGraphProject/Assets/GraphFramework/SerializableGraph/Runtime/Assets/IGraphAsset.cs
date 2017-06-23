@@ -8,4 +8,5 @@ namespace UnityEngine.Graphing
         ScriptableObject GetScriptableObject();
         void OnEnable();
     }
+
 }

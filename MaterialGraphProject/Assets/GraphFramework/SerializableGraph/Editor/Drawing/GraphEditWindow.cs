@@ -4,10 +4,9 @@ namespace UnityEditor.Graphing.Drawing
 {
     public class GraphEditWindow : AbstractGraphEditWindow
     {
-        [MenuItem("Window/Graph Editor")]
-        public static void OpenMenu()
+        public GraphEditWindow(string path)
         {
-            GetWindow<GraphEditWindow>();
+
         }
     }
 }

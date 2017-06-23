@@ -1,6 +1,5 @@
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
-using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
