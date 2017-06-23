@@ -298,6 +298,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Cull[_CullMode]
 
+            ZClip Off
             ZWrite On
             ZTest LEqual
 
