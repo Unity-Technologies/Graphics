@@ -472,6 +472,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Cull[_CullMode]
 
+            ZClip Off
             ZWrite On
             ZTest LEqual
 
