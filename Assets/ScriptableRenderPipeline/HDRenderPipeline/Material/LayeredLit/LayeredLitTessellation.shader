@@ -503,6 +503,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             Cull[_CullMode]
 
+            ZClip Off
             ZWrite On
             ZTest LEqual
 
