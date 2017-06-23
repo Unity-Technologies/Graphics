@@ -145,17 +145,9 @@ namespace UnityEditor.VFX
         public List<string> GetAllNames(VFXExpression exp)
         {
             List<string> names = new List<string>();
-            foreach (var mapper in m_ContextsToCPUExpressions.Values)
+            foreach (var mapper in m_ContextsToCPUExpressions.Values.Concat(m_ContextsToGPUExpressions.Values))
             {
-                var name = mapper.GetData(exp).name;
-                if (name != null)
-                    names.Add(name);
-            }
-            foreach (var mapper in m_ContextsToGPUExpressions.Values)
-            {
-                var name = mapper.GetData(exp).name;
-                if (name != null)
-                    names.Add(name);
+                names.AddRange(mapper.GetData(exp).Select(o => o.fullName));
             }
             return names;
         }
@@ -170,7 +162,14 @@ namespace UnityEditor.VFX
             if (inMapper != null)
             {
                 foreach (var exp in inMapper.expressions)
-                    outMapper.AddExpression(GetReduced(exp), inMapper.GetData(exp));
+                {
+                    var reducedExp = GetReduced(exp);
+                    var mappedDataList = inMapper.GetData(exp);
+                    foreach (var mappedData in mappedDataList)
+                    {
+                        outMapper.AddExpression(GetReduced(exp), mappedData);
+                    }
+                }
             }
 
             return outMapper;

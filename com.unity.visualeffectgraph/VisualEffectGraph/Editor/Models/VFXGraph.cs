@@ -220,15 +220,18 @@ namespace UnityEditor.VFX
                         foreach (var exp in cpuMapper.expressions)
                         {
                             VFXExpressionSemanticDesc desc;
-                            var mappedData = cpuMapper.GetData(exp);
-                            desc.blockID = (uint)mappedData.blockId;
-                            desc.contextID = (uint)contextId;
-                            int expIndex = expressionGraph.GetFlattenedIndex(exp);
-                            if (expIndex == -1)
-                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
-                            desc.expressionIndex = (uint)expIndex;
-                            desc.name = mappedData.name;
-                            expressionSemantics.Add(desc);
+                            var mappedDataList = cpuMapper.GetData(exp);
+                            foreach (var mappedData in mappedDataList)
+                            {
+                                desc.blockID = (uint)mappedData.blockId;
+                                desc.contextID = contextId;
+                                int expIndex = expressionGraph.GetFlattenedIndex(exp);
+                                if (expIndex == -1)
+                                    throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
+                                desc.expressionIndex = (uint)expIndex;
+                                desc.name = mappedData.name;
+                                expressionSemantics.Add(desc);
+                            }
                         }
 
                         var gpuMapper = expressionGraph.BuildGPUMapper(context);
@@ -236,7 +239,8 @@ namespace UnityEditor.VFX
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
                         foreach (var exp in gpuMapper.expressions)
                         {
-                            Debug.Log(string.Format("--- {0} {1} {2}", gpuMapper.GetData(exp).name, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
+                            var bindNames = gpuMapper.GetData(exp).Select(o => o.fullName).Aggregate((a, b) => a + "," + b);
+                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
                         }
                     }
 
