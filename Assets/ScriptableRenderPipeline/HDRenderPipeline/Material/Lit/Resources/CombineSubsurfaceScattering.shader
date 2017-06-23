@@ -220,9 +220,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 float3 unused;
 
+                // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material. This shader is strongly coupled with the deferred Lit.shader.
+                // We can use the material classification facility to help the compiler to know we use SSS material and optimize the code (and don't require to read gbuffer with materialId).
+                uint featureFlags = MATERIALFEATUREFLAGS_LIT_SSS;
+
                 BSDFData bsdfData;
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
+                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, unused);
 
                 int    profileID   = bsdfData.subsurfaceProfile;
                 float  distScale   = bsdfData.subsurfaceRadius;
@@ -359,8 +363,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (distScale == 0 || maxDistInPixels < 1)
                 {
-                    return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #if SSS_DEBUG_LOD
+                        return float4(0, 0, 1, 1);
+                    #else
+                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #endif
                 }
+                
+                #if SSS_DEBUG_LOD
+                    return float4(0.5, 0.5, 0, 1);
+                #endif
 
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance = sampleWeight * sampleIrradiance;
