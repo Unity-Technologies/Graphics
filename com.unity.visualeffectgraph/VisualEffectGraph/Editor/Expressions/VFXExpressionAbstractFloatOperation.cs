@@ -29,14 +29,14 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected VFXExpression ToFloatN(float[] input)
+        protected VFXExpression ToFloatN(float[] input,VFXValue.Mode mode)
         {
             switch (input.Length)
             {
-                case 1: return new VFXValue<float>(input[0], true);
-                case 2: return new VFXValue<Vector2>(new Vector2(input[0], input[1]), true);
-                case 3: return new VFXValue<Vector3>(new Vector3(input[0], input[1], input[2]), true);
-                case 4: return new VFXValue<Vector4>(new Vector4(input[0], input[1], input[2], input[3]), true);
+                case 1: return new VFXValue<float>(input[0], mode);
+                case 2: return new VFXValue<Vector2>(new Vector2(input[0], input[1]), mode);
+                case 3: return new VFXValue<Vector3>(new Vector3(input[0], input[1], input[2]), mode);
+                case 4: return new VFXValue<Vector4>(new Vector4(input[0], input[1], input[2], input[3]), mode);
             }
             return null;
         }
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
             {
                 result[iChannel] = ProcessUnaryOperation(source[iChannel]);
             }
-            return ToFloatN(result);
+            return ToFloatN(result,VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
                 result[iChannel] = ProcessBinaryOperation(sourceLeft[iChannel], sourceRight[iChannel]);
             }
 
-            return ToFloatN(result);
+            return ToFloatN(result,VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()
@@ -179,7 +179,7 @@ namespace UnityEditor.VFX
                 result[iChannel] = ProcessTernaryOperation(source_a[iChannel], source_b[iChannel], source_c[iChannel]);
             }
 
-            return ToFloatN(result);
+            return ToFloatN(result,VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()

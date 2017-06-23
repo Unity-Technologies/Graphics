@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Test
             var a = 123.0f;
             var b = 789.0f;
 
-            var valueFloat = new VFXValue<float>(0.0f, true);
+            var valueFloat = new VFXValue<float>(0.0f);
             valueFloat.SetContent(a);
             Assert.AreEqual(a, valueFloat.Get<float>());
 
@@ -77,10 +77,10 @@ namespace UnityEditor.VFX.Test
             var refResultD = new Vector3(d, d, d) - refResultC;
 
             //Using expression system
-            var value_a = new VFXValue<Vector2>(a, true);
-            var value_b = new VFXValue<Vector3>(b, true);
-            var value_c = new VFXValue<float>(c, true);
-            var value_d = new VFXValue<float>(d, true);
+            var value_a = new VFXValue<Vector2>(a);
+            var value_b = new VFXValue<Vector3>(b);
+            var value_c = new VFXValue<float>(c);
+            var value_d = new VFXValue<float>(d);
 
             var addExpression = new VFXExpressionAdd(VFXOperatorUtility.CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);
@@ -158,8 +158,8 @@ namespace UnityEditor.VFX.Test
             var curve = new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.2f, 0.7f), new Keyframe(0.8f, 0.1f), new Keyframe(1, 1));
             var resultRef = curve.Evaluate(a);
 
-            var sampleValue = new VFXValue<float>(a, true);
-            var curveValue = new VFXValue<AnimationCurve>(curve, true);
+            var sampleValue = new VFXValue<float>(a);
+            var curveValue = new VFXValue<AnimationCurve>(curve);
             var sampleCurve = new VFXExpressionSampleCurve(curveValue, sampleValue);
 
             var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
@@ -211,10 +211,10 @@ namespace UnityEditor.VFX.Test
             //var refResultD = new Vector3(d, d, d) - refResultC;
 
             //Using expression system
-            var value_a = new VFXValue<Vector2>(a, true);
-            var value_b = new VFXValue<Vector3>(b, true);
-            var value_c = new VFXValue<float>(c, true);
-            var value_d = new VFXValue<float>(d, true);
+            var value_a = new VFXValue<Vector2>(a);
+            var value_b = new VFXValue<Vector3>(b);
+            var value_c = new VFXValue<float>(c);
+            var value_d = new VFXValue<float>(d);
 
             var addExpression = new VFXExpressionAdd(VFXOperatorUtility.CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);

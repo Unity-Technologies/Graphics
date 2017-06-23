@@ -10,34 +10,34 @@ namespace UnityEditor.VFX
     {
         public static readonly Dictionary<int, VFXExpression> OneExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValue<float>(1.0f, true) },
-            { 2, new VFXValue<Vector2>(Vector2.one, true) },
-            { 3, new VFXValue<Vector3>(Vector3.one, true) },
-            { 4, new VFXValue<Vector4>(Vector4.one, true) },
+            { 1, new VFXValue<float>(1.0f, VFXValue.Mode.Constant) },
+            { 2, new VFXValue<Vector2>(Vector2.one, VFXValue.Mode.Constant) },
+            { 3, new VFXValue<Vector3>(Vector3.one, VFXValue.Mode.Constant) },
+            { 4, new VFXValue<Vector4>(Vector4.one, VFXValue.Mode.Constant) },
         };
 
         public static readonly Dictionary<int, VFXExpression> MinusOneExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValue<float>(-1.0f, true) },
-            { 2, new VFXValue<Vector2>(-Vector2.one, true) },
-            { 3, new VFXValue<Vector3>(-Vector3.one, true) },
-            { 4, new VFXValue<Vector4>(-Vector4.one, true) },
+            { 1, new VFXValue<float>(-1.0f, VFXValue.Mode.Constant) },
+            { 2, new VFXValue<Vector2>(-Vector2.one, VFXValue.Mode.Constant) },
+            { 3, new VFXValue<Vector3>(-Vector3.one, VFXValue.Mode.Constant) },
+            { 4, new VFXValue<Vector4>(-Vector4.one, VFXValue.Mode.Constant) },
         };
 
         public static readonly Dictionary<int, VFXExpression> HalfExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValue<float>(0.5f, true) },
-            { 3, new VFXValue<Vector3>(Vector3.one * 0.5f, true) },
-            { 2, new VFXValue<Vector2>(Vector2.one * 0.5f, true) },
-            { 4, new VFXValue<Vector4>(Vector4.one * 0.5f, true) },
+            { 1, new VFXValue<float>(0.5f, VFXValue.Mode.Constant) },
+            { 3, new VFXValue<Vector3>(Vector3.one * 0.5f, VFXValue.Mode.Constant) },
+            { 2, new VFXValue<Vector2>(Vector2.one * 0.5f, VFXValue.Mode.Constant) },
+            { 4, new VFXValue<Vector4>(Vector4.one * 0.5f, VFXValue.Mode.Constant) },
         };
 
         public static readonly Dictionary<int, VFXExpression> ZeroExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValue<float>(0.0f, true) },
-            { 2, new VFXValue<Vector2>(Vector2.zero, true) },
-            { 3, new VFXValue<Vector3>(Vector3.zero, true) },
-            { 4, new VFXValue<Vector4>(Vector4.zero, true) },
+            { 1, new VFXValue<float>(0.0f, VFXValue.Mode.Constant) },
+            { 2, new VFXValue<Vector2>(Vector2.zero, VFXValue.Mode.Constant) },
+            { 3, new VFXValue<Vector3>(Vector3.zero, VFXValue.Mode.Constant) },
+            { 4, new VFXValue<Vector4>(Vector4.zero, VFXValue.Mode.Constant) },
         };
 
         static public VFXExpression Negate(VFXExpression input)
@@ -198,7 +198,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    outputComponent[iChannel] = new VFXValue<float>(defautValue, true);
+                    outputComponent[iChannel] = new VFXValue<float>(defautValue, VFXValue.Mode.Constant);
                 }
             }
 

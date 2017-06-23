@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Mesh>(null, true);
+            return new VFXValue<Mesh>(null, VFXValue.Mode.FoldableVariable);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Vector3>(Vector3.forward, true);
+            return new VFXValue<Vector3>(Vector3.forward, VFXValue.Mode.FoldableVariable);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
