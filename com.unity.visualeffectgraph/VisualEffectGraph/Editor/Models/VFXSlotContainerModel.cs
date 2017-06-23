@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
         {
             if (type == null)
             {
-                return new VFXSlot[] { };
+                return new VFXSlot[] {};
             }
 
             var slotList = new List<VFXSlot>();
