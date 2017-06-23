@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF
     _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF
-    _ENABLEWIND_OFF _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
+    _ENABLEWIND_OFF _MASKMAP _MATID_SSS _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -166,7 +166,7 @@ Material:
     - _SrcBlend: 1
     - _StencilRef: 1
     - _Stiffness: 1
-    - _SubsurfaceProfile: 0
+    - _SubsurfaceProfile: 3
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
