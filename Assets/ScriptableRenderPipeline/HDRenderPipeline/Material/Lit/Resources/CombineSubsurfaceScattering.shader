@@ -67,7 +67,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
         #ifdef SSS_MODEL_DISNEY
-            /* TODO: THESE ARE PROBABLY BROKEN! float4x4 _ViewMatrix, _ProjMatrix;                                           // TEMP: make these global */
             float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
         #else
