@@ -23,18 +23,18 @@ namespace UnityEditor.VFX.UIElements
         void OnXValueChanged()
         {
             m_Value.x = m_X.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
         void OnYValueChanged()
         {
             m_Value.y = m_Y.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 

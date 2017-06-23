@@ -51,8 +51,8 @@ namespace UnityEditor.VFX.UIElements
             m_Value.postWrapMode = curve.postWrapMode;
             ValueToGUI();
 
-            if (onValueChanged != null)
-                onValueChanged();
+            if (OnValueChanged != null)
+                OnValueChanged();
         }
 
         public CurveField(string label) : base(label)

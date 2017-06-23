@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
             VisualContainer mainContainer = new VisualContainer();
 
             m_ColorField = new ColorField(m_Label);
-            m_ColorField.onValueChanged = OnValueChanged;
+            m_ColorField.OnValueChanged = OnValueChanged;
 
             mainContainer.AddChild(m_ColorField);
             mainContainer.AddToClassList("maincontainer");

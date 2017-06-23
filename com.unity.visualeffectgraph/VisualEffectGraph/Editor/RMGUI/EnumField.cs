@@ -33,9 +33,9 @@ namespace UnityEditor.VFX.UIElements
         void ChangeValue(object val)
         {
             SetValue((int)val);
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 

@@ -232,7 +232,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Field = CreateField();
             m_Field.AddToClassList("fieldContainer");
-            m_Field.onValueChanged += OnValueChanged;
+            m_Field.OnValueChanged += OnValueChanged;
             AddChild(m_Field);
 
             m_Field.enabled = enabled;

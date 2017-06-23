@@ -29,36 +29,36 @@ namespace UnityEditor.VFX.UIElements
         void OnXValueChanged()
         {
             m_Value.x = m_X.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
         void OnYValueChanged()
         {
             m_Value.y = m_Y.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
         void OnZValueChanged()
         {
             m_Value.z = m_Z.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 
         void OnWValueChanged()
         {
             m_Value.w = m_W.GetValue();
-            if (onValueChanged != null)
+            if (OnValueChanged != null)
             {
-                onValueChanged();
+                OnValueChanged();
             }
         }
 

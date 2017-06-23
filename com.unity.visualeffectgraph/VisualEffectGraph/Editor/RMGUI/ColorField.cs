@@ -101,8 +101,8 @@ namespace UnityEditor.VFX.UIElements
         {
             SetValue(color);
 
-            if (onValueChanged != null)
-                onValueChanged();
+            if (OnValueChanged != null)
+                OnValueChanged();
 
             Dirty(ChangeType.Repaint);
         }
