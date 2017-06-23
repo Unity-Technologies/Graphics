@@ -74,7 +74,7 @@ float4 TransformWorldToHClip(float3 positionWS)
 
 float3 GetCurrentCameraPosition()
 {
-#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return _WorldSpaceCameraPos;
 #else
     // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
@@ -97,7 +97,7 @@ float3 GetCameraForwardDir()
 // Returns 'true' if the current camera performs a perspective projection.
 bool IsPerspectiveCamera()
 {
-#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return (unity_OrthoParams.w == 0);
 #else
     // TODO: set 'unity_OrthoParams' during the shadow pass.

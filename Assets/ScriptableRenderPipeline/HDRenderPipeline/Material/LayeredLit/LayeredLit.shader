@@ -480,7 +480,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
