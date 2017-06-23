@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Texture3D>(null, true);
+            return new VFXValue<Texture3D>(null, VFXValue.Mode.FoldableVariable);
         }
     }
 }

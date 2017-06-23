@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Gradient>(new Gradient(), true);
+            return new VFXValue<Gradient>(new Gradient(), VFXValue.Mode.FoldableVariable);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
                 return null;
 
             var floatN = (FloatN)value;
-            return (VFXValue)floatN;
+            return floatN.ToVFXValue(VFXValue.Mode.FoldableVariable);
         }
     }
 }

@@ -7,9 +7,22 @@ namespace UnityEditor.VFX
 {
     abstract class VFXValue : VFXExpression
     {
-        protected VFXValue()
-            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)
-        {}
+        public enum Mode
+        {
+            Variable, // Variable that should never be folded
+            FoldableVariable, // Variable that can be folded
+            Constant, // Immutable value
+        }
+
+        protected VFXValue(Mode mode)
+            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)     
+        {
+            m_Mode = mode;
+            if (mode != Mode.Variable)
+                m_Flags |= Flags.Constant; 
+        }
+
+        public Mode ValueMode { get { return m_Mode; } }
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
@@ -23,47 +36,69 @@ namespace UnityEditor.VFX
             return this;
         }
 
-        abstract public VFXValue CopyExpression(bool isConst);
+        abstract public VFXValue CopyExpression(Mode mode);
 
-        public override bool Equals(object obj) { return ReferenceEquals(this, obj); }
+        public override bool Equals(object obj) 
+        {
+            if (m_Mode == Mode.Constant)
+            {
+                var val = obj as VFXValue;
+                if (val == null)
+                    return false;
+
+                if (ValueType != val.ValueType)
+                    return false;
+
+                var content = GetContent();
+                var otherContent = val.GetContent();
+
+                if (content == null)
+                    return otherContent == null;
+
+                return content.Equals(otherContent);
+            }
+
+            return ReferenceEquals(this, obj); 
+        }
+
         sealed public override int GetHashCode()
         {
+            if (m_Mode == Mode.Constant)
+            {
+                int hashCode = ValueType.GetHashCode();
+                var content = GetContent();
+
+                if (content != null)
+                    hashCode ^= content.GetHashCode();
+
+                return hashCode;
+            }
+
             return RuntimeHelpers.GetHashCode(this);
         }
 
         public abstract void SetContent(object value);
+
+        private Mode m_Mode;
     }
 
     sealed class VFXValue<T> : VFXValue
     {
-        public VFXValue(T content = default(T), bool isConst = true)
+
+
+        public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode)
         {
             m_Content = content;
-            if (isConst)
-            {
-                m_Flags |= Flags.Constant;
-            }
         }
 
-        sealed public override VFXValue CopyExpression(bool isConst)
+        sealed public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXValue<T>();
-            copy.m_Content = m_Content;
-            copy.m_Flags = m_Flags;
-            if (isConst)
-            {
-                copy.m_Flags |= Flags.Constant;
-            }
-            else
-            {
-                copy.m_Flags &= ~Flags.Constant;
-            }
+            var copy = new VFXValue<T>(m_Content,mode);
             return copy;
         }
 
-        private static readonly VFXValue s_Default = new VFXValue<T>();
+        private static readonly VFXValue s_Default = new VFXValue<T>(default(T),VFXValue.Mode.Constant);
         public static VFXValue Default { get { return s_Default; } }
-
 
         public T Get()
         {
@@ -77,6 +112,9 @@ namespace UnityEditor.VFX
 
         public override void SetContent(object value)
         {
+            if (ValueMode == Mode.Constant)
+                throw new InvalidOperationException("Cannot set content of an immutable value");
+
             m_Content = default(T);
             if (value != null)
             {

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
             VisualContainer mainContainer = new VisualContainer();
 
             m_ColorField = new ColorField(m_Label);
-            m_ColorField.onValueChanged = OnValueChanged;
+            m_ColorField.OnValueChanged = OnValueChanged;
 
             mainContainer.AddChild(m_ColorField);
             mainContainer.AddToClassList("maincontainer");
@@ -27,16 +27,16 @@ namespace UnityEditor.VFX.UI
             fieldContainer.AddToClassList("fieldContainer");
 
             m_RFloatField = new FloatField("R");
-            m_RFloatField.onValueChanged = OnValueChanged;
+            m_RFloatField.OnValueChanged = OnValueChanged;
 
             m_GFloatField = new FloatField("G");
-            m_GFloatField.onValueChanged = OnValueChanged;
+            m_GFloatField.OnValueChanged = OnValueChanged;
 
             m_BFloatField = new FloatField("B");
-            m_BFloatField.onValueChanged = OnValueChanged;
+            m_BFloatField.OnValueChanged = OnValueChanged;
 
             m_AFloatField = new FloatField("A");
-            m_AFloatField.onValueChanged = OnValueChanged;
+            m_AFloatField.OnValueChanged = OnValueChanged;
 
             fieldContainer.AddChild(m_RFloatField);
             fieldContainer.AddChild(m_GFloatField);

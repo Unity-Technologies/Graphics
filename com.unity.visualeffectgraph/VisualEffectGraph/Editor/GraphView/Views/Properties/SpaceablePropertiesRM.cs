@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             m_VectorField = new Vector3Field(m_Label);
-            m_VectorField.onValueChanged = OnValueChanged;
+            m_VectorField.OnValueChanged = OnValueChanged;
             m_VectorField.AddToClassList("fieldContainer");
 
             AddChild(m_VectorField);

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<float>(0.0f, true);
+            return new VFXValue<float>(0.0f, VFXValue.Mode.FoldableVariable);
         }
     }
 }

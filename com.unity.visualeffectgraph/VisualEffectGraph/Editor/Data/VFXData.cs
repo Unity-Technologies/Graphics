@@ -92,8 +92,8 @@ namespace UnityEditor.VFX
             foreach (var context in owners)
             {
                 AddAttributes(context, context.attributes);
-                foreach (var blocks in context.children)
-                    AddAttributes(context, blocks.attributes);
+                foreach (var block in context.children)
+                    AddAttributes(context, block.attributes);
 
                 CollectInputAttributes(context, graph);
             }

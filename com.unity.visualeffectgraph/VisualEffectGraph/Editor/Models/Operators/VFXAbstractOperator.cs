@@ -90,14 +90,14 @@ namespace UnityEditor.VFX
             return new Vector4(value.x, value.y, value.z, value.w);
         }
 
-        public static implicit operator VFXValue(FloatN value)
+        public VFXValue ToVFXValue(VFXValue.Mode mode)
         {
-            switch (value.realSize)
+            switch (realSize)
             {
-                case 1: return new VFXValue<float>(value, true);
-                case 2: return new VFXValue<Vector2>(value, true);
-                case 3: return new VFXValue<Vector3>(value, true);
-                case 4: return new VFXValue<Vector4>(value, true);
+                case 1: return new VFXValue<float>(this, mode);
+                case 2: return new VFXValue<Vector2>(this, mode);
+                case 3: return new VFXValue<Vector3>(this, mode);
+                case 4: return new VFXValue<Vector4>(this, mode);
             }
             return null;
         }
