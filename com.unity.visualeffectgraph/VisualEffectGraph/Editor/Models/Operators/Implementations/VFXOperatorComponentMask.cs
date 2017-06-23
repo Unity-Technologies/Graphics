@@ -9,34 +9,41 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "ComponentMask"; } }
 
+        public enum Component
+        {
+            X = 0,
+            Y = 1,
+            Z = 2,
+            W = 3,
+            None = -1,
+        }
+
         public class Settings
         {
-            public string mask = "zyx";
+            public Component x = Component.X;
+            public Component y = Component.Y;
+            public Component z = Component.Z;
+            public Component w = Component.W;
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var currentSettings = settings as Settings;
+            var settings = GetSettings<Settings>();
 
-            var mask = currentSettings.mask;
+            var mask = new Component[4] { settings.x, settings.y, settings.z, settings.w };
+           // var mask = new Component[4] { Component.X, Component.Y, Component.Z, Component.W };
+            int maskSize = 4;
+            while (maskSize > 1 && mask[maskSize - 1] == Component.None) --maskSize;
+
             var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
 
             var componentStack = new Stack<VFXExpression>();
-            for (int iComponent = 0; iComponent < mask.Length; iComponent++)
+            for (int iComponent = 0; iComponent < maskSize; iComponent++)
             {
-                var iChannelIndex = -1;
-                switch (mask[iComponent])
+                Component currentComponent = mask[iComponent];
+                if (currentComponent != Component.None && (int)currentComponent < inputComponents.Length)
                 {
-                    case 'x': case 'r': iChannelIndex = 0; break;
-                    case 'y': case 'g': iChannelIndex = 1; break;
-                    case 'z': case 'b': iChannelIndex = 2; break;
-                    case 'w': case 'a': iChannelIndex = 3; break;
-                    default: throw new Exception("unexpected component name");
-                }
-
-                if (iChannelIndex < inputComponents.Length)
-                {
-                    componentStack.Push(inputComponents[iChannelIndex]);
+                    componentStack.Push(inputComponents[(int)currentComponent]);
                 }
                 else
                 {

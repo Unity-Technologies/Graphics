@@ -301,7 +301,7 @@ namespace UnityEditor.VFX
 
             m_Settings.Set(sett);
 
-            Invalidate(InvalidationCause.kParamChanged);
+            Invalidate(InvalidationCause.kSettingChanged);
         }
     }
 }

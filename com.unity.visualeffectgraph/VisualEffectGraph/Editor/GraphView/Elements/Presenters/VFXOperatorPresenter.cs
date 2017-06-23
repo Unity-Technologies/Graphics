@@ -34,21 +34,6 @@ namespace UnityEditor.VFX.UI
 
     class VFXOperatorPresenter : VFXOperatorSlotContainerPresenter
     {
-        [SerializeField]
-        private object m_settings;
-        public object settings
-        {
-            get
-            {
-                return Operator.settings;
-            }
-            set
-            {
-                Undo.RecordObject(Operator, "Settings");
-                Operator.settings = value;
-            }
-        }
-
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);

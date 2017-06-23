@@ -247,7 +247,11 @@ namespace UnityEditor.VFX
             if (m_Data != data)
             {
                 if (m_Data != null)
+                {
                     m_Data.OnContextRemoved(this);
+                    if (m_Data.owners.Count() == 0)
+                        m_Data.Detach();
+                }
                 m_Data = data;
                 if (m_Data != null)
                     m_Data.OnContextAdded(this);

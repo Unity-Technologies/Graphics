@@ -15,40 +15,9 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            var settingsType = GetPropertiesSettings();
-            if (settingsType != null && m_SettingsBuffer == null)
-            {
-                m_SettingsBuffer = new VFXSerializableObject(settingsType);
-            }
 
             if (outputSlots.Count == 0)
                 UpdateOutputs();
-        }
-
-        protected Type GetPropertiesSettings()
-        {
-            return GetType().GetNestedType("Settings");
-        }
-
-        [SerializeField]
-        private VFXSerializableObject m_SettingsBuffer;
-
-        public object settings
-        {
-            get
-            {
-                return m_SettingsBuffer == null ? null : m_SettingsBuffer.Get();
-            }
-            set
-            {
-                if (m_SettingsBuffer != null)
-                {
-                    if (m_SettingsBuffer.Set(value))
-                    {
-                        UpdateOutputs(); // TODOPAUL: (Julien) This should be handled in a more generic way: Handle settings change via virtual dispatch as behaviour depends on operator
-                    }
-                }
-            }
         }
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
@@ -180,6 +149,8 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged) // Connection changed is only triggered for
                 OnInputConnectionsChanged();
+            else if (cause == InvalidationCause.kSettingChanged)
+                UpdateOutputs();
             base.OnInvalidate(model, cause);
         }
 
