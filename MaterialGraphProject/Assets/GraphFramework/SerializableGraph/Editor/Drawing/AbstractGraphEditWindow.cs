@@ -12,22 +12,18 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    // TODO JOCE Derive from GraphViewEditorWindow
     public abstract class AbstractGraphEditWindow : EditorWindow, ISerializationCallbackReceiver
     {
-		[NonSerialized]
-		private Object m_Selected;
-
-		[NonSerialized]
-		private IGraphAsset m_InMemoryAsset;
+        public abstract IGraphAsset inMemoryAsset { get; set; }
+        public abstract Object selected { get; set; }
 
 		public static bool allowAlwaysRepaint = true;
 
-        private bool shouldRepaint
+        private bool shouldRepaint 
         {
             get
             {
-				return allowAlwaysRepaint && m_InMemoryAsset != null && m_InMemoryAsset.shouldRepaint;
+				return allowAlwaysRepaint && inMemoryAsset != null && inMemoryAsset.shouldRepaint;
             }
         }
 
@@ -51,7 +47,7 @@ namespace UnityEditor.Graphing.Drawing
         void OnEnable()
         {
             var source = CreateDataSource();
-			source.Initialize(m_InMemoryAsset, this);
+			source.Initialize(inMemoryAsset, this);
 
             m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView(), source);
             rootVisualContainer.AddChild(m_GraphEditorDrawer);
@@ -77,21 +73,21 @@ namespace UnityEditor.Graphing.Drawing
 
 		public void PingAsset()
 		{
-			if (m_Selected != null)
-				EditorGUIUtility.PingObject(m_Selected);
+			if (selected != null)
+				EditorGUIUtility.PingObject(selected);
 		}
 
         public void UpdateAsset()
         {
-            if (m_Selected != null && m_InMemoryAsset != null)
+            if (selected != null && inMemoryAsset != null)
             {
-                var path = AssetDatabase.GetAssetPath(m_Selected);
-                if (string.IsNullOrEmpty(path) || m_InMemoryAsset == null)
+                var path = AssetDatabase.GetAssetPath(selected);
+                if (string.IsNullOrEmpty(path) || inMemoryAsset == null)
                 {
                     return;
                 }
                 
-                var masterNode = ((MaterialGraphAsset) m_InMemoryAsset).materialGraph.masterNode;
+                var masterNode = ((MaterialGraphAsset)inMemoryAsset).materialGraph.masterNode;
                 if (masterNode == null)
                     return;
 
@@ -127,7 +123,7 @@ namespace UnityEditor.Graphing.Drawing
                     textures.Add(texture);
                 }
                 shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
-                File.WriteAllText(path, EditorJsonUtility.ToJson(m_InMemoryAsset.graph));
+                File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset.graph));
                 shaderImporter.SaveAndReimport();
                 AssetDatabase.ImportAsset(path);
 
@@ -144,30 +140,30 @@ namespace UnityEditor.Graphing.Drawing
 			if (!EditorUtility.IsPersistent (newSelection))
 				return;
 
-			if (m_Selected == newSelection)
+			if (selected == newSelection)
 				return;
 
-			if (m_Selected != null)
+			if (selected != null)
             {
 				if (EditorUtility.DisplayDialog ("Save Old Graph?", "Save Old Graph?", "yes!", "no")) {
 					UpdateAsset ();
 				}
 			}
 
-			m_Selected = newSelection;
+			selected = newSelection;
 
 		    var mGraph = CreateInstance<MaterialGraphAsset>();
 		    var path = AssetDatabase.GetAssetPath(newSelection);
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
 		    mGraph.materialGraph = JsonUtility.FromJson<UnityEngine.MaterialGraph.MaterialGraph>(textGraph);
 
-		    m_InMemoryAsset = mGraph;
-            var graph = m_InMemoryAsset.graph;
+		    inMemoryAsset = mGraph;
+            var graph = inMemoryAsset.graph;
 			graph.OnEnable ();
 			graph.ValidateGraph ();
 
 			var source = CreateDataSource ();
-			source.Initialize (m_InMemoryAsset, this) ;
+			source.Initialize (inMemoryAsset, this) ;
 			m_GraphEditorDrawer.presenter = source;
 			//m_GraphView.StretchToParentSize();
 			Repaint ();
