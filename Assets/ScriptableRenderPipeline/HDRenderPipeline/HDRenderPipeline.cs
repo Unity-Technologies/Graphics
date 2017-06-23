@@ -895,14 +895,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (sssSettings.useDisneySSS)
             {
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
-                // Temp >>>
-                Matrix4x4 viewMatrix = hdCamera.camera.worldToCameraMatrix;
-                viewMatrix.SetRow(2, -viewMatrix.GetRow(2));        // Make Z axis point forwards in the view space (left-handed CS)
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(hdCamera.camera.projectionMatrix, false);
-                projMatrix.SetColumn(2, -projMatrix.GetColumn(2));  // Undo the view-space transformation
-                m_FilterAndCombineSubsurfaceScattering.SetMatrix("_ViewMatrix", viewMatrix);
-                m_FilterAndCombineSubsurfaceScattering.SetMatrix("_ProjMatrix", projMatrix);
-                // <<< Temp
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);

@@ -156,4 +156,16 @@ float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)
     return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
 }
 
+// UNITY_MATRIX_V defines a right-handed view space with the Z axis pointing towards the viewer.
+// This function reverses the direction of the Z axis (so that it points forward),
+// making the view space coordinate system left-handed.
+void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMatrix)
+{
+    viewMatrix = UNITY_MATRIX_V;
+    viewMatrix._31_32_33_34 = -viewMatrix._31_32_33_34;
+
+    projMatrix = UNITY_MATRIX_P;
+    projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
