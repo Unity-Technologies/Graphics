@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UIElements.GraphView;
 
@@ -147,7 +148,7 @@ namespace UnityEditor.VFX.UI
                     VFXSlot slot = model;
                     while (slot != null)
                     {
-                        if (slot.LinkedSlots.Count > 0)
+                        if (slot.LinkedSlots.Count() > 0)
                         {
                             editable = false;
                             break;
@@ -158,7 +159,7 @@ namespace UnityEditor.VFX.UI
 
                     foreach (VFXSlot child in model.children)
                     {
-                        if (child.LinkedSlots.Count > 0)
+                        if (child.LinkedSlots.Count() > 0)
                         {
                             editable = false;
                         }

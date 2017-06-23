@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (model as IVFXSlotContainer == slotContainer && cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+            if (model as IVFXSlotContainer == slotContainer && (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged))
             {
                 var inputs = inputAnchors;
                 m_InputAnchors.Clear();

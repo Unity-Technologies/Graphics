@@ -10,24 +10,34 @@ namespace UnityEditor.VFX.UI
     partial class VFXViewPresenter : GraphViewPresenter
     {
         public event System.Action onRecompileEvent;
-        public void RecomputeExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
+        public void RecompileExpressionGraphIfNeeded()
+        {
+            if (!ExpressionGraphDirty)
+                return;
+
+            CreateExpressionContext(true/*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
+            m_ExpressionContext.Recompile();
+
+            if (onRecompileEvent != null)
+            {
+              onRecompileEvent();
+            }
+
+            ExpressionGraphDirty = false;
+        }
+
+        public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
-                cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
+                /*cause != VFXModel.InvalidationCause.kExpressionInvalidated &&*/
                 //cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&
                 cause != VFXModel.InvalidationCause.kSettingChanged)
                 return;
 
-            //Debug.Log("------------------------ RECOMPUTE EXPRESSION CONTEXT");
-            CreateExpressionContext(cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged);
-            m_ExpressionContext.Recompile();
+            ExpressionGraphDirty = true;
 
-            if (onRecompileEvent != null)
-            {
-                onRecompileEvent();
-            }
         }
 
         private void CreateExpressionContext(bool forceRecreation)
@@ -77,5 +87,7 @@ namespace UnityEditor.VFX.UI
         }
 
         private VFXExpression.Context m_ExpressionContext;
+        [NonSerialized]
+        private bool ExpressionGraphDirty = true;
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.UI
         private Toggle m_Exposed;
         VisualContainer m_ExposedContainer;
 
-        public void OnNameChanged()
+        public void OnNameChanged(string str)
         {
             var presenter = GetPresenter<VFXParameterPresenter>();
 
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
             m_Exposed = new Toggle(ToggleExposed);
             m_ExposedName = new TextField();
 
-            m_ExposedName.onTextChanged += OnNameChanged;
+            m_ExposedName.OnTextChanged += OnNameChanged;
             m_ExposedName.AddToClassList("value");
 
             VisualElement exposedLabel = new VisualElement();

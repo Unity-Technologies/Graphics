@@ -593,17 +593,17 @@ namespace UnityEditor.VFX.UI
                 if (m_Graph != null)
                 {
                     m_Graph.onInvalidateDelegate -= SyncPresentersFromModel;
-                    m_Graph.onInvalidateDelegate -= RecomputeExpressionGraph;
+                    m_Graph.onInvalidateDelegate -= InvalidateExpressionGraph;
                 }
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
                 m_Graph = m_VFXAsset.GetOrCreateGraph();
 
                 m_Graph.onInvalidateDelegate += SyncPresentersFromModel;
-                m_Graph.onInvalidateDelegate += RecomputeExpressionGraph;
+                m_Graph.onInvalidateDelegate += InvalidateExpressionGraph;
 
                 // First trigger
-                RecomputeExpressionGraph(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+                RecompileExpressionGraphIfNeeded();
                 SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
 
 

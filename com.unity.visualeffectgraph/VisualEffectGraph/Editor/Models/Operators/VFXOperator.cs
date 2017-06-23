@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
             var outputExpressionArray = outputExpression.ToArray();
-            if (outputExpressionQueue.Count > 0)
+            /*if (outputExpressionQueue.Count > 0)
             {
                 //TODOPAUL : Is it an hotfix ?
                 var current = outputExpressionQueue.First();
@@ -126,11 +126,11 @@ namespace UnityEditor.VFX
                         return;
                     }
                 }
-            }
+            }*/
 
             outputExpressionQueue.Enqueue(outputExpressionArray);
 
-            if (outputExpressionQueue.Count > 1)
+           if (outputExpressionQueue.Count > 1)
                 return;
 
             // Dequeue
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
 
         sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kConnectionChanged) // Connection changed is only triggered for
+            if (cause == InvalidationCause.kConnectionChanged)
                 OnInputConnectionsChanged();
             else if (cause == InvalidationCause.kSettingChanged)
                 UpdateOutputs();
