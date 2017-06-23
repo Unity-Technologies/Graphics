@@ -170,7 +170,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public ReadOnlyCollection<VFXSlot> LinkedSlots
+        public IEnumerable<VFXSlot> LinkedSlots
         {
             get
             {
@@ -441,7 +441,12 @@ namespace UnityEditor.VFX
             else
             {
                 if (owner != null)
+                {
                     owner.UpdateOutputs();
+                    // Update outputs can trigger an invalidate, it can be reentrant. Just check if we're up to date after that and early out
+                    if (m_ExpressionTreeUpToDate)
+                        return;
+                }
                 else
                     masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = null);
             }
@@ -517,7 +522,7 @@ namespace UnityEditor.VFX
                     {
                         s.m_ExpressionTreeUpToDate = false;
                         if (s.direction == Direction.kOutput)
-                            foreach (var linkedSlot in LinkedSlots)
+                            foreach (var linkedSlot in LinkedSlots.ToArray()) // To array as this can be reentrant...
                                 linkedSlot.InvalidateExpressionTree();
                     }
                 });
@@ -526,7 +531,7 @@ namespace UnityEditor.VFX
             {
                 if (owner != null)
                 {
-                    foreach (var slot in owner.outputSlots)
+                    foreach (var slot in owner.outputSlots.ToArray())
                         slot.InvalidateExpressionTree();
                 }
             }
@@ -544,8 +549,8 @@ namespace UnityEditor.VFX
 
         private static void InnerLink(VFXSlot output, VFXSlot input)
         {
-            input.UnlinkAll(false); // First disconnect any other linked slot
-            input.PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
+            input.UnlinkAll(true); // First disconnect any other linked slot
+            input.PropagateToTree(s => s.UnlinkAll(true)); // Unlink other links in tree
 
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);

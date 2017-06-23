@@ -73,6 +73,7 @@ namespace  UnityEditor.VFX.UI
             var graph = m_ViewPresenter.GetGraph();
             if (graph != null)
                 graph.RecompileIfNeeded();
+            m_ViewPresenter.RecompileExpressionGraphIfNeeded();
         }
 
         [SerializeField]

@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.Test
         private void CheckConnectedAbs(VFXOperatorAbs abs)
         {
             Assert.IsTrue(abs.inputSlots[0].HasLink());
-            Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count);
+            Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count());
             Assert.IsTrue(abs.inputSlots[0].GetExpression() is VFXExpressionAdd);
         }
 
