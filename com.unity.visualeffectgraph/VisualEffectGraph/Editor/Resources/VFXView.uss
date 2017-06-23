@@ -96,6 +96,7 @@ VFXDataAnchor.Output #type
 
 .VFXDataAnchor #connector
 {
+	background-color:rgba(0,0,0,0);
 	position-type:absolute;
 	margin-top:5;
 	padding-top:0;
@@ -149,7 +150,6 @@ VFXOutputDataAnchor #type
 .VFXDataAnchor.connected > #connector
 {
 	border-color:#787878;
-	background-color : #787878;
 }
 
 .VFXDataAnchor.connected > #connector
