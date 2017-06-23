@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -570,14 +570,14 @@ namespace UnityEditor.VFX.UI
 
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it
-        public override void OnStylesResolved(ICustomStyles styles)
+        public override void OnStyleResolved(ICustomStyle styles)
         {
-            base.OnStylesResolved(styles);
+            base.OnStyleResolved(styles);
             styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
         }
 
         // TODO: Remove, unused except for debugging
-        Style<Color> m_RectColor;
+        StyleValue<Color> m_RectColor;
         Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
 
         public IEnumerable<VFXBlockUI> GetAllBlocks()

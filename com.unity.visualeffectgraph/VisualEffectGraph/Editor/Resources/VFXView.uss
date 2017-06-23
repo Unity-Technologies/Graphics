@@ -43,7 +43,10 @@ VFXView #VFXBackgroundGrid {
 .VFXDataAnchor.invisible #connector
 {
 	margin-top:-12;
-	border-width:0;
+	border-left-width:0;
+	border-right-width:0;
+	border-top-width:0;
+	border-bottom-width:0;
 	background-color:rgba(0,0,0,0);
 }
 
@@ -76,7 +79,10 @@ VFXDataAnchor.Output #type
 .VFXDataAnchor .space
 {
 	border-radius:4;
-	border-width:1;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
 	margin-top:4;
 	margin-bottom:4;
 	padding-left:4;
@@ -94,10 +100,6 @@ VFXDataAnchor.Output #type
 	margin-top:5;
 	padding-top:0;
 	margin-left:0;
-	-margin-right:-6;
-	-background-color: #171717;
-	-border-color:#383838;
-	-border-width:1;
 	background-image:resource("VFX/connectors/unconnected-input");
 	border-radius:0;
 	width:10;

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -16,7 +16,6 @@ namespace UnityEditor.VFX.UIElements
             m_TextField = new EditorTextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.onTextChanged = OnTextChanged;
-            m_TextField.useStylePainter = true;
         }
 
         public IntField(string label) : base(label)
