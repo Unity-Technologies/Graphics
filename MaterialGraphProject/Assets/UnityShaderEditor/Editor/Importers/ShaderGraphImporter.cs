@@ -1,86 +1,68 @@
-﻿using UnityEditor.Experimental.AssetImporters;
-using UnityEngine.MaterialGraph;
+﻿using UnityEngine.MaterialGraph;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-#if UNITY_EDITOR
-using System.Reflection;
-using UnityEditor;
-#endif
-using UnityEngine.Graphing;
 using System.Text;
+using UnityEditor;
+using UnityEditor.MaterialGraph.Drawing;
+using UnityEngine.Events;
 
-[ScriptedImporter(1, "ShaderGraph")]
-public class ShaderGraphImporter : ScriptedImporter
+class ShaderGraphTextGenerator : ICustomShaderImporter
 {
-	public override void OnImportAsset(AssetImportContext ctx)
-	{
-		var textGraph = File.ReadAllText(ctx.assetPath, Encoding.UTF8);
-		var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+    public string GetShaderText(string path)
+    {
+        try
+        {
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
 
-		if (graph == null)
-			return;
+            IMasterNode masterNode = graph.masterNode;
+            if (masterNode == null)
+                return null;
 
-		var graphAsset = ScriptableObject.CreateInstance<MaterialGraphAsset> ();
-		graphAsset.materialGraph = graph;
-		ctx.SetMainAsset("MainAsset", graphAsset);
+            List<PropertyGenerator.TextureInfo> configuredTextures;
+            var shaderString = masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
+            return shaderString;
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        return null;
+    }
 
-		var shader = RegenerateShader (graphAsset);
-		if (shader == null)
-			return;
-		
-		ctx.AddSubAsset("Shader", shader);
-	}
+    public bool IsValidForPath(string path)
+    {
+        try
+        {
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
 
-	public Shader RegenerateShader(MaterialGraphAsset asset)
-	{
-		IMasterNode masterNode = asset.materialGraph.masterNode;
-		if (masterNode == null)
-			return null;
-		
-		var path = "Assets/UnityShaderEditor/Editor/HelperShader.shader";
-		List<PropertyGenerator.TextureInfo> configuredTextures;
-		var shaderString = masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
+            return graph != null;
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        return false;
+    }
 
-		var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
-		if (shader == null)
-			return null;
+    public void OnInspectorGUI(string path, UnityAction defaultOnInspectorGUI)
+    {
+        defaultOnInspectorGUI();
+        if (GUILayout.Button("Open Shader Editor"))
+        {
+            var window = new MaterialGraphEditWindow();
+            window.Show();
+            window.ChangeSelction(AssetDatabase.LoadAssetAtPath<Shader>(path));
+        }
+    }
 
-		File.WriteAllText (path, shaderString);
-		ShaderUtil.UpdateShaderAsset (shader, shaderString);
-
-		var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
-		if (shaderImporter == null)
-			return null;
-
-		var textureNames = new List<string>();
-		var textures = new List<Texture>();
-		foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
-		{
-			var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-			if (texture == null)
-				continue;
-			textureNames.Add(textureInfo.name);
-			textures.Add(texture);
-		}
-		shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
-
-		textureNames.Clear();
-		textures.Clear();
-		foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
-		{
-			var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-			if (texture == null)
-				continue;
-			textureNames.Add(textureInfo.name);
-			textures.Add(texture);
-		}
-		shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
-		shaderImporter.SaveAndReimport();
-
-		var imported = shaderImporter.GetShader();
-		return imported;
-	}
+    public void OpenAsset(string path)
+    {
+        var window = new MaterialGraphEditWindow();
+        window.Show();
+        window.ChangeSelction(AssetDatabase.LoadAssetAtPath<Shader>(path));
+    }
 }
