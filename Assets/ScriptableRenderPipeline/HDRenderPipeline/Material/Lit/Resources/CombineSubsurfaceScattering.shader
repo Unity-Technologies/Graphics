@@ -132,8 +132,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* 'vec' is given relative to the tangent frame. */                         \
                     float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;                    \
                     float3 positionVS = centerPosVS + relPosVS;                                 \
-                    float4 positionCS = mul(_ProjMatrix, float4(positionVS, 1));                \
-                    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;        \
+                    float4 positionCS = mul(projMatrix, float4(positionVS, 1));                 \
+                    float2 positionSS = ComputeScreenSpacePosition(positionCS);                 \
                                                                                                 \
                     position   = positionSS * _ScreenSize.xy;                                   \
                     irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;               \
@@ -275,8 +275,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 const bool useTangentPlane = SSS_USE_TANGENT_PLANE != 0;
 
+                float4x4 viewMatrix, projMatrix;
+                GetLeftHandedViewSpaceMatrices(viewMatrix, projMatrix);
+
                 // Compute the tangent frame in view space.
-                float3 normalVS = mul((float3x3)_ViewMatrix, bsdfData.normalWS);
+                float3 normalVS = mul((float3x3)viewMatrix, bsdfData.normalWS);
                 float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
                 float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
 

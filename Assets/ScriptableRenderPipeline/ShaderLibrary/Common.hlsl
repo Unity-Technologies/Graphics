@@ -500,6 +500,23 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
     posInput.positionWS = positionWS;
 }
 
+float4 ComputeClipSpacePosition(float2 positionSS, float depthRaw)
+{
+#if UNITY_UV_STARTS_AT_TOP
+    positionSS.y = 1.0 - positionSS.y;
+#endif
+    return float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+}
+
+float2 ComputeScreenSpacePosition(float4 positionCS)
+{
+    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+    positionSS.y = 1.0 - positionSS.y;
+#endif
+    return positionSS;
+}
+
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
@@ -509,12 +526,7 @@ void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 vi
 {
     posInput.depthRaw = depthRaw;
 
-    float2 screenSpacePos;
-    screenSpacePos = posInput.positionSS;
-#if UNITY_UV_STARTS_AT_TOP
-    screenSpacePos.y = 1.0 - screenSpacePos.y;
-#endif
-    float4 positionCS   = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
+    float4 positionCS   = ComputeClipSpacePosition(posInput.positionSS, depthRaw);
     float4 hpositionWS  = mul(invViewProjMatrix, positionCS);
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
@@ -526,12 +538,7 @@ void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 vi
 // of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
 float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
 {
-    float2 screenSpacePos;
-    screenSpacePos = positionSS;
-#if UNITY_UV_STARTS_AT_TOP
-    screenSpacePos.y = 1.0 - screenSpacePos.y;
-#endif
-    float4 positionCS = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
+    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
