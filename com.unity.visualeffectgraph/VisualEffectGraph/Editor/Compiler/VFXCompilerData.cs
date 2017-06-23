@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMapper(string prefix = "")
         {
-            m_Prefix = prefix;
+            m_Prefix = string.IsNullOrEmpty(prefix) ? "" : string.Format("{0}_", prefix);
         }
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
