@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Test
         static public void temp_GetExpressionCode(VFXExpression expression, out string function, out string call)
         {
             function = call = null;
-            if (!expression.Is(VFXExpression.Flags.ValidOnGPU))
+            if (expression.Is(VFXExpression.Flags.InvalidOnGPU))
             {
                 throw new ArgumentException(string.Format("GetExpressionCode failed (not valid on GPU) with {0}", expression.GetType().FullName));
             }

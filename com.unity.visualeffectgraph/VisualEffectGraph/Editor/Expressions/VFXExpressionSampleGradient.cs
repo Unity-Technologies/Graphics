@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionSampleGradient(VFXExpression gradient, VFXExpression time)
-            : base(Flags.ValidOnCPU, new VFXExpression[2] { gradient, time })
+            : base(Flags.None, new VFXExpression[2] { gradient, time })
         {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleGradient; } }

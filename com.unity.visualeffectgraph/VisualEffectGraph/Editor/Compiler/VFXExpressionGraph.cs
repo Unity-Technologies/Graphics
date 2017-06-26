@@ -84,6 +84,9 @@ namespace UnityEditor.VFX
                 foreach (var exp in expressionContext.RegisteredExpressions)
                     m_ExpressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
 
+                // TODO Transform all not compatible CPU data to GPU data by inserting expressions in the graph
+                // Here ...
+
                 m_Expressions.UnionWith(expressionContext.BuildAllReduced());
 
                 // flatten
@@ -134,12 +137,12 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMapper BuildCPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToCPUExpressions, VFXExpression.Flags.ValidOnCPU);
+            return BuildMapper(context, m_ContextsToCPUExpressions, VFXExpression.Flags.InvalidOnCPU);
         }
 
         public VFXExpressionMapper BuildGPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToGPUExpressions, VFXExpression.Flags.ValidOnGPU);
+            return BuildMapper(context, m_ContextsToGPUExpressions, VFXExpression.Flags.InvalidOnGPU);
         }
 
         public List<string> GetAllNames(VFXExpression exp)
@@ -164,8 +167,8 @@ namespace UnityEditor.VFX
                 foreach (var exp in inMapper.expressions)
                 {
                     var reduced = GetReduced(exp);
-                    if (!reduced.Is(check))
-                        throw new InvalidOperationException(string.Format("The expression is not valid as it doesnt have this flag: " + check));
+                    if (reduced.Is(check))
+                        throw new InvalidOperationException(string.Format("The expression is not valid as it have the invalid flag: " + check));
 
                     var mappedDataList = inMapper.GetData(exp);
                     foreach (var mappedData in mappedDataList)
@@ -206,5 +209,7 @@ private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
 private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
 private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
 private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+
+        //private Dictionary<VFXExpression, VFXExpression> m_CPUToGPUConversion = new Dictionary<VFXExpression, VFXExpression>(); 
 }
 }

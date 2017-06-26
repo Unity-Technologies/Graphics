@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        private VFXAttributeExpression(string name, VFXValueType type) : base(Flags.PerElement | Flags.ValidOnCPU | Flags.ValidOnGPU)
+        private VFXAttributeExpression(string name, VFXValueType type) : base(Flags.PerElement)
         {
             m_Attribute.name = name;
             m_Attribute.type = type;

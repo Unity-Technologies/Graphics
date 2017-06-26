@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionBakeCurve(VFXExpression curve)
-            : base(Flags.ValidOnCPU, new VFXExpression[1] { curve })
+            : base(Flags.InvalidOnGPU, new VFXExpression[1] { curve })
         {
         }
 

@@ -12,12 +12,9 @@ namespace UnityEditor.VFX
             None =          0,
             Value =         1 << 0, // Expression is a value, get/set can be called on it
             Constant =      1 << 1, // Expression is a constant, it can be folded
-            ValidOnGPU =    1 << 2, // Expression can be evaluated on GPU
-            ValidOnCPU =    1 << 3, // Expression can be evaluated on CPU
+            InvalidOnGPU =  1 << 2, // Expression can be evaluated on GPU
+            InvalidOnCPU =  1 << 3, // Expression can be evaluated on CPU
             PerElement =    1 << 4, // Expression is per element
-
-            ValidityMask = ValidOnGPU | ValidOnCPU,
-            InvValidityMask = ~ValidityMask,
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)
@@ -215,8 +212,9 @@ namespace UnityEditor.VFX
         {
             foreach (var parent in m_Parents)
             {
-                m_Flags |= (parent.m_Flags & Flags.PerElement);
-                m_Flags &= (Flags.InvValidityMask | (parent.m_Flags & Flags.ValidityMask));
+                m_Flags |= (parent.m_Flags & (Flags.PerElement | Flags.InvalidOnCPU));
+                if (parent.Is(Flags.PerElement | Flags.InvalidOnGPU))
+                    m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
             }
         }
 

@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
-            : base(Flags.ValidOnCPU, new VFXExpression[2] { curve, time })
+            : base(Flags.None, new VFXExpression[2] { curve, time })
         {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleCurve; } }

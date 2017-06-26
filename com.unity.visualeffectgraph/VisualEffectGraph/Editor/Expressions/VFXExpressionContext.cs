@@ -52,14 +52,14 @@ namespace UnityEditor.VFX
                 if (Option != ReductionOption.CPUEvaluation && Option != ReductionOption.ConstantFolding)
                     return false;
 
-                if (!exp.Is(Flags.ValidOnCPU) || exp.Is(Flags.PerElement))
+                if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
-                Flags parentFlag = Flags.ValidOnCPU | Flags.Value;
+                Flags parentFlag = Flags.Value;
                 if (Option == ReductionOption.ConstantFolding)
                     parentFlag |= Flags.Constant;
 
-                return reducedParents.All(e => e.Is(parentFlag));
+                return reducedParents.All(e => (e.m_Flags & (parentFlag | Flags.InvalidOnCPU)) == parentFlag);
             }
 
             public VFXExpression Compile(VFXExpression expression)
