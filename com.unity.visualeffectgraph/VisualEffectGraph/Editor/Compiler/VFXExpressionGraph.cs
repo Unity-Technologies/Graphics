@@ -175,41 +175,39 @@ namespace UnityEditor.VFX
                         outMapper.AddExpression(reduced, mappedData);
                 }
             }
+
+            return outMapper;
         }
-    }
 
-    return outMapper;
-}
+        public HashSet<VFXExpression> Expressions
+        {
+            get
+            {
+                return m_Expressions;
+            }
+        }
+        public List<VFXExpression> FlattenedExpressions
+        {
+            get
+            {
+                return m_FlattenedExpressions;
+            }
+        }
+        public Dictionary<VFXExpression, VFXExpression> ExpressionsToReduced
+        {
+            get
+            {
+                return m_ExpressionsToReduced;
+            }
+        }
 
-public HashSet<VFXExpression> Expressions
-{
-    get
-    {
-        return m_Expressions;
-    }
-}
-public List<VFXExpression> FlattenedExpressions
-{
-    get
-    {
-        return m_FlattenedExpressions;
-    }
-}
-public Dictionary<VFXExpression, VFXExpression> ExpressionsToReduced
-{
-    get
-    {
-        return m_ExpressionsToReduced;
-    }
-}
+        private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
+        private Dictionary<VFXExpression, VFXExpression> m_ExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
+        private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
+        private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
+        private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+        private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
 
-private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
-private Dictionary<VFXExpression, VFXExpression> m_ExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
-private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
-private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
-private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
-private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
-
-        //private Dictionary<VFXExpression, VFXExpression> m_CPUToGPUConversion = new Dictionary<VFXExpression, VFXExpression>(); 
-}
+        //private Dictionary<VFXExpression, VFXExpression> m_CPUToGPUConversion = new Dictionary<VFXExpression, VFXExpression>();
+    }
 }
