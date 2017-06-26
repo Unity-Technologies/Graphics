@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
             return names;
         }
 
-        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary,VFXExpression.Flags check)
+        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary, VFXExpression.Flags check)
         {
             VFXExpressionMapper outMapper = new VFXExpressionMapper();
             VFXExpressionMapper inMapper;
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
                 {
                     var reduced = GetReduced(exp);
                     if (!reduced.Is(check))
-                        throw new InvalidOperationException(string.Format("The expression is not valid as it doesnt have this flag: "+check));
+                        throw new InvalidOperationException(string.Format("The expression is not valid as it doesnt have this flag: " + check));
                     outMapper.AddExpression(reduced, inMapper.GetData(exp));
                 }
             }

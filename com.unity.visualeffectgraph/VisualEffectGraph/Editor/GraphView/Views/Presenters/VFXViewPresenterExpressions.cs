@@ -15,12 +15,12 @@ namespace UnityEditor.VFX.UI
             if (!ExpressionGraphDirty)
                 return;
 
-            CreateExpressionContext(true/*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
+            CreateExpressionContext(true /*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
             m_ExpressionContext.Recompile();
 
             if (onRecompileEvent != null)
             {
-              onRecompileEvent();
+                onRecompileEvent();
             }
 
             ExpressionGraphDirty = false;
@@ -37,7 +37,6 @@ namespace UnityEditor.VFX.UI
                 return;
 
             ExpressionGraphDirty = true;
-
         }
 
         private void CreateExpressionContext(bool forceRecreation)
