@@ -134,12 +134,12 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMapper BuildCPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToCPUExpressions);
+            return BuildMapper(context, m_ContextsToCPUExpressions, VFXExpression.Flags.ValidOnCPU);
         }
 
         public VFXExpressionMapper BuildGPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToGPUExpressions);
+            return BuildMapper(context, m_ContextsToGPUExpressions, VFXExpression.Flags.ValidOnGPU);
         }
 
         public List<string> GetAllNames(VFXExpression exp)
@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
             return names;
         }
 
-        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary)
+        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary, VFXExpression.Flags check)
         {
             VFXExpressionMapper outMapper = new VFXExpressionMapper();
             VFXExpressionMapper inMapper;
@@ -163,27 +163,48 @@ namespace UnityEditor.VFX
             {
                 foreach (var exp in inMapper.expressions)
                 {
-                    var reducedExp = GetReduced(exp);
+                    var reduced = GetReduced(exp);
+                    if (!reduced.Is(check))
+                        throw new InvalidOperationException(string.Format("The expression is not valid as it doesnt have this flag: " + check));
+
                     var mappedDataList = inMapper.GetData(exp);
                     foreach (var mappedData in mappedDataList)
-                    {
-                        outMapper.AddExpression(GetReduced(exp), mappedData);
-                    }
+                        outMapper.AddExpression(reduced, mappedData);
                 }
             }
-
-            return outMapper;
         }
-
-        public HashSet<VFXExpression> Expressions { get { return m_Expressions; } }
-        public List<VFXExpression> FlattenedExpressions { get { return m_FlattenedExpressions; } }
-        public Dictionary<VFXExpression, VFXExpression> ExpressionsToReduced { get { return m_ExpressionsToReduced; } }
-
-        private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
-        private Dictionary<VFXExpression, VFXExpression> m_ExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
-        private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
-        private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
-        private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
-        private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
     }
+
+    return outMapper;
+}
+
+public HashSet<VFXExpression> Expressions
+{
+    get
+    {
+        return m_Expressions;
+    }
+}
+public List<VFXExpression> FlattenedExpressions
+{
+    get
+    {
+        return m_FlattenedExpressions;
+    }
+}
+public Dictionary<VFXExpression, VFXExpression> ExpressionsToReduced
+{
+    get
+    {
+        return m_ExpressionsToReduced;
+    }
+}
+
+private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
+private Dictionary<VFXExpression, VFXExpression> m_ExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
+private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
+private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
+private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+}
 }
