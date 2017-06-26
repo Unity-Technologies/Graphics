@@ -121,6 +121,11 @@ namespace UnityEditor.VFX
             {
                 m_ExpressionGraphDirty = true;
             }
+
+            if (cause == VFXModel.InvalidationCause.kParamChanged)
+            {
+                m_ExpressionGraphDirty = true; //TODOPAUL : rebuild
+            }
         }
 
         private VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
@@ -210,21 +215,23 @@ namespace UnityEditor.VFX
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
                     {
-                        int contextId = context.GetHashCode(); // TODO change that
-
+                        uint contextId = (uint)context.GetParent().GetIndex(context);
                         var cpuMapper = expressionGraph.BuildCPUMapper(context);
                         foreach (var exp in cpuMapper.expressions)
                         {
                             VFXExpressionSemanticDesc desc;
-                            var mappedData = cpuMapper.GetData(exp);
-                            desc.blockID = (uint)mappedData.blockId;
-                            desc.contextID = (uint)contextId;
-                            int expIndex = expressionGraph.GetFlattenedIndex(exp);
-                            if (expIndex == -1)
-                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
-                            desc.expressionIndex = (uint)expIndex;
-                            desc.name = mappedData.name;
-                            expressionSemantics.Add(desc);
+                            var mappedDataList = cpuMapper.GetData(exp);
+                            foreach (var mappedData in mappedDataList)
+                            {
+                                desc.blockID = (uint)mappedData.blockId;
+                                desc.contextID = contextId;
+                                int expIndex = expressionGraph.GetFlattenedIndex(exp);
+                                if (expIndex == -1)
+                                    throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
+                                desc.expressionIndex = (uint)expIndex;
+                                desc.name = mappedData.name;
+                                expressionSemantics.Add(desc);
+                            }
                         }
 
                         var gpuMapper = expressionGraph.BuildGPUMapper(context);
@@ -232,7 +239,8 @@ namespace UnityEditor.VFX
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
                         foreach (var exp in gpuMapper.expressions)
                         {
-                            Debug.Log(string.Format("--- {0} {1} {2}", gpuMapper.GetData(exp).name, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
+                            var bindNames = gpuMapper.GetData(exp).Select(o => o.fullName).Aggregate((a, b) => a + "," + b);
+                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
                         }
                     }
 
@@ -241,11 +249,49 @@ namespace UnityEditor.VFX
                     expressionSheet.values = expressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
 
+                    vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
 
                     foreach (var data in models.OfType<VFXData>())
                         data.CollectAttributes(expressionGraph);
+
+                    foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
+                    {
+                        var spawnDescs = spawnerContext.children.Select(b =>
+                            {
+                                var spawner = b as VFXAbstractSpawner;
+                                if (spawner == null)
+                                {
+                                    throw new InvalidCastException("Unexpected type in spawnerContext");
+                                }
+
+                                if (spawner.spawnerType == VFXSpawnerType.kCustomCallback && spawner.customBehavior == null)
+                                {
+                                    throw new Exception("VFXAbstractSpawner excepts a custom behavior for custom callback type");
+                                }
+
+                                if (spawner.spawnerType != VFXSpawnerType.kCustomCallback && spawner.customBehavior != null)
+                                {
+                                    throw new Exception("VFXAbstractSpawner only expects a custom behavior for custom callback type");
+                                }
+                                return new VFXSpawnerDesc()
+                                {
+                                    customBehavior = spawner.customBehavior,
+                                    type = spawner.spawnerType
+                                };
+                            }).ToArray();
+                        int spawnerIndex = vfxAsset.AddSpawner(spawnDescs, (uint)spawnerContext.GetParent().GetIndex(spawnerContext));
+                        vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
+                    }
+
+                    foreach (var component in VFXComponent.GetAllActive())
+                    {
+                        if (component.vfxAsset == vfxAsset)
+                        {
+                            component.vfxAsset = vfxAsset; //TODOPAUL : find another way to detect reload
+                        }
+                    }
                 }
                 catch (Exception e)
                 {

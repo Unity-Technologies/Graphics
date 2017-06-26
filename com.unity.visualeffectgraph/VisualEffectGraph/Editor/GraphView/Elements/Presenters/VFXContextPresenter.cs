@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return Enumerable.Repeat((GraphElementPresenter)this,1)
+                return Enumerable.Repeat((GraphElementPresenter)this, 1)
                     .Concat(inputAnchors.Cast<GraphElementPresenter>())
                     .Concat(outputAnchors.Cast<GraphElementPresenter>())
                     .Concat(flowInputAnchors.Cast<GraphElementPresenter>())

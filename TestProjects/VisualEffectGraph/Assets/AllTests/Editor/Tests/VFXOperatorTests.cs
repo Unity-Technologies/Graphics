@@ -146,6 +146,38 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void AppendOperator()
+        {
+            var absOperator = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+            var appendOperator = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
+            var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCos>();
+
+            Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(1, appendOperator.outputSlots.Count);
+            Assert.AreEqual(2, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, appendOperator.outputSlots[0].GetExpression().ValueType);
+
+            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[0].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(2, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[1].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(3, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[2].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(4, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat3, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[3].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(4, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat4, cosOperator.outputSlots[0].GetExpression().ValueType);
+        }
+
+        [Test]
         public void ReferenceOfAttributeEquality()
         {
             foreach (var attribute in VFXAttributeExpression.All)

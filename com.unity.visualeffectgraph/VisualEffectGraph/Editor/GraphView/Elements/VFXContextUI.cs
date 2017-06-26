@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -464,6 +464,7 @@ namespace UnityEditor.VFX.UI
 
             VFXContextType contextType = presenter.context.contextType;
 
+            RemoveFromClassList("spawner");
             RemoveFromClassList("init");
             RemoveFromClassList("update");
             RemoveFromClassList("output");
@@ -477,6 +478,7 @@ namespace UnityEditor.VFX.UI
 
             switch (contextType)
             {
+                case VFXContextType.kSpawner: AddToClassList("spawner"); break;
                 case VFXContextType.kInit: AddToClassList("init"); break;
                 case VFXContextType.kUpdate: AddToClassList("update"); break;
                 case VFXContextType.kOutput: AddToClassList("output"); break;
