@@ -101,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix)
         {
+            // These are clip space coords.
             Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 0.0f, 1.0f);
             Vector4 vertData1 = new Vector4( 1.0f, -1.0f, 0.0f, 1.0f);
             Vector4 vertData2 = new Vector4( 1.0f,  1.0f, 0.0f, 1.0f);

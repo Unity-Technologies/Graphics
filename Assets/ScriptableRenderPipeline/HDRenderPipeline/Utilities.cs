@@ -249,46 +249,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static void SetupGlobalHDCamera(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            cmd.SetGlobalMatrix("_ViewMatrix",         hdCamera.viewMatrix);
-            cmd.SetGlobalMatrix("_InvViewMatrix",      hdCamera.viewMatrix.inverse);
-            cmd.SetGlobalMatrix("_ProjMatrix",         hdCamera.projMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",      hdCamera.projMatrix.inverse);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",     hdCamera.viewProjMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
-            cmd.SetGlobalVector("_InvProjParam",       hdCamera.invProjParam);
-            cmd.SetGlobalVector("_ScreenSize",         hdCamera.screenSize);
-            cmd.SetGlobalMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
-        }
-
-        // Does not modify global settings. Used for shadows, low res. rendering, etc.
-        public static void OverrideGlobalHDCamera(HDCamera hdCamera, Material material)
-        {
-            material.SetMatrix("_ViewMatrix",         hdCamera.viewMatrix);
-            material.SetMatrix("_InvViewMatrix",      hdCamera.viewMatrix.inverse);
-            material.SetMatrix("_ProjMatrix",         hdCamera.projMatrix);
-            material.SetMatrix("_InvProjMatrix",      hdCamera.projMatrix.inverse);
-            material.SetMatrix("_ViewProjMatrix",     hdCamera.viewProjMatrix);
-            material.SetMatrix("_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
-            material.SetVector("_InvProjParam",       hdCamera.invProjParam);
-            material.SetVector("_ScreenSize",         hdCamera.screenSize);
-            material.SetMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
-        }
-
-        public static void SetupComputeShaderHDCamera(HDCamera hdCamera, ComputeShader cs, CommandBuffer cmd)
-        {
-            SetMatrixCS(cmd,          cs, "_ViewMatrix",         hdCamera.viewMatrix);
-            SetMatrixCS(cmd,          cs, "_InvViewMatrix",      hdCamera.viewMatrix.inverse);
-            SetMatrixCS(cmd,          cs, "_ProjMatrix",         hdCamera.projMatrix);
-            SetMatrixCS(cmd,          cs, "_InvProjMatrix",      hdCamera.projMatrix.inverse);
-            SetMatrixCS(cmd,          cs, "_ViewProjMatrix",     hdCamera.viewProjMatrix);
-            SetMatrixCS(cmd,          cs, "_InvViewProjMatrix",  hdCamera.viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, "_InvProjParam",       hdCamera.invProjParam);
-            cmd.SetComputeVectorParam(cs, "_ScreenSize",         hdCamera.screenSize);
-            SetMatrixCS(cmd,          cs, "_PrevViewProjMatrix", hdCamera.prevViewProjMatrix);
-        }
-
         // TEMP: These functions should be implemented C++ side, for now do it in C#
         static List<float> m_FloatListdata = new List<float>();
         public static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)

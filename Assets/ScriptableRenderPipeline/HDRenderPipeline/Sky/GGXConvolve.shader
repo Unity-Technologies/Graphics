@@ -37,6 +37,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                // Unity renders upside down, so the clip space coordinates have to be flipped.
                 output.positionCS = float4(input.positionCS.x, -input.positionCS.y, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
                 output.eyeVector = input.eyeVector;
                 return output;
