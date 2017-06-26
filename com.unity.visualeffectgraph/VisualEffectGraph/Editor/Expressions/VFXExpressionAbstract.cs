@@ -15,6 +15,9 @@ namespace UnityEditor.VFX
             ValidOnGPU =    1 << 2, // Expression can be evaluated on GPU
             ValidOnCPU =    1 << 3, // Expression can be evaluated on CPU
             PerElement =    1 << 4, // Expression is per element
+
+            ValidityMask = ValidOnGPU | ValidOnCPU,
+            InvValidityMask = ~ValidityMask,
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)
@@ -211,7 +214,10 @@ namespace UnityEditor.VFX
         private void PropagateParentsFlags()
         {
             foreach (var parent in m_Parents)
+            {
                 m_Flags |= (parent.m_Flags & Flags.PerElement);
+                m_Flags &= (Flags.InvValidityMask | (parent.m_Flags & Flags.ValidityMask));
+            }
         }
 
         protected Flags m_Flags = Flags.None;

@@ -134,12 +134,12 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMapper BuildCPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToCPUExpressions);
+            return BuildMapper(context, m_ContextsToCPUExpressions, VFXExpression.Flags.ValidOnCPU);
         }
 
         public VFXExpressionMapper BuildGPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToGPUExpressions);
+            return BuildMapper(context, m_ContextsToGPUExpressions, VFXExpression.Flags.ValidOnGPU);
         }
 
         public List<string> GetAllNames(VFXExpression exp)
@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
             return names;
         }
 
-        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary)
+        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary,VFXExpression.Flags check)
         {
             VFXExpressionMapper outMapper = new VFXExpressionMapper();
             VFXExpressionMapper inMapper;
@@ -170,7 +170,12 @@ namespace UnityEditor.VFX
             if (inMapper != null)
             {
                 foreach (var exp in inMapper.expressions)
-                    outMapper.AddExpression(GetReduced(exp), inMapper.GetData(exp));
+                {
+                    var reduced = GetReduced(exp);
+                    if (!reduced.Is(check))
+                        throw new InvalidOperationException(string.Format("The expression is not valid as it doesnt have this flag: "+check));
+                    outMapper.AddExpression(reduced, inMapper.GetData(exp));
+                }
             }
 
             return outMapper;
