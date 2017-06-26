@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
         protected void OnDisable()
         {
             UnregisterAnchors();
-            viewPresenter.RemoveInvalidateEvent(model);
+            viewPresenter.RemoveInvalidateDelegate(model, OnModelInvalidate);
         }
 
         private void UnregisterAnchors()
@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
                 viewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
 
-            viewPresenter.AddInvalidateEvent(model, OnModelInvalidate);
+            viewPresenter.AddInvalidateDelegate(model, OnModelInvalidate);
             SyncPresenters();
         }
 

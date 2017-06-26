@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
-            viewPresenter.AddInvalidateEvent(m_Model, OnInvalidate);
+            viewPresenter.AddInvalidateDelegate(m_Model, OnInvalidate);
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)

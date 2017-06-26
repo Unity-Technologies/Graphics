@@ -588,9 +588,8 @@ namespace UnityEditor.VFX.UI
             m_registeredEvent.Clear();
         }
 
-        [NonSerialized]
         private Dictionary<VFXModel, List<VFXModel.InvalidateEvent>> m_registeredEvent = new Dictionary<VFXModel, List<VFXModel.InvalidateEvent>>();
-        public void AddInvalidateEvent(VFXModel model, VFXModel.InvalidateEvent evt)
+        public void AddInvalidateDelegate(VFXModel model, VFXModel.InvalidateEvent evt)
         {
             model.onInvalidateDelegate += evt;
             if (!m_registeredEvent.ContainsKey(model))
@@ -600,16 +599,17 @@ namespace UnityEditor.VFX.UI
             m_registeredEvent[model].Add(evt);
         }
 
-        public void RemoveInvalidateEvent(VFXModel model)
+        public void RemoveInvalidateDelegate(VFXModel model, VFXModel.InvalidateEvent evt)
         {
             List<VFXModel.InvalidateEvent> evtList;
             if (m_registeredEvent.TryGetValue(model, out evtList))
             {
-                foreach (var evt in evtList)
+                model.onInvalidateDelegate -= evt;
+                evtList.Remove(evt);
+                if (evtList.Count == 0)
                 {
-                    model.onInvalidateDelegate -= evt;
+                    m_registeredEvent.Remove(model);
                 }
-                m_registeredEvent.Remove(model);
             }
         }
 
@@ -626,14 +626,15 @@ namespace UnityEditor.VFX.UI
 
                 if (m_Graph != null)
                 {
-                    RemoveInvalidateEvent(m_Graph);
+                    RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+                    RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 }
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
                 m_Graph = m_VFXAsset.GetOrCreateGraph();
 
-                AddInvalidateEvent(m_Graph, SyncPresentersFromModel);
-                AddInvalidateEvent(m_Graph, InvalidateExpressionGraph);
+                AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+                AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
 
                 // First trigger
                 RecompileExpressionGraphIfNeeded();
