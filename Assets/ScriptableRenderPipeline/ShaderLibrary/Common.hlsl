@@ -366,6 +366,13 @@ float4 PositivePow(float4 base, float4 power)
     return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
 }
 
+// Ref: https://twitter.com/SebAaltonen/status/878250919879639040
+// 2 mads (mad_sat and mad), faster than regular sign
+float3 FastSign(float x)
+{
+    return  saturate(x * FLT_MAX) * 2.0 - 1.0;
+}
+
 // ----------------------------------------------------------------------------
 // Texture utilities
 // ----------------------------------------------------------------------------

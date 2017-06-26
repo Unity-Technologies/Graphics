@@ -216,7 +216,7 @@ float4  PackQuat(float4 quat)
     if (index == 2) quat = quat.xywz;
 
     float4 packedQuat;
-    packedQuat.xyz = quat.xyz * sign(quat.w) * sqrt(0.5) + 0.5;
+    packedQuat.xyz = quat.xyz * FastSign(quat.w) * sqrt(0.5) + 0.5;
     packedQuat.w = index / 3.0;
 
     return packedQuat;
