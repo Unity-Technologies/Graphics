@@ -316,38 +316,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
-            camera.SetupMaterial(material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -355,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
             // we pass the first color target as the depth target. If it has 0 depth bits,
             // no depth target ends up being bound.
-            DrawFullScreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
+            DrawFullScreen(commandBuffer, material, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
 
         // Helper to help to display debug info on screen

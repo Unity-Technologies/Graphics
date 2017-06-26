@@ -33,7 +33,7 @@ Shader "Hidden/BlitCubemap" {
                 v2f o;
 
                 o.vertex = GetFullScreenTriangleVertexPosition(v.vertexID);
-                float2 uv = GetFullScreenTriangleTexcoord(v.vertexID) * 2.0 - 1.0;
+                float2 uv = GetFullScreenTriangleTexCoord(v.vertexID) * 2.0 - 1.0;
 
                 int idx = (int)_faceIndex;
                 float3 transformU = faceU[idx];
