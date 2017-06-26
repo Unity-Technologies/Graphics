@@ -31,14 +31,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // not used during a frame.
     public class HDCamera
     {
-        public readonly Camera camera;
+        public Matrix4x4 viewMatrix;
+        public Matrix4x4 projMatrix;
+        public Vector4   screenSize;
+        public Camera    camera;
 
-        public Vector4   screenSize { get; private set; }
-        public Matrix4x4 viewProjectionMatrix { get; private set; }
-        public Matrix4x4 prevViewProjectionMatrix { get; private set; }
-        public Matrix4x4 invViewProjectionMatrix { get; private set; }
-        public Matrix4x4 invProjectionMatrix { get; private set; }
-        public Vector4   invProjectionParam { get; private set; }
+        public Matrix4x4 viewProjMatrix
+        {
+            get { return projMatrix * viewMatrix; }
+        }
+
+        public Vector4 invProjParam
+        {
+            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+            get { var p = projMatrix; return new Vector4(p.m20 / (p.m00 * p.m23), p.m21 / (p.m11 * p.m23), -1.0f / p.m23, (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23); }
+        }
+
+        // View-projection matrix from the previous frame.
+        public Matrix4x4 prevViewProjMatrix;
 
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
@@ -58,49 +68,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Update()
         {
-            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
             var gpuVP = gpuProj * camera.worldToCameraMatrix;
 
             // A camera could be rendered multiple time per frame, only updates the previous viewproj if needed
             if (m_LastFrameActive != Time.frameCount)
             {
-                prevViewProjectionMatrix = !m_FirstFrame
-                    ? viewProjectionMatrix
+                prevViewProjMatrix = !m_FirstFrame
+                    ? viewProjMatrix
                     : gpuVP;
 
                 m_FirstFrame = false;
             }
 
-            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-            var invProjParam = new Vector4(
-                gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
-                gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
-                -1.0f / gpuProj.m23,
-                (-gpuProj.m22
-                + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
-                + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23
-            );
-
-            viewProjectionMatrix = gpuVP;
-            invViewProjectionMatrix = gpuVP.inverse;
-            invProjectionMatrix = gpuProj.inverse;
-            invProjectionParam = invProjParam;
+            viewMatrix = camera.worldToCameraMatrix;
+            projMatrix = gpuProj;
+            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
             m_LastFrameActive = Time.frameCount;
-        }
-
-        public void SetupMaterial(Material material)
-        {
-            material.SetVector("_ScreenSize",         screenSize);
-            material.SetMatrix("_ViewProjMatrix",     viewProjectionMatrix);
-            material.SetMatrix("_PrevViewProjMatrix", prevViewProjectionMatrix);
-            material.SetMatrix("_InvViewProjMatrix",  invViewProjectionMatrix);
-            material.SetMatrix("_InvProjMatrix",      invProjectionMatrix);
-            material.SetVector("_InvProjParam",       invProjectionParam);
         }
 
         public void Reset()
@@ -142,6 +129,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Cameras.Remove(cam);
 
             m_Cleanup.Clear();
+        }
+
+        public void SetupGlobalParams(CommandBuffer cmd)
+        {
+            cmd.SetGlobalMatrix("_ViewMatrix",         viewMatrix);
+            cmd.SetGlobalMatrix("_InvViewMatrix",      viewMatrix.inverse);
+            cmd.SetGlobalMatrix("_ProjMatrix",         projMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",      projMatrix.inverse);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",     viewProjMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
+            cmd.SetGlobalVector("_InvProjParam",       invProjParam);
+            cmd.SetGlobalVector("_ScreenSize",         screenSize);
+            cmd.SetGlobalMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+        }
+
+        // Does not modify global settings. Used for shadows, low res. rendering, etc.
+        public void OverrideGlobalParams(Material material)
+        {
+            material.SetMatrix("_ViewMatrix",         viewMatrix);
+            material.SetMatrix("_InvViewMatrix",      viewMatrix.inverse);
+            material.SetMatrix("_ProjMatrix",         projMatrix);
+            material.SetMatrix("_InvProjMatrix",      projMatrix.inverse);
+            material.SetMatrix("_ViewProjMatrix",     viewProjMatrix);
+            material.SetMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
+            material.SetVector("_InvProjParam",       invProjParam);
+            material.SetVector("_ScreenSize",         screenSize);
+            material.SetMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+        }
+
+        public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
+        {
+            Utilities.SetMatrixCS(cmd, cs, "_ViewMatrix",         viewMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvViewMatrix",      viewMatrix.inverse);
+            Utilities.SetMatrixCS(cmd, cs, "_ProjMatrix",         projMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvProjMatrix",      projMatrix.inverse);
+            Utilities.SetMatrixCS(cmd, cs, "_ViewProjMatrix",     viewProjMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvViewProjMatrix",  viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam( cs, "_InvProjParam",       invProjParam);
+            cmd.SetComputeVectorParam( cs, "_ScreenSize",         screenSize);
+            Utilities.SetMatrixCS(cmd, cs, "_PrevViewProjMatrix", prevViewProjMatrix);
         }
     }
 
@@ -500,12 +527,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
 
-            cmd.SetGlobalVector("_ScreenSize",         hdCamera.screenSize);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",     hdCamera.viewProjectionMatrix);
-            cmd.SetGlobalMatrix("_PrevViewProjMatrix", hdCamera.prevViewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix",  hdCamera.invViewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",      hdCamera.invProjectionMatrix);
-            cmd.SetGlobalVector("_InvProjParam",       hdCamera.invProjectionParam);
+            hdCamera.SetupGlobalParams(cmd);
 
             // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
 
@@ -860,8 +882,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render GBuffer opaque
                 if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
-                    hdCamera.SetupMaterial(m_DebugViewMaterialGBuffer);
-
                     // TODO: Bind depth textures
                     var cmd = CommandBufferPool.Get("DebugViewMaterialGBuffer" );
                     cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
@@ -915,19 +935,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (sssSettings.useDisneySSS)
             {
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
-                // Temp >>>
-                Matrix4x4 viewMatrix = hdCamera.camera.worldToCameraMatrix;
-                viewMatrix.SetRow(2, -viewMatrix.GetRow(2));        // Make Z axis point forwards in the view space (left-handed CS)
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(hdCamera.camera.projectionMatrix, false);
-                projMatrix.SetColumn(2, -projMatrix.GetColumn(2));  // Undo the view-space transformation
-                m_FilterAndCombineSubsurfaceScattering.SetMatrix("_ViewMatrix", viewMatrix);
-                m_FilterAndCombineSubsurfaceScattering.SetMatrix("_ProjMatrix", projMatrix);
-                // <<< Temp
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
 
-                Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
             }
             else
             {
@@ -936,14 +948,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
                 m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                 m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-                Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+                Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
 
                 // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
                 cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);  // Cannot set a RT on a material
                 m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
                 m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                 m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-                Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -1134,7 +1146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FullScreenDebugPushed = false;
                 debugCB.SetGlobalTexture("_DebugFullScreenTexture", m_DebugFullScreenTempRT);
                 m_DebugFullScreen.SetFloat("_FullScreenDebugMode", (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
-                Utilities.DrawFullScreen(debugCB, m_DebugFullScreen, camera, BuiltinRenderTextureType.CameraTarget);
+                Utilities.DrawFullScreen(debugCB, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
             }
 
             // Then overlays

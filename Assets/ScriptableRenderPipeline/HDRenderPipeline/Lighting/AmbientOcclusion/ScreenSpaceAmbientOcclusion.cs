@@ -76,25 +76,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // AO estimation.
             m_Command.GetTemporaryRT(Uniforms._TempTex1, width / downsize, height / downsize, 0, kFilter, kTempFormat, kRWMode);
-            Utilities.DrawFullScreen(m_Command, m_Material, hdCamera, Uniforms._TempTex1, null, 0);
+            Utilities.DrawFullScreen(m_Command, m_Material, Uniforms._TempTex1, null, 0);
             hdRP.PushFullScreenDebugTexture(m_Command, Uniforms._TempTex1, hdCamera.camera, renderContext, FullScreenDebugMode.SSAOBeforeFiltering);
 
             // Denoising (horizontal pass).
             m_Command.GetTemporaryRT(Uniforms._TempTex2, width, height, 0, kFilter, kTempFormat, kRWMode);
             m_Command.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-            Utilities.DrawFullScreen(m_Command, m_Material, hdCamera, Uniforms._TempTex2, null, 1);
+            Utilities.DrawFullScreen(m_Command, m_Material, Uniforms._TempTex2, null, 1);
             m_Command.ReleaseTemporaryRT(Uniforms._TempTex1);
 
             // Denoising (vertical pass).
             m_Command.GetTemporaryRT(Uniforms._TempTex1, width, height, 0, kFilter, kTempFormat, kRWMode);
             m_Command.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex2);
-            Utilities.DrawFullScreen(m_Command, m_Material, hdCamera, Uniforms._TempTex1, null, 2);
+            Utilities.DrawFullScreen(m_Command, m_Material, Uniforms._TempTex1, null, 2);
             m_Command.ReleaseTemporaryRT(Uniforms._TempTex2);
 
             // Final filtering
             m_Command.GetTemporaryRT(Uniforms._AOBuffer, width, height, 0, kFilter, GetAOBufferFormat(), kRWMode);
             m_Command.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-            Utilities.DrawFullScreen(m_Command, m_Material, hdCamera, Uniforms._AOBuffer, null, 3);
+            Utilities.DrawFullScreen(m_Command, m_Material, Uniforms._AOBuffer, null, 3);
             m_Command.ReleaseTemporaryRT(Uniforms._TempTex1);
 
             // Setup texture for lighting pass (automagic of unity)
