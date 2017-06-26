@@ -2046,7 +2046,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcDisneyDiffuseMatrix", Shader.GetGlobalTexture("_LtcDisneyDiffuseMatrix"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcMultiGGXFresnelDisneyDiffuse", Shader.GetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse"));
 
-                                Utilities.SetupComputeShaderHDCamera(hdCamera, shadeOpaqueShader, cmd);
+                                hdCamera.SetupComputeShader(shadeOpaqueShader, cmd);
 
                                 Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "g_mInvScrProjection", Shader.GetGlobalMatrix("g_mInvScrProjection"));
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", Shader.GetGlobalInt("_UseTileLightList"));

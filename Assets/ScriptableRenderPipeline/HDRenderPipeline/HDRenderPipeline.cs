@@ -130,6 +130,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Cleanup.Clear();
         }
+
+        public void SetupGlobalParams(CommandBuffer cmd)
+        {
+            cmd.SetGlobalMatrix("_ViewMatrix",         viewMatrix);
+            cmd.SetGlobalMatrix("_InvViewMatrix",      viewMatrix.inverse);
+            cmd.SetGlobalMatrix("_ProjMatrix",         projMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",      projMatrix.inverse);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",     viewProjMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
+            cmd.SetGlobalVector("_InvProjParam",       invProjParam);
+            cmd.SetGlobalVector("_ScreenSize",         screenSize);
+            cmd.SetGlobalMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+        }
+
+        // Does not modify global settings. Used for shadows, low res. rendering, etc.
+        public void OverrideGlobalParams(Material material)
+        {
+            material.SetMatrix("_ViewMatrix",         viewMatrix);
+            material.SetMatrix("_InvViewMatrix",      viewMatrix.inverse);
+            material.SetMatrix("_ProjMatrix",         projMatrix);
+            material.SetMatrix("_InvProjMatrix",      projMatrix.inverse);
+            material.SetMatrix("_ViewProjMatrix",     viewProjMatrix);
+            material.SetMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
+            material.SetVector("_InvProjParam",       invProjParam);
+            material.SetVector("_ScreenSize",         screenSize);
+            material.SetMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+        }
+
+        public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
+        {
+            Utilities.SetMatrixCS(cmd, cs, "_ViewMatrix",         viewMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvViewMatrix",      viewMatrix.inverse);
+            Utilities.SetMatrixCS(cmd, cs, "_ProjMatrix",         projMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvProjMatrix",      projMatrix.inverse);
+            Utilities.SetMatrixCS(cmd, cs, "_ViewProjMatrix",     viewProjMatrix);
+            Utilities.SetMatrixCS(cmd, cs, "_InvViewProjMatrix",  viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam( cs, "_InvProjParam",       invProjParam);
+            cmd.SetComputeVectorParam( cs, "_ScreenSize",         screenSize);
+            Utilities.SetMatrixCS(cmd, cs, "_PrevViewProjMatrix", prevViewProjMatrix);
+        }
     }
 
     public class GBufferManager
@@ -487,7 +527,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
 
-            Utilities.SetupGlobalHDCamera(hdCamera, cmd);
+            hdCamera.SetupGlobalParams(cmd);
 
             // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
 
