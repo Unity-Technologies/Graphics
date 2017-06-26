@@ -180,7 +180,7 @@ namespace UnityEditor.VFX
             return clone;
         }
 
-        static private VFXExpression GetExpressionFromObject(object value,VFXValue.Mode mode)
+        static private VFXExpression GetExpressionFromObject(object value, VFXValue.Mode mode)
         {
             if (value is float)
             {

@@ -130,7 +130,7 @@ namespace UnityEditor.VFX
 
             outputExpressionQueue.Enqueue(outputExpressionArray);
 
-           if (outputExpressionQueue.Count > 1)
+            if (outputExpressionQueue.Count > 1)
                 return;
 
             // Dequeue
