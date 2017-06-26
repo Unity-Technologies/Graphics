@@ -54,8 +54,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
-            //TODO unregister when the block is destroyed
-            m_Model.onInvalidateDelegate += OnInvalidate;
+            viewPresenter.AddInvalidateEvent(m_Model, OnInvalidate);
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)

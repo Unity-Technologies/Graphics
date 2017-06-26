@@ -36,8 +36,7 @@ namespace UnityEditor.VFX.UI
             name = model.property.name;
 
             UpdateHidden();
-
-            m_Model.onInvalidateDelegate += OnInvalidate;
+            m_SourceNode.viewPresenter.AddInvalidateEvent(model, OnInvalidate);
         }
 
         void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
