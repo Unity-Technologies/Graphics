@@ -763,7 +763,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 uint shadowRequestCount = (uint)m_ShadowRequests.Count;
                 int[] shadowRequests = m_ShadowRequests.ToArray();
                 int[] shadowDataIndices;
-                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights.ToArray(),
+                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
                     ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                 // update the visibleLights with the shadow information
@@ -1134,7 +1134,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
 
-            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights.ToArray() );
+            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
             m_ShadowMgr.SyncData();
             m_ShadowMgr.BindResources( loop );
 
