@@ -1263,7 +1263,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //TODO: Do not call ToArray here to avoid GC, refactor API
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
-                        m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, cullResults.visibleLights.ToArray(),
+                        m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, cullResults.visibleLights,
                             ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                         // update the visibleLights with the shadow information
@@ -1866,7 +1866,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderShadows(ScriptableRenderContext renderContext, CullResults cullResults)
             {
                 // kick off the shadow jobs here
-                m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cullResults, cullResults.visibleLights.ToArray());
+                m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cullResults, cullResults.visibleLights);
             }
 
             private void SetupDebugDisplayMode(bool debugDisplayEnable)
