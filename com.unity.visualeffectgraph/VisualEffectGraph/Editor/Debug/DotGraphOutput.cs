@@ -8,13 +8,13 @@ namespace UnityEditor.VFX
 {
     static class DotGraphOutput
     {
-        public static void DebugExpressionGraph(VFXGraph graph, VFXExpression.Context.ReductionOption option)
+        public static void DebugExpressionGraph(VFXGraph graph, VFXExpressionContextOption option)
         {
             var expressionGraph = new VFXExpressionGraph();
             expressionGraph.CompileExpressions(graph, option);
 
             var mainExpressions = new Dictionary<VFXExpression, List<string>>();
-            foreach (var kvp in expressionGraph.ExpressionsToReduced)
+            foreach (var kvp in expressionGraph.GPUExpressionsToReduced)
             {
                 var exp = kvp.Key;
                 var reduced = kvp.Value;

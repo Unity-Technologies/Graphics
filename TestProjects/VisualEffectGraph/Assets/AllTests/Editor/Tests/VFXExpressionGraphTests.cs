@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        private void TestExpressionGraph(Action<VFXGraph> init, Action<Graphs> test, VFXExpression.Context.ReductionOption option)
+        private void TestExpressionGraph(Action<VFXGraph> init, Action<Graphs> test, VFXExpressionContextOption option)
         {
             var vfxGraph = ScriptableObject.CreateInstance<VFXGraph>();
 
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Test
 
         private void BasicTest(VFXExpressionGraph graph, int ExpectedNbSlots, int ExpectedNbExpressions, int ExpectedNbFlattened)
         {
-            Assert.AreEqual(ExpectedNbSlots, graph.ExpressionsToReduced.Count);
+            Assert.AreEqual(ExpectedNbSlots, graph.GPUExpressionsToReduced.Count);
             Assert.AreEqual(ExpectedNbExpressions, graph.Expressions.Count);
             Assert.AreEqual(ExpectedNbFlattened, graph.FlattenedExpressions.Count);
         }
@@ -82,15 +82,15 @@ namespace UnityEditor.VFX.Test
         private void CheckExpressionValue<T>(VFXExpressionGraph graph, VFXSlot slot, T value)
         {
             var exp = slot.GetExpression();
-            Assert.IsTrue(graph.ExpressionsToReduced.ContainsKey(exp));
-            var expression = graph.ExpressionsToReduced[exp];
+            Assert.IsTrue(graph.GPUExpressionsToReduced.ContainsKey(exp));
+            var expression = graph.GPUExpressionsToReduced[exp];
             Assert.IsTrue(expression.Is(VFXExpression.Flags.Value));
             Assert.AreEqual(value, expression.Get<T>());
         }
 
         private void CheckFlattenedIndex(VFXExpressionGraph graph, VFXSlot slot)
         {
-            int index = graph.GetFlattenedIndex(graph.ExpressionsToReduced[slot.GetExpression()]);
+            int index = graph.GetFlattenedIndex(graph.GPUExpressionsToReduced[slot.GetExpression()]);
             Assert.Greater(graph.FlattenedExpressions.Count, index);
             Assert.Less(-1, index);
         }
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.Test
             TestExpressionGraph(
                 null,
                 (g) => BasicTest(g.exp, 3, 5, 5),
-                VFXExpression.Context.ReductionOption.None
+                VFXExpressionContextOption.None
                 );
         }
 
@@ -117,7 +117,7 @@ namespace UnityEditor.VFX.Test
                     CheckExpressionValue(g.exp, context[0].GetInputSlot(0), 2.0f);
                     CheckExpressionValue(g.exp, context[0].GetInputSlot(1), new Vector2(3.0f, 4.0f));
                 },
-                VFXExpression.Context.ReductionOption.ConstantFolding
+                VFXExpressionContextOption.ConstantFolding
                 );
         }
 
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.Test
                     CheckFlattenedIndex(g.exp, context[0].GetInputSlot(0));
                     CheckFlattenedIndex(g.exp, context[0].GetInputSlot(1));
                 },
-                VFXExpression.Context.ReductionOption.CPUReduction
+                VFXExpressionContextOption.Reduction
                 );
         }
 
@@ -156,12 +156,12 @@ namespace UnityEditor.VFX.Test
 
                     var context = (VFXContext)g.vfx[0];
                     var slot = context.GetInputSlot(0);
-                    var exp = g.exp.ExpressionsToReduced[slot.GetExpression()];
+                    var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
 
                     Assert.IsTrue(exp.Is(VFXExpression.Flags.PerElement));
                     Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
                 },
-                VFXExpression.Context.ReductionOption.CPUReduction
+                VFXExpressionContextOption.Reduction
                 );
         }
     }

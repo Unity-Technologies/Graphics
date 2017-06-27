@@ -223,19 +223,19 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation OutputToDot()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.None);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.CPUReduction);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.ConstantFolding);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 

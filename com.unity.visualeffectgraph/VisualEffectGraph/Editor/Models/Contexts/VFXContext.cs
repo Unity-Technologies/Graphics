@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
 
         public virtual VFXExpressionMapper GetGPUExpressions()
         {
-            return VFXExpressionMapper.FromContext(this, null, "uniform");
+            return VFXExpressionMapper.FromContext(this, "uniform");
         }
 
         public virtual VFXExpressionMapper GetCPUExpressions()

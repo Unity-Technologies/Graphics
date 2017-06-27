@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
                 try
                 {
                     var expressionGraph = new VFXExpressionGraph();
-                    expressionGraph.CompileExpressions(this, VFXExpression.Context.ReductionOption.CPUReduction);
+                    expressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
 
                     // build expressions data and set them to vfx asset
                     var flatGraph = expressionGraph.FlattenedExpressions;

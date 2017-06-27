@@ -154,12 +154,9 @@ namespace UnityEditor.VFX
         // Collect attribute expressions linked to a context
         private void CollectInputAttributes(VFXContext context, VFXExpressionGraph graph)
         {
-            foreach (var slot in context.inputSlots.SelectMany(t => t.GetExpressionSlots()))
-                AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
-
-            foreach (var block in context.children)
-                foreach (var slot in block.inputSlots.SelectMany(t => t.GetExpressionSlots()))
-                    AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+            var mapper = context.ownedType == VFXDataType.kParticle ? context.GetGPUExpressions() : context.GetCPUExpressions();
+            foreach (var exp in mapper.expressions)
+                AddAttributes(context, CollectInputAttributes(exp));
         }
 
         // Collect attribute expressions recursively

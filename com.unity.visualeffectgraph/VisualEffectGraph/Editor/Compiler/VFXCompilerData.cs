@@ -65,30 +65,27 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId, VFXExpressionGraph graph = null)
+        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
             foreach (var master in slotContainer.inputSlots)
             {
                 foreach (var slot in master.GetExpressionSlots())
                 {
                     var exp = slot.GetExpression();
-                    if (graph != null)
-                        exp = graph.GetReduced(exp);
-
                     if (!Contains(exp))
                         AddExpression(exp, slot.fullName, blockId);
                 }
             }
         }
 
-        public static VFXExpressionMapper FromContext(VFXContext context, VFXExpressionGraph graph = null, string prefix = null)
+        public static VFXExpressionMapper FromContext(VFXContext context, string prefix = null)
         {
             var mapper = new VFXExpressionMapper(prefix);
 
-            mapper.AddExpressionFromSlotContainer(context, -1, graph);
+            mapper.AddExpressionFromSlotContainer(context, -1);
             foreach (var block in context.children)
                 for (int i = 0; i < context.GetNbChildren(); ++i)
-                    mapper.AddExpressionFromSlotContainer(context[i], i, graph);
+                    mapper.AddExpressionFromSlotContainer(context[i], i);
 
             return mapper;
         }

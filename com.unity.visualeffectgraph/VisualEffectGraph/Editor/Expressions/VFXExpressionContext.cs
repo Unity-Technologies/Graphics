@@ -2,26 +2,42 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [Flags]
+    public enum VFXExpressionContextOption
+    {
+        None = 0,
+        Reduction = 1 << 0,
+        CPUEvaluation = 1 << 1,
+        ConstantFolding = 1 << 2,
+        GPUDataTransformation = 1 << 3,
+    }
+
     public abstract partial class VFXExpression
     {
         public class Context
         {
-            public enum ReductionOption
+            public VFXExpressionContextOption Options { get { return m_ReductionOptions; } }
+
+            private bool Has(VFXExpressionContextOption options)
             {
-                None =              0,
-                CPUReduction =      1 << 0,
-                CPUEvaluation =     1 << 1,
-                ConstantFolding =   1 << 2,
+                return (Options & options) == options;
             }
 
-            public ReductionOption Option { get { return m_ReductionOption; } }
-
-            public Context(ReductionOption reductionOption = ReductionOption.CPUReduction)
+            private bool HasAny(VFXExpressionContextOption options)
             {
-                m_ReductionOption = reductionOption;
+                return (Options & options) != 0;
+            }
+
+            public Context(VFXExpressionContextOption reductionOption = VFXExpressionContextOption.Reduction)
+            {
+                m_ReductionOptions = reductionOption;
+
+                if (Has(VFXExpressionContextOption.CPUEvaluation) && Has(VFXExpressionContextOption.GPUDataTransformation))
+                    throw new ArgumentException("Invalid reduction options");
             }
 
             public void RegisterExpression(VFXExpression expression)
@@ -39,6 +55,10 @@ namespace UnityEditor.VFX
             {
                 foreach (var exp in m_EndExpressions)
                     Compile(exp);
+
+                if (Has(VFXExpressionContextOption.GPUDataTransformation))
+                    foreach (var exp in m_EndExpressions)
+                        m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp));
             }
 
             public void Recompile()
@@ -49,17 +69,30 @@ namespace UnityEditor.VFX
 
             private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
             {
-                if (Option != ReductionOption.CPUEvaluation && Option != ReductionOption.ConstantFolding)
+                if (!HasAny(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     return false;
 
                 if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
                 Flags parentFlag = Flags.Value;
-                if (Option == ReductionOption.ConstantFolding)
+                if (Has(VFXExpressionContextOption.ConstantFolding))
                     parentFlag |= Flags.Constant;
 
                 return reducedParents.All(e => (e.m_Flags & (parentFlag | Flags.InvalidOnCPU)) == parentFlag);
+            }
+
+            private VFXExpression InsertGPUTransformation(VFXExpression exp)
+            {
+                switch (exp.ValueType)
+                {
+                    case VFXValueType.kColorGradient:
+                        return new VFXExpressionBakeGradient(exp);
+                    case VFXValueType.kCurve:
+                        return new VFXExpressionBakeCurve(exp);
+                    default:
+                        return exp;
+                }
             }
 
             public VFXExpression Compile(VFXExpression expression)
@@ -67,12 +100,21 @@ namespace UnityEditor.VFX
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
-                    var parents = expression.Parents.Select(e => Compile(e)).ToArray();
+                    var parents = expression.Parents.Select(e =>
+                        {
+                            var parent = Compile(e);
+
+                            if (Has(VFXExpressionContextOption.GPUDataTransformation) && expression.Is(VFXExpression.Flags.PerElement) && !parent.Is(VFXExpression.Flags.PerElement))
+                                parent = InsertGPUTransformation(parent);
+
+                            return parent;
+                        }).ToArray();
+
                     if (ShouldEvaluate(expression, parents))
                     {
                         reduced = expression.Evaluate(parents);
                     }
-                    else if (Option != ReductionOption.None)
+                    else if (HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     {
                         reduced = expression.Reduce(parents);
                     }
@@ -127,7 +169,7 @@ namespace UnityEditor.VFX
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
 
-            private ReductionOption m_ReductionOption;
+            private VFXExpressionContextOption m_ReductionOptions;
         }
     }
 }
