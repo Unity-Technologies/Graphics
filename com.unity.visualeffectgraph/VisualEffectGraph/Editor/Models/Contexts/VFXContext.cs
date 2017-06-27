@@ -161,9 +161,14 @@ namespace UnityEditor.VFX
                 InnerUnlink(context, this);
         }
 
+        private bool CanLinkFromMany()
+        {
+            return contextType == VFXContextType.kSpawner;
+        }
+
         private bool CanLinkToMany()
         {
-            return contextType == VFXContextType.kOutput;
+            return contextType == VFXContextType.kOutput || contextType == VFXContextType.kInit;
         }
 
         private static void InnerLink(VFXContext from, VFXContext to)
@@ -171,13 +176,13 @@ namespace UnityEditor.VFX
             if (!CanLink(from, to))
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
 
-            // Handle constraints on connections TODO Make that overridable
+            // Handle constraints on connections
             foreach (var context in from.m_Outputs.ToArray())
                 if (!context.CanLinkToMany() || context.contextType != to.contextType)
                     InnerUnlink(from, context);
 
             foreach (var context in to.m_Inputs.ToArray())
-                if (!context.CanLinkToMany() || context.contextType != from.contextType)
+                if (!context.CanLinkFromMany() || context.contextType != from.contextType)
                     InnerUnlink(context, to);
 
             if (from.ownedType == to.ownedType)
@@ -243,7 +248,7 @@ namespace UnityEditor.VFX
             InnerSetData(data, true);
         }
 
-        public void InnerSetData(VFXData data, bool notify)
+        private void InnerSetData(VFXData data, bool notify)
         {
             if (m_Data != data)
             {

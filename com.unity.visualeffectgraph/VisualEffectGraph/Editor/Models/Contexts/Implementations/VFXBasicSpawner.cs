@@ -20,5 +20,10 @@ namespace UnityEditor.VFX
             }
             return mapper;
         }
+
+        public override VFXExpressionMapper GetGPUExpressions()
+        {
+            return null;
+        }
     }
 }
