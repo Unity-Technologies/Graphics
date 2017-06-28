@@ -406,6 +406,15 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		// present frame buffer.
 		FinalPass(loop);
+
+		// bind depth surface for editor grid/gizmo/selection rendering
+		if (camera.cameraType == CameraType.SceneView)
+		{
+			var cmd = CommandBufferPool.Get();
+			cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
+			loop.ExecuteCommandBuffer(cmd);
+			CommandBufferPool.Release(cmd);
+		}
 	}
 
 	static Matrix4x4 GetFlipMatrix()
@@ -592,10 +601,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	static void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext loop)
 	{
 		// setup GBuffer for rendering
-		var cmd = new CommandBuffer { name = "Create G-Buffer" };
+		var cmd = CommandBufferPool.Get ("Create G-Buffer");
 		SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
 		loop.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
+		CommandBufferPool.Release(cmd);
 
 		// render opaque objects using Deferred pass
 		var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
@@ -612,7 +621,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
 	{
-		var cmd = new CommandBuffer { name = "Lighting" };
+		var cmd = CommandBufferPool.Get ("Lighting");
 
 		// IF PLATFORM_MAC -- cannot use framebuffer fetch
 		#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
@@ -625,7 +634,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		RenderReflections (camera, cmd, inputs, loop);
 
 		loop.ExecuteCommandBuffer (cmd);
-		cmd.Dispose ();
+		CommandBufferPool.Release(cmd);
 	}
 
 	void RenderSpotlight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool renderAsQuad, bool intersectsNear, bool deferred)
@@ -792,10 +801,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, ScriptableRenderContext loop)
 	{
-		var cmd = new CommandBuffer { name = "Forward Opaques - Depth Only" };
+		var cmd = CommandBufferPool.Get ("Forward Opaques - Depth Only");
 		cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
 		loop.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
+		CommandBufferPool.Release(cmd);
 
 		// render opaque objects using Deferred pass
 		var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
@@ -808,18 +817,18 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
 	{
-		var cmd = new CommandBuffer { name = "Copy depth" };
+		var cmd = CommandBufferPool.Get ("Copy depth");
 		cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
 		loop.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
+		CommandBufferPool.Release(cmd);
 	}
 
 	void FinalPass(ScriptableRenderContext loop)
 	{
-		var cmd = new CommandBuffer { name = "FinalPass" };
+		var cmd = CommandBufferPool.Get ("FinalPass");
 		cmd.Blit(s_GBufferEmission, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
 		loop.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
+		CommandBufferPool.Release(cmd);
 	}
 		
 	void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
@@ -1019,7 +1028,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		s_LightDataBuffer.SetData(lightData);
 
-		CommandBuffer cmd = new CommandBuffer() {name = "SetupShaderConstants"};
+		CommandBuffer cmd = CommandBufferPool.Get ("SetupShaderConstants");
 
 		cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
 		cmd.SetGlobalMatrix("g_mWorldToView", viewToWorld.inverse);
@@ -1049,7 +1058,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetGlobalFloat ("_transparencyShadows", TransparencyShadows ? 1.0f : 0.0f);
 
 		context.ExecuteCommandBuffer(cmd);
-		cmd.Dispose();
+		CommandBufferPool.Release(cmd);
 	}
 }
 
