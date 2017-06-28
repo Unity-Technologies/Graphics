@@ -10,9 +10,10 @@ Material:
   m_Shader: {fileID: 4800000, guid: eab0538d9d5746246806a9611c04ac4d, type: 3}
   m_ShaderKeywords: _HEIGHTMAP0 _HEIGHTMAP1 _NORMALMAP0 _NORMALMAP1 _NORMALMAP_TANGENT_SPACE0
     _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-    _TESSELLATION_DISPLACEMENT
+    _TESSELLATION_DISPLACEMENT _TESSELLATION_TILING_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
@@ -156,6 +157,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NormalMapOS0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMapOS1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMapOS2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMapOS3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -222,10 +239,13 @@ Material:
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
+    - _DoubleSidedNormalMode: 1
+    - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 0
     - _EmissiveIntensity: 0
     - _EnablePerPixelDisplacement: 0
+    - _EnableWind: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -264,6 +284,7 @@ Material:
     - _InheritBaseNormal1: 0
     - _InheritBaseNormal2: 0
     - _InheritBaseNormal3: 0
+    - _InitialBend: 1
     - _LayerCenterOffset0: 0.5
     - _LayerCenterOffset1: 0.5
     - _LayerCenterOffset2: 0
@@ -308,6 +329,8 @@ Material:
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
+    - _ShiverDirectionality: 0.5
+    - _ShiverDrag: 0.2
     - _Smoothness0: 0.5
     - _Smoothness1: 0.5
     - _Smoothness2: 0.5
@@ -316,6 +339,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _Stiffness: 1
     - _SurfaceType: 0
     - _TessellationBackFaceCullEpsilon: -0.25
     - _TessellationFactor: 4
@@ -325,6 +349,7 @@ Material:
     - _TessellationMode: 1
     - _TessellationObjectScale: 0
     - _TessellationShapeFactor: 0.75
+    - _TessellationTilingScale: 1
     - _TexWorldScale0: 1
     - _TexWorldScale1: 1
     - _TexWorldScale2: 1

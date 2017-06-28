@@ -41,9 +41,6 @@ Shader "BasicRenderPipeline/Standard"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "PerformanceChecks" = "False" }
-        LOD 300
-
         // Include forward (base + additive) pass from regular Standard shader.
         // They are not used by the scriptable render loop; only here so that
         // if we turn off our example loop, then regular forward rendering kicks in

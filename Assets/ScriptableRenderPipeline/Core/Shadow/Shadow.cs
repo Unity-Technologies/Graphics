@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 using System;
-
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering
             Object.DestroyImmediate(m_DebugMaterial);
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             for( uint i = 0, cnt = sr.facecount; i < cnt; ++i )
             {
@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
             return Reserve( frameId, ref shadowData, sr, m_TmpWidths, m_TmpHeights, ref entries, ref payload, lights );
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             if( m_FrameId.frameCount != frameId.frameCount )
                 m_ActiveEntriesCount = 0;
@@ -254,11 +254,11 @@ namespace UnityEngine.Experimental.Rendering
             float[] cascadeRatios = null;
             if( sr.shadowType == GPUShadowType.Directional )
             {
-                AdditionalLightData ald = lights[sr.index].light.GetComponent<AdditionalLightData>();
-                if( !ald )
+                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+                if( !asd )
                     return false;
 
-                ald.GetShadowCascades( out cascadeCnt, out cascadeRatios );
+                asd.GetShadowCascades( out cascadeCnt, out cascadeRatios );
             }
 
 
@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering
                 bit <<= 1;
             }
 
-            WritePerLightPayload( ref lights[sr.index], sr, ref sd, ref payload, ref originalPayloadCount );
+            WritePerLightPayload(lights, sr, ref sd, ref payload, ref originalPayloadCount );
 
             return true;
         }
@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
-        virtual protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        virtual protected void WritePerLightPayload(List<VisibleLight> lights, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
         {
             ShadowPayload sp = new ShadowPayload();
             if( sr.shadowType == GPUShadowType.Directional )
@@ -365,15 +365,15 @@ namespace UnityEngine.Experimental.Rendering
             ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
             if( algo == ShadowAlgorithm.PCF )
             {
-                AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
-                if( !ald )
+                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+                if( !asd )
                     return;
 
                 int shadowDataFormat;
-                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+                int[] shadowData = asd.GetShadowData( out shadowDataFormat );
                 if( !CheckDataIntegrity( algo, vari, prec, ref shadowData ) )
                 {
-                    ald.SetShadowAlgorithm( (int)algo, (int)vari, (int) prec, shadowDataFormat, shadowData );
+                    asd.SetShadowAlgorithm( (int)algo, (int)vari, (int) prec, shadowDataFormat, shadowData );
                     Debug.Log( "Fixed up shadow data for algorithm " + algo + ", variant " + vari );
                 }
 
@@ -429,17 +429,17 @@ namespace UnityEngine.Experimental.Rendering
             cb.ClearRenderTarget( true, !IsNativeDepth(), m_ClearColor );
         }
 
-        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
+        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
         {
-            var profilingSample = new HDPipeline.Utilities.ProfilingSample("Shadowmap" + m_TexSlot, renderContext);
+            var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), renderContext);
 
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
-                var cb = new CommandBuffer();
+                var cb = CommandBufferPool.Get();
                 cb.name = "Shadowmap.EnableShadowKeyword";
                 cb.EnableShaderKeyword(m_ShaderKeyword);
                 renderContext.ExecuteCommandBuffer( cb );
-                cb.Dispose();
+                CommandBufferPool.Release(cb);
             }
 
             // loop for generating each individual shadowmap
@@ -451,12 +451,12 @@ namespace UnityEngine.Experimental.Rendering
                 if( !cullResults.GetShadowCasterBounds( m_EntryCache[i].key.visibleIdx, out bounds ) )
                     continue;
 
-                var cb = new CommandBuffer();
+                var cb = CommandBufferPool.Get();
                 uint entrySlice = m_EntryCache[i].current.slice;
                 if( entrySlice != curSlice )
                 {
                     Debug.Assert( curSlice == uint.MaxValue || entrySlice >= curSlice, "Entries in the entry cache are not ordered in slice order." );
-                    cb.name = "Shadowmap.Update.Slice" + entrySlice;
+                    cb.name = string.Format("Shadowmap.Update.Slice{0}", entrySlice);
 
                     if( curSlice != uint.MaxValue )
                     {
@@ -466,12 +466,12 @@ namespace UnityEngine.Experimental.Rendering
                     PreUpdate( frameId, cb, curSlice );
                 }
 
-                cb.name = "Shadowmap.Update - slice: " + curSlice + ", vp.x: " + m_EntryCache[i].current.viewport.x + ", vp.y: " + m_EntryCache[i].current.viewport.y + ", vp.w: " + m_EntryCache[i].current.viewport.width + ", vp.h: " + m_EntryCache[i].current.viewport.height;
+                cb.name = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
                 cb.SetViewport( m_EntryCache[i].current.viewport );
                 cb.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cb.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 renderContext.ExecuteCommandBuffer( cb );
-                cb.Dispose();
+                CommandBufferPool.Release(cb);
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
@@ -479,7 +479,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // post update
-            var cblast = new CommandBuffer();
+            var cblast = CommandBufferPool.Get();
             PostUpdate( frameId, cblast, curSlice, lights );
             if( !string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
@@ -487,14 +487,14 @@ namespace UnityEngine.Experimental.Rendering
                 cblast.DisableShaderKeyword( m_ShaderKeyword );
             }
             renderContext.ExecuteCommandBuffer( cblast );
-            cblast.Dispose();
+            CommandBufferPool.Release(cblast);
 
             m_ActiveEntriesCount = 0;
 
             profilingSample.Dispose();
         }
 
-        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
+        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, List<VisibleLight> lights)
         {
             if( !IsNativeDepth() )
                 cb.ReleaseTemporaryRT( m_TempDepthId );
@@ -582,7 +582,7 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = new CommandBuffer();
+            CommandBuffer debugCB = CommandBufferPool.Get();
             debugCB.name = "";
 
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -596,7 +596,8 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
-            debugCB.Dispose();
+
+            CommandBufferPool.Release(debugCB);
         }
     }
 
@@ -868,17 +869,17 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
-        override protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        override protected void WritePerLightPayload(List<VisibleLight> lights, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
         {
-            base.WritePerLightPayload( ref light, sr, ref sd, ref payload, ref payloadOffset );
+            base.WritePerLightPayload(lights, sr, ref sd, ref payload, ref payloadOffset );
 
-            AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
-            if( !ald )
+            AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+            if( !asd )
                 return;
 
             ShadowPayload sp = new ShadowPayload();
             int shadowDataFormat;
-            int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+            int[] shadowData = asd.GetShadowData( out shadowDataFormat );
             if( shadowData == null )
                 return;
 
@@ -928,7 +929,7 @@ namespace UnityEngine.Experimental.Rendering
             cb.ClearRenderTarget( true, true, m_ClearColor );
         }
 
-        protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
+        protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, List<VisibleLight> lights)
         {
             cb.name = "VSM conversion";
             if ( rendertargetSlice == uint.MaxValue )
@@ -964,9 +965,9 @@ namespace UnityEngine.Experimental.Rendering
 
             while( i < cnt && m_EntryCache[i].current.slice == rendertargetSlice )
             {
-                AdditionalLightData ald = lights[m_EntryCache[i].key.visibleIdx].light.GetComponent<AdditionalLightData>();
+                AdditionalShadowData asd = lights[m_EntryCache[i].key.visibleIdx].light.GetComponent<AdditionalShadowData>();
                 int shadowDataFormat;
-                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+                int[] shadowData = asd.GetShadowData( out shadowDataFormat );
 
                 ShadowAlgorithm algo;
                 ShadowVariant vari;
@@ -1020,7 +1021,7 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = new CommandBuffer();
+            CommandBuffer debugCB = CommandBufferPool.Get();
             debugCB.name = "";
 
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -1034,7 +1035,7 @@ namespace UnityEngine.Experimental.Rendering
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
 
             renderContext.ExecuteCommandBuffer(debugCB);
-            debugCB.Dispose();
+            CommandBufferPool.Release(debugCB);
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1142,7 +1143,7 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
             // and register itself
-            AdditionalLightDataEditor.SetRegistry( this );
+            AdditionalShadowDataEditor.SetRegistry( this );
 #endif
         }
 
@@ -1151,7 +1152,7 @@ namespace UnityEngine.Experimental.Rendering
             cullingParams.shadowDistance = Mathf.Min( m_ShadowSettings.maxShadowDistance, cullingParams.shadowDistance );
         }
 
-        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
+        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
         {
             shadowDataIndices = null;
 
@@ -1212,7 +1213,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        protected override void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests )
+        protected override void PrioritizeShadowCasters( Camera camera, List<VisibleLight> lights, uint shadowRequestsCount, int[] shadowRequests )
         {
             // this function simply looks at the projected area on the screen, ignoring all light types and shapes
             m_TmpSortKeys.Reset( shadowRequestsCount );
@@ -1235,7 +1236,7 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & 0xffffffff); } );
         }
 
-        protected override void PruneShadowCasters( Camera camera, VisibleLight[] lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
+        protected override void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
         {
             Debug.Assert( shadowRequests.Count() > 0 );
             // at this point the array is sorted in order of some importance determined by the prioritize function
@@ -1255,10 +1256,10 @@ namespace UnityEngine.Experimental.Rendering
                 int facecount         = 0;
                 GPUShadowType shadowType = GPUShadowType.Point;
 
-                AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
+                AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
                 Vector3 lpos            = vl.light.transform.position;
                 float   distToCam       = (campos - lpos).magnitude;
-                bool    add             = (distToCam < ald.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
+                bool    add             = (distToCam < asd.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
 
                 if( add )
                 {
@@ -1267,7 +1268,7 @@ namespace UnityEngine.Experimental.Rendering
                         case LightType.Directional:
                             add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
                             shadowType = GPUShadowType.Directional;
-                            facecount = ald.cascadeCount;
+                            facecount = asd.cascadeCount;
                             break;
                         case LightType.Point:
                             add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;
@@ -1285,12 +1286,12 @@ namespace UnityEngine.Experimental.Rendering
                 if( add )
                 {
                     sreq.instanceId = vl.light.GetInstanceID();
-                    sreq.index      = (uint) requestIdx;
+                    sreq.index      = requestIdx;
                     sreq.facemask   = (uint) (1 << facecount) - 1;
                     sreq.shadowType = shadowType;
 
                     int sa, sv, sp;
-                    ald.GetShadowAlgorithm( out sa, out sv, out sp );
+                    asd.GetShadowAlgorithm( out sa, out sv, out sp );
                     sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
@@ -1305,20 +1306,18 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( ref shadowRequests, (long idx) => { return (int) idx; } );
         }
 
-        protected override void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
+        protected override void AllocateShadows( FrameId frameId, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
         {
             ShadowData sd = new ShadowData();
             shadowDatas.Reserve( totalGranted );
             shadowIndices.Reserve( grantedRequests.Count() );
             for( uint i = 0, cnt = grantedRequests.Count(); i < cnt; ++i )
             {
-                VisibleLight        vl  = lights[grantedRequests[i].index];
-                Light               l   = vl.light;
-                AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
+                Light l = lights[grantedRequests[i].index].light;
+                AdditionalShadowData asd = l.GetComponent<AdditionalShadowData>();
 
                 // set light specific values that are not related to the shadowmap
-                GPUShadowType shadowtype;
-                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out shadowtype );
+                GPUShadowType shadowtype = GetShadowLightType(l);
                 // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
                 sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
                 sd.normalBias = 100.0f * l.shadowNormalBias;
@@ -1328,7 +1327,7 @@ namespace UnityEngine.Experimental.Rendering
                 int smidx = 0;
                 while( smidx < k_MaxShadowmapPerType )
                 {
-                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
+                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) asd.shadowResolution, (uint) asd.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
                         break;
                     smidx++;
                 }
@@ -1344,7 +1343,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
+        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
         {
             using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", renderContext))
             {
@@ -1383,17 +1382,17 @@ namespace UnityEngine.Experimental.Rendering
             m_ShadowCtxt.SyncData();
         }
 
-        public override void BindResources( ScriptableRenderContext renderContext )
+        public override void BindResources(ScriptableRenderContext renderContext)
         {
-            foreach( var sm in m_Shadowmaps )
+            foreach (var sm in m_Shadowmaps)
             {
-                sm.Fill( m_ShadowCtxt );
+                sm.Fill(m_ShadowCtxt);
             }
-            CommandBuffer cb = new CommandBuffer(); // <- can we just keep this around or does this have to be newed every frame?
+            CommandBuffer cb = CommandBufferPool.Get(); // <- can we just keep this around or does this have to be newed every frame?
             cb.name = "Bind resources to GPU";
-            m_ShadowCtxt.BindResources( cb );
-            renderContext.ExecuteCommandBuffer( cb );
-            cb.Dispose();
+            m_ShadowCtxt.BindResources(cb);
+            renderContext.ExecuteCommandBuffer(cb);
+            CommandBufferPool.Release(cb);
         }
 
         // resets the shadow slot counters and returns the sum of all slots

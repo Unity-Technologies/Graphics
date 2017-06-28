@@ -67,7 +67,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
         #ifdef SSS_MODEL_DISNEY
-            float4x4 _ViewMatrix, _ProjMatrix;                                           // TEMP: make these global
             float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
         #else
@@ -132,8 +131,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* 'vec' is given relative to the tangent frame. */                         \
                     float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;                    \
                     float3 positionVS = centerPosVS + relPosVS;                                 \
-                    float4 positionCS = mul(_ProjMatrix, float4(positionVS, 1));                \
-                    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;        \
+                    float4 positionCS = mul(projMatrix, float4(positionVS, 1));                 \
+                    float2 positionSS = ComputeScreenSpacePosition(positionCS);                 \
                                                                                                 \
                     position   = positionSS * _ScreenSize.xy;                                   \
                     irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;               \
@@ -220,9 +219,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 float3 unused;
 
+                // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material. This shader is strongly coupled with the deferred Lit.shader.
+                // We can use the material classification facility to help the compiler to know we use SSS material and optimize the code (and don't require to read gbuffer with materialId).
+                uint featureFlags = MATERIALFEATUREFLAGS_LIT_SSS;
+
                 BSDFData bsdfData;
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
+                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, unused);
 
                 int    profileID   = bsdfData.subsurfaceProfile;
                 float  distScale   = bsdfData.subsurfaceRadius;
@@ -275,8 +278,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 const bool useTangentPlane = SSS_USE_TANGENT_PLANE != 0;
 
+                float4x4 viewMatrix, projMatrix;
+                GetLeftHandedViewSpaceMatrices(viewMatrix, projMatrix);
+
                 // Compute the tangent frame in view space.
-                float3 normalVS = mul((float3x3)_ViewMatrix, bsdfData.normalWS);
+                float3 normalVS = mul((float3x3)viewMatrix, bsdfData.normalWS);
                 float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
                 float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
 
@@ -356,8 +362,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (distScale == 0 || maxDistInPixels < 1)
                 {
-                    return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #if SSS_DEBUG_LOD
+                        return float4(0, 0, 1, 1);
+                    #else
+                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    #endif
                 }
+                
+                #if SSS_DEBUG_LOD
+                    return float4(0.5, 0.5, 0, 1);
+                #endif
 
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance = sampleWeight * sampleIrradiance;

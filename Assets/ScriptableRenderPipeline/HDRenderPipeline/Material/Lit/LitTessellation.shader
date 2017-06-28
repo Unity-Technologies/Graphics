@@ -91,7 +91,8 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Subsurface Scattering, 0, Standard, 1, Specular Color, 2)] _MaterialID("MaterialId", Int) = 1 // MaterialId.LitStandard
+        // Note: 2 and 3 are currently unused
+        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -158,6 +159,10 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
 
+    // MaterialId are used as shader feature to allow compiler to optimize properly
+    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
+    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR
+
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
@@ -183,7 +188,6 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "../../../ShaderLibrary/Wind.hlsl"
     #include "../../../ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderConfig.cs.hlsl"
-    #include "../../ShaderVariables.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -201,9 +205,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
-        LOD 300
-
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -224,6 +225,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -253,6 +255,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "../../ShaderVariables.hlsl"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
@@ -281,6 +284,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitMetaPass.hlsl"
             #include "LitData.hlsl"
@@ -296,6 +300,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Cull[_CullMode]
 
+            ZClip Off
             ZWrite On
             ZTest LEqual
 
@@ -304,7 +309,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SHADERPASS SHADERPASS_SHADOWS
+            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
@@ -328,6 +335,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
@@ -352,6 +360,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitVelocityPass.hlsl"
             #include "LitData.hlsl"
@@ -376,6 +385,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DISTORTION
+            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
@@ -399,6 +409,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../ShaderVariables.hlsl"
             #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -427,6 +438,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../ShaderVariables.hlsl"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include

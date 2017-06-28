@@ -21,6 +21,7 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
 
     private static RenderLoopTestFixture m_Instance;
 
+    CullResults m_CullResults;
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
@@ -34,10 +35,10 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);
 
-            CullResults cullResults = CullResults.Cull(ref cullingParams, renderContext);
+            CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
 
             if (s_Callback != null)
-                s_Callback(camera, cullResults, renderContext);
+                s_Callback(camera, m_CullResults, renderContext);
         }
 
         renderContext.Submit();
