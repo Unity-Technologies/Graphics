@@ -775,20 +775,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1533938549}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
   shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -801,8 +793,6 @@ MonoBehaviour:
     format: 1
     data: 0bd7a33b0000803f
   shadowDatas:
-  - format: 0
-    data: 0bd7a33b0000803f
   - format: 1
     data: 0bd7a33b0000803f
 --- !u!1 &1671786282
@@ -1069,7 +1059,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1870293978}
   - component: {fileID: 1870293977}
-  - component: {fileID: 1870293976}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -1077,42 +1066,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1870293976
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1870293975}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!108 &1870293977
 Light:
   m_ObjectHideFlags: 0
