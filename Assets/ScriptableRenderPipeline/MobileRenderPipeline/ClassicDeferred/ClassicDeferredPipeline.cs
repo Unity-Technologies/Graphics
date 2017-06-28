@@ -442,7 +442,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		// DST_COL = DST_COL + DST_ALPHA * SRC_COLOR
 		// DST_ALPHA = DST_ALPHA * SRC_ALPHA
 
-		int numProbes = probes.Length;
+		int numProbes = probes.Count;
 		for (int i = numProbes-1; i >= 0; i--)
 		{
 			var rl = probes [i];
@@ -528,8 +528,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_FrameId.frameCount++;
 		// get the indices for all lights that want to have shadows
 		m_ShadowRequests.Clear();
-		m_ShadowRequests.Capacity = inputs.visibleLights.Length;
-		int lcnt = inputs.visibleLights.Length;
+		m_ShadowRequests.Capacity = inputs.visibleLights.Count;
+		int lcnt = inputs.visibleLights.Count;
 		for (int i = 0; i < lcnt; ++i)
 		{
 			VisibleLight vl = inputs.visibleLights[i];
@@ -716,7 +716,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void RenderLightsDeferred (Camera camera, CullResults inputs, CommandBuffer cmd, ScriptableRenderContext loop)
 	{
-		int lightCount = inputs.visibleLights.Length;
+		int lightCount = inputs.visibleLights.Count;
 		for (int lightNum = 0; lightNum < lightCount; lightNum++) 
 		{
 			VisibleLight light = inputs.visibleLights[lightNum];
@@ -865,7 +865,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	private void SetupLightShaderVariables(CullResults cull, Camera camera, ScriptableRenderContext context)
 	{
-		int totalLightCount = cull.visibleLights.Length;
+		int totalLightCount = cull.visibleLights.Count;
 		InitializeLightData();
 
 		var w = camera.pixelWidth;
@@ -950,7 +950,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		//Plane eyePlane = new Plane ();
 		//eyePlane.SetNormalAndPosition(viewDirNormalized, camera.transform.position);
 
-		int probeCount = cull.visibleReflectionProbes.Length;
+		int probeCount = cull.visibleReflectionProbes.Count;
 		int finalProbeCount = probeCount;
 		var lightData = new SFiniteLightData[probeCount];
 		int idx = 0;
