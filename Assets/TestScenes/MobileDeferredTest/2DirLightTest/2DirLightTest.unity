@@ -381,7 +381,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1369026079}
   - component: {fileID: 1369026078}
-  - component: {fileID: 1369026080}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -452,42 +451,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
---- !u!114 &1369026080
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1369026077}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1400179528
 GameObject:
   m_ObjectHideFlags: 0
@@ -711,7 +674,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1738046767}
   - component: {fileID: 1738046766}
-  - component: {fileID: 1738046765}
   m_Layer: 0
   m_Name: Directional light
   m_TagString: Untagged
@@ -719,42 +681,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1738046765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1738046764}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!108 &1738046766
 Light:
   m_ObjectHideFlags: 0

@@ -1,10 +1,11 @@
 fileFormatVersion: 2
 guid: 5c85741bae28248a5b34034b31679640
-timeCreated: 1497573057
+timeCreated: 1498670143
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName:
     8900000: generatedCubemap
+  externalObjects: {}
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0

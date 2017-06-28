@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37124014, g: 0.28119457, b: 0.32684708, a: 1}
+  m_IndirectSpecularColor: {r: 0.3713804, g: 0.28122923, b: 0.32688195, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -824,20 +824,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 267028023}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
   shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1176,20 +1168,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 480371293}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
   shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -2658,7 +2642,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1167670143}
   - component: {fileID: 1167670144}
-  - component: {fileID: 1167670145}
   m_Layer: 0
   m_Name: Point light
   m_TagString: Untagged
@@ -2729,42 +2712,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &1167670145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1167670142}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1170375378
 GameObject:
   m_ObjectHideFlags: 0
@@ -2860,7 +2807,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1275579279}
   - component: {fileID: 1275579280}
-  - component: {fileID: 1275579281}
   m_Layer: 0
   m_Name: Yellow Left Point
   m_TagString: Untagged
@@ -2931,42 +2877,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &1275579281
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1275579278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1275902020
 GameObject:
   m_ObjectHideFlags: 0
@@ -2976,7 +2886,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1275902021}
   - component: {fileID: 1275902022}
-  - component: {fileID: 1275902023}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -3047,42 +2956,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &1275902023
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1275902020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1366809161
 GameObject:
   m_ObjectHideFlags: 0
@@ -3092,7 +2965,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1366809162}
   - component: {fileID: 1366809163}
-  - component: {fileID: 1366809164}
   m_Layer: 0
   m_Name: Yellow Right Point
   m_TagString: Untagged
@@ -3163,42 +3035,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &1366809164
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1366809161}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1406517708
 GameObject:
   m_ObjectHideFlags: 0
@@ -3931,7 +3767,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1719222741}
   - component: {fileID: 1719222742}
-  - component: {fileID: 1719222743}
   m_Layer: 0
   m_Name: Red point
   m_TagString: Untagged
@@ -4002,42 +3837,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &1719222743
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1719222740}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
 --- !u!1 &1726338861
 GameObject:
   m_ObjectHideFlags: 0
@@ -4560,7 +4359,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2096451252}
   - component: {fileID: 2096451251}
-  - component: {fileID: 2096451253}
   m_Layer: 0
   m_Name: Blue Point
   m_TagString: Untagged
@@ -4631,39 +4429,3 @@ Transform:
   m_Father: {fileID: 1436098192}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2096451253
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2096451250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  lightLength: 0
-  lightWidth: 0
-  shadowCascadeCount: 4
-  shadowCascadeRatios:
-  - 0.05
-  - 0.2
-  - 0.3
-  shadowAlgorithm: 0
-  shadowVariant: 1
-  shadowPrecision: 0
-  shadowData:
-    format: 1
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 1
-    data: 0bd7a33b0000803f
