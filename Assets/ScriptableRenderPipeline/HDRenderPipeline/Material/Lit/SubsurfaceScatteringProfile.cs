@@ -522,10 +522,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             // <<< Old SSS Model
 
-            for (int i = 0; i < numProfiles; i++)
+            for (int i = 0; i < SssConstants.SSS_N_PROFILES - 1; i++)
             {
-                // Skip unassigned profiles.
-                if (profiles[i] == null) continue;
+                // If a profile is null, it means that it was never set in the HDRenderPipeline Asset or that the profile asset has been deleted.
+                // In this case we want the users to be warned if a material uses one of those. This is why we fill the profile with pink transmission values.
+                if (i >= numProfiles || profiles[i] == null)
+                {
+                    // Pink transmission
+                    transmissionFlags |= (uint)1 << i * 2;
+                    transmissionTints[i] = new Vector4(100.0f, 0.0f, 100.0f, 1.0f);
+
+                    // Default neutral values for the rest
+                    worldScales[i] = 1.0f;
+                    shapeParams[i] = Vector4.zero;
+
+                    for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
+                    {
+                        filterKernelsNearField[2 * (n * i + j) + 0] = 0.0f;
+                        filterKernelsNearField[2 * (n * i + j) + 1] = 1.0f;
+                    }
+
+                    for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
+                    {
+                        filterKernelsFarField[2 * (n * i + j) + 0] = 0.0f;
+                        filterKernelsFarField[2 * (n * i + j) + 1] = 1.0f;
+                    }
+
+                    // Old SSS Model >>>
+                    halfRcpWeightedVariances[i] = Vector4.one;
+
+                    for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
+                    {
+                        filterKernelsBasic[n * i + j] = Vector4.one;
+                        filterKernelsBasic[n * i + j].w = 0.0f;
+                    }
+
+                    continue;
+                }
 
                 Debug.Assert(numProfiles < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles.");
 

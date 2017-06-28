@@ -51,17 +51,18 @@ public static class BasicRendering
             ScriptableCullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
                 continue;
-            CullResults cull = CullResults.Cull(ref cullingParams, context);
+            CullResults cull = new CullResults();
+            CullResults.Cull(ref cullingParams, context, ref cull);
 
             // Setup camera for rendering (sets render target, view/projection matrices and other
             // per-camera built-in shader variables).
             context.SetupCameraProperties(camera);
 
             // clear depth buffer
-            var cmd = new CommandBuffer();
+            var cmd = CommandBufferPool.Get();
             cmd.ClearRenderTarget(true, false, Color.black);
             context.ExecuteCommandBuffer(cmd);
-            cmd.Release();
+            CommandBufferPool.Release(cmd);
 
             // Setup global lighting shader variables
             SetupLightShaderVariables(cull.visibleLights, context);
@@ -86,7 +87,7 @@ public static class BasicRendering
 
     // Setup lighting variables for shader to use
 
-    private static void SetupLightShaderVariables(VisibleLight[] lights, ScriptableRenderContext context)
+    private static void SetupLightShaderVariables(List<VisibleLight> lights, ScriptableRenderContext context)
     {
         // We only support up to 8 visible lights here. More complex approaches would
         // be doing some sort of per-object light setups, but here we go for simplest possible
@@ -95,7 +96,7 @@ public static class BasicRendering
         // Just take first 8 lights. Possible improvements: sort lights by intensity or distance
         // to the viewer, so that "most important" lights in the scene are picked, and not the 8
         // that happened to be first.
-        int lightCount = Mathf.Min(lights.Length, kMaxLights);
+        int lightCount = Mathf.Min(lights.Count, kMaxLights);
 
         // Prepare light data
         Vector4[] lightColors = new Vector4[kMaxLights];
@@ -159,7 +160,7 @@ public static class BasicRendering
         GetShaderConstantsFromNormalizedSH(ref ambientSH, shConstants);
 
         // setup global shader variables to contain all the data computed above
-        CommandBuffer cmd = new CommandBuffer();
+        CommandBuffer cmd = CommandBufferPool.Get();
         cmd.SetGlobalVectorArray("globalLightColor", lightColors);
         cmd.SetGlobalVectorArray("globalLightPos", lightPositions);
         cmd.SetGlobalVectorArray("globalLightSpotDir", lightSpotDirections);
@@ -167,7 +168,7 @@ public static class BasicRendering
         cmd.SetGlobalVector("globalLightCount", new Vector4(lightCount, 0, 0, 0));
         cmd.SetGlobalVectorArray("globalSH", shConstants);
         context.ExecuteCommandBuffer(cmd);
-        cmd.Dispose();
+        CommandBufferPool.Release(cmd);
     }
 
     // Prepare L2 spherical harmonics values for efficient evaluation in a shader

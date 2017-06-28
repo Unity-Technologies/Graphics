@@ -156,8 +156,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Since we use the material for rendering the sky both into the cubemap, and
             // during the fullscreen pass, setting the 'PERFORM_SKY_OCCLUSION_TEST' keyword has no effect.
             properties.SetFloat("_DisableSkyOcclusionTest", renderForCubemap ? 1.0f : 0.0f);
-            // We flip the screens-space Y axis in case we follow the D3D convention.
-            properties.SetFloat("_FlipY",                   renderForCubemap ? 1.0f : 0.0f);
             // We do not render the height fog into the sky IBL cubemap.
             properties.SetFloat("_HeightRayleighDensity",   renderForCubemap ? -0.0f : -param.heightRayleighDensity / 100000f);
             properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
@@ -173,11 +171,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set shader constants.
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
-            var cmd = new CommandBuffer { name = "" };
-
+            var cmd = CommandBufferPool.Get("");
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            CommandBufferPool.Release(cmd);
+
         }
     }
 }

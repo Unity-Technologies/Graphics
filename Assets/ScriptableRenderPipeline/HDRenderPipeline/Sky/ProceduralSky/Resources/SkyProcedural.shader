@@ -40,8 +40,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             float _DisableSkyOcclusionTest;
 
-            float _FlipY;
-
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
@@ -61,7 +59,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             {
                 // TODO: implement SV_vertexID full screen quad
                 Varyings output;
-                output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
+                // Unity renders upside down, so the clip space coordinates have to be flipped.
+                output.positionCS = float4(input.positionCS.x, -input.positionCS.y, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
                 output.eyeVector  = input.eyeVector;
 
                 return output;
@@ -99,7 +98,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 }
 
                 // Since we only need the world space position, so we don't pass the view-projection matrix.
-                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput, _FlipY != 0);
+                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);

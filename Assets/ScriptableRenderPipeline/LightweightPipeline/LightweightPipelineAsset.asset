@@ -19,8 +19,6 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 1024
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
-  m_MinShadowNormalBias: 0.0005
-  m_ShadowNormalBias: 0.05
   m_ShadowCascades: 1
   m_Cascade2Split: 0.25
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}

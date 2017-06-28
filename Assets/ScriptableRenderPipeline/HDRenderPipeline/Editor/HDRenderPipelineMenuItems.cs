@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
+        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             Light[] lights = GameObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -17,14 +17,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (Light light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<AdditionalLightData>() == null)
+                if (light.GetComponent<HDAdditionalLightData>() == null)
                 {
-                    light.gameObject.AddComponent<AdditionalLightData>();
+                    light.gameObject.AddComponent<HDAdditionalLightData>();
+                }
+
+                if (light.GetComponent<AdditionalShadowData>() == null)
+                {
+                    light.gameObject.AddComponent<AdditionalShadowData>();
                 }
             }
         }
 
-        // This script is a helper for the artists to re-synchronise all layered materials
+        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        static void AddAdditionalCameraData()
+        {
+            Camera[] cameras = GameObject.FindObjectsOfType(typeof(Camera)) as Camera[];
+
+            foreach (Camera camera in cameras)
+            {
+                // Do not add a component if there already is one.
+                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                {
+                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                }
+            }
+        }
+
+        // This script is a helper for the artists to re-synchronize all layered materials
         [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
@@ -97,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Funtion used only to check performance of data with and without tessellation
+        // Function used only to check performance of data with and without tessellation
         [MenuItem("HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {

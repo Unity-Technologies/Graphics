@@ -363,26 +363,27 @@ namespace UnityEngine.Experimental.Rendering
             return sliceIndex;
         }
 
+        private static List<int> s_TempIntList = new List<int>();
         public void NewFrame()
         {
             var numNonZeros = 0;
-            var tmpBuffer = new int[m_NumTextures];
+            s_TempIntList.Clear();
             for (int i = 0; i < m_NumTextures; i++)
             {
-                tmpBuffer[i] = m_SortedIdxArray[i];     // copy buffer
+                s_TempIntList.Add(m_SortedIdxArray[i]);     // copy buffer
                 if (m_SliceArray[m_SortedIdxArray[i]].countLRU != 0) ++numNonZeros;
             }
             int nonZerosBase = 0, zerosBase = 0;
             for (int i = 0; i < m_NumTextures; i++)
             {
-                if (m_SliceArray[tmpBuffer[i]].countLRU == 0)
+                if (m_SliceArray[s_TempIntList[i]].countLRU == 0)
                 {
-                    m_SortedIdxArray[zerosBase + numNonZeros] = tmpBuffer[i];
+                    m_SortedIdxArray[zerosBase + numNonZeros] = s_TempIntList[i];
                     ++zerosBase;
                 }
                 else
                 {
-                    m_SortedIdxArray[nonZerosBase] = tmpBuffer[i];
+                    m_SortedIdxArray[nonZerosBase] = s_TempIntList[i];
                     ++nonZerosBase;
                 }
             }

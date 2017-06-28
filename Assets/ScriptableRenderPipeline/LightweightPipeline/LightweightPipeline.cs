@@ -49,7 +49,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public int pixelLightsCount;
         public int vertexLightsCount;
+        public int shadowLightIndex;
         public bool isSingleDirectionalLight;
+        public bool shadowsRendered;
     }
 
     public class LightweightPipeline : RenderPipeline
@@ -72,9 +74,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static readonly int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
         private int m_ShadowMapProperty;
-        private int m_ShadowLightIndex = -1;
         private RenderTargetIdentifier m_ShadowMapRTID;
-        private int m_DepthBufferBits = 24;
+        private int m_DepthBufferBits = 16;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
 
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
@@ -106,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
+        CullResults m_CullResults;
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
@@ -116,34 +118,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!CullResults.GetCullingParameters(camera, out cullingParameters))
                     continue;
 
-                cullingParameters.shadowDistance = m_ShadowSettings.maxShadowDistance;
-                CullResults cullResults = CullResults.Cull(ref cullingParameters, context);
+                cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance, camera.farClipPlane);
+                CullResults.Cull(ref cullingParameters, context,ref m_CullResults);
 
-                VisibleLight[] visibleLights = cullResults.visibleLights;
+                VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
 
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
 
                 // Render Shadow Map
-                bool shadowsRendered = false;
-                InitializeMainShadowLightIndex(visibleLights);
-                if (m_ShadowLightIndex > -1)
-                    shadowsRendered = RenderShadows(ref cullResults, ref visibleLights[m_ShadowLightIndex], ref context);
+                if (lightData.shadowLightIndex > -1) 
+                    lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, ref context);
 
                 // Setup camera matrices and RT
                 context.SetupCameraProperties(camera);
 
                 // Clear RenderTarget to avoid tile initialization on mobile GPUs
                 // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
-                var cmd = new CommandBuffer() { name = "Clear" };
+                var cmd = CommandBufferPool.Get("Clear");
                 cmd.ClearRenderTarget(true, true, camera.backgroundColor);
                 context.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+                CommandBufferPool.Release(cmd);
 
                 // Setup light and shadow shader constants
-                SetupLightShaderVariables(visibleLights, ref cullResults, ref context, ref lightData);
-                if (shadowsRendered)
-                    SetupShadowShaderVariables(ref context, m_ShadowCasterCascadesCount);
+                SetupShaderLightConstants(visibleLights, ref lightData, ref m_CullResults, ref context);
+                if (lightData.shadowsRendered)
+                    SetupShadowShaderConstants(ref context, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
+                SetShaderKeywords(ref lightData, ref context);
 
                 RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes;
                 if (m_Asset.EnableLightmap)
@@ -156,22 +157,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     configuration |= RendererConfiguration.ProvideLightIndices;
 
                 // Render Opaques
-                var litSettings = new DrawRendererSettings(cullResults, camera, m_LitPassName);
+                var litSettings = new DrawRendererSettings(m_CullResults, camera, m_LitPassName);
                 litSettings.sorting.flags = SortFlags.CommonOpaque;
                 litSettings.inputFilter.SetQueuesOpaque();
                 litSettings.rendererConfiguration = configuration;
 
-                var unlitSettings = new DrawRendererSettings(cullResults, camera, m_UnlitPassName);
+                var unlitSettings = new DrawRendererSettings(m_CullResults, camera, m_UnlitPassName);
                 unlitSettings.sorting.flags = SortFlags.CommonOpaque;
                 unlitSettings.inputFilter.SetQueuesOpaque();
 
                 context.DrawRenderers(ref litSettings);
 
                 // Release temporary RT
-                var discardRT = new CommandBuffer();
+                var discardRT = CommandBufferPool.Get();
                 discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
                 context.ExecuteCommandBuffer(discardRT);
-                discardRT.Dispose();
+                CommandBufferPool.Release(cmd);
 
                 context.DrawRenderers(ref unlitSettings);
 
@@ -230,6 +231,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.pixelLightsCount = Mathf.Min(lightsCount, m_Asset.MaxSupportedPixelLights);
             lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lightsCount - lightData.pixelLightsCount, kMaxVertexLights) : 0;
             lightData.isSingleDirectionalLight = lightData.pixelLightsCount == 1 && lightData.vertexLightsCount == 0 && lights[0].lightType == LightType.Directional;
+
+            // Directional light path can handle unlit.
+            if (lightsCount == 0)
+                lightData.isSingleDirectionalLight = true;
+            
+            lightData.shadowsRendered = false;
+
+            InitializeMainShadowLightIndex(lights, out lightData.shadowLightIndex);
         }
 
         private void FillLightIndices(ref CullResults cullResults, int visibleLightsCount)
@@ -248,27 +257,46 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cullResults.FillLightIndices(m_LightIndexListBuffer);
         }
 
-        private void SetupLightShaderVariables(VisibleLight[] lights, ref CullResults cullResults, ref ScriptableRenderContext context, ref LightData lightData)
+        private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
         {
-            int maxLights = 1;
-            if (!lightData.isSingleDirectionalLight)
-            {
-                FillLightIndices(ref cullResults, lights.Length);
-                maxLights = Math.Min(kMaxVisibleLights, lights.Length);
-            }
+            if (lights.Length == 0)
+                return;
 
-            for (int i = 0; i < maxLights; ++i)
+            if (lightData.isSingleDirectionalLight) 
+                SetupShaderSingleDirectionalLightConstants(ref lights [0], ref context);
+            else
+                SetupShaderLightListConstants(lights, lightData.pixelLightsCount, ref cullResults, ref context);
+        }
+
+        private void SetupShaderSingleDirectionalLightConstants(ref VisibleLight light, ref ScriptableRenderContext context)
+        {
+            Vector4 lightDir = -light.localToWorld.GetColumn(2);
+             
+            CommandBuffer cmd = new CommandBuffer() { name = "SetupLightConstants" };
+            cmd.SetGlobalVector("_LightPosition0", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
+            cmd.SetGlobalColor("_LightColor0", light.finalColor);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
+        // TODO: Perform tests on light lights memory pattern access (SOA vs AOS vs Swizzling)
+        private void SetupShaderLightListConstants(VisibleLight[] lights, int pixelLightsCount, ref CullResults cullResults, ref ScriptableRenderContext context)
+        {
+            FillLightIndices(ref cullResults, lights.Length);
+            int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
+
+            for (int i = 0; i < maxLights; ++i) 
             {
-                VisibleLight currLight = lights[i];
-                if (currLight.lightType == LightType.Directional)
+                VisibleLight currLight = lights [i];
+                if (currLight.lightType == LightType.Directional) 
                 {
-                    Vector4 dir = -currLight.localToWorld.GetColumn(2);
-                    m_LightPositions[i] = new Vector4(dir.x, dir.y, dir.z, 0.0f);
-                }
-                else
+                    Vector4 dir = -currLight.localToWorld.GetColumn (2);
+                    m_LightPositions [i] = new Vector4 (dir.x, dir.y, dir.z, 0.0f);
+                } 
+                else 
                 {
-                    Vector4 pos = currLight.localToWorld.GetColumn(3);
-                    m_LightPositions[i] = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+                    Vector4 pos = currLight.localToWorld.GetColumn (3);
+                    m_LightPositions [i] = new Vector4 (pos.x, pos.y, pos.z, 1.0f);
                 }
 
                 m_LightColors[i] = currLight.finalColor;
@@ -276,39 +304,45 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float rangeSq = currLight.range * currLight.range;
                 float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
 
-                if (currLight.lightType == LightType.Spot)
+                if (currLight.lightType == LightType.Spot) 
                 {
-                    Vector4 dir = currLight.localToWorld.GetColumn(2);
-                    m_LightSpotDirections[i] = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+                    Vector4 dir = currLight.localToWorld.GetColumn (2);
+                    m_LightSpotDirections [i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0.0f);
 
                     float spotAngle = Mathf.Deg2Rad * currLight.spotAngle;
-                    float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
-                    float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
+                    float cosOuterAngle = Mathf.Cos (spotAngle * 0.5f);
+                    float cosInneAngle = Mathf.Cos (spotAngle * 0.25f);
                     float angleRange = cosInneAngle - cosOuterAngle;
-                    m_LightAttenuations[i] = new Vector4(cosOuterAngle,
-                            Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
-                }
+                    m_LightAttenuations [i] = new Vector4 (cosOuterAngle,
+                        Mathf.Approximately (angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+                } 
                 else
                 {
-                    m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f) ;
-                    m_LightAttenuations[i] = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+                    m_LightSpotDirections [i] = new Vector4 (0.0f, 0.0f, 1.0f, 0.0f);
+                    m_LightAttenuations [i] = new Vector4 (-1.0f, 1.0f, quadAtten, rangeSq);
                 }
             }
 
-            CommandBuffer cmd = new CommandBuffer() {name = "SetupShadowShaderConstants"};
-            cmd.SetGlobalVectorArray("globalLightPos", m_LightPositions);
-            cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
-            cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
-            cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-            if (!lightData.isSingleDirectionalLight)
-                cmd.SetGlobalBuffer("globalLightIndexList", m_LightIndexListBuffer);
-            cmd.SetGlobalVector("globalLightData", new Vector4(lightData.pixelLightsCount, m_ShadowLightIndex, m_Asset.ShadowMinNormalBias, m_Asset.ShadowNormalBias));
-            SetShaderKeywords(cmd, lightData.isSingleDirectionalLight, lightData.vertexLightsCount > 0);
+            CommandBuffer cmd = CommandBufferPool.Get("SetupShadowShaderConstants");
+            cmd.SetGlobalVector("globalLightCount", new Vector4 (pixelLightsCount, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
+            cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
+            cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
+            cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
+            cmd.SetGlobalBuffer("globalLightIndexList", m_LightIndexListBuffer);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void SetShaderKeywords(ref LightData lightData, ref ScriptableRenderContext context)
+        {
+            CommandBuffer cmd = new CommandBuffer() { name = "SetShaderKeywords" };
+            SetShaderKeywords(cmd, lightData.shadowsRendered, lightData.isSingleDirectionalLight, lightData.vertexLightsCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, ref ScriptableRenderContext context)
+        private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
         {
             m_ShadowCasterCascadesCount = m_ShadowSettings.directionalLightCascadeCount;
 
@@ -318,10 +352,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth, m_ShadowSettings.shadowAtlasHeight, m_ShadowCasterCascadesCount);
 
             Bounds bounds;
-            if (!cullResults.GetShadowCasterBounds(m_ShadowLightIndex, out bounds))
+            if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                 return false;
 
-            var setRenderTargetCommandBuffer = new CommandBuffer();
+            var setRenderTargetCommandBuffer = CommandBufferPool.Get();
             setRenderTargetCommandBuffer.name = "Render packed shadows";
             setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapProperty, m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, m_DepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth,
@@ -329,32 +363,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRTID);
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.black);
             context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
-            setRenderTargetCommandBuffer.Dispose();
+            CommandBufferPool.Release(setRenderTargetCommandBuffer);
 
             float shadowNearPlane = m_Asset.ShadowNearOffset;
             Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
-            Vector3 lightDir = Vector3.Normalize(shadowLight.light.transform.forward);
 
             Matrix4x4 view, proj;
-            var settings = new DrawShadowsSettings(cullResults, m_ShadowLightIndex);
+            var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
             bool needRendering = false;
 
             if (shadowLight.lightType == LightType.Spot)
             {
-                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(m_ShadowLightIndex, out view, out proj,
+                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj,
                         out settings.splitData);
 
                 if (!needRendering)
                     return false;
 
                 SetupShadowSliceTransform(0, shadowResolution, proj, view);
-                RenderShadowSlice(ref context, lightDir, 0, proj, view, settings);
+                RenderShadowSlice(ref context, 0, proj, view, settings);
             }
             else if (shadowLight.lightType == LightType.Directional)
             {
                 for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
                 {
-                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(m_ShadowLightIndex,
+                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
                             cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
                             out settings.splitData);
 
@@ -365,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         return false;
 
                     SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
-                    RenderShadowSlice(ref context, lightDir, cascadeIdx, proj, view, settings);
+                    RenderShadowSlice(ref context, cascadeIdx, proj, view, settings);
                 }
             }
             else
@@ -409,17 +442,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowSlices[cascadeIndex].shadowTransform = matTile * matScaleBias * proj * view;
         }
 
-        private void RenderShadowSlice(ref ScriptableRenderContext context, Vector3 lightDir, int cascadeIndex,
+        private void RenderShadowSlice(ref ScriptableRenderContext context, int cascadeIndex,
             Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
         {
-            var buffer = new CommandBuffer() {name = "Prepare Shadowmap Slice"};
+            var buffer = CommandBufferPool.Get("Prepare Shadowmap Slice");
             buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
             buffer.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(buffer);
-            buffer.Dispose();
 
             context.DrawShadows(ref settings);
+            CommandBufferPool.Release(buffer);
         }
 
         private int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
@@ -443,8 +476,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return resolution;
         }
 
-        private void SetupShadowShaderVariables(ref ScriptableRenderContext context, int cascadeCount)
+        private void SetupShadowShaderConstants(ref ScriptableRenderContext context, ref VisibleLight shadowLight, int shadowLightIndex, int cascadeCount)
         {
+            Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
+
+            // TODO: multiplying by 0.1 to get similar results to Unity vanilla shadow bias
+            float bias = shadowLight.light.shadowBias * 0.1f;
+            float normalBias = shadowLight.light.shadowNormalBias;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             const int maxShadowCascades = 4;
@@ -462,15 +500,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 0.5f * invShadowResolution, -0.5f * invShadowResolution
             };
 
-            var setupShadow = new CommandBuffer() {name = "SetupShadowShaderConstants"};
+            var setupShadow = CommandBufferPool.Get("SetupShadowShaderConstants");
             setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             setupShadow.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
+            setupShadow.SetGlobalVector("_ShadowLightDirection", new Vector4(-shadowLightDir.x, -shadowLightDir.y, -shadowLightDir.z, 0.0f));
+            setupShadow.SetGlobalVector("_ShadowData", new Vector4(shadowLightIndex, bias, normalBias, 0.0f));
             setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
             context.ExecuteCommandBuffer(setupShadow);
-            setupShadow.Dispose();
+            CommandBufferPool.Release(setupShadow);
         }
 
-        private void SetShaderKeywords(CommandBuffer cmd, bool singleDirecitonal, bool vertexLightSupport)
+        private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleDirecitonal, bool vertexLightSupport)
         {
             if (vertexLightSupport)
                 cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
@@ -486,7 +526,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             for (int i = 0; i < shadowKeywords.Length; ++i)
                 cmd.DisableShaderKeyword(shadowKeywords[i]);
 
-            if (m_ShadowLightIndex != -1 && m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
+            if (renderShadows && m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
             {
                 int keywordIndex = (int)m_Asset.CurrShadowType - 1;
                 if (m_Asset.CascadeCount > 1)
@@ -500,16 +540,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.DisableShaderKeyword("_LIGHT_PROBES_ON");
         }
 
-        private void InitializeMainShadowLightIndex(VisibleLight[] lights)
+        private void InitializeMainShadowLightIndex(VisibleLight[] lights, out int shadowIndex)
         {
-            m_ShadowLightIndex = -1;
+            shadowIndex = -1;
             float maxIntensity = -1;
             for (int i = 0; i < lights.Length; ++i)
             {
                 Light light = lights[i].light;
                 if (light.shadows != LightShadows.None && IsSupportedShadowType(light.type) && light.intensity > maxIntensity)
                 {
-                    m_ShadowLightIndex = i;
+                    shadowIndex = i;
                     maxIntensity = light.intensity;
                 }
             }
@@ -519,6 +559,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return (type == LightType.Directional || type == LightType.Spot);
         }
-
     }
 }

@@ -14,13 +14,15 @@
 #define USE_MATERIAL_FEATURE_FLAGS
 #define NR_THREADS	64
 
-uniform uint2 g_viDimensions;
+CBUFFER_START(UnityMaterialFlags)
+uint2 g_viDimensions;
+uint g_BaseFeatureFlags;
+CBUFFER_END
 
 Texture2D g_depth_tex : register( t0 );
 
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
-uniform uint g_BaseFeatureFlags;
 
 DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
