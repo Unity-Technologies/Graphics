@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            throw new NotImplementedException(); //Cannot constant fold kVFXBakeCurve in C# 
+            throw new NotImplementedException(); //Cannot constant fold kVFXBakeCurve in C#
         }
     }
 }

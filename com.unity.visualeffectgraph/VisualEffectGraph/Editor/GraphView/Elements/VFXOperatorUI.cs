@@ -55,7 +55,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXOperatorUI()
         {
-
         }
 
         public override void OnDataChanged()

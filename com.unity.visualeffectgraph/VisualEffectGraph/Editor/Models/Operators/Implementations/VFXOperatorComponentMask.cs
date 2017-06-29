@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             var settings = GetSettings<Settings>();
 
             var mask = new Component[4] { settings.x, settings.y, settings.z, settings.w };
-           // var mask = new Component[4] { Component.X, Component.Y, Component.Z, Component.W };
+            // var mask = new Component[4] { Component.X, Component.Y, Component.Z, Component.W };
             int maskSize = 4;
             while (maskSize > 1 && mask[maskSize - 1] == Component.None) --maskSize;
 

@@ -15,11 +15,11 @@ namespace UnityEditor.VFX
         }
 
         protected VFXValue(Mode mode)
-            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)     
+            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)
         {
             m_Mode = mode;
             if (mode != Mode.Variable)
-                m_Flags |= Flags.Constant; 
+                m_Flags |= Flags.Constant;
         }
 
         public Mode ValueMode { get { return m_Mode; } }
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
 
         abstract public VFXValue CopyExpression(Mode mode);
 
-        public override bool Equals(object obj) 
+        public override bool Equals(object obj)
         {
             if (m_Mode == Mode.Constant)
             {
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
                 return content.Equals(otherContent);
             }
 
-            return ReferenceEquals(this, obj); 
+            return ReferenceEquals(this, obj);
         }
 
         sealed public override int GetHashCode()
@@ -84,8 +84,6 @@ namespace UnityEditor.VFX
 
     sealed class VFXValue<T> : VFXValue
     {
-
-
         public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode)
         {
             m_Content = content;
@@ -93,11 +91,11 @@ namespace UnityEditor.VFX
 
         sealed public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXValue<T>(m_Content,mode);
+            var copy = new VFXValue<T>(m_Content, mode);
             return copy;
         }
 
-        private static readonly VFXValue s_Default = new VFXValue<T>(default(T),VFXValue.Mode.Constant);
+        private static readonly VFXValue s_Default = new VFXValue<T>(default(T), VFXValue.Mode.Constant);
         public static VFXValue Default { get { return s_Default; } }
 
         public T Get()

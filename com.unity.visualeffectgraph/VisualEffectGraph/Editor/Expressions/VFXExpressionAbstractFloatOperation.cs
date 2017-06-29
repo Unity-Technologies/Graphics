@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected VFXExpression ToFloatN(float[] input,VFXValue.Mode mode)
+        protected VFXExpression ToFloatN(float[] input, VFXValue.Mode mode)
         {
             switch (input.Length)
             {
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
             {
                 result[iChannel] = ProcessUnaryOperation(source[iChannel]);
             }
-            return ToFloatN(result,VFXValue.Mode.Constant);
+            return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
                 result[iChannel] = ProcessBinaryOperation(sourceLeft[iChannel], sourceRight[iChannel]);
             }
 
-            return ToFloatN(result,VFXValue.Mode.Constant);
+            return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()
@@ -179,7 +179,7 @@ namespace UnityEditor.VFX
                 result[iChannel] = ProcessTernaryOperation(source_a[iChannel], source_b[iChannel], source_c[iChannel]);
             }
 
-            return ToFloatN(result,VFXValue.Mode.Constant);
+            return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
         sealed public override string GetOperationCodeContent()
