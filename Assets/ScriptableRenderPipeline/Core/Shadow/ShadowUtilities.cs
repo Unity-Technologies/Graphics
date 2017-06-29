@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering
             // get lightDir
             lightDir = vl.light.transform.forward;
             // calculate the view matrices
-            Vector3 lpos = vl.light.transform.position;
+            Vector3 lpos = vl.localToWorld.GetColumn(3);
             view = ShadowUtilsConstants.kCubemapFaces[faceIdx];
             Vector3 inverted_viewpos = ShadowUtilsConstants.kCubemapFaces[faceIdx].MultiplyPoint( -lpos );
             view.SetColumn( 3, new Vector4( inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f ) );
@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 ShadowUtilsConstants.CubemapEdge cubemapEdge = ShadowUtilsConstants.kCubemapEdgesPerFace[faceIdx,i];
                 Vector3 cullingPlaneDirection = ShadowUtilsConstants.kCubemapEdgeDirections[(int)cubemapEdge];
-                splitData.SetCullingPlane( i, new Plane( cullingPlaneDirection, lpos ) );
+                splitData.SetCullingPlane( i, new Plane( cullingPlaneDirection, vl.light.transform.position) );
             }
             // following code is from SharedLightData::GetNearPlaneMinBound
             float percentageBound = 0.01f * vl.light.range;
@@ -170,6 +170,18 @@ namespace UnityEngine.Experimental.Rendering
             for( int i = 0, cnt = splitRatio.Length < 3 ? splitRatio.Length : 3; i < cnt; i++ )
                 ratios[i] = splitRatio[i];
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
+
+            // 'relCamPos' is the WS position of the camera if camera-relative rendering is enabled, 0 otherwise.
+            Vector3 lightPosWS = vl.light.transform.position;
+            Vector3 relCamPos  = lightPosWS - (Vector3)vl.localToWorld.GetColumn(3);
+            // Fix-up the sphere.
+            splitData.cullingSphere.x -= relCamPos.x;
+            splitData.cullingSphere.y -= relCamPos.y;
+            splitData.cullingSphere.z -= relCamPos.z;
+            // Fix-up the matrix (this does NOT work).
+            Matrix4x4 tr = Matrix4x4.Translate(relCamPos);
+            view = view * tr;
+
             // and the compound
             return proj * view;
         }
