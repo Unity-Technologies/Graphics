@@ -62,7 +62,7 @@ struct v2f
 // Per object light list data
 #ifndef _SINGLE_DIRECTIONAL_LIGHT
 half4 unity_LightIndicesOffsetAndCount;
-StructuredBuffer<uint> globalLightIndexList;
+half4 unity_4LightIndices0;
 
 // The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 // unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
