@@ -36,7 +36,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     // position, so also take this opportunity to create a dependence on it.
     inputMesh.positionOS.z = inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0;
 
-    float3 positionWS = TransformObjectToWorld(inputMesh.positionOS);
+    float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
     output.vmesh.positionCS = TransformWorldToHClip(positionWS);
     output.vmesh.texCoord0 = inputMesh.uv0;
     output.vmesh.texCoord1 = inputMesh.uv1;

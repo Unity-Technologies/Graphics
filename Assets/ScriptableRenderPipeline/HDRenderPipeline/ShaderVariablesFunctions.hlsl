@@ -72,10 +72,35 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
+float3 GetAbsolutePositionWS(float3 cameraRelativePositionWS)
+{
+    float3 pos = cameraRelativePositionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    pos += _WorldSpaceCameraPos;
+#endif
+    return pos;
+}
+
+float3 GetCameraRelativePositionWS(float3 absolutePositionWS)
+{
+    float3 pos = absolutePositionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    pos -= _WorldSpaceCameraPos;
+#endif
+    return pos;
+}
+
+// Returns the position of the primary (scene view) camera.
+// Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
+float3 GetPrimaryCameraPosition()
+{
+    return GetCameraRelativePositionWS(_WorldSpaceCameraPos);
+}
+
 float3 GetCurrentCameraPosition()
 {
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    return _WorldSpaceCameraPos;
+    return GetPrimaryCameraPosition();
 #else
     // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
     // to represent the position of the primary (scene view) camera in order to
@@ -83,7 +108,7 @@ float3 GetCurrentCameraPosition()
     // Otherwise, depth comparisons become meaningless!
     float4x4 trViewMat = transpose(GetWorldToViewMatrix());
     float3   rotCamPos = trViewMat[3].xyz;
-   return mul((float3x3)trViewMat, -rotCamPos);
+    return mul((float3x3)trViewMat, -rotCamPos);
 #endif
 }
 

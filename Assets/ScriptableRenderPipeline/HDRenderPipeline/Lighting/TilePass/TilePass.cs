@@ -941,7 +941,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Then Culling side
                 var range = light.range;
                 var lightToWorld = light.localToWorld;
-                Vector3 lightPos = lightToWorld.GetColumn(3);
+                Vector3 lightPos = lightData.positionWS;
 
                 // Fill bounds
                 var bound = new SFiniteLightBound();
@@ -1242,6 +1242,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_lightList.Clear();
 
+                Vector3 camPosWS = camera.transform.position;
+
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    // Caution: 'VisibleLight.localToWorld' is camera-relative after this point.
+                    Vector4 camPos4WS = new Vector4(camPosWS.x, camPosWS.y, camPosWS.z, 0);
+
+                    for (int i = 0, n = cullResults.visibleLights.Count; i < n; i++)
+                    {
+                        VisibleLight light = cullResults.visibleLights[i];
+                        light.localToWorld.SetColumn(3, light.localToWorld.GetColumn(3) - camPos4WS);
+                        cullResults.visibleLights[i] = light;
+                    }
+                }
+
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
                     // 0. deal with shadows
@@ -1415,7 +1430,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (gpuLightType == GPULightType.Directional)
                         {
                             if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                            {
                                 directionalLightcount++;
+
+                                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                {
+                                    // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
+                                    int n = m_lightList.directionalLights.Count;
+                                    DirectionalLightData lightData = m_lightList.directionalLights[n - 1];
+                                    lightData.positionWS -= camPosWS;
+                                    m_lightList.directionalLights[n - 1] = lightData;
+                                }
+                            }
                             continue;
                         }
                         // Punctual, area, projector lights - the rendering side.
@@ -1439,6 +1465,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
+
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                            {
+                                // Caution: 'LightData.positionWS' is camera-relative after this point.
+                                int n = m_lightList.lights.Count;
+                                LightData lightData = m_lightList.lights[n - 1];
+                                lightData.positionWS -= camPosWS;
+                                m_lightList.lights[n - 1] = lightData;
+                            }
                         }
                     }
 
@@ -1488,6 +1523,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         GetEnvLightData(probe);
 
                         GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+
+                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        {
+                            // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                            int n = m_lightList.envLights.Count;
+                            EnvLightData envLightData = m_lightList.envLights[n - 1];
+                            envLightData.positionWS -= camPosWS;
+                            m_lightList.envLights[n - 1] = envLightData;
+                        }
                     }
 
                     // Sanity check

@@ -17,7 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // All this could be fix we a new Mesh API not ready yet. Note that this feature only affect animated mesh (vertex or skin) as others use depth reprojection.
         VelocityInGBuffer = 0, // Change to 1 to enable the feature, then regenerate hlsl headers.
         // TODO: not working yet, waiting for UINT16 RT format support
-        PackGBufferInU16 = 0
+        PackGBufferInU16 = 0,
+        CameraRelativeRendering = 1 // Rendering sets the origin of the world to the position of the primary (scene view) camera
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -33,5 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public const int k_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
         public static int s_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
+
+        public const int k_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;
+        public static int s_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;
     }
 }
