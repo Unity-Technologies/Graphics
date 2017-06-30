@@ -124,7 +124,7 @@ namespace UnityEditor.VFX
 
             if (cause == VFXModel.InvalidationCause.kParamChanged)
             {
-                m_ExpressionGraphDirty = true; //TODOPAUL : rebuild
+                m_ExpressionValuesDirty = true;
             }
         }
 
@@ -135,21 +135,63 @@ namespace UnityEditor.VFX
             return desc;
         }
 
+        private void SetValueDesc<T>(VFXExpressionValueContainerDescAbstract desc, VFXExpression exp)
+        {
+            ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
+        }
+
+        private void UpdateValues()
+        {
+            var flatGraph = m_ExpressionGraph.FlattenedExpressions;
+            var numFlattenedExpressions = flatGraph.Count;
+
+            int descIndex = 0;
+            for (int i = 0; i < numFlattenedExpressions; ++i)
+            {
+                var exp = flatGraph[i];
+                if (exp.Is(VFXExpression.Flags.Value))
+                {
+                    var desc = m_ExpressionValues[descIndex++];
+                    if (desc.expressionIndex != i)
+                        throw new InvalidOperationException();
+
+                    switch (exp.ValueType)
+                    {
+                        case VFXValueType.kFloat:           SetValueDesc<float>(desc, exp); break;
+                        case VFXValueType.kFloat2:          SetValueDesc<Vector2>(desc, exp); break;
+                        case VFXValueType.kFloat3:          SetValueDesc<Vector3>(desc, exp); break;
+                        case VFXValueType.kFloat4:          SetValueDesc<Vector4>(desc, exp); break;
+                        case VFXValueType.kInt:             SetValueDesc<int>(desc, exp); break;
+                        case VFXValueType.kUint:            SetValueDesc<uint>(desc, exp); break;
+                        case VFXValueType.kTexture2D:       SetValueDesc<Texture2D>(desc, exp); break;
+                        case VFXValueType.kTexture3D:       SetValueDesc<Texture3D>(desc, exp); break;
+                        case VFXValueType.kTransform:       SetValueDesc<Matrix4x4>(desc, exp); break;
+                        case VFXValueType.kCurve:           SetValueDesc<AnimationCurve>(desc, exp); break;
+                        case VFXValueType.kColorGradient:   SetValueDesc<Gradient>(desc, exp); break;
+                        case VFXValueType.kMesh:            SetValueDesc<Mesh>(desc, exp); break;
+                        default: throw new InvalidOperationException("Invalid type");
+                    }
+                }
+            }
+
+            vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
+        }
+
         public void RecompileIfNeeded()
         {
             if (m_ExpressionGraphDirty)
             {
                 try
                 {
-                    var expressionGraph = new VFXExpressionGraph();
-                    expressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
+                    m_ExpressionGraph = new VFXExpressionGraph();
+                    m_ExpressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
 
                     // build expressions data and set them to vfx asset
-                    var flatGraph = expressionGraph.FlattenedExpressions;
+                    var flatGraph = m_ExpressionGraph.FlattenedExpressions;
                     var numFlattenedExpressions = flatGraph.Count;
 
                     var expressionDescs = new VFXExpressionDesc[numFlattenedExpressions];
-                    var expressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                    m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
                     for (int i = 0; i < numFlattenedExpressions; ++i)
                     {
                         var exp = flatGraph[i];
@@ -178,14 +220,14 @@ namespace UnityEditor.VFX
                                 default: throw new InvalidOperationException("Invalid type");
                             }
                             value.expressionIndex = (uint)i;
-                            expressionValues.Add(value);
+                            m_ExpressionValues.Add(value);
                         }
                         else if (exp is VFXExpressionExtractComponent)
                         {
                             var extractExp = (VFXExpressionExtractComponent)exp;
-                            data[0] = expressionGraph.GetFlattenedIndex(exp.Parents[0]);
+                            data[0] = m_ExpressionGraph.GetFlattenedIndex(exp.Parents[0]);
                             data[1] = extractExp.Channel;
-                            data[2] = VFXExpression.TypeToSize(exp.ValueType);
+                            data[2] = VFXExpression.TypeToSize(exp.Parents[0].ValueType);
                         }
                         else if (exp is VFXExpressionFloatOperation && !(exp is VFXExpressionCombine)) // TODO Make a better test
                         {
@@ -193,14 +235,14 @@ namespace UnityEditor.VFX
                             if (parents.Length > 3)
                                 throw new Exception("parents length cannot be more than 3 for float operations");
                             for (int j = 0; j < parents.Length; ++j)
-                                data[j] = expressionGraph.GetFlattenedIndex(parents[j]);
+                                data[j] = m_ExpressionGraph.GetFlattenedIndex(parents[j]);
                             data[3] = VFXExpression.TypeToSize(exp.ValueType);
                         }
                         else
                         {
                             var parents = exp.Parents;
                             for (int j = 0; j < parents.Length; ++j)
-                                data[j] = expressionGraph.GetFlattenedIndex(parents[j]);
+                                data[j] = m_ExpressionGraph.GetFlattenedIndex(parents[j]);
                         }
                         // TODO Transformation expressions
 
@@ -216,7 +258,7 @@ namespace UnityEditor.VFX
                     foreach (var context in models.OfType<VFXContext>())
                     {
                         uint contextId = (uint)context.GetParent().GetIndex(context);
-                        var cpuMapper = expressionGraph.BuildCPUMapper(context);
+                        var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
                         foreach (var exp in cpuMapper.expressions)
                         {
                             VFXExpressionSemanticDesc desc;
@@ -225,7 +267,7 @@ namespace UnityEditor.VFX
                             {
                                 desc.blockID = (uint)mappedData.blockId;
                                 desc.contextID = contextId;
-                                int expIndex = expressionGraph.GetFlattenedIndex(exp);
+                                int expIndex = m_ExpressionGraph.GetFlattenedIndex(exp);
                                 if (expIndex == -1)
                                     throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
                                 desc.expressionIndex = (uint)expIndex;
@@ -234,19 +276,19 @@ namespace UnityEditor.VFX
                             }
                         }
 
-                        var gpuMapper = expressionGraph.BuildGPUMapper(context);
+                        var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
                         if (gpuMapper.expressions.Count() > 0)
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
                         foreach (var exp in gpuMapper.expressions)
                         {
                             var bindNames = gpuMapper.GetData(exp).Select(o => o.fullName).Aggregate((a, b) => a + "," + b);
-                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
+                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, m_ExpressionGraph.GetFlattenedIndex(exp)));
                         }
                     }
 
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
-                    expressionSheet.values = expressionValues.ToArray();
+                    expressionSheet.values = m_ExpressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
 
                     vfxAsset.ClearSpawnerData();
@@ -254,7 +296,7 @@ namespace UnityEditor.VFX
                     vfxAsset.SetExpressionSheet(expressionSheet);
 
                     foreach (var data in models.OfType<VFXData>())
-                        data.CollectAttributes(expressionGraph);
+                        data.CollectAttributes(m_ExpressionGraph);
 
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
@@ -299,11 +341,26 @@ namespace UnityEditor.VFX
                 }
 
                 m_ExpressionGraphDirty = false;
+                m_ExpressionValuesDirty = false; // values already set
+            }
+
+            if (m_ExpressionValuesDirty)
+            {
+                UpdateValues();
+                m_ExpressionValuesDirty = false;
             }
         }
 
         [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
+        [NonSerialized]
+        private bool m_ExpressionValuesDirty = true;
+
+
+        [NonSerialized]
+        private VFXExpressionGraph m_ExpressionGraph;
+        [NonSerialized]
+        private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
 
         private VFXAsset m_Owner;
     }

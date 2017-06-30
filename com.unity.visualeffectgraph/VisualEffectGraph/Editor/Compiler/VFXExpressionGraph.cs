@@ -38,11 +38,38 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void ProcessMapper(VFXExpressionMapper mapper, VFXExpression.Context exprContext, HashSet<VFXExpression> expressions)
+        private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, Target target)
         {
-            foreach (var exp in mapper.expressions)
-                exprContext.RegisterExpression(exp);
-            expressions.UnionWith(mapper.expressions);
+            HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
+            var expressionContext = new VFXExpression.Context(options);
+
+            var contextsToExpressions = target == Target.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
+            var expressionsToReduced = target == Target.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
+
+            contextsToExpressions.Clear();
+            expressionsToReduced.Clear();
+
+            foreach (var context in contexts)
+            {
+                var mapper = target == Target.GPU ? context.GetGPUExpressions() : context.GetCPUExpressions();
+                if (mapper != null)
+                {
+                    foreach (var exp in mapper.expressions)
+                        expressionContext.RegisterExpression(exp);
+                    expressions.UnionWith(mapper.expressions);
+                    contextsToExpressions.Add(context, mapper);
+                }
+            }
+
+            expressionContext.Compile();
+
+            foreach (var exp in expressionContext.RegisteredExpressions)
+                expressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+
+            m_Expressions.UnionWith(expressionContext.BuildAllReduced());
+
+            foreach (var exp in expressionsToReduced.Values)
+                AddExpressionDataRecursively(m_ExpressionsData, exp);
         }
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options)
@@ -52,68 +79,22 @@ namespace UnityEditor.VFX
             try
             {
                 m_Expressions.Clear();
-                m_CPUExpressionsToReduced.Clear();
-                m_GPUExpressionsToReduced.Clear();
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
-                m_ContextsToCPUExpressions.Clear();
-                m_ContextsToGPUExpressions.Clear();
 
                 var models = new HashSet<Object>();
                 graph.CollectDependencies(models);
                 var contexts = models.OfType<VFXContext>();
 
-                HashSet<VFXExpression> cpuExpressions = new HashSet<VFXExpression>();
-                HashSet<VFXExpression> gpuExpressions = new HashSet<VFXExpression>();
-
-                var cpuExpressionContext = new VFXExpression.Context(options);
-                var gpuExpressionContext = new VFXExpression.Context(options | VFXExpressionContextOption.GPUDataTransformation);
-
-                foreach (var context in contexts)
-                {
-                    var cpuMapper = context.GetCPUExpressions();
-                    var gpuMapper = context.GetGPUExpressions();
-
-                    if (cpuMapper != null)
-                    {
-                        ProcessMapper(cpuMapper, cpuExpressionContext, cpuExpressions);
-                        m_ContextsToCPUExpressions.Add(context, cpuMapper);
-                    }
-
-                    if (gpuMapper != null)
-                    {
-                        ProcessMapper(gpuMapper, gpuExpressionContext, gpuExpressions);
-                        m_ContextsToGPUExpressions.Add(context, gpuMapper);
-                    }
-                }
-
-                cpuExpressionContext.Compile();
-                gpuExpressionContext.Compile();
-
-                foreach (var exp in cpuExpressionContext.RegisteredExpressions)
-                    m_CPUExpressionsToReduced.Add(exp, cpuExpressionContext.GetReduced(exp));
-
-                foreach (var exp in gpuExpressionContext.RegisteredExpressions)
-                    m_GPUExpressionsToReduced.Add(exp, gpuExpressionContext.GetReduced(exp));
-
-                // TODO Transform all not compatible CPU data to GPU data by inserting expressions in the graph
-                // Here ...
-
-                m_Expressions.UnionWith(cpuExpressionContext.BuildAllReduced());
-                m_Expressions.UnionWith(gpuExpressionContext.BuildAllReduced());
-
-                // flatten
-                foreach (var exp in m_CPUExpressionsToReduced.Values)
-                    AddExpressionDataRecursively(m_ExpressionsData, exp);
-
-                foreach (var exp in m_GPUExpressionsToReduced.Values)
-                    AddExpressionDataRecursively(m_ExpressionsData, exp);
+                CompileExpressionContext(contexts, options, Target.CPU);
+                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, Target.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                     {
                         var exp = kvp.Key;
                         return !exp.Is(VFXExpression.Flags.PerElement);
                     }).ToList(); // remove per element expression from flattened data // TODO Remove uniform constants too
+
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
 
@@ -124,10 +105,6 @@ namespace UnityEditor.VFX
                     data.index = i;
                     m_ExpressionsData[m_FlattenedExpressions[i]] = data;
                 }
-
-                //Debug.Log("---- Expression list");
-                //for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
-                //    Debug.Log(string.Format("{0}\t\t{1}", i, m_FlattenedExpressions[i].GetType().Name));
 
                 Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB CPU END EXPRESSIONS: {1} - NB GPU END EXPRESSIONS: {2}", m_Expressions.Count, m_CPUExpressionsToReduced.Count, m_GPUExpressionsToReduced.Count));
             }
@@ -237,7 +214,5 @@ namespace UnityEditor.VFX
         private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
-
-        //private Dictionary<VFXExpression, VFXExpression> m_CPUToGPUConversion = new Dictionary<VFXExpression, VFXExpression>();
     }
 }
