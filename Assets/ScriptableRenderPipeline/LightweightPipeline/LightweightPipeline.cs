@@ -525,6 +525,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeMainShadowLightIndex(VisibleLight[] lights, out int shadowIndex)
         {
             shadowIndex = -1;
+            if (m_Asset.CurrShadowType == ShadowType.NO_SHADOW)
+                return;
+
             float maxIntensity = -1;
             for (int i = 0; i < lights.Length; ++i)
             {
