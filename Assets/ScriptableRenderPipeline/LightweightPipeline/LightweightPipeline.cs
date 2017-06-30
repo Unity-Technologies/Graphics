@@ -296,6 +296,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
+            // Lightweight pipeline only upload kMaxVisibleLights to shader cbuffer. 
+            // We tell the pipe to disable remaining lights by setting it to -1.
+            int[] lightIndexMap = m_CullResults.GetLightIndexMap();
+            for (int i = kMaxVisibleLights; i < lightIndexMap.Length; ++i) 
+                lightIndexMap[i] = -1;
+            m_CullResults.SetLightIndexMap(lightIndexMap);
+
             CommandBuffer cmd = CommandBufferPool.Get("SetupShadowShaderConstants");
             cmd.SetGlobalVector("globalLightCount", new Vector4 (lightData.pixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
