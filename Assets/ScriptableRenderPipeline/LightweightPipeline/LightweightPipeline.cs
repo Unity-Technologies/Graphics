@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
 
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
-        private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SrpDefaultUnlit");
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -162,10 +161,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 litSettings.inputFilter.SetQueuesOpaque();
                 litSettings.rendererConfiguration = configuration;
 
-                var unlitSettings = new DrawRendererSettings(m_CullResults, camera, m_UnlitPassName);
-                unlitSettings.sorting.flags = SortFlags.CommonOpaque;
-                unlitSettings.inputFilter.SetQueuesOpaque();
-
                 context.DrawRenderers(ref litSettings);
 
                 // Release temporary RT
@@ -173,8 +168,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
                 context.ExecuteCommandBuffer(discardRT);
                 CommandBufferPool.Release(cmd);
-
-                context.DrawRenderers(ref unlitSettings);
 
                 // TODO: Check skybox shader
                 context.DrawSkybox(camera);
@@ -184,9 +177,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 litSettings.inputFilter.SetQueuesTransparent();
                 context.DrawRenderers(ref litSettings);
 
-                unlitSettings.sorting.flags = SortFlags.CommonTransparent;
-                unlitSettings.inputFilter.SetQueuesTransparent();
-                context.DrawRenderers(ref unlitSettings);
             }
 
             context.Submit();
