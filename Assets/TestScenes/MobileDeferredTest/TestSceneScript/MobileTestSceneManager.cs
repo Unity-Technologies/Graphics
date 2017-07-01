@@ -6,10 +6,8 @@ using UnityEngine.SceneManagement;
 public class MobileTestSceneManager : MonoBehaviour {
 
 	static int m_NextSceneIndex = 0;
-
 	static MobileTestSceneManager Instance;
 
-	// Use this for initialization
 	void Start () {
 		if (Instance != null) {
 			GameObject.Destroy (gameObject);
@@ -18,11 +16,14 @@ public class MobileTestSceneManager : MonoBehaviour {
 			Instance = this;
 		}
 	}
-	
-	// Update is called once per frame
+
 	void Update () {
+#if UNITY_EDITOR
+		if (Input.GetKeyDown(KeyCode.Space)) {
+#else
 		if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began) {
+#endif
 			SceneManager.LoadScene(m_NextSceneIndex++);
 		}
-	}
+	}		
 }
