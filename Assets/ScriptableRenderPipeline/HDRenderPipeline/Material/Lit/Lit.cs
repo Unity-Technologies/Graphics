@@ -279,16 +279,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_isInit = false;
         }
 
-        public override void RenderInit(Rendering.ScriptableRenderContext renderContext)
+        public override void RenderInit(CommandBuffer cmd)
         {
             if (m_isInit)
                 return;
 
-            var cmd = CommandBufferPool.Get();
-            cmd.name = "Init PreFGD";
-            Utilities.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
-            renderContext.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            using (new Utilities.ProfilingSample("Init PreFGD", cmd))
+            {
+                Utilities.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
+            }
             m_isInit = true;
         }
 
