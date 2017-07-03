@@ -757,12 +757,12 @@ namespace UnityEngine.Experimental.Rendering
         abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, List<VisibleLight> lights);
         abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, List<VisibleLight> lights);
         abstract public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads );
-        abstract public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights);
+        abstract public void Update( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
         abstract public void CreateShadowmap();
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
-        abstract public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        abstract public void DisplayShadowMap(CommandBuffer cmd, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
     }
 
     interface IShadowManager
@@ -778,14 +778,14 @@ namespace UnityEngine.Experimental.Rendering
         //          If there are no valid shadow casters all output arrays will be null, otherwise they will contain valid data that can be passed to shaders.
         void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
-        void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights);
+        void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
         // Debug function to display a shadow at the screen coordinate
-        void DisplayShadow(ScriptableRenderContext renderContext, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        void DisplayShadow(CommandBuffer cmd, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
-        void BindResources( ScriptableRenderContext renderContext );
+        void BindResources( CommandBuffer cmd );
         // Fixes up some parameters within the cullResults
         void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
 
@@ -802,11 +802,11 @@ namespace UnityEngine.Experimental.Rendering
     abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
     {
         public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
-        public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights);
-        public  abstract void DisplayShadow(ScriptableRenderContext renderContext, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        public  abstract void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
+        public  abstract void DisplayShadow(CommandBuffer cmd, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        public  abstract void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         public  abstract void SyncData();
-        public  abstract void BindResources( ScriptableRenderContext renderContext );
+        public  abstract void BindResources( CommandBuffer cmd );
         public  abstract void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
         // sort the shadow requests in descending priority - may only modify shadowRequests
         protected abstract void PrioritizeShadowCasters( Camera camera, List<VisibleLight> lights, uint shadowRequestsCount, int[] shadowRequests );

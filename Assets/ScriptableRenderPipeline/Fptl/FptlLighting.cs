@@ -1133,10 +1133,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
             BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
-
-            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
+            CommandBuffer cmdShadow = CommandBufferPool.Get();
+            m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
             m_ShadowMgr.SyncData();
-            m_ShadowMgr.BindResources( loop );
+            m_ShadowMgr.BindResources( cmdShadow );
+            loop.ExecuteCommandBuffer(cmdShadow);
+            CommandBufferPool.Release(cmdShadow);
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
