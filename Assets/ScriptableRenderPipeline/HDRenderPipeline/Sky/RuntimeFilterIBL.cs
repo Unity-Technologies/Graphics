@@ -88,8 +88,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GgxConvolveMaterial.SetFloat("_LastLevel", mipCount - 1);
             m_GgxConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 
+            var cmd = CommandBufferPool.Get("");
             for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
             {
+                string sampleName = String.Format("Filter Cubemap Mip {0}", mip);
+                cmd.BeginSample(sampleName);
+
                 MaterialPropertyBlock props = new MaterialPropertyBlock();
                 props.SetFloat("_Level", mip);
 
@@ -97,12 +101,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Utilities.SetRenderTarget(context, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
 
-                    var cmd = CommandBufferPool.Get();
                     cmd.DrawMesh(cubemapFaceMesh[face], Matrix4x4.identity, m_GgxConvolveMaterial, 0, 0, props);
-                    context.ExecuteCommandBuffer(cmd);
-                    CommandBufferPool.Release(cmd);
                 }
+                cmd.EndSample(sampleName);
             }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
