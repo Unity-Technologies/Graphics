@@ -26,11 +26,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
+                Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 
@@ -39,10 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyHDRIMaterial.SetTexture("_Cubemap", m_HdriSkyParams.skyHDRI);
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
 
-            var cmd = CommandBufferPool.Get("");
-            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
-            builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            builtinParams.commandBuffer.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
         }
 
         public override bool IsSkyValid()
