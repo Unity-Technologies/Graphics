@@ -69,15 +69,15 @@ namespace UnityEditor.VFX
 
             private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
             {
-                if (!HasAny(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
+                if (!HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     return false;
 
                 if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
                 Flags parentFlag = Flags.Value;
-                if (Has(VFXExpressionContextOption.ConstantFolding))
-                    parentFlag |= Flags.Constant;
+                if (!Has(VFXExpressionContextOption.CPUEvaluation))
+                    parentFlag |= Has(VFXExpressionContextOption.ConstantFolding) ? Flags.Foldable : Flags.Constant;
 
                 return reducedParents.All(e => (e.m_Flags & (parentFlag | Flags.InvalidOnCPU)) == parentFlag);
             }
@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
                     {
                         reduced = expression.Evaluate(parents);
                     }
-                    else if (HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
+                    else if (HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding) || !parents.SequenceEqual(expression.Parents))
                     {
                         reduced = expression.Reduce(parents);
                     }

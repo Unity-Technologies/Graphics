@@ -25,7 +25,11 @@ namespace UnityEditor.VFX
         {
             m_Mode = mode;
             if (mode != Mode.Variable)
-                m_Flags |= Flags.Constant;
+            {
+                m_Flags |= Flags.Foldable;
+                if (mode == Mode.Constant)
+                    m_Flags |= Flags.Constant;
+            }
         }
 
         public Mode ValueMode { get { return m_Mode; } }

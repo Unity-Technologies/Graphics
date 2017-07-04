@@ -11,10 +11,11 @@ namespace UnityEditor.VFX
         {
             None =          0,
             Value =         1 << 0, // Expression is a value, get/set can be called on it
-            Constant =      1 << 1, // Expression is a constant, it can be folded
-            InvalidOnGPU =  1 << 2, // Expression can be evaluated on GPU
-            InvalidOnCPU =  1 << 3, // Expression can be evaluated on CPU
-            PerElement =    1 << 4, // Expression is per element
+            Foldable =      1 << 1, // Expression is not a constant but can be folded anyway
+            Constant =      1 << 2, // Expression is a constant, it can be folded
+            InvalidOnGPU =  1 << 3, // Expression can be evaluated on GPU
+            InvalidOnCPU =  1 << 4, // Expression can be evaluated on CPU
+            PerElement =    1 << 5, // Expression is per element
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)
