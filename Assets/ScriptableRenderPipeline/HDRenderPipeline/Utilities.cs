@@ -191,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 name = _name;
                 cmd.BeginSample(name);
             }
-            
+
             public void Dispose()
             {
                 Dispose(true);
@@ -220,45 +220,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuVP = gpuProj *  worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
 
             return gpuVP;
-        }
-
-        // TEMP: These functions should be implemented C++ side, for now do it in C#
-        static List<float> m_FloatListdata = new List<float>();
-        public static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
-        {
-            m_FloatListdata.Clear();
-
-            for (int c = 0; c < 4; c++)
-                for (int r = 0; r < 4; r++)
-                    m_FloatListdata.Add(mat[r, c]);
-
-            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
-        }
-
-        public static void SetMatrixArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4[] matArray)
-        {
-            int numMatrices = matArray.Length;
-
-            m_FloatListdata.Clear();
-            
-            for (int n = 0; n < numMatrices; n++)
-                for (int c = 0; c < 4; c++)
-                    for (int r = 0; r < 4; r++)
-                        m_FloatListdata.Add(matArray[n][r, c]);
-
-            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
-        }
-
-        public static void SetVectorArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Vector4[] vecArray)
-        {
-            int numVectors = vecArray.Length;
-            m_FloatListdata.Clear();
-
-            for (int n = 0; n < numVectors; n++)
-                for (int i = 0; i < 4; i++)
-                    m_FloatListdata.Add(vecArray[n][i]);
-
-            cmd.SetComputeFloatParams(shadercs, name, m_FloatListdata);
         }
 
         public static void SetKeyword(Material m, string keyword, bool state)
