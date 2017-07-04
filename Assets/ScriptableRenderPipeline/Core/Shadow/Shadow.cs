@@ -429,17 +429,17 @@ namespace UnityEngine.Experimental.Rendering
             cb.ClearRenderTarget( true, !IsNativeDepth(), m_ClearColor );
         }
 
-        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
+        override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
-            var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), renderContext);
+            var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), cmd);
 
+            string cbName = "";
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
-                var cb = CommandBufferPool.Get();
-                cb.name = "Shadowmap.EnableShadowKeyword";
-                cb.EnableShaderKeyword(m_ShaderKeyword);
-                renderContext.ExecuteCommandBuffer( cb );
-                CommandBufferPool.Release(cb);
+                cbName = "Shadowmap.EnableShadowKeyword";
+                cmd.BeginSample(cbName);
+                cmd.EnableShaderKeyword(m_ShaderKeyword);
+                cmd.EndSample(cbName);
             }
 
             // loop for generating each individual shadowmap
@@ -451,43 +451,48 @@ namespace UnityEngine.Experimental.Rendering
                 if( !cullResults.GetShadowCasterBounds( m_EntryCache[i].key.visibleIdx, out bounds ) )
                     continue;
 
-                var cb = CommandBufferPool.Get();
                 uint entrySlice = m_EntryCache[i].current.slice;
                 if( entrySlice != curSlice )
                 {
                     Debug.Assert( curSlice == uint.MaxValue || entrySlice >= curSlice, "Entries in the entry cache are not ordered in slice order." );
-                    cb.name = string.Format("Shadowmap.Update.Slice{0}", entrySlice);
+                    cbName = string.Format("Shadowmap.Update.Slice{0}", entrySlice);
+                    cmd.BeginSample(cbName);
 
                     if( curSlice != uint.MaxValue )
                     {
-                        PostUpdate( frameId, cb, curSlice, lights );
+                        PostUpdate( frameId, cmd, curSlice, lights );
                     }
                     curSlice = entrySlice;
-                    PreUpdate( frameId, cb, curSlice );
+                    PreUpdate( frameId, cmd, curSlice );
+
+                    cmd.EndSample(cbName);
                 }
 
-                cb.name = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
-                cb.SetViewport( m_EntryCache[i].current.viewport );
-                cb.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
-                cb.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
-                renderContext.ExecuteCommandBuffer( cb );
-                CommandBufferPool.Release(cb);
+                cbName = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
+                cmd.BeginSample(cbName);
+                cmd.SetViewport( m_EntryCache[i].current.viewport );
+                cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
+                cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
+                cmd.EndSample(cbName);
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
+
+                // This is done here because DrawRenderers API lives outside command buffers so we need to make sur eto call this before doing any DrawRenders
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 renderContext.DrawShadows( ref dss ); // <- if this was a call on the commandbuffer we would get away with using just once commandbuffer for the entire shadowmap, instead of one per face
             }
 
             // post update
-            var cblast = CommandBufferPool.Get();
-            PostUpdate( frameId, cblast, curSlice, lights );
+            PostUpdate( frameId, cmd, curSlice, lights );
             if( !string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
-                cblast.name = "Shadowmap.DisableShaderKeyword";
-                cblast.DisableShaderKeyword( m_ShaderKeyword );
+                cmd.BeginSample("Shadowmap.DisableShaderKeyword");
+                cmd.DisableShaderKeyword( m_ShaderKeyword );
+                cmd.EndSample("Shadowmap.DisableShaderKeyword");
             }
-            renderContext.ExecuteCommandBuffer( cblast );
-            CommandBufferPool.Release(cblast);
 
             m_ActiveEntriesCount = 0;
 
@@ -580,11 +585,8 @@ namespace UnityEngine.Experimental.Rendering
             // Nothing to do for this implementation here, as the atlas is reconstructed each frame, instead of keeping state across frames
         }
 
-        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = CommandBufferPool.Get();
-            debugCB.name = "";
-
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
@@ -594,10 +596,6 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
-
-            renderContext.ExecuteCommandBuffer(debugCB);
-
-            CommandBufferPool.Release(debugCB);
         }
     }
 
@@ -931,7 +929,6 @@ namespace UnityEngine.Experimental.Rendering
 
         protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, List<VisibleLight> lights)
         {
-            cb.name = "VSM conversion";
             if ( rendertargetSlice == uint.MaxValue )
             {
                 base.PostUpdate( frameId, cb, rendertargetSlice, lights );
@@ -947,6 +944,8 @@ namespace UnityEngine.Experimental.Rendering
             if( i >= cnt || m_EntryCache[i].current.slice > rendertargetSlice )
                 return;
 
+
+            cb.BeginSample("VSM conversion");
 
             int kernelIdx = 2;
             int currentKernel = 0;
@@ -1017,13 +1016,11 @@ namespace UnityEngine.Experimental.Rendering
                 i++;
             }
            base.PostUpdate( frameId, cb, rendertargetSlice, lights );
+           cb.EndSample("VSM conversion");
         }
 
-        override public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            CommandBuffer debugCB = CommandBufferPool.Get();
-            debugCB.name = "";
-
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
@@ -1033,9 +1030,6 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
-
-            renderContext.ExecuteCommandBuffer(debugCB);
-            CommandBufferPool.Release(debugCB);
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1343,18 +1337,18 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, List<VisibleLight> lights)
+        public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
-            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", renderContext))
+            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", cmd))
             {
                 foreach( var sm in m_Shadowmaps )
                 {
-                    sm.Update( frameId, renderContext, cullResults, lights );
+                    sm.Update( frameId, renderContext, cmd, cullResults, lights );
                 }
             }
         }
 
-        public override void DisplayShadow(ScriptableRenderContext renderContext, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadow(CommandBuffer cmd, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (m_ShadowIndices.Count() == 0)
                 return;
@@ -1365,16 +1359,16 @@ namespace UnityEngine.Experimental.Rendering
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
             uint texID, samplerID, slice;
             faceData.UnpackShadowmapId(out texID, out samplerID, out slice);
-            m_Shadowmaps[texID].DisplayShadowMap(renderContext, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
-        public override void DisplayShadowMap(ScriptableRenderContext renderContext, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if(m_Shadowmaps.Length == 0)
                 return;
 
             uint index = Math.Max(0, Math.Min((uint)(m_Shadowmaps.Length - 1), shadowMapIndex));
-            m_Shadowmaps[index].DisplayShadowMap(renderContext, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[index].DisplayShadowMap(cmd, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public override void SyncData()
@@ -1382,17 +1376,15 @@ namespace UnityEngine.Experimental.Rendering
             m_ShadowCtxt.SyncData();
         }
 
-        public override void BindResources(ScriptableRenderContext renderContext)
+        public override void BindResources(CommandBuffer cmd)
         {
             foreach (var sm in m_Shadowmaps)
             {
                 sm.Fill(m_ShadowCtxt);
             }
-            CommandBuffer cb = CommandBufferPool.Get(); // <- can we just keep this around or does this have to be newed every frame?
-            cb.name = "Bind resources to GPU";
-            m_ShadowCtxt.BindResources(cb);
-            renderContext.ExecuteCommandBuffer(cb);
-            CommandBufferPool.Release(cb);
+            cmd.BeginSample("Bind resources to GPU");
+            m_ShadowCtxt.BindResources(cmd);
+            cmd.EndSample("Bind resources to GPU");
         }
 
         // resets the shadow slot counters and returns the sum of all slots

@@ -1598,7 +1598,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
-            public void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT)
+            public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT)
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
@@ -1615,7 +1615,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var projscr = temp * proj;
                 var invProjscr = projscr.inverse;
 
-                var cmd = CommandBufferPool.Get("");
                 cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
 
                 // generate screen-space AABBs (used for both fptl and clustered).
@@ -1742,9 +1741,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(buildDispatchIndirectShader, "g_NumTilesX", numTilesX);
                     cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
                 }
-
-                loop.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
             // This is a workaround for global properties not being accessible from compute.
@@ -1834,9 +1830,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, ScriptableRenderContext loop)
+            private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera)
             {
-                m_ShadowMgr.BindResources(loop);
+                m_ShadowMgr.BindResources(cmd);
 
                 SetGlobalBuffer("g_vLightListGlobal", !usingFptl ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
@@ -1882,19 +1878,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            private void PushGlobalParams(Camera camera, ScriptableRenderContext loop, ComputeShader computeShader, int kernelIndex)
+            private void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex)
             {
-                var cmd = CommandBufferPool.Get("Push Global Parameters");
+                using (new Utilities.ProfilingSample("Push Global Parameters", cmd))
+                {
+                    // Shadows
+                    m_ShadowMgr.SyncData();
 
-                // Shadows
-                m_ShadowMgr.SyncData();
-
-                SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
-                BindGlobalParams(cmd, computeShader, kernelIndex, camera, loop);
-                SetGlobalPropertyRedirect(null, 0, null);
-
-                loop.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                    SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
+                    BindGlobalParams(cmd, computeShader, kernelIndex, camera);
+                    SetGlobalPropertyRedirect(null, 0, null);
+                }
             }
 
 #if UNITY_EDITOR
@@ -1907,10 +1901,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #endif
 
-            public void RenderShadows(ScriptableRenderContext renderContext, CullResults cullResults)
+            public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults)
             {
                 // kick off the shadow jobs here
-                m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cullResults, cullResults.visibleLights);
+                m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cmd, cullResults, cullResults.visibleLights);
             }
 
             private void SetupDebugDisplayMode(bool debugDisplayEnable)
@@ -1925,88 +1919,82 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
             }
 
-            public void RenderLightingDebug(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer)
+            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer)
             {
                 if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
-                var cmd = CommandBufferPool.Get();
-                cmd.name = "Tiled Lighting Debug";
-
-                bool bUseClusteredForDeferred = !usingFptl;
-
-                int w = hdCamera.camera.pixelWidth;
-                int h = hdCamera.camera.pixelHeight;
-                int numTilesX = (w + 15) / 16;
-                int numTilesY = (h + 15) / 16;
-                int numTiles = numTilesX * numTilesY;
-
-                Vector2 mousePixelCoord = Input.mousePosition;
-#if UNITY_EDITOR
-                if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+                using (new Utilities.ProfilingSample("Tiled Lighting Debug", cmd))
                 {
-                    mousePixelCoord = m_mousePosition;
-                    mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
-                }
-#endif
+                    bool bUseClusteredForDeferred = !usingFptl;
 
-                // Debug tiles
-                PushGlobalParams(hdCamera.camera, renderContext, null, 0);
-                if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
-                {
-                    if (GetFeatureVariantsEnabled())
+                    int w = hdCamera.camera.pixelWidth;
+                    int h = hdCamera.camera.pixelHeight;
+                    int numTilesX = (w + 15) / 16;
+                    int numTilesY = (h + 15) / 16;
+                    int numTiles = numTilesX * numTilesY;
+
+                    Vector2 mousePixelCoord = Input.mousePosition;
+    #if UNITY_EDITOR
+                    if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
                     {
-                        // featureVariants
-                        m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
+                        mousePixelCoord = m_mousePosition;
+                        mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
+                    }
+    #endif
+
+                    // Debug tiles
+                    PushGlobalParams(hdCamera.camera, cmd, null, 0);
+                    if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
+                    {
+                        if (GetFeatureVariantsEnabled())
+                        {
+                            // featureVariants
+                            m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
+                            m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
+                            m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
+                            m_DebugViewTilesMaterial.SetBuffer("g_TileList", s_TileList);
+                            m_DebugViewTilesMaterial.SetBuffer("g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
+                            m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
+                            m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
+                            cmd.SetRenderTarget(colorBuffer);
+                            cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
+                        }
+                    }
+                    else if (m_TileSettings.tileDebugByCategory != TileSettings.TileDebug.None)
+                    {
+                        // lightCategories
                         m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
                         m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
-                        m_DebugViewTilesMaterial.SetBuffer("g_TileList", s_TileList);
-                        m_DebugViewTilesMaterial.SetBuffer("g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
                         m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                        m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                        cmd.SetRenderTarget(colorBuffer);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
+                        m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                        m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+
+                        cmd.Blit(null, colorBuffer, m_DebugViewTilesMaterial, 0);
                     }
+                    SetGlobalPropertyRedirect(null, 0, null);
                 }
-                else if (m_TileSettings.tileDebugByCategory != TileSettings.TileDebug.None)
-                {
-                    // lightCategories
-                    m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
-                    m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
-                    m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                    m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                    m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
-                    m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-
-                    cmd.Blit(null, colorBuffer, m_DebugViewTilesMaterial, 0);
-                }
-                SetGlobalPropertyRedirect(null, 0, null);
-
-                renderContext.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
-            public void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
+            public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd,
                                                 DebugDisplaySettings debugDisplaySettings,
                                                 RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
                                                 bool outputSplitLighting)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
-                using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), renderContext))
+                using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), cmd))
                 {
-                    var cmd = CommandBufferPool.Get();
-                    cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
-
                     var camera = hdCamera.camera;
 
                     SetupDebugDisplayMode(debugDisplaySettings.IsDebugDisplayEnabled());
 
                     if (!m_TileSettings.enableTileAndCluster)
                     {
-                        PushGlobalParams(camera, renderContext, null, 0);
+                        PushGlobalParams(camera, cmd, null, 0);
 
                         // This is a debug brute force renderer to debug tile/cluster which render all the lights
                         if (outputSplitLighting)
@@ -2068,7 +2056,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 // Pass global parameters to compute shader
                                 // TODO: get rid of this by making global parameters visible to compute shaders
-                                PushGlobalParams(camera, renderContext, shadeOpaqueShader, kernel);
+                                PushGlobalParams(camera, cmd, shadeOpaqueShader, kernel);
 
                                 // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", Shader.GetGlobalInt("_DebugViewMaterial"));
@@ -2131,7 +2119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             // Pixel shader evaluation
-                            PushGlobalParams(camera, renderContext, null, 0);
+                            PushGlobalParams(camera, cmd, null, 0);
 
                             if (m_TileSettings.enableSplitLightEvaluation)
                             {
@@ -2199,43 +2187,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     SetGlobalPropertyRedirect(null, 0, null);
-
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    CommandBufferPool.Release(cmd);
                 } // TilePass - Deferred Lighting Pass
             }
 
-            public void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
+            public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
             {
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
 
-                var cmd = CommandBufferPool.Get();
-
                 if (!m_TileSettings.enableTileAndCluster)
                 {
-                    cmd.name = "Forward pass";
-                    cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                    cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
+                    using (new Utilities.ProfilingSample("Forward pass", cmd))
+                    {
+                        cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
+                        cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
+                    }
                 }
                 else
                 {
-                    cmd.name = useFptl ? "Forward Tiled pass" : "Forward Clustered pass";
-                    // say that we want to use tile of single loop
-                    cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
-                    cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                    cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
-                    cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+                    using (new Utilities.ProfilingSample(useFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
+                    {
+                        // say that we want to use tile of single loop
+                        cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
+                        cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
+                        cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+                        cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+                    }
                 }
-
-                renderContext.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
-            public void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+            public void RenderDebugOverlay(Camera camera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                using (new Utilities.ProfilingSample("Display Shadows", renderContext))
+                using (new Utilities.ProfilingSample("Display Shadows", cmd))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
@@ -2262,14 +2246,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
                             for (uint i = 0; i < faceCount; ++i)
                             {
-                                m_ShadowMgr.DisplayShadow(renderContext, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                                m_ShadowMgr.DisplayShadow(cmd, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                                 Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                             }
                         }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        m_ShadowMgr.DisplayShadowMap(renderContext, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                        m_ShadowMgr.DisplayShadowMap(cmd, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }
