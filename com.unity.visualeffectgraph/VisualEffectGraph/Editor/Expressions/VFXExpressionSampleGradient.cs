@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
 
             var gradient = gradientReduce.Get<Gradient>();
             var time = timeReduce.Get<float>();
-            return new VFXValue<Vector4>(gradient.Evaluate(time), VFXValue.Mode.Constant);
+            return VFXValue<Vector4>.Constant(gradient.Evaluate(time));
         }
     }
 }

@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: readValue = GetChannel(parent.Get<Vector3>(), Channel); break;
                 case VFXValueType.kFloat4: readValue = GetChannel(parent.Get<Vector4>(), Channel); break;
             }
-            return new VFXValue<float>(readValue, VFXValue.Mode.Constant);
+            return VFXValue.Constant(readValue);
         }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
