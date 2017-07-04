@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
                 case Type.kRange:
                     return VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(m_Min), VFXValue.Constant(m_Max));
                 case Type.kMin:
-                    return VFXOperatorUtility.CastFloat(new VFXExpressionMax(exp, VFXValue.Constant(m_Min)), exp.ValueType);
+                    return new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(m_Min), exp.ValueType));
                 case Type.kNormalize:
                     return VFXOperatorUtility.Normalize(exp);
                 default:
