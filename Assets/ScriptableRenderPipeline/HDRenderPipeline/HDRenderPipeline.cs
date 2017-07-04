@@ -160,15 +160,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
         {
-            Utilities.SetMatrixCS(cmd, cs, "_ViewMatrix",         viewMatrix);
-            Utilities.SetMatrixCS(cmd, cs, "_InvViewMatrix",      viewMatrix.inverse);
-            Utilities.SetMatrixCS(cmd, cs, "_ProjMatrix",         projMatrix);
-            Utilities.SetMatrixCS(cmd, cs, "_InvProjMatrix",      projMatrix.inverse);
-            Utilities.SetMatrixCS(cmd, cs, "_ViewProjMatrix",     viewProjMatrix);
-            Utilities.SetMatrixCS(cmd, cs, "_InvViewProjMatrix",  viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam( cs, "_InvProjParam",       invProjParam);
-            cmd.SetComputeVectorParam( cs, "_ScreenSize",         screenSize);
-            Utilities.SetMatrixCS(cmd, cs, "_PrevViewProjMatrix", prevViewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",         viewMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",      viewMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",         projMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",      projMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",     viewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",  viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, "_InvProjParam",       invProjParam);
+            cmd.SetComputeVectorParam(cs, "_ScreenSize",         screenSize);
+            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix", prevViewProjMatrix);
         }
     }
 
