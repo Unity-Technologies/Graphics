@@ -596,9 +596,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 var invProjscr = projscr.inverse;
 
                 cmd.SetComputeIntParam(deferredComputeShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, deferredComputeShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, deferredComputeShader, "g_mInvScrProjection", invProjscr);
-                SetMatrixCS(cmd, deferredComputeShader, "g_mViewToWorld", camera.cameraToWorldMatrix);
+                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mScrProjection", projscr);
+                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mViewToWorld", camera.cameraToWorldMatrix);
 
 
                 if (bUseClusteredForDeferred)
@@ -616,8 +616,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "uavOutput", new RenderTargetIdentifier(s_CameraTarget));
 
-                SetMatrixArrayCS(cmd, deferredComputeShader, "g_matWorldToShadow", m_MatWorldToShadow);
-                SetVectorArrayCS(cmd, deferredComputeShader, "g_vDirShadowSplitSpheres", m_DirShadowSplitSpheres);
+                cmd.SetComputeMatrixArrayParam(deferredComputeShader, "g_matWorldToShadow", m_MatWorldToShadow);
+                cmd.SetComputeVectorArrayParam(deferredComputeShader, "g_vDirShadowSplitSpheres", m_DirShadowSplitSpheres);
                 cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms0", m_Shadow3X3PCFTerms[0]);
                 cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms1", m_Shadow3X3PCFTerms[1]);
                 cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms2", m_Shadow3X3PCFTerms[2]);
@@ -637,42 +637,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             loop.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
-        {
-            var data = new float[16];
-
-            for (int c = 0; c < 4; c++)
-                for (int r = 0; r < 4; r++)
-                    data[4 * c + r] = mat[r, c];
-
-            cmd.SetComputeFloatParams(shadercs, name, data);
-        }
-
-        private static void SetMatrixArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4[] matArray)
-        {
-            int numMatrices = matArray.Length;
-            var data = new float[numMatrices * 16];
-
-            for (int n = 0; n < numMatrices; n++)
-                for (int c = 0; c < 4; c++)
-                    for (int r = 0; r < 4; r++)
-                        data[16 * n + 4 * c + r] = matArray[n][r, c];
-
-            cmd.SetComputeFloatParams(shadercs, name, data);
-        }
-
-        private static void SetVectorArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Vector4[] vecArray)
-        {
-            int numVectors = vecArray.Length;
-            var data = new float[numVectors * 4];
-
-            for (int n = 0; n < numVectors; n++)
-                for (int i = 0; i < 4; i++)
-                    data[4 * n + i] = vecArray[n][i];
-
-            cmd.SetComputeFloatParams(shadercs, name, data);
         }
 
         static Matrix4x4 GetFlipMatrix()
@@ -1282,8 +1246,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mScrProjection", projscr);
-            SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
+            cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, "g_mScrProjection", projscr);
+            cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
 
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iLog2NumClusters", k_Log2NumClusters);
 
@@ -1345,8 +1309,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 var invProjh = projh.inverse;
 
                 cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
-                SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
+                cmd.SetComputeMatrixParam(buildScreenAABBShader, "g_mProjection", projh);
+                cmd.SetComputeMatrixParam(buildScreenAABBShader, "g_mInvProjection", invProjh);
                 cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
                 cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
             }
@@ -1356,8 +1320,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             {
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, "g_mScrProjection", projscr);
+                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
@@ -1368,8 +1332,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             {
                 cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, "g_mScrProjection", projscr);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
                 if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
