@@ -224,7 +224,7 @@ namespace UnityEditor.VFX
             var defaultBuffer = System.Activator.CreateInstance(type);
             for (int i = 0; i < fields.Length; ++i)
             {
-                properties[i] = new VFXProperty(fields[i].FieldType, fields[i].Name);
+                properties[i] = new VFXProperty(fields[i]);
                 values[i] = fields[i].GetValue(defaultBuffer);
             }
 
@@ -232,8 +232,7 @@ namespace UnityEditor.VFX
             {
                 var property = properties[i];
                 var value = values[i];
-                var field = fields[i];
-                var slot = VFXSlot.Create(property, direction, value, field);
+                var slot = VFXSlot.Create(property, direction, value);
                 if (slot != null)
                 {
                     slotList.Add(slot);

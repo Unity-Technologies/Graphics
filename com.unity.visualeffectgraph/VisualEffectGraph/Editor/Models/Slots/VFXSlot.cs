@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
         }
 
         // Create and return a slot hierarchy from a property info
-        public static VFXSlot Create(VFXProperty property, Direction direction, object value = null, FieldInfo field = null)
+        public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
             var slot = CreateSub(property, direction); // First create slot tree
 
@@ -218,8 +218,6 @@ namespace UnityEditor.VFX
                 });
 
             slot.m_MasterData = masterData;
-            if (field != null)
-                slot.m_PropertyAttributes = field.GetCustomAttributes(true);
             slot.UpdateDefaultExpressionValue();
 
             return slot;
@@ -480,36 +478,20 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, masterSlot.m_PropertyAttributes, toInvalidate);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate);
             masterSlot.PropagateToChildren(s => {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s.GetChild(i).SetOutExpression(exp != null ? exp[i] : s.GetChild(i).m_InExpression, s.GetChild(i).m_PropertyAttributes, toInvalidate);
+                        s.GetChild(i).SetOutExpression(exp != null ? exp[i] : s.GetChild(i).m_InExpression, toInvalidate);
                 });
 
             foreach (var slot in toInvalidate)
                 slot.InvalidateExpressionTree();
         }
 
-        private void SetOutExpression(VFXExpression exp, object[] attributes, HashSet<VFXSlot> toInvalidate)
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
         {
-            if (attributes != null)
-            {
-                foreach (object attribute in attributes)
-                {
-                    RangeAttribute rangeAttribute = attribute as RangeAttribute;
-                    if (rangeAttribute != null)
-                    {
-                        exp = VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(rangeAttribute.min), VFXValue.Constant(rangeAttribute.max));
-                    }
-
-                    MinAttribute minAttribute = attribute as MinAttribute;
-                    if (minAttribute != null)
-                    {
-                        exp = VFXOperatorUtility.CastFloat(new VFXExpressionMax(exp, VFXValue.Constant(minAttribute.min)), exp.ValueType);
-                    }
-                }
-            }
+            exp = m_Property.ApplyAttributes(exp);
 
             if (m_OutExpression != exp)
             {
@@ -619,8 +601,6 @@ namespace UnityEditor.VFX
         private bool m_ExpressionTreeUpToDate = false;
         [NonSerialized]
         private bool m_DefaultExpressionInitialized = false;
-        [NonSerialized]
-        private object[] m_PropertyAttributes = null;
 
         [Serializable]
         private class MasterData
