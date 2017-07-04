@@ -27,11 +27,12 @@ VFXView #VFXBackgroundGrid {
 	font-size:11;
 	padding-bottom:0;
 	min-height:17;
-	margin-left:-15;
+	margin-left:-17;
 	margin-bottom:0;
 	margin-right:6;
 	Visible:true;
 }
+
 
 .VFXDataAnchor.invisible
 {
@@ -62,7 +63,7 @@ VFXView #VFXBackgroundGrid {
 	margin-right:10;
 	padding-right:0;
 	margin-left:0;
-	margin-right:-9;
+	margin-right:-11;
 }
 
 VFXDataAnchor.Output #type
@@ -206,6 +207,10 @@ VFXOutputDataAnchor #type
 {
 	background-image: resource("VFX/connectors/vector2-output-selected");
 }
+
+
+
+
 
 /* Vector3 Vector Point */
 
@@ -560,4 +565,25 @@ VFXDataEdge.typeanimationcurve
 	height:4;
 	margin-top:-2;
 	background-color: rgb(210, 152, 0);
+}
+
+
+.node .VFXDataAnchor.selected.connected > #connector
+{
+	background-image: resource("VFX/connectors/selected-input");
+}
+
+.node .VFXDataAnchor.selected.connected.Output > #connector
+{
+	background-image: resource("VFX/connectors/selected-output");
+}
+
+.node.selected .VFXDataAnchor.selected.connected > #connector
+{
+	background-image: resource("VFX/connectors/selected-input-selected");
+}
+
+.node.selected .VFXDataAnchor.selected.connected.Output > #connector
+{
+	background-image: resource("VFX/connectors/selected-output-selected");
 }
