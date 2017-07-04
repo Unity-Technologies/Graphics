@@ -8,26 +8,32 @@ namespace UnityEditor.VFX
 {
     static class DotGraphOutput
     {
+        private static void FillMainExpressions(Dictionary<VFXExpression, List<string>> mainExpressions, Dictionary<VFXExpression, VFXExpression> inputExpressions, VFXExpressionGraph graph)
+        {
+            foreach (var kvp in inputExpressions)
+            {
+                var exp = kvp.Key;
+                var reduced = kvp.Value;
+
+                if (mainExpressions.ContainsKey(reduced))
+                    mainExpressions[reduced].AddRange(graph.GetAllNames(exp));
+                else
+                {
+                    var list = new List<string>();
+                    list.AddRange(graph.GetAllNames(exp));
+                    mainExpressions[reduced] = list;
+                }
+            }
+        }
+
         public static void DebugExpressionGraph(VFXGraph graph, VFXExpressionContextOption option)
         {
             var expressionGraph = new VFXExpressionGraph();
             expressionGraph.CompileExpressions(graph, option);
 
             var mainExpressions = new Dictionary<VFXExpression, List<string>>();
-            foreach (var kvp in expressionGraph.GPUExpressionsToReduced)
-            {
-                var exp = kvp.Key;
-                var reduced = kvp.Value;
-
-                if (mainExpressions.ContainsKey(reduced))
-                    mainExpressions[reduced].AddRange(expressionGraph.GetAllNames(exp));
-                else
-                {
-                    var list = new List<string>();
-                    list.AddRange(expressionGraph.GetAllNames(exp));
-                    mainExpressions[reduced] = list;
-                }
-            }
+            FillMainExpressions(mainExpressions, expressionGraph.GPUExpressionsToReduced, expressionGraph);
+            FillMainExpressions(mainExpressions, expressionGraph.CPUExpressionsToReduced, expressionGraph);
 
             var expressions = expressionGraph.Expressions;
 
