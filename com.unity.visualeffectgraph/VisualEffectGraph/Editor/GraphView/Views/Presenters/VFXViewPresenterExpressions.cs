@@ -14,7 +14,6 @@ namespace UnityEditor.VFX.UI
         {
             if (!ExpressionGraphDirty)
                 return;
-            ExpressionGraphDirty = false;
 
             CreateExpressionContext(true /*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
             m_ExpressionContext.Recompile();
@@ -23,6 +22,8 @@ namespace UnityEditor.VFX.UI
             {
                 onRecompileEvent();
             }
+
+            ExpressionGraphDirty = false;
         }
 
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
@@ -43,7 +44,7 @@ namespace UnityEditor.VFX.UI
             if (!forceRecreation && m_ExpressionContext != null)
                 return;
 
-            m_ExpressionContext = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
+            m_ExpressionContext = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             HashSet<Object> currentObjects = new HashSet<Object>();
             m_Graph.CollectDependencies(currentObjects);
 

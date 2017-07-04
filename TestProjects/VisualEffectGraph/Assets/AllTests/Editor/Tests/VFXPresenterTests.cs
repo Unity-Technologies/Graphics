@@ -248,6 +248,59 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void AppendOperator()
+        {
+            CreateTestAsset();
+
+            Action fnResync = delegate()
+                {
+                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
+                };
+
+            Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
+                {
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
+                    return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
+                };
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var abs = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), absDesc); fnResync();
+
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cos");
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(200, 100), cosDesc); fnResync();
+
+            var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
+            var append = m_ViewPresenter.AddVFXOperator(new Vector2(300, 100), appendDesc); fnResync();
+
+            var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterCos.input = fnFindPresenter(append).outputAnchors[0];
+            edgePresenterCos.output = fnFindPresenter(cos).inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterCos); fnResync();
+
+            var edgePresenterAppend_A = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterAppend_A.input = fnFindPresenter(abs).outputAnchors[0];
+            edgePresenterAppend_A.output = fnFindPresenter(append).inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterAppend_A); fnResync();
+
+            var edgePresenterAppend_B = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterAppend_B.input = fnFindPresenter(abs).outputAnchors[0];
+            edgePresenterAppend_B.output = fnFindPresenter(append).inputAnchors[1];
+            m_ViewPresenter.AddElement(edgePresenterAppend_B); fnResync();
+
+            var edgePresenterAppend_C = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterAppend_C.input = fnFindPresenter(abs).outputAnchors[0];
+            edgePresenterAppend_C.output = fnFindPresenter(append).inputAnchors[2];
+            m_ViewPresenter.AddElement(edgePresenterAppend_C); fnResync();
+
+            var edgePresenterAppend_D = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterAppend_D.input = fnFindPresenter(abs).outputAnchors[0];
+            edgePresenterAppend_D.output = fnFindPresenter(append).inputAnchors[3];
+            m_ViewPresenter.AddElement(edgePresenterAppend_D); fnResync();
+
+            DestroyTestAsset();
+        }
+
+        [Test]
         public void UndoRedoAddOperator()
         {
             CreateTestAsset();

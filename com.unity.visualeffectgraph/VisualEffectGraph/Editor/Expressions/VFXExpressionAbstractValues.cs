@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         }
 
         protected VFXValue(Mode mode)
-            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)
+            : base(Flags.Value)
         {
             m_Mode = mode;
             if (mode != Mode.Variable)

@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Test
 
             var finalExpr = add.outputSlots.First().GetExpression();
 
-            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(finalExpr);
             var eight = result.Get<float>();
 
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.Test
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
-            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(mul.outputSlots[0].GetExpression());
             var final = result.Get<Vector3>();
 
@@ -143,6 +143,38 @@ namespace UnityEditor.VFX.Test
             componentMask.settings = new VFXOperatorComponentMask.Settings() { mask = "x" };
             expression = append.outputSlots[0].GetExpression();
             Assert.AreEqual(VFXValueType.kFloat2, expression.ValueType);*/
+        }
+
+        [Test]
+        public void AppendOperator()
+        {
+            var absOperator = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+            var appendOperator = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
+            var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCos>();
+
+            Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(1, appendOperator.outputSlots.Count);
+            Assert.AreEqual(2, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, appendOperator.outputSlots[0].GetExpression().ValueType);
+
+            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[0].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(2, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[1].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(3, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[2].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(4, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat3, cosOperator.outputSlots[0].GetExpression().ValueType);
+
+            appendOperator.inputSlots[3].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(4, appendOperator.inputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat4, cosOperator.outputSlots[0].GetExpression().ValueType);
         }
 
         [Test]

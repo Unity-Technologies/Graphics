@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     abstract class VFXExpressionFloatOperation : VFXExpression
     {
         protected VFXExpressionFloatOperation(VFXExpression[] parents)
-            : base(Flags.ValidOnCPU | Flags.ValidOnGPU, parents)
+            : base(Flags.None, parents)
         {
             m_AdditionnalParameters = new int[] {};
         }

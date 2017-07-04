@@ -10,6 +10,12 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionGraph
     {
+        public enum Target
+        {
+            CPU,
+            GPU,
+        }
+
         private struct ExpressionData
         {
             public int depth;
@@ -39,14 +45,15 @@ namespace UnityEditor.VFX
             expressions.UnionWith(mapper.expressions);
         }
 
-        public void CompileExpressions(VFXGraph graph, VFXExpression.Context.ReductionOption option)
+        public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options)
         {
             Profiler.BeginSample("CompileExpressionGraph");
 
             try
             {
                 m_Expressions.Clear();
-                m_ExpressionsToReduced.Clear();
+                m_CPUExpressionsToReduced.Clear();
+                m_GPUExpressionsToReduced.Clear();
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
                 m_ContextsToCPUExpressions.Clear();
@@ -59,35 +66,47 @@ namespace UnityEditor.VFX
                 HashSet<VFXExpression> cpuExpressions = new HashSet<VFXExpression>();
                 HashSet<VFXExpression> gpuExpressions = new HashSet<VFXExpression>();
 
-                var expressionContext = new VFXExpression.Context(option);
+                var cpuExpressionContext = new VFXExpression.Context(options);
+                var gpuExpressionContext = new VFXExpression.Context(options | VFXExpressionContextOption.GPUDataTransformation);
 
-                foreach (var context in contexts.ToArray())
+                foreach (var context in contexts)
                 {
                     var cpuMapper = context.GetCPUExpressions();
                     var gpuMapper = context.GetGPUExpressions();
 
                     if (cpuMapper != null)
                     {
-                        ProcessMapper(cpuMapper, expressionContext, cpuExpressions);
+                        ProcessMapper(cpuMapper, cpuExpressionContext, cpuExpressions);
                         m_ContextsToCPUExpressions.Add(context, cpuMapper);
                     }
 
                     if (gpuMapper != null)
                     {
-                        ProcessMapper(gpuMapper, expressionContext, gpuExpressions);
+                        ProcessMapper(gpuMapper, gpuExpressionContext, gpuExpressions);
                         m_ContextsToGPUExpressions.Add(context, gpuMapper);
                     }
                 }
 
-                expressionContext.Compile();
+                cpuExpressionContext.Compile();
+                gpuExpressionContext.Compile();
 
-                foreach (var exp in expressionContext.RegisteredExpressions)
-                    m_ExpressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+                foreach (var exp in cpuExpressionContext.RegisteredExpressions)
+                    m_CPUExpressionsToReduced.Add(exp, cpuExpressionContext.GetReduced(exp));
 
-                m_Expressions.UnionWith(expressionContext.BuildAllReduced());
+                foreach (var exp in gpuExpressionContext.RegisteredExpressions)
+                    m_GPUExpressionsToReduced.Add(exp, gpuExpressionContext.GetReduced(exp));
+
+                // TODO Transform all not compatible CPU data to GPU data by inserting expressions in the graph
+                // Here ...
+
+                m_Expressions.UnionWith(cpuExpressionContext.BuildAllReduced());
+                m_Expressions.UnionWith(gpuExpressionContext.BuildAllReduced());
 
                 // flatten
-                foreach (var exp in m_ExpressionsToReduced.Values)
+                foreach (var exp in m_CPUExpressionsToReduced.Values)
+                    AddExpressionDataRecursively(m_ExpressionsData, exp);
+
+                foreach (var exp in m_GPUExpressionsToReduced.Values)
                     AddExpressionDataRecursively(m_ExpressionsData, exp);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
@@ -110,7 +129,7 @@ namespace UnityEditor.VFX
                 //for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 //    Debug.Log(string.Format("{0}\t\t{1}", i, m_FlattenedExpressions[i].GetType().Name));
 
-                Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB END EXPRESSIONS: {1}", m_Expressions.Count, m_ExpressionsToReduced.Count));
+                Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB CPU END EXPRESSIONS: {1} - NB GPU END EXPRESSIONS: {2}", m_Expressions.Count, m_CPUExpressionsToReduced.Count, m_GPUExpressionsToReduced.Count));
             }
             finally
             {
@@ -125,43 +144,38 @@ namespace UnityEditor.VFX
             return -1;
         }
 
-        public VFXExpression GetReduced(VFXExpression exp)
+        public VFXExpression GetReduced(VFXExpression exp, Target target)
         {
             VFXExpression reduced;
-            m_ExpressionsToReduced.TryGetValue(exp, out reduced);
+            var expressionToReduced = target == Target.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
+            expressionToReduced.TryGetValue(exp, out reduced);
             return reduced;
         }
 
         public VFXExpressionMapper BuildCPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToCPUExpressions);
+            return BuildMapper(context, m_ContextsToCPUExpressions, Target.CPU);
         }
 
         public VFXExpressionMapper BuildGPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToGPUExpressions);
+            return BuildMapper(context, m_ContextsToGPUExpressions, Target.GPU);
         }
 
         public List<string> GetAllNames(VFXExpression exp)
         {
             List<string> names = new List<string>();
-            foreach (var mapper in m_ContextsToCPUExpressions.Values)
+            foreach (var mapper in m_ContextsToCPUExpressions.Values.Concat(m_ContextsToGPUExpressions.Values))
             {
-                var name = mapper.GetData(exp).name;
-                if (name != null)
-                    names.Add(name);
-            }
-            foreach (var mapper in m_ContextsToGPUExpressions.Values)
-            {
-                var name = mapper.GetData(exp).name;
-                if (name != null)
-                    names.Add(name);
+                names.AddRange(mapper.GetData(exp).Select(o => o.fullName));
             }
             return names;
         }
 
-        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary)
+        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary, Target target)
         {
+            VFXExpression.Flags check = target == Target.GPU ? VFXExpression.Flags.InvalidOnGPU | VFXExpression.Flags.PerElement : VFXExpression.Flags.InvalidOnCPU;
+
             VFXExpressionMapper outMapper = new VFXExpressionMapper();
             VFXExpressionMapper inMapper;
 
@@ -170,21 +184,60 @@ namespace UnityEditor.VFX
             if (inMapper != null)
             {
                 foreach (var exp in inMapper.expressions)
-                    outMapper.AddExpression(GetReduced(exp), inMapper.GetData(exp));
+                {
+                    var reduced = GetReduced(exp, target);
+                    if (reduced.Is(check))
+                        throw new InvalidOperationException(string.Format("The expression {0} is not valid as it have the invalid flag: {1}", reduced, check));
+
+                    var mappedDataList = inMapper.GetData(exp);
+                    foreach (var mappedData in mappedDataList)
+                        outMapper.AddExpression(reduced, mappedData);
+                }
             }
 
             return outMapper;
         }
 
-        public HashSet<VFXExpression> Expressions { get { return m_Expressions; } }
-        public List<VFXExpression> FlattenedExpressions { get { return m_FlattenedExpressions; } }
-        public Dictionary<VFXExpression, VFXExpression> ExpressionsToReduced { get { return m_ExpressionsToReduced; } }
+        public HashSet<VFXExpression> Expressions
+        {
+            get
+            {
+                return m_Expressions;
+            }
+        }
+
+        public List<VFXExpression> FlattenedExpressions
+        {
+            get
+            {
+                return m_FlattenedExpressions;
+            }
+        }
+
+        public Dictionary<VFXExpression, VFXExpression> GPUExpressionsToReduced
+        {
+            get
+            {
+                return m_GPUExpressionsToReduced;
+            }
+        }
+
+        public Dictionary<VFXExpression, VFXExpression> CPUExpressionsToReduced
+        {
+            get
+            {
+                return m_CPUExpressionsToReduced;
+            }
+        }
 
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
-        private Dictionary<VFXExpression, VFXExpression> m_ExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
+        private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
+        private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
         private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+
+        //private Dictionary<VFXExpression, VFXExpression> m_CPUToGPUConversion = new Dictionary<VFXExpression, VFXExpression>();
     }
 }

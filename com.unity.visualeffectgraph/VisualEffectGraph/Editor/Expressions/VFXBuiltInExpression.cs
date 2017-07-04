@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         private VFXValueType m_ValueType;
 
         private VFXBuiltInExpression(VFXExpressionOp op, VFXValueType valueType)
-            : base(Flags.ValidOnCPU | Flags.ValidOnGPU)
+            : base(Flags.None)
         {
             m_Operation = op;
             m_ValueType = valueType;

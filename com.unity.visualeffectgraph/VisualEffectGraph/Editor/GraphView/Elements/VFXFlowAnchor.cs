@@ -107,6 +107,9 @@ namespace UnityEditor.VFX.UI
                 {
                     switch (presenter.Owner.contextType)
                     {
+                        case VFXContextType.kInit:
+                            targetContextType = VFXContextType.kSpawner;
+                            break;
                         case VFXContextType.kUpdate:
                             targetContextType = VFXContextType.kInit;
                             break;
@@ -124,6 +127,9 @@ namespace UnityEditor.VFX.UI
                             break;
                         case VFXContextType.kInit:
                             targetContextType = VFXContextType.kUpdate;
+                            break;
+                        case VFXContextType.kSpawner:
+                            targetContextType = VFXContextType.kInit;
                             break;
                     }
                 }

@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Test
         static public void temp_GetExpressionCode(VFXExpression expression, out string function, out string call)
         {
             function = call = null;
-            if (!expression.Is(VFXExpression.Flags.ValidOnGPU))
+            if (expression.Is(VFXExpression.Flags.InvalidOnGPU))
             {
                 throw new ArgumentException(string.Format("GetExpressionCode failed (not valid on GPU) with {0}", expression.GetType().FullName));
             }
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.Test
             var mulExpression = new VFXExpressionMul(sinExpression, VFXOperatorUtility.CastFloat(value_c, sinExpression.ValueType));
             var substractExpression = new VFXExpressionSubtract(VFXOperatorUtility.CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
-            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultA = context.Compile(addExpression);
             var resultB = context.Compile(sinExpression);
             var resultC = context.Compile(mulExpression);
@@ -162,7 +162,7 @@ namespace UnityEditor.VFX.Test
             var curveValue = new VFXValue<AnimationCurve>(curve);
             var sampleCurve = new VFXExpressionSampleCurve(curveValue, sampleValue);
 
-            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var reduced = context.Compile(sampleCurve);
 
             Assert.AreEqual(resultRef, reduced.Get<float>());

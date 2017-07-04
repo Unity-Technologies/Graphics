@@ -12,10 +12,10 @@ namespace UnityEditor.VFX
     {
         public VFXInfoAttribute(bool register = true)
         {
-            this.register = register;
+            this.autoRegister = register;
         }
 
-        public bool register = true;
+        public bool autoRegister = true;
         public string category = "";
         public Type type = null; // Used by slots to map types to slot
 
@@ -53,6 +53,23 @@ namespace UnityEditor.VFX
         }
 
         protected T m_Template;
+    }
+
+    class VFXModelDescriptorCustomSpawnerBlock : VFXModelDescriptor<VFXBlock>
+    {
+        public VFXModelDescriptorCustomSpawnerBlock(Type customType) : base(new VFXSpawnerCustomWrapper())
+        {
+            (m_Template as VFXSpawnerCustomWrapper).Init(customType);
+        }
+
+        public override VFXBlock CreateInstance()
+        {
+            var instance = base.CreateInstance();
+            var vfxSpawnerInstance = instance as VFXSpawnerCustomWrapper;
+            var vfxSpawnerTemplate = m_Template as VFXSpawnerCustomWrapper;
+            vfxSpawnerInstance.Init(vfxSpawnerTemplate.customBehavior);
+            return vfxSpawnerInstance;
+        }
     }
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
@@ -168,6 +185,12 @@ namespace UnityEditor.VFX
                 LoadSlotsIfNeeded();
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
+                var customSpawners = FindConcreteSubclasses(typeof(VFXSpawnerFunction));
+                foreach (var customSpawnerType in customSpawners)
+                {
+                    m_BlockDescs.Add(new VFXModelDescriptorCustomSpawnerBlock(customSpawnerType));
+                }
+
                 m_OperatorDescs = LoadModels<VFXOperator>();
 
                 m_ParametersDescs = m_SlotDescs.Select(s =>
@@ -216,7 +239,11 @@ namespace UnityEditor.VFX
                 try
                 {
                     T instance = (T)ScriptableObject.CreateInstance(modelType);
-                    modelDescs.Add(new VFXModelDescriptor<T>(instance));
+                    var modelDesc = new VFXModelDescriptor<T>(instance);
+                    if (modelDesc.info.autoRegister)
+                    {
+                        modelDescs.Add(modelDesc);
+                    }
                 }
                 catch (Exception e)
                 {

@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetCPUExpressions()
         {
             var mapper = new VFXExpressionMapper("");
-            mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh");
+            mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
             return mapper;
         }
     }

@@ -209,42 +209,51 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        static protected VFXSlot[] GenerateSlotFromField(Type type, VFXSlot.Direction direction)
+        {
+            if (type == null)
+            {
+                return new VFXSlot[] {};
+            }
+
+            var slotList = new List<VFXSlot>();
+            var fields = type.GetFields().Where(f => !f.IsStatic).ToArray();
+            var properties = new VFXProperty[fields.Length];
+            var values = new object[fields.Length];
+
+            var defaultBuffer = System.Activator.CreateInstance(type);
+            for (int i = 0; i < fields.Length; ++i)
+            {
+                properties[i] = new VFXProperty(fields[i].FieldType, fields[i].Name);
+                values[i] = fields[i].GetValue(defaultBuffer);
+            }
+
+            for (int i = 0; i < fields.Length; ++i)
+            {
+                var property = properties[i];
+                var value = values[i];
+                var slot = VFXSlot.Create(property, direction, value);
+                if (slot != null)
+                {
+                    slotList.Add(slot);
+                }
+            }
+            return slotList.ToArray();
+        }
+
         private void InitSlotsFromProperties(string className, VFXSlot.Direction direction)
         {
-            System.Type type = GetType().GetNestedType(className);
-
-            if (type != null)
+            var type = GetType().GetNestedType(className);
+            var slots = GenerateSlotFromField(type, direction);
+            foreach (var slot in slots)
             {
-                var fields = type.GetFields().Where(f => !f.IsStatic).ToArray();
-
-                var properties = new VFXProperty[fields.Length];
-                var values = new object[fields.Length];
-
-                var defaultBuffer = System.Activator.CreateInstance(type);
-
-                for (int i = 0; i < fields.Length; ++i)
-                {
-                    properties[i] = new VFXProperty(fields[i].FieldType, fields[i].Name);
-                    values[i] = fields[i].GetValue(defaultBuffer);
-                }
-
-                // Create slot hierarchy
-                for (int i = 0; i < fields.Length; ++i)
-                {
-                    var property = properties[i];
-                    var value = values[i];
-                    var slot = VFXSlot.Create(property, direction, value);
-                    if (slot != null)
-                    {
-                        InnerAddSlot(slot, false);
-                    }
-                }
+                InnerAddSlot(slot, false);
             }
         }
 
         public void InitSettings()
         {
-            System.Type type = GetType().GetNestedType(GetSettingsTypeName());
+            var type = GetType().GetNestedType(GetSettingsTypeName());
             if (type != null)
             {
                 if (!type.IsClass)
