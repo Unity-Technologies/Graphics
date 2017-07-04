@@ -154,7 +154,7 @@ namespace UnityEditor.VFX
             return newVFXExpression.ToArray();
         }
 
-        static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
+        static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defaultValue = 0.0f)
         {
             if (!VFXExpressionFloatOperation.IsFloatValueType(from.ValueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
             {
@@ -198,7 +198,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    outputComponent[iChannel] = new VFXValue<float>(defautValue, VFXValue.Mode.Constant);
+                    outputComponent[iChannel] = new VFXValue<float>(defaultValue, VFXValue.Mode.Constant);
                 }
             }
 
