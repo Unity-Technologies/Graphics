@@ -232,7 +232,8 @@ namespace UnityEditor.VFX
             {
                 var property = properties[i];
                 var value = values[i];
-                var slot = VFXSlot.Create(property, direction, value);
+                var field = fields[i];
+                var slot = VFXSlot.Create(property, direction, value, field);
                 if (slot != null)
                 {
                     slotList.Add(slot);
