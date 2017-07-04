@@ -13,19 +13,28 @@ namespace UnityEditor.VFX
             public Mesh mesh;
         }
 
-        public override VFXExpressionMapper GetGPUExpressions()
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var mapper = new VFXExpressionMapper("uniform");
-            for (int i = 0; i < GetNbChildren(); ++i)
-                mapper.AddExpressionFromSlotContainer(GetChild(i), i);
-            return mapper;
-        }
+            switch (target)
+            {
+                case VFXDeviceTarget.GPU:
+                {
+                    var mapper = new VFXExpressionMapper("uniform");
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        mapper.AddExpressionFromSlotContainer(GetChild(i), i);
+                    return mapper;
+                }
 
-        public override VFXExpressionMapper GetCPUExpressions()
-        {
-            var mapper = new VFXExpressionMapper("");
-            mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
-            return mapper;
+                case VFXDeviceTarget.CPU:
+                {
+                    var mapper = new VFXExpressionMapper("");
+                    mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
+                    return mapper;
+                }
+
+                default:
+                    return null;
+            }
         }
     }
 }

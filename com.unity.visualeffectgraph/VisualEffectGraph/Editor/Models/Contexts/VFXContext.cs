@@ -228,13 +228,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual VFXExpressionMapper GetGPUExpressions()
+        public virtual VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            return VFXExpressionMapper.FromContext(this, "uniform");
-        }
+            if (target == VFXDeviceTarget.GPU)
+                return VFXExpressionMapper.FromContext(this, "uniform");
 
-        public virtual VFXExpressionMapper GetCPUExpressions()
-        {
             return null;
         }
 

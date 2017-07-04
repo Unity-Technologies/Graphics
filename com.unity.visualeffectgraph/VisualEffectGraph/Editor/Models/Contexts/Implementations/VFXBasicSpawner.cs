@@ -6,8 +6,11 @@ namespace UnityEditor.VFX
         public VFXBasicSpawner() : base(VFXContextType.kSpawner, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
         public override string name { get { return "Spawner"; } }
 
-        public override VFXExpressionMapper GetCPUExpressions()
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
+            if (target != VFXDeviceTarget.CPU)
+                return null;
+
             var mapper = new VFXExpressionMapper("");
             foreach (var block in children)
             {
@@ -19,11 +22,6 @@ namespace UnityEditor.VFX
                 }
             }
             return mapper;
-        }
-
-        public override VFXExpressionMapper GetGPUExpressions()
-        {
-            return null;
         }
     }
 }

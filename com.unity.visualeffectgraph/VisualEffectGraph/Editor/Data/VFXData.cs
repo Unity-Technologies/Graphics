@@ -154,7 +154,7 @@ namespace UnityEditor.VFX
         // Collect attribute expressions linked to a context
         private void CollectInputAttributes(VFXContext context, VFXExpressionGraph graph)
         {
-            var mapper = context.ownedType == VFXDataType.kParticle ? context.GetGPUExpressions() : context.GetCPUExpressions();
+            var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);
             foreach (var exp in mapper.expressions)
                 AddAttributes(context, CollectInputAttributes(exp));
         }

@@ -8,14 +8,14 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    public enum VFXDeviceTarget
+    {
+        CPU,
+        GPU,
+    }
+
     class VFXExpressionGraph
     {
-        public enum Target
-        {
-            CPU,
-            GPU,
-        }
-
         private struct ExpressionData
         {
             public int depth;
@@ -38,20 +38,20 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, Target target)
+        private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, VFXDeviceTarget target)
         {
             HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
             var expressionContext = new VFXExpression.Context(options);
 
-            var contextsToExpressions = target == Target.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
-            var expressionsToReduced = target == Target.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
+            var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
+            var expressionsToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
 
             contextsToExpressions.Clear();
             expressionsToReduced.Clear();
 
             foreach (var context in contexts)
             {
-                var mapper = target == Target.GPU ? context.GetGPUExpressions() : context.GetCPUExpressions();
+                var mapper = context.GetExpressionMapper(target);
                 if (mapper != null)
                 {
                     foreach (var exp in mapper.expressions)
@@ -86,8 +86,8 @@ namespace UnityEditor.VFX
                 graph.CollectDependencies(models);
                 var contexts = models.OfType<VFXContext>();
 
-                CompileExpressionContext(contexts, options, Target.CPU);
-                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, Target.GPU);
+                CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
+                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                     {
@@ -121,22 +121,22 @@ namespace UnityEditor.VFX
             return -1;
         }
 
-        public VFXExpression GetReduced(VFXExpression exp, Target target)
+        public VFXExpression GetReduced(VFXExpression exp, VFXDeviceTarget target)
         {
             VFXExpression reduced;
-            var expressionToReduced = target == Target.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
+            var expressionToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
             expressionToReduced.TryGetValue(exp, out reduced);
             return reduced;
         }
 
         public VFXExpressionMapper BuildCPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToCPUExpressions, Target.CPU);
+            return BuildMapper(context, m_ContextsToCPUExpressions, VFXDeviceTarget.CPU);
         }
 
         public VFXExpressionMapper BuildGPUMapper(VFXContext context)
         {
-            return BuildMapper(context, m_ContextsToGPUExpressions, Target.GPU);
+            return BuildMapper(context, m_ContextsToGPUExpressions, VFXDeviceTarget.GPU);
         }
 
         public List<string> GetAllNames(VFXExpression exp)
@@ -149,9 +149,9 @@ namespace UnityEditor.VFX
             return names;
         }
 
-        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary, Target target)
+        private VFXExpressionMapper BuildMapper(VFXContext context, Dictionary<VFXContext, VFXExpressionMapper> dictionnary, VFXDeviceTarget target)
         {
-            VFXExpression.Flags check = target == Target.GPU ? VFXExpression.Flags.InvalidOnGPU | VFXExpression.Flags.PerElement : VFXExpression.Flags.InvalidOnCPU;
+            VFXExpression.Flags check = target == VFXDeviceTarget.GPU ? VFXExpression.Flags.InvalidOnGPU | VFXExpression.Flags.PerElement : VFXExpression.Flags.InvalidOnCPU;
 
             VFXExpressionMapper outMapper = new VFXExpressionMapper();
             VFXExpressionMapper inMapper;
