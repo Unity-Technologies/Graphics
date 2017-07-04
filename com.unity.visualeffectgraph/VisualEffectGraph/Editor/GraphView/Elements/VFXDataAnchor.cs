@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
             m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
 
 
-            if( presenter.connections.FirstOrDefault(t=>t.selected)!= null)
+            if (presenter.connections.FirstOrDefault(t => t.selected) != null)
             {
                 AddToClassList("selected");
             }
