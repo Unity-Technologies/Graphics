@@ -46,9 +46,9 @@ namespace UnityEditor.VFX
 
             switch (Parents.Length)
             {
-                case 2: return new VFXValue<Vector2>(new Vector2(constParentFloat[0], constParentFloat[1]), VFXValue.Mode.Constant);
-                case 3: return new VFXValue<Vector3>(new Vector3(constParentFloat[0], constParentFloat[1], constParentFloat[2]), VFXValue.Mode.Constant);
-                case 4: return new VFXValue<Vector4>(new Vector4(constParentFloat[0], constParentFloat[1], constParentFloat[2], constParentFloat[3]), VFXValue.Mode.Constant);
+                case 2: return VFXValue.Constant(new Vector2(constParentFloat[0], constParentFloat[1]));
+                case 3: return VFXValue.Constant(new Vector3(constParentFloat[0], constParentFloat[1], constParentFloat[2]));
+                case 4: return VFXValue.Constant(new Vector4(constParentFloat[0], constParentFloat[1], constParentFloat[2], constParentFloat[3]));
             }
             return null;
         }

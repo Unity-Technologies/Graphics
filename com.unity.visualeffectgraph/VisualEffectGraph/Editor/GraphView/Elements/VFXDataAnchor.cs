@@ -95,7 +95,18 @@ namespace UnityEditor.VFX.UI
 
             m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
 
+
+            if (presenter.connections.FirstOrDefault(t => t.selected) != null)
+            {
+                AddToClassList("selected");
+            }
+            else
+            {
+                RemoveFromClassList("selected");
+            }
+
             AddToClassList("EdgeConnector");
+
             switch (presenter.direction)
             {
                 case Direction.Input:

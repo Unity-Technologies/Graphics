@@ -38,6 +38,11 @@ namespace UnityEditor.VFX.UI
 
             if (outputPresenter == null && inputPresenter == null)
                 return;
+            if (outputPresenter != null && panel != null)
+                panel.dataWatch.ForceDirty(outputPresenter);
+
+            if (inputPresenter != null && panel != null)
+                panel.dataWatch.ForceDirty(inputPresenter);
 
             System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
 

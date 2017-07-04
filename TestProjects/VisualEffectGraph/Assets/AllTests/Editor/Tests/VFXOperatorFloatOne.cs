@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Test
             get
             {
                 if (defaultValue == null)
-                    defaultValue = new VFXValue<float>(1.0f, VFXValue.Mode.Constant);
+                    defaultValue = VFXValue.Constant(1.0f);
                 return defaultValue;
             }
         }

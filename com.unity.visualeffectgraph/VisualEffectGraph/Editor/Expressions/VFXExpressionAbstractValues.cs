@@ -14,6 +14,12 @@ namespace UnityEditor.VFX
             Constant, // Immutable value
         }
 
+        // Syntactic sugar method to create a constant value
+        static public VFXValue<T> Constant<T>(T value)
+        {
+            return new VFXValue<T>(value, Mode.Constant);
+        }
+
         protected VFXValue(Mode mode)
             : base(Flags.Value)
         {
