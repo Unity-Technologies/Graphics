@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < 6; i++)
             {
-                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, -planes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, planes[i].distance);
             }
 
             m_LastFrameActive = Time.frameCount;
