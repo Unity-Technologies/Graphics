@@ -98,6 +98,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CameraRTProperty = Shader.PropertyToID("_CameraRT");
             m_ShadowMapRTID = new RenderTargetIdentifier(m_ShadowMapProperty);
             m_CameraRTID = new RenderTargetIdentifier(m_CameraRTProperty);
+
+            // Let engine know we have MSAA on for cases where we support MSAA backbuffer
+            if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
+                QualitySettings.antiAliasing = m_Asset.MSAASampleCount;
+
             Shader.globalRenderPipeline = "LightweightPipeline";
         }
 
@@ -556,7 +561,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (camera.activeTexture == null)
                 {
                     cmd.GetTemporaryRT(m_CameraRTProperty, Screen.width, Screen.height, kCameraDepthBufferBits,
-                        FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, m_Asset.MSAA);
+                        FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, m_Asset.MSAASampleCount);
                     cmd.SetRenderTarget(m_CameraRTID);
                 }
                 else
@@ -593,11 +598,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool GetRenderToIntermediateTarget(Camera camera)
         {
-            bool allowMSAA = camera.allowMSAA && m_Asset.MSAA > 1;
+            bool allowMSAA = camera.allowMSAA && m_Asset.MSAASampleCount > 1 && !PlatformSupportsMSAABackBuffer();
             if (camera.cameraType == CameraType.SceneView || allowMSAA || camera.activeTexture != null)
                 return true;
 
             return false;
+        }
+
+        private bool PlatformSupportsMSAABackBuffer()
+        {
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SAMSUNGTV
+            return true;
+#else
+            return false;
+#endif
         }
     }
 }
