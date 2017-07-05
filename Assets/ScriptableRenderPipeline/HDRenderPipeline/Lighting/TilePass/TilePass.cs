@@ -1244,19 +1244,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    // Caution: 'VisibleLight.localToWorld' is camera-relative after this point.
-                    Vector4 camPos4WS = new Vector4(camPosWS.x, camPosWS.y, camPosWS.z, 0);
-
-                    for (int i = 0, n = cullResults.visibleLights.Count; i < n; i++)
-                    {
-                        VisibleLight light = cullResults.visibleLights[i];
-                        light.localToWorld.SetColumn(3, light.localToWorld.GetColumn(3) - camPos4WS);
-                        cullResults.visibleLights[i] = light;
-                    }
-                }
-
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
                     // 0. deal with shadows
@@ -1278,7 +1265,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //TODO: Do not call ToArray here to avoid GC, refactor API
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
-                        m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, cullResults.visibleLights,
+                        m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
                             ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                         // update the visibleLights with the shadow information
