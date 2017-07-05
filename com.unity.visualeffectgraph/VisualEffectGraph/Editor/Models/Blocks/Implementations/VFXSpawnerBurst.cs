@@ -10,8 +10,8 @@ namespace UnityEditor.VFX
         public override VFXSpawnerType spawnerType { get { return VFXSpawnerType.kBurst; } }
         public class InputProperties
         {
-            public float Count = 10;
-            public float Delay = 1;
+            public Vector2 Count = new Vector2(10,10);
+            public Vector2 Delay = new Vector2(1, 1);
         }
     }
 }
