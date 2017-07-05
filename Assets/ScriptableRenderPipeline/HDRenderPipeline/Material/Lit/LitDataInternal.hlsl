@@ -31,7 +31,8 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
-    GetTriplanarCoordinate(positionWS * worldScale, uvXZ, uvXY, uvZY);
+
+    GetTriplanarCoordinate(GetAbsolutePositionWS(positionWS) * worldScale, uvXZ, uvXY, uvZY);
 
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)

@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projMatrix;
         public Vector4   screenSize;
+        public Vector4[] frustumPlaneEquations;
         public Camera    camera;
 
         public Matrix4x4 viewProjMatrix
@@ -60,9 +61,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         bool m_FirstFrame;
 
-        public HDCamera(Camera camera)
+        public HDCamera(Camera cam)
         {
-            this.camera = camera;
+            camera = cam;
+            frustumPlaneEquations = new Vector4[6];
             Reset();
         }
 
@@ -70,8 +72,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
-            var gpuVP = gpuProj * camera.worldToCameraMatrix;
+            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
+            Matrix4x4 gpuView = camera.worldToCameraMatrix;
+
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                // Zero out the translation component.
+                gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+            }
+
+            Matrix4x4 gpuVP = gpuProj * gpuView;
 
             // A camera could be rendered multiple time per frame, only updates the previous viewproj if needed
             if (m_LastFrameActive != Time.frameCount)
@@ -83,9 +93,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FirstFrame = false;
             }
 
-            viewMatrix = camera.worldToCameraMatrix;
+            viewMatrix = gpuView;
             projMatrix = gpuProj;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
+
+            for (int i = 0; i < 6; i++)
+            {
+                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, -planes[i].distance);
+            }
 
             m_LastFrameActive = Time.frameCount;
         }
@@ -142,6 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector("_InvProjParam",       invProjParam);
             cmd.SetGlobalVector("_ScreenSize",         screenSize);
             cmd.SetGlobalMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+            cmd.SetGlobalVectorArray("_FrustumPlanes", frustumPlaneEquations);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
@@ -156,6 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetVector("_InvProjParam",       invProjParam);
             material.SetVector("_ScreenSize",         screenSize);
             material.SetMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
+            material.SetVectorArray("_FrustumPlanes", frustumPlaneEquations);
         }
 
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
@@ -169,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, "_InvProjParam",       invProjParam);
             cmd.SetComputeVectorParam(cs, "_ScreenSize",         screenSize);
             cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix", prevViewProjMatrix);
+            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes", frustumPlaneEquations);
         }
     }
 
@@ -667,7 +687,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.SetupCameraProperties(camera);
 
-            var hdCamera = HDCamera.Get(camera);
+            HDCamera hdCamera = HDCamera.Get(camera);
+            PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -693,8 +714,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             InitAndClearBuffer(camera, cmd);
-
-            PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd);
 

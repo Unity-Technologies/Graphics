@@ -2,14 +2,14 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 {
     float maxDisplacement = GetMaxDisplacement();
 
-    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
+    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes);
 
     bool faceCull = false;
 
     // We use the position of the primary (scene view) camera in order
     // to have identical tessellation levels for both the scene view and
     // shadow views. Otherwise, depth comparisons become meaningless!
-    float3 camPosWS = _WorldSpaceCameraPos;
+    float3 camPosWS = GetPrimaryCameraPosition();
 
 #ifndef _DOUBLESIDED_ON
     // TODO: Handle inverse culling (for mirror)!

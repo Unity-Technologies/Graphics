@@ -727,7 +727,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 uint shadowRequestCount = (uint)m_ShadowRequests.Count;
                 int[] shadowRequests = m_ShadowRequests.ToArray();
                 int[] shadowDataIndices;
-                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
+                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, false, inputs.visibleLights,
                     ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
                 // update the visibleLights with the shadow information
