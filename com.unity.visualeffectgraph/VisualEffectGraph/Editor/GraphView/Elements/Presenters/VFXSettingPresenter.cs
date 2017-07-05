@@ -69,12 +69,15 @@ namespace UnityEditor.VFX.UI
         {
             get { return anchorType.Name; }
         }
+
         public bool editable
         {
-            get
-            {
-                return true;
-            }
+            get { return true; }
+        }
+
+        public string tooltip
+        {
+            get { return null; }
         }
 
         public void ExpandPath()

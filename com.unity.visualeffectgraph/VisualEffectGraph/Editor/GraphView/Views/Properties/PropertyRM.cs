@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         bool expandable { get; }
         object value { get; set; }
         string name { get; }
+        string tooltip { get; }
 
         Type anchorType { get; }
         int depth {get; }
@@ -41,6 +42,7 @@ namespace UnityEditor.VFX.UI
             m_Icon.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
             m_Label.text = m_Provider.name;
+            m_Label.tooltip = m_Provider.tooltip;
         }
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
@@ -79,8 +81,7 @@ namespace UnityEditor.VFX.UI
 
             m_Icon.backgroundImage = m_IconStates[0];
 
-
-            m_Label = new VisualElement() {name = "label", text = provider.name};
+            m_Label = new VisualElement() {name = "label", text = provider.name, tooltip = provider.tooltip};
             if (provider.depth != 0)
             {
                 for (int i = 0; i < provider.depth; ++i)

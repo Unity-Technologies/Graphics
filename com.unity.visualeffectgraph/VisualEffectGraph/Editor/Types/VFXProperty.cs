@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         private string typeName;
 
         [SerializeField]
-        private VFXPropertyAttribute[] attributes;
+        public VFXPropertyAttribute[] attributes;
 
         public VFXProperty(Type type, string name)
         {

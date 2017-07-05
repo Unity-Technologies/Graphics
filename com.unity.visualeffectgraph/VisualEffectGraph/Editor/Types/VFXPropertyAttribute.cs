@@ -34,9 +34,27 @@ namespace UnityEditor.VFX
                 NormalizeAttribute normallizeAttribute = attribute as NormalizeAttribute;
                 if (normallizeAttribute != null)
                     results.Add(new VFXPropertyAttribute(Type.kNormalize));
+
+                TooltipAttribute tooltipAttribute = attribute as TooltipAttribute;
+                if (tooltipAttribute != null)
+                    results.Add(new VFXPropertyAttribute(tooltipAttribute.tooltip));
             }
 
             return results.ToArray();
+        }
+
+        public static string FindTooltip(VFXProperty property)
+        {
+            if (property.attributes != null)
+            {
+                foreach (VFXPropertyAttribute attribute in property.attributes)
+                {
+                    if (attribute.m_Type == Type.kTooltip)
+                        return attribute.m_Tooltip;
+                }
+            }
+
+            return null;
         }
 
         public VFXExpression Apply(VFXExpression exp)
@@ -49,6 +67,8 @@ namespace UnityEditor.VFX
                     return new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(m_Min), exp.ValueType));
                 case Type.kNormalize:
                     return VFXOperatorUtility.Normalize(exp);
+                case Type.kTooltip:
+                    return exp;
                 default:
                     throw new NotImplementedException();
             }
@@ -58,7 +78,8 @@ namespace UnityEditor.VFX
         {
             kRange,
             kMin,
-            kNormalize
+            kNormalize,
+            kTooltip
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
@@ -66,6 +87,15 @@ namespace UnityEditor.VFX
             m_Type = type;
             m_Min = min;
             m_Max = max;
+            m_Tooltip = null;
+        }
+
+        private VFXPropertyAttribute(string tooltip)
+        {
+            m_Type = Type.kTooltip;
+            m_Min = -Mathf.Infinity;
+            m_Max = Mathf.Infinity;
+            m_Tooltip = tooltip;
         }
 
         [SerializeField]
@@ -74,5 +104,7 @@ namespace UnityEditor.VFX
         private float m_Min;
         [SerializeField]
         private float m_Max;
+        [SerializeField]
+        private string m_Tooltip;
     }
 }

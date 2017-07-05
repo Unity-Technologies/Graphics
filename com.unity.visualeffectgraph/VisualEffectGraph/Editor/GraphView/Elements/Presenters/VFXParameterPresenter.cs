@@ -82,6 +82,7 @@ namespace UnityEditor.VFX.UI
         }
 
         string IPropertyRMProvider.name { get { return "Value"; } }
+        string IPropertyRMProvider.tooltip { get { return "Tooltip"; } }
 
         public Type anchorType
         {
