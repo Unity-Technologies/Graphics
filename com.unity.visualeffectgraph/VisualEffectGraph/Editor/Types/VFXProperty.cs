@@ -72,16 +72,5 @@ namespace UnityEditor.VFX
         {
             return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
         }
-
-        public VFXExpression ApplyAttributes(VFXExpression exp)
-        {
-            if (attributes != null)
-            {
-                foreach (VFXPropertyAttribute attribute in attributes)
-                    exp = attribute.Apply(exp);
-            }
-
-            return exp;
-        }
     }
 }

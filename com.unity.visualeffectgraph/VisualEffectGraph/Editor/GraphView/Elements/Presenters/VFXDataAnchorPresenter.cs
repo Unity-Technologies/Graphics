@@ -104,10 +104,10 @@ namespace UnityEditor.VFX.UI
             get { return model.path; }
         }
 
-        public string tooltip
-        {
-            get { return VFXPropertyAttribute.FindTooltip(model.property); }
-        }
+		public VFXPropertyAttribute[] attributes
+		{
+			get { return model.property.attributes; }
+		}
 
         public int depth
         {

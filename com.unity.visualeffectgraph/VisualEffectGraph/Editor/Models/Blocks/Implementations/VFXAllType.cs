@@ -12,11 +12,13 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public float aFloat = 123.456f;
+			[Min(2.5f)]
+			public float aFloat = 123.456f;
             [Range(-32, 150)]
             public float aRange = 123.456f;
             public Gradient aGradient = new Gradient();
             public Vector2 aVector2 = Vector2.left;
+			[Normalize]
             public Vector3 aVector3 = Vector3.forward;
             public Vector4 aVector4 = Vector4.one;
             public Color aColor = Color.gray;

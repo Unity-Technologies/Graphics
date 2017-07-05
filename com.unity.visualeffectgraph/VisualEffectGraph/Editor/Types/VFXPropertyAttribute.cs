@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
 
                 MinAttribute minAttribute = attribute as MinAttribute;
                 if (minAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kMin, rangeAttribute.min));
+					results.Add(new VFXPropertyAttribute(Type.kMin, minAttribute.min));
 
                 NormalizeAttribute normallizeAttribute = attribute as NormalizeAttribute;
                 if (normallizeAttribute != null)
@@ -43,36 +43,73 @@ namespace UnityEditor.VFX
             return results.ToArray();
         }
 
-        public static string FindTooltip(VFXProperty property)
+		public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
+		{
+			if (attributes != null)
+			{
+				foreach (VFXPropertyAttribute attribute in attributes)
+				{
+					switch (attribute.m_Type)
+					{
+						case Type.kRange:
+							exp = VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
+							break;
+						case Type.kMin:
+							exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.ValueType));
+							break;
+						case Type.kNormalize:
+							exp = VFXOperatorUtility.Normalize(exp);
+							break;
+						case Type.kTooltip:
+							break;
+						default:
+							throw new NotImplementedException();
+					}
+				}
+			}
+
+			return exp;
+		}
+
+		public static void ApplyToGUI(VFXPropertyAttribute[] attributes, ref string label, ref string tooltip)
         {
-            if (property.attributes != null)
+            if (attributes != null)
             {
-                foreach (VFXPropertyAttribute attribute in property.attributes)
+                foreach (VFXPropertyAttribute attribute in attributes)
                 {
-                    if (attribute.m_Type == Type.kTooltip)
-                        return attribute.m_Tooltip;
+					switch (attribute.m_Type)
+					{
+						case Type.kRange:
+							break;
+						case Type.kMin:
+							label += " (Min: " + attribute.m_Min + ")";
+							break;
+						case Type.kNormalize:
+							label += " (Normalized)";
+							break;
+						case Type.kTooltip:
+							tooltip = attribute.m_Tooltip;
+							break;
+						default:
+							throw new NotImplementedException();
+					}
                 }
             }
-
-            return null;
         }
 
-        public VFXExpression Apply(VFXExpression exp)
-        {
-            switch (m_Type)
-            {
-                case Type.kRange:
-                    return VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(m_Min), VFXValue.Constant(m_Max));
-                case Type.kMin:
-                    return new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(m_Min), exp.ValueType));
-                case Type.kNormalize:
-                    return VFXOperatorUtility.Normalize(exp);
-                case Type.kTooltip:
-                    return exp;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
+		public static Vector2 FindRange(VFXPropertyAttribute[] attributes)
+		{
+			if (attributes != null)
+			{
+				foreach (VFXPropertyAttribute attribute in attributes)
+				{
+					if (attribute.m_Type == Type.kRange)
+						return new Vector2(attribute.m_Min, attribute.m_Max);
+				}
+			}
+
+			return Vector2.zero;
+		}
 
         private enum Type
         {

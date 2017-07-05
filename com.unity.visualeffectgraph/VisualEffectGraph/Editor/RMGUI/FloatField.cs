@@ -91,7 +91,7 @@ namespace UnityEditor.VFX.UIElements
             return newValue;
         }
 
-        void IValueChangeListener<float>.SetValue(float value, object userData)
+		void IValueChangeListener<float>.SetValue(float value, object userData)
         {
             m_Value = value;
             ValueToGUI();

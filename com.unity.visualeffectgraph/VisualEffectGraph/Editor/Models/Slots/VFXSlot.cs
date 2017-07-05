@@ -491,7 +491,7 @@ namespace UnityEditor.VFX
 
         private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
         {
-            exp = m_Property.ApplyAttributes(exp);
+            exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
 
             if (m_OutExpression != exp)
             {

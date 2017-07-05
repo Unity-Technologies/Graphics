@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
         bool expandable { get; }
         object value { get; set; }
         string name { get; }
-        string tooltip { get; }
+		VFXPropertyAttribute[] attributes { get; }
 
         Type anchorType { get; }
         int depth {get; }
@@ -41,8 +41,12 @@ namespace UnityEditor.VFX.UI
         {
             m_Icon.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
-            m_Label.text = m_Provider.name;
-            m_Label.tooltip = m_Provider.tooltip;
+
+			string text = m_Provider.name;
+			string tooltip = null;
+			VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
+			m_Label.text = text;
+			m_Label.tooltip = tooltip;
         }
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
@@ -81,7 +85,11 @@ namespace UnityEditor.VFX.UI
 
             m_Icon.backgroundImage = m_IconStates[0];
 
-            m_Label = new VisualElement() {name = "label", text = provider.name, tooltip = provider.tooltip};
+			string labelText = provider.name;
+			string labelTooltip = null;
+			VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
+			m_Label = new VisualElement() { name = "label", text = labelText, tooltip = labelTooltip };
+
             if (provider.depth != 0)
             {
                 for (int i = 0; i < provider.depth; ++i)
@@ -159,7 +167,8 @@ namespace UnityEditor.VFX.UI
                     type = type.BaseType;
                 }
             }
-            return propertyType != null ? System.Activator.CreateInstance(propertyType, new object[] {presenter, labelWidth}) as PropertyRM : null;
+
+			return (propertyType != null) ? System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM : null;
         }
 
         protected void NotifyValueChanged()
