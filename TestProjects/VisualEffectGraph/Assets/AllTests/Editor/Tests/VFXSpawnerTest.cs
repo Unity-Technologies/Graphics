@@ -48,5 +48,42 @@ namespace UnityEditor.VFX.Test
 
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
+
+        [UnityTest]
+        public IEnumerator CreateEventAttributeAndStart()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockBurst = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+
+            spawnerContext.AddChild(blockBurst);
+            graph.AddChild(spawnerContext);
+
+            graph.vfxAsset = new VFXAsset();
+            graph.RecompileIfNeeded();
+            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+
+            var gameObj = new GameObject("CreateEventAttributeAndStart");
+            var vfxComponent = gameObj.AddComponent<VFXComponent>();
+            vfxComponent.vfxAsset = graph.vfxAsset;
+
+            var lifeTimeIn = 28.0f;
+            var vfxEventAttr = vfxComponent.CreateVFXEventAttribute();
+            vfxEventAttr.SetFloat("lifeTime", lifeTimeIn);
+            vfxComponent.Start(vfxEventAttr);
+
+            while (vfxComponent.culled)
+            {
+                yield return null;
+            }
+            yield return null; //wait for exactly one more update if visible
+
+            var spawnerState = vfxComponent.GetSpawnerState(0);
+            var lifeTimeOut = spawnerState.vfxEventAttribute.GetFloat("lifeTime");
+            Assert.AreEqual(lifeTimeIn, lifeTimeOut);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+        }
     }
 }
