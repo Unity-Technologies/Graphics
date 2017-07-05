@@ -216,6 +216,7 @@ namespace UnityEditor.VFX
                     s.m_MasterSlot = slot;
                     s.m_MasterData = null;
                 });
+
             slot.m_MasterData = masterData;
             slot.UpdateDefaultExpressionValue();
 
@@ -463,7 +464,7 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression); // TODO Handle structural modification;
+                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s =>
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -490,6 +491,8 @@ namespace UnityEditor.VFX
 
         private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
         {
+            exp = m_Property.ApplyAttributes(exp);
+
             if (m_OutExpression != exp)
             {
                 m_OutExpression = exp;
