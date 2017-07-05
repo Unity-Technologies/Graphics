@@ -90,14 +90,14 @@ float3 GetCameraRelativePositionWS(float3 absolutePositionWS)
     return pos;
 }
 
-// Returns the position of the primary (scene view) camera.
 // Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
 float3 GetPrimaryCameraPosition()
 {
     return GetCameraRelativePositionWS(_WorldSpaceCameraPos);
 }
 
-float3 GetCurrentCameraPosition()
+// Could be e.g. the position of a primary camera or a shadow-casting light.
+float3 GetCurrentViewPosition()
 {
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return GetPrimaryCameraPosition();
@@ -112,15 +112,15 @@ float3 GetCurrentCameraPosition()
 #endif
 }
 
-// Returns the forward direction of the current camera in the world space.
-float3 GetCameraForwardDir()
+// Returns the forward (central) direction of the current view in the world space.
+float3 GetViewForwardDir()
 {
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
 }
 
-// Returns 'true' if the current camera performs a perspective projection.
-bool IsPerspectiveCamera()
+// Returns 'true' if the current view performs a perspective projection.
+bool IsPerspectiveProjection()
 {
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return (unity_OrthoParams.w == 0);
@@ -133,19 +133,19 @@ bool IsPerspectiveCamera()
 #endif
 }
 
-// Computes the world space view direction (pointing towards the camera).
+// Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    if (IsPerspectiveCamera())
+    if (IsPerspectiveProjection())
     {
         // Perspective
-        float3 V = GetCurrentCameraPosition() - positionWS;
+        float3 V = GetCurrentViewPosition() - positionWS;
         return normalize(V);
     }
     else
     {
         // Orthographic
-        return -GetCameraForwardDir();
+        return -GetViewForwardDir();
     }
 }
 
