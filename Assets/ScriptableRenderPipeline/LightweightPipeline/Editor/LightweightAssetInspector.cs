@@ -48,6 +48,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent defaultShader = new GUIContent("Default Shader",
                 "Shader to use when creating materials");
+
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
         }
 
         private SerializedProperty m_MaxPixelLights;
@@ -64,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_DefaultDiffuseMaterial;
         private SerializedProperty m_DefaultSpriteMaterial;
         private SerializedProperty m_DefaultShader;
+        private SerializedProperty m_MSAA;
 
         void OnEnable()
         {
@@ -81,6 +84,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
             m_DefaultSpriteMaterial = serializedObject.FindProperty("m_DefaultSpriteMaterial");
             m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
+            m_MSAA = serializedObject.FindProperty("m_MSAA");
         }
 
         public override void OnInspectorGUI()
@@ -97,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_EnableLightmapsProp, Styles.enableLightmap);
             EditorGUILayout.PropertyField(m_EnableAmbientProbeProp, Styles.enableAmbientProbe);
+            EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();

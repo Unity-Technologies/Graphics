@@ -21,6 +21,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _2048 = 2048
     }
 
+    public enum MSAAQuality
+    {
+        Disabled = 1,
+        _2x = 2,
+        _4x = 4,
+        _8x = 8
+    }
+
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
         private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
@@ -63,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = true;
         [SerializeField] private bool m_EnableLightmaps = true;
         [SerializeField] private bool m_EnableAmbientProbe = true;
+        [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
         [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
@@ -99,6 +108,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             private set { m_EnableAmbientProbe = value; }
         }
 
+        public int MSAA
+        {
+            get { return (int)m_MSAA; }
+            set { m_MSAA = (MSAAQuality)value; }
+        }
+
         public ShadowType CurrShadowType
         {
             get { return m_ShadowType; }
@@ -128,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return (int)m_ShadowCascades; }
             private set { m_ShadowCascades = (ShadowCascades)value; }
         }
-       
+
         public float Cascade2Split
         {
             get { return m_Cascade2Split; }
