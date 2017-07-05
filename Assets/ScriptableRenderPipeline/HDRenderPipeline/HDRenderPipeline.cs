@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projMatrix;
         public Vector4   screenSize;
+        public Vector4[] frustumPlaneEquations;
         public Camera    camera;
 
         public Matrix4x4 viewProjMatrix
@@ -45,22 +46,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
             get { var p = projMatrix; return new Vector4(p.m20 / (p.m00 * p.m23), p.m21 / (p.m11 * p.m23), -1.0f / p.m23, (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23); }
-        }
-
-        public Vector4[] frustumPlaneEquations
-        {
-            get
-            {
-                Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
-                Vector4[] equations = new Vector4[6];
-
-                for (int i = 0; i < 6; i++)
-                {
-                    equations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, -planes[i].distance);
-                }
-
-                return equations;
-            }
         }
 
         // View-projection matrix from the previous frame.
@@ -76,9 +61,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         bool m_FirstFrame;
 
-        public HDCamera(Camera camera)
+        public HDCamera(Camera cam)
         {
-            this.camera = camera;
+            camera = cam;
+            frustumPlaneEquations = new Vector4[6];
             Reset();
         }
 
@@ -110,6 +96,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewMatrix = gpuView;
             projMatrix = gpuProj;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
+
+            for (int i = 0; i < 6; i++)
+            {
+                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, -planes[i].distance);
+            }
 
             m_LastFrameActive = Time.frameCount;
         }
@@ -695,7 +688,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.SetupCameraProperties(camera);
 
             HDCamera hdCamera = HDCamera.Get(camera);
-            PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
+            PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -721,8 +714,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             InitAndClearBuffer(camera, cmd);
-
-            PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd);
 
