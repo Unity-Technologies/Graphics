@@ -317,6 +317,12 @@ namespace UnityEngine.Experimental.Rendering
                         Matrix4x4 translation = Matrix4x4.Translate(camPosWS);
                         ce.current.view *= translation;
                         vp *= translation;
+                        if (sr.shadowType == GPUShadowType.Directional)
+                        {
+                            m_TmpSplits[key.faceIdx].x -= camPosWS.x;
+                            m_TmpSplits[key.faceIdx].y -= camPosWS.y;
+                            m_TmpSplits[key.faceIdx].z -= camPosWS.z;
+                        }
                     }
                     // write :(
                     ce.current.shadowAlgo = shadowAlgo;
