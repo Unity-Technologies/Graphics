@@ -53,12 +53,12 @@ namespace UnityEditor.VFX
     {
         public struct Data
         {
-            public string fullName { get { return blockId == -1 ? name : string.Format("{0}_{1}", name, blockId); } }
+            public string fullName { get { return id == -1 ? name : string.Format("{0}_{1}", name, id); } }
             public string name;
-            public int blockId;
+            public int id;
         }
 
-        public VFXExpressionMapper(string prefix = "")
+        public VFXExpressionMapper(string prefix = null)
         {
             m_Prefix = string.IsNullOrEmpty(prefix) ? "" : string.Format("{0}_", prefix);
         }
@@ -90,6 +90,36 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
+        private void CollectAndAddUniforms(VFXExpression exp, List<Data> data)
+        {
+            if (!exp.Is(VFXExpression.Flags.PerElement))
+            {
+                if (exp.Is(VFXExpression.Flags.InvalidOnCPU))
+                    throw new InvalidOperationException(string.Format("Collected uniform expression is invalid on CPU: {0}", exp));
+
+                if (m_ExpressionsData.ContainsKey(exp)) // Only need one name for uniform
+                    return;
+
+                if (data != null)
+                    AddExpression(exp, data[0]);
+                else
+                    AddExpression(exp, "", m_ExpressionsData.Count()); // needs a unique id: use number of registered expressions
+            }
+            else
+                foreach (var parent in exp.Parents)
+                    CollectAndAddUniforms(parent, null);
+        }
+
+        public static VFXExpressionMapper UniformMapper(VFXExpressionMapper mapper)
+        {
+            var uniformMapper = new VFXExpressionMapper("uniform");
+
+            foreach (var kvp in mapper.m_ExpressionsData)
+                uniformMapper.CollectAndAddUniforms(kvp.Key, kvp.Value);
+
+            return uniformMapper;
+        }
+
         public ReadOnlyCollection<Data> GetData(VFXExpression exp)
         {
             List<Data> data;
@@ -107,20 +137,20 @@ namespace UnityEditor.VFX
 
         public void AddExpression(VFXExpression exp, Data data)
         {
-            AddExpression(exp, data.name, data.blockId);
+            AddExpression(exp, data.name, data.id);
         }
 
-        public void AddExpression(VFXExpression exp, string name, int blockId)
+        public void AddExpression(VFXExpression exp, string name, int id)
         {
             if (exp == null || name == null)
                 throw new ArgumentNullException();
 
-            if (m_ExpressionsData.SelectMany(o => o.Value).Any(o => o.name == name && o.blockId == blockId))
-                throw new ArgumentException(string.Format("{0}_{1} has been added twice", name, blockId));
+            if (m_ExpressionsData.SelectMany(o => o.Value).Any(o => o.name == name && o.id == id))
+                throw new ArgumentException(string.Format("{0}{1}_{2} has been added twice: {3}", m_Prefix, name, id, exp));
 
             var data = new Data();
             data.name = m_Prefix + name;
-            data.blockId = blockId;
+            data.id = id;
 
             if (!m_ExpressionsData.ContainsKey(exp))
             {

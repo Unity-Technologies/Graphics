@@ -231,7 +231,7 @@ namespace UnityEditor.VFX
         public virtual VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             if (target == VFXDeviceTarget.GPU)
-                return VFXExpressionMapper.FromContext(this, "uniform");
+                return VFXExpressionMapper.FromContext(this);
 
             return null;
         }

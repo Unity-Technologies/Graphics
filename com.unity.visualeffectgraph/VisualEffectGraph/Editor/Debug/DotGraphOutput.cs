@@ -60,10 +60,12 @@ namespace UnityEditor.VFX
 
                     name += string.Format("{0}", allOwnersStr);
 
-                    dotNode.attributes[DotAttribute.Color] = DotColor.Cyan;
+                    dotNode.attributes[DotAttribute.Color] = exp.Is(VFXExpression.Flags.PerElement) ? DotColor.Orange : DotColor.Cyan;
                 }
                 else if (exp.Is(VFXExpression.Flags.PerElement))
                     dotNode.attributes[DotAttribute.Color] = DotColor.Yellow;
+                else if (exp.Is(VFXExpression.Flags.Constant))
+                    dotNode.attributes[DotAttribute.Color] = DotColor.LightGrey;
 
                 if (dotNode.attributes.ContainsKey(DotAttribute.Color))
                     dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
