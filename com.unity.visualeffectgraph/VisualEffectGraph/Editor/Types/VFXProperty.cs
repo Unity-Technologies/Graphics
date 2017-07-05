@@ -21,15 +21,28 @@ namespace UnityEditor.VFX
                 return m_type;
             }
         }
+
         public string name;
         [SerializeField]
         private string typeName;
+
+        [SerializeField]
+        private VFXPropertyAttribute[] attributes;
 
         public VFXProperty(Type type, string name)
         {
             this.name = name;
             typeName = type.AssemblyQualifiedName;
             m_type = null;
+            attributes = null;
+        }
+
+        public VFXProperty(FieldInfo info)
+        {
+            this.name = info.Name;
+            typeName = info.FieldType.AssemblyQualifiedName;
+            m_type = null;
+            attributes = VFXPropertyAttribute.Create(info.GetCustomAttributes(true));
         }
 
         public override bool Equals(object obj)
@@ -47,7 +60,7 @@ namespace UnityEditor.VFX
             {
                 FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
                 return infos.Where(info => info.FieldType != typeof(CoordinateSpace)) // TODO filter out Coordinate space is tmp. Should be changed
-                    .Select(info => new VFXProperty(info.FieldType, info.Name));
+                    .Select(info => new VFXProperty(info));
             }
             else
             {
@@ -58,6 +71,17 @@ namespace UnityEditor.VFX
         public bool IsExpandable()
         {
             return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
+        }
+
+        public VFXExpression ApplyAttributes(VFXExpression exp)
+        {
+            if (attributes != null)
+            {
+                foreach (VFXPropertyAttribute attribute in attributes)
+                    exp = attribute.Apply(exp);
+            }
+
+            return exp;
         }
     }
 }
