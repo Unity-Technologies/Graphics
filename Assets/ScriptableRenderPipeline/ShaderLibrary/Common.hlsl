@@ -524,11 +524,18 @@ float2 ComputeScreenSpacePosition(float4 positionCS)
     return positionSS;
 }
 
+float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
+{
+    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionVS = mul(invProjMatrix, positionCS);
+    // The view space uses a right-handed coordinate system.
+    positionVS.z = -positionVS.z;
+    return positionVS.xyz / positionVS.w;
+}
+
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
-// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
 void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.depthRaw = depthRaw;
@@ -539,17 +546,6 @@ void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 vi
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
-}
-
-// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
-// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
-float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
-{
-    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
-    float4 positionVS = mul(invProjMatrix, positionCS);
-    // The view space uses a right-handed coordinate system.
-    positionVS.z = -positionVS.z;
-    return positionVS.xyz / positionVS.w;
 }
 
 // The view direction 'V' points towards the camera.

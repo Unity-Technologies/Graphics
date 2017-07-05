@@ -193,17 +193,17 @@ namespace UnityEngine.Experimental.Rendering
             Object.DestroyImmediate(m_DebugMaterial);
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
+        override public bool Reserve( FrameId frameId, Camera camera, bool cameraRelativeRendering, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             for( uint i = 0, cnt = sr.facecount; i < cnt; ++i )
             {
                 m_TmpWidths[i]  = width;
                 m_TmpHeights[i] = height;
             }
-            return Reserve( frameId, ref shadowData, sr, m_TmpWidths, m_TmpHeights, ref entries, ref payload, lights );
+            return Reserve( frameId, camera, cameraRelativeRendering, ref shadowData, sr, m_TmpWidths, m_TmpHeights, ref entries, ref payload, lights );
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
+        override public bool Reserve( FrameId frameId, Camera camera, bool cameraRelativeRendering, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
         {
             if( m_FrameId.frameCount != frameId.frameCount )
                 m_ActiveEntriesCount = 0;
@@ -311,6 +311,13 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     else
                         vp = Matrix4x4.identity; // should never happen, though
+                    if (cameraRelativeRendering)
+                    {
+                        Vector3 camPosWS = camera.transform.position;
+                        Matrix4x4 translation = Matrix4x4.Translate(camPosWS);
+                        ce.current.view *= translation;
+                        vp *= translation;
+                    }
                     // write :(
                     ce.current.shadowAlgo = shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
@@ -1146,7 +1153,7 @@ namespace UnityEngine.Experimental.Rendering
             cullingParams.shadowDistance = Mathf.Min( m_ShadowSettings.maxShadowDistance, cullingParams.shadowDistance );
         }
 
-        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
+        public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
         {
             shadowDataIndices = null;
 
@@ -1189,7 +1196,7 @@ namespace UnityEngine.Experimental.Rendering
             ShadowDataVector shadowVector = m_ShadowCtxt.shadowDatas;
             ShadowPayloadVector payloadVector = m_ShadowCtxt.payloads;
             m_ShadowIndices.Reset( m_TmpRequests.Count() );
-            AllocateShadows( frameId, lights, totalGranted, ref m_TmpRequests, ref m_ShadowIndices, ref shadowVector, ref payloadVector );
+            AllocateShadows( frameId, camera, cameraRelativeRendering, lights, totalGranted, ref m_TmpRequests, ref m_ShadowIndices, ref shadowVector, ref payloadVector );
             Debug.Assert( m_TmpRequests.Count() == m_ShadowIndices.Count() );
             m_ShadowCtxt.shadowDatas = shadowVector;
             m_ShadowCtxt.payloads = payloadVector;
@@ -1300,7 +1307,7 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( ref shadowRequests, (long idx) => { return (int) idx; } );
         }
 
-        protected override void AllocateShadows( FrameId frameId, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
+        protected override void AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
         {
             ShadowData sd = new ShadowData();
             shadowDatas.Reserve( totalGranted );
@@ -1321,7 +1328,7 @@ namespace UnityEngine.Experimental.Rendering
                 int smidx = 0;
                 while( smidx < k_MaxShadowmapPerType )
                 {
-                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) asd.shadowResolution, (uint) asd.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
+                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, camera, cameraRelativeRendering, ref sd, grantedRequests[i], (uint) asd.shadowResolution, (uint) asd.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
                         break;
                     smidx++;
                 }
