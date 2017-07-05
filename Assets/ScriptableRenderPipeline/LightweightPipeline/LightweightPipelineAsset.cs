@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             private set { m_EnableAmbientProbe = value; }
         }
 
-        public int MSAA
+        public int MSAASampleCount
         {
             get { return (int)m_MSAA; }
             set { m_MSAA = (MSAAQuality)value; }
