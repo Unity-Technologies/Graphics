@@ -1420,6 +1420,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 directionalLightcount++;
 
+                                // We make the light position camera-relative as late as possible in order
+                                // to allow the preceding code to work with the absolute world space coordinates.
                                 if (ShaderConfig.s_CameraRelativeRendering != 0)
                                 {
                                     // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
@@ -1453,6 +1455,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
 
+                            // We make the light position camera-relative as late as possible in order
+                            // to allow the preceding code to work with the absolute world space coordinates.
                             if (ShaderConfig.s_CameraRelativeRendering != 0)
                             {
                                 // Caution: 'LightData.positionWS' is camera-relative after this point.
@@ -1511,6 +1515,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
+                        // We make the light position camera-relative as late as possible in order
+                        // to allow the preceding code to work with the absolute world space coordinates.
                         if (ShaderConfig.s_CameraRelativeRendering != 0)
                         {
                             // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
