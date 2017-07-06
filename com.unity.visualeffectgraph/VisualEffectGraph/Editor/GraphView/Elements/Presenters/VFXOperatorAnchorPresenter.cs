@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +13,20 @@ namespace UnityEditor.VFX.UI
             base.Init(model, scPresenter);
         }
 
-        public override void UpdateInfos(bool expanded)
+        public override void UpdateInfos()
         {
             if (model.GetExpression() != null)
-                anchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
+            {
+                var newAnchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
+                if( newAnchorType != anchorType)
+                {
+                    this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
+                    anchorType = newAnchorType;
+                    this.sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
+                }
+            }
             else
-                base.UpdateInfos(expanded);
+                base.UpdateInfos();
         }
     }
 

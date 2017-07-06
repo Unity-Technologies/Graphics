@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -31,23 +31,6 @@ namespace UnityEditor.VFX.UI
             {
                 name = "icon"
             };
-
-            AddChild(m_Icon); //insert between text and connector
-
-            if (presenter.expandable)
-            {
-                m_Icons = new Texture2D[2];
-                m_Icons[0] = GetTypeIcon(presenter.anchorType, IconType.plus);
-                m_Icons[1] = GetTypeIcon(presenter.anchorType, IconType.minus);
-
-                m_Icon.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
-
-                m_Icon.AddManipulator(new Clickable(OnToggleExpanded));
-            }
-            else
-            {
-                m_Icon.backgroundImage = GetTypeIcon(presenter.anchorType, IconType.simple);
-            }
             if (presenter.depth != 0)
             {
                 for (int i = 0; i < presenter.depth; ++i)
@@ -62,6 +45,8 @@ namespace UnityEditor.VFX.UI
                     InsertChild(0, line);
                 }
             }
+
+            AddChild(m_Icon); //insert between text and connector
         }
 
         void OnToggleExpanded()
@@ -84,8 +69,27 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
             clipChildren = false;
+
+
             if (presenter.expandable)
-                m_Icon.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+            {
+                if( m_Icons == null )
+                    m_Icons = new Texture2D[2];
+
+                m_Icons[0] = GetTypeIcon(presenter.anchorType, IconType.plus);
+                m_Icons[1] = GetTypeIcon(presenter.anchorType, IconType.minus);
+
+                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+
+                m_Icon.AddManipulator(new Clickable(OnToggleExpanded));
+            }
+            else
+            {
+                m_Icon.style.backgroundImage = GetTypeIcon(presenter.anchorType, IconType.simple);
+            }
+
+            if (presenter.expandable)
+                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
         }
 
         public override bool ContainsPoint(Vector2 localPoint)
