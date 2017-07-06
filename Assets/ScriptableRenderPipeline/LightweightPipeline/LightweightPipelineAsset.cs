@@ -82,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
         [SerializeField] private Material m_DefaultSpriteMaterial;
+        [SerializeField] private Material m_DefaultUIMaterial;
         [SerializeField] private Shader m_DefaultShader;
 
         public int MaxSupportedPixelLights
@@ -179,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultUIMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return m_DefaultUIMaterial;
         }
 
         public override Material GetDefaultUIOverdrawMaterial()

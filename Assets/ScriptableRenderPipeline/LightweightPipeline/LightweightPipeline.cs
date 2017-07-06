@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
 
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
+        private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit");
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -169,6 +170,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 litSettings.inputFilter.SetQueuesOpaque();
                 litSettings.rendererConfiguration = configuration;
 
+                var unlitSettings = new DrawRendererSettings(m_CullResults, camera, m_UnlitPassName);
+                unlitSettings.sorting.flags = SortFlags.CommonTransparent;
+                unlitSettings.inputFilter.SetQueuesTransparent();
+
                 context.DrawRenderers(ref litSettings);
 
                 // Release temporary RT
@@ -185,6 +190,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 litSettings.sorting.flags = SortFlags.CommonTransparent;
                 litSettings.inputFilter.SetQueuesTransparent();
                 context.DrawRenderers(ref litSettings);
+                context.DrawRenderers(ref unlitSettings);
 
                 EndForwardRendering(camera, ref context);
             }
