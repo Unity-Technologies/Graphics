@@ -2198,12 +2198,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    using (new Utilities.ProfilingSample(usingFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
+                    // Only opaques can use FPTL, transparents must use clustered!
+                    bool useFptl = renderOpaque && usingFptl;
+
+                    using (new Utilities.ProfilingSample(useFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                        cmd.SetGlobalFloat("_UseTileLightList", usingFptl ? 1 : 0); // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+                        cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+                        cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
                     }
                 }
             }
