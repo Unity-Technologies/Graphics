@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -176,6 +176,9 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
+
+            AddChild(new VisualElement() { name = "icon" });
+            clipChildren = false;
         }
 
         void OnSpace()
@@ -479,9 +482,9 @@ namespace UnityEditor.VFX.UI
             switch (contextType)
             {
                 case VFXContextType.kSpawner: AddToClassList("spawner"); break;
-                case VFXContextType.kInit: AddToClassList("init"); break;
-                case VFXContextType.kUpdate: AddToClassList("update"); break;
-                case VFXContextType.kOutput: AddToClassList("output"); break;
+                case VFXContextType.kInit:    AddToClassList("init"); break;
+                case VFXContextType.kUpdate:  AddToClassList("update"); break;
+                case VFXContextType.kOutput:  AddToClassList("output"); break;
                 default: throw new Exception();
             }
 

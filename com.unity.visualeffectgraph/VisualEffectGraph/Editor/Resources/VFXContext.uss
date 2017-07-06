@@ -164,3 +164,32 @@ VFXContextUI BlockContainer {
 	margin-bottom: 0;
 	-border-radius:4;
 }
+
+VFXContextUI > #icon
+{
+	position-type:absolute;
+	margin-left:-15;
+	margin-top:-15;
+	width:64;
+	height:64;
+}
+
+VFXContextUI.spawner > #icon
+{
+	background-image:resource("VFX/ContextHint_Spawner");
+}
+
+VFXContextUI.init > #icon
+{
+	background-image:resource("VFX/ContextHint_Init");
+}
+
+VFXContextUI.update > #icon
+{
+	background-image:resource("VFX/ContextHint_Update");
+}
+
+VFXContextUI.output > #icon
+{
+	background-image:resource("VFX/ContextHint_Output");
+}
