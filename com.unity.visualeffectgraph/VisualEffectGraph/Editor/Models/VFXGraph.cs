@@ -280,11 +280,11 @@ namespace UnityEditor.VFX
                         if (gpuMapper.expressions.Count() > 0)
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
 
-                        var uniformMapper = VFXExpressionMapper.UniformMapper(gpuMapper);
-                        foreach (var exp in uniformMapper.expressions)
+                        // TMP output uniform buffer
                         {
-                            var bindNames = uniformMapper.GetData(exp).Select(o => o.fullName).Aggregate((a, b) => a + "," + b);
-                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, m_ExpressionGraph.GetFlattenedIndex(exp)));
+                            var uniformMapper = new VFXUniformMapper(gpuMapper);
+                            var constantBufferCodeStr = VFXShaderWriter.WriteCBuffer(uniformMapper);
+                            Debug.Log(constantBufferCodeStr);
                         }
                     }
 

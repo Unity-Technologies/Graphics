@@ -90,36 +90,6 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
-        private void CollectAndAddUniforms(VFXExpression exp, List<Data> data)
-        {
-            if (!exp.Is(VFXExpression.Flags.PerElement))
-            {
-                if (exp.Is(VFXExpression.Flags.InvalidOnCPU))
-                    throw new InvalidOperationException(string.Format("Collected uniform expression is invalid on CPU: {0}", exp));
-
-                if (m_ExpressionsData.ContainsKey(exp)) // Only need one name for uniform
-                    return;
-
-                if (data != null)
-                    AddExpression(exp, data[0]);
-                else
-                    AddExpression(exp, "", m_ExpressionsData.Count()); // needs a unique id: use number of registered expressions
-            }
-            else
-                foreach (var parent in exp.Parents)
-                    CollectAndAddUniforms(parent, null);
-        }
-
-        public static VFXExpressionMapper UniformMapper(VFXExpressionMapper mapper)
-        {
-            var uniformMapper = new VFXExpressionMapper("uniform");
-
-            foreach (var kvp in mapper.m_ExpressionsData)
-                uniformMapper.CollectAndAddUniforms(kvp.Key, kvp.Value);
-
-            return uniformMapper;
-        }
-
         public ReadOnlyCollection<Data> GetData(VFXExpression exp)
         {
             List<Data> data;

@@ -34,8 +34,11 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2: return 2;
                 case VFXValueType.kFloat3: return 3;
                 case VFXValueType.kFloat4: return 4;
+                case VFXValueType.kInt: return 1;
+                case VFXValueType.kUint: return 1;
+                case VFXValueType.kTransform: return 16;
             }
-            throw new NotImplementedException();
+            throw new NotImplementedException(type.ToString());
         }
 
         public static string TypeToCode(VFXValueType type)
@@ -46,6 +49,9 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2: return "float2";
                 case VFXValueType.kFloat3: return "float3";
                 case VFXValueType.kFloat4: return "float4";
+                case VFXValueType.kInt: return "int";
+                case VFXValueType.kUint: return "uint";
+                case VFXValueType.kTransform: return "float4x4";
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -108,6 +114,7 @@ namespace UnityEditor.VFX
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
+        public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
 
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
