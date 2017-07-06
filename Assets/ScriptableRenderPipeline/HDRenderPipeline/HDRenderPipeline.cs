@@ -2,7 +2,7 @@
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
-using UnityEngine.Experimental.PostProcessing;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 
 #if UNITY_EDITOR
