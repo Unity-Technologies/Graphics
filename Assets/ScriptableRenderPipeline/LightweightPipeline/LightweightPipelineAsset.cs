@@ -81,6 +81,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
+        [SerializeField] private Material m_DefaultParticleMaterial;
+        [SerializeField] private Material m_DefaultLineMaterial;
         [SerializeField] private Material m_DefaultSpriteMaterial;
         [SerializeField] private Material m_DefaultUIMaterial;
         [SerializeField] private Shader m_DefaultShader;
@@ -165,12 +167,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultParticleMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return m_DefaultParticleMaterial;
         }
 
         public override Material GetDefaultLineMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return m_DefaultLineMaterial;
         }
 
         public override Material GetDefaultTerrainMaterial()
