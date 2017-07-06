@@ -392,7 +392,7 @@ namespace UnityEditor.VFX.UI
                 result.Remove(presenter);
             }
 
-            DestroyImmediate(presenter);
+            //DestroyImmediate(presenter);
         }
 
         private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)
