@@ -2185,9 +2185,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
             {
-                // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
-                bool useFptl = renderOpaque && usingFptl;
+                PushGlobalParams(camera, cmd, null, 0);
 
+                // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 if (!m_TileSettings.enableTileAndCluster)
                 {
                     using (new Utilities.ProfilingSample("Forward pass", cmd))
@@ -2198,13 +2198,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    using (new Utilities.ProfilingSample(useFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
+                    using (new Utilities.ProfilingSample(usingFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                        cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
-                        cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+                        cmd.SetGlobalFloat("_UseTileLightList", usingFptl ? 1 : 0); // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
                     }
                 }
             }
