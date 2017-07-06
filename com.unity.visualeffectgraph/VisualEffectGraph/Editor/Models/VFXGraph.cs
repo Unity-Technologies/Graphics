@@ -265,7 +265,7 @@ namespace UnityEditor.VFX
                             var mappedDataList = cpuMapper.GetData(exp);
                             foreach (var mappedData in mappedDataList)
                             {
-                                desc.blockID = (uint)mappedData.blockId;
+                                desc.blockID = (uint)mappedData.id;
                                 desc.contextID = contextId;
                                 int expIndex = m_ExpressionGraph.GetFlattenedIndex(exp);
                                 if (expIndex == -1)
@@ -279,10 +279,12 @@ namespace UnityEditor.VFX
                         var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
                         if (gpuMapper.expressions.Count() > 0)
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
-                        foreach (var exp in gpuMapper.expressions)
+
+                        // TMP output uniform buffer
                         {
-                            var bindNames = gpuMapper.GetData(exp).Select(o => o.fullName).Aggregate((a, b) => a + "," + b);
-                            Debug.Log(string.Format("--- {0} {1} {2}", bindNames, exp.ValueType, m_ExpressionGraph.GetFlattenedIndex(exp)));
+                            var uniformMapper = new VFXUniformMapper(gpuMapper);
+                            var constantBufferCodeStr = VFXShaderWriter.WriteCBuffer(uniformMapper);
+                            Debug.Log(constantBufferCodeStr);
                         }
                     }
 

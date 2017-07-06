@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.GPU:
                 {
-                    var mapper = new VFXExpressionMapper("uniform");
+                    var mapper = new VFXExpressionMapper();
                     for (int i = 0; i < GetNbChildren(); ++i)
                         mapper.AddExpressionFromSlotContainer(GetChild(i), i);
                     return mapper;
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
 
                 case VFXDeviceTarget.CPU:
                 {
-                    var mapper = new VFXExpressionMapper("");
+                    var mapper = new VFXExpressionMapper();
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     return mapper;
                 }

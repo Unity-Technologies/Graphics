@@ -386,7 +386,13 @@ namespace UnityEditor.VFX.UI
         {
             Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            dict[presenter.anchorType].Remove(presenter);
+            List<NodeAnchorPresenter> result;
+            if (dict.TryGetValue(presenter.anchorType, out result))
+            {
+                result.Remove(presenter);
+            }
+
+            //DestroyImmediate(presenter);
         }
 
         private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)

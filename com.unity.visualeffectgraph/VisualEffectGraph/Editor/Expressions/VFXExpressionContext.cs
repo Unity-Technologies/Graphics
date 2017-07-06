@@ -75,11 +75,14 @@ namespace UnityEditor.VFX
                 if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
-                Flags parentFlag = Flags.Value;
+                Flags flag = Flags.Value;
                 if (!Has(VFXExpressionContextOption.CPUEvaluation))
-                    parentFlag |= Has(VFXExpressionContextOption.ConstantFolding) ? Flags.Foldable : Flags.Constant;
+                    flag |= Has(VFXExpressionContextOption.ConstantFolding) ? Flags.Foldable : Flags.Constant;
 
-                return reducedParents.All(e => (e.m_Flags & (parentFlag | Flags.InvalidOnCPU)) == parentFlag);
+                if (exp.Is(Flags.Value) && ((exp.m_Flags & (flag | Flags.InvalidOnCPU)) != flag))
+                    return false;
+
+                return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
             }
 
             private VFXExpression InsertGPUTransformation(VFXExpression exp)

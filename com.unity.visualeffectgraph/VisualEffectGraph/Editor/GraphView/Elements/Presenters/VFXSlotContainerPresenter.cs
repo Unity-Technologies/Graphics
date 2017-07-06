@@ -62,7 +62,6 @@ namespace UnityEditor.VFX.UI
             if (model as IVFXSlotContainer == slotContainer && (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged))
             {
                 var inputs = inputAnchors;
-                m_InputAnchors.Clear();
                 List<NodeAnchorPresenter> newAnchors = new List<NodeAnchorPresenter>();
 
                 UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
@@ -75,11 +74,23 @@ namespace UnityEditor.VFX.UI
                 newAnchors = new List<NodeAnchorPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 
+                int debugInfo = GetInstanceID();
+
                 foreach (var anchor in outputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
                 {
                     viewPresenter.UnregisterDataAnchorPresenter(anchor);
                 }
                 m_OutputAnchors = newAnchors;
+
+                // separate UpdateInfos for the recreation of the list to make the code more reantrant, as UpdateInfos can trigger a compilation, that itself calls OnInvalidate.
+                foreach (var anchor in m_InputAnchors)
+                {
+                    (anchor as VFXDataAnchorPresenter).UpdateInfos();
+                }
+                foreach (var anchor in m_OutputAnchors)
+                {
+                    (anchor as VFXDataAnchorPresenter).UpdateInfos();
+                }
             }
         }
 
@@ -95,8 +106,6 @@ namespace UnityEditor.VFX.UI
                 }
                 newAnchors.Add(propPresenter);
                 viewPresenter.RegisterDataAnchorPresenter(propPresenter);
-
-                propPresenter.UpdateInfos(expanded);
 
                 UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
             }

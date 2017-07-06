@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
             if (target != VFXDeviceTarget.CPU)
                 return null;
 
-            var mapper = new VFXExpressionMapper("");
+            var mapper = new VFXExpressionMapper();
             foreach (var block in children)
             {
                 int blockId = GetIndex(block);
