@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
 
             if (presenter.expandable)
             {
-                if( m_Icons == null )
+                if (m_Icons == null)
                     m_Icons = new Texture2D[2];
 
                 m_Icons[0] = GetTypeIcon(presenter.anchorType, IconType.plus);

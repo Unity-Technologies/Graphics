@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -88,9 +88,9 @@ namespace UnityEditor.VFX.UI
                     (anchor as VFXDataAnchorPresenter).UpdateInfos();
                 }
                 foreach (var anchor in m_OutputAnchors)
-               {
+                {
                     (anchor as VFXDataAnchorPresenter).UpdateInfos();
-               }
+                }
             }
         }
 

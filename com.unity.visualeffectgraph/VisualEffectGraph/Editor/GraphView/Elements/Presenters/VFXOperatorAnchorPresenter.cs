@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
             if (model.GetExpression() != null)
             {
                 var newAnchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
-                if( newAnchorType != anchorType)
+                if (newAnchorType != anchorType)
                 {
                     this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
                     anchorType = newAnchorType;

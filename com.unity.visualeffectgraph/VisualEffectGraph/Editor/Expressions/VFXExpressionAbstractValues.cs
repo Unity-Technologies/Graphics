@@ -43,7 +43,10 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            return this;
+            if (m_Mode == Mode.Constant)
+                return this;
+
+            return CopyExpression(Mode.Constant);
         }
 
         abstract public VFXValue CopyExpression(Mode mode);
@@ -97,6 +100,9 @@ namespace UnityEditor.VFX
         public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode)
         {
             m_Content = content;
+
+            if (!IsTypeValidOnGPU(ValueType))
+                m_Flags |= VFXExpression.Flags.InvalidOnGPU;
         }
 
         sealed public override VFXValue CopyExpression(Mode mode)

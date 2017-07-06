@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void UpdateInfos()
         {
-            if( model.property.type != anchorType)
+            if (model.property.type != anchorType)
             {
                 sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
                 anchorType = model.property.type;

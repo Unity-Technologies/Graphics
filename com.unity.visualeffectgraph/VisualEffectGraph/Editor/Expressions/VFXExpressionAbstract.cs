@@ -70,6 +70,25 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
+        public static bool IsTypeValidOnGPU(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat:
+                case VFXValueType.kFloat2:
+                case VFXValueType.kFloat3:
+                case VFXValueType.kFloat4:
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture3D:
+                case VFXValueType.kTransform:
+                    return true;
+            }
+
+            return false;
+        }
+
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
             m_Parents = parents;
@@ -112,6 +131,7 @@ namespace UnityEditor.VFX
         // Reduce the expression within a given context
         protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
+//        public abstract string GetCodeString(string[] parents);
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
