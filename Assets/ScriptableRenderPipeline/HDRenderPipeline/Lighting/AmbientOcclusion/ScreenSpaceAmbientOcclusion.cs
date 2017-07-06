@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If SSAO is disable, simply put a white 1x1 texture
             if (settings.enable == false || isForward)
             {
-                m_Command.SetGlobalTexture(Uniforms._AOBuffer, PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
+                m_Command.SetGlobalTexture(Uniforms._AOBuffer, UnityEngine.Rendering.PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
                 renderContext.ExecuteCommandBuffer(m_Command);
                 return;
             }
