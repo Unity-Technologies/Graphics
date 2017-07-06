@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCustomSpawnerSample : VFXSpawnerFunction
+    public class VFXCustomSpawnerSample : VFXSpawnerFunction //voir vrai test
     {
         public override void OnStart(VFXSpawnerState state, VFXExpressionValues vfxValues)
         {
