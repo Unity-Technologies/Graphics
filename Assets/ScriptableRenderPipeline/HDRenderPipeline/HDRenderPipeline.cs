@@ -738,6 +738,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", cmd))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
+                    renderContext.ExecuteCommandBuffer(cmd);    // we need to split and submit the commandbuffer here to make globals from HDRP visible to 'async' jobs.
+                    cmd.Clear();
+
                     m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
