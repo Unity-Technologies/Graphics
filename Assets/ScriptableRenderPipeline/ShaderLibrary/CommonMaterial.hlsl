@@ -151,6 +151,12 @@ float3 ComputeTransmittance(float3 S, float3 volumeAlbedo, float thickness, floa
     return 0.25 * (expOneThird + 3 * expOneThird * expOneThird * expOneThird) * volumeAlbedo;
 }
 
+// Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+float ComputeWrappedDiffuseLighting(float NdotL, float w)
+{
+    return saturate((-NdotL + w) / ((1 + w) * (1 + w)));
+}
+
 // MACRO from Legacy Untiy
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
