@@ -49,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (settings.enable == false || isForward)
             {
                 cmd.SetGlobalTexture(Uniforms._AOBuffer, UnityEngine.Rendering.PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
-                renderContext.ExecuteCommandBuffer(cmd);
                 return;
             }
 
