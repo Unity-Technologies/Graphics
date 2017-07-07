@@ -63,9 +63,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Material.SetFloat(Uniforms._Downsample, 1.0f / downsize);
             m_Material.SetFloat(Uniforms._SampleCount, settings.sampleCount);
 
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
             using (new Utilities.ProfilingSample("Screenspace ambient occlusion", cmd))
             {
                 // AO estimation.
