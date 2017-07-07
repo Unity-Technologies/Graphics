@@ -303,5 +303,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 overlayLineHeight = -1.0f;
             }
         }
+
+        // Just a sort function that doesn't allocate memory
+        // Note: Shoud be repalc by a radix sort for positive integer
+        static public int Partition(uint[] numbers, int left, int right)
+        {
+            uint pivot = numbers[left];
+            while (true)
+            {
+                while (numbers[left] < pivot)
+                    left++;
+
+                while (numbers[right] > pivot)
+                    right--;
+
+                if (left < right)
+                {
+                    uint temp = numbers[right];
+                    numbers[right] = numbers[left];
+                    numbers[left] = temp;
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+
+        static public void QuickSort(uint[] arr, int left, int right)
+        {
+            // For Recusrion
+            if (left < right)
+            {
+                int pivot = Partition(arr, left, right);
+
+                if (pivot > 1)
+                    QuickSort(arr, left, pivot - 1);
+
+                if (pivot + 1 < right)
+                    QuickSort(arr, pivot + 1, right);
+            }
+        }
     }
 }

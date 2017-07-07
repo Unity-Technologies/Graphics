@@ -1256,9 +1256,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         for (int i = 0; i < lcnt; ++i)
                         {
                             VisibleLight vl = cullResults.visibleLights[i];
+                            if (vl.light.shadows == LightShadows.None)
+                                continue;
+
                             AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
-                            if( vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f )
-                                m_ShadowRequests.Add( i );
+                            if (asd != null && asd.shadowDimmer > 0.0f)
+                                m_ShadowRequests.Add(i);
                         }
                         // pass this list to a routine that assigns shadows based on some heuristic
                         uint    shadowRequestCount = (uint)m_ShadowRequests.Count;
@@ -1383,8 +1386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
                     }
 
-                    //TODO: Replace with custom sort, allocates mem and increases GC pressure.
-                    Array.Sort(sortKeys, 0, sortCount);
+                    Utilities.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -1500,7 +1502,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
-                    Array.Sort(sortKeys, 0, sortCount);
+                    Utilities.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1979,6 +1981,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
+                // TODO: To reduce GC pressure don't do concat string here
                 using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), cmd))
                 {
                     var camera = hdCamera.camera;
