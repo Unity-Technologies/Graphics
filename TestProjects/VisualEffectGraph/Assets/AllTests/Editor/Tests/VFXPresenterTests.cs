@@ -15,6 +15,8 @@ namespace UnityEditor.VFX.Test
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
 
+        private int m_StartUndoGroupId;
+
         void CreateTestAsset()
         {
             VFXAsset asset = new VFXAsset();
@@ -29,10 +31,13 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter = ScriptableObject.CreateInstance<VFXViewPresenter>();
             m_ViewPresenter.SetVFXAsset(asset, false);
+
+            m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
         void DestroyTestAsset()
         {
+            Undo.RevertAllDownToGroup(m_StartUndoGroupId);
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
