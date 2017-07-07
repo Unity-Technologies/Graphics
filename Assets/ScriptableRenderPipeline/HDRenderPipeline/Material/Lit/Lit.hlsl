@@ -781,14 +781,18 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL));  // Transmission is only valid for dielectric
+        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+        // We assume that the back side of the object is a uniformly illuminated infinite plane
+        // (we reuse the illumination) with the reversed normal of the current sample.
+        // We apply wrapped lighting instead of the regular Lambertian diffuse
+        // to compensate for these approximations.
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
+        float3 backLight = (cookie.rgb * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
@@ -885,14 +889,18 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x , saturate(-NdotL)) * attenuation;  // Transmission is only valid for dielectric
+        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+        // We assume that the back side of the object is a uniformly illuminated infinite plane
+        // (we reuse the illumination) with the reversed normal of the current sample.
+        // We apply wrapped lighting instead of the regular Lambertian diffuse
+        // to compensate for these approximations.
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
+        float3 backLight = (cookie.rgb * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
@@ -968,14 +976,18 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Use the reversed normal from the front for the back of the object.
-        illuminance = F_Transm_Schlick(bsdfData.fresnel0.x, saturate(-NdotL)) * clipFactor; // Transmission is only valid for dielectric
+        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+        // We assume that the back side of the object is a uniformly illuminated infinite plane
+        // (we reuse the illumination) with the reversed normal of the current sample.
+        // We apply wrapped lighting instead of the regular Lambertian diffuse
+        // to compensate for these approximations.
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
+        float3 backLight = (cookie.rgb * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
