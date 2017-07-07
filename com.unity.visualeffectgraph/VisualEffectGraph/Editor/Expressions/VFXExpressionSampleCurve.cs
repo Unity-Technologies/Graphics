@@ -32,5 +32,10 @@ namespace UnityEditor.VFX
             var time = timeReduce.Get<float>();
             return VFXValue.Constant(curve.Evaluate(time));
         }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            throw new NotImplementedException(); // TODO
+        }
     }
 }

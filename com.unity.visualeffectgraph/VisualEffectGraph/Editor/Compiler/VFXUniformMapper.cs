@@ -91,8 +91,8 @@ namespace UnityEditor.VFX
         public int numUniforms { get { return m_UniformToName.Count(); } }
         public int numTextures { get { return m_TextureToName.Count(); } }
 
-        public string GetUniformName(VFXExpression exp) { return m_UniformToName[exp]; }
-        public string GetTextureName(VFXExpression exp) { return m_TextureToName[exp]; }
+        public string GetName(VFXExpression exp)    { return IsTexture(exp) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        public bool Contains(VFXExpression exp)     { return IsTexture(exp) ? m_TextureToName.ContainsKey(exp) : m_UniformToName.ContainsKey(exp); }
 
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;

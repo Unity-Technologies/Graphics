@@ -49,6 +49,14 @@ namespace UnityEditor.VFX
             return CopyExpression(Mode.Constant);
         }
 
+        public override string GetCodeString(string[] parents)
+        {
+            if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
+                throw new InvalidOperationException();
+
+            return GetContent().ToString();
+        }
+
         abstract public VFXValue CopyExpression(Mode mode);
 
         public override bool Equals(object obj)

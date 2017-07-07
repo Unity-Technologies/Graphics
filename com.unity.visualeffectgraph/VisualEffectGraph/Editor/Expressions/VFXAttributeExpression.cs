@@ -134,5 +134,10 @@ namespace UnityEditor.VFX
         {
             return this;
         }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return attributeName;
+        }
     }
 }

@@ -283,8 +283,10 @@ namespace UnityEditor.VFX
                         // TMP output uniform buffer
                         {
                             var uniformMapper = new VFXUniformMapper(gpuMapper);
-                            var constantBufferCodeStr = VFXShaderWriter.WriteCBuffer(uniformMapper);
-                            Debug.Log(constantBufferCodeStr);
+                            Debug.Log(VFXShaderWriter.WriteCBuffer(uniformMapper));
+
+                            foreach (var exp in gpuMapper.expressions)
+                                Debug.Log(VFXShaderWriter.WriteParameter(exp, uniformMapper));
                         }
                     }
 

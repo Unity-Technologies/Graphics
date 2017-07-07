@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -44,7 +46,7 @@ namespace UnityEditor.VFX
                     foreach (var value in block)
                     {
                         string type = VFXExpression.TypeToCode(value.ValueType);
-                        string name = mapper.GetUniformName(value);
+                        string name = mapper.GetName(value);
                         currentSize += VFXExpression.TypeToSize(value.ValueType);
 
                         builder.AppendLine(string.Format("\t{0} {1};", type, name));
@@ -58,6 +60,55 @@ namespace UnityEditor.VFX
             }
 
             return string.Empty;
+        }
+
+        private static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value)
+        {
+            if (!VFXExpression.IsTypeValidOnGPU(type))
+                throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
+
+            builder.Append(VFXExpression.TypeToCode(type));
+            builder.Append(" ");
+            builder.Append(variableName);
+            builder.Append(" = ");
+            builder.Append(value);
+            builder.AppendLine(";");
+        }
+
+        private static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
+        {
+            if (!variableNames.ContainsKey(exp))
+            {
+                string entry;
+                if (exp.Is(VFXExpression.Flags.Constant))
+                    entry = exp.GetCodeString(null); // Patch constant directly
+                else if (uniformMapper.Contains(exp))
+                    entry = uniformMapper.GetName(exp);
+                else
+                {
+                    foreach (var parent in exp.Parents)
+                        WriteVariable(builder, parent, variableNames, uniformMapper);
+
+                    // Generate a new variable name
+                    entry = "tmp" + variableNames.Count();
+                    string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
+
+                    WriteVariable(builder, exp.ValueType, entry, value);
+                }
+
+                variableNames[exp] = entry;
+            }
+        }
+
+        public static string WriteParameter(VFXExpression exp, VFXUniformMapper uniformMapper)
+        {
+            var builder = new StringBuilder();
+            var variableNames = new Dictionary<VFXExpression, string>();
+
+            WriteVariable(builder, exp, variableNames, uniformMapper);
+            WriteVariable(builder, exp.ValueType, "param", variableNames[exp]);
+
+            return builder.ToString();
         }
     }
 }

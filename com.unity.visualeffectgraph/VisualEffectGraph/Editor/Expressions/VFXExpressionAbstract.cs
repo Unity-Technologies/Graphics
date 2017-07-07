@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
         // Reduce the expression within a given context
         protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
-//        public abstract string GetCodeString(string[] parents);
+        public abstract string GetCodeString(string[] parents);
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
@@ -140,12 +140,6 @@ namespace UnityEditor.VFX
         public abstract VFXExpressionOp Operation { get; }
 
         public VFXExpression[] Parents { get { return m_Parents; } }
-        public virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
-
-        public virtual string GetOperationCodeContent()
-        {
-            throw new ArgumentException(string.Format("Unexpected GetOperationCodeContent call with {0}", GetType().FullName));
-        }
 
         public override bool Equals(object obj)
         {

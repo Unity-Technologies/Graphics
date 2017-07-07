@@ -41,11 +41,12 @@ namespace UnityEditor.VFX.Test
                 fnName += additionnalParam.ToString();
             }
 
-            var param = expression.Parents.Select((o, i) => string.Format("{0} {1}", VFXExpression.TypeToCode(o.ValueType), expression.ParentsCodeName[i]));
+            // TODO Fix that
+            /*var param = expression.Parents.Select((o, i) => string.Format("{0} {1}", VFXExpression.TypeToCode(o.ValueType), expression.ParentsCodeName[i]));
             var fnHeader = string.Format("{0} {1}({2})", VFXExpression.TypeToCode(expression.ValueType), fnName, temp_AggregateWithComa(param));
             var fnContent = string.Format("return {0};", expression.GetOperationCodeContent());
             function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
-            call = string.Format("{0} {1} = {2}({3});", VFXExpression.TypeToCode(expression.ValueType), temp_GetUniqueName(expression), fnName, temp_AggregateWithComa(expression.Parents.Select(o => temp_GetUniqueName(o))));
+            call = string.Format("{0} {1} = {2}({3});", VFXExpression.TypeToCode(expression.ValueType), temp_GetUniqueName(expression), fnName, temp_AggregateWithComa(expression.Parents.Select(o => temp_GetUniqueName(o))));*/
         }
 
         [Test]

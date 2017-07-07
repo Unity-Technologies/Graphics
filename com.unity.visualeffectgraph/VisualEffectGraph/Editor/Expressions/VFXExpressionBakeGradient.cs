@@ -28,5 +28,10 @@ namespace UnityEditor.VFX
         {
             throw new NotImplementedException(); //Cannot constant fold kVFXBakeGradient in C#
         }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

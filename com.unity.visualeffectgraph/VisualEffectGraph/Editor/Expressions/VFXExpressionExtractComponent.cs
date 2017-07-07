@@ -82,9 +82,9 @@ namespace UnityEditor.VFX
                 return base.Reduce(reducedParents);
         }
 
-        sealed public override string GetOperationCodeContent()
+        sealed public override string GetCodeString(string[] parents)
         {
-            return string.Format("return {0}[{1}];", ParentsCodeName[0], AdditionnalParameters[1]);
+            return string.Format("{0}[{1}];", parents[0], AdditionnalParameters[1]);
         }
     }
 }

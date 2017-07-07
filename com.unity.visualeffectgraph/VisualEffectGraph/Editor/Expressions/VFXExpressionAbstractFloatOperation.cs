@@ -85,9 +85,9 @@ namespace UnityEditor.VFX
             return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
-        sealed public override string GetOperationCodeContent()
+        sealed public override string GetCodeString(string[] parents)
         {
-            return GetUnaryOperationCode(ParentsCodeName[0]);
+            return GetUnaryOperationCode(parents[0]);
         }
 
         abstract protected float ProcessUnaryOperation(float input);
@@ -132,9 +132,9 @@ namespace UnityEditor.VFX
             return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
-        sealed public override string GetOperationCodeContent()
+        sealed public override string GetCodeString(string[] parents)
         {
-            return GetBinaryOperationCode(ParentsCodeName[0], ParentsCodeName[1]);
+            return GetBinaryOperationCode(parents[0], parents[1]);
         }
 
         protected abstract float ProcessBinaryOperation(float left, float right);
@@ -182,9 +182,9 @@ namespace UnityEditor.VFX
             return ToFloatN(result, VFXValue.Mode.Constant);
         }
 
-        sealed public override string GetOperationCodeContent()
+        sealed public override string GetCodeString(string[] parents)
         {
-            return GetTernaryOperationCode(ParentsCodeName[0], ParentsCodeName[1], ParentsCodeName[2]);
+            return GetTernaryOperationCode(parents[0], parents[1], parents[2]);
         }
 
         protected abstract float ProcessTernaryOperation(float a, float b, float c);
