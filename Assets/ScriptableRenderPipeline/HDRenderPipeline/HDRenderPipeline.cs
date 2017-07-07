@@ -738,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", cmd))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
-                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, m_Asset.renderingSettings.useForwardRenderingOnly);
+                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
@@ -819,7 +819,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_DebugDisplaySettings.renderingDebugSettings.displayOpaqueObjects)
                 return;
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make sur eto call this before doing any DrawRenders
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
@@ -837,7 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_DebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make sur eto call this before doing any DrawRenders
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
