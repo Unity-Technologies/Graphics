@@ -2185,9 +2185,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
             {
-                // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
-                bool useFptl = renderOpaque && usingFptl;
+                PushGlobalParams(camera, cmd, null, 0);
 
+                // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 if (!m_TileSettings.enableTileAndCluster)
                 {
                     using (new Utilities.ProfilingSample("Forward pass", cmd))
@@ -2198,6 +2198,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    // Only opaques can use FPTL, transparents must use clustered!
+                    bool useFptl = renderOpaque && usingFptl;
+
                     using (new Utilities.ProfilingSample(useFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
                     {
                         // say that we want to use tile of single loop

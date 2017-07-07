@@ -249,8 +249,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.renderingSettingsLabel);
             EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
             EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, styles.useDepthPrepass);
             EditorGUILayout.PropertyField(m_RenderingUseForwardOnly, styles.useForwardRenderingOnly);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (m_RenderingUseForwardOnly.boolValue && !m_RenderingUseDepthPrepass.boolValue)
+                {
+                    // Force depth prepass for forward-only rendering (for FPTL, etc).
+                    m_RenderingUseDepthPrepass.boolValue = true;
+                    HackSetDirty(renderContext); // Repaint
+                }
+            }
             EditorGUI.indentLevel--;
         }
 
