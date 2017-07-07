@@ -79,9 +79,8 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     if (unity_MetaFragmentControl.y)
     {
-        // TODO: THIS LIMIT MUST BE REMOVE, IT IS NOT HDR, change when RGB9e5 is here.
-        // Do we assume here that emission is [0..1] ?
-        res = PackEmissiveRGBM(lightTransportData.emissiveColor);
+        // emissive use HDR format
+        res = float4(lightTransportData.emissiveColor, 1.0);
     }
 
     return res;
