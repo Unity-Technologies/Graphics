@@ -25,19 +25,25 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
     VaryingsToPS output;
 
+    // OpenGL right now needs to actually use the incoming vertex position
+    // so we create a fake dependency on it here that haven't any impact.
+    output.vmesh.positionCS = float4(0.0, 0.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
+
     // Output UV coordinate in vertex shader
     if (unity_MetaVertexControl.x)
-        inputMesh.positionOS.xy = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+    {
+        output.vmesh.positionCS.xy = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+    }
+    else if (unity_MetaVertexControl.y)
+    {
+        output.vmesh.positionCS.xy = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    }
 
-    if (unity_MetaVertexControl.y)
-        inputMesh.positionOS.xy = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    // TODO: Handle inversion ? See comment in albedoRender.cpp we maybe not have to flip here
+#if UNITY_UV_STARTS_AT_TOP
+    // ?
+#endif
 
-    // Zero out the Z component. However, OpenGL right now needs to actually use the incoming vertex
-    // position, so also take this opportunity to create a dependence on it.
-    inputMesh.positionOS.z = inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0;
-
-    float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
-    output.vmesh.positionCS = TransformWorldToHClip(positionWS);
     output.vmesh.texCoord0 = inputMesh.uv0;
     output.vmesh.texCoord1 = inputMesh.uv1;
 
@@ -55,7 +61,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
     // No position and depth in case of light transport
-    float3 V = float3(0, 0, 1); // No vector view in case of light transport
+    float3 V = float3(0.0, 0.0, 1.0); // No vector view in case of light transport
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -64,12 +70,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     LightTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
 
-    // This shader is call two time. Once for getting emissiveColor, the other time to get diffuseColor
+    // This shader is call two times. Once for getting emissiveColor, the other time to get diffuseColor
     // We use unity_MetaFragmentControl to make the distinction.
-
     float4 res = float4(0.0, 0.0, 0.0, 1.0);
 
-    // TODO: No if / else in original code from Unity, why ? keep like original code but should be either diffuse or emissive
     if (unity_MetaFragmentControl.x)
     {
         // Apply diffuseColor Boost from LightmapSettings.
@@ -80,7 +84,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     if (unity_MetaFragmentControl.y)
     {
         // emissive use HDR format
-        res = float4(lightTransportData.emissiveColor, 1.0);
+        res.rgb = lightTransportData.emissiveColor;
     }
 
     return res;
