@@ -2,10 +2,15 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 {
     float maxDisplacement = GetMaxDisplacement();
 
+
+    // For tessellation we want to process tessellation factor always from the point of view of the camera (to be consistent and avoid Z-fight).
+    // For the culling part however we want to use the current view (shadow view).
+    // Thus the following code play with both.
+
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes);
+    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
 #else
-    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
+    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes); // unity_CameraWorldClipPlanes is set by legacy Unity in case of shadow and contain shadow view plan
 #endif
 
     bool faceCull = false;
@@ -14,7 +19,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition());
+        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
     }
 #endif
 
@@ -33,13 +38,13 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        tessFactor *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize);
+        tessFactor *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation
     if (_TessellationFactorMaxDistance > 0.0)
     {
-        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, GetPrimaryCameraPosition(), _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
+        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, GetPrimaryCameraPosition(), _TessellationFactorMinDistance, _TessellationFactorMaxDistance);  // Use primary camera view
         // We square the disance factor as it allow a better percptual descrease of vertex density.
         tessFactor *= distFactor * distFactor;
     }
