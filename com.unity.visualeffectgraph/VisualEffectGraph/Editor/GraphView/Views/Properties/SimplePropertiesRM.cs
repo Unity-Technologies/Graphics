@@ -42,7 +42,11 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<float> CreateField()
         {
-            return new FloatField(m_Label);
+			Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+			if (range == Vector2.zero)
+				return new FloatField(m_Label);
+			else
+				return new SliderField(m_Label, range);
         }
     }
 

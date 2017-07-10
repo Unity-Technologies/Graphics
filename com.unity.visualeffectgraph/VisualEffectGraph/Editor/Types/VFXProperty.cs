@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         private string typeName;
 
         [SerializeField]
-        private VFXPropertyAttribute[] attributes;
+        public VFXPropertyAttribute[] attributes;
 
         public VFXProperty(Type type, string name)
         {
@@ -71,17 +71,6 @@ namespace UnityEditor.VFX
         public bool IsExpandable()
         {
             return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
-        }
-
-        public VFXExpression ApplyAttributes(VFXExpression exp)
-        {
-            if (attributes != null)
-            {
-                foreach (VFXPropertyAttribute attribute in attributes)
-                    exp = attribute.Apply(exp);
-            }
-
-            return exp;
         }
     }
 }
