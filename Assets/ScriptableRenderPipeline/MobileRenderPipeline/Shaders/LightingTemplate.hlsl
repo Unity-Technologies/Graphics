@@ -7,10 +7,6 @@
 #include "UnityStandardUtils.cginc"
 #include "UnityPBSLighting.cginc"
 
-//uniform uint g_nNumDirLights;
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------
-// TODO:  clean up.. -va
 #define MAX_SHADOW_LIGHTS 10
 #define MAX_SHADOWMAP_PER_LIGHT 6
 #define MAX_DIRECTIONAL_SPLIT  4
@@ -49,10 +45,6 @@ sampler2D _CameraGBufferTexture2;
 #	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
 
-//#include "../../ShaderLibrary/Shadow/Shadow.hlsl"
-//#include "../../fptl/ShadowContext.hlsl"
-//#include "../../fptl/ShadowDispatch.hlsl"
-
 CBUFFER_START(ShadowLightData)
 
 float4 g_vShadow3x3PCFTerms0;
@@ -68,17 +60,6 @@ CBUFFER_END
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
 
-//debug
-//float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
-//{
-//	float fSx = UNITY_MATRIX_P[0].x;
-//	float fCx = UNITY_MATRIX_P[0].z;
-//	float fSy = UNITY_MATRIX_P[1].y;
-//	float fCy = UNITY_MATRIX_P[1].z;
-//
-//	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
-//}
-
 // --------------------------------------------------------
 // Common lighting data calculation (direction, attenuation, ...)
 
@@ -92,7 +73,6 @@ void OnChipDeferredFragSetup (
 {
 	i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
 	float2 uv = i.uv.xy / i.uv.w;
-	//float2 uv = i.pos.xy / float2(_ScreenParams.xy);
 
 	// read depth and reconstruct world position
 	// if we have framebuffer fetch, its expected depth was passed in the parameter from the framebuffer so no need to fetch
@@ -101,10 +81,6 @@ void OnChipDeferredFragSetup (
 	#endif
 
 	depth = Linear01Depth (depth);
-
-	//debug
-	//float linDepth = depth * (_ProjectionParams.z-_ProjectionParams.y) + _ProjectionParams.y;
-	//float4 vpos = float4(GetViewPosFromLinDepth((2*uv-1)*float2(1, -1), linDepth), 1);
 
 	float4 vpos = float4(i.ray * depth,1);
 	float3 wpos = mul (unity_CameraToWorld, vpos).xyz;
@@ -139,7 +115,6 @@ void OnChipDeferredCalculateLightParams (
 
 	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth); 
 
-	// needed? old shadow code is commented out, we switched to new shadow code .. aka sampleShadow()
 	float fadeDist = UnityComputeShadowFadeDistance(wpos, vpos.z);
 
 	// spot light case
@@ -223,8 +198,6 @@ half4 CalculateLight (unity_v2f_deferred i)
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
-	//debugLighting = float4(0.0, 0.0, 0.0, 0.0);
-
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, vpDepth);
 #else
@@ -255,8 +228,6 @@ half4 CalculateLight (unity_v2f_deferred i)
 
 	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. 
     half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
-
-    //return debugLighting;
 
 	return res;
 }

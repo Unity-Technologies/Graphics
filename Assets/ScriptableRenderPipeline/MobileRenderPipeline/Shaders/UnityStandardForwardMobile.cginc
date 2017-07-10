@@ -402,10 +402,6 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float att = dot(toLight, toLight) * gLightPos[lightIndex].w;
 			float atten = tex2Dlod (_LightTextureB0, float4(att.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
-            // For debug: spot attenuation -- programatic no cookie
-            //const float fProjVec = -dot(vL, gLightDirection[lightIndex].xyz);        // spotDir = lgtDat.lightAxisZ.xyz
-            //float2 cookCoord = (-lgtDat.cotan)*float2( dot(vLw, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
-
             float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
             float2 cookCoord = uvCookie.xy / uvCookie.w;
 
@@ -454,11 +450,7 @@ float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vPw,
 // fragment shader main
 half4 singlePassForward(VertexOutputForwardNew i)                               
 {
-	//float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
-    //float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
-    //float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
-    //float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     // not same as unity_CameraToWorld
-
+	// matching script side where camera space is right handed.
     float3 vP = i.posView;
     float3 vPw = i.posWorld;
     float3 Vworld = normalize(_WorldSpaceCameraPos.xyz - vPw);
