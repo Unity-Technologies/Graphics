@@ -9,15 +9,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d22b2b0343c2d4b1586e009e1bb0a736, type: 3}
-  m_Name: ClassicDeferredPipeline
+  m_Name: OnTileDeferredPipeline
   m_EditorClassIdentifier: 
   m_ShadowSettings:
     enabled: 1
     maxShadowDistance: 1000
     directionalLightNearPlaneOffset: 5
   m_TextureSettings:
-    spotCookieSize: 512
-    pointCookieSize: 128
+    spotCookieSize: 256
+    pointCookieSize: 512
     reflectionCubemapSize: 256
   UseLegacyCookies: 1
   TransparencyShadows: 0

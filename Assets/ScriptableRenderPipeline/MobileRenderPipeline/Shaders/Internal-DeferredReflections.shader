@@ -113,10 +113,6 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
 
     half4 ret = half4(rgb*falloff, 1-falloff);
 
-    //debug
-    //if (all(worldPos>specMin && worldPos<specMax))
-    	//ret = half4(frac(0.2*worldPos), 1);
-
     // UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. TODO: Should preclear emission alpha after gbuffer pass in case this ever changes
     #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
     	outEmission = ret;
