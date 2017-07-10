@@ -223,7 +223,9 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		private static int s_GBufferEmission;
 		private static int s_GBufferZ;
 
-		#if !(UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+		// write depth to red color buffer if on mobile so we can read it back
+		// cannot read depth buffer directly in shader on iOS
+		#if !(UNITY_EDITOR || UNITY_STANDALONE)
 		private static int s_GBufferRedF32;
 		#endif
 
@@ -271,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			s_GBufferNormal = Shader.PropertyToID ("_CameraGBufferTexture2");
 			s_GBufferEmission = Shader.PropertyToID ("_CameraGBufferTexture3");
 
-			#if !(UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+			#if !(UNITY_EDITOR || UNITY_STANDALONE)
 			s_GBufferRedF32 = Shader.PropertyToID ("_CameraVPDepth"); 
 			#endif
 
@@ -379,8 +381,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			loop.SetupCameraProperties(camera);
 			RenderGBuffer(cullResults, camera, loop);
 
-			// IF PLATFORM_MAC -- cannot use framebuffer fetch
-			#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+			// try to use framebuffer fetch on tiled GPUs
+			#if UNITY_EDITOR || UNITY_STANDALONE
 			CopyDepthAfterGBuffer(loop);
 			#endif
 			
