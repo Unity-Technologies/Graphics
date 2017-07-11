@@ -1389,14 +1389,14 @@ namespace UnityEngine.Experimental.Rendering
             m_ShadowCtxt.SyncData();
         }
 
-        public override void BindResources(CommandBuffer cmd)
+        public override void BindResources(CommandBuffer cmd, ComputeShader computeShader, int computeKernel)
         {
             foreach (var sm in m_Shadowmaps)
             {
                 sm.Fill(m_ShadowCtxt);
             }
             cmd.BeginSample("Bind resources to GPU");
-            m_ShadowCtxt.BindResources(cmd);
+            m_ShadowCtxt.BindResources(cmd, computeShader, computeKernel);
             cmd.EndSample("Bind resources to GPU");
         }
 
