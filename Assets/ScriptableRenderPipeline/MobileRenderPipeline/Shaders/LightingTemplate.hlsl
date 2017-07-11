@@ -7,10 +7,6 @@
 #include "UnityStandardUtils.cginc"
 #include "UnityPBSLighting.cginc"
 
-#define MAX_SHADOW_LIGHTS 10
-#define MAX_SHADOWMAP_PER_LIGHT 6
-#define MAX_DIRECTIONAL_SPLIT  4
-
 #define CUBEMAPFACE_POSITIVE_X 0
 #define CUBEMAPFACE_NEGATIVE_X 1
 #define CUBEMAPFACE_POSITIVE_Y 2
@@ -44,19 +40,6 @@ sampler2D _CameraGBufferTexture2;
 #	include "../../ShaderLibrary/API/Validate.hlsl"
 #	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
-
-CBUFFER_START(ShadowLightData)
-
-float4 g_vShadow3x3PCFTerms0;
-float4 g_vShadow3x3PCFTerms1;
-float4 g_vShadow3x3PCFTerms2;
-float4 g_vShadow3x3PCFTerms3;
-
-float4 g_vDirShadowSplitSpheres[MAX_DIRECTIONAL_SPLIT];
-float4x4 g_matWorldToShadow[MAX_SHADOW_LIGHTS * MAX_SHADOWMAP_PER_LIGHT];
-
-CBUFFER_END
-//---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
 

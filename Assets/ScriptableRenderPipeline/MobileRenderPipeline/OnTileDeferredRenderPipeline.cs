@@ -185,9 +185,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 		}
 
-		const int k_MaxLights = 10;
-		const int k_MaxShadowmapPerLights = 6;
-		const int k_MaxDirectionalSplit = 4;
+		// This must match MAX_LIGHTS in UnityStandardForwardMobile
+		const int k_MaxLights = 100;
 
 		// arrays for shader data
 		private Vector4[] m_LightData = new Vector4[k_MaxLights]; // x:Light_type, y:ShadowIndex z:w:UNUSED
@@ -844,7 +843,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		private void InitializeLightData()
 		{
-			for (int i = 0; i < k_MaxLights; ++i)
+			for (int i = 0; i < k_MaxLights; i++)
 			{
 				m_LightData [i] = new Vector4(0.0f, -1.0f, -1.0f, 0.0f);
 				m_LightColors[i] = Vector4.zero;
@@ -918,7 +917,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = temp2 * temp1 * temp3 * worldToLight;
 
 					if (light.light.cookie != null)
-						m_LightData [i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
 					else
 						m_LightData [i].z = m_CookieTexArray.FetchSlice (m_DefaultSpotCookie);
 					
@@ -932,7 +931,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = temp2 * temp1 * worldToLight;
 
 					if (light.light.cookie != null)
-						m_LightData [i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
 
 				}
 			}
