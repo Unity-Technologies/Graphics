@@ -25,27 +25,23 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
     VaryingsToPS output;
 
-    // OpenGL right now needs to actually use the incoming vertex position
-    // so we create a fake dependency on it here that haven't any impact.
-    output.vmesh.positionCS = float4(0.0, 0.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
-
     // Output UV coordinate in vertex shader
+    float2 uv;
+
     if (unity_MetaVertexControl.x)
     {
-        output.vmesh.positionCS.xy = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+        uv = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
     }
     else if (unity_MetaVertexControl.y)
     {
-        output.vmesh.positionCS.xy = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        uv = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
     }
 
-    // TODO: Handle inversion ? See comment in albedoRender.cpp we maybe not have to flip here
-#if UNITY_UV_STARTS_AT_TOP
-    // ?
-#endif
-
-    output.vmesh.texCoord0 = inputMesh.uv0;
-    output.vmesh.texCoord1 = inputMesh.uv1;
+    // OpenGL right now needs to actually use the incoming vertex position
+    // so we create a fake dependency on it here that haven't any impact.
+    output.vmesh.positionCS = float4(uv * 2.0 - 1.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
+    output.vmesh.texCoord0  = inputMesh.uv0;
+    output.vmesh.texCoord1  = inputMesh.uv1;
 
 #if defined(VARYINGS_NEED_COLOR)
     output.vmesh.color = inputMesh.color;
