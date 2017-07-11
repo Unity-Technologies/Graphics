@@ -303,6 +303,10 @@ namespace UnityEditor.VFX
                     foreach (var data in models.OfType<VFXData>())
                         data.CollectAttributes(m_ExpressionGraph);
 
+                    // TMP Debug log
+                    foreach (var data in models.OfType<VFXDataParticle>())
+                        data.DebugBuildAttributeBuffers();
+
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
                         var spawnDescs = spawnerContext.children.Select(b =>

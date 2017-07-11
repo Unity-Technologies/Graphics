@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -22,6 +25,53 @@ namespace UnityEditor.VFX
         {
             get { return m_WorldSpace; }
             set { m_WorldSpace = value; }
+        }
+
+        // TODO tmp function to generate attribute buffers
+        public void DebugBuildAttributeBuffers()
+        {
+            int nbOwners = m_Owners.Count;
+            if (nbOwners > 16)
+                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
+
+            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
+            foreach (var kvp in m_AttributesToContexts)
+            {
+                var attribute = kvp.Key;
+                int key = 0;
+                foreach (var kvp2 in kvp.Value)
+                {
+                    int shift = m_Owners.IndexOf(kvp2.Key) << 1;
+                    int value = 0;
+                    if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                        value = 0x01;
+                    if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                        value = 0x02;
+                    key |= (value << shift);
+                }
+
+                List<VFXAttribute> attributes;
+                if (!keyToAttributes.ContainsKey(key))
+                {
+                    attributes = new List<VFXAttribute>();
+                    keyToAttributes[key] = attributes;
+                }
+                else
+                    attributes = keyToAttributes[key];
+
+                attributes.Add(attribute);
+            }
+
+            var builder = new StringBuilder();
+            builder.AppendLine("ATTRIBUTES FOR PARTICLE DATA PER KEY");
+            foreach (var kvp in keyToAttributes)
+            {
+                builder.AppendLine(kvp.Key.ToString());
+                foreach (var attrib in kvp.Value)
+                    builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
+            }
+
+            Debug.Log(builder.ToString());
         }
 
         [SerializeField]
