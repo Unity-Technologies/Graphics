@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public abstract partial class VFXExpression
+    abstract partial class VFXExpression
     {
         [Flags]
         public enum Flags
@@ -132,6 +133,11 @@ namespace UnityEditor.VFX
         protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
         public abstract string GetCodeString(string[] parents);
+
+        public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            return Enumerable.Empty<VFXAttributeInfo>();
+        }
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         GPUDataTransformation = 1 << 3,
     }
 
-    public abstract partial class VFXExpression
+    abstract partial class VFXExpression
     {
         public class Context
         {
