@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: trSphere
   m_Shader: {fileID: 4800000, guid: b262af00aeb504b0a8eba68d77150908, type: 3}
-  m_ShaderKeywords: _ALPHABLEND_ON _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+  m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -63,15 +63,15 @@ Material:
     - _GlossMapScale: 0.8
     - _Glossiness: 0.8
     - _GlossyReflections: 1
-    - _Metallic: 1
-    - _Mode: 2
+    - _Metallic: 0.8
+    - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 1
     - _SpecularHighlights: 1
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 0.516}
+    - _Color: {r: 0.72794116, g: 0.72794116, b: 0.72794116, a: 0.491}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
