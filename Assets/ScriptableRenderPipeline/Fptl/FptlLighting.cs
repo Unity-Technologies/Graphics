@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 };
 
             // binding code. This needs to be in sync with ShadowContext.hlsl
-            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb) =>
+            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb, ComputeShader computeShader, int computeKernel) =>
                 {
                     // bind buffers
                     cb.SetGlobalBuffer("_ShadowDatasExp", s_ShadowDataBuffer);
@@ -1100,7 +1100,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             CommandBuffer cmdShadow = CommandBufferPool.Get();
             m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
             m_ShadowMgr.SyncData();
-            m_ShadowMgr.BindResources( cmdShadow );
+            m_ShadowMgr.BindResources( cmdShadow, null, 0 );
             loop.ExecuteCommandBuffer(cmdShadow);
             CommandBufferPool.Release(cmdShadow);
 

@@ -80,19 +80,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
 
             // binding code. This needs to be in sync with ShadowContext.hlsl
-            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb) =>
+            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb, ComputeShader computeShader, int computeKernel) =>
                 {
-                    // bind buffers
-                    cb.SetGlobalBuffer("_ShadowDatasExp", s_ShadowDataBuffer);
-                    cb.SetGlobalBuffer("_ShadowPayloads", s_ShadowPayloadBuffer);
-                    // bind textures
                     uint offset, count;
                     RenderTargetIdentifier[] tex;
-                    sc.GetTex2DArrays( out tex, out offset, out count );
-                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_0", tex[0] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_1", tex[1] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_2", tex[2] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_PCF"  , tex[3] );
+                    sc.GetTex2DArrays(out tex, out offset, out count);
+
+                    if(computeShader)
+                    {
+                        // bind buffers
+                        cb.SetComputeBufferParam(computeShader, computeKernel, "_ShadowDatasExp", s_ShadowDataBuffer);
+                        cb.SetComputeBufferParam(computeShader, computeKernel, "_ShadowPayloads", s_ShadowPayloadBuffer);
+                        // bind textures
+                        cb.SetComputeTextureParam(computeShader, computeKernel, "_ShadowmapExp_VSM_0", tex[0]);
+                        cb.SetComputeTextureParam(computeShader, computeKernel, "_ShadowmapExp_VSM_1", tex[1]);
+                        cb.SetComputeTextureParam(computeShader, computeKernel, "_ShadowmapExp_VSM_2", tex[2]);
+                        cb.SetComputeTextureParam(computeShader, computeKernel, "_ShadowmapExp_PCF", tex[3]);
+                    }
+                    else
+                    {
+                        // bind buffers
+                        cb.SetGlobalBuffer("_ShadowDatasExp", s_ShadowDataBuffer);
+                        cb.SetGlobalBuffer("_ShadowPayloads", s_ShadowPayloadBuffer);
+                        // bind textures
+                        cb.SetGlobalTexture("_ShadowmapExp_VSM_0", tex[0]);
+                        cb.SetGlobalTexture("_ShadowmapExp_VSM_1", tex[1]);
+                        cb.SetGlobalTexture("_ShadowmapExp_VSM_2", tex[2]);
+                        cb.SetGlobalTexture("_ShadowmapExp_PCF", tex[3]);
+                    }
+                    
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
 
@@ -1825,9 +1841,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera)
+            private void BindGlobalParams(CommandBuffer cmd, Camera camera)
             {
-                m_ShadowMgr.BindResources(cmd);
+                m_ShadowMgr.BindResources(cmd, activeComputeShader, activeComputeKernel);
 
                 SetGlobalBuffer("g_vLightListGlobal", !usingFptl ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
@@ -1881,7 +1897,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ShadowMgr.SyncData();
 
                     SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
-                    BindGlobalParams(cmd, computeShader, kernelIndex, camera);
+                    BindGlobalParams(cmd, camera);
                     SetGlobalPropertyRedirect(null, 0, null);
                 }
             }

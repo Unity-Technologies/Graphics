@@ -578,7 +578,7 @@ namespace UnityEngine.Experimental.Rendering
     public class ShadowContext : ShadowContextStorage
     {
         public delegate void SyncDel( ShadowContext sc );
-        public delegate void BindDel( ShadowContext sc, CommandBuffer cb );
+        public delegate void BindDel( ShadowContext sc, CommandBuffer cb, ComputeShader computeShader, int computeKernel);
         public struct CtxtInit
         {
             public Init     storage;
@@ -595,7 +595,7 @@ namespace UnityEngine.Experimental.Rendering
         // delegate that takes care of syncing data to the GPU
         public void SyncData() { m_DataSyncerDel( this ); }
         // delegate that takes care of binding textures, buffers and samplers to shaders just before rendering
-        public void BindResources( CommandBuffer cb ) { m_ResourceBinderDel( this, cb ); }
+        public void BindResources( CommandBuffer cb, ComputeShader computeShader, int computeKernel) { m_ResourceBinderDel( this, cb, computeShader, computeKernel); }
 
         // the following functions are to be used by the bind and sync delegates
         public void GetShadowDatas( out ShadowData[] shadowDatas, out uint offset, out uint count )                           { shadowDatas   = m_ShadowDatas.AsArray( out offset, out count ); }
@@ -785,7 +785,7 @@ namespace UnityEngine.Experimental.Rendering
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
-        void BindResources( CommandBuffer cmd );
+        void BindResources( CommandBuffer cmd, ComputeShader computeShader, int computeKernel);
         // Fixes up some parameters within the cullResults
         void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
 
@@ -806,7 +806,7 @@ namespace UnityEngine.Experimental.Rendering
         public  abstract void DisplayShadow(CommandBuffer cmd, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         public  abstract void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         public  abstract void SyncData();
-        public  abstract void BindResources( CommandBuffer cmd );
+        public  abstract void BindResources( CommandBuffer cmd, ComputeShader computeShader, int computeKernel);
         public  abstract void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );
         // sort the shadow requests in descending priority - may only modify shadowRequests
         protected abstract void PrioritizeShadowCasters( Camera camera, List<VisibleLight> lights, uint shadowRequestsCount, int[] shadowRequests );
