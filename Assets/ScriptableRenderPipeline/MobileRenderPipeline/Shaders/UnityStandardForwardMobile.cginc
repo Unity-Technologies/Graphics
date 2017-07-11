@@ -11,9 +11,8 @@
 #include "OnTileShaderBase.h"
 #include "../../fptl/LightDefinitions.cs.hlsl"
 
-#define MAX_SHADOW_LIGHTS 10
-#define MAX_SHADOWMAP_PER_LIGHT 6
-#define MAX_DIRECTIONAL_SPLIT  4
+// todo: put this is LightDefinitions common file
+#define MAX_LIGHTS 100
 
 #define CUBEMAPFACE_POSITIVE_X 0
 #define CUBEMAPFACE_NEGATIVE_X 1
@@ -38,18 +37,6 @@
 #	include "../../ShaderLibrary/API/Validate.hlsl"
 #	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
-
-CBUFFER_START(ShadowLightData)
-
-float4 g_vShadow3x3PCFTerms0;
-float4 g_vShadow3x3PCFTerms1;
-float4 g_vShadow3x3PCFTerms2;
-float4 g_vShadow3x3PCFTerms3;
-
-float4 g_vDirShadowSplitSpheres[MAX_DIRECTIONAL_SPLIT];
-float4x4 g_matWorldToShadow[MAX_SHADOW_LIGHTS * MAX_SHADOWMAP_PER_LIGHT];
-
-CBUFFER_END
 
 struct VertexOutputForwardNew
 {
@@ -103,9 +90,6 @@ VertexOutputForwardNew vertForward(VertexInput v)
 
     return o;
 }
-
-// todo: put this is LightDefinitions common file
-#define MAX_LIGHTS 10
 
 #define USE_LEFTHAND_CAMERASPACE (0)
 #define DIRECT_LIGHT (0)
