@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
         }
 
         string IPropertyRMProvider.name { get { return "Value"; } }
-		VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return null; } }
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return null; } }
 
         public Type anchorType
         {

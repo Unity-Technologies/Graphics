@@ -11,31 +11,31 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateSlider(Vector2 range)
         {
-			m_Slider = new Slider(range.x, range.y, OnValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(range.x, range.y, OnValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
         }
 
         public SliderField(string label, Vector2 range) : base(label)
         {
-			CreateSlider(range);
+            CreateSlider(range);
             AddChild(m_Slider);
         }
 
         public SliderField(VisualElement existingLabel, Vector2 range) : base(existingLabel)
         {
-			CreateSlider(range);
-			AddChild(m_Slider);
+            CreateSlider(range);
+            AddChild(m_Slider);
         }
 
-		void OnValueChanged(float newValue)
-		{
-			SetValue(newValue);
-		}
+        void OnValueChanged(float newValue)
+        {
+            SetValue(newValue);
+        }
 
-		protected override void ValueToGUI()
-		{
-			base.ValueToGUI();
-			m_Slider.value = GetValue();
-		}
+        protected override void ValueToGUI()
+        {
+            base.ValueToGUI();
+            m_Slider.value = GetValue();
+        }
     }
 }

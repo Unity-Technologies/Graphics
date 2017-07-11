@@ -52,8 +52,8 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
-                throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant",ValueType));
-  
+                throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", ValueType));
+
             return GetContent().ToString();
         }
 

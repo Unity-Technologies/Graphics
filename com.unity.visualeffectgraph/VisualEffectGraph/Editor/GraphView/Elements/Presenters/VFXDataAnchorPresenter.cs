@@ -109,10 +109,10 @@ namespace UnityEditor.VFX.UI
             get { return model.path; }
         }
 
-		public VFXPropertyAttribute[] attributes
-		{
-			get { return model.property.attributes; }
-		}
+        public VFXPropertyAttribute[] attributes
+        {
+            get { return model.property.attributes; }
+        }
 
         public int depth
         {

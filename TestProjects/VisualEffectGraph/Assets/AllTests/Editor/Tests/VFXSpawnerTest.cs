@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Test
     public class VFXSpawnerTest
     {
         [UnityTest]
-        [Timeout(1000*10)]
+        [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
             EditorApplication.ExecuteMenuItem("Window/Game");
