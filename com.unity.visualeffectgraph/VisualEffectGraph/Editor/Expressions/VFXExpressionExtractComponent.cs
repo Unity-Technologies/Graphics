@@ -15,11 +15,11 @@ namespace UnityEditor.VFX
             }
 
             m_Operation = VFXExpressionOp.kVFXExtractComponentOp;
-            m_AdditionnalParameters = new int[] { TypeToSize(parent.ValueType), iChannel };
+            m_AdditionalParameters = new int[] { TypeToSize(parent.ValueType), iChannel };
             m_ValueType = VFXValueType.kFloat;
         }
 
-        public int Channel { get { return m_AdditionnalParameters[1]; } }
+        public int Channel { get { return m_AdditionalParameters[1]; } }
 
         static private float GetChannel(Vector2 input, int iChannel)
         {
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX
 
         sealed public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[{1}];", parents[0], AdditionnalParameters[1]);
+            return string.Format("{0}[{1}];", parents[0], AdditionalParameters[1]);
         }
     }
 }
