@@ -717,7 +717,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Directional
+// EvaluateBSDF_Directional (supports directional and box projector lights)
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
@@ -729,6 +729,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 positionWS = posInput.positionWS;
 
     // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
     float3 lightToSurface = positionWS - lightData.positionWS;
     float2 positionNDC    = float2(dot(lightToSurface, lightData.right), dot(lightToSurface, lightData.up));
     bool   isInBounds     = abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1;
@@ -796,7 +797,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Punctual
+// EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
@@ -807,29 +808,16 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float3 positionWS = posInput.positionWS;
     int    lightType  = lightData.lightType;
 
-    // Translate and rotate 'positionWS' into the light space.
-    float3   lightToSurface = positionWS - lightData.positionWS;
-    float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
-
-    // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
-    // Box projector lights require no perspective division.
-    float2 positionNDC = (lightType != GPULIGHTTYPE_PROJECTOR_BOX && lightType != GPULIGHTTYPE_POINT) ? positionLS.xy / positionLS.z : positionLS.xy;
-    bool   isInBounds  = abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1;
-
-    // Do not clip point lights.
-    float clipFactor = (lightType == GPULIGHTTYPE_POINT || isInBounds) ? 1 : 0;
-
     // All punctual light type in the same formula, attenuation is neutral depends on light type.
     // light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
     // mean dot(unL, unL) = 1 and mean GetDistanceAttenuation() will return 1
     // For point light and directional GetAngleAttenuation() return 1
 
+    float3 lightToSurface = positionWS - lightData.positionWS;
     float3 unL = -lightToSurface;
     float3 L   = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
 
-    float attenuation = clipFactor;
-    attenuation *= (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
+    float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
     float NdotL = dot(bsdfData.normalWS, L);
@@ -859,20 +847,28 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
+    // Projector lights always have a cookie.
     [branch] if (lightData.cookieIndex >= 0)
     {
+        // Translate and rotate 'positionWS' into the light space.
+        // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+        float3   positionLS   = mul(lightToSurface, transpose(lightToWorld));
+
         [branch] if (lightType == GPULIGHTTYPE_POINT)
         {
-            // Identical to 'positionLS', but saves us 2x VGPR.
-            float3 coord = float3(positionNDC, positionLS.z);
-
-            float4 c = SampleCookieCube(lightLoopContext, coord, lightData.cookieIndex);
+            float4 c = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
 
             // Use premultiplied alpha to save 1x VGPR.
             cookie = c.rgb * c.a;
         }
         else
         {
+            // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
+            // Box projector lights require no perspective division.
+            float2 positionNDC = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.xy / positionLS.z : positionLS.xy;
+            bool   isInBounds  = abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1;
+
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
 
@@ -880,7 +876,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
             // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * c.a;
+            cookie = c.rgb * (c.a * (isInBounds ? 1 : 0));
         }
     }
 

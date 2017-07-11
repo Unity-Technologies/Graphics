@@ -907,6 +907,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                     }
                 }
+                else if (additionalLightData.archetype == LightArchetype.Projector)
+                {
+                    // Projectors lights must always have a cookie texture.
+                    lightData.cookieIndex = m_CookieTexArray.FetchSlice(Texture2D.whiteTexture);
+                }
 
                 if (additionalshadowData)
                 {
