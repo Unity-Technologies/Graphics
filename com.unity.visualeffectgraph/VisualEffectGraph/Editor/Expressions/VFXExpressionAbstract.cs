@@ -52,6 +52,8 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4: return "float4";
                 case VFXValueType.kInt: return "int";
                 case VFXValueType.kUint: return "uint";
+                case VFXValueType.kTexture2D: return "Texture2D";
+                case VFXValueType.kTexture3D: return "Texture3D";
                 case VFXValueType.kTransform: return "float4x4";
             }
             throw new NotImplementedException(type.ToString());

@@ -286,7 +286,8 @@ namespace UnityEditor.VFX
                             Debug.Log(VFXShaderWriter.WriteCBuffer(uniformMapper));
 
                             foreach (var exp in gpuMapper.expressions)
-                                Debug.Log(VFXShaderWriter.WriteParameter(exp, uniformMapper));
+                                if (!exp.Is(VFXValue.Flags.InvalidOnGPU)) // Tmp this should be notified and throw
+                                    Debug.Log(VFXShaderWriter.WriteParameter(exp, uniformMapper));
                         }
                     }
 
@@ -342,6 +343,16 @@ namespace UnityEditor.VFX
                 catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
+
+                    // Cleaning
+                    if (vfxAsset != null)
+                    {
+                        vfxAsset.ClearSpawnerData();
+                        vfxAsset.ClearPropertyData();
+                    }
+
+                    m_ExpressionGraph = new VFXExpressionGraph();
+                    m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
                 }
 
                 m_ExpressionGraphDirty = false;
