@@ -162,19 +162,14 @@ namespace UnityEditor.VFX
         // Collect attribute expressions recursively
         private IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp)
         {
-            if (exp is VFXAttributeExpression)
+            if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
             {
-                VFXAttributeInfo info;
-                info.attrib = ((VFXAttributeExpression)exp).attribute; // TODO
-                info.mode = VFXAttributeMode.Read;
-                yield return info;
-            }
-            else if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
-            {
+                foreach (var info in exp.GetNeededAttributes())
+                    yield return info;
+
                 foreach (var parent in exp.Parents)
                 {
-                    var res = CollectInputAttributes(parent);
-                    foreach (var info in res)
+                    foreach (var info in CollectInputAttributes(parent))
                         yield return info;
                 }
             }

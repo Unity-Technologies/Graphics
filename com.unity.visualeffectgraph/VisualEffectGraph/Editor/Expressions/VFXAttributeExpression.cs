@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -138,6 +139,11 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             return attributeName;
+        }
+
+        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
         }
     }
 }
