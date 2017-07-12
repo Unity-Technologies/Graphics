@@ -843,11 +843,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.up = light.light.transform.up;
                 lightData.right = light.light.transform.right;
 
+                if (additionalLightData.archetype != LightArchetype.Punctual)
+                {
+                    lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
+                }
+
                 if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
                 {
                     // Rescale for cookies and windowing.
-                    lightData.up    *= 2 / additionalLightData.lightWidth;
                     lightData.right *= 2 / additionalLightData.lightLength;
+                    lightData.up    *= 2 / additionalLightData.lightWidth;
                 }
 
                 if (lightData.lightType == GPULightType.Spot)
@@ -929,10 +934,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightData.shadowIndex = shadowIdx;
                 }
-                if (additionalLightData.archetype != LightArchetype.Punctual)
-                {
-                    lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
-                }
 
                 m_lightList.lights.Add(lightData);
 
@@ -947,6 +948,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var lightToWorld = light.localToWorld;
                 Vector3 lightPos = lightData.positionWS;
 
+                Matrix4x4 lightToView = worldToView * lightToWorld;
+                Vector3   xAxisVS     = lightToView.GetColumn(0);
+                Vector3   yAxisVS     = lightToView.GetColumn(1);
+                Vector3   zAxisVS     = lightToView.GetColumn(2);
+
                 // Fill bounds
                 var bound = new SFiniteLightBound();
                 var lightVolumeData = new LightVolumeData();
@@ -958,15 +964,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Vector3 lightDir = lightToWorld.GetColumn(2);
 
-                    // represents a left hand coordinate system in world space
-                    Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
-                    Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
-                    Vector3 vz = lightDir;                      // Z axis in world space
-
-                    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    vx = worldToView.MultiplyVector(vx);
-                    vy = worldToView.MultiplyVector(vy);
-                    vz = worldToView.MultiplyVector(vz);
+                    // represents a left hand coordinate system in world space since det(worldToView)<0
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
 
                     const float pi = 3.1415926535897932384626433832795f;
                     const float degToRad = (float)(pi / 180.0);
@@ -1031,10 +1032,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bound.radius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
-                    var lightToView = worldToView * lightToWorld;
-                    Vector3 vx = lightToView.GetColumn(0);
-                    Vector3 vy = lightToView.GetColumn(1);
-                    Vector3 vz = lightToView.GetColumn(2);
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
 
                     // fill up ldata
                     lightVolumeData.lightAxisX = vx;
@@ -1047,13 +1047,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else if (gpuLightType == GPULightType.Rectangle)
                 {
                     Vector3 centerVS = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right);
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up);
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
                     float radius = 1.0f / Mathf.Sqrt(lightData.invSqrAttenuationRadius);
 
                     Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, lightData.size.y * 0.5f + radius, radius);
-
                     dimensions.z *= 0.5f;
                     centerVS += zAxisVS * radius * 0.5f;
 
@@ -1075,9 +1071,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else if (gpuLightType == GPULightType.Line)
                 {
                     Vector3 centerVS = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right);
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up);
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
                     float radius = 1.0f / Mathf.Sqrt(lightData.invSqrAttenuationRadius);
 
                     Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, radius, radius);
@@ -1100,27 +1093,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else if (gpuLightType == GPULightType.ProjectorBox)
                 {
                     Vector3 posVS   = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right.normalized); // Undo scaling
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up.normalized);    // Undo scaling
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
-
                     // Projector lights point forwards (along Z). The projection window is aligned with the XY plane.
-                    Vector3 boxDims  = new Vector3(lightData.size.x, lightData.size.y, 1000000.0f);
+                    Vector3 boxDims  = new Vector3(lightData.size.x, lightData.size.y, 100000);
                     Vector3 halfDims = 0.5f * boxDims;
 
                     bound.center   = posVS;
-                    bound.boxAxisX = halfDims.x * xAxisVS;                                                    // Should this be halved or not?
-                    bound.boxAxisY = halfDims.y * yAxisVS;                                                    // Should this be halved or not?
-                    bound.boxAxisZ = halfDims.z * zAxisVS;                                                    // Should this be halved or not?
-                    bound.radius   = halfDims.magnitude;                                                      // Radius of a circumscribed sphere?
+                    bound.boxAxisX = halfDims.x * xAxisVS;
+                    bound.boxAxisY = halfDims.y * yAxisVS;
+                    bound.boxAxisZ = halfDims.z * zAxisVS;
+                    bound.radius   = halfDims.magnitude;
                     bound.scaleXY.Set(1.0f, 1.0f);
 
-                    lightVolumeData.lightPos     = posVS;                                                     // Is this the center of the volume?
+                    lightVolumeData.lightPos     = posVS;
                     lightVolumeData.lightAxisX   = xAxisVS;
                     lightVolumeData.lightAxisY   = yAxisVS;
                     lightVolumeData.lightAxisZ   = zAxisVS;
-                    lightVolumeData.boxInnerDist = halfDims;                                                  // No idea what this is. Document your code
-                    lightVolumeData.boxInvRange.Set(1.0f / halfDims.x, 1.0f / halfDims.y, 1.0f / halfDims.z); // No idea what this is. Document your code
+                    lightVolumeData.boxInnerDist = halfDims;
+                    lightVolumeData.boxInvRange.Set(1.0f / halfDims.x, 1.0f / halfDims.y, 1.0f / halfDims.z);
                     lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
                 }
                 else
