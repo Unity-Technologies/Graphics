@@ -428,6 +428,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_UpdatedFramesRequired--;
                         m_SkyParametersHash = skySettings.GetHash();
                         m_CurrentUpdateTime = 0.0f;
+//#if UNITY_EDITOR
+//                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHash(), 0, 0, 0);
+//#endif
                     }
                 }
             }
