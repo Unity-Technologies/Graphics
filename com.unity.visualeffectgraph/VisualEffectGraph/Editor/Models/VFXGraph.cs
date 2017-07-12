@@ -229,7 +229,7 @@ namespace UnityEditor.VFX
                             data[1] = extractExp.Channel;
                             data[2] = VFXExpression.TypeToSize(exp.Parents[0].ValueType);
                         }
-                        else if (exp is VFXExpressionFloatOperation && !(exp is VFXExpressionCombine)) // TODO Make a better test
+                        else if ((exp is VFXExpressionFloatOperation || exp is VFXExpressionUIntOperation) && !(exp is VFXExpressionCombine)) // TODO Make a better test
                         {
                             var parents = exp.Parents;
                             if (parents.Length > 3)

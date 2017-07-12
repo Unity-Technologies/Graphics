@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXExpressionUIntOperation : VFXExpression
     {
-		protected VFXExpressionUIntOperation(VFXExpression[] parents)
+        protected VFXExpressionUIntOperation(VFXExpression[] parents)
             : base(Flags.None, parents)
         {
         }
@@ -17,20 +17,24 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            return this;
+            var newExpression = (VFXExpressionUIntOperation)CreateNewInstance();
+            newExpression.Initialize(Flags.None, reducedParents);
+            newExpression.m_Operation = m_Operation;
+            newExpression.m_ValueType = m_ValueType;
+            return newExpression;
         }
 
         protected VFXExpressionOp m_Operation;
         protected VFXValueType m_ValueType;
     }
 
-	abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUIntOperation
+    abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUIntOperation
     {
         protected VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
         {
             if (!IsUIntValueType(parent.ValueType))
             {
-				throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
+                throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
             }
 
             m_ValueType = parent.ValueType;
@@ -47,22 +51,17 @@ namespace UnityEditor.VFX
             return GetUnaryOperationCode(parents[0]);
         }
 
-		abstract protected uint ProcessUnaryOperation(uint input);
+        abstract protected uint ProcessUnaryOperation(uint input);
         abstract protected string GetUnaryOperationCode(string x);
     }
 
     abstract class VFXExpressionBinaryUIntOperation : VFXExpressionUIntOperation
     {
-		protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation) : base(new VFXExpression[2] { parentLeft, parentRight })
+        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation) : base(new VFXExpression[2] { parentLeft, parentRight })
         {
-			if (!IsUIntValueType(parentLeft.ValueType) || !IsUIntValueType(parentRight.ValueType))
+            if (!IsUIntValueType(parentLeft.ValueType) || !IsUIntValueType(parentRight.ValueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation (not uint type)");
-            }
-
-            if (parentRight.ValueType != parentLeft.ValueType)
-            {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible uint type)");
             }
 
             m_ValueType = parentLeft.ValueType;
@@ -79,7 +78,7 @@ namespace UnityEditor.VFX
             return GetBinaryOperationCode(parents[0], parents[1]);
         }
 
-		protected abstract uint ProcessBinaryOperation(uint left, uint right);
+        protected abstract uint ProcessBinaryOperation(uint left, uint right);
         protected abstract string GetBinaryOperationCode(string a, string b);
     }
 }
