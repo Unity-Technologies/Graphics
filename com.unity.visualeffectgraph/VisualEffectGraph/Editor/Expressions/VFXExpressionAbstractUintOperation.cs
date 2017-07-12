@@ -24,6 +24,11 @@ namespace UnityEditor.VFX
             return newExpression;
         }
 
+        public override void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            FillOperandsWithParentsAndValueSize(data, this, graph);
+        }
+
         protected VFXExpressionOp m_Operation;
         protected VFXValueType m_ValueType;
     }
