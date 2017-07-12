@@ -10,9 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum GPULightType
     {
         Directional,
+        ProjectorBox,
         Spot,
         Point,
-        ProjectorOrtho,
         ProjectorPyramid,
 
         // AreaLight
@@ -27,58 +27,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
+    public struct DirectionalLightData
+    {
+        public Vector3 positionWS;
+        public float unused;
+
+        public Vector3 color;
+        public int shadowIndex; // -1 if unused
+
+        public Vector3 forward;
+        public int cookieIndex; // -1 if unused
+
+        public Vector3 right;   // Rescaled by (2 / lightLength)
+        public float specularScale;
+
+        public Vector3 up;      // Rescaled by (2 / lightWidth)
+        public float diffuseScale;
+    };
+
+    [GenerateHLSL]
     public struct LightData
     {
+        // DirectionalLightData >>>
+
         public Vector3 positionWS;
         public float invSqrAttenuationRadius;
 
         public Vector3 color;
-        public float angleScale;  // Spot light
+        public int shadowIndex; // -1 if unused
 
         public Vector3 forward;
-        public float angleOffset; // Spot light
+        public int cookieIndex; // -1 if unused
 
-        public Vector3 up;
-        public float diffuseScale;
-
-        public Vector3 right;
+        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / lightLength)
         public float specularScale;
 
-        public float shadowDimmer;
-        // index are -1 if not used
-        public int shadowIndex;
-        public int IESIndex;
-        public int cookieIndex;
+        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by * (2 / lightWidth)
+        public float diffuseScale;
 
-        public Vector2 size;  // Used by area, projector and spot lights; x = cot(outerHalfAngle) for spot lights
+        // <<< DirectionalLightData
+
+        public float angleScale;  // Spot light
+        public float angleOffset; // Spot light
+        public float shadowDimmer;
+        public int IESIndex;      // -1 if unused
+
+        public Vector2 size;      // Used by area, frustum projector and spot lights (x = cot(outerHalfAngle))
         public GPULightType lightType;
         public float unused;
     };
 
-    [GenerateHLSL]
-    public struct DirectionalLightData
-    {
-        public Vector3 forward;
-        public float   diffuseScale;
-
-        public Vector3 up;
-        public float   invScaleY;
-
-        public Vector3 right;
-        public float   invScaleX;
-
-        public Vector3 positionWS;
-        public bool    tileCookie;
-
-        public Vector3 color;
-        public float   specularScale;
-
-        // Sun disc size
-        public float cosAngle;  // Distance to the disk
-        public float sinAngle;  // Disk radius
-        public int shadowIndex; // -1 if unused
-        public int cookieIndex; // -1 if unused
-    };
 
 
     [GenerateHLSL]

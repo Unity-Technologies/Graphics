@@ -173,7 +173,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Punctual,
             Area,
-            Projector,
             Env,
             Count
         }
@@ -184,9 +183,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Punctual    = 1 << 0,
             Area        = 1 << 1,
             Directional = 1 << 2,
-            Projector   = 1 << 3,
-            Env         = 1 << 4,
-            Sky         = 1 << 5
+            Env         = 1 << 3,
+            Sky         = 1 << 4
         }
 
         [GenerateHLSL]
@@ -294,8 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public const int k_MaxDirectionalLightsOnScreen = 4;
             public const int k_MaxPunctualLightsOnScreen    = 512;
             public const int k_MaxAreaLightsOnScreen        = 64;
-            public const int k_MaxProjectorLightsOnScreen   = 64;
-            public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxProjectorLightsOnScreen;
+            public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen;
             public const int k_MaxEnvLightsOnScreen = 64;
             public const int k_MaxShadowOnScreen = 16;
             public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
@@ -350,7 +347,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightList m_lightList;
             int m_punctualLightCount = 0;
             int m_areaLightCount = 0;
-            int m_projectorLightCount = 0;
             int m_lightCount = 0;
 
             private ComputeShader buildScreenAABBShader { get { return m_Resources.buildScreenAABBShader; } }
@@ -508,7 +504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList.Allocate();
 
                 s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxProjectorLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
@@ -815,22 +811,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Light direction for directional is opposite to the forward direction
                 directionalLightData.forward = light.light.transform.forward;
-                directionalLightData.up = light.light.transform.up;
-                directionalLightData.right = light.light.transform.right;
+                // Rescale for cookies and windowing.
+                directionalLightData.up         = light.light.transform.up    * 2 / additionalData.lightWidth;
+                directionalLightData.right      = light.light.transform.right * 2 / additionalData.lightLength;
                 directionalLightData.positionWS = light.light.transform.position;
                 directionalLightData.color = GetLightColor(light);
                 directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
                 directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
-                directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
-                directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
-                directionalLightData.cosAngle = 0.0f;
-                directionalLightData.sinAngle = 0.0f;
-                directionalLightData.shadowIndex = -1;
-                directionalLightData.cookieIndex = -1;
+                directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
 
                 if (light.light.cookie != null)
                 {
-                    directionalLightData.tileCookie = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
                     directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                 }
                 // fix up shadow information
@@ -868,6 +859,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.up = light.light.transform.up;
                 lightData.right = light.light.transform.right;
 
+                lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
+
+                if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
+                {
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2 / additionalLightData.lightLength;
+                    lightData.up    *= 2 / additionalLightData.lightWidth;
+                }
+
                 if (lightData.lightType == GPULightType.Spot)
                 {
                     var spotAngle = light.spotAngle;
@@ -881,15 +881,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.angleScale = 1.0f / val;
                     lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
 
-                    // TODO: Currently the spot cookie code use the cotangent, either we fix the spot cookie code to not use cotangent
-                    // or we clean the name here, store it in size.x for now
-                    lightData.size.x = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
+                    // Rescale for cookies and windowing.
+                    float cotOuterHalfAngle = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
+                    lightData.up    *= cotOuterHalfAngle;
+                    lightData.right *= cotOuterHalfAngle;
                 }
                 else
                 {
-                    // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
-                    lightData.angleScale = 1.0f;
-                    lightData.angleOffset = 2.0f;
+                    // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
+                    lightData.angleScale = 0.0f;
+                    lightData.angleOffset = 1.0f;
                 }
 
                 float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
@@ -918,11 +919,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
                             break;
                     }
-
-                    if (additionalLightData.archetype == LightArchetype.Projector)
-                    {
-                        lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
-                    }
+                }
+                else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+                {
+                    // Projectors lights must always have a cookie texture.
+                    lightData.cookieIndex = m_CookieTexArray.FetchSlice(Texture2D.whiteTexture);
                 }
 
                 if (additionalshadowData)
@@ -941,10 +942,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightData.shadowIndex = shadowIdx;
                 }
-                if (additionalLightData.archetype != LightArchetype.Punctual)
-                {
-                    lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
-                }
 
                 m_lightList.lights.Add(lightData);
 
@@ -957,7 +954,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Then Culling side
                 var range = light.range;
                 var lightToWorld = light.localToWorld;
-                Vector3 lightPos = lightData.positionWS;
+                Vector3 positionWS = lightData.positionWS;
+                Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
+
+                Matrix4x4 lightToView = worldToView * lightToWorld;
+                Vector3   xAxisVS     = lightToView.GetColumn(0);
+                Vector3   yAxisVS     = lightToView.GetColumn(1);
+                Vector3   zAxisVS     = lightToView.GetColumn(2);
 
                 // Fill bounds
                 var bound = new SFiniteLightBound();
@@ -970,15 +973,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Vector3 lightDir = lightToWorld.GetColumn(2);
 
-                    // represents a left hand coordinate system in world space
-                    Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
-                    Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
-                    Vector3 vz = lightDir;                      // Z axis in world space
-
-                    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    vx = worldToView.MultiplyVector(vx);
-                    vy = worldToView.MultiplyVector(vy);
-                    vz = worldToView.MultiplyVector(vz);
+                    // represents a left hand coordinate system in world space since det(worldToView)<0
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
 
                     const float pi = 3.1415926535897932384626433832795f;
                     const float degToRad = (float)(pi / 180.0);
@@ -1003,7 +1001,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // apply nonuniform scale to OBB of spot light
                     var squeeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
                     var fS = squeeze ? ta : si;
-                    bound.center = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
+                    bound.center = worldToView.MultiplyPoint(positionWS + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
                     // scale axis to match box or base of pyramid
                     bound.boxAxisX = (fS * range) * vx;
@@ -1026,17 +1024,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisX = vx;
                     lightVolumeData.lightAxisY = vy;
                     lightVolumeData.lightAxisZ = vz;
-                    lightVolumeData.lightPos = worldToView.MultiplyPoint(lightPos);
+                    lightVolumeData.lightPos = positionVS;
                     lightVolumeData.radiusSq = range * range;
                     lightVolumeData.cotan = cota;
-                    lightVolumeData.featureFlags = (gpuLightType == GPULightType.Spot) ? (uint)LightFeatureFlags.Punctual
-                                                                                       : (uint)LightFeatureFlags.Projector;
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
                 }
                 else if (gpuLightType == GPULightType.Point)
                 {
                     bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2))) < 0.0f; // 3x3 Determinant.
 
-                    bound.center = worldToView.MultiplyPoint(lightPos);
+                    bound.center = positionVS;
                     bound.boxAxisX.Set(range, 0, 0);
                     bound.boxAxisY.Set(0, range, 0);
                     bound.boxAxisZ.Set(0, 0, isNegDeterminant ? (-range) : range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
@@ -1044,10 +1041,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bound.radius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
-                    var lightToView = worldToView * lightToWorld;
-                    Vector3 vx = lightToView.GetColumn(0);
-                    Vector3 vy = lightToView.GetColumn(1);
-                    Vector3 vz = lightToView.GetColumn(2);
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
 
                     // fill up ldata
                     lightVolumeData.lightAxisX = vx;
@@ -1057,84 +1053,67 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.radiusSq = range * range;
                     lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
                 }
-                else if (gpuLightType == GPULightType.Rectangle)
-                {
-                    Vector3 centerVS = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right);
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up);
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
-                    float radius = 1.0f / Mathf.Sqrt(lightData.invSqrAttenuationRadius);
-
-                    Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, lightData.size.y * 0.5f + radius, radius);
-
-                    dimensions.z *= 0.5f;
-                    centerVS += zAxisVS * radius * 0.5f;
-
-                    bound.center = centerVS;
-                    bound.boxAxisX = dimensions.x * xAxisVS;
-                    bound.boxAxisY = dimensions.y * yAxisVS;
-                    bound.boxAxisZ = dimensions.z * zAxisVS;
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = dimensions.magnitude;
-
-                    lightVolumeData.lightPos = centerVS;
-                    lightVolumeData.lightAxisX = xAxisVS;
-                    lightVolumeData.lightAxisY = yAxisVS;
-                    lightVolumeData.lightAxisZ = zAxisVS;
-                    lightVolumeData.boxInnerDist = dimensions;
-                    lightVolumeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
-                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
-                }
                 else if (gpuLightType == GPULightType.Line)
                 {
-                    Vector3 centerVS = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right);
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up);
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
-                    float radius = 1.0f / Mathf.Sqrt(lightData.invSqrAttenuationRadius);
+                    Vector3 dimensions = new Vector3(lightData.size.x + 2 * range, 2 * range, 2 * range); // Omni-directional
+                    Vector3 extents = 0.5f * dimensions;
 
-                    Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, radius, radius);
-
-                    bound.center = centerVS;
-                    bound.boxAxisX = dimensions.x * xAxisVS;
-                    bound.boxAxisY = dimensions.y * yAxisVS;
-                    bound.boxAxisZ = dimensions.z * zAxisVS;
+                    bound.center = positionVS;
+                    bound.boxAxisX = extents.x * xAxisVS;
+                    bound.boxAxisY = extents.y * yAxisVS;
+                    bound.boxAxisZ = extents.z * zAxisVS;
                     bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = dimensions.magnitude;
+                    bound.radius = extents.magnitude;
 
-                    lightVolumeData.lightPos = centerVS;
+                    lightVolumeData.lightPos = positionVS;
                     lightVolumeData.lightAxisX = xAxisVS;
                     lightVolumeData.lightAxisY = yAxisVS;
                     lightVolumeData.lightAxisZ = zAxisVS;
-                    lightVolumeData.boxInnerDist = new Vector3(lightData.size.x * 0.5f, 0.01f, 0.01f);
-                    lightVolumeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
+                    lightVolumeData.boxInnerDist = new Vector3(lightData.size.x, 0, 0);
+                    lightVolumeData.boxInvRange.Set(1.0f / range, 1.0f / range, 1.0f / range);
                     lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
                 }
-                else if (gpuLightType == GPULightType.ProjectorOrtho)
+                else if (gpuLightType == GPULightType.Rectangle)
                 {
-                    Vector3 posVS   = worldToView.MultiplyPoint(lightData.positionWS);
-                    Vector3 xAxisVS = worldToView.MultiplyVector(lightData.right);
-                    Vector3 yAxisVS = worldToView.MultiplyVector(lightData.up);
-                    Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
+                    Vector3 dimensions = new Vector3(lightData.size.x + 2 * range, lightData.size.y + 2 * range, range); // One-sided
+                    Vector3 extents = 0.5f * dimensions;
+                    Vector3 centerVS = positionVS + extents.z * zAxisVS;
 
-                    // Projector lights point forwards (along Z). The projection window is aligned with the XY plane.
-                    Vector3 boxDims  = new Vector3(lightData.size.x, lightData.size.y, 1000000.0f);
-                    Vector3 halfDims = 0.5f * boxDims;
-
-                    bound.center   = posVS;
-                    bound.boxAxisX = halfDims.x * xAxisVS;                                                    // Should this be halved or not?
-                    bound.boxAxisY = halfDims.y * yAxisVS;                                                    // Should this be halved or not?
-                    bound.boxAxisZ = halfDims.z * zAxisVS;                                                    // Should this be halved or not?
-                    bound.radius   = halfDims.magnitude;                                                      // Radius of a circumscribed sphere?
+                    bound.center = centerVS;
+                    bound.boxAxisX = extents.x * xAxisVS;
+                    bound.boxAxisY = extents.y * yAxisVS;
+                    bound.boxAxisZ = extents.z * zAxisVS;
                     bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = extents.magnitude;
 
-                    lightVolumeData.lightPos     = posVS;                                                     // Is this the center of the volume?
+                    lightVolumeData.lightPos     = centerVS;
                     lightVolumeData.lightAxisX   = xAxisVS;
                     lightVolumeData.lightAxisY   = yAxisVS;
                     lightVolumeData.lightAxisZ   = zAxisVS;
-                    lightVolumeData.boxInnerDist = halfDims;                                                  // No idea what this is. Document your code
-                    lightVolumeData.boxInvRange.Set(1.0f / halfDims.x, 1.0f / halfDims.y, 1.0f / halfDims.z); // No idea what this is. Document your code
-                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Projector;
+                    lightVolumeData.boxInnerDist = extents;
+                    lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
+                }
+                else if (gpuLightType == GPULightType.ProjectorBox)
+                {
+                    Vector3 dimensions  = new Vector3(lightData.size.x, lightData.size.y, range);  // One-sided
+                    Vector3 extents = 0.5f * dimensions;
+                    Vector3 centerVS = positionVS + extents.z * zAxisVS;
+
+                    bound.center   = centerVS;
+                    bound.boxAxisX = extents.x * xAxisVS;
+                    bound.boxAxisY = extents.y * yAxisVS;
+                    bound.boxAxisZ = extents.z * zAxisVS;
+                    bound.radius   = extents.magnitude;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+
+                    lightVolumeData.lightPos     = centerVS;
+                    lightVolumeData.lightAxisX   = xAxisVS;
+                    lightVolumeData.lightAxisY   = yAxisVS;
+                    lightVolumeData.lightAxisZ   = zAxisVS;
+                    lightVolumeData.boxInnerDist = extents;
+                    lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
                 }
                 else
                 {
@@ -1308,7 +1287,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int directionalLightcount = 0;
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
-                    int projectorLightCount = 0;
 
                     int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
                     var sortKeys = new uint[lightCount];
@@ -1331,12 +1309,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Note: LightType.Area is offline only, use for baking, no need to test it
                         if (additionalData.archetype == LightArchetype.Punctual)
                         {
+                            lightCategory = LightCategory.Punctual;
                             switch (light.lightType)
                             {
                                 case LightType.Point:
                                     if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
                                         continue;
-                                    lightCategory = LightCategory.Punctual;
                                     gpuLightType = GPULightType.Point;
                                     lightVolumeType = LightVolumeType.Sphere;
                                     break;
@@ -1344,57 +1322,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 case LightType.Spot:
                                     if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
                                         continue;
-                                    lightCategory = LightCategory.Punctual;
-                                    gpuLightType = GPULightType.Spot;
-                                    lightVolumeType = LightVolumeType.Cone;
+                                    switch (additionalData.spotLightShape)
+                                    {
+                                        case SpotLightShape.Cone:
+                                            gpuLightType = GPULightType.Spot;
+                                            lightVolumeType = LightVolumeType.Cone;
+                                            break;
+                                        case SpotLightShape.Pyramid:
+                                            gpuLightType = GPULightType.ProjectorPyramid;
+                                            lightVolumeType = LightVolumeType.Cone;
+                                            break;
+                                        case SpotLightShape.Box:
+                                            gpuLightType = GPULightType.ProjectorBox;
+                                            lightVolumeType = LightVolumeType.Box;
+                                            break;
+                                        default:
+                                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
+                                            break;
+                                    }
                                     break;
 
                                 case LightType.Directional:
                                     if (directionalLightcount >= k_MaxDirectionalLightsOnScreen)
                                         continue;
-                                    lightCategory = LightCategory.Punctual;
                                     gpuLightType = GPULightType.Directional;
                                     // No need to add volume, always visible
                                     lightVolumeType = LightVolumeType.Count; // Count is none
                                     break;
 
                                 default:
-                                    Debug.Assert(false, "TODO: encountered an unknown LightType.");
+                                    Debug.Assert(false, "Encountered an unknown LightType.");
                                     break;
                             }
                         }
-                        else
+                        else // LightArchetype.Area
                         {
-                            switch (additionalData.archetype)
-                            {
-                                case LightArchetype.Area:
-                                    if (areaLightCount >= k_MaxAreaLightsOnScreen) { continue; }
-                                    lightCategory   = LightCategory.Area;
-                                    gpuLightType    = (additionalData.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line;
-                                    lightVolumeType = LightVolumeType.Box;
-                                    break;
-                                case LightArchetype.Projector:
-                                    if (projectorLightCount >= k_MaxProjectorLightsOnScreen) { continue; }
-                                    lightCategory = LightCategory.Projector;
-                                    switch (light.lightType)
-                                    {
-                                        case LightType.Directional:
-                                            gpuLightType    = GPULightType.ProjectorOrtho;
-                                            lightVolumeType = LightVolumeType.Box;
-                                            break;
-                                        case LightType.Spot:
-                                            gpuLightType    = GPULightType.ProjectorPyramid;
-                                            lightVolumeType = LightVolumeType.Cone;
-                                            break;
-                                        default:
-                                            Debug.Assert(false, "Projectors can only be Spot or Directional lights.");
-                                            break;
-                                    }
-                                    break;
-                                default:
-                                    Debug.Assert(false, "TODO: encountered an unknown LightArchetype.");
-                                    break;
-                            }
+                            if (areaLightCount >= k_MaxAreaLightsOnScreen) { continue; }
+                            lightCategory   = LightCategory.Area;
+                            gpuLightType    = (additionalData.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line;
+                            lightVolumeType = LightVolumeType.Box;
                         }
 
                         uint shadow = m_ShadowIndices.ContainsKey(lightIndex) ? 1u : 0;
@@ -1451,6 +1417,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                             continue;
                         }
+
                         // Punctual, area, projector lights - the rendering side.
                         if (GetLightData(shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                         {
@@ -1461,9 +1428,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     break;
                                 case LightCategory.Area:
                                     areaLightCount++;
-                                    break;
-                                case LightCategory.Projector:
-                                    projectorLightCount++;
                                     break;
                                 default:
                                     Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
@@ -1488,11 +1452,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Sanity check
                     Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
-                    Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount + projectorLightCount);
+                    Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
 
-                    m_punctualLightCount  = punctualLightcount;
-                    m_areaLightCount      = areaLightCount;
-                    m_projectorLightCount = projectorLightCount;
+                    m_punctualLightCount = punctualLightcount;
+                    m_areaLightCount     = areaLightCount;
 
                     // Redo everything but this time with envLights
                     int envLightCount = 0;
@@ -1856,7 +1819,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalBuffer("_LightDatas", s_LightDatas);
                 SetGlobalInt("_PunctualLightCount", m_punctualLightCount);
                 SetGlobalInt("_AreaLightCount", m_areaLightCount);
-                SetGlobalInt("_ProjectorLightCount", m_projectorLightCount);
                 SetGlobalBuffer("_EnvLightDatas", s_EnvLightDatas);
                 SetGlobalInt("_EnvLightCount", m_lightList.envLights.Count);
                 SetGlobalBuffer("_ShadowDatas", s_shadowDatas);
