@@ -18,20 +18,5 @@ namespace UnityEditor.VFX
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXBakeGradient; } }
         sealed public override VFXValueType ValueType { get { return VFXValueType.kFloat; } }
-
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            return new VFXExpressionBakeGradient(reducedParents[0]);
-        }
-
-        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            throw new NotImplementedException(); //Cannot constant fold kVFXBakeGradient in C#
-        }
-
-        public sealed override string GetCodeString(string[] parents)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

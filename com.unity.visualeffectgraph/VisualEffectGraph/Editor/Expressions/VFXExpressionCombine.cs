@@ -57,5 +57,10 @@ namespace UnityEditor.VFX
         {
             return string.Format("{0}({1});", TypeToCode(ValueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
         }
+
+        public override void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            FillOperandsWithParents(data, this, graph);
+        }
     }
 }

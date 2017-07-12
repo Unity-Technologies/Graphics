@@ -197,11 +197,11 @@ namespace UnityEditor.VFX
                         var exp = flatGraph[i];
 
                         int[] data = new int[4];
+                        exp.FillOperands(data, m_ExpressionGraph);
+
                         // Must match data in C++ expression
                         if (exp.Is(VFXExpression.Flags.Value))
                         {
-                            data[0] = (int)exp.ValueType;
-
                             VFXExpressionValueContainerDescAbstract value;
                             switch (exp.ValueType)
                             {
@@ -222,29 +222,6 @@ namespace UnityEditor.VFX
                             value.expressionIndex = (uint)i;
                             m_ExpressionValues.Add(value);
                         }
-                        else if (exp is VFXExpressionExtractComponent)
-                        {
-                            var extractExp = (VFXExpressionExtractComponent)exp;
-                            data[0] = m_ExpressionGraph.GetFlattenedIndex(exp.Parents[0]);
-                            data[1] = extractExp.Channel;
-                            data[2] = VFXExpression.TypeToSize(exp.Parents[0].ValueType);
-                        }
-                        else if (exp is VFXExpressionFloatOperation && !(exp is VFXExpressionCombine)) // TODO Make a better test
-                        {
-                            var parents = exp.Parents;
-                            if (parents.Length > 3)
-                                throw new Exception("parents length cannot be more than 3 for float operations");
-                            for (int j = 0; j < parents.Length; ++j)
-                                data[j] = m_ExpressionGraph.GetFlattenedIndex(parents[j]);
-                            data[3] = VFXExpression.TypeToSize(exp.ValueType);
-                        }
-                        else
-                        {
-                            var parents = exp.Parents;
-                            for (int j = 0; j < parents.Length; ++j)
-                                data[j] = m_ExpressionGraph.GetFlattenedIndex(parents[j]);
-                        }
-                        // TODO Transformation expressions
 
                         expressionDescs[i].op = exp.Operation;
                         expressionDescs[i].data = data;

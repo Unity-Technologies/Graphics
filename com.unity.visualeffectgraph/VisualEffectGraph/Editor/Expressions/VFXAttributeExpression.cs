@@ -131,11 +131,6 @@ namespace UnityEditor.VFX
             return this;
         }
 
-        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            return this;
-        }
-
         public override string GetCodeString(string[] parents)
         {
             return attributeName;
