@@ -305,6 +305,7 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
+#if UNDO_REDO_IMPLEMENTED
         [Test]
         public void UndoRedoAddOperator()
         {
@@ -507,7 +508,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoOperatorSettings()
         {
-            /* CreateTestAsset();
+            CreateTestAsset();
 
              Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                  {
@@ -538,7 +539,7 @@ namespace UnityEditor.VFX.Test
              componentMaskPresenter.settings = new VFXOperatorComponentMask.Settings() { mask = final };
              Assert.AreEqual(final, (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
 
-             DestroyTestAsset();*/
+             DestroyTestAsset();
         }
 
         [Test]
@@ -574,7 +575,6 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
-#if WIP_ENABLE_UNDO_REDO_CONTEXT //see RecordFlowEdgePresenter, refactor in progress
         [Test]
         public void UndoRedoContext()
         {
@@ -672,7 +672,6 @@ namespace UnityEditor.VFX.Test
 
             DestroyTestAsset();
         }
-
 #endif
     }
 }

@@ -38,7 +38,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposedName != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed Name");
                     parameter.exposedName = value;
                 }
             }
@@ -50,7 +49,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposed != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed");
                     parameter.exposed = value;
                 }
             }
