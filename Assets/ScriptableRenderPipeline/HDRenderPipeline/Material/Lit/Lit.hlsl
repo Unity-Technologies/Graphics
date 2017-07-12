@@ -732,10 +732,19 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
     float3 lightToSurface = positionWS - lightData.positionWS;
     float2 positionNDC    = float2(dot(lightToSurface, lightData.right), dot(lightToSurface, lightData.up));
-    bool   isInBounds     = abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1;
 
     // Clip only box projector lights.
-    float clipFactor  = (lightType != GPULIGHTTYPE_PROJECTOR_BOX || isInBounds) ? 1 : 0;
+    float clipFactor = 1;
+
+    // Static branch.
+    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1;
+        // float clipFactor = isInBounds ? 1 : 0;
+        // This version is slightly faster (trade 1x VALU for 1x SALU):
+        clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y)));
+    }
+
     float attenuation = clipFactor;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
@@ -866,8 +875,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         {
             // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
             // Box projector lights require no perspective division.
-            float2 positionNDC = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.xy / positionLS.z : positionLS.xy;
-            bool   isInBounds  = abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1;
+            positionLS.z = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+            float2 positionNDC = positionLS.xy / positionLS.z;
+            // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1;
+            // float clipFactor = isInBounds ? 1 : 0;
+            // This version is slightly faster (trade 1x VALU for 1x SALU):
+            float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y)));
 
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
@@ -876,7 +889,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
             // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * (c.a * (isInBounds ? 1 : 0));
+            cookie = c.rgb * (c.a * clipFactor);
         }
     }
 
