@@ -227,4 +227,131 @@ namespace UnityEditor.VFX
             return string.Format("pow({0}, {1})", left, right);
         }
     }
+
+    class VFXExpressionBitwiseLeftShift : VFXExpressionBinaryUIntOperation
+    {
+        public VFXExpressionBitwiseLeftShift()
+            : this(VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseLeftShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseLeftShiftOp)
+        {
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left << (int)right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} << {1}", left, right);
+        }
+    }
+
+    class VFXExpressionBitwiseRightShift : VFXExpressionBinaryUIntOperation
+    {
+        public VFXExpressionBitwiseRightShift() : this(VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseRightShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseRightShiftOp)
+        {
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left >> (int)right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} >> {1}", left, right);
+        }
+    }
+
+    class VFXExpressionBitwiseOr : VFXExpressionBinaryUIntOperation
+    {
+        public VFXExpressionBitwiseOr() : this(VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseOr(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseOrOp)
+        {
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left | right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} | {1}", left, right);
+        }
+    }
+
+    class VFXExpressionBitwiseAnd : VFXExpressionBinaryUIntOperation
+    {
+        public VFXExpressionBitwiseAnd() : this(VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseAnd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseAndOp)
+        {
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left & right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} & {1}", left, right);
+        }
+    }
+
+    class VFXExpressionBitwiseXor : VFXExpressionBinaryUIntOperation
+    {
+        public VFXExpressionBitwiseXor() : this(VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseXor(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseXorOp)
+        {
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left ^ right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} ^ {1}", left, right);
+        }
+    }
+
+    class VFXExpressionBitwiseComplement : VFXExpressionUnaryUIntOperation
+    {
+        public VFXExpressionBitwiseComplement() : this(VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionBitwiseComplement(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXBitwiseComplementOp)
+        {
+        }
+
+        sealed protected override uint ProcessUnaryOperation(uint input)
+        {
+            return ~input;
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("~{0}", x);
+        }
+    }
 }

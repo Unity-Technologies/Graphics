@@ -27,6 +27,11 @@ namespace UnityEditor.VFX
                 || valueType == VFXValueType.kFloat4;
         }
 
+        public static bool IsUIntValueType(VFXValueType valueType)
+        {
+            return valueType == VFXValueType.kUint;
+        }
+
         public static int TypeToSize(VFXValueType type)
         {
             switch (type)
@@ -203,14 +208,14 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            var addionnalParams = AdditionnalParameters;
-            var otherAdditionnalParams = other.AdditionnalParameters;
+            var additionalParams = AdditionalParameters;
+            var otherAdditionalParams = other.AdditionalParameters;
 
-            if (addionnalParams.Length != otherAdditionnalParams.Length)
+            if (additionalParams.Length != otherAdditionalParams.Length)
                 return false;
 
-            for (int i = 0; i < addionnalParams.Length; ++i)
-                if (addionnalParams[i] != otherAdditionnalParams[i])
+            for (int i = 0; i < additionalParams.Length; ++i)
+                if (additionalParams[i] != otherAdditionalParams[i])
                     return false;
 
             //if (GetHashCode() != obj.GetHashCode())
@@ -242,9 +247,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            var addionnalParameters = AdditionnalParameters;
-            for (int i = 0; i < addionnalParameters.Length; ++i)
-                hash = (hash * 397) ^ addionnalParameters[i].GetHashCode();
+            var additionalParameters = AdditionalParameters;
+            for (int i = 0; i < additionalParameters.Length; ++i)
+                hash = (hash * 397) ^ additionalParameters[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
             hash = (hash * 397) ^ ValueType.GetHashCode();
@@ -253,7 +258,7 @@ namespace UnityEditor.VFX
             return hash;
         }
 
-        public virtual int[] AdditionnalParameters { get { return new int[] {}; } }
+        public virtual int[] AdditionalParameters { get { return new int[] {}; } }
         public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);

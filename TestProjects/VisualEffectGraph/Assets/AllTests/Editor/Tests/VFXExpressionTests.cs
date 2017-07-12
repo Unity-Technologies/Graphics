@@ -36,9 +36,9 @@ namespace UnityEditor.VFX.Test
             }
 
             var fnName = expression.GetType().Name;
-            foreach (var additionnalParam in expression.AdditionnalParameters)
+            foreach (var additionalParam in expression.AdditionalParameters)
             {
-                fnName += additionnalParam.ToString();
+                fnName += additionalParam.ToString();
             }
 
             // TODO Fix that

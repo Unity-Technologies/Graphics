@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
         protected VFXExpressionFloatOperation(VFXExpression[] parents)
             : base(Flags.None, parents)
         {
-            m_AdditionnalParameters = new int[] {};
+            m_AdditionalParameters = new int[] {};
         }
 
         static private float[] ToFloatArray(float input) { return new float[] { input }; }
@@ -43,12 +43,12 @@ namespace UnityEditor.VFX
 
         sealed public override VFXValueType ValueType { get { return m_ValueType; } }
         sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
-        sealed public override int[] AdditionnalParameters { get { return m_AdditionnalParameters; } }
+        sealed public override int[] AdditionalParameters { get { return m_AdditionalParameters; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)base.Reduce(reducedParents);
-            newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
+            newExpression.m_AdditionalParameters = m_AdditionalParameters.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
             newExpression.m_ValueType = m_ValueType;
             return newExpression;
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
             FillOperandsWithParentsAndValueSize(data, this, graph);
         }
 
-        protected int[] m_AdditionnalParameters;
+        protected int[] m_AdditionalParameters;
         protected VFXExpressionOp m_Operation;
         protected VFXValueType m_ValueType;
     }
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
             }
 
             m_ValueType = parent.ValueType;
-            m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
             m_Operation = operation;
         }
 
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
             }
 
             m_ValueType = parentLeft.ValueType;
-            m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
             m_Operation = operation;
         }
 
@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
             }
 
             m_ValueType = a.ValueType;
-            m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
             m_Operation = operation;
         }
 
