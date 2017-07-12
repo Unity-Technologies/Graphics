@@ -161,8 +161,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         {
             float3 localDiffuseLighting, localSpecularLighting;
 
-            EvaluateBSDF_Directional(   context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
-                                        localDiffuseLighting, localSpecularLighting);
+            EvaluateBSDF_Directional(context, V, posInput, prelightData,
+                                     GPULIGHTTYPE_DIRECTIONAL, _DirectionalLightDatas[i], bsdfData,
+                                     localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
             specularLighting += localSpecularLighting;
@@ -215,28 +216,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                                     localDiffuseLighting, localSpecularLighting);
             }
 
-
-            diffuseLighting += localDiffuseLighting;
-            specularLighting += localSpecularLighting;
-        }
-    }
-#endif
-
-#ifdef PROCESS_PROJECTOR_LIGHT
-    if(featureFlags & LIGHTFEATUREFLAGS_PROJECTOR)
-    {
-        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
-        uint projectorLightStart;
-        uint projectorLightCount;
-        GetCountAndStart(posInput, LIGHTCATEGORY_PROJECTOR, projectorLightStart, projectorLightCount);
-        for(i = 0; i < projectorLightCount; ++i)
-        {
-            float3 localDiffuseLighting, localSpecularLighting;
-
-            uint projectorIndex = FetchIndex(projectorLightStart, i);
-
-            EvaluateBSDF_Projector(context, V, posInput, prelightData, _LightDatas[projectorIndex], bsdfData,
-                                   localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
             specularLighting += localSpecularLighting;
@@ -327,8 +306,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
-        EvaluateBSDF_Directional(   context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
-                                    localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Directional(context, V, posInput, prelightData,
+                                 GPULIGHTTYPE_DIRECTIONAL, _DirectionalLightDatas[i], bsdfData,
+                                 localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
@@ -359,17 +339,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
                                 localDiffuseLighting, localSpecularLighting);
         }
-
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
-    }
-
-    for (; i < _PunctualLightCount + _AreaLightCount + _ProjectorLightCount; ++i)
-    {
-        float3 localDiffuseLighting, localSpecularLighting;
-
-        EvaluateBSDF_Projector(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
-                                 localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;

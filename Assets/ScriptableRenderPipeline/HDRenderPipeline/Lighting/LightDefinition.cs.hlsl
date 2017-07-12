@@ -8,9 +8,9 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.GPULightType:  static fields
 //
 #define GPULIGHTTYPE_DIRECTIONAL (0)
-#define GPULIGHTTYPE_SPOT (1)
-#define GPULIGHTTYPE_POINT (2)
-#define GPULIGHTTYPE_PROJECTOR_ORTHO (3)
+#define GPULIGHTTYPE_PROJECTOR_BOX (1)
+#define GPULIGHTTYPE_SPOT (2)
+#define GPULIGHTTYPE_POINT (3)
 #define GPULIGHTTYPE_PROJECTOR_PYRAMID (4)
 #define GPULIGHTTYPE_RECTANGLE (5)
 #define GPULIGHTTYPE_LINE (6)
@@ -39,6 +39,22 @@
 #define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
 #define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
 
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
+// PackingRules = Exact
+struct DirectionalLightData
+{
+    float3 positionWS;
+    float unused;
+    float3 color;
+    int shadowIndex;
+    float3 forward;
+    int cookieIndex;
+    float3 right;
+    float specularScale;
+    float3 up;
+    float diffuseScale;
+};
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
 // PackingRules = Exact
 struct LightData
@@ -46,40 +62,20 @@ struct LightData
     float3 positionWS;
     float invSqrAttenuationRadius;
     float3 color;
-    float angleScale;
+    int shadowIndex;
     float3 forward;
-    float angleOffset;
-    float3 up;
-    float diffuseScale;
+    int cookieIndex;
     float3 right;
     float specularScale;
+    float3 up;
+    float diffuseScale;
+    float angleScale;
+    float angleOffset;
     float shadowDimmer;
-    int shadowIndex;
     int IESIndex;
-    int cookieIndex;
     float2 size;
     int lightType;
     float unused;
-};
-
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
-// PackingRules = Exact
-struct DirectionalLightData
-{
-    float3 forward;
-    float diffuseScale;
-    float3 up;
-    float invScaleY;
-    float3 right;
-    float invScaleX;
-    float3 positionWS;
-    bool tileCookie;
-    float3 color;
-    float specularScale;
-    float cosAngle;
-    float sinAngle;
-    int shadowIndex;
-    int cookieIndex;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -101,6 +97,50 @@ struct EnvLightData
 };
 
 //
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
+//
+float3 GetPositionWS(DirectionalLightData value)
+{
+	return value.positionWS;
+}
+float GetUnused(DirectionalLightData value)
+{
+	return value.unused;
+}
+float3 GetColor(DirectionalLightData value)
+{
+	return value.color;
+}
+int GetShadowIndex(DirectionalLightData value)
+{
+	return value.shadowIndex;
+}
+float3 GetForward(DirectionalLightData value)
+{
+	return value.forward;
+}
+int GetCookieIndex(DirectionalLightData value)
+{
+	return value.cookieIndex;
+}
+float3 GetRight(DirectionalLightData value)
+{
+	return value.right;
+}
+float GetSpecularScale(DirectionalLightData value)
+{
+	return value.specularScale;
+}
+float3 GetUp(DirectionalLightData value)
+{
+	return value.up;
+}
+float GetDiffuseScale(DirectionalLightData value)
+{
+	return value.diffuseScale;
+}
+
+//
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.LightData
 //
 float3 GetPositionWS(LightData value)
@@ -115,25 +155,17 @@ float3 GetColor(LightData value)
 {
 	return value.color;
 }
-float GetAngleScale(LightData value)
+int GetShadowIndex(LightData value)
 {
-	return value.angleScale;
+	return value.shadowIndex;
 }
 float3 GetForward(LightData value)
 {
 	return value.forward;
 }
-float GetAngleOffset(LightData value)
+int GetCookieIndex(LightData value)
 {
-	return value.angleOffset;
-}
-float3 GetUp(LightData value)
-{
-	return value.up;
-}
-float GetDiffuseScale(LightData value)
-{
-	return value.diffuseScale;
+	return value.cookieIndex;
 }
 float3 GetRight(LightData value)
 {
@@ -143,21 +175,29 @@ float GetSpecularScale(LightData value)
 {
 	return value.specularScale;
 }
+float3 GetUp(LightData value)
+{
+	return value.up;
+}
+float GetDiffuseScale(LightData value)
+{
+	return value.diffuseScale;
+}
+float GetAngleScale(LightData value)
+{
+	return value.angleScale;
+}
+float GetAngleOffset(LightData value)
+{
+	return value.angleOffset;
+}
 float GetShadowDimmer(LightData value)
 {
 	return value.shadowDimmer;
 }
-int GetShadowIndex(LightData value)
-{
-	return value.shadowIndex;
-}
 int GetIESIndex(LightData value)
 {
 	return value.IESIndex;
-}
-int GetCookieIndex(LightData value)
-{
-	return value.cookieIndex;
 }
 float2 GetSize(LightData value)
 {
@@ -170,66 +210,6 @@ int GetLightType(LightData value)
 float GetUnused(LightData value)
 {
 	return value.unused;
-}
-
-//
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
-//
-float3 GetForward(DirectionalLightData value)
-{
-	return value.forward;
-}
-float GetDiffuseScale(DirectionalLightData value)
-{
-	return value.diffuseScale;
-}
-float3 GetUp(DirectionalLightData value)
-{
-	return value.up;
-}
-float GetInvScaleY(DirectionalLightData value)
-{
-	return value.invScaleY;
-}
-float3 GetRight(DirectionalLightData value)
-{
-	return value.right;
-}
-float GetInvScaleX(DirectionalLightData value)
-{
-	return value.invScaleX;
-}
-float3 GetPositionWS(DirectionalLightData value)
-{
-	return value.positionWS;
-}
-bool GetTileCookie(DirectionalLightData value)
-{
-	return value.tileCookie;
-}
-float3 GetColor(DirectionalLightData value)
-{
-	return value.color;
-}
-float GetSpecularScale(DirectionalLightData value)
-{
-	return value.specularScale;
-}
-float GetCosAngle(DirectionalLightData value)
-{
-	return value.cosAngle;
-}
-float GetSinAngle(DirectionalLightData value)
-{
-	return value.sinAngle;
-}
-int GetShadowIndex(DirectionalLightData value)
-{
-	return value.shadowIndex;
-}
-int GetCookieIndex(DirectionalLightData value)
-{
-	return value.cookieIndex;
 }
 
 //

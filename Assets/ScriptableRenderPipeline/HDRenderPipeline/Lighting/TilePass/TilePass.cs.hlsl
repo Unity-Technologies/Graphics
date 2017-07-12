@@ -17,9 +17,8 @@
 //
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
-#define LIGHTCATEGORY_PROJECTOR (2)
-#define LIGHTCATEGORY_ENV (3)
-#define LIGHTCATEGORY_COUNT (4)
+#define LIGHTCATEGORY_ENV (2)
+#define LIGHTCATEGORY_COUNT (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightFeatureFlags:  static fields
@@ -27,9 +26,8 @@
 #define LIGHTFEATUREFLAGS_PUNCTUAL (1)
 #define LIGHTFEATUREFLAGS_AREA (2)
 #define LIGHTFEATUREFLAGS_DIRECTIONAL (4)
-#define LIGHTFEATUREFLAGS_PROJECTOR (8)
-#define LIGHTFEATUREFLAGS_ENV (16)
-#define LIGHTFEATUREFLAGS_SKY (32)
+#define LIGHTFEATUREFLAGS_ENV (8)
+#define LIGHTFEATUREFLAGS_SKY (16)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields
