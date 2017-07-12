@@ -730,8 +730,10 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3 lightToSurface = positionWS - lightData.positionWS;
-    float2 positionNDC    = float2(dot(lightToSurface, lightData.right), dot(lightToSurface, lightData.up));
+    float3   lightToSurface = positionWS - lightData.positionWS;
+    float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
+    float2   positionNDC    = positionLS.xy;
 
     // Clip only box projector lights.
     float clipFactor = 1;
@@ -739,10 +741,10 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // Static branch.
     if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
-        // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1;
+        // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
         // float clipFactor = isInBounds ? 1 : 0;
         // This version is slightly faster (trade 1x VALU for 1x SALU):
-        clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y)));
+        float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y))) * (positionLS.z >= 0 ? 1 : 0);
     }
 
     float attenuation = clipFactor;
@@ -875,12 +877,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         {
             // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
             // Box projector lights require no perspective division.
-            positionLS.z = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
-            float2 positionNDC = positionLS.xy / positionLS.z;
-            // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1;
+            float perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+            float2 positionNDC = positionLS.xy / perspectiveZ;
+            // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
             // float clipFactor = isInBounds ? 1 : 0;
             // This version is slightly faster (trade 1x VALU for 1x SALU):
-            float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y)));
+            float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y))) * (positionLS.z >= 0 ? 1 : 0);
 
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
