@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public abstract partial class VFXExpression
+    abstract partial class VFXExpression
     {
         [Flags]
         public enum Flags
@@ -56,6 +57,8 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4: return "float4";
                 case VFXValueType.kInt: return "int";
                 case VFXValueType.kUint: return "uint";
+                case VFXValueType.kTexture2D: return "Texture2D";
+                case VFXValueType.kTexture3D: return "Texture3D";
                 case VFXValueType.kTransform: return "float4x4";
             }
             throw new NotImplementedException(type.ToString());
@@ -92,6 +95,21 @@ namespace UnityEditor.VFX
             }
 
             return false;
+        }
+
+        protected static void FillOperandsWithParents(int[] data, VFXExpression exp, VFXExpressionGraph graph)
+        {
+            var parents = exp.Parents;
+            for (int i = 0; i < parents.Length; ++i)
+                data[i] = graph.GetFlattenedIndex(parents[i]);
+        }
+
+        protected static void FillOperandsWithParentsAndValueSize(int[] data, VFXExpression exp, VFXExpressionGraph graph)
+        {
+            if (exp.Parents.Length > 3)
+                throw new Exception("parents length cannot be more than 3 for operation of variable size");
+            FillOperandsWithParents(data, exp, graph);
+            data[3] = VFXExpression.TypeToSize(exp.ValueType);
         }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
@@ -133,10 +151,39 @@ namespace UnityEditor.VFX
             return expressions;
         }
 
-        // Reduce the expression within a given context
-        protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
-        protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
-        public abstract string GetCodeString(string[] parents);
+        // Reduce the expression
+        protected virtual VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            if (reducedParents.Length == 0)
+                return this;
+
+            var reduced = CreateNewInstance();
+            reduced.Initialize(m_Flags, reducedParents);
+            return reduced;
+        }
+
+        // Evaluate the expression
+        protected virtual VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            throw new NotImplementedException();
+        }
+
+        // Get the HLSL code snippet
+        public virtual string GetCodeString(string[] parents)
+        {
+            throw new NotImplementedException();
+        }
+
+        // Get the operands for the runtime evaluation
+        public virtual void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            FillOperandsWithParents(data, this, graph);
+        }
+
+        public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            return Enumerable.Empty<VFXAttributeInfo>();
+        }
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }

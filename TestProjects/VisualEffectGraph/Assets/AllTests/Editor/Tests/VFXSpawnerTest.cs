@@ -13,8 +13,10 @@ namespace UnityEditor.VFX.Test
     public class VFXSpawnerTest
     {
         [UnityTest]
+        [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
+            EditorApplication.ExecuteMenuItem("Window/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -37,10 +39,12 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
-            while (vfxComponent.culled)
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
             {
                 yield return null;
             }
+            Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
             var spawnerState = vfxComponent.GetSpawnerState(0);
@@ -50,8 +54,10 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        [Timeout(1000 * 10)]
         public IEnumerator CreateEventAttributeAndStart()
         {
+            EditorApplication.ExecuteMenuItem("Window/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -73,10 +79,12 @@ namespace UnityEditor.VFX.Test
             vfxEventAttr.SetFloat("lifeTime", lifeTimeIn);
             vfxComponent.Start(vfxEventAttr);
 
-            while (vfxComponent.culled)
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
             {
                 yield return null;
             }
+            Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
             var spawnerState = vfxComponent.GetSpawnerState(0);
@@ -87,8 +95,10 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerAndComponent()
         {
+            EditorApplication.ExecuteMenuItem("Window/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -110,10 +120,12 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
-            while (vfxComponent.culled)
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
             {
                 yield return null;
             }
+            Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
             var spawnerState = vfxComponent.GetSpawnerState(0);

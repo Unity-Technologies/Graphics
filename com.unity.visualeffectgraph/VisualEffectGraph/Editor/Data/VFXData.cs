@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using System.Linq;
 
@@ -162,19 +163,14 @@ namespace UnityEditor.VFX
         // Collect attribute expressions recursively
         private IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp)
         {
-            if (exp is VFXAttributeExpression)
+            if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
             {
-                VFXAttributeInfo info;
-                info.attrib = ((VFXAttributeExpression)exp).attribute; // TODO
-                info.mode = VFXAttributeMode.Read;
-                yield return info;
-            }
-            else if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
-            {
+                foreach (var info in exp.GetNeededAttributes())
+                    yield return info;
+
                 foreach (var parent in exp.Parents)
                 {
-                    var res = CollectInputAttributes(parent);
-                    foreach (var info in res)
+                    foreach (var info in CollectInputAttributes(parent))
                         yield return info;
                 }
             }
@@ -182,26 +178,30 @@ namespace UnityEditor.VFX
 
         private void DebugLogAttributes()
         {
-            Debug.Log(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
+            var builder = new StringBuilder();
+
+            builder.AppendLine(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
             foreach (var context in owners)
             {
                 Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
                 if (m_ContextsToAttributes.TryGetValue(context, out attributeInfos))
                 {
-                    Debug.Log(string.Format("\tContext {0}", context.GetHashCode()));
+                    builder.AppendLine(string.Format("\tContext {0}", context.GetHashCode()));
                     foreach (var kvp in attributeInfos)
-                        Debug.Log(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
+                        builder.AppendLine(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
                 }
             }
+
+            Debug.Log(builder.ToString());
         }
 
         [SerializeField]
-        private List<VFXContext> m_Owners;
+        protected List<VFXContext> m_Owners;
 
         //[NonSerialized]
         public int m_TestId;
 
-        private Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
-        private Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
+        protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
+        protected Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
     }
 }

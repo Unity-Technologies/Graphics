@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -130,14 +131,14 @@ namespace UnityEditor.VFX
             return this;
         }
 
-        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            return this;
-        }
-
         public override string GetCodeString(string[] parents)
         {
             return attributeName;
+        }
+
+        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
         }
     }
 }

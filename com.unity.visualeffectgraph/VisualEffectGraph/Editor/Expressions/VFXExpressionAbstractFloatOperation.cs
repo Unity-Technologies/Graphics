@@ -47,12 +47,16 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
-            newExpression.Initialize(Flags.None, reducedParents);
+            var newExpression = (VFXExpressionFloatOperation)base.Reduce(reducedParents);
             newExpression.m_AdditionalParameters = m_AdditionalParameters.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
             newExpression.m_ValueType = m_ValueType;
             return newExpression;
+        }
+
+        public override void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            FillOperandsWithParentsAndValueSize(data, this, graph);
         }
 
         protected int[] m_AdditionalParameters;

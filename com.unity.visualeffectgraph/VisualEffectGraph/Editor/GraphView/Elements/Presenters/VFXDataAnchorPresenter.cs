@@ -109,10 +109,10 @@ namespace UnityEditor.VFX.UI
             get { return model.path; }
         }
 
-		public VFXPropertyAttribute[] attributes
-		{
-			get { return model.property.attributes; }
-		}
+        public VFXPropertyAttribute[] attributes
+        {
+            get { return model.property.attributes; }
+        }
 
         public int depth
         {
@@ -181,13 +181,11 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            Undo.RecordObject(model, "Change Value");
             model.value = value;
         }
 
         public void ExpandPath()
         {
-            Undo.RecordObject(model, "Expand path");
             model.expanded = true;
             model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
         }

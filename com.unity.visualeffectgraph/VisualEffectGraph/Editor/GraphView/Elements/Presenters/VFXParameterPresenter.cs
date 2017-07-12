@@ -38,7 +38,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposedName != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed Name");
                     parameter.exposedName = value;
                 }
             }
@@ -50,7 +49,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposed != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed");
                     parameter.exposed = value;
                 }
             }
@@ -82,7 +80,7 @@ namespace UnityEditor.VFX.UI
         }
 
         string IPropertyRMProvider.name { get { return "Value"; } }
-		VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return null; } }
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return null; } }
 
         public Type anchorType
         {

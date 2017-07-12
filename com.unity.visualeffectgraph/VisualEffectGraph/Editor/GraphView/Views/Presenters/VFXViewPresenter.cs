@@ -190,44 +190,11 @@ namespace UnityEditor.VFX.UI
             Remove
         }
 
-        private void RecordEdgePresenter(VFXDataEdgePresenter dataEdge, RecordEvent e)
-        {
-            var fromAnchor = dataEdge.output as VFXDataAnchorPresenter;
-            var toAnchor = dataEdge.input as VFXDataAnchorPresenter;
-            if (fromAnchor == null ||  toAnchor == null) return;  // no need to record invalid edge
-            var from = fromAnchor.sourceNode.slotContainer as IVFXSlotContainer;
-            var to = toAnchor.sourceNode.slotContainer as IVFXSlotContainer;
-            var children = new HashSet<IVFXSlotContainer>();
-            CollectChildOperator(from, children);
-            CollectChildOperator(to, children);
-
-            var allOperator = children.OfType<Object>().ToArray();
-            var allSlot = children.SelectMany(c => c.outputSlots.Concat(c.inputSlots)).OfType<Object>().ToArray();
-            Undo.RecordObjects(allOperator.Concat(allSlot).ToArray(), string.Format("{0} Edge", e == RecordEvent.Add ? "Add Edge" : "Remove Edge"));
-        }
-
-        private void RecordFlowEdgePresenter(VFXFlowEdgePresenter flowEdge, RecordEvent e)
-        {
-            var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner;
-            var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner;
-            var objects = new Object[] { context0, context1, context0.GetParent(), context1.GetParent() }.Where(o => o != null).ToArray();
-            var eventName = string.Format("{0} FlowEdge", e == RecordEvent.Add ? "Add" : "Remove");
-            Undo.RecordObjects(objects, eventName);
-
-            Undo.RegisterFullObjectHierarchyUndo(m_Graph, eventName); //Hotfix : VFXContext issue, refactor in progress
-        }
-
-        private void RecordAll(string modelName, RecordEvent e)
-        {
-            Undo.RegisterFullObjectHierarchyUndo(m_Graph, string.Format("{0} {1}", e == RecordEvent.Add ? "Add" : "Remove", modelName)); //Full hierarchy for VFXContext, refactor in progress (hotfix)
-        }
-
         public override void AddElement(EdgePresenter edge)
         {
             if (edge is VFXFlowEdgePresenter)
             {
                 var flowEdge = (VFXFlowEdgePresenter)edge;
-                RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
 
                 var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner;
                 var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner;
@@ -241,7 +208,6 @@ namespace UnityEditor.VFX.UI
             else if (edge is VFXDataEdgePresenter)
             {
                 var flowEdge = edge as VFXDataEdgePresenter;
-                RecordEdgePresenter(flowEdge, RecordEvent.Add);
                 var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
                 var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
 
@@ -272,7 +238,6 @@ namespace UnityEditor.VFX.UI
             if (element is VFXContextPresenter)
             {
                 VFXContext context = ((VFXContextPresenter)element).context;
-                RecordAll(context.name, RecordEvent.Remove);
 
                 // Remove connections from context
                 foreach (var slot in context.inputSlots)
@@ -308,7 +273,6 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXSlotContainerPresenter)
             {
                 var operatorPresenter = element as VFXSlotContainerPresenter;
-                RecordAll(operatorPresenter.model.name, RecordEvent.Remove);
                 VFXSlot slotToClean = null;
                 do
                 {
@@ -322,13 +286,11 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 m_Graph.RemoveChild(operatorPresenter.model);
-                Undo.DestroyObjectImmediate(operatorPresenter.model);
                 RecreateNodeEdges();
             }
             else if (element is VFXFlowEdgePresenter)
             {
                 var flowEdge = element as VFXFlowEdgePresenter;
-                RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
 
                 var context0 = ((VFXFlowAnchorPresenter)(flowEdge.input)).Owner as VFXContext;
                 var context1 = ((VFXFlowAnchorPresenter)(flowEdge.output)).Owner as VFXContext;
@@ -340,7 +302,6 @@ namespace UnityEditor.VFX.UI
                 var edge = element as VFXDataEdgePresenter;
                 var to = edge.input as VFXDataAnchorPresenter;
 
-                RecordEdgePresenter(edge, RecordEvent.Remove);
                 if (to != null)
                 {
                     var slot = to.model;
@@ -522,7 +483,6 @@ namespace UnityEditor.VFX.UI
 
         private void AddVFXModel(Vector2 pos, VFXModel model)
         {
-            RecordAll(model.name, RecordEvent.Add);
             model.position = pos;
             m_Graph.AddChild(model);
         }

@@ -86,5 +86,12 @@ namespace UnityEditor.VFX
         {
             return string.Format("{0}[{1}];", parents[0], AdditionalParameters[1]);
         }
+
+        public sealed override void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            data[0] = graph.GetFlattenedIndex(Parents[0]);
+            data[1] = Channel;
+            data[2] = VFXExpression.TypeToSize(Parents[0].ValueType);
+        }
     }
 }

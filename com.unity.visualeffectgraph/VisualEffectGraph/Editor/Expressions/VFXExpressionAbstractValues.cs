@@ -36,11 +36,6 @@ namespace UnityEditor.VFX
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            return this;
-        }
-
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (m_Mode == Mode.Constant)
@@ -52,9 +47,14 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", ValueType));
 
             return GetContent().ToString();
+        }
+
+        public override void FillOperands(int[] data, VFXExpressionGraph graph)
+        {
+            data[0] = (int)ValueType;
         }
 
         abstract public VFXValue CopyExpression(Mode mode);

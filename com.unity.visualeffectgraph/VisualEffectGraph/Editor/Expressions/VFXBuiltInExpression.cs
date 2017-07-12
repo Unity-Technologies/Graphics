@@ -67,15 +67,5 @@ namespace UnityEditor.VFX
         {
             return this;
         }
-
-        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            return this;
-        }
-
-        public override string GetCodeString(string[] parents)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

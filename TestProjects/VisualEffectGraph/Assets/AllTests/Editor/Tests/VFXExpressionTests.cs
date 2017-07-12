@@ -9,7 +9,7 @@ using UnityEditor.VFX;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXExpressionTests
+    class VFXExpressionTests
     {
         //Will be function of Context Code builder
         static private string temp_GetUniqueName(object expression)
