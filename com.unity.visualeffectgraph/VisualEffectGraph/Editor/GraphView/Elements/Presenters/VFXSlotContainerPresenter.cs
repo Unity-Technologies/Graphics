@@ -24,7 +24,6 @@ namespace UnityEditor.VFX.UI
             set
             {
                 base.position = value;
-                Undo.RecordObject(model, "Position");
                 model.position = position.position;
             }
         }
@@ -151,7 +150,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (value != slotContainer.expanded)
                 {
-                    Undo.RecordObject(slotContainer as UnityEngine.Object, "Collapse");
                     slotContainer.expanded = value;
                 }
             }

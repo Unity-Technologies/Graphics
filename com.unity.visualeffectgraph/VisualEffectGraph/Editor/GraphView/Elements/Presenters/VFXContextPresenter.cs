@@ -105,7 +105,6 @@ namespace UnityEditor.VFX.UI
 
         public void RemoveBlock(VFXBlock block)
         {
-            Undo.RecordObject(model, "Remove Block");
             context.RemoveChild(block);
 
             VFXSlot slotToClean = null;
@@ -119,8 +118,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
             while (slotToClean != null);
-
-            Undo.DestroyObjectImmediate(block);
         }
 
         public int FindBlockIndexOf(VFXBlockPresenter presenter)
