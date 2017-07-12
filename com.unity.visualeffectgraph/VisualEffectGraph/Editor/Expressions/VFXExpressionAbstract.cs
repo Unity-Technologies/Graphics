@@ -161,14 +161,14 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            var addionalParams = AdditionalParameters;
+            var additionalParams = AdditionalParameters;
             var otherAdditionalParams = other.AdditionalParameters;
 
-            if (addionalParams.Length != otherAdditionalParams.Length)
+            if (additionalParams.Length != otherAdditionalParams.Length)
                 return false;
 
-            for (int i = 0; i < addionalParams.Length; ++i)
-                if (addionalParams[i] != otherAdditionalParams[i])
+            for (int i = 0; i < additionalParams.Length; ++i)
+                if (additionalParams[i] != otherAdditionalParams[i])
                     return false;
 
             //if (GetHashCode() != obj.GetHashCode())
@@ -200,9 +200,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            var addionalParameters = AdditionalParameters;
-            for (int i = 0; i < addionalParameters.Length; ++i)
-                hash = (hash * 397) ^ addionalParameters[i].GetHashCode();
+            var additionalParameters = AdditionalParameters;
+            for (int i = 0; i < additionalParameters.Length; ++i)
+                hash = (hash * 397) ^ additionalParameters[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
             hash = (hash * 397) ^ ValueType.GetHashCode();
