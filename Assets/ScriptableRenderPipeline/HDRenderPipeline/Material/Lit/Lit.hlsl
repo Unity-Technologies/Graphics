@@ -791,7 +791,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
         // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
