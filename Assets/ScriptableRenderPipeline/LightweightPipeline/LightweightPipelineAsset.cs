@@ -79,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] private bool m_LinearRendering = true;
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
         [SerializeField] private Material m_DefaultParticleMaterial;
@@ -157,6 +158,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return m_Cascade4Split; }
             private set { m_Cascade4Split = value; }
+        }
+
+        public bool ForceLinearRendering
+        {
+            get { return m_LinearRendering; }
+            set { m_LinearRendering = value; }
         }
 
         #endregion
