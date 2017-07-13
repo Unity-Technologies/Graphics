@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using MouseManipulator = UnityEngine.Experimental.UIElements.MouseManipulator;
@@ -30,39 +31,7 @@ namespace UnityEditor.Graphing.Drawing
 			activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
 		}
 
-		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
-        {
-            switch (evt.type)
-            {
-                case EventType.MouseDown:
-                    if (CanStartManipulation(evt))
-                    {
-                        this.TakeCapture();
-                        initialTarget = finalTarget;
-                        UpdateState(evt);
-                    }
-                    break;
-
-                case EventType.mouseDrag:
-                    UpdateState(evt);
-                    break;
-
-                case EventType.MouseUp:
-                    if (CanStopManipulation(evt))
-                    {
-                        this.ReleaseCapture();
-                        // withinInitialTarget = initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition);
-                        if (initialTarget != null && state == ClickerState.Active && onClick != null)
-                            onClick();
-                        initialTarget = null;
-                        UpdateState(evt);
-                    }
-                    break;
-            }
-            return this.HasCapture() ? EventPropagation.Stop : EventPropagation.Continue;
-        }
-
-        void UpdateState(Event evt)
+        void UpdateState(MouseEventBase evt)
         {
             ClickerState newState;
             if (initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition))
@@ -73,6 +42,21 @@ namespace UnityEditor.Graphing.Drawing
             if (onStateChange != null && state != newState)
                 onStateChange(newState);
             state = newState;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);
+        }
+
+        void OnMouseUp(MouseUpEvent evt)
+        {
+            onClick();
         }
     }
 }

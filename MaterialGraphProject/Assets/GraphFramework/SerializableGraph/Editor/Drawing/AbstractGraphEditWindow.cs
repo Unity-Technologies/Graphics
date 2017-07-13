@@ -19,7 +19,7 @@ namespace UnityEditor.Graphing.Drawing
 
 		public static bool allowAlwaysRepaint = true;
 
-        private bool shouldRepaint 
+        private bool shouldRepaint
         {
             get
             {
@@ -46,11 +46,11 @@ namespace UnityEditor.Graphing.Drawing
 
         void OnEnable()
         {
-            var source = CreateDataSource();
-			source.Initialize(inMemoryAsset, this);
-
-            m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView(), source);
+            m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView());
             rootVisualContainer.AddChild(m_GraphEditorDrawer);
+            var source = CreateDataSource();
+            source.Initialize(inMemoryAsset, this);
+            m_GraphEditorDrawer.presenter = source;
         }
 
         void OnDisable()
@@ -62,13 +62,6 @@ namespace UnityEditor.Graphing.Drawing
         {
             if (shouldRepaint)
                 Repaint();
-        }
-
-        private bool focused { get; set; }
-        private void Focus(TimerState timerState)
-        {
-            m_GraphEditorDrawer.graphView.FrameAll();
-            focused = true;
         }
 
 		public void PingAsset()
@@ -86,14 +79,14 @@ namespace UnityEditor.Graphing.Drawing
                 {
                     return;
                 }
-                
+
                 var masterNode = ((MaterialGraphAsset)inMemoryAsset).materialGraph.masterNode;
                 if (masterNode == null)
                     return;
 
                 List<PropertyGenerator.TextureInfo> configuredTextures;
                 masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
-                
+
                 var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
                 if (shaderImporter == null)
                     return;
@@ -135,7 +128,7 @@ namespace UnityEditor.Graphing.Drawing
 			allowAlwaysRepaint = !allowAlwaysRepaint;
 		}
 
-		public void ChangeSelction(Object newSelection, bool refocus = true)
+		public void ChangeSelction(Object newSelection)
 		{
 			if (!EditorUtility.IsPersistent (newSelection))
 				return;
@@ -165,14 +158,8 @@ namespace UnityEditor.Graphing.Drawing
 			var source = CreateDataSource ();
 			source.Initialize (inMemoryAsset, this) ;
 			m_GraphEditorDrawer.presenter = source;
-			//m_GraphView.StretchToParentSize();
-			Repaint ();
-			if (refocus) 
-			{
-				focused = false;
-				m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
-			}
-		}
+            Repaint();
+        }
 
 		public void OnBeforeSerialize()
 		{

@@ -1,4 +1,5 @@
 using RMGUI.GraphView;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -15,19 +16,17 @@ namespace UnityEditor.Graphing.Drawing
         private TitleBarDrawer m_TitleBarDrawer;
 
         // TODO: Create graphView from here rather than have it passed in through constructor
-        public GraphEditorDrawer(GraphView graphView, AbstractGraphPresenter presenter)
+        public GraphEditorDrawer(GraphView graphView)
         {
+            AddStyleSheetPath("Styles/GraphEditor");
+
             m_GraphView = graphView;
             m_GraphView.name = "GraphView";
-            m_TitleBarDrawer = new TitleBarDrawer(presenter.titleBar);
+            m_TitleBarDrawer = new TitleBarDrawer();
             m_TitleBarDrawer.name = "TitleBar";
 
             AddChild(m_TitleBarDrawer);
             AddChild(m_GraphView);
-
-            this.presenter = presenter;
-
-            AddStyleSheetPath("Styles/GraphEditor");
         }
 
         public override void OnDataChanged()
