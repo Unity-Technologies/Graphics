@@ -165,7 +165,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
     if (0)
 #else
-    if (_EnableSSSAndTransmission > 0) // If we globally disable SSS effect, don't modify diffuseColor
+    if (_EnableSSSAndTransmission != 0) // If we globally disable SSS effect, don't modify diffuseColor
 #endif
     {
         // We modify the albedo here as this code is used by all lighting (including light maps and GI).
@@ -745,13 +745,12 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0)
     {
-        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
-        // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-        float3   lightToSurface = positionWS - lightData.positionWS;
-
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float3   positionLS = mul(lightToSurface, transpose(lightToWorld));
-        float2   positionNDC = positionLS.xy;
+    	// Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+    	// 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    	float3   lightToSurface = positionWS - lightData.positionWS;
+    	float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
+    	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
+    	float2   positionNDC    = positionLS.xy;
 
         float clipFactor = 1.0f;
 
@@ -765,10 +764,8 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         }
         else
         {
-            // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
-            // float clipFactor = isInBounds ? 1 : 0;
-            // This version is slightly more efficient:
-            clipFactor = saturate(FLT_MAX - FLT_MAX * Max3(abs(positionNDC.x), abs(positionNDC.y), positionLS.z >= 0 ? 0 : 1));
+			bool isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+        	clipFactor = isInBounds ? 1 : 0;
         }
 
         // We let the sampler handle tiling or clamping to border.
@@ -879,12 +876,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         {
             // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
             // Box projector lights require no perspective division.
-            float perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
-            float2 positionNDC = positionLS.xy / perspectiveZ;
-            // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
-            // float clipFactor = isInBounds ? 1 : 0;
-            // This version is slightly more efficient:
-            float clipFactor = saturate(FLT_MAX - FLT_MAX * Max3(abs(positionNDC.x), abs(positionNDC.y), positionLS.z >= 0 ? 0 : 1));
+            float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+            float2 positionNDC  = positionLS.xy / perspectiveZ;
+            bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+            float  clipFactor   = isInBounds ? 1 : 0;
 
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
