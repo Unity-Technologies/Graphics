@@ -180,6 +180,13 @@ namespace UnityEditor.VFX
             return clone;
         }
 
+        static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
+        {
+            foreach (var master in slotContainer.inputSlots)
+                foreach (var slot in master.GetExpressionSlots())
+                    yield return new VFXNamedExpression(slot.GetExpression(), slot.fullName);
+        }
+
         static private VFXExpression GetExpressionFromObject(object value, VFXValue.Mode mode)
         {
             if (value is float)

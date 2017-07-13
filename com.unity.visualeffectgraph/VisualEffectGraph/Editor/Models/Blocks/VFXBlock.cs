@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); }}
         public virtual string source { get { return null; } }
     }
 }

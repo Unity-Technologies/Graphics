@@ -49,6 +49,18 @@ namespace UnityEditor.VFX
         public List<VFXExpressionMapper> rtMappings = new List<VFXExpressionMapper>();
     }
 
+    struct VFXNamedExpression
+    {
+        public VFXNamedExpression(VFXExpression exp, string name)
+        {
+            this.exp = exp;
+            this.name = name;
+        }
+
+        public VFXExpression exp;
+        public string name;
+    }
+
     class VFXExpressionMapper
     {
         public struct Data
@@ -65,7 +77,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
+        private void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
             foreach (var master in slotContainer.inputSlots)
             {
@@ -83,9 +95,8 @@ namespace UnityEditor.VFX
             var mapper = new VFXExpressionMapper(prefix);
 
             mapper.AddExpressionFromSlotContainer(context, -1);
-            foreach (var block in context.children)
-                for (int i = 0; i < context.GetNbChildren(); ++i)
-                    mapper.AddExpressionFromSlotContainer(context[i], i);
+            for (int i = 0; i < context.GetNbChildren(); ++i)
+                mapper.AddExpressions(context[i].parameters, i);
 
             return mapper;
         }
@@ -127,6 +138,12 @@ namespace UnityEditor.VFX
                 m_ExpressionsData.Add(exp, new List<Data>());
             }
             m_ExpressionsData[exp].Add(data);
+        }
+
+        public void AddExpressions(IEnumerable<VFXNamedExpression> expressions, int id)
+        {
+            foreach (var exp in expressions)
+                AddExpression(exp.exp, exp.name, id);
         }
 
         private Dictionary<VFXExpression, List<Data>> m_ExpressionsData = new Dictionary<VFXExpression, List<Data>>();

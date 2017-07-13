@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
                 {
                     var mapper = new VFXExpressionMapper();
                     for (int i = 0; i < GetNbChildren(); ++i)
-                        mapper.AddExpressionFromSlotContainer(GetChild(i), i);
+                        mapper.AddExpressions(GetChild(i).parameters, i);
                     return mapper;
                 }
 

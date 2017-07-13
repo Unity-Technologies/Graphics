@@ -8,20 +8,10 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            if (target != VFXDeviceTarget.CPU)
-                return null;
+            if (target == VFXDeviceTarget.CPU)
+                return VFXExpressionMapper.FromContext(this);
 
-            var mapper = new VFXExpressionMapper();
-            foreach (var block in children)
-            {
-                int blockId = GetIndex(block);
-                for (int iSlot = 0; iSlot < block.GetNbInputSlots(); ++iSlot)
-                {
-                    var slot = block.GetInputSlot(iSlot);
-                    mapper.AddExpression(slot.GetExpression(), slot.name, blockId);
-                }
-            }
-            return mapper;
+            return null;
         }
     }
 }
