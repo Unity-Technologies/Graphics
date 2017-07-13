@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent defaults = new GUIContent("Defaults");
+            public static GUIContent linearRenderingLabel = new GUIContent("Linear Colorspace", "When enabled Lightweight shader will perform gamma to linear conversion when linear rendering is not supported or disabled");
 
             public static GUIContent maxPixelLights = new GUIContent("Per-Object Pixel Lights",
                     "Max amount of dynamic per-object pixel lights.");
@@ -60,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
         }
 
+        private SerializedProperty m_LinearRenderingProperty;
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
         private SerializedProperty m_EnableLightmapsProp;
@@ -81,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void OnEnable()
         {
+            m_LinearRenderingProperty = serializedObject.FindProperty("m_LinearRendering");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
             m_EnableLightmapsProp = serializedObject.FindProperty("m_EnableLightmaps");
@@ -108,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_LinearRenderingProperty, Styles.linearRenderingLabel);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.maxPixelLights);
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, 4);

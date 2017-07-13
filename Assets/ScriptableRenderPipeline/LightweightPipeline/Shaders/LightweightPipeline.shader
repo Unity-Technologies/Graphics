@@ -73,6 +73,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
+            #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON

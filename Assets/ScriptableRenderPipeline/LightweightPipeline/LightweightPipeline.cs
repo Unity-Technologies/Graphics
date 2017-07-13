@@ -506,6 +506,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleDirecitonal, bool vertexLightSupport)
         {
+            if (m_Asset.ForceLinearRendering)
+                cmd.EnableShaderKeyword("LIGHTWEIGHT_LINEAR");
+            else
+                cmd.DisableShaderKeyword("LIGHTWEIGHT_LINEAR");
+
             if (vertexLightSupport)
                 cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
             else
