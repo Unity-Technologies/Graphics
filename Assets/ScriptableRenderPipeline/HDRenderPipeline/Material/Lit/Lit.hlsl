@@ -743,8 +743,8 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     {
         // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
         // float clipFactor = isInBounds ? 1 : 0;
-        // This version is slightly faster (trade 1x VALU for 1x SALU):
-        float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y))) * (positionLS.z >= 0 ? 1 : 0);
+        // This version is slightly more efficient:
+        float clipFactor = saturate(FLT_MAX - FLT_MAX * Max3(abs(positionNDC.x), abs(positionNDC.y), positionLS.z >= 0 ? 0 : 1));
     }
 
     float attenuation = clipFactor;
@@ -881,8 +881,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float2 positionNDC = positionLS.xy / perspectiveZ;
             // bool  isInBounds = max(abs(positionNDC.x), abs(positionNDC.y)) <= 1 && positionLS.z >= 0;
             // float clipFactor = isInBounds ? 1 : 0;
-            // This version is slightly faster (trade 1x VALU for 1x SALU):
-            float clipFactor = saturate(FLT_MAX - FLT_MAX * max(abs(positionNDC.x), abs(positionNDC.y))) * (positionLS.z >= 0 ? 1 : 0);
+            // This version is slightly more efficient:
+            float clipFactor = saturate(FLT_MAX - FLT_MAX * Max3(abs(positionNDC.x), abs(positionNDC.y), positionLS.z >= 0 ? 0 : 1));
 
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
