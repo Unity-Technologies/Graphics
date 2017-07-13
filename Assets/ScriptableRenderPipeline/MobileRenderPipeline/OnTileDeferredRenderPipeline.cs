@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		private TextureCacheCubemap m_CubeCookieTexArray;
 		private TextureCacheCubemap m_CubeReflTexArray;
 
-		private static ComputeBuffer s_LightDataBuffer;
+		private static ComputeBuffer s_LightDataBuffer = null;
 
 		private static int s_GBufferAlbedo;
 		private static int s_GBufferSpecRough;
@@ -336,6 +336,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
 			m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
 			m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+
 			s_LightDataBuffer = new ComputeBuffer(k_MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
 
 			//shadows
@@ -947,7 +948,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				// always a box for now
 				var cubemap = rl.texture;
 				if (cubemap == null) {
-					Debug.Log ("empty cubemap texture");
 					finalProbeCount--;
 					continue;
 				}
