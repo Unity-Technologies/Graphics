@@ -84,17 +84,6 @@ half4 _ReflectColor;
 #include "LightweightPipelineShadows.cginc"
 #endif
 
-inline half3 Tex2DLinearRGB(sampler2D s, half2 uv)
-{
-    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(s, uv).rgb);
-}
-
-inline half4 Tex2DLinearRGBA(sampler2D s, half2 uv)
-{
-    half4 color = tex2D(s, uv);
-    return half4(LIGHTWEIGHT_GAMMA_TO_LINEAR(color.rgb), color.a);
-}
-
 inline void NormalMap(v2f i, out half3 normal)
 {
 #if _NORMALMAP
@@ -118,15 +107,6 @@ inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
     specularGloss.a = alpha;
 #else
     specularGloss = _SpecColor;
-#endif
-}
-
-inline void Emission(half2 uv, inout half3 color)
-{
-#ifdef _EMISSION
-    color += Tex2DLinearRGB(_EmissionMap, uv) * _EmissionColor;
-#else
-    color += _EmissionColor;
 #endif
 }
 
