@@ -89,7 +89,7 @@ public class VFXAssetEditor : Editor
 
             if (infos.propertyIM != null)
             {
-                infos.propertyIM.OnGUI("value",parameter.value);
+                parameter.value = infos.propertyIM.OnGUI("value",parameter.value);
 
                 if (infos.propertyIM.isNumeric)
                 {
