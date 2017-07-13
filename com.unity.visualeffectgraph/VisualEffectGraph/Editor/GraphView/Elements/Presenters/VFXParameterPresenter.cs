@@ -130,8 +130,12 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                Undo.RecordObject(parameter, "Change Value");
-                parameter.GetOutputSlot(0).value = value;
+                if(parameter.GetOutputSlot(0).value != value)
+                {
+                    Undo.RecordObject(parameter, "Change Value");
+                    parameter.GetOutputSlot(0).value = value;
+                }
+                
             }
         }
 
