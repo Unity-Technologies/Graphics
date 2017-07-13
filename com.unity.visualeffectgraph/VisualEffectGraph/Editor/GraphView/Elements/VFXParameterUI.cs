@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -80,7 +80,6 @@ namespace UnityEditor.VFX.UI
         PropertyRM m_Property;
         VFXPropertyIM m_PropertyIM;
         IMGUIContainer m_Container;
-        VFXDataGUIStyles m_GUIStyles;
 
         public VFXParameterUI()
         {
@@ -118,9 +117,8 @@ namespace UnityEditor.VFX.UI
         {
             if (m_PropertyIM != null)
             {
-                m_GUIStyles.ConfigureForElement(m_Container);
 
-                m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault(), m_GUIStyles);
+                m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault());
             }
         }
 
@@ -143,7 +141,6 @@ namespace UnityEditor.VFX.UI
                     inputContainer.AddChild(m_Property);
                 else
                 {
-                    m_GUIStyles = new VFXDataGUIStyles();
                     m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
 
                     m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };

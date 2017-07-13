@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -9,37 +9,22 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXDataGUIStyles
     {
-        public GUIStyle baseStyle;
-
-        public VFXDataGUIStyles()
+        public static VFXDataGUIStyles instance
         {
-            baseStyle = new GUIStyle();
+            get {
+                if (s_Instance == null)
+                    s_Instance = new VFXDataGUIStyles();
+                return s_Instance;
+            }
         }
 
-        public void ConfigureForElement(VisualElement elem)
+        static VFXDataGUIStyles s_Instance;
+
+        public GUIStyle baseStyle;
+
+        VFXDataGUIStyles()
         {
-            bool different = false;
-
-            if (baseStyle.font != elem.font)
-            {
-                baseStyle.font = elem.font;
-                different = true;
-            }
-            if (baseStyle.fontSize != elem.fontSize)
-            {
-                baseStyle.fontSize = elem.fontSize;
-                different = true;
-            }
-            if (baseStyle.focused.textColor != elem.textColor)
-            {
-                baseStyle.focused.textColor = baseStyle.active.textColor = baseStyle.normal.textColor = elem.textColor;
-                different = true;
-            }
-
-            if (different)
-            {
-                Reset();
-            }
+            baseStyle = GUI.skin.textField;
         }
 
         public GUIStyle GetGUIStyleForExpandableType(Type type)
@@ -102,14 +87,13 @@ namespace UnityEditor.VFX.UI
         }
 
         public float lineHeight
-        { get { return baseStyle.fontSize * 1.25f; } }
+        { get { return 16; } }
     }
 
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
         VFXPropertyIM   m_PropertyIM;
         IMGUIContainer  m_Container;
-        VFXDataGUIStyles m_GUIStyles = null;
 
 
         PropertyRM      m_PropertyRM;
@@ -137,7 +121,6 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_GUIStyles = new VFXDataGUIStyles();
                 m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 100);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
@@ -152,9 +135,7 @@ namespace UnityEditor.VFX.UI
 
             //try
             {
-                m_GUIStyles.ConfigureForElement(this);
-
-                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
+                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>());
 
                 if (changed)
                 {
