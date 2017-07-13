@@ -261,10 +261,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public enum TileDebug : int
             {
-                None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Projector = 4, ProjectorAndPunctual = 5, ProjectorAndArea = 6, ProjectorAndAreaAndPunctual = 7,
-                Environment = 8, EnvironmentAndPunctual = 9, EnvironmentAndArea = 10, EnvironemntAndAreaAndPunctual = 11,
-                EnvironmentAndProjector = 12, EnvironmentAndProjectorAndPunctual = 13, EnvironmentAndProjectorAndArea = 14, EnvironmentAndProjectorAndAreaAndPunctual = 15,
-                FeatureVariants = 16
+                None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7,
+                FeatureVariants = 8
             }; //TODO: we should probably make this checkboxes
             public TileDebug tileDebugByCategory;
 
@@ -1947,7 +1945,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                         m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
 
-                        cmd.Blit(null, colorBuffer, m_DebugViewTilesMaterial, 0);
+                        Utilities.DrawFullScreen(cmd, m_DebugViewTilesMaterial, 0, colorBuffer);
                     }
                     SetGlobalPropertyRedirect(null, 0, null);
                 }
