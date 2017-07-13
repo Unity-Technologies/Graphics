@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cb.SetGlobalTexture("_ShadowmapExp_VSM_2", tex[2]);
                         cb.SetGlobalTexture("_ShadowmapExp_PCF", tex[3]);
                     }
-                    
+
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
 
@@ -822,6 +822,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (light.light.cookie != null)
                 {
+                    directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat;
                     directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                 }
                 // fix up shadow information

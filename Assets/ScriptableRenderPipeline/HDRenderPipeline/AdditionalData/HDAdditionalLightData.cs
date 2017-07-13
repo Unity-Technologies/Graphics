@@ -27,7 +27,7 @@
         public bool affectSpecular = true;
 
         public LightArchetype archetype = LightArchetype.Punctual;
-        public SpotLightShape spotLightShape = SpotLightShape.Cone;
+        public SpotLightShape spotLightShape = SpotLightShape.Cone; // Note: Only for Spotlight, should be hide for other light
 
         [Range(0.0f, 20.0f)]
         public float lightLength = 0.0f; // Area & projector lights
