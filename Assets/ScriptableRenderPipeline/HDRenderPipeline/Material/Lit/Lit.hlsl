@@ -722,34 +722,15 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
 void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                               float3 V, PositionInputs posInput, PreLightData preLightData,
-                              int lightType, DirectionalLightData lightData, BSDFData bsdfData,
+                              DirectionalLightData lightData, BSDFData bsdfData,
                               out float3 diffuseLighting,
                               out float3 specularLighting)
 {
     float3 positionWS = posInput.positionWS;
 
-    // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
-    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3   lightToSurface = positionWS - lightData.positionWS;
-    float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
-    float2   positionNDC    = positionLS.xy;
-
-    // Clip only box projector lights.
-    float clipFactor = 1;
-
-    // Static branch.
-    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    {
-        bool isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-        clipFactor = isInBounds ? 1 : 0;
-    }
-
-    float attenuation = clipFactor;
-
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
     float NdotL = dot(bsdfData.normalWS, L);
-    float illuminance = saturate(NdotL * attenuation);
+    float illuminance = saturate(NdotL);
 
     diffuseLighting  = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
@@ -764,15 +745,35 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0)
     {
+    	// Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+    	// 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    	float3   lightToSurface = positionWS - lightData.positionWS;
+    	float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
+    	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
+    	float2   positionNDC    = positionLS.xy;
+
+        float clipFactor = 1.0f;
+
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
+
+        if (lightData.tileCookie)
+        {
+            // Tile the texture if the 'repeat' wrap mode is enabled.
+            coord = frac(coord);
+        }
+        else
+        {
+			bool isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+        	clipFactor = isInBounds ? 1 : 0;
+        }
 
         // We let the sampler handle tiling or clamping to border.
         // Note: tiling (the repeat mode) is not currently supported.
         float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
         // Use premultiplied alpha to save 1x VGPR.
-        cookie = c.rgb * c.a;
+        cookie = c.rgb * c.a * clipFactor;
     }
 
     [branch] if (illuminance > 0.0)
@@ -790,7 +791,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
         // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;

@@ -44,7 +44,7 @@
 struct DirectionalLightData
 {
     float3 positionWS;
-    float unused;
+    bool tileCookie;
     float3 color;
     int shadowIndex;
     float3 forward;
@@ -103,9 +103,9 @@ float3 GetPositionWS(DirectionalLightData value)
 {
 	return value.positionWS;
 }
-float GetUnused(DirectionalLightData value)
+bool GetTileCookie(DirectionalLightData value)
 {
-	return value.unused;
+	return value.tileCookie;
 }
 float3 GetColor(DirectionalLightData value)
 {
