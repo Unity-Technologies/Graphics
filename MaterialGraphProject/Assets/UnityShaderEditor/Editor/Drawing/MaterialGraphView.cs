@@ -7,6 +7,7 @@ using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Experimental.UIElements;
 using Edge = RMGUI.GraphView.Edge;
+using MouseButton = RMGUI.GraphView.MouseButton;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -15,7 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public MaterialGraphView()
         {
-            AddManipulator(new ContextualMenu(DoContextMenu));
+            RegisterCallback<MouseUpEvent>(DoContextMenu);
 
             typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
             typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
@@ -29,25 +30,28 @@ namespace UnityEditor.MaterialGraph.Drawing
             return true;
         }
 
-        protected EventPropagation DoContextMenu(Event evt, Object customData)
+        protected void DoContextMenu(MouseUpEvent evt)
         {
-            var gm = new GenericMenu();
-            foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
+            if (evt.button == (int)MouseButton.RightMouse)
             {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
+                var gm = new GenericMenu();
+                foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
                 {
-                    var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                    if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
+                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
                     {
-                        gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
+                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
+                        if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
+                        {
+                            gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
+                        }
                     }
                 }
-            }
 
-            //gm.AddSeparator("");
-            // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
-            gm.ShowAsContext();
-            return EventPropagation.Stop;
+                //gm.AddSeparator("");
+                // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
+                gm.ShowAsContext();
+            }
+            evt.StopPropagation();
         }
 
         private class AddNodeCreationObject : object

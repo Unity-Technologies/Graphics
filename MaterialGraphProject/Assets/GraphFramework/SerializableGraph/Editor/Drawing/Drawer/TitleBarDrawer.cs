@@ -27,7 +27,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public TitleBarDrawer(TitleBarPresenter dataProvider)
+        public TitleBarDrawer()
         {
             name = "TitleBar";
 
@@ -43,13 +43,6 @@ namespace UnityEditor.Graphing.Drawing
             };
             AddChild(m_RightContainer);
 
-            foreach (var leftItemData in dataProvider.leftItems)
-                m_LeftContainer.AddChild(new TitleBarButtonDrawer(leftItemData));
-
-            foreach (var rightItemData in dataProvider.rightItems)
-                m_RightContainer.AddChild(new TitleBarButtonDrawer(rightItemData));
-
-            this.dataProvider = dataProvider;
             AddStyleSheetPath("Styles/TitleBar");
         }
 
@@ -64,13 +57,9 @@ namespace UnityEditor.Graphing.Drawing
 
         void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonPresenter> itemDatas)
         {
-            // The number of items can't change for now.
-            foreach (var pair in itemDatas.Zip(container.OfType<TitleBarButtonDrawer>()))
-            {
-                var itemData = pair.Item1;
-                var item = pair.Item2;
-                item.dataProvider = itemData;
-            }
+            container.ClearChildren();
+            foreach (var itemPresenter in itemDatas)
+                container.AddChild(new TitleBarButtonDrawer(itemPresenter));
         }
 
         protected override object toWatch
