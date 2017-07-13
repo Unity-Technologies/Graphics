@@ -1959,6 +1959,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
+                if (m_TileSettings.enableComputeLightEvaluation && outputSplitLighting)
+                {
+                    // The CS is always in the MRT mode. Do not execute the same shader twice.
+                    return;
+                }
+
                 // TODO: To reduce GC pressure don't do concat string here
                 using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), cmd))
                 {
