@@ -85,20 +85,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void CollectAttributes(VFXExpressionGraph graph)
+        private void FillAttributesToContext()
         {
-            m_ContextsToAttributes.Clear();
-            m_AttributesToContexts.Clear();
-
-            foreach (var context in owners)
-            {
-                AddAttributes(context, context.attributes);
-                foreach (var block in context.children)
-                    AddAttributes(context, block.attributes);
-
-                CollectInputAttributes(context, graph);
-            }
-
             // Create attributesToContexts from contextsToAttributes
             foreach (var contextKvp in m_ContextsToAttributes)
             {
@@ -116,6 +104,32 @@ namespace UnityEditor.VFX
                     contexts[context] = attribKvp.Value;
                 }
             }
+        }
+
+        public void CollectAttributes(VFXExpressionGraph graph)
+        {
+            m_ContextsToAttributes.Clear();
+            m_AttributesToContexts.Clear();
+
+            foreach (var context in owners)
+            {
+                AddAttributes(context, context.attributes);
+                foreach (var block in context.children)
+                    AddAttributes(context, block.attributes);
+
+                CollectInputAttributes(context, graph);
+            }
+
+            FillAttributesToContext(); // Must fill a first time so that attributes can be fetched in optional attribute pass
+
+            // Add optional attributes
+            var optionalAttributes = new List<VFXAttributeInfo>[m_Owners.Count];
+            for (int i = 0; i < m_Owners.Count; ++i)
+                optionalAttributes[i] = m_Owners[i].optionalAttributes.ToList();
+            for (int i = 0; i < m_Owners.Count; ++i)
+                AddAttributes(m_Owners[i], optionalAttributes[i]);
+
+            FillAttributesToContext(); // A second time to update with optional attributes
 
             //TMP Debug only
             DebugLogAttributes();

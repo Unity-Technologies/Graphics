@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXAttributeInfo("position", VFXValueType.kFloat3, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
             }
         }
     }

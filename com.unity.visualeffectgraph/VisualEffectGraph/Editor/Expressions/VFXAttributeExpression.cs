@@ -16,6 +16,25 @@ namespace UnityEditor.VFX
 
     struct VFXAttribute
     {
+        public static readonly VFXAttribute Seed               = new VFXAttribute("seed", VFXValueType.kUint);
+        public static readonly VFXAttribute Position           = new VFXAttribute("position", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Velocity           = new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Color              = new VFXAttribute("color", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Alpha              = new VFXAttribute("alpha", VFXValueType.kFloat);
+        public static readonly VFXAttribute Phase              = new VFXAttribute("phase", VFXValueType.kFloat);
+        public static readonly VFXAttribute Size               = new VFXAttribute("size", VFXValueType.kFloat2);
+        public static readonly VFXAttribute Lifetime           = new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static readonly VFXAttribute Age                = new VFXAttribute("age", VFXValueType.kFloat);
+        public static readonly VFXAttribute Angle              = new VFXAttribute("angle", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngularVelocity    = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static readonly VFXAttribute TexIndex           = new VFXAttribute("texIndex", VFXValueType.kFloat);
+        public static readonly VFXAttribute Pivot              = new VFXAttribute("pivot", VFXValueType.kFloat3);
+        public static readonly VFXAttribute ParticleId         = new VFXAttribute("particleId", VFXValueType.kUint);
+        public static readonly VFXAttribute Front              = new VFXAttribute("front", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Side               = new VFXAttribute("side", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Up                 = new VFXAttribute("up", VFXValueType.kFloat3);
+
+
         public VFXAttribute(string name, VFXValueType type)
         {
             this.name = name;
