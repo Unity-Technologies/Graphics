@@ -1954,10 +1954,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd,
                                                 DebugDisplaySettings debugDisplaySettings,
-                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
                                                 bool outputSplitLighting)
             {
                 var bUseClusteredForDeferred = !usingFptl;
+
+                if (m_TileSettings.enableComputeLightEvaluation && outputSplitLighting)
+                {
+                    // The CS is always in the MRT mode. Do not execute the same shader twice.
+                    return;
+                }
 
                 // TODO: To reduce GC pressure don't do concat string here
                 using (new Utilities.ProfilingSample((m_TileSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLighting ? " MRT" : ""), cmd))
@@ -2031,6 +2037,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // Pass global parameters to compute shader
                                 // TODO: get rid of this by making global parameters visible to compute shaders
                                 PushGlobalParams(camera, cmd, shadeOpaqueShader, kernel);
+                                hdCamera.SetupComputeShader(shadeOpaqueShader, cmd);
 
                                 // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", Shader.GetGlobalInt("_DebugViewMaterial"));
@@ -2039,7 +2046,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_MainDepthTexture", depthStencilTexture);
+                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_MainDepthTexture", depthTexture);
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
@@ -2051,8 +2058,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcGGXMatrix", Shader.GetGlobalTexture("_LtcGGXMatrix"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcDisneyDiffuseMatrix", Shader.GetGlobalTexture("_LtcDisneyDiffuseMatrix"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcMultiGGXFresnelDisneyDiffuse", Shader.GetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse"));
-
-                                hdCamera.SetupComputeShader(shadeOpaqueShader, cmd);
 
                                 cmd.SetComputeMatrixParam(shadeOpaqueShader, "g_mInvScrProjection", Shader.GetGlobalMatrix("g_mInvScrProjection"));
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", Shader.GetGlobalInt("_UseTileLightList"));
@@ -2073,8 +2078,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
-                                // Since we need the stencil test, the compute path does not currently support SSS.
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "combinedLightingUAV", colorBuffers[0]);
+                                // Set SSS parameters.
+                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_EnableSSSAndTransmission", Shader.GetGlobalInt(       "_EnableSSSAndTransmission"));
+                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_TexturingModeFlags",       Shader.GetGlobalInt(       "_TexturingModeFlags"));
+                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_TransmissionFlags",        Shader.GetGlobalInt(       "_TransmissionFlags"));
+                                cmd.SetComputeFloatParams(shadeOpaqueShader, "_ThicknessRemaps",          Shader.GetGlobalFloatArray("_ThicknessRemaps"));
+                                // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
+                                // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
+                                // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
+                                // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
+                                // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
+                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_ShapeParams",       Shader.GetGlobalVectorArray("_ShapeParams"));
+                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_TransmissionTints", Shader.GetGlobalVectorArray("_TransmissionTints"));
+
+                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "specularLightingUAV", colorBuffers[0]);
+                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "diffuseLightingUAV",  colorBuffers[1]);
 
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
