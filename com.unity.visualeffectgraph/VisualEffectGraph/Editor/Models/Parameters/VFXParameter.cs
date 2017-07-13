@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +18,13 @@ namespace UnityEditor.VFX
         private string m_exposedName;
         [SerializeField]
         private bool m_exposed;
+        [SerializeField]
+        public int order;
+
+
+        // parameter control data;
+        public VFXSerializableObject m_Min;
+        public VFXSerializableObject m_Max;
 
         public string exposedName
         {
@@ -43,6 +50,17 @@ namespace UnityEditor.VFX
                     Invalidate(InvalidationCause.kParamChanged);
                 }
             }
+        }
+
+        public Type type
+        {
+            get { return outputSlots[0].property.type; }
+        }
+
+        public object value
+        {
+            get { return outputSlots[0].value; }
+            set { outputSlots[0].value = value; }
         }
 
         public void Init(Type _type)

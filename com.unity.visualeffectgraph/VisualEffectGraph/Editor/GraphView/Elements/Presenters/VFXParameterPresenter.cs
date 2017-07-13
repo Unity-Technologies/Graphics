@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UIElements.GraphView;
 using UnityEngine;
 
@@ -56,6 +56,19 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public int order
+        {
+            get { return parameter.order; }
+            set
+            {
+                if (parameter.order!= value)
+                {
+                    Undo.RecordObject(parameter, "Parameter Order");
+                    parameter.order = value;
+                }
+            }
+        }
+
         private VFXParameter parameter { get { return model as VFXParameter; } }
 
         bool IPropertyRMProvider.expanded
@@ -65,10 +78,51 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
         }
+        bool IPropertyRMProvider.editable
+        {
+            get { return true; }
+        }
+
+
+
+        public object minValue
+        {
+            get { return parameter.m_Min == null ? null:parameter.m_Min.Get(); }
+            set
+            {
+                Undo.RecordObject(parameter, "Parameter Min");
+                if (value != null)
+                {
+                    if (parameter.m_Min == null)
+                        parameter.m_Min = new VFXSerializableObject(anchorType, value);
+                    else
+                        parameter.m_Min.Set(value);
+                }
+                else
+                    parameter.m_Min = null;
+            }
+        }
+        public object maxValue
+        {
+            get { return parameter.m_Max == null ? null:parameter.m_Max.Get(); }
+            set
+            {
+                Undo.RecordObject(parameter, "Parameter Max");
+                if (value != null)
+                {
+                    if (parameter.m_Max == null)
+                        parameter.m_Max = new VFXSerializableObject(anchorType, value);
+                    else
+                        parameter.m_Max.Set(value);
+                }
+                else
+                    parameter.m_Max = null;
+            }
+        }
 
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
-        object IPropertyRMProvider.value
+        public object value
         {
             get
             {

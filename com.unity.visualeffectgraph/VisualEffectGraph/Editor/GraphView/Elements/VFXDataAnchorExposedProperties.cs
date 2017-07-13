@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
             styles.ApplyCustomProperty(SelectedFieldBackgroundProperty, ref m_SelectedFieldBackground);
             styles.ApplyCustomProperty(IMBorderProperty, ref m_IMBorder);
             styles.ApplyCustomProperty(IMPaddingProperty, ref m_IMPadding);
-
+            /*
             if (m_GUIStyles != null)
             {
                 m_GUIStyles.baseStyle.active.background = selectedFieldBackground;
@@ -54,6 +54,7 @@ namespace UnityEditor.VFX.UI
                 m_GUIStyles.baseStyle.border.top = m_GUIStyles.baseStyle.border.left = m_GUIStyles.baseStyle.border.right = m_GUIStyles.baseStyle.border.bottom = IMBorder;
                 m_GUIStyles.baseStyle.padding = new RectOffset(IMPadding, IMPadding, IMPadding, IMPadding);
             }
+            */
         }
     }
 }

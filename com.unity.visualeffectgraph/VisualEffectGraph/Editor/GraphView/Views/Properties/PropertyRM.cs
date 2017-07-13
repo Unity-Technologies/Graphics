@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -21,6 +21,8 @@ namespace UnityEditor.VFX.UI
 
         Type anchorType { get; }
         int depth {get; }
+
+        bool editable { get; }
 
         void RetractPath();
         void ExpandPath();

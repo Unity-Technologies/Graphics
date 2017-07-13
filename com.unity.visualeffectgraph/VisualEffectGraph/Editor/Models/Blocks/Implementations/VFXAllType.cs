@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
 			[Normalize]
             public Vector3 aVector3 = Vector3.forward;
             public Vector4 aVector4 = Vector4.one;
+            [Tooltip("This is a color")]
             public Color aColor = Color.gray;
             public Texture2D aTexture2D = null;
             public Texture3D aTexture3D = null;
