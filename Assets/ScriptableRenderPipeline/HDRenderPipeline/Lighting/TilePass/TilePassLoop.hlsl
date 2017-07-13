@@ -162,7 +162,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             float3 localDiffuseLighting, localSpecularLighting;
 
             EvaluateBSDF_Directional(context, V, posInput, prelightData,
-                                     GPULIGHTTYPE_DIRECTIONAL, _DirectionalLightDatas[i], bsdfData,
+                                     _DirectionalLightDatas[i], bsdfData,
                                      localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
@@ -307,7 +307,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         float3 localDiffuseLighting, localSpecularLighting;
 
         EvaluateBSDF_Directional(context, V, posInput, prelightData,
-                                 GPULIGHTTYPE_DIRECTIONAL, _DirectionalLightDatas[i], bsdfData,
+                                 _DirectionalLightDatas[i], bsdfData,
                                  localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
