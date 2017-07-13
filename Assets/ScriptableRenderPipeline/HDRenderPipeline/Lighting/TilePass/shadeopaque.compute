@@ -37,11 +37,6 @@
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant14         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant14             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=14
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant15         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant15             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=15
 
-//#pragma #pragma enable_d3d11_debug_symbols
-
-// Split lighting is required for the SSS pass.
-// Not currently possible since we need to access the stencil buffer from the compute shader.
-// #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
 #define LIGHTLOOP_TILE_PASS 1
 #define LIGHTLOOP_TILE_DIRECT 1
@@ -69,12 +64,8 @@
 
 DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-#ifdef OUTPUT_SPLIT_LIGHTING
-    RWTexture2D<float4> specularLightingUAV;
-    RWTexture2D<float3> diffuseLightingUAV;
-#else
-    RWTexture2D<float4> combinedLightingUAV;
-#endif
+RWTexture2D<float3> diffuseLightingUAV;
+RWTexture2D<float4> specularLightingUAV;
 
 CBUFFER_START(UnityShadeOpaque)
 	uint g_TileListOffset;
@@ -103,6 +94,10 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 #endif
 
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+
+    // TODO: add an early-out using HiZ/HiS or our light tile data.
+    if (depth == 0) { return; }
+
     UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
@@ -117,11 +112,20 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-#ifdef OUTPUT_SPLIT_LIGHTING
-    specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
-    diffuseLightingUAV[pixelCoord]  = diffuseLighting;
-#else
-    combinedLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
-#endif
+    if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS)
+    {
+        // We SSSSS is enabled with use split lighting.
+        // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS
+        // A simpler solution is to add a slight contribution here that isn't visible (here we chose fp16 min (which is also fp11 and fp10 min).
+        // The SSSSS algorithm will check if diffuse lighting is black and discard the pixel if it is the case
+        diffuseLighting.r = max(diffuseLighting.r, HFLT_MIN);
+
+        specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
+        diffuseLightingUAV[pixelCoord]  = diffuseLighting;
+    }
+    else
+    {
+        specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+    }
 }
 

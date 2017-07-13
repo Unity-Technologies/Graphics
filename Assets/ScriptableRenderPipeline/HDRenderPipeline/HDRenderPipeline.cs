@@ -242,6 +242,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly GBufferManager m_gbufferManager = new GBufferManager();
 
+        Material m_CopyStencilBuffer;
+
         // Various set of material use in render loop
         Material m_FilterAndCombineSubsurfaceScattering;
         // Old SSS Model >>>
@@ -274,9 +276,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderTargetIdentifier m_DistortionBufferRT;
 
         private RenderTexture m_CameraDepthStencilBuffer = null;
-        private RenderTexture m_CameraDepthStencilBufferCopy = null;
+        private RenderTexture m_CameraDepthBufferCopy = null;
+        private RenderTexture m_CameraStencilBufferCopy = null; // Currently, it's manually copied using a pixel shader, and optimized to only contain the SSS bit
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
-        private RenderTargetIdentifier m_CameraDepthStencilBufferCopyRT;
+        private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
+        private RenderTargetIdentifier m_CameraStencilBufferCopyRT;
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -286,10 +290,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Currently we use only 2 bits to identify the kind of lighting that is expected from the render pipeline
         // Usage is define in LightDefinitions.cs
         [Flags]
-        public enum StencilBits
+        public enum StencilBitMask
         {
-            Lighting = 3,                    // 0
-            All = 255                        // 0xFF
+            Clear    = 0,                    // 0x0
+            Lighting = 3,                    // 0x3  - 2 bit
+            All      = 255                   // 0xFF - 8 bit
         }
 
         // Detect when windows size is changing
@@ -387,6 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CreateSssMaterials(sssSettings.useDisneySSS);
             // <<< Old SSS Model
 
+            m_CopyStencilBuffer           = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CameraMotionVectorsMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
@@ -486,7 +492,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 #endif
 
-        void CreateDepthBuffer(Camera camera)
+        void CreateDepthStencilBuffer(Camera camera)
         {
             if (m_CameraDepthStencilBuffer != null)
             {
@@ -500,14 +506,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (NeedDepthBufferCopy())
             {
-                if (m_CameraDepthStencilBufferCopy != null)
+                if (m_CameraDepthBufferCopy != null)
                 {
-                    m_CameraDepthStencilBufferCopy.Release();
+                    m_CameraDepthBufferCopy.Release();
                 }
-                m_CameraDepthStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
-                m_CameraDepthStencilBufferCopy.filterMode = FilterMode.Point;
-                m_CameraDepthStencilBufferCopy.Create();
-                m_CameraDepthStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthStencilBufferCopy);
+                m_CameraDepthBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
+                m_CameraDepthBufferCopy.filterMode = FilterMode.Point;
+                m_CameraDepthBufferCopy.Create();
+                m_CameraDepthBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthBufferCopy);
+            }
+
+            if (NeedStencilBufferCopy())
+            {
+                if (m_CameraStencilBufferCopy != null)
+                {
+                    m_CameraStencilBufferCopy.Release();
+                }
+                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8);
+                m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
+                m_CameraStencilBufferCopy.Create();
+                m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
             }
         }
 
@@ -525,7 +543,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
             {
-                CreateDepthBuffer(camera);
+                CreateDepthStencilBuffer(camera);
             }
 
             if (resolutionChanged || m_LightLoop.NeedResize())
@@ -582,12 +600,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4;
         }
 
-        Texture GetDepthTexture()
+        bool NeedStencilBufferCopy()
         {
-            if (NeedDepthBufferCopy())
-                return m_CameraDepthStencilBufferCopy;
-            else
-                return m_CameraDepthStencilBuffer;
+            // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
+            // Therefore, it's manually copied using a pixel shader, and optimized to only contain the SSS bit.
+            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
+        }
+
+        RenderTargetIdentifier GetDepthTexture()
+        {
+            return NeedDepthBufferCopy() ? m_CameraDepthBufferCopy : m_CameraDepthStencilBuffer;
+        }
+
+        RenderTargetIdentifier GetStencilTexture()
+        {
+            return NeedStencilBufferCopy() ? m_CameraStencilBufferCopyRT : m_CameraDepthStencilBufferRT;
         }
 
         private void CopyDepthBufferIfNeeded(CommandBuffer cmd)
@@ -598,12 +625,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new Utilities.ProfilingSample("Copy depth-stencil buffer", cmd))
                     {
-                        cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraDepthStencilBufferCopyRT);
+                        cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraDepthBufferCopyRT);
                     }
                 }
 
                 cmd.SetGlobalTexture("_MainDepthTexture", GetDepthTexture());
             }
+        }
+
+        private void PrepareAndBindStencilTexture(CommandBuffer cmd)
+        {
+            if (NeedStencilBufferCopy())
+            {
+                using (new Utilities.ProfilingSample("Copy StencilBuffer", cmd))
+                {
+                    Utilities.DrawFullScreen(cmd, m_CopyStencilBuffer, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                }
+            }
+
+            cmd.SetGlobalTexture("_StencilTexture", GetStencilTexture());
         }
 
         public void UpdateCommonSettings()
@@ -728,6 +768,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CopyDepthBufferIfNeeded(cmd);
             }
+
+            // Required for the SSS pass.
+            PrepareAndBindStencilTexture(cmd);
 
             if (m_DebugDisplaySettings.IsDebugMaterialDisplayEnabled())
             {
@@ -939,16 +982,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
+            RenderTargetIdentifier[] colorRTs     = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
+            RenderTargetIdentifier   depthTexture = GetDepthTexture();
 
             if (m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
             {
                 // Output split lighting for materials asking for it (via stencil buffer)
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, true);
             }
 
             // Output combined lighting for all the other materials.
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, false);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
