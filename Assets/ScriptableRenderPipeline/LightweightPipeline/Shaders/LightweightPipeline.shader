@@ -139,8 +139,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             half4 frag(v2f i) : SV_Target
             {
-                half4 diffuseAlpha = Tex2DLinearRGBA(_MainTex, i.uv01.xy);
-                half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
+                half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
+                half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
                 half alpha = diffuseAlpha.a * _Color.a;
 
                 // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
@@ -183,7 +183,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
 #endif // SINGLE_DIRECTIONAL_LIGHT
 
-                Emission(i.uv01.xy, color);
+#ifdef _EMISSION
+                color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;
+#else
+                color += _EmissionColor;
+#endif
 
 #if defined(LIGHTMAP_ON)
                 color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
@@ -273,7 +277,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 SpecularGloss(i.uv.xy, 1.0, specularColor);
                 o.SpecularColor = specularColor;
 
-                Emission(i.uv.xy, o.Emission);
+#ifdef _EMISSION
+                o.Emission += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv).rgb) * _EmissionColor;
+#else
+                o.Emission += _EmissionColor;
+#endif
 
                 return UnityMetaFragment(o);
             }
