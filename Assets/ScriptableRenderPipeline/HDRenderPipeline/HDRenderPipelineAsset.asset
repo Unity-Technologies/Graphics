@@ -27,7 +27,7 @@ MonoBehaviour:
   tileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
-    enableComputeLightEvaluation: 0
+    enableComputeLightEvaluation: 1
     enableComputeLightVariants: 0
     enableComputeMaterialVariants: 0
     enableClustered: 1
