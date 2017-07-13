@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DirectionalLightData
     {
         public Vector3 positionWS;
-        public float unused;
+        public bool tileCookie;
 
         public Vector3 color;
         public int shadowIndex; // -1 if unused
