@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -11,7 +11,8 @@ namespace UnityEditor.VFX.UI
     {
         public static VFXDataGUIStyles instance
         {
-            get {
+            get
+            {
                 if (s_Instance == null)
                     s_Instance = new VFXDataGUIStyles();
                 return s_Instance;

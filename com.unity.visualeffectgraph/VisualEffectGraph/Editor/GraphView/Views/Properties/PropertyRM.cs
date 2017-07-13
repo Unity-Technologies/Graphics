@@ -22,6 +22,8 @@ namespace UnityEditor.VFX.UI
         Type anchorType { get; }
         int depth {get; }
 
+        bool editable { get; }
+
         void RetractPath();
         void ExpandPath();
     }

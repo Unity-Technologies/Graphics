@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -117,7 +117,6 @@ namespace UnityEditor.VFX.UI
         {
             if (m_PropertyIM != null)
             {
-
                 m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault());
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,22 +33,21 @@ public class VFXAssetEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        
-
         GUILayout.BeginVertical();
-        GUILayout.Label("Exposed Parameters",GUI.skin.box,GUILayout.ExpandWidth(true));
+        GUILayout.Label("Exposed Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
         int cpt = 0;
-        foreach ( var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t=>t.exposed).OrderBy(t=>t.order) )
+        foreach (var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order))
         {
-            OnParamGUI(parm,cpt++);
+            OnParamGUI(parm, cpt++);
         }
         GUILayout.Label("Local Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
         cpt = 0;
         foreach (var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => !t.exposed).OrderBy(t => t.order))
         {
-            OnParamGUI(parm,cpt++);
+            OnParamGUI(parm, cpt++);
         }
     }
+
     struct ParamInfo
     {
         public bool adv;
@@ -57,20 +56,20 @@ public class VFXAssetEditor : Editor
 
     Dictionary<VFXParameterPresenter, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterPresenter, ParamInfo>();
 
-    void OnParamGUI(VFXParameterPresenter parameter,int order)
+    void OnParamGUI(VFXParameterPresenter parameter, int order)
     {
         GUILayout.BeginHorizontal();
         EditorGUI.BeginChangeCheck();
 
         bool orderChange = parameter.order != order;
-        if( orderChange)
+        if (orderChange)
         {
             parameter.order = order;
         }
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(parameter, out infos);
 
-        infos.adv = EditorGUILayout.ToggleLeft(string.Format("{0} : name ({1})", parameter.order +1,parameter.anchorType.UserFriendlyName()),infos.adv,GUILayout.Width(140));
+        infos.adv = EditorGUILayout.ToggleLeft(string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()), infos.adv, GUILayout.Width(140));
 
         parameter.exposedName = EditorGUILayout.TextField(parameter.exposedName);
 
@@ -82,14 +81,14 @@ public class VFXAssetEditor : Editor
         GUILayout.EndHorizontal();
         if (infos.adv)
         {
-            if(infos.propertyIM == null)
+            if (infos.propertyIM == null)
             {
                 infos.propertyIM = VFXPropertyIM.Create(parameter.anchorType, 80);
             }
 
             if (infos.propertyIM != null)
             {
-                parameter.value = infos.propertyIM.OnGUI("value",parameter.value);
+                parameter.value = infos.propertyIM.OnGUI("value", parameter.value);
 
                 if (infos.propertyIM.isNumeric)
                 {
@@ -107,7 +106,6 @@ public class VFXAssetEditor : Editor
                             parameter.minValue = val;
                         else
                             parameter.minValue = null;
-
                     }
 
                     GUILayout.EndHorizontal();

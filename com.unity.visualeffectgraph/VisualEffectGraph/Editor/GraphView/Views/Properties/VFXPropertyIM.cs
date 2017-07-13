@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -35,15 +35,16 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
         }
-        public object OnGUI(string label,object value)
+
+        public object OnGUI(string label, object value)
         {
-            return DoOnGUI(label,value);
+            return DoOnGUI(label, value);
         }
 
         public virtual bool isNumeric { get { return true; } }
 
         protected abstract object DoOnGUI(VFXDataAnchorPresenter presenter);
-        protected abstract object DoOnGUI(string label,object value);
+        protected abstract object DoOnGUI(string label, object value);
 
 
         public float m_LabelWidth = 100;
@@ -82,7 +83,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Label(VFXDataAnchorPresenter presenter,string label)
+        public void Label(VFXDataAnchorPresenter presenter, string label)
         {
             if (presenter != null && presenter.depth > 0)
                 GUILayout.Space(presenter.depth * depthOffset);
@@ -127,14 +128,15 @@ namespace UnityEditor.VFX.UI
     {
         protected override object DoOnGUI(VFXDataAnchorPresenter presenter)
         {
-            return OnParameterGUI(presenter, (T)presenter.value,presenter.name);
-        }
-        protected override object DoOnGUI(string label,object value)
-        {
-            return OnParameterGUI(null, (T)value,label);
+            return OnParameterGUI(presenter, (T)presenter.value, presenter.name);
         }
 
-        public abstract T OnParameterGUI(VFXDataAnchorPresenter presenter, T value,string label);
+        protected override object DoOnGUI(string label, object value)
+        {
+            return OnParameterGUI(null, (T)value, label);
+        }
+
+        public abstract T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label);
     }
 
 
@@ -182,7 +184,8 @@ namespace UnityEditor.VFX.UI
 
             return null;
         }
-        protected override object DoOnGUI(string label,object value)
+
+        protected override object DoOnGUI(string label, object value)
         {
             GUILayout.BeginHorizontal();
             Label(null, label);
@@ -194,10 +197,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(VFXDataAnchorPresenter presenter, float value,string label)
+        public override float OnParameterGUI(VFXDataAnchorPresenter presenter, float value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter,label);
+            Label(presenter, label);
             value = EditorGUILayout.FloatField(value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.EndHorizontal();
 
