@@ -39,7 +39,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void SchedulePolling()
         {
-            Debug.LogFormat("SchedulePolling");
             if (panel != null)
             {
                 if (!m_IsScheduled)
@@ -56,7 +55,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UnschedulePolling()
         {
-            Debug.LogFormat("UnschedulePolling");
             if (m_IsScheduled && panel != null)
             {
                 this.Unschedule(InvalidateUIIfNeedsTime);
@@ -72,21 +70,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (childrenNodes.OfType<IRequiresTime>().Any())
             {
                 data.OnModified(ModificationScope.Node);
-                var texture = m_currentPreviewData != null ? m_currentPreviewData.Render(new Vector2(256, 256)) : null;
-                m_PreviewImage.image = texture ?? Texture2D.whiteTexture;
-                m_PreviewImage.RemoveFromClassList("inactive");
+                UpdatePreviewTexture(m_currentPreviewData);
+                Dirty(ChangeType.Repaint);
             }
             ListPool<INode>.Release(childrenNodes);
         }
 
-        private void AddPreview(MaterialNodePresenter nodeData)
+        void UpdatePreviewTexture(NodePreviewPresenter previewPresenter)
         {
-            if (!nodeData.elements.OfType<NodePreviewPresenter>().Any())
-                return;
-
-            var preview = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
-            var texture = preview != null ? preview.Render(new Vector2(256, 256)) : null;
-
+            var texture = previewPresenter != null ? previewPresenter.Render(new Vector2(256, 256)) : null;
             if (texture == null)
             {
                 m_PreviewImage.AddToClassList("inactive");
@@ -95,10 +87,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             else
             {
                 m_PreviewImage.RemoveFromClassList("inactive");
-                m_PreviewImage.image = preview.Render(new Vector2(256, 256));
+                m_PreviewImage.image = texture;
             }
-
-            m_currentPreviewData = preview;
         }
 
         public override void OnDataChanged()
@@ -110,21 +100,17 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 m_PreviewImage.AddToClassList("inactive");
                 m_currentPreviewData = null;
+                UpdatePreviewTexture(m_currentPreviewData);
                 return;
             }
-
-            AddPreview(nodeData);
+            
+            m_currentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
+            UpdatePreviewTexture(m_currentPreviewData);
 
             if (nodeData.expanded)
-            {
-                //m_PreviewImage.paintFlags &= ~PaintFlags.Invisible;
                 m_PreviewImage.RemoveFromClassList("hidden");
-            }
             else
-            {
-                //m_PreviewImage.paintFlags |= PaintFlags.Invisible;
                 m_PreviewImage.AddToClassList("hidden");
-            }
         }
     }
 }
