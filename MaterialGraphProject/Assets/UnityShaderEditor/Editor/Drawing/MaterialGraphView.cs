@@ -54,7 +54,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             evt.StopPropagation();
         }
 
-        private class AddNodeCreationObject : object
+        private class AddNodeCreationObject
         {
             public Vector2 m_Pos;
             public readonly Type m_Type;
@@ -87,7 +87,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
             var drawstate = node.drawState;
 
-            Vector3 localPos = contentViewContainer.transform.inverse.MultiplyPoint3x4(posObj.m_Pos);
+            Vector3 localPos = contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(posObj.m_Pos);
             drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
             node.drawState = drawstate;
 
