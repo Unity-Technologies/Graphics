@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
 using Object = UnityEngine.Object;
+using UnityEditorInternal;
 
 [CustomEditor(typeof(VFXAsset))]
 public class VFXAssetEditor : Editor
@@ -31,21 +32,33 @@ public class VFXAssetEditor : Editor
     {
     }
 
+    VFXParameterPresenter[] m_ExposedList;
+
     public override void OnInspectorGUI()
     {
-        GUILayout.BeginVertical();
-        GUILayout.Label("Exposed Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
-        int cpt = 0;
-        foreach (var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order))
+
+        m_ExposedList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        if ( list == null)
         {
-            OnParamGUI(parm, cpt++);
+            list = new ReorderableList(m_ExposedList,typeof(VFXParameterPresenter),true,false,false,false);
+            list.drawElementCallback = DrawSortLayerListElement;
         }
+
+        
+        //GUILayout.BeginVertical();
+        GUILayout.Label("Exposed Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
+        list.DoLayoutList();
+        /*int cpt = 0;
         GUILayout.Label("Local Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
         cpt = 0;
         foreach (var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => !t.exposed).OrderBy(t => t.order))
         {
             OnParamGUI(parm, cpt++);
-        }
+        }*/
+    }
+    private void DrawSortLayerListElement(Rect rect, int index, bool selected, bool focused)
+    {
+        OnParamGUI(rect,m_ExposedList[index], index);
     }
 
     struct ParamInfo
@@ -54,10 +67,15 @@ public class VFXAssetEditor : Editor
         public VFXPropertyIM propertyIM;
     }
 
+
+    ReorderableList list;
     Dictionary<VFXParameterPresenter, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterPresenter, ParamInfo>();
 
-    void OnParamGUI(VFXParameterPresenter parameter, int order)
+    void OnParamGUI(Rect rect,VFXParameterPresenter parameter, int order)
     {
+        //GUILayout.BeginArea(rect);
+        GUILayout.BeginVertical();
+
         GUILayout.BeginHorizontal();
         EditorGUI.BeginChangeCheck();
 
@@ -71,7 +89,7 @@ public class VFXAssetEditor : Editor
 
         infos.adv = EditorGUILayout.ToggleLeft(string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()), infos.adv, GUILayout.Width(140));
 
-        parameter.exposedName = EditorGUILayout.TextField(parameter.exposedName);
+        parameter.exposedName = EditorGUI.TextField(rect,parameter.exposedName);
 
         if (orderChange || EditorGUI.EndChangeCheck())
         {
@@ -131,5 +149,8 @@ public class VFXAssetEditor : Editor
             }
         }
         m_AdvDictionary[parameter] = infos;
+
+        GUILayout.EndVertical();
+        //GUILayout.EndArea();
     }
 }
