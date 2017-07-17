@@ -64,6 +64,61 @@ float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = color, A = unused
 CBUFFER_END
 
 //-----------------------------------------------------------------------------
+// Ligth and material classification for the deferred rendering path
+// Configure what kind of combination is supported
+//-----------------------------------------------------------------------------
+
+// Only include material classification code if it it requested. Just check LIGHTFEATUREFLAGS_MASK define for this
+#ifdef LIGHTFEATUREFLAGS_MASK
+
+// Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
+static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
+{
+    // Standard
+    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD
+    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD
+    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD
+    /*  3 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_STANDARD
+
+    // SSS
+    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS
+    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS
+    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS
+    /*  7 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_SSS
+
+    // Specular/Aniso
+    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
+    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
+    /*  10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
+    /*  11 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
+
+    // Future usage
+    /*  12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0
+    /*  13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0
+    /*  14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0
+    ///*  15 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_UNUSED0
+    /* 15 */ 0xFFFFFFFF // LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_MASK, // Catch all case, but should not be needed
+};
+
+uint FeatureFlagsToTileVariant(uint featureFlags)
+{
+    for (int i = 0; i < NUM_FEATURE_VARIANTS; i++)
+    {
+        if ((featureFlags & kFeatureVariantFlags[i]) == featureFlags)
+            return i;
+    }
+    return NUM_FEATURE_VARIANTS - 1;
+}
+
+// This function need to return a compile time value, else there is no optimization
+uint TileVariantToFeatureFlags(uint variant)
+{
+    return kFeatureVariantFlags[variant];
+}
+
+#endif // LIGHTFEATUREFLAGS_MASK
+
+//-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
@@ -440,53 +495,25 @@ uint MaterialFeatureFlagsFromGBuffer(
 #endif
 )
 {
+    BSDFData bsdfData;
+    float3 unused;
+
+    DecodeFromGBuffer(
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
-
-    inGBuffer0 = DecodeGBuffer0(inGBufferU0);
-
-    uint packedGBuffer1 = inGBufferU0.z | inGBufferU0.w << 16;
-    inGBuffer1 = UnpackR10G10B10A2(packedGBuffer1);
-
-    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.x, 8, 0);
-    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.x, 8, 8);
-    inGBuffer2.z = UnpackUIntToFloat(inGBufferU1.y, 8, 0);
-    inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
-
-    uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
-    inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
-    inGBuffer3.w = 0.0;
+        GBufferType0 inGBufferU0,
+        GBufferType1 inGBufferU1,
+#else
+        GBufferType0 inGBuffer0,
+        GBufferType1 inGBuffer1,
+        GBufferType2 inGBuffer2,
+        GBufferType3 inGBuffer3,
 #endif
+        0xFFFFFFFF,
+        bsdfData,
+        unused
+    );
 
-    int materialId = UnpackMaterialId(inGBuffer1.a);
-
-    uint featureFlags = 0;
-    if (materialId == MATERIALID_LIT_STANDARD)
-    {
-        float metallic;
-        int specular;
-        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, specular);
-        float anisotropy = inGBuffer2.b;
-
-        if (specular == SPECULARVALUE_SPECULAR_COLOR)
-        {
-            featureFlags |= MATERIALFEATUREFLAGS_LIT_SPECULAR;
-        }
-        else if (anisotropy > 0.0)
-        {
-            featureFlags |= MATERIALFEATUREFLAGS_LIT_ANISO;
-        }
-        else
-        {
-            featureFlags |= MATERIALFEATUREFLAGS_LIT_STANDARD;
-        }
-    }
-    else if (materialId == MATERIALID_LIT_SSS)
-    {
-        featureFlags |= MATERIALFEATUREFLAGS_LIT_SSS;
-    }
-
-    return featureFlags;
+    return 1 << materialId; // This match all the MATERIALFEATUREFLAGS_LIT_XXX flag
 }
 
 

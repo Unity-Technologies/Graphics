@@ -15,14 +15,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitSpecular = 5, // Should be the last as it is not setup by the users but generated based on anisotropy property and specular
         };
 
+        // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
+        // Material bit mask must match LightDefinitions.s_MaterialFeatureMaskFlags value
         [GenerateHLSL]
         public enum MaterialFeatureFlags
         {
-            LitSSS      = 1 << 12,
-            LitStandard = 1 << 13,
-            LitAniso    = 1 << 14,
-            LitSpecular = 1 << 15
-        }
+            LitSSS      = 1 << MaterialId.LitSSS,
+            LitStandard = 1 << MaterialId.LitStandard,
+            LitUnused0  = 1 << MaterialId.LitUnused0,
+            LitUnused1  = 1 << MaterialId.LitUnused1,
+            LitAniso    = 1 << MaterialId.LitAniso,
+            LitSpecular = 1 << MaterialId.LitSpecular,
+        };
 
         [GenerateHLSL]
         public enum SpecularValue
