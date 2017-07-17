@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
+Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 {
     // Old SSS Model >>>
     Properties
