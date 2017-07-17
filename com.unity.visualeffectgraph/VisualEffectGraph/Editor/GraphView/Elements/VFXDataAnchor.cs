@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
             var center = m_ConnectorBox.layout.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.layout.width - 1, m_ConnectorBox.layout.height * 0.5f - 0.5f);
-            center = m_ConnectorBox.transform.MultiplyPoint3x4(center);
+            center = m_ConnectorBox.transform.matrix.MultiplyPoint3x4(center);
 
             return center;
         }
