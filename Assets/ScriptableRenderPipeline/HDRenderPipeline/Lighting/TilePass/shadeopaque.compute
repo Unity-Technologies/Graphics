@@ -57,7 +57,7 @@
 #include "../../ShaderConfig.cs.hlsl"
 #include "../../ShaderVariables.hlsl"
 #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
-#include "../../Lighting/TilePass/FeatureFlags.hlsl"
+
 //-------------------------------------------------------------------------------------
 // variable declaration
 //-------------------------------------------------------------------------------------

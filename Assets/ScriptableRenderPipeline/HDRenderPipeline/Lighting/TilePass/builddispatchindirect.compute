@@ -6,8 +6,6 @@
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 
-#include "FeatureFlags.hlsl"
-
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );	// Indirect arguments have to be in a _buffer_, not a structured buffer
 RWStructuredBuffer<uint> g_TileList;
 StructuredBuffer<uint> g_TileFeatureFlags;
