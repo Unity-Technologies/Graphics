@@ -278,9 +278,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTexture m_CameraDepthStencilBuffer = null;
         private RenderTexture m_CameraDepthBufferCopy = null;
         private RenderTexture m_CameraStencilBufferCopy = null; // Currently, it's manually copied using a pixel shader, and optimized to only contain the SSS bit
+        private RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
         private RenderTargetIdentifier m_CameraStencilBufferCopyRT;
+        private RenderTargetIdentifier m_HTileRT;
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -522,10 +524,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_CameraStencilBufferCopy.Release();
                 }
-                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8);
+                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
+            }
+
+            if (NeedHTileCopy())
+            {
+                if (m_HTile!= null)
+                {
+                    m_HTile.Release();
+                }
+                // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
+                m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_HTile.filterMode = FilterMode.Point;
+                m_HTile.enableRandomWrite = true;
+                m_HTile.Create();
+                m_HTileRT = new RenderTargetIdentifier(m_HTile);
             }
         }
 
@@ -607,6 +623,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
         }
 
+        bool NeedHTileCopy()
+        {
+            // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
+            // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
+            return NeedStencilBufferCopy();
+        }
+
         RenderTargetIdentifier GetDepthTexture()
         {
             return NeedDepthBufferCopy() ? m_CameraDepthBufferCopy : m_CameraDepthStencilBuffer;
@@ -615,6 +638,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier GetStencilTexture()
         {
             return NeedStencilBufferCopy() ? m_CameraStencilBufferCopyRT : m_CameraDepthStencilBufferRT;
+        }
+
+        RenderTargetIdentifier GetHTile()
+        {
+            // Currently, Unity does not offer a way to access the GCN HTile.
+            return m_HTileRT;
         }
 
         private void CopyDepthBufferIfNeeded(CommandBuffer cmd)
@@ -639,10 +668,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new Utilities.ProfilingSample("Copy StencilBuffer", cmd))
                 {
+                    cmd.SetRandomWriteTarget(1, GetHTile());
                     Utilities.DrawFullScreen(cmd, m_CopyStencilBuffer, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    cmd.ClearRandomWriteTargets();
                 }
             }
 
+            cmd.SetGlobalTexture("_HTile", GetHTile());
             cmd.SetGlobalTexture("_StencilTexture", GetStencilTexture());
         }
 
@@ -1268,12 +1300,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Old SSS Model >>>
-                // Clear the SSS filtering target
-                using (new Utilities.ProfilingSample("Clear SSS filtering target", cmd))
+                if (!sssSettings.useDisneySSS)
                 {
-                    Utilities.SetRenderTarget(cmd, m_CameraFilteringBuffer, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                    // Clear the SSS filtering target
+                    using (new Utilities.ProfilingSample("Clear SSS filtering target", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_CameraFilteringBuffer, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                    }
                 }
                 // <<< Old SSS Model
+
+                if (NeedStencilBufferCopy())
+                {
+                    using (new Utilities.ProfilingSample("Clear stencil texture", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.ClearColor, Color.black);
+                    }
+                }
+
+                if (NeedHTileCopy())
+                {
+                    using (new Utilities.ProfilingSample("Clear HTile", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_HTileRT, ClearFlag.ClearColor, Color.black);
+                    }
+                }
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
