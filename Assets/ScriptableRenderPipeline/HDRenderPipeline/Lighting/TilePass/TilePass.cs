@@ -180,11 +180,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public enum LightFeatureFlags
         {
-            Punctual    = 1 << 0,
-            Area        = 1 << 1,
-            Directional = 1 << 2,
-            Env         = 1 << 3,
-            Sky         = 1 << 4
+            // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
+            Punctual    = 1 << 8,
+            Area        = 1 << 9,
+            Directional = 1 << 10,
+            Env         = 1 << 11,
+            Sky         = 1 << 12  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
         }
 
         [GenerateHLSL]
@@ -201,10 +202,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_TileSizeClustered = 32;
 
             // feature variants
-            public static int s_NumFeatureVariants = 16;
+            public static int s_NumFeatureVariants = 26;
 
-            public static uint LIGHTFEATUREFLAGS_MASK = 0xFFF;
-            public static uint MATERIALFEATUREFLAGS_MASK = 0xF000;   // don't use all bits just to be safe from signed and/or float conversions :/
+            // Following define the maximum number of bits use in each feature category.
+            public static uint s_LightFeatureMaskFlags = 0xFF00;
+            public static uint s_MaterialFeatureMaskFlags = 0x00FF;   // don't use all bits just to be safe from signed and/or float conversions :/
         }
 
         [GenerateHLSL]
@@ -1661,7 +1663,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         if (!m_TileSettings.enableComputeMaterialVariants)
                         {
-                            baseFeatureFlags |= LightDefinitions.MATERIALFEATUREFLAGS_MASK;
+                            baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                         }
                         cmd.SetComputeIntParam(buildPerTileLightListShader, "g_BaseFeatureFlags", (int)baseFeatureFlags);
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileFeatureFlags", s_TileFeatureFlags);
@@ -1686,7 +1688,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (!m_TileSettings.enableComputeLightVariants)
                         {
                             buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
-                            baseFeatureFlags |= LightDefinitions.LIGHTFEATUREFLAGS_MASK;
+                            baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
                         }
 
                         cmd.SetComputeIntParam(buildMaterialFlagsShader, "g_BaseFeatureFlags", (int)baseFeatureFlags);
