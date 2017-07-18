@@ -28,7 +28,7 @@ MonoBehaviour:
   m_QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   m_BoxMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultSpotCookie: {fileID: 2800000, guid: 41e2109a383fc40ac81d1676de863fa2, type: 3}
-  finalPassShader: {fileID: 4800000, guid: 5590f54ad211f594da4e687b698f2258, type: 3}
+  finalPassShader: {fileID: 4800000, guid: bea92191e4f0645319306e59a11ceba2, type: 3}
   deferredShader: {fileID: 4800000, guid: eeee2c879e4754d958204f0816f646c7, type: 3}
   deferredReflectionShader: {fileID: 4800000, guid: eabc0a21ba0ff47268d9a58c92b8b40b,
     type: 3}

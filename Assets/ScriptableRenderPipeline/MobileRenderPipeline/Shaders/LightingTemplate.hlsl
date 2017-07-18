@@ -14,9 +14,11 @@
 #define CUBEMAPFACE_POSITIVE_Z 4
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
-sampler2D _CameraGBufferTexture0;
-sampler2D _CameraGBufferTexture1;
-sampler2D _CameraGBufferTexture2;
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(1);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(2);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(4);
 
 // from LightDefinitions.cs.hlsl
 #define SPOT_LIGHT (0)
@@ -56,12 +58,6 @@ void OnChipDeferredFragSetup (
 {
 	i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
 	float2 uv = i.uv.xy / i.uv.w;
-
-	// read depth and reconstruct world position
-	// if we have framebuffer fetch, its expected depth was passed in the parameter from the framebuffer so no need to fetch
-	#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-		depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-	#endif
 
 	depth = Linear01Depth (depth);
 
@@ -167,11 +163,8 @@ void OnChipDeferredCalculateLightParams (
 	outCookieColor = colorCookie;
 }
 
-#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-half4 CalculateLight (unity_v2f_deferred i, inout half4 gbuffer0, inout half4 gbuffer1, inout half4 gbuffer2, inout float vpDepth)
-#else
+
 half4 CalculateLight (unity_v2f_deferred i)
-#endif
 {
 	float3 wpos;
 	float2 uv;
@@ -181,11 +174,8 @@ half4 CalculateLight (unity_v2f_deferred i)
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
-#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, vpDepth);
-#else
-	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, 0.0);
-#endif
+	float depth = UNITY_READ_FRAMEBUFFER_INPUT(3, i.pos);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, depth);
 
 	#if defined (POINT_COOKIE) || defined (DIRECTIONAL_COOKIE) || defined (SPOT)
 		light.color = _LightColor.rgb * colorCookie.rgb * atten;
@@ -193,12 +183,9 @@ half4 CalculateLight (unity_v2f_deferred i)
 		light.color = _LightColor.rgb * atten;
 	#endif
 
-#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-	// unpack Gbuffer
-	half4 gbuffer0 = tex2D (_CameraGBufferTexture0, uv);
-	half4 gbuffer1 = tex2D (_CameraGBufferTexture1, uv);
-	half4 gbuffer2 = tex2D (_CameraGBufferTexture2, uv);
-#endif
+	half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, i.pos);
+	half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, i.pos);
+	half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, i.pos);
 	UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 
 	float3 eyeVec = normalize(wpos-_WorldSpaceCameraPos);

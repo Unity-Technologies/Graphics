@@ -89,11 +89,7 @@ Shader "Standard-SRP"
 
             #include "UnityStandardForwardMobile.cginc"
 
-            #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-				half4 fragForward(VertexOutputForwardNew i) : SV_Target3
-			#else
-				half4 fragForward(VertexOutputForwardNew i) : SV_Target
-			#endif 
+			half4 fragForward(VertexOutputForwardNew i) : SV_Target
 			{
 				return singlePassForward(i);
 			}

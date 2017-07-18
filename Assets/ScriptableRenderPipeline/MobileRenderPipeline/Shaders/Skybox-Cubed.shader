@@ -56,11 +56,7 @@ SubShader {
 			return o;
 		}
 
-	#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-		half4 frag (v2f i) : SV_Target3
-	#else
 		half4 frag (v2f i) : SV_Target
-	#endif
 		{
 			half4 tex = texCUBE (_Tex, i.texcoord);
 			half3 c = DecodeHDR (tex, _Tex_HDR);
