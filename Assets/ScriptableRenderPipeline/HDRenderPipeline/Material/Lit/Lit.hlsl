@@ -68,17 +68,20 @@ CBUFFER_END
 // Configure what kind of combination is supported
 //-----------------------------------------------------------------------------
 
-// Only include material classification code if it it requested. Just check LIGHT_FEATURE_MASK_FLAGS define for this
-#ifdef NUM_FEATURE_VARIANTS
+// Lighting architecture and material are suppose to be decoupled files.
+// However as we use material classification it is hard to be fully separated
+// the dependecy is define in this include where there is shared define for material and lighting in case of deferred material.
+// If a user do a lighting architecture without material classification, this can be remove
+#include "../../Lighting/TilePass/TilePass.cs.hlsl"
 
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
     // Standard
-    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
-    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
-    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
-    /*  3 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
+    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  3 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // SSS
     /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS,
@@ -90,7 +93,7 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO,
     /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO,
     /*  10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
-    /*  11 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR,
+    /*  11 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO,
 
     // Future usage
     /*  12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0,
@@ -115,8 +118,6 @@ uint TileVariantToFeatureFlags(uint variant)
 {
     return kFeatureVariantFlags[variant];
 }
-
-#endif // LIGHT_FEATURE_MASK_FLAGS
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -252,15 +253,18 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
 
-    // IMPORTANT: In case of foward or gbuffer pass we know what we are, we don't need to check specular or aniso to know the materialId, this is because we have static compile shader feature for it
+    // IMPORTANT: In case of foward or gbuffer pass we must know what we are statically, so compiler can do compile time optimization
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
-    {
-        bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0 = surfaceData.specularColor;
+        if (surfaceData.specular == SPECULARVALUE_SPECULAR_COLOR)
+        {
+            bsdfData.diffuseColor = surfaceData.baseColor;
+            bsdfData.fresnel0 = surfaceData.specularColor;
+        }
+        else
+        {
+            FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
+        }
     }
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
@@ -317,14 +321,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
     {
         // Encode specular on two bit for the enum
-        outGBuffer2 = float4(0.0, 0.0, 0.0, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
-    {
-        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 to store it in gbuffer2 instead
-        // Encode specular on two bit for the enum, must match encoding of MATERIALID_LIT_STANDARD
-        // TODO: encoding here could be optimize as we know what is the value of surfaceData.specular => (0.75294)
-        outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, surfaceData.specular, 4.0));
+        // Note: we encode two parametrization at the same time, specularColor and metal/specular
+        outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
@@ -426,13 +424,9 @@ void DecodeFromGBuffer(
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
-    // The code below define materialId based on material features so compiler know what to do.
-    // However as we store materialId for Aniso and Specular based on content of RT2, not just materialId, then we need to add severals condition.
-    // Goal of all this additional condition is to allow the compiler to optimize path that are not use.
-    // Note that the code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFF
-
-    // Aniso and Specular are encoded like standard + RT2 values
-    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
+    // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
+    // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
+    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
     int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
 
     if (supportsStandard + supportsSSS > 1)
@@ -456,26 +450,44 @@ void DecodeFromGBuffer(
         UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, specular);
         float anisotropy = inGBuffer2.b;
 
-        if (((featureFlags & MATERIALFEATUREFLAGS_LIT_SPECULAR) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0)
-            || specular == SPECULARVALUE_SPECULAR_COLOR)
+        if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_STANDARD)
         {
-            bsdfData.materialId = MATERIALID_LIT_SPECULAR;
-            bsdfData.diffuseColor = baseColor;
-            bsdfData.fresnel0 = inGBuffer2.rgb;
+            if (specular == SPECULARVALUE_SPECULAR_COLOR)
+            {
+                bsdfData.diffuseColor = baseColor;
+                bsdfData.fresnel0 = inGBuffer2.rgb;
+            }
+            else
+            {
+                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+            }
         }
-        else if ( ((featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0)
-                || anisotropy > 0)
+        else if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_ANISO)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
             FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
             float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
             FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
         }
-        else
+        else // either MATERIAL_FEATURE_MASK_FLAGS or MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO
         {
-            FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+            if (specular == SPECULARVALUE_SPECULAR_COLOR)
+            {
+                bsdfData.diffuseColor = baseColor;
+                bsdfData.fresnel0 = inGBuffer2.rgb;
+            }
+            else if (anisotropy > 0)
+            {
+                bsdfData.materialId = MATERIALID_LIT_ANISO;
+                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+                float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+                FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
+            }
+            else
+            {
+                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+            }
         }
-
     }
     else // bsdfData.materialId == MATERIALID_LIT_SSS
     {
