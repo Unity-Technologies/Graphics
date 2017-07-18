@@ -322,7 +322,15 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         // Encode specular on two bit for the enum
         // Note: we encode two parametrization at the same time, specularColor and metal/specular
-        outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
+        if (surfaceData.specular == SPECULARVALUE_SPECULAR_COLOR)
+        {
+            outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, surfaceData.specular, 4.0)); // As all is static, Pack function should produce the result compile time
+        }
+        else
+        {
+            // Note: it is important to setup anisotropy field to 0 else materialId will be anisotropic
+            outGBuffer2 = float4(float3(0.0, 0.0, 0.0), PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
+        }
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
