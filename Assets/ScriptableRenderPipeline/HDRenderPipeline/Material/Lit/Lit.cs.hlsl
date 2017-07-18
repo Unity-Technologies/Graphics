@@ -22,7 +22,6 @@
 #define MATERIALFEATUREFLAGS_LIT_UNUSED0 (4)
 #define MATERIALFEATUREFLAGS_LIT_UNUSED1 (8)
 #define MATERIALFEATUREFLAGS_LIT_ANISO (16)
-#define MATERIALFEATUREFLAGS_LIT_SPECULAR (32)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SpecularValue:  static fields
