@@ -216,20 +216,32 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		private static ComputeBuffer s_LightDataBuffer = null;
 
-		private static int s_GBufferAlbedo;
-		private static int s_GBufferSpecRough;
-		private static int s_GBufferNormal;
-		private static int s_GBufferEmission;
-		private static int s_GBufferZ;
+
+		private static RenderPassAttachment s_GBufferAlbedo;
+		private static RenderPassAttachment s_GBufferSpecRough;
+		private static RenderPassAttachment s_GBufferNormal;
+		private static RenderPassAttachment s_GBufferEmission;
+		private static RenderPassAttachment s_GBufferZ;
+		private static RenderPassAttachment s_CameraTarget;
 
 		// write depth to red color buffer if on mobile so we can read it back
 		// cannot read depth buffer directly in shader on iOS
-		#if !(UNITY_EDITOR || UNITY_STANDALONE)
-		private static int s_GBufferRedF32;
-		#endif
+		private static RenderPassAttachment s_GBufferRedF32;
 
-		private static int s_CameraTarget;
-		private static int s_CameraDepthTexture;
+//		private static int s_GBufferAlbedo;
+//		private static int s_GBufferSpecRough;
+//		private static int s_GBufferNormal;
+//		private static int s_GBufferEmission;
+//		private static int s_GBufferZ;
+//		private static int s_CameraTarget;
+//		private static int s_CameraDepthTexture;
+//
+//		// write depth to red color buffer if on mobile so we can read it back
+//		// cannot read depth buffer directly in shader on iOS
+//		#if !(UNITY_EDITOR || UNITY_STANDALONE)
+//		private static int s_GBufferRedF32;
+//		#endif
+
 
 		private Material m_DirectionalDeferredLightingMaterial;
 		private Material m_FiniteDeferredLightingMaterial;
@@ -267,18 +279,30 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		public void Build()
 		{
-			s_GBufferAlbedo = Shader.PropertyToID ("_CameraGBufferTexture0");
-			s_GBufferSpecRough = Shader.PropertyToID ("_CameraGBufferTexture1");
-			s_GBufferNormal = Shader.PropertyToID ("_CameraGBufferTexture2");
-			s_GBufferEmission = Shader.PropertyToID ("_CameraGBufferTexture3");
+			s_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32);
+			s_GBufferSpecRough = new RenderPassAttachment(RenderTextureFormat.ARGB32);
+			s_GBufferNormal = new RenderPassAttachment(RenderTextureFormat.ARGB2101010);
+			s_GBufferEmission = new RenderPassAttachment(RenderTextureFormat.ARGBHalf);
+			s_GBufferRedF32 = new RenderPassAttachment(RenderTextureFormat.RFloat); 
+			s_GBufferZ = new RenderPassAttachment(RenderTextureFormat.Depth);
+			s_CameraTarget = new RenderPassAttachment(RenderTextureFormat.ARGB32);
 
-			#if !(UNITY_EDITOR || UNITY_STANDALONE)
-			s_GBufferRedF32 = Shader.PropertyToID ("_CameraVPDepth"); 
-			#endif
+			s_GBufferEmission.Clear(new Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
+			s_GBufferZ.Clear(new Color(), 1.0f, 0);
+			s_CameraTarget.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
 
-			s_GBufferZ = Shader.PropertyToID ("_CameraGBufferZ"); // used while rendering into G-buffer+
-			s_CameraDepthTexture = Shader.PropertyToID ("_CameraDepthTexture"); // copy of that for later sampling in shaders
-			s_CameraTarget = Shader.PropertyToID ("_CameraTarget");
+//			s_GBufferAlbedo = Shader.PropertyToID ("_CameraGBufferTexture0");
+//			s_GBufferSpecRough = Shader.PropertyToID ("_CameraGBufferTexture1");
+//			s_GBufferNormal = Shader.PropertyToID ("_CameraGBufferTexture2");
+//			s_GBufferEmission = Shader.PropertyToID ("_CameraGBufferTexture3");
+//
+//			#if !(UNITY_EDITOR || UNITY_STANDALONE)
+//			s_GBufferRedF32 = Shader.PropertyToID ("_CameraVPDepth"); 
+//			#endif
+//
+//			s_GBufferZ = Shader.PropertyToID ("_CameraGBufferZ"); // used while rendering into G-buffer+
+//			s_CameraDepthTexture = Shader.PropertyToID ("_CameraDepthTexture"); // copy of that for later sampling in shaders
+//			s_CameraTarget = Shader.PropertyToID ("_CameraTarget");
 
 			m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
 
@@ -351,6 +375,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			m_CubeReflTexArray.NewFrame();
 		}
 
+
 		public void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
 		{
 			foreach (var camera in cameras) {
@@ -362,6 +387,17 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				m_ShadowMgr.UpdateCullingParameters(ref cullingParams);
 
 				var cullResults = CullResults.Cull (ref cullingParams, context);
+
+				NewFrame ();
+
+				UpdateShadowConstants (camera, cullResults);
+
+				m_ShadowMgr.RenderShadows( m_FrameId, context, cullResults, cullResults.visibleLights );
+				m_ShadowMgr.SyncData();
+				m_ShadowMgr.BindResources( context );
+
+				context.SetupCameraProperties(camera);
+
 				ExecuteRenderLoop(camera, cullResults, context);
 			}
 
@@ -370,43 +406,231 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 		{
-			NewFrame ();
+			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, new[] {
+				s_GBufferAlbedo,
+				s_GBufferSpecRough,
+				s_GBufferNormal,
+				s_GBufferEmission,
+				s_GBufferRedF32,
+				s_CameraTarget
+			}, s_GBufferZ)) {
 
-			UpdateShadowConstants (camera, cullResults);
+				// GBuffer pass
+				using (new RenderPass.SubPass (rp, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, null)) {
+					using (var cmd = new CommandBuffer { name = "Create G-Buffer" }) {
+						cmd.EnableShaderKeyword ("UNITY_HDR_ON");
 
-			m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
-			m_ShadowMgr.SyncData();
-			m_ShadowMgr.BindResources( loop );
+						loop.ExecuteCommandBuffer (cmd);
+					}
 
-			loop.SetupCameraProperties(camera);
-			RenderGBuffer(cullResults, camera, loop);
+					// render opaque objects using Deferred pass
+					var settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName ("Gbuffer Pass")) {
+						sorting = { flags = SortFlags.CommonOpaque },
+						rendererConfiguration = RendererConfiguration.PerObjectLightmaps
+					};
 
-			// try to use framebuffer fetch on tiled GPUs
-			#if UNITY_EDITOR || UNITY_STANDALONE
-			CopyDepthAfterGBuffer(loop);
-			#endif
-			
-			RenderLighting (camera, cullResults, loop);
+					settings.inputFilter.SetQueuesOpaque ();
+					settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+					loop.DrawRenderers (ref settings);
+				}
 
-			loop.DrawSkybox (camera);
+				//Lighting Pass
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, true))
+				{
+					using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass"} )
+					{
+						RenderLightsDeferred (camera, cullResults, cmd, loop);
+						RenderReflections (camera, cmd, cullResults, loop);
 
-			RenderForward (cullResults, camera, loop, false);
+						loop.ExecuteCommandBuffer(cmd);
+					}
+				}
 
-			loop.SetupCameraProperties (camera);
+				//skybox
+				using (new RenderPass.SubPass (rp, new[] { s_GBufferEmission }, null, true)) {
+					loop.DrawSkybox (camera);
+				}
 
-			// present frame buffer.
-			FinalPass(loop);
+				//Single Pass Forward Transparencies
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, true))
+				{
+					using (var cmd = new CommandBuffer { name = "Forwward Lighting Setup"} )
+					{
 
-			// bind depth surface for editor grid/gizmo/selection rendering
-			if (camera.cameraType == CameraType.SceneView)
-			{
-				var cmd = CommandBufferPool.Get();
-				cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
-				loop.ExecuteCommandBuffer(cmd);
-				CommandBufferPool.Release(cmd);
+						SetupLightShaderVariables (cullResults, camera, loop, cmd);
+						loop.ExecuteCommandBuffer(cmd);
+
+						var settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("ForwardSinglePass"))
+						{
+							sorting = { flags = SortFlags.CommonTransparent },
+							rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe,
+						};
+						settings.inputFilter.SetQueuesTransparent();
+
+						loop.DrawRenderers (ref settings);
+					}
+				}
+
+				//Final pass
+				loop.SetupCameraProperties (camera);
+				using (new RenderPass.SubPass(rp, new[] { s_CameraTarget }, new[] { s_GBufferEmission }))
+				{
+					var cmd = new CommandBuffer { name = "FinalPass" };
+
+					cmd.DrawProcedural(new Matrix4x4(), m_BlitMaterial, 0, MeshTopology.Triangles, 3);
+
+					loop.ExecuteCommandBuffer(cmd);
+					cmd.Dispose();
+
+				}
 			}
 		}
+			
+//		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
+//		{
+//			RenderGBuffer(cullResults, camera, loop);
+//
+//			// try to use framebuffer fetch on tiled GPUs
+//			#if UNITY_EDITOR || UNITY_STANDALONE
+//			CopyDepthAfterGBuffer(loop);
+//			#endif
+//			
+//			RenderLighting (camera, cullResults, loop);
+//
+//			loop.DrawSkybox (camera);
+//
+//			RenderForward (cullResults, camera, loop, false);
+//
+//			loop.SetupCameraProperties (camera);
+//
+//			// present frame buffer.
+//			FinalPass(loop);
+//
+////			// bind depth surface for editor grid/gizmo/selection rendering
+////			if (camera.cameraType == CameraType.SceneView)
+////			{
+////				var cmd = CommandBufferPool.Get();
+////				cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
+////				loop.ExecuteCommandBuffer(cmd);
+////				CommandBufferPool.Release(cmd);
+////			}
+//		}
+//		
+//		static void SetupGBuffer(int width, int height, CommandBuffer cmd)
+//		{
+//			var format10 = RenderTextureFormat.ARGB32;
+//			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
+//				format10 = RenderTextureFormat.ARGB2101010;
+//			var formatHDR = RenderTextureFormat.DefaultHDR;
+//
+//			//@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not,
+//			// so we make it think we always render in HDR
+//			cmd.EnableShaderKeyword ("UNITY_HDR_ON");
+//
+//			cmd.GetTemporaryRT(s_GBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+//			cmd.GetTemporaryRT(s_GBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+//			cmd.GetTemporaryRT(s_GBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
+//			cmd.GetTemporaryRT(s_GBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
+//			cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+//			cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
+//
+//			#if UNITY_EDITOR || UNITY_STANDALONE
+//			cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+//
+//			var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
+//			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
+//
+//			#else
+//			cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+//			cmd.GetTemporaryRT(s_GBufferRedF32, width, height, 24, FilterMode.Point, RenderTextureFormat.RFloat);
+//
+//			var colorMRTs = new RenderTargetIdentifier[5] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 };
+//			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
+//
+//			#endif
+//
+//			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+//
+//		}
+//
+//		static void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext loop)
+//		{
+//			// setup GBuffer for rendering
+//			var cmd = CommandBufferPool.Get ("Create G-Buffer");
+//			SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
+//			loop.ExecuteCommandBuffer(cmd);
+//			CommandBufferPool.Release(cmd);
+//
+//			// render opaque objects using Deferred pass
+//			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
+//			{
+//				sorting = {flags = SortFlags.CommonOpaque},
+//				rendererConfiguration = RendererConfiguration.PerObjectLightmaps
+//			};
+//
+//			settings.inputFilter.SetQueuesOpaque();
+//			settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+//			loop.DrawRenderers(ref settings);
+//		}
+//
+//		void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
+//		{
+//			var cmd = CommandBufferPool.Get ("Lighting");
+//
+//			// Use framebuffer fetch if available
+//			#if UNITY_EDITOR || UNITY_STANDALONE
+//			cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
+//			#endif
+//
+//			RenderLightsDeferred (camera, inputs, cmd, loop);
+//
+//			// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
+//			RenderReflections (camera, cmd, inputs, loop);
+//
+//			loop.ExecuteCommandBuffer (cmd);
+//			CommandBufferPool.Release(cmd);
+//		}
+//
+//		void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
+//		{
+//			CommandBuffer cmd = CommandBufferPool.Get ("ForwardSetup");
+//
+//			SetupLightShaderVariables (cull, camera, loop);
+//
+//			loop.ExecuteCommandBuffer (cmd);
+//			CommandBufferPool.Release(cmd);
+//
+//			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
+//			{
+//				sorting = { flags = opaquesOnly ? SortFlags.CommonOpaque : SortFlags.CommonTransparent }
+//			};
+//			settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+//			if (opaquesOnly) 
+//				settings.inputFilter.SetQueuesOpaque();
+//			else 
+//				settings.inputFilter.SetQueuesTransparent();
+//
+//			loop.DrawRenderers (ref settings);
+//
+//		}
+//
+//		static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
+//		{
+//			var cmd = CommandBufferPool.Get ("Copy depth");
+//			cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
+//			loop.ExecuteCommandBuffer(cmd);
+//			CommandBufferPool.Release(cmd);
+//		}
+//
+//		void FinalPass(ScriptableRenderContext loop)
+//		{
+//			var cmd = CommandBufferPool.Get ("FinalPass");
+//			cmd.Blit(s_GBufferEmission, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
+//			loop.ExecuteCommandBuffer(cmd);
+//			CommandBufferPool.Release(cmd);
+//		}
 
+		// Utilites
 		static Matrix4x4 GetFlipMatrix()
 		{
 			Matrix4x4 flip = Matrix4x4.identity;
@@ -420,6 +644,67 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			return GetFlipMatrix() * camera.worldToCameraMatrix;
 		}
 
+		static Matrix4x4 CameraToWorld(Camera camera)
+		{
+			return camera.cameraToWorldMatrix * GetFlipMatrix();
+		}
+
+		static Matrix4x4 CameraProjection(Camera camera)
+		{
+			return camera.projectionMatrix * GetFlipMatrix();
+		}
+		
+		Matrix4x4 PerspectiveCotanMatrix(float cotangent, float zNear, float zFar )
+		{
+			float deltaZ = zNear - zFar;
+			var m = Matrix4x4.zero;
+
+			m.m00 = cotangent;			m.m01 = 0.0f;      m.m02 = 0.0f;                    m.m03 = 0.0f;
+			m.m10 = 0.0f;               m.m11 = cotangent; m.m12 = 0.0f;                    m.m13 = 0.0f;
+			m.m20 = 0.0f;               m.m21 = 0.0f;      m.m22 = (zFar + zNear) / deltaZ; m.m23 = 2.0f * zNear * zFar / deltaZ;
+			m.m30 = 0.0f;               m.m31 = 0.0f;      m.m32 = -1.0f;                   m.m33 = 0.0f;
+
+			return m;
+		}
+
+		float GetCotanHalfSpotAngle (float spotAngle)
+		{
+			const float degToRad = (float)(Mathf.PI / 180.0);
+			var cs = Mathf.Cos(0.5f * spotAngle * degToRad);
+			var ss = Mathf.Sin(0.5f * spotAngle * degToRad);
+			return cs / ss; //cothalfspotangle
+		}
+
+		// Shadows
+		void UpdateShadowConstants(Camera camera, CullResults inputs)
+		{
+			m_FrameId.frameCount++;
+			// get the indices for all lights that want to have shadows
+			m_ShadowRequests.Clear();
+			m_ShadowRequests.Capacity = inputs.visibleLights.Count;
+			int lcnt = inputs.visibleLights.Count;
+			for (int i = 0; i < lcnt; ++i)
+			{
+				VisibleLight vl = inputs.visibleLights[i];
+				if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
+					m_ShadowRequests.Add(i);
+			}
+			// pass this list to a routine that assigns shadows based on some heuristic
+			uint shadowRequestCount = (uint)m_ShadowRequests.Count;
+			int[] shadowRequests = m_ShadowRequests.ToArray();
+			int[] shadowDataIndices;
+			m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
+				ref shadowRequestCount, shadowRequests, out shadowDataIndices);
+
+			// update the visibleLights with the shadow information
+			m_ShadowIndices.Clear();
+			for (uint i = 0; i < shadowRequestCount; i++)
+			{
+				m_ShadowIndices.Add(shadowRequests[i], shadowDataIndices[i]);
+			}
+		}
+
+		// Reflections
 		void RenderReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
 		{
 			var probes = cullResults.visibleReflectionProbes;
@@ -517,109 +802,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_ReflectionNearAndFarClipMaterial, 0, 0, props);
 			}
-		}
-
-		void UpdateShadowConstants(Camera camera, CullResults inputs)
-		{
-			m_FrameId.frameCount++;
-			// get the indices for all lights that want to have shadows
-			m_ShadowRequests.Clear();
-			m_ShadowRequests.Capacity = inputs.visibleLights.Count;
-			int lcnt = inputs.visibleLights.Count;
-			for (int i = 0; i < lcnt; ++i)
-			{
-				VisibleLight vl = inputs.visibleLights[i];
-				if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
-					m_ShadowRequests.Add(i);
-			}
-			// pass this list to a routine that assigns shadows based on some heuristic
-			uint shadowRequestCount = (uint)m_ShadowRequests.Count;
-			int[] shadowRequests = m_ShadowRequests.ToArray();
-			int[] shadowDataIndices;
-			m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
-				ref shadowRequestCount, shadowRequests, out shadowDataIndices);
-
-			// update the visibleLights with the shadow information
-			m_ShadowIndices.Clear();
-			for (uint i = 0; i < shadowRequestCount; i++)
-			{
-				m_ShadowIndices.Add(shadowRequests[i], shadowDataIndices[i]);
-			}
-		}
-
-		static void SetupGBuffer(int width, int height, CommandBuffer cmd)
-		{
-			var format10 = RenderTextureFormat.ARGB32;
-			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
-				format10 = RenderTextureFormat.ARGB2101010;
-			var formatHDR = RenderTextureFormat.DefaultHDR;
-
-			//@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not,
-			// so we make it think we always render in HDR
-			cmd.EnableShaderKeyword ("UNITY_HDR_ON");
-
-			cmd.GetTemporaryRT(s_GBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(s_GBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(s_GBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(s_GBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-			cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
-
-			#if UNITY_EDITOR || UNITY_STANDALONE
-			cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-
-			var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
-			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
-
-			#else
-			cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-			cmd.GetTemporaryRT(s_GBufferRedF32, width, height, 24, FilterMode.Point, RenderTextureFormat.RFloat);
-
-			var colorMRTs = new RenderTargetIdentifier[5] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 };
-			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
-
-			#endif
-
-			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
-
-		}
-
-		static void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext loop)
-		{
-			// setup GBuffer for rendering
-			var cmd = CommandBufferPool.Get ("Create G-Buffer");
-			SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
-			loop.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
-
-			// render opaque objects using Deferred pass
-			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
-			{
-				sorting = {flags = SortFlags.CommonOpaque},
-				rendererConfiguration = RendererConfiguration.PerObjectLightmaps
-			};
-
-			settings.inputFilter.SetQueuesOpaque();
-			settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-			loop.DrawRenderers(ref settings);
-		}
-
-		void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
-		{
-			var cmd = CommandBufferPool.Get ("Lighting");
-
-			// Use framebuffer fetch if available
-			#if UNITY_EDITOR || UNITY_STANDALONE
-			cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
-			#endif
-
-			RenderLightsDeferred (camera, inputs, cmd, loop);
-
-			// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
-			RenderReflections (camera, cmd, inputs, loop);
-
-			loop.ExecuteCommandBuffer (cmd);
-			CommandBufferPool.Release(cmd);
 		}
 
 		void RenderSpotlight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool renderAsQuad, bool intersectsNear, bool deferred)
@@ -761,87 +943,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 		}
 
-		Matrix4x4 PerspectiveCotanMatrix(float cotangent, float zNear, float zFar )
-		{
-			float deltaZ = zNear - zFar;
-			var m = Matrix4x4.zero;
-
-			m.m00 = cotangent;			m.m01 = 0.0f;      m.m02 = 0.0f;                    m.m03 = 0.0f;
-			m.m10 = 0.0f;               m.m11 = cotangent; m.m12 = 0.0f;                    m.m13 = 0.0f;
-			m.m20 = 0.0f;               m.m21 = 0.0f;      m.m22 = (zFar + zNear) / deltaZ; m.m23 = 2.0f * zNear * zFar / deltaZ;
-			m.m30 = 0.0f;               m.m31 = 0.0f;      m.m32 = -1.0f;                   m.m33 = 0.0f;
-
-			return m;
-		}
-
-		float GetCotanHalfSpotAngle (float spotAngle)
-		{
-			const float degToRad = (float)(Mathf.PI / 180.0);
-			var cs = Mathf.Cos(0.5f * spotAngle * degToRad);
-			var ss = Mathf.Sin(0.5f * spotAngle * degToRad);
-			return cs / ss; //cothalfspotangle
-		}
-
-		static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, ScriptableRenderContext loop)
-		{
-			var cmd = CommandBufferPool.Get ("Forward Opaques - Depth Only");
-			cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
-			loop.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
-
-			// render opaque objects using Deferred pass
-			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
-			{
-				sorting = { flags = SortFlags.CommonOpaque }
-			};
-			settings.inputFilter.SetQueuesOpaque();
-			loop.DrawRenderers(ref settings);
-		}
-
-		static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
-		{
-			var cmd = CommandBufferPool.Get ("Copy depth");
-			cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
-			loop.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
-		}
-
-		void FinalPass(ScriptableRenderContext loop)
-		{
-			var cmd = CommandBufferPool.Get ("FinalPass");
-			cmd.Blit(s_GBufferEmission, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
-			loop.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
-		}
-			
-		void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
-		{
-
-			SetupLightShaderVariables (cull, camera, loop);
-
-			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
-			{
-				sorting = { flags = opaquesOnly ? SortFlags.CommonOpaque : SortFlags.CommonTransparent }
-			};
-			settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-			if (opaquesOnly) 
-				settings.inputFilter.SetQueuesOpaque();
-			else 
-				settings.inputFilter.SetQueuesTransparent();
-
-			loop.DrawRenderers (ref settings);
-		}
-
-		static Matrix4x4 CameraToWorld(Camera camera)
-		{
-			return camera.cameraToWorldMatrix * GetFlipMatrix();
-		}
-
-		static Matrix4x4 CameraProjection(Camera camera)
-		{
-			return camera.projectionMatrix * GetFlipMatrix();
-		}
-
 		private void InitializeLightData()
 		{
 			for (int i = 0; i < k_MaxLights; i++)
@@ -855,7 +956,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 		}
 
-		private void SetupLightShaderVariables(CullResults cull, Camera camera, ScriptableRenderContext context)
+		private void SetupLightShaderVariables(CullResults cull, Camera camera, ScriptableRenderContext context, CommandBuffer cmd)
 		{
 			int totalLightCount = cull.visibleLights.Count;
 			InitializeLightData();
@@ -1004,8 +1105,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 			s_LightDataBuffer.SetData(lightData);
 
-			CommandBuffer cmd = CommandBufferPool.Get ("SetupShaderConstants");
-
 			cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
 			cmd.SetGlobalMatrix("g_mWorldToView", viewToWorld.inverse);
 			cmd.SetGlobalMatrix("g_mScrProjection", projscr);
@@ -1032,9 +1131,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 			cmd.SetGlobalFloat ("_useLegacyCookies", UseLegacyCookies?1.0f:0.0f);
 			cmd.SetGlobalFloat ("_transparencyShadows", TransparencyShadows ? 1.0f : 0.0f);
-
-			context.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
+	
 		}
 	}
 }
