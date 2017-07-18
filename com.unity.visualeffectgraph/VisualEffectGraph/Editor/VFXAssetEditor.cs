@@ -33,30 +33,48 @@ public class VFXAssetEditor : Editor
     }
 
     VFXParameterPresenter[] m_ExposedList;
+    VFXParameterPresenter[] m_ExposedListCopy;
 
     public override void OnInspectorGUI()
     {
 
-        m_ExposedList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        m_ExposedListCopy = (VFXParameterPresenter[])m_ExposedList.Clone();
         if ( list == null)
         {
+            m_ExposedList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
             list = new ReorderableList(m_ExposedList,typeof(VFXParameterPresenter),true,false,false,false);
-            list.drawElementCallback = DrawSortLayerListElement;
+            list.elementHeightCallback = GetExposedListElementHeight;
+            list.drawElementCallback = DrawExposedListElement;
+            list.drawHeaderCallback = DrawExposedHeader;
         }
 
-        
-        //GUILayout.BeginVertical();
-        GUILayout.Label("Exposed Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
         list.DoLayoutList();
-        /*int cpt = 0;
-        GUILayout.Label("Local Parameters", GUI.skin.box, GUILayout.ExpandWidth(true));
-        cpt = 0;
-        foreach (var parm in m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => !t.exposed).OrderBy(t => t.order))
+        
+        for (int i = 0; i < m_ExposedList.Length; ++i)
         {
-            OnParamGUI(parm, cpt++);
-        }*/
+            if( m_ExposedList[i].order != i )
+            {
+                var parameter = m_ExposedList[i];
+                Undo.RegisterCompleteObjectUndo(parameter, "VFX parameter");
+                parameter.order = i;
+                EditorUtility.SetDirty(parameter);
+            }
+        }
     }
-    private void DrawSortLayerListElement(Rect rect, int index, bool selected, bool focused)
+
+    public void DrawExposedHeader(Rect rect)
+    {
+        GUI.Label(rect,"Exposed Parameters");
+    }
+
+    private float GetExposedListElementHeight(int index)
+    {
+        ParamInfo infos;
+        m_AdvDictionary.TryGetValue(m_ExposedList[index], out infos); 
+
+        return infos.adv ? 80 : 24;
+    }
+    private void DrawExposedListElement(Rect rect, int index, bool selected, bool focused)
     {
         OnParamGUI(rect,m_ExposedList[index], index);
     }
@@ -73,7 +91,6 @@ public class VFXAssetEditor : Editor
 
     void OnParamGUI(Rect rect,VFXParameterPresenter parameter, int order)
     {
-        //GUILayout.BeginArea(rect);
         GUILayout.BeginVertical();
 
         GUILayout.BeginHorizontal();
@@ -87,9 +104,26 @@ public class VFXAssetEditor : Editor
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(parameter, out infos);
 
-        infos.adv = EditorGUILayout.ToggleLeft(string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()), infos.adv, GUILayout.Width(140));
 
-        parameter.exposedName = EditorGUI.TextField(rect,parameter.exposedName);
+        rect.xMin += 8;
+        Rect toggleRect = rect;
+        
+
+        int labelWidth = 130;
+        int toggleWidth = 20;
+        int offsetWidth = 20;
+        int lineHeight = 15;
+        toggleRect.width = labelWidth + toggleWidth;
+        toggleRect.height = lineHeight;
+
+        infos.adv = EditorGUI.Foldout(toggleRect, infos.adv, string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()));
+
+        Rect fieldRect = rect;
+
+        fieldRect.xMin += labelWidth + toggleWidth + offsetWidth;
+        fieldRect.height = lineHeight;
+
+        parameter.exposedName = EditorGUI.TextField(fieldRect, parameter.exposedName);
 
         if (orderChange || EditorGUI.EndChangeCheck())
         {
@@ -101,56 +135,91 @@ public class VFXAssetEditor : Editor
         {
             if (infos.propertyIM == null)
             {
-                infos.propertyIM = VFXPropertyIM.Create(parameter.anchorType, 80);
+                infos.propertyIM = VFXPropertyIM.Create(parameter.anchorType, labelWidth);
             }
 
             if (infos.propertyIM != null)
             {
-                parameter.value = infos.propertyIM.OnGUI("value", parameter.value);
-
-                if (infos.propertyIM.isNumeric)
+                float marginHeight = 2;
+                Rect areaRect = rect;
+                //if (Event.current.type == EventType.Repaint)
                 {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Space(30);
-                    bool minChecked = GUILayout.Toggle(parameter.minValue != null, "");
-                    GUI.enabled = minChecked;
-                    if (infos.propertyIM != null)
-                    {
-                        object val = parameter.minValue;
-                        if (val == null)
-                            val = System.Activator.CreateInstance(parameter.anchorType);
-                        val = infos.propertyIM.OnGUI("min", val);
-                        if (minChecked)
-                            parameter.minValue = val;
-                        else
-                            parameter.minValue = null;
-                    }
+                    areaRect.yMin += lineHeight + marginHeight;
 
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Space(30);
-                    GUI.enabled = true;
-                    bool maxChecked = GUILayout.Toggle(parameter.maxValue != null, "");
-                    GUI.enabled = maxChecked;
-                    if (infos.propertyIM != null)
+                    areaRect.xMin += offsetWidth;
+                    areaRect.height = lineHeight;
+                    areaRect.xMin += toggleWidth;
+                    parameter.value = infos.propertyIM.OnGUI(areaRect,"value", parameter.value);
+
+                    areaRect.xMin -= offsetWidth;
+
+                    areaRect.yMin += lineHeight + marginHeight;
+                    areaRect.height = lineHeight;
+                    if (infos.propertyIM.isNumeric)
                     {
-                        object val = parameter.maxValue;
-                        if (val == null)
-                            val = System.Activator.CreateInstance(parameter.anchorType);
-                        val = infos.propertyIM.OnGUI("max", val);
-                        if (maxChecked)
-                            parameter.maxValue = val;
-                        else
-                            parameter.maxValue = null;
+                        toggleRect = areaRect;
+                        toggleRect.width = toggleWidth;
+                        bool minChecked = GUI.Toggle(toggleRect,parameter.minValue != null, "");
+                        GUI.enabled = minChecked;
+                        if (infos.propertyIM != null)
+                        {
+                            object val = parameter.minValue;
+                            if (val == null)
+                                val = System.Activator.CreateInstance(parameter.anchorType);
+
+                            toggleRect.xMin = toggleRect.xMax;
+                            toggleRect.xMax = areaRect.xMax;
+                            val = infos.propertyIM.OnGUI(toggleRect, "min", val);
+                            if (minChecked)
+                                parameter.minValue = val;
+                            else
+                                parameter.minValue = null;
+                        }
+                        areaRect.yMin += lineHeight + marginHeight;
+                        areaRect.height = lineHeight;
+                        toggleRect = areaRect;
+                        toggleRect.width = toggleWidth;
+                        GUI.enabled = true;
+                        bool maxChecked = GUI.Toggle(toggleRect, parameter.maxValue != null, "");
+                        GUI.enabled = maxChecked;
+                        if (infos.propertyIM != null)
+                        {
+                            object val = parameter.maxValue;
+                            if (val == null)
+                                val = System.Activator.CreateInstance(parameter.anchorType);
+
+                            toggleRect.xMin = toggleRect.xMax;
+                            toggleRect.xMax = areaRect.xMax;
+                            val = infos.propertyIM.OnGUI(toggleRect, "max", val);
+                            if (maxChecked)
+                                parameter.maxValue = val;
+                            else
+                                parameter.maxValue = null;
+                        }
+
+                        /*
+                        GUI.enabled = true;
+                        bool maxChecked = GUILayout.Toggle(parameter.maxValue != null, "");
+                        GUI.enabled = maxChecked;
+                        if (infos.propertyIM != null)
+                        {
+                            object val = parameter.maxValue;
+                            if (val == null)
+                                val = System.Activator.CreateInstance(parameter.anchorType);
+                            val = infos.propertyIM.OnGUI("max", val);
+                            if (maxChecked)
+                                parameter.maxValue = val;
+                            else
+                                parameter.maxValue = null;
+                        }
+                        */
+                        GUI.enabled = true;
                     }
-                    GUI.enabled = true;
-                    GUILayout.EndHorizontal();
                 }
             }
         }
         m_AdvDictionary[parameter] = infos;
 
         GUILayout.EndVertical();
-        //GUILayout.EndArea();
     }
 }
