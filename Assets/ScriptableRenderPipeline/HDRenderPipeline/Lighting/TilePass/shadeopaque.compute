@@ -95,8 +95,13 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
 
-    // TODO: add an early-out using HiZ/HiS or our light tile data.
-    if (depth == 0) { return; }
+    // For indirect case: we can still overlap inside a tile with the sky/background, reject it
+    // Can't rely on stencil as we are in compute shader
+    // TODO : if we have depth bounds test we could remove such a test ?
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        return;
+    }
 
     UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
