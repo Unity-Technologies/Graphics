@@ -195,30 +195,42 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #ifdef PROCESS_AREA_LIGHT
     if(featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
-        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
         uint areaLightStart;
         uint areaLightCount;
         GetCountAndStart(posInput, LIGHTCATEGORY_AREA, areaLightStart, areaLightCount);
-        for(i = 0; i < areaLightCount; ++i)
+
+        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
+        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
+
+        // !!!!!!!!!!!!!!
+        // COMPILER BEHAVIOR WARNING
+        // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
+        // By keeping line lights first we avoid this behavior and save substantial register pressure.
+
+        i = 0;
+        uint areaIndex = FetchIndex(areaLightStart, i);
+        while ( i < areaLightCount && _LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
         {
-            float3 localDiffuseLighting, localSpecularLighting;
-
-            uint areaIndex = FetchIndex(areaLightStart, i);
-
-            if(_LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
-            {
-                EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                                    localDiffuseLighting, localSpecularLighting);
-            }
-            else
-            {
-                EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                                    localDiffuseLighting, localSpecularLighting);
-            }
-
+            areaIndex = FetchIndex(areaLightStart, i);
+            EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                                localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
             specularLighting += localSpecularLighting;
+
+            i++;
+        }
+
+        while (i < areaLightCount) // Rectangle lights are the last area lights so no need to check type
+        {
+            areaIndex = FetchIndex(areaLightStart, i);
+            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                                localDiffuseLighting, localSpecularLighting);
+
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+
+            i++;
         }
     }
 #endif
