@@ -605,6 +605,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
+    preLightData.TdotV = 0;
+    preLightData.BdotV = 0;
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
