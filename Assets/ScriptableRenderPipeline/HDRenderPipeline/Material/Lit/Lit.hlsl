@@ -68,36 +68,36 @@ CBUFFER_END
 // Configure what kind of combination is supported
 //-----------------------------------------------------------------------------
 
-// Only include material classification code if it it requested. Just check LIGHTFEATUREFLAGS_MASK define for this
-#ifdef LIGHTFEATUREFLAGS_MASK
+// Only include material classification code if it it requested. Just check LIGHT_FEATURE_MASK_FLAGS define for this
+#ifdef NUM_FEATURE_VARIANTS
 
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
     // Standard
-    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD
-    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD
-    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD
-    /*  3 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_STANDARD
+    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
+    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
+    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
+    /*  3 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_SPECULAR,
 
     // SSS
-    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS
-    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS
-    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS
-    /*  7 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_SSS
+    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  7 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
 
     // Specular/Aniso
-    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
-    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
-    /*  10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
-    /*  11 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR
+    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /*  10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /*  11 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR,
 
     // Future usage
-    /*  12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0
-    /*  13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0
-    /*  14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0
-    ///*  15 */ LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_LIT_UNUSED0
-    /* 15 */ 0xFFFFFFFF // LIGHTFEATUREFLAGS_MASK | MATERIALFEATUREFLAGS_MASK, // Catch all case, but should not be needed
+    /*  12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /*  13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /*  14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    ///*  15 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED0
+    /* 15 */ 0xFFFFFFFF // LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case, but should not be needed
 };
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
@@ -116,7 +116,7 @@ uint TileVariantToFeatureFlags(uint variant)
     return kFeatureVariantFlags[variant];
 }
 
-#endif // LIGHTFEATUREFLAGS_MASK
+#endif // LIGHT_FEATURE_MASK_FLAGS
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -425,12 +425,20 @@ void DecodeFromGBuffer(
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
+    // The material features system for material classification must allow compile time optimization (i.e everything should be static)
+    // The code below define materialId based on material features so compiler know what to do.
+    // However as we store materialId for Aniso and Specular based on content of RT2, not just materialId, then we need to add severals condition.
+    // Goal of all this additional condition is to allow the compiler to optimize path that are not use.
+    // Note that the code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFF
+
+    // Aniso and Specular are encoded like standard + RT2 values
     int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO | MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
     int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
 
     if (supportsStandard + supportsSSS > 1)
     {
-        bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);   // only fetch materialid if it is not statically known from feature flags
+        // only fetch materialid if it is not statically known from feature flags
+        bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
     }
     else
     {
@@ -441,7 +449,7 @@ void DecodeFromGBuffer(
             bsdfData.materialId = MATERIALID_LIT_SSS;
     }
 
-    if (supportsStandard && bsdfData.materialId == MATERIALID_LIT_STANDARD)
+    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
         float metallic;
         int specular;
@@ -469,7 +477,7 @@ void DecodeFromGBuffer(
         }
 
     }
-    else // if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
+    else // bsdfData.materialId == MATERIALID_LIT_SSS
     {
         float subsurfaceRadius  = inGBuffer2.x;
         float thickness         = inGBuffer2.y;
@@ -500,20 +508,16 @@ uint MaterialFeatureFlagsFromGBuffer(
 
     DecodeFromGBuffer(
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-        GBufferType0 inGBufferU0,
-        GBufferType1 inGBufferU1,
+        inGBufferU0, inGBufferU1,
 #else
-        GBufferType0 inGBuffer0,
-        GBufferType1 inGBuffer1,
-        GBufferType2 inGBuffer2,
-        GBufferType3 inGBuffer3,
+        inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3,
 #endif
         0xFFFFFFFF,
         bsdfData,
         unused
     );
 
-    return 1 << materialId; // This match all the MATERIALFEATUREFLAGS_LIT_XXX flag
+    return (1 << bsdfData.materialId); // This match all the MATERIALFEATUREFLAGS_LIT_XXX flag
 }
 
 
