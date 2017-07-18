@@ -272,9 +272,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 enableTileAndCluster = true;
                 enableSplitLightEvaluation = true;
-                enableComputeLightEvaluation = false;
-                enableComputeLightVariants = false;
-                enableComputeMaterialVariants = false;
+                enableComputeLightEvaluation = true;
+                enableComputeLightVariants = true;
+                enableComputeMaterialVariants = true;
 
                 enableClustered = true;
                 enableFptlForOpaqueWhenClustered = true;
