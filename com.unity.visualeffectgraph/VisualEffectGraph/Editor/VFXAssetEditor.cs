@@ -33,15 +33,28 @@ public class VFXAssetEditor : Editor
     }
 
     VFXParameterPresenter[] m_ExposedList;
-    VFXParameterPresenter[] m_ExposedListCopy;
+
+    bool ArraysEquals(VFXParameterPresenter[] a, VFXParameterPresenter[] b)
+    {
+        if (b.Length != a.Length)
+            return false;
+        for(int i = 0; i < a.Length; ++i)
+        {
+            if (a[i] != b[i])
+                return false;
+        }
+        return true;
+    }
 
     public override void OnInspectorGUI()
     {
+        if (m_ViewPresenter == null)
+            return;
 
-        m_ExposedListCopy = (VFXParameterPresenter[])m_ExposedList.Clone();
-        if ( list == null)
+        var newList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        if ( list == null || !ArraysEquals(newList,m_ExposedList) )
         {
-            m_ExposedList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+            m_ExposedList = newList;
             list = new ReorderableList(m_ExposedList,typeof(VFXParameterPresenter),true,false,false,false);
             list.elementHeightCallback = GetExposedListElementHeight;
             list.drawElementCallback = DrawExposedListElement;
@@ -55,9 +68,9 @@ public class VFXAssetEditor : Editor
             if( m_ExposedList[i].order != i )
             {
                 var parameter = m_ExposedList[i];
-                Undo.RegisterCompleteObjectUndo(parameter, "VFX parameter");
+                Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
                 parameter.order = i;
-                EditorUtility.SetDirty(parameter);
+                EditorUtility.SetDirty(parameter.model);
             }
         }
     }
@@ -72,7 +85,7 @@ public class VFXAssetEditor : Editor
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(m_ExposedList[index], out infos); 
 
-        return infos.adv ? 80 : 24;
+        return infos.adv ? 80 : 25;
     }
     private void DrawExposedListElement(Rect rect, int index, bool selected, bool focused)
     {
@@ -104,7 +117,7 @@ public class VFXAssetEditor : Editor
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(parameter, out infos);
 
-
+        rect.yMin += 4;
         rect.xMin += 8;
         Rect toggleRect = rect;
         
@@ -127,8 +140,8 @@ public class VFXAssetEditor : Editor
 
         if (orderChange || EditorGUI.EndChangeCheck())
         {
-            Undo.RegisterCompleteObjectUndo(parameter, "VFX parameter");
-            EditorUtility.SetDirty(parameter);
+            Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
+            EditorUtility.SetDirty(parameter.model);
         }
         GUILayout.EndHorizontal();
         if (infos.adv)
