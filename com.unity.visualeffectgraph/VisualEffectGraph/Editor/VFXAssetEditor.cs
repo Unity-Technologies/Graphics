@@ -15,12 +15,13 @@ using UnityEditorInternal;
 [CustomEditor(typeof(VFXAsset))]
 public class VFXAssetEditor : Editor
 {
-    VFXViewPresenter m_ViewPresenter;
     void OnEnable()
     {
         VFXAsset asset = (VFXAsset)target;
-        m_ViewPresenter = ScriptableObject.CreateInstance<VFXViewPresenter>();
-        m_ViewPresenter.SetVFXAsset(asset, false);
+        if (VFXViewWindow.viewPresenter == null)
+        {
+        }
+        VFXViewWindow.viewPresenter.SetVFXAsset(asset, false);
         m_AdvDictionary.Clear();
     }
 
@@ -48,10 +49,10 @@ public class VFXAssetEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (m_ViewPresenter == null)
+        if (VFXViewWindow.viewPresenter == null)
             return;
 
-        var newList = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = VFXViewWindow.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if ( list == null || !ArraysEquals(newList,m_ExposedList) )
         {
             m_ExposedList = newList;
@@ -59,6 +60,7 @@ public class VFXAssetEditor : Editor
             list.elementHeightCallback = GetExposedListElementHeight;
             list.drawElementCallback = DrawExposedListElement;
             list.drawHeaderCallback = DrawExposedHeader;
+            list.onStartDragOutsideCallback = StartDragElement;
         }
 
         list.DoLayoutList();
@@ -73,6 +75,16 @@ public class VFXAssetEditor : Editor
                 EditorUtility.SetDirty(parameter.model);
             }
         }
+    }
+
+    public const string VFXParameterDragging = "Unity.VFX.Parameter";
+
+    public void StartDragElement(ReorderableList list,int index)
+    {
+        DragAndDrop.PrepareStartDrag();
+        DragAndDrop.SetGenericData(VFXParameterDragging, m_ExposedList[index]);
+        string title = m_ExposedList[index].exposedName; 
+        DragAndDrop.StartDrag(title);
     }
 
     public void DrawExposedHeader(Rect rect)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -7,6 +7,58 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
+    interface IParameterDropTarget
+    {
+        void OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter);
+        void OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter);
+    }
+
+    class ParameterDropper : Manipulator
+    {
+
+        public ParameterDropper()
+        {
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<IMGUIEvent>(OnIMGUIEvent);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<IMGUIEvent>(OnIMGUIEvent);
+        }
+
+        void OnIMGUIEvent(IMGUIEvent e)
+        {
+            Event evt = e.imguiEvent;
+            if (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform)
+                return;
+            var pickElem = target.panel.Pick(target.LocalToGlobal(evt.mousePosition));
+            IParameterDropTarget dropTarget = pickElem != null ? pickElem.GetFirstOfType<IParameterDropTarget>() : null;
+
+            if (dropTarget == null)
+                return;
+
+            VFXParameterPresenter dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterPresenter;
+            
+
+            switch (evt.type)
+            {
+                case EventType.DragUpdated:
+                    {
+                        dropTarget.OnDragUpdated(e, dragData);
+                    }
+                    break;
+                case EventType.DragPerform:
+                    {
+                        dropTarget.OnDragPerform(e, dragData);
+                    }
+                    break;
+            }
+        }
+    }
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -90,7 +142,7 @@ namespace UnityEditor.VFX.UI
     }
 
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
-    class VFXView : GraphView
+    class VFXView : GraphView, IParameterDropTarget
     {
         public VFXView()
         {
@@ -116,6 +168,8 @@ namespace UnityEditor.VFX.UI
                 {Event.KeyboardEvent("^#d"), OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
             }));
+
+            AddManipulator(new ParameterDropper());
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
@@ -344,5 +398,22 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
+        {
+            //TODO : show that we accept the drag
+            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+
+        }
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt,VFXParameterPresenter parameter)
+        {
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
+
+            newParameter.exposedName = parameter.exposedName;
+            newParameter.exposed = true;
+        }
+
     }
 }

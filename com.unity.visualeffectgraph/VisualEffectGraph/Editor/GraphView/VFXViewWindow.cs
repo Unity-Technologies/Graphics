@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEditor.VFX;
@@ -18,20 +18,17 @@ namespace  UnityEditor.VFX.UI
         protected override GraphView BuildView()
         {
             BuildPresenters();
-            return m_ViewPresenter.View;
+            return viewPresenter.View;
         }
 
         protected override GraphViewPresenter BuildPresenters()
         {
-            if (m_ViewPresenter == null)
-                m_ViewPresenter = CreateInstance<VFXViewPresenter>();
-
             if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-                m_ViewPresenter.SetVFXAsset(asset, true);
+                viewPresenter.SetVFXAsset(asset, true);
             }
-            return m_ViewPresenter;
+            return viewPresenter;
         }
 
         protected new void OnEnable()
@@ -40,21 +37,21 @@ namespace  UnityEditor.VFX.UI
             var objs = Selection.objects;
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
-                m_ViewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
+                viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
             }
             else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
 
-                m_ViewPresenter.SetVFXAsset(asset, true);
+                viewPresenter.SetVFXAsset(asset, true);
             }
             else
-                m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
+                viewPresenter.SetVFXAsset(viewPresenter.GetVFXAsset(), true);
         }
 
         protected new void OnDisable()
         {
-            m_ViewPresenter.SetVFXAsset(null, false);
+            viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
         }
 
@@ -64,22 +61,32 @@ namespace  UnityEditor.VFX.UI
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
                 m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
-                m_ViewPresenter.SetVFXAsset(objs[0] as VFXAsset, false);
+                viewPresenter.SetVFXAsset(objs[0] as VFXAsset, false);
             }
         }
 
         void Update()
         {
-            var graph = m_ViewPresenter.GetGraph();
+            var graph = viewPresenter.GetGraph();
             if (graph != null)
                 graph.RecompileIfNeeded();
-            m_ViewPresenter.RecompileExpressionGraphIfNeeded();
+            viewPresenter.RecompileExpressionGraphIfNeeded();
         }
 
         [SerializeField]
         private string m_DisplayedAssetPath;
 
-        [SerializeField]
-        private VFXViewPresenter m_ViewPresenter;
+        static public VFXViewPresenter viewPresenter
+        {
+            get {
+
+                if( s_ViewPresenter == null)
+                    s_ViewPresenter = ScriptableObject.CreateInstance<VFXViewPresenter>();
+
+                return s_ViewPresenter;
+            }
+        }
+
+        static VFXViewPresenter s_ViewPresenter;
     }
 }

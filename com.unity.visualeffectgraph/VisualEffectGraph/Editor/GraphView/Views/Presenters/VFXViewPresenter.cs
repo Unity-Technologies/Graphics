@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -604,12 +604,12 @@ namespace UnityEditor.VFX.UI
 
                 // First trigger
                 RecompileExpressionGraphIfNeeded();
-                SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
 
 
                 // Doesn't work for some reason
                 //View.FrameAll();
             }
+            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }
 
         public void SyncPresentersFromModel(VFXModel model, VFXModel.InvalidationCause cause)
