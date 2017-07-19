@@ -10,7 +10,6 @@ public class MobileTestSceneManager : MonoBehaviour {
 	static MobileTestSceneManager Instance;
 
 	private Vector2 startPosition;
-	private float startTime;
 
 	public UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline.OnTileDeferredRenderPipeline pipeline;
 
@@ -23,35 +22,10 @@ public class MobileTestSceneManager : MonoBehaviour {
 		}
 	}
 
-//	bool processRightSwipe()
-//	{
-//		if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began) {
-//			Vector2 touchDeltaPosition = Input.GetTouch(0).position;
-//			if (touchDeltaPosition.x > Screen.width/2)
-//				return true;
-//		}
-//		return false;
-//	}
-//
-//	bool processLeftSwipe()
-//	{
-//		if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began) {
-//			Vector2 touchDeltaPosition = Input.GetTouch(0).position;
-//			if (touchDeltaPosition.x < Screen.width/2)
-//				return true;
-//		}
-//		return false;
-//	}
-
 	int detectSwipe() {
 		if (Input.touchCount == 1 && Input.GetTouch (0).phase == TouchPhase.Ended) {
 			Vector2 endPosition = Input.GetTouch (0).position;
 			Vector2 delta = endPosition - startPosition;
-
-//			float dist = Mathf.Sqrt(Mathf.Pow(delta.x, 2) + Mathf.Pow (delta.y, 2));
-//			float angle = Mathf.Atan (delta.y/delta.x) * (180.0f/Mathf.PI);
-//			float duration = Time.time - startTime;
-//			float speed = dist/duration;
 
 			if (startPosition.x < endPosition.x)
 				return 1;
@@ -66,7 +40,6 @@ public class MobileTestSceneManager : MonoBehaviour {
 	void detectTouchBegan() {
 		if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began) {
 			startPosition = Input.GetTouch(0).position;
-			startTime = Time.time;
 		}
 	}
 
@@ -80,7 +53,7 @@ public class MobileTestSceneManager : MonoBehaviour {
 		}
 
 #if (UNITY_EDITOR || UNITY_STANDALONE)
-		if (Input.GetKeyDown(KeyCode.S)) {
+		if (Input.GetKeyDown(KeyCode.Tab)) {
 #else
 		if (detectSwipe() == 1) {
 #endif
@@ -88,7 +61,7 @@ public class MobileTestSceneManager : MonoBehaviour {
 		}
 
 #if (UNITY_EDITOR || UNITY_STANDALONE)
-		if (Input.GetKeyDown(KeyCode.C)) {
+		if (Input.GetKeyDown(KeyCode.LeftShift)) {
 #else
 		if (detectSwipe() == -1) {
 #endif
