@@ -123,7 +123,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
     #ifdef _DETAIL_MAP_IDX
         #ifdef SURFACE_GRADIENT
-        normalTS += detailNormalTS;
+        normalTS += detailNormalTS * detailMask;
         #else
         normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
         #endif
