@@ -65,7 +65,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
 
-            float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
+            float4 _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters (only the X component is used)
         #ifdef SSS_MODEL_DISNEY
             float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
@@ -250,7 +250,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             #ifdef SSS_MODEL_DISNEY
                 // Rescaling the filter is equivalent to inversely scaling the world.
-                float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID] / distScale);
+                float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID].x / distScale);
                 float unitsPerMm = rcp(mmPerUnit);
 
                 // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
@@ -320,7 +320,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 }
             #else
                 // Rescaling the filter is equivalent to inversely scaling the world.
-                float  metersPerUnit = _WorldScales[profileID] / distScale * SSS_BASIC_DISTANCE_SCALE;
+                float  metersPerUnit = _WorldScales[profileID].x / distScale * SSS_BASIC_DISTANCE_SCALE;
                 float  centimPerUnit = CENTIMETERS_PER_METER * metersPerUnit;
                 // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
                 float2 unitsPerPixel = 2 * abs(cornerPosVS.xy - centerPosVS.xy);

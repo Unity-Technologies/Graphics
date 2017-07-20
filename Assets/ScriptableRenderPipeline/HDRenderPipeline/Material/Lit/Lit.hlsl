@@ -231,11 +231,15 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
 
+    bool enableSssAndTransmission = true;
+
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
-    if (0)
-#else
-    if (_EnableSSSAndTransmission != 0) // If we globally disable SSS effect, don't modify diffuseColor
+    enableSssAndTransmission = false;
+#elif (SSS_PASS == 0)
+    enableSssAndTransmission = _EnableSSSAndTransmission != 0;
 #endif
+
+    if (enableSssAndTransmission) // If we globally disable SSS effect, don't modify diffuseColor
     {
         // We modify the albedo here as this code is used by all lighting (including light maps and GI).
         if (performPostScatterTexturing)
