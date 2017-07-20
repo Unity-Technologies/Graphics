@@ -64,6 +64,7 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 result = float3(1.0, 0.0, 1.0);
         bool needLinearToSRGB = false;
 
+        GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
         GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
         GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
