@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine.Rendering;
 using UnityObject = UnityEngine.Object;
 using System.Reflection;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -103,6 +104,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 SetRenderTarget(cmd, buffer, ClearFlag.ClearColor, Color.black, 0, (CubemapFace)i);
             }
+        }
+
+        // Post-processing misc
+        public static bool IsPostProcessingActive(PostProcessLayer layer)
+        {
+            return layer != null
+                && layer.enabled;
+        }
+
+        public static bool IsTemporalAntialiasingActive(PostProcessLayer layer)
+        {
+            return IsPostProcessingActive(layer)
+                && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
+                && layer.temporalAntialiasing.IsSupported();
         }
 
         // Miscellanous
