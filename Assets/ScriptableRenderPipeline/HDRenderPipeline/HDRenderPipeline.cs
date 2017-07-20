@@ -179,16 +179,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
         {
-            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",         viewMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",      viewMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",         projMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",      projMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",     viewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",  viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, "_InvProjParam",       invProjParam);
-            cmd.SetComputeVectorParam(cs, "_ScreenSize",         screenSize);
-            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix", prevViewProjMatrix);
-            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes", frustumPlaneEquations);
+            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",          viewMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",       viewMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",          projMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",       projMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",      viewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",   viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, "_InvProjParam",        invProjParam);
+            cmd.SetComputeVectorParam(cs, "_ScreenSize",          screenSize);
+            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix",  prevViewProjMatrix);
+            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes",  frustumPlaneEquations);
+            // Copy values set by Unity which are not configured in scripts.
+            cmd.SetComputeVectorParam(cs, "unity_OrthoParams",    Shader.GetGlobalVector("unity_OrthoParams"));
+            cmd.SetComputeVectorParam(cs, "_ProjectionParams",    Shader.GetGlobalVector("_ProjectionParams"));
+            cmd.SetComputeVectorParam(cs, "_ScreenParams",        Shader.GetGlobalVector("_ScreenParams"));
+            cmd.SetComputeVectorParam(cs, "_ZBufferParams",       Shader.GetGlobalVector("_ZBufferParams"));
+            cmd.SetComputeVectorParam(cs, "_WorldSpaceCameraPos", Shader.GetGlobalVector("_WorldSpaceCameraPos"));
         }
     }
 
@@ -245,9 +251,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyStencilBuffer;
 
         // Various set of material use in render loop
-        Material m_SssHorizontalFilterAndCombinePass;
+        ComputeShader m_SubsurfaceScatteringCS;
+        int m_SubsurfaceScatteringKernel;
         // Old SSS Model >>>
         Material m_SssVerticalFilterPass;
+        Material m_SssHorizontalFilterAndCombinePass;
         // <<< Old SSS Model
 
         Material m_CameraMotionVectorsMaterial;
@@ -447,6 +455,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Old SSS Model >>>
         public void CreateSssMaterials(bool useDisneySSS)
         {
+            m_SubsurfaceScatteringCS     = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Resources/SubsurfaceScattering.compute");
+            m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
+
             Utilities.Destroy(m_SssVerticalFilterPass);
             m_SssVerticalFilterPass = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/SubsurfaceScattering");
             Utilities.SelectKeyword(m_SssVerticalFilterPass, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
@@ -1038,6 +1049,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (sssSettings.useDisneySSS)
                 {
+                    hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture0",    m_gbufferManager.GetGBuffers()[0]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture1",    m_gbufferManager.GetGBuffers()[1]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture2",    m_gbufferManager.GetGBuffers()[2]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture3",    m_gbufferManager.GetGBuffers()[3]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_DepthTexture",       GetDepthTexture());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_StencilTexture",     GetStencilTexture());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_HTile",              GetHTile());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_IrradianceSource",   m_CameraDiffuseIrradianceBufferRT);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_CameraColorTexture", m_CameraColorBufferRT);
+                    cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
+                    return;
+
                     cmd.SetGlobalTexture("_IrradianceSource", m_CameraDiffuseIrradianceBufferRT); // Cannot set a RT on a material
                     m_SssHorizontalFilterAndCombinePass.SetFloatArray("_WorldScales",            sssParameters.worldScales);
                     m_SssHorizontalFilterAndCombinePass.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
