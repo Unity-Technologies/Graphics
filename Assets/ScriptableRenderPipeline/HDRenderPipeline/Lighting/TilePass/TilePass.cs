@@ -2017,6 +2017,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                             int debugViewMaterial = Shader.GetGlobalInt("_DebugViewMaterial");
+                            int debugLightingMode = Shader.GetGlobalInt("_DebugLightingMode");
                             Vector4 debugLightingAlbedo = Shader.GetGlobalVector("_DebugLightingAlbedo");
                             Vector4 debugLightingSmoothness = Shader.GetGlobalVector("_DebugLightingSmoothness");
 
@@ -2080,6 +2081,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", debugViewMaterial);
+                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugLightingMode", debugLightingMode);
                                 cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingAlbedo", debugLightingAlbedo);
                                 cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingSmoothness", debugLightingSmoothness);
 
