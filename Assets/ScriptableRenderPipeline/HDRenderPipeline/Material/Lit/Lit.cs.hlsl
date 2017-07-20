@@ -17,10 +17,11 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialFeatureFlags:  static fields
 //
-#define MATERIALFEATUREFLAGS_LIT_SSS (4096)
-#define MATERIALFEATUREFLAGS_LIT_STANDARD (8192)
-#define MATERIALFEATUREFLAGS_LIT_ANISO (16384)
-#define MATERIALFEATUREFLAGS_LIT_SPECULAR (32768)
+#define MATERIALFEATUREFLAGS_LIT_SSS (1)
+#define MATERIALFEATUREFLAGS_LIT_STANDARD (2)
+#define MATERIALFEATUREFLAGS_LIT_UNUSED0 (4)
+#define MATERIALFEATUREFLAGS_LIT_UNUSED1 (8)
+#define MATERIALFEATUREFLAGS_LIT_ANISO (16)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SpecularValue:  static fields

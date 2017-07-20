@@ -11,18 +11,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitStandard = 1,
             LitUnused0  = 2,
             LitUnused1  = 3,
-            LitAniso    = 4, // Should be the last as it is not setup by the users but generated based on anisotropy property
-            LitSpecular = 5, // Should be the last as it is not setup by the users but generated based on anisotropy property and specular
+            // We don't store any materialId for aniso but instead deduce it from LitStandard + value of specular + anisotropy parameters
+            // Consequence is that when querying materialId alone, it will read 2 RT and not only one. This may be a performance hit when only materialId is desired (like in material classification pass)
+            // Alternative is to use a materialId slot, if any are available.
+            LitAniso = 4,
+            // LitSpecular (DiffuseColor/SpecularColor) is an alternate parametrization for LitStandard (BaseColor/Metal/Specular), but it is the same shading model
+            // We don't want any specific materialId for it, instead we use LitStandard as materialId. However for UI purpose we still define this value here.
+            LitSpecular = 5,
         };
 
+        // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
+        // Material bit mask must match LightDefinitions.s_MaterialFeatureMaskFlags value
         [GenerateHLSL]
         public enum MaterialFeatureFlags
         {
-            LitSSS      = 1 << 12,
-            LitStandard = 1 << 13,
-            LitAniso    = 1 << 14,
-            LitSpecular = 1 << 15
-        }
+            LitSSS      = 1 << MaterialId.LitSSS,
+            LitStandard = 1 << MaterialId.LitStandard,
+            LitUnused0  = 1 << MaterialId.LitUnused0,
+            LitUnused1  = 1 << MaterialId.LitUnused1,
+            LitAniso    = 1 << MaterialId.LitAniso,
+        };
 
         [GenerateHLSL]
         public enum SpecularValue
