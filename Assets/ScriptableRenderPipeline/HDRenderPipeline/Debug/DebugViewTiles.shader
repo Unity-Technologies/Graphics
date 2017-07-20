@@ -162,7 +162,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                         n += count;
                     }
                 }
-                if(n == 0) n = -1;
+                if (n == 0)
+                    n = -1;
 #else
                 n = input.variant;
 #endif

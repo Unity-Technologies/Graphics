@@ -16,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ProjectorPyramid,
 
         // AreaLight
+        Line, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
         Rectangle,
-        Line,
         // Currently not supported in real time (just use for reference)
         Sphere,
         Disk,
