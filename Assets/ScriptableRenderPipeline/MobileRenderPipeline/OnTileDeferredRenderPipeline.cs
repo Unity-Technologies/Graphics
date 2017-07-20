@@ -14,8 +14,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		const int k_MaxPayloadSlotsPerShadowData    =  4;
 		ShadowmapBase[]         m_Shadowmaps;
 		ShadowManager           m_ShadowMgr;
-		static ComputeBuffer    s_ShadowDataBuffer;
-		static ComputeBuffer    s_ShadowPayloadBuffer;
+		ComputeBuffer    s_ShadowDataBuffer;
+		ComputeBuffer    s_ShadowPayloadBuffer;
 
 		public ShadowSetup(ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
 		{
@@ -90,10 +90,14 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 			m_ShadowMgr = null;
 
-			if( s_ShadowDataBuffer != null )
-				s_ShadowDataBuffer.Release();
-			if( s_ShadowPayloadBuffer != null )
-				s_ShadowPayloadBuffer.Release();
+			if (s_ShadowDataBuffer != null) {
+				s_ShadowDataBuffer.Release ();
+				s_ShadowDataBuffer = null;
+			}
+			if (s_ShadowPayloadBuffer != null) {
+				s_ShadowPayloadBuffer.Release ();
+				s_ShadowPayloadBuffer = null;
+			}
 		}
 	}
 
@@ -214,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		private TextureCacheCubemap m_CubeCookieTexArray;
 		private TextureCacheCubemap m_CubeReflTexArray;
 
-		private static ComputeBuffer s_LightDataBuffer = null;
+		private ComputeBuffer s_LightDataBuffer;
 
 		private static int s_GBufferAlbedo;
 		private static int s_GBufferSpecRough;
@@ -256,7 +260,10 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
 			if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
 
-			s_LightDataBuffer.Release();
+			if (s_LightDataBuffer != null) {
+				s_LightDataBuffer.Release ();
+				s_LightDataBuffer = null;
+			}
 
 			m_CookieTexArray.Release();
 			m_CubeCookieTexArray.Release();
