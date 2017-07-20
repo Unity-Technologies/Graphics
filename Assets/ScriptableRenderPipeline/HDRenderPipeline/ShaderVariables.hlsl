@@ -218,6 +218,7 @@ CBUFFER_END
 CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
+float4x4 _NonJitteredViewProjMatrix;
 float4x4 _ViewMatrix;
 float4x4 _ProjMatrix;
 float4x4 _InvViewProjMatrix;
