@@ -57,6 +57,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // View-projection matrix from the previous frame.
         public Matrix4x4 prevViewProjMatrix;
 
+        // We need to keep track of these when camera relative rendering is enabled so we can take
+        // camera translation into account when generating camera motion vectors
+        public Vector3 cameraPos;
+        public Vector3 prevCameraPos;
+
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
         // frame and some matrices only have to be computed once. Realistically this shouldn't
@@ -92,6 +97,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Matrix4x4 gpuView = camera.worldToCameraMatrix;
             Matrix4x4 gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
+            Vector3 pos = camera.transform.position;
+
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 // Zero out the translation component.
@@ -100,12 +107,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Matrix4x4 gpuVP = gpuNonJitteredProj * gpuView;
 
-            // A camera could be rendered multiple time per frame, only updates the previous viewproj if needed
+            // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
             if (m_LastFrameActive != Time.frameCount)
             {
-                prevViewProjMatrix = !m_FirstFrame
-                    ? nonJitteredViewProjMatrix
-                    : gpuVP;
+                if (m_FirstFrame)
+                {
+                    prevCameraPos = pos;
+                    prevViewProjMatrix = gpuVP;
+                }
+                else
+                {
+                    prevCameraPos = cameraPos;
+                    prevViewProjMatrix = nonJitteredViewProjMatrix;
+                }
 
                 m_FirstFrame = false;
             }
@@ -113,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewMatrix = gpuView;
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
+            cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
             Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
@@ -1129,6 +1144,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int w = (int)hdcam.screenSize.x;
                 int h = (int)hdcam.screenSize.y;
+
+                m_CameraMotionVectorsMaterial.SetVector("_CameraPosDiff", hdcam.prevCameraPos - hdcam.cameraPos);
 
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
                 Utilities.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
