@@ -1072,6 +1072,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (sssSettings.useDisneySSS)
                 {
                     hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
+
+                    cmd.SetComputeIntParam(        m_SubsurfaceScatteringCS, "_TexturingModeFlags", sssParameters.texturingModeFlags);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, "_WorldScales",        sssParameters.worldScales);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, "_FilterKernels",      sssParameters.filterKernels);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, "_ShapeParams",        sssParameters.shapeParams);
+
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture0",    m_gbufferManager.GetGBuffers()[0]);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture1",    m_gbufferManager.GetGBuffers()[1]);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_GBufferTexture2",    m_gbufferManager.GetGBuffers()[2]);
@@ -1081,28 +1087,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_HTile",              GetHTile());
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_IrradianceSource",   m_CameraDiffuseIrradianceBufferRT);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_CameraColorTexture", m_CameraColorBufferRT);
+
                     cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
                     return;
 
-                    cmd.SetGlobalTexture("_IrradianceSource", m_CameraDiffuseIrradianceBufferRT); // Cannot set a RT on a material
-                    m_SssHorizontalFilterAndCombinePass.SetFloatArray("_WorldScales",            sssParameters.worldScales);
-                    m_SssHorizontalFilterAndCombinePass.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
-                    m_SssHorizontalFilterAndCombinePass.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
+                    //cmd.SetGlobalTexture("_IrradianceSource", m_CameraDiffuseIrradianceBufferRT); // Cannot set a RT on a material
+                    //m_SssHorizontalFilterAndCombinePass.SetVectorArray("_WorldScales",   sssParameters.worldScales);
+                    //m_SssHorizontalFilterAndCombinePass.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
 
-                    Utilities.DrawFullScreen(cmd, m_SssHorizontalFilterAndCombinePass, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                    //Utilities.DrawFullScreen(cmd, m_SssHorizontalFilterAndCombinePass, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
                 }
                 else
                 {
                     // Perform the vertical SSS filtering pass.
                     cmd.SetGlobalTexture("_IrradianceSource", m_CameraDiffuseIrradianceBufferRT);  // Cannot set a RT on a material
-                    m_SssVerticalFilterPass.SetFloatArray("_WorldScales",               sssParameters.worldScales);
+                    m_SssVerticalFilterPass.SetVectorArray("_WorldScales",              sssParameters.worldScales);
                     m_SssVerticalFilterPass.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                     m_SssVerticalFilterPass.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
                     Utilities.DrawFullScreen(cmd, m_SssVerticalFilterPass, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
 
                     // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
                     cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);  // Cannot set a RT on a material
-                    m_SssHorizontalFilterAndCombinePass.SetFloatArray("_WorldScales",               sssParameters.worldScales);
+                    m_SssHorizontalFilterAndCombinePass.SetVectorArray("_WorldScales",              sssParameters.worldScales);
                     m_SssHorizontalFilterAndCombinePass.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
                     m_SssHorizontalFilterAndCombinePass.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
                     Utilities.DrawFullScreen(cmd, m_SssHorizontalFilterAndCombinePass, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
