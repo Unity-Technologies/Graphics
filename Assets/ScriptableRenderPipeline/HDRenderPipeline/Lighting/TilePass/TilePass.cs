@@ -2049,7 +2049,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             int enableSSSAndTransmission = Shader.GetGlobalInt("_EnableSSSAndTransmission");
                             int texturingModeFlags = Shader.GetGlobalInt("_TexturingModeFlags");
                             int transmissionFlags = Shader.GetGlobalInt("_TransmissionFlags");
-                            float[] thicknessRemaps = Shader.GetGlobalFloatArray("_ThicknessRemaps");
+                            Vector4[] thicknessRemaps = Shader.GetGlobalVectorArray("_ThicknessRemaps");
                             Vector4[] shapeParams = Shader.GetGlobalVectorArray("_ShapeParams");
                             Vector4[] transmissionTints = Shader.GetGlobalVectorArray("_TransmissionTints");
 
@@ -2121,7 +2121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeIntParam(   shadeOpaqueShader, "_EnableSSSAndTransmission", enableSSSAndTransmission);
                                 cmd.SetComputeIntParam(   shadeOpaqueShader, "_TexturingModeFlags",       texturingModeFlags);
                                 cmd.SetComputeIntParam(   shadeOpaqueShader, "_TransmissionFlags",        transmissionFlags);
-                                cmd.SetComputeFloatParams(shadeOpaqueShader, "_ThicknessRemaps",          thicknessRemaps);
+                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_ThicknessRemaps",     thicknessRemaps);
                                 // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
                                 // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
                                 // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
