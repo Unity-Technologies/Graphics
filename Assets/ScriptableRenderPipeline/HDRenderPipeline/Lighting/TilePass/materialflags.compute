@@ -9,7 +9,6 @@
 
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
-#include "FeatureFlags.hlsl"
 
 #define USE_MATERIAL_FEATURE_FLAGS
 #define NR_THREADS	64
@@ -45,14 +44,14 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	}
 	GroupMemoryBarrierWithGroupSync();
 
-	uint materialFeatureFlags = g_BaseFeatureFlags;
+	uint materialFeatureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
 	[unroll]
 	for(int i = 0; i < 4; i++)
 	{
 		int idx = i * NR_THREADS + threadID;
 		uint2 uCrd = min( uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
 
-		if (FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z)
+		if (FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z) // This test is we are the sky/background or not
 		{
 			PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
 			FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
@@ -67,7 +66,7 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	{
 #ifdef USE_OR
 		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] |= ldsFeatureFlags;
-#else
+#else // Use in case we have disabled light classification
 		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] = ldsFeatureFlags;
 #endif
 	}

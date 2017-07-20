@@ -33,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projMatrix;
+        public Matrix4x4 nonJitteredProjMatrix;
         public Vector4   screenSize;
         public Vector4[] frustumPlaneEquations;
         public Camera    camera;
@@ -40,6 +41,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewProjMatrix
         {
             get { return projMatrix * viewMatrix; }
+        }
+
+        public Matrix4x4 nonJitteredViewProjMatrix
+        {
+            get { return nonJitteredProjMatrix * viewMatrix; }
         }
 
         public Vector4 invProjParam
@@ -68,12 +74,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update()
+        public void Update(PostProcessLayer postProcessLayer)
         {
+            // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
+            // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
+            bool taaEnabled = camera.cameraType == CameraType.Game
+                && Utilities.IsTemporalAntialiasingActive(postProcessLayer);
+
+            Matrix4x4 nonJitteredCameraProj = camera.projectionMatrix;
+            Matrix4x4 cameraProj = taaEnabled
+                ? postProcessLayer.temporalAntialiasing.GetJitteredProjectionMatrix(camera)
+                : nonJitteredCameraProj;
+
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
+            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(cameraProj, true); // Had to change this from 'false'
             Matrix4x4 gpuView = camera.worldToCameraMatrix;
+            Matrix4x4 gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -81,13 +98,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             }
 
-            Matrix4x4 gpuVP = gpuProj * gpuView;
+            Matrix4x4 gpuVP = gpuNonJitteredProj * gpuView;
 
             // A camera could be rendered multiple time per frame, only updates the previous viewproj if needed
             if (m_LastFrameActive != Time.frameCount)
             {
                 prevViewProjMatrix = !m_FirstFrame
-                    ? viewProjMatrix
+                    ? nonJitteredViewProjMatrix
                     : gpuVP;
 
                 m_FirstFrame = false;
@@ -95,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
+            nonJitteredProjMatrix = gpuNonJitteredProj;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
             Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
@@ -117,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static List<Camera> m_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
         {
             HDCamera hdcam;
 
@@ -127,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update();
+            hdcam.Update(postProcessLayer);
             return hdcam;
         }
 
@@ -150,45 +168,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupGlobalParams(CommandBuffer cmd)
         {
-            cmd.SetGlobalMatrix("_ViewMatrix",         viewMatrix);
-            cmd.SetGlobalMatrix("_InvViewMatrix",      viewMatrix.inverse);
-            cmd.SetGlobalMatrix("_ProjMatrix",         projMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",      projMatrix.inverse);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",     viewProjMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
-            cmd.SetGlobalVector("_InvProjParam",       invProjParam);
-            cmd.SetGlobalVector("_ScreenSize",         screenSize);
-            cmd.SetGlobalMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
-            cmd.SetGlobalVectorArray("_FrustumPlanes", frustumPlaneEquations);
+            cmd.SetGlobalMatrix("_ViewMatrix",                viewMatrix);
+            cmd.SetGlobalMatrix("_InvViewMatrix",             viewMatrix.inverse);
+            cmd.SetGlobalMatrix("_ProjMatrix",                projMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",             projMatrix.inverse);
+            cmd.SetGlobalMatrix("_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",            viewProjMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix",         viewProjMatrix.inverse);
+            cmd.SetGlobalVector("_InvProjParam",              invProjParam);
+            cmd.SetGlobalVector("_ScreenSize",                screenSize);
+            cmd.SetGlobalMatrix("_PrevViewProjMatrix",        prevViewProjMatrix);
+            cmd.SetGlobalVectorArray("_FrustumPlanes",        frustumPlaneEquations);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
         public void OverrideGlobalParams(Material material)
         {
-            material.SetMatrix("_ViewMatrix",         viewMatrix);
-            material.SetMatrix("_InvViewMatrix",      viewMatrix.inverse);
-            material.SetMatrix("_ProjMatrix",         projMatrix);
-            material.SetMatrix("_InvProjMatrix",      projMatrix.inverse);
-            material.SetMatrix("_ViewProjMatrix",     viewProjMatrix);
-            material.SetMatrix("_InvViewProjMatrix",  viewProjMatrix.inverse);
-            material.SetVector("_InvProjParam",       invProjParam);
-            material.SetVector("_ScreenSize",         screenSize);
-            material.SetMatrix("_PrevViewProjMatrix", prevViewProjMatrix);
-            material.SetVectorArray("_FrustumPlanes", frustumPlaneEquations);
+            material.SetMatrix("_ViewMatrix",                viewMatrix);
+            material.SetMatrix("_InvViewMatrix",             viewMatrix.inverse);
+            material.SetMatrix("_ProjMatrix",                projMatrix);
+            material.SetMatrix("_InvProjMatrix",             projMatrix.inverse);
+            material.SetMatrix("_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
+            material.SetMatrix("_ViewProjMatrix",            viewProjMatrix);
+            material.SetMatrix("_InvViewProjMatrix",         viewProjMatrix.inverse);
+            material.SetVector("_InvProjParam",              invProjParam);
+            material.SetVector("_ScreenSize",                screenSize);
+            material.SetMatrix("_PrevViewProjMatrix",        prevViewProjMatrix);
+            material.SetVectorArray("_FrustumPlanes",        frustumPlaneEquations);
         }
 
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
         {
-            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",          viewMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",       viewMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",          projMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",       projMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",      viewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",   viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, "_InvProjParam",        invProjParam);
-            cmd.SetComputeVectorParam(cs, "_ScreenSize",          screenSize);
-            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix",  prevViewProjMatrix);
-            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes",  frustumPlaneEquations);
+            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",                viewMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",             viewMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",                projMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",             projMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, "_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",            viewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",         viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, "_InvProjParam",              invProjParam);
+            cmd.SetComputeVectorParam(cs, "_ScreenSize",                screenSize);
+            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix",        prevViewProjMatrix);
+            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes",        frustumPlaneEquations);
             // Copy values set by Unity which are not configured in scripts.
             cmd.SetComputeVectorParam(cs, "unity_OrthoParams",    Shader.GetGlobalVector("unity_OrthoParams"));
             cmd.SetComputeVectorParam(cs, "_ProjectionParams",    Shader.GetGlobalVector("_ProjectionParams"));
@@ -610,7 +631,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Shader.SetGlobalInt(     "_EnableSSSAndTransmission",          m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
                 Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
                 Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
-                cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
+                cmd.SetGlobalVectorArray( "_ThicknessRemaps",        sssParameters.thicknessRemaps);
                 // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
                 // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
                 // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
@@ -770,7 +791,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.SetupCameraProperties(camera);
 
-            HDCamera hdCamera = HDCamera.Get(camera);
+            var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+            HDCamera hdCamera = HDCamera.Get(camera, postProcessLayer);
             PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
             // TODO: Find a correct place to bind these material textures
@@ -883,7 +905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
                     RenderDistortion(m_CullResults, camera, renderContext, cmd);
 
-                    RenderPostProcesses(camera, cmd);
+                    RenderPostProcesses(camera, cmd, postProcessLayer);
                 }
             }
 
@@ -1165,7 +1187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)hdcam.screenSize.y;
 
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
-                cmd.Blit(BuiltinRenderTextureType.None, m_VelocityBufferRT, m_CameraMotionVectorsMaterial, 0);
+                Utilities.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
 
                 RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, "MotionVectors", RendererConfiguration.PerObjectMotionVectors);
@@ -1191,13 +1213,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPostProcesses(Camera camera, CommandBuffer cmd)
+        void RenderPostProcesses(Camera camera, CommandBuffer cmd, PostProcessLayer layer)
         {
             using (new Utilities.ProfilingSample("Post-processing", cmd))
             {
-                var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-
-                if (postProcessLayer != null && postProcessLayer.enabled)
+                if (Utilities.IsPostProcessingActive(layer))
                 {
                     cmd.SetGlobalTexture("_CameraDepthTexture", GetDepthTexture());
                     cmd.SetGlobalTexture("_CameraMotionVectorsTexture", m_VelocityBufferRT);
@@ -1211,7 +1231,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     context.sourceFormat = RenderTextureFormat.ARGBHalf;
                     context.flip = true;
 
-                    postProcessLayer.Render(context);
+                    layer.Render(context);
                 }
                 else
                 {

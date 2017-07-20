@@ -53,6 +53,12 @@
 
 // headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
 
+// Rules: When doing an array for constant buffer variables, we always use float4 to avoid any packing issue, particularly between compute shader and pixel shaders
+// i.e don't use SetGlobalFloatArray or SetComputeFloatParams
+// The array can be alias in hlsl. Exemple:
+// uniform float4 packedArray[3];
+// static float unpackedArray[12] = (float[12]packedArray;
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)
