@@ -583,7 +583,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Shader.SetGlobalInt(     "_EnableSSSAndTransmission",          m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
                 Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
                 Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
-                cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
+                cmd.SetGlobalVectorArray( "_ThicknessRemaps",        sssParameters.thicknessRemaps);
                 // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
                 // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
                 // shader variant for forward, gbuffer and deferred shader. We want to avoid this.

@@ -58,7 +58,8 @@ CBUFFER_START(UnitySSSParameters)
 uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
+// Use float4 to avoid any packing issue between compute and pixel shaders
+float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
 float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = color, A = unused
 CBUFFER_END
@@ -213,8 +214,8 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
     bsdfData.subsurfaceProfile = subsurfaceProfile;
     bsdfData.subsurfaceRadius  = subsurfaceRadius;
-    bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile][0] +
-                                 _ThicknessRemaps[subsurfaceProfile][1] * thickness;
+    bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile].x +
+                                 _ThicknessRemaps[subsurfaceProfile].y * thickness;
 
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
