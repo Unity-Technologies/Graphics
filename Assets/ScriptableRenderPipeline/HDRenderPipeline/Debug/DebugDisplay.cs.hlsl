@@ -34,6 +34,12 @@
 #define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE (11)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewProperties:  static fields
+//
+#define DEBUGVIEWPROPERTIES_NONE (0)
+#define DEBUGVIEWPROPERTIES_TESSELLATION (12)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.FullScreenDebugMode:  static fields
 //
 #define FULLSCREENDEBUGMODE_NONE (0)
