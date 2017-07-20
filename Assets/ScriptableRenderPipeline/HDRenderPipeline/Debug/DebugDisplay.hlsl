@@ -9,4 +9,18 @@ int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 
+void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEWPROPERTIES_TESSELLATION:
+#ifdef TESSELLATION_ON
+        result = float3(1.0, 0.0, 0.0);
+#else
+        result = float3(0.0, 1.0, 0.0);
+#endif
+            break;
+    }
+}
+
 #endif

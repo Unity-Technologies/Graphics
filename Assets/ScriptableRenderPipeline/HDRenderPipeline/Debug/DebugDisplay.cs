@@ -45,6 +45,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] debugViewEngineValues = null;
         public static GUIContent[] debugViewMaterialVaryingStrings = null;
         public static int[] debugViewMaterialVaryingValues = null;
+        public static GUIContent[] debugViewMaterialPropertiesStrings = null;
+        public static int[] debugViewMaterialPropertiesValues = null;
         public static GUIContent[] debugViewMaterialGBufferStrings = null;
         public static int[] debugViewMaterialGBufferValues = null;
 
@@ -94,6 +96,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             materialDebugSettings.SetDebugViewVarying(value);
         }
 
+        public void SetDebugViewProperties(Attributes.DebugViewProperties value)
+        {
+            if (value != 0)
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+            materialDebugSettings.SetDebugViewProperties(value);
+        }
+
         public void SetDebugViewGBuffer(int value)
         {
             if (value != 0)
@@ -116,6 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues));
             DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues));
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewVarying>("Material", "Attributes",() => materialDebugSettings.debugViewVarying, (value) => SetDebugViewVarying((Attributes.DebugViewVarying)value));
+            DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewProperties>("Material", "Properties", () => materialDebugSettings.debugViewProperties, (value) => SetDebugViewProperties((Attributes.DebugViewProperties)value));
             DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues));
 
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kEnableShadowDebug, () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
@@ -282,6 +292,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 index = 0;
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewVarying), debugViewMaterialVaryingStrings, debugViewMaterialVaryingValues, "", ref index);
 
+                // Properties debug
+                var propertiesNames = Enum.GetNames(typeof(Attributes.DebugViewProperties));
+                debugViewMaterialPropertiesStrings = new GUIContent[propertiesNames.Length];
+                debugViewMaterialPropertiesValues = new int[propertiesNames.Length];
+                index = 0;
+                FillWithPropertiesEnum(typeof(Attributes.DebugViewProperties), debugViewMaterialPropertiesStrings, debugViewMaterialPropertiesValues, "", ref index);
+
                 // Gbuffer debug
                 var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
                 debugViewMaterialGBufferStrings = new GUIContent[gbufferNames.Length + bsdfDataDeferredType.GetFields().Length];
@@ -322,6 +339,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Depth = DebugViewVarying.VertexColorAlpha + 1,
             BakeDiffuseLightingWithAlbedoPlusEmissive,
         }
+
+        // Number must be contiguous
+        [GenerateHLSL]
+        public enum DebugViewProperties
+        {
+            None = 0,
+            Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
+        }
     }
 
     [Serializable]
@@ -330,11 +355,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int debugViewMaterial { get { return m_DebugViewMaterial; } }
         public int debugViewEngine { get { return m_DebugViewEngine; } }
         public Attributes.DebugViewVarying debugViewVarying { get { return m_DebugViewVarying; } }
+        public Attributes.DebugViewProperties debugViewProperties { get { return m_DebugViewProperties; } }
         public int debugViewGBuffer { get { return m_DebugViewGBuffer; } }
 
         int                             m_DebugViewMaterial = 0; // No enum there because everything is generated from materials.
         int                             m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
         Attributes.DebugViewVarying     m_DebugViewVarying = Attributes.DebugViewVarying.None;
+        Attributes.DebugViewProperties  m_DebugViewProperties = Attributes.DebugViewProperties.None;
         int                             m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
 
         public int GetDebugMaterialIndex()
@@ -342,7 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // This value is used in the shader for the actual debug display.
             // There is only one uniform parameter for that so we just add all of them
             // They are all mutually exclusive so return the sum will return the right index.
-            return m_DebugViewGBuffer + m_DebugViewMaterial + m_DebugViewEngine + (int)m_DebugViewVarying;
+            return m_DebugViewGBuffer + m_DebugViewMaterial + m_DebugViewEngine + (int)m_DebugViewVarying + (int)m_DebugViewProperties;
         }
 
         public void DisableMaterialDebug()
@@ -350,6 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugViewMaterial = 0;
             m_DebugViewEngine = 0;
             m_DebugViewVarying = Attributes.DebugViewVarying.None;
+            m_DebugViewProperties = Attributes.DebugViewProperties.None;
             m_DebugViewGBuffer = 0;
         }
 
@@ -373,6 +401,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DisableMaterialDebug();
             m_DebugViewVarying = value;
         }
+        public void SetDebugViewProperties(Attributes.DebugViewProperties value)
+        {
+            if (value != 0)
+                DisableMaterialDebug();
+            m_DebugViewProperties = value;
+        }
 
         public void SetDebugViewGBuffer(int value)
         {
@@ -384,7 +418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsDebugDisplayEnabled()
         {
-            return (m_DebugViewEngine != 0 || m_DebugViewMaterial != 0 || m_DebugViewVarying != Attributes.DebugViewVarying.None || m_DebugViewGBuffer != 0);
+            return (m_DebugViewEngine != 0 || m_DebugViewMaterial != 0 || m_DebugViewVarying != Attributes.DebugViewVarying.None || m_DebugViewProperties != Attributes.DebugViewProperties.None || m_DebugViewGBuffer != 0);
         }
     }
 
