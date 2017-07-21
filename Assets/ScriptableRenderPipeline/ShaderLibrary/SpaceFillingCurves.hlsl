@@ -1,5 +1,5 @@
-#ifndef UNITY_SPACE_FILLING_SURVES_INCLUDED
-#define UNITY_SPACE_FILLING_SURVES_INCLUDED
+#ifndef UNITY_SPACE_FILLING_CURVES_INCLUDED
+#define UNITY_SPACE_FILLING_CURVES_INCLUDED
 
 // "Insert" a 0 bit after each of the 16 low bits of x.
 // Ref: https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
@@ -69,4 +69,4 @@ uint3 DecodeMorton3D(uint code)
 	return uint3(Compact1By2(code >> 0), Compact1By2(code >> 1), Compact1By2(code >> 2));
 }
 
-#endif // UNITY_SPACE_FILLING_SURVES_INCLUDED
+#endif // UNITY_SPACE_FILLING_CURVES_INCLUDED
