@@ -473,25 +473,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugFullScreen = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
         }
 
-        // Old SSS Model >>>
         public void CreateSssMaterials(bool useDisneySSS)
         {
             m_SubsurfaceScatteringCS     = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Resources/SubsurfaceScattering.compute");
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
 
+            // Old SSS Model >>>
             Utilities.Destroy(m_SssVerticalFilterPass);
             m_SssVerticalFilterPass = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/SubsurfaceScattering");
-            Utilities.SelectKeyword(m_SssVerticalFilterPass, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
             m_SssVerticalFilterPass.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssVerticalFilterPass.SetFloat("_DstBlend", (float)BlendMode.Zero);
 
             Utilities.Destroy(m_SssHorizontalFilterAndCombinePass);
             m_SssHorizontalFilterAndCombinePass = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/SubsurfaceScattering");
-            Utilities.SelectKeyword(m_SssHorizontalFilterAndCombinePass, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
             m_SssHorizontalFilterAndCombinePass.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssHorizontalFilterAndCombinePass.SetFloat("_DstBlend", (float)BlendMode.One);
+            // <<< Old SSS Model
         }
-        // <<< Old SSS Model
 
         public void OnSceneLoad()
         {
@@ -1089,13 +1087,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, "_CameraColorTexture", m_CameraColorBufferRT);
 
                     cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
-                    return;
-
-                    //cmd.SetGlobalTexture("_IrradianceSource", m_CameraDiffuseIrradianceBufferRT); // Cannot set a RT on a material
-                    //m_SssHorizontalFilterAndCombinePass.SetVectorArray("_WorldScales",   sssParameters.worldScales);
-                    //m_SssHorizontalFilterAndCombinePass.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
-
-                    //Utilities.DrawFullScreen(cmd, m_SssHorizontalFilterAndCombinePass, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
                 }
                 else
                 {
