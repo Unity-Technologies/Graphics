@@ -24,7 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var tNode = node as UnityEngine.MaterialGraph.TextureAssetNode;
+            var tNode = node as UnityEngine.MaterialGraph.Texture2DNode;
             if (tNode == null)
                 return;
 

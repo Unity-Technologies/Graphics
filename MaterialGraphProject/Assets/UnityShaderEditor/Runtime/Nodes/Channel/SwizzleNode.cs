@@ -55,7 +55,10 @@ namespace UnityEngine.MaterialGraph
             if (outputSlot == null)
                 return "1.0";
 
-            int numInputChannels = (int)inputSlot.concreteValueType;
+            int numInputChannels = (int)SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
+            int numOutputChannels = (int)SlotValueHelper.GetChannelCount(outputSlot.concreteValueType);
+
+            //int numInputChannels = (int)inputSlot.concreteValueType;
             int numOutputChannels = (int)outputSlot.concreteValueType;
             if (owner.GetEdges(inputSlot.slotReference).ToList().Count() == 0)
                 numInputChannels = 0;

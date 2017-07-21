@@ -8,7 +8,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Texture/Texture")]
+  /*  [Title("Input/Texture/Texture")]
     public class TextureNode : PropertyNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         protected const string kUVSlotName = "UV";
@@ -197,7 +197,7 @@ namespace UnityEngine.MaterialGraph
 
                 return false;
             }
-            */
+            *
 
         public override PreviewProperty GetPreviewProperty()
         {
@@ -225,5 +225,5 @@ namespace UnityEngine.MaterialGraph
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
             return edges.Count == 0;
         }
-    }
+    }*/
 }

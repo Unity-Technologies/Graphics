@@ -79,7 +79,7 @@ namespace UnityEngine.MaterialGraph
         {
 
             GenerateNodeFunctionsAndPropertyUsages(vertexShaderBlock, propertyUsages, nodeFunction, mode, vertexInputs);
-           
+
             var slot = FindInputSlot<MaterialSlot>(VertexOffsetId);
             foreach (var edge in owner.GetEdges(slot.slotReference))
             {
@@ -175,7 +175,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             var templateText = File.ReadAllText(templateLocation);
-            
+
             var shaderPropertiesVisitor = new PropertyGenerator();
             var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
             resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
@@ -204,28 +204,14 @@ namespace UnityEngine.MaterialGraph
            GenerationMode mode)
         {
             var activeNodeList = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include, 
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
                new List<int>(surfaceInputs));
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
-                string prefix = "";
-                string sufix = "";
-                foreach (ISlot slot in node.GetInputSlots<MaterialSlot>())
-                {
-                    SlotValueType slotValueType = FindSlot<MaterialSlot>(slot.id).valueType;
-                    if (slotValueType == SlotValueType.Texture2D || slotValueType == SlotValueType.SamplerState)
-                    {
-                        prefix = "#ifdef UNITY_COMPILER_HLSL \n";
-                        sufix = "\n #endif";
-                    }
-                }
-
                 if (node is IGeneratesFunction)
                 {
-                    nodeFunction.AddShaderChunk(prefix, false);
-                    (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
-                    nodeFunction.AddShaderChunk(sufix, false);
+                    ((IGeneratesFunction) node).GenerateNodeFunction(nodeFunction, mode);
                 }
 
                 node.GeneratePropertyUsages(propertyUsages, mode);
@@ -332,7 +318,7 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
             var nodes = ListPool<INode>.Get();
-            
+
             //Get the rest of the nodes for all the other slots
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(surfaceInputs));
             for (var i = 0; i < nodes.Count; i++)

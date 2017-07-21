@@ -40,9 +40,6 @@ namespace UnityEngine.MaterialGraph
         protected struct Texture2D
         {}
 
-        protected struct Sampler2D
-        {}
-
         protected struct SamplerState
         {}
 
@@ -162,10 +159,6 @@ namespace UnityEngine.MaterialGraph
             if (t == typeof(Texture2D))
             {
                 return SlotValueType.Texture2D;
-            }
-            if (t == typeof(Sampler2D))
-            {
-                return SlotValueType.Sampler2D;
             }
             if (t == typeof(SamplerState))
             {

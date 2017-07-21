@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Logic/CustomCode")]
+/*    [Title("Logic/CustomCode")]
     public class CustomCodeNode : FunctionNInNOut, IGeneratesFunction
     {
         [SerializeField] private string m_code;
@@ -277,5 +277,5 @@ namespace UnityEngine.MaterialGraph
 
             return outputArguments;
         }
-    }
+    }*/
 }

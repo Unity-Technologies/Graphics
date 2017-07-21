@@ -1,69 +1,47 @@
-﻿using UnityEngine.Graphing;
+﻿using System.Reflection;
 
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title("UV/SphericalIndentation")]
-	public class SphericalIndentationNode : AnyNode<SphericalIndentationNode.Definition>
-	{
-		public class Definition : IAnyNodeDefinition
-		{
-			public string name { get { return "SphericalIndentation"; } }
+    [Title("UV/SphericalIndentation")]
+    public class SphericalIndentationNode : CodeFunctionNode
+    {
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_SphericalIndentation", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-			public AnyNodeProperty[] properties
-			{
-				get
-				{
-					return new AnyNodeProperty[]
-					{
-                           // slotId is the 'immutable' value we used to connect things
-                            new AnyNodeProperty { slotId= 0,    name = "inUVs",       description = "Input UV coords",          propertyType = PropertyType.Vector2,    value = Vector4.zero,                       state = AnyNodePropertyState.Slot },
-							new AnyNodeProperty { slotId= 1,    name = "center",      description = "UV center point",          propertyType = PropertyType.Vector2,    value= new Vector4(0.5f, 0.5f, 0.5f, 0.5f), state = AnyNodePropertyState.Constant },
-							new AnyNodeProperty { slotId= 2,    name = "height",      description = "Height off surface",       propertyType = PropertyType.Float,      value= Vector4.zero,                        state = AnyNodePropertyState.Constant },
-							new AnyNodeProperty { slotId= 3,    name = "radius",      description = "Radius",                   propertyType = PropertyType.Float,      value= Vector4.one,                         state = AnyNodePropertyState.Constant },
-					};
-				}
-			}
-
-			public AnyNodeSlot[] outputs
-			{
-				get
-				{
-					return new AnyNodeSlot[]
-					{
-							new AnyNodeSlot { slotId= 4,    name = "outUVs",   description = "Output UVW texture coordinates", slotValueType = SlotValueType.Vector3, value = Vector4.zero  },
-							new AnyNodeSlot { slotId= 5,    name = "outNormal", description = "Output Normal in tangent space", slotValueType = SlotValueType.Vector3, value = Vector4.zero  }
-					};
-				}
-			}
-
-			public ShaderGlobal[] globals { get { return new ShaderGlobal[] { ShaderGlobal.TangentSpaceViewDirection }; } }
-
-			public string hlsl
-			{
-				get
-				{
-					return
-						"float radius2= radius*radius;\n" +
-						"float3 cur= float3(inUVs.xy, 0.0f);\n" +
-						"float3 sphereCenter = float3(center, height);\n" +
-						"float3 edgeA = sphereCenter - cur;\n" +
-						"float a2 = dot(edgeA, edgeA);\n" +
-						"outUVs= float3(inUVs.xy, 0.0f);\n" +
-                        "outNormal= float3(0.0f, 0.0f, 1.0f);\n" +
-						"if (a2 < radius2)\n" +
-						"{\n" +
-						"   float a = sqrt(a2);\n" +
-						"   edgeA = edgeA / a;\n" +
-						"   float cosineR = dot(edgeA, tangentSpaceViewDirection.xyz);\n" +
-						"   float x = cosineR * a - sqrt(-a2 + radius2 + a2 * cosineR * cosineR);\n" +
-						"   float3 intersectedEdge = cur + tangentSpaceViewDirection * x;\n" +
-                        "   outNormal= normalize(sphereCenter - intersectedEdge);\n" +
-						"   outUVs = intersectedEdge.xyz;\n" +
-						"}\n";
-
-				}
-			}
-		}
-	}
+        static string Unity_SphericalIndentation(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 center,
+            [Slot(2, Binding.None)] Vector1 height,
+            [Slot(3, Binding.None, 1f, 1f, 1f, 1f)] Vector1 radius,
+            [Slot(4, Binding.None)] out Vector3 resultUV,
+            [Slot(5, Binding.None)] out Vector2 resultNormal)
+        {
+            resultUV = Vector3.zero;
+            resultNormal = Vector3.up;
+            return
+                @"
+{
+    float radius2= radius*radius;
+    float3 cur= float3(uv.xy, 0.0f);
+    float3 sphereCenter = float3(center, height);
+    float3 edgeA = sphereCenter - cur;
+    float a2 = dot(edgeA, edgeA);
+    outUVs= float3(inUVs.xy, 0.0f);
+    outNormal= float3(0.0f, 0.0f, 1.0f);
+    if (a2 < radius2)
+    {
+       float a = sqrt(a2);
+       edgeA = edgeA / a;
+       float cosineR = dot(edgeA, tangentSpaceViewDirection.xyz);
+       float x = cosineR * a - sqrt(-a2 + radius2 + a2 * cosineR * cosineR);
+       float3 intersectedEdge = cur + tangentSpaceViewDirection * x;
+       resultNormal= normalize(sphereCenter - intersectedEdge);
+       resultUV = intersectedEdge.xyz;
+    }
+}";
+        }
+    }
 }

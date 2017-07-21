@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Texture/Texture Asset")]
-    public class TextureAssetNode : PropertyNode
+    public class Texture2DNode : PropertyNode
     {
         protected const string textureName = "Texture";
 
@@ -77,9 +77,9 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public TextureAssetNode()
+        public Texture2DNode()
         {
-            name = "TextureAsset";
+            name = "Texture2D";
             UpdateNodeAfterDeserialization();
         }
 
@@ -121,14 +121,9 @@ namespace UnityEngine.MaterialGraph
             {
                 var edgesTexture2D = owner.GetEdges(slotTexture2D.slotReference).ToList();
                 if (edgesTexture2D.Count > 0)
-                {
-                    visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
-                    visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
-                    visitor.AddShaderChunk("#endif", true);
-                }
+                    visitor.AddShaderChunk("UNITY_DECLARE_TEX2D(" + propertyName + ");", true);
             }
         }
-
 
 
         public override PreviewProperty GetPreviewProperty()

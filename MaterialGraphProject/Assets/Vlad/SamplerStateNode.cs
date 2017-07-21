@@ -4,8 +4,8 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Sampler State")]
-    public class SamplerStateNode : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Input/Texture/Sampler State")]
+    public class SamplerStateNode : AbstractMaterialNode
     {
 
         public enum FilterMode
@@ -36,7 +36,6 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private FilterMode m_filter = FilterMode.Linear;
 
- 
         public FilterMode filter
         {
             get { return m_filter; }
@@ -55,7 +54,6 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private WrapMode m_wrap = WrapMode.Repeat;
-
 
         public WrapMode wrap
         {
@@ -90,44 +88,23 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        /*
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.SamplerState; }
-        }
-
-        public override PreviewProperty GetPreviewProperty()
-        {
-            return new PreviewProperty
-            {
-                m_Name = propertyName + "HEEEEEEYYYYY",
-                m_PropType = PropertyType.Float,
-               // m_Float = filterMode[filter];
-            };
-        }
-
-        */
-
-
-
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-           // GetVariableNameForSlot();
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
-           // var slot = FindSlot<MaterialSlot>(slotId);
-            //if (slot == null)
-              //  throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-
             return GetVariableNameForNode();
         }
 
-        //my_linear_repeat_sampler
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var decl = string.Format(@"
+#ifdef UNITY_COMPILER_HLSL
+SamplerState {0};
+#endif", GetVariableNameForNode());
+            visitor.AddShaderChunk(decl, true);
+        }
+
         public override string GetVariableNameForNode()
         {
-            return "my" + filterMode[filter] + wrapMode[wrap] + "_sampler";           
+            return base.GetVariableNameForNode() + filterMode[filter] + wrapMode[wrap] + "_sampler";
         }
     }
 }

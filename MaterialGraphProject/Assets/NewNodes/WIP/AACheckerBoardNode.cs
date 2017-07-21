@@ -2,7 +2,7 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/AACheckerboard")]
+   /* [Title("Procedural/AACheckerboard")]
     public class AACheckerboardNode : AnyNode<AACheckerboardNode.Definition>
     {
         public class Definition : IAnyNodeDefinition
@@ -54,5 +54,5 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-    }
+    }*/
 }
