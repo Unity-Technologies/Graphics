@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyStencilBuffer;
 
         // Various set of material use in render loop
-        ComputeShader m_SubsurfaceScatteringCS;
+        ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
         int m_SubsurfaceScatteringKernel;
         // Old SSS Model >>>
         Material m_SssVerticalFilterPass;
@@ -475,7 +475,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateSssMaterials(bool useDisneySSS)
         {
-            m_SubsurfaceScatteringCS     = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Resources/SubsurfaceScattering.compute");
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
 
             // Old SSS Model >>>

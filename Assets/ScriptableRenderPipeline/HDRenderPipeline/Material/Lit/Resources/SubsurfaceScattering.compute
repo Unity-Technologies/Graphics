@@ -55,6 +55,7 @@ RW_TEXTURE2D(float4, _CameraColorTexture);
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
+// 6656 bytes used. It appears that the reserved LDS space must be a multiple of 512 bytes.
 groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D][TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
 groupshared bool   processGroup;
 
