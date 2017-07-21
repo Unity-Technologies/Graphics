@@ -177,6 +177,18 @@ namespace UnityEditor.VFX
             vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
+        public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
+        {
+            RecompileIfNeeded();
+            if (m_ExpressionGraph == null)
+            {
+                throw new Exception("m_ExpressionGraph is null");
+            }
+            var targetExpression = slot.GetExpression();
+            var ouputExpression = m_ExpressionGraph.CPUExpressionsToReduced[targetExpression];
+            return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
+        }
+
         public void RecompileIfNeeded()
         {
             if (m_ExpressionGraphDirty)

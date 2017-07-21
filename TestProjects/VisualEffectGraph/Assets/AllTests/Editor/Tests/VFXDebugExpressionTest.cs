@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.Test
 
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
+            var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
             graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
@@ -45,7 +46,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             maxFrame = 512;
-            while (!(vfxComponent.DebugExpressionGetFloat(0) > 0.01f) && --maxFrame > 0)
+            while (!(vfxComponent.DebugExpressionGetFloat(expressionIndex) > 0.01f) && --maxFrame > 0)
             {
                 yield return null;
             }
