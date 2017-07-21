@@ -917,7 +917,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        float4 L_dist = { normalize( L.xyz ), length( unL ) };
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
         illuminance *= shadow;
