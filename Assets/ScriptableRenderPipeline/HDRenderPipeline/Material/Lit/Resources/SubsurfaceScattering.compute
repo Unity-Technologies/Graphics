@@ -174,9 +174,9 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, uint2 pixe
         xy2      = r * r;
     }
 
-    float4 sample      = LoadSample(position, cacheAnchor);
-    float3 irradiance  = sample.rgb;
-    float  linearDepth = sample.a;
+    float4 textureSample = LoadSample(position, cacheAnchor);
+    float3 irradiance    = textureSample.rgb;
+    float  linearDepth   = textureSample.a;
 
     // Check the results of the stencil test.
     [flatten] if (linearDepth > 0)
