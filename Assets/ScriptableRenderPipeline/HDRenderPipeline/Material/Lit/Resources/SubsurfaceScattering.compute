@@ -156,7 +156,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, uint2 pixe
     float2 vec = r * float2(cos(phi), sin(phi));
 
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
-    float2 position; float xy2;
+    int2 position; float xy2;
 
     if (useTangentPlane)
     {
@@ -165,12 +165,12 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, uint2 pixe
         float4 positionCS = mul(projMatrix, float4(positionVS, 1));
         float2 positionSS = ComputeScreenSpacePosition(positionCS);
 
-        position = positionSS * _ScreenSize.xy;
+        position = (int2)(positionSS * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);
     }
     else
     {
-        position = pixelCoord + vec * pixelsPerMm;
+        position = (int2)(pixelCoord + vec * pixelsPerMm);
         xy2      = r * r;
     }
 
@@ -206,7 +206,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     uint2 localCoord  = DecodeMorton2D(mortonCode);
     uint2 tileAnchor  = groupId * GROUP_SIZE_1D;
     uint2 pixelCoord  = tileAnchor + localCoord;
-    int2  cacheAnchor = tileAnchor - TEXTURE_CACHE_BORDER;
+    int2  cacheAnchor = (int2)tileAnchor - TEXTURE_CACHE_BORDER;
     uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
     float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
@@ -231,7 +231,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float  centerDepth      = 0;
     float4 cachedValue      = float4(0, 0, 0, 0);
 
-    bool passedStencilTest = StencilTest(pixelCoord, stencilRef);
+    bool passedStencilTest = StencilTest((int2)pixelCoord, stencilRef);
 
     [branch] if (passedStencilTest)
     {
@@ -270,14 +270,14 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                 quadCoord.x = max(0, (int)(quadIndex - (halfCacheWidthInQuads - 1)));
                 quadCoord.y = min(quadIndex, halfCacheWidthInQuads - 1);
                 break;
-            case 3:
+            default: // 3
                 quadCoord.x = min(quadIndex, halfCacheWidthInQuads - 1);
                 quadCoord.y = min(halfCacheWidthInQuads - 1, 2 * (halfCacheWidthInQuads - 1) - quadIndex);
                 break;
         }
 
-        int2   cacheCoord2  = 2 * (startQuad + quadCoord) + int2(laneIndex & 1, (laneIndex >> 1) & 1);
-        int2   pixelCoord2  = tileAnchor + cacheCoord2 - TEXTURE_CACHE_BORDER;
+        uint2  cacheCoord2  = 2 * (startQuad + quadCoord) + uint2(laneIndex & 1, (laneIndex >> 1) & 1);
+        int2   pixelCoord2  = (int2)(tileAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
         float4 cachedValue2 = float4(0, 0, 0, 0);
 
         [branch] if (StencilTest(pixelCoord2, stencilRef))
