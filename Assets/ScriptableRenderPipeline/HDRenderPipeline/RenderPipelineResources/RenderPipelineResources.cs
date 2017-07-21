@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             instance.deferredShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Deferred.Shader");
             instance.screenSpaceAmbientOcclusionShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/AmbientOcclusion/ScreenSpaceAmbientOcclusion.Shader");
+            instance.subsurfaceScatteringCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Resources/SubsurfaceScattering.compute");
 
             instance.clearDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/builddispatchindirect.compute");
@@ -59,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Lighting resources
         public Shader deferredShader;
         public Shader screenSpaceAmbientOcclusionShader;
+        public ComputeShader subsurfaceScatteringCS;
 
         // Lighting tile pass resources
         public ComputeShader clearDispatchIndirectShader;
