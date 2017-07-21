@@ -2,7 +2,7 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Scatter")]
+  /*  [Title("Procedural/Scatter")]
     public class ScatterNode : FunctionNInNOut, IGeneratesFunction
     {
 
@@ -162,5 +162,5 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
-    }
+    }*/
 }

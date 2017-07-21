@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.MaterialGraph
 {
-    public enum ShaderGlobal
+   /* public enum ShaderGlobal
     {
         UV0,
         UV1,
@@ -243,7 +243,7 @@ namespace UnityEngine.MaterialGraph
 //        , IMayRequireViewDirection
 //        , IMayRequireWorldPosition
 //        , IMayRequireVertexColor
-        , IMayRequireViewDirectionTangentSpace 
+        , IMayRequireViewDirectionTangentSpace
 
         where DEFINITION : IAnyNodeDefinition, new()
     {
@@ -359,7 +359,7 @@ namespace UnityEngine.MaterialGraph
             foreach (AnyNodeProperty p in m_properties)
             {
                 // only exposed properties go in the property usage (hlsl declaration)
-                if ((p.state == AnyNodePropertyState.Exposed) || 
+                if ((p.state == AnyNodePropertyState.Exposed) ||
                     (p.state == AnyNodePropertyState.Constant && generationMode.IsPreview()))     // constant properties are exposed in preview mode for fast iteration update
                 {
                     string typeDecl = p.getTypeDecl(precision);
@@ -665,6 +665,6 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-    }
+    }*/
 }
 

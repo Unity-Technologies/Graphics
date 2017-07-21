@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         private Vector3Node m_Vector3Node;
         private Vector4Node m_Vector4Node;
         private ColorNode m_ColorNode;
-        private TextureNode m_TextureNode;
+        private Texture2DNode m_TextureNode;
         private TestPropertyNode m_PropertyNode;
 
         private const string kPropertyName = "PropertyName";
@@ -55,7 +55,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector3Node = new Vector3Node();
             m_Vector4Node = new Vector4Node();
             m_ColorNode = new ColorNode();
-            m_TextureNode = new TextureNode();
+            m_TextureNode = new Texture2DNode();
             m_PropertyNode = new TestPropertyNode();
 
             m_Graph.AddNode(m_Vector1Node);

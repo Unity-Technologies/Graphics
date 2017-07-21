@@ -23,7 +23,7 @@ namespace UnityEngine.MaterialGraph
         public const int OutputSlotAId = 4;
         public const int OutputSlotRGBId = 5;
         public const int OutputSlotRGId = 6;
-        
+
         public SplitNode()
         {
             name = "Split";
@@ -61,7 +61,10 @@ namespace UnityEngine.MaterialGraph
             if (inputSlot == null)
                 return "1.0";
 
-            int numInputChannels = (int)inputSlot.concreteValueType;
+            int numInputChannels = (int)SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
+            if (numInputChannels > 4)
+                numInputChannels = 0;
+
             if (owner.GetEdges(inputSlot.slotReference).ToList().Count() == 0)
                 numInputChannels = 0;
 
@@ -84,7 +87,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         public override string GetVariableNameForSlot(int slotId)
-        { 
+        {
 
             string slotOutput;
             switch (slotId)
@@ -110,7 +113,7 @@ namespace UnityEngine.MaterialGraph
                 default:
                     slotOutput = "";
                     break;
-            } 
+            }
             return GetVariableNameForNode() + slotOutput;
         }
     }

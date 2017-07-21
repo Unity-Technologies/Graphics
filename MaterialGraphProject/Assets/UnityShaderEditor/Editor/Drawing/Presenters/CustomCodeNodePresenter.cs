@@ -8,7 +8,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class CustomCodeControlPresenter : GraphControlPresenter
+    /*class CustomCodeControlPresenter : GraphControlPresenter
     {
         public class CodeEditorPopup : PopupWindowContent
         {
@@ -98,5 +98,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }
-    }
+    }*/
 }

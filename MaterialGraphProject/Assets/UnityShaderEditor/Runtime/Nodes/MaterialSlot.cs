@@ -69,8 +69,6 @@ namespace UnityEngine.MaterialGraph
                     return "(SS)";
                 case ConcreteSlotValueType.Texture2D:
                     return "(T)";
-                case ConcreteSlotValueType.Sampler2D:
-                    return "(S)";
                 default:
                     return "(E)";
             }
@@ -119,9 +117,6 @@ namespace UnityEngine.MaterialGraph
                     case SlotValueType.SamplerState:
                         concreteValueType = ConcreteSlotValueType.SamplerState;
                         break;
-                    case SlotValueType.Sampler2D:
-                        concreteValueType = ConcreteSlotValueType.Sampler2D;
-                        break;
                     default:
                         concreteValueType = ConcreteSlotValueType.Vector4;
                         break;
@@ -157,6 +152,10 @@ namespace UnityEngine.MaterialGraph
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
+                return;
+
+            if (concreteValueType == ConcreteSlotValueType.SamplerState ||
+                concreteValueType == ConcreteSlotValueType.Texture2D)
                 return;
 
             var matOwner = owner as AbstractMaterialNode;

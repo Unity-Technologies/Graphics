@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Advanced/Adder")]
+  /*  [Title("Math/Advanced/Adder")]
     public class AddManyNode : FunctionNInNOut, IGeneratesFunction
     {
         int m_nodeInputCount = 2;
@@ -66,5 +66,5 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
-    }
+    }*/
 }

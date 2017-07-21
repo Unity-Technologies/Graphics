@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_POM(
-            [Slot(1, Binding.None)] Sampler2D tex,
+            [Slot(1, Binding.None)] Texture2D tex,
             [Slot(2, Binding.None)] Vector1 heightScale,
             [Slot(3, Binding.MeshUV0)] Vector2 UVs,
             [Slot(4, Binding.ViewDirectionTangentSpace)] Vector3 viewTangentSpace,

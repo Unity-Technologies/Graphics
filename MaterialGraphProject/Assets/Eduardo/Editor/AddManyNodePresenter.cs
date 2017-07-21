@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [Serializable]
+  /*  [Serializable]
     class AddManyContolPresenter : GraphControlPresenter
     {
 
@@ -46,5 +46,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphElementPresenter> { instance };
         }
-    }
+    }*/
 }

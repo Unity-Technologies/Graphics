@@ -6,7 +6,7 @@ using UnityEditor.Graphing.Drawing;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [Serializable]
+ /*   [Serializable]
     class ScatterContolPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
@@ -39,5 +39,5 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-
+*/
 }

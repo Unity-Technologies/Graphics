@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.MaterialGraph
 {
-    public abstract class FunctionNInNOut : AbstractMaterialNode, IGeneratesBodyCode
+   /* public abstract class FunctionNInNOut : AbstractMaterialNode, IGeneratesBodyCode
     {
 
         public FunctionNInNOut()
@@ -161,7 +161,7 @@ namespace UnityEngine.MaterialGraph
             var outputString = new ShaderGenerator();
             outputString.AddShaderChunk(GetOutputDeclaration(), false);
             outputString.AddShaderChunk(GetFunctionCall(generationMode), false);
-             
+
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
@@ -187,5 +187,5 @@ namespace UnityEngine.MaterialGraph
 
             return samplerName;
         }
-    }
+    }*/
 }

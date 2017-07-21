@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("UV/Tri-Planar Mapping")]
+   /* [Title("UV/Tri-Planar Mapping")]
     public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
     {
         private int slot0, slot1, slot2, slot3, slot4, slot5, slot6 = 0;
@@ -82,11 +82,11 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-      
+
 
 
         //prevent validation errors when a sampler2D input is missing
-        //use on any input requiring a TextureAssetNode
+        //use on any input requiring a Texture2DNode
         public override void ValidateNode()
         {
             base.ValidateNode();
@@ -205,9 +205,9 @@ namespace UnityEngine.MaterialGraph
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            
+
     //Sampler input slot
-            
+
             base.GeneratePropertyUsages(visitor, generationMode);
             var samplerSlot = FindInputSlot<MaterialSlot>(slot3);
 
@@ -223,7 +223,7 @@ namespace UnityEngine.MaterialGraph
 
 
         //prevent validation errors when a sampler2D input is missing
-        //use on any input requiring a TextureAssetNode
+        //use on any input requiring a Texture2DNode
         public override void ValidateNode()
         {
             base.ValidateNode();
@@ -244,7 +244,6 @@ namespace UnityEngine.MaterialGraph
         {
             return true;
         }
-    }
+    }*/
 }
- 
-*/
+

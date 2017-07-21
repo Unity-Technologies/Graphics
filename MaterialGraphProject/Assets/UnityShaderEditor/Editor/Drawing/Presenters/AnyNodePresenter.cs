@@ -8,7 +8,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class AnyNodeControlPresenter : GraphControlPresenter
+   /* class AnyNodeControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
@@ -106,5 +106,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }
-    }
+    }*/
 }

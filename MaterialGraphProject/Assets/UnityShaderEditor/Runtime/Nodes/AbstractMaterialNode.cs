@@ -90,14 +90,7 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                if (inputSlot.valueType == SlotValueType.SamplerState)
-                {
-                    visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
-                    visitor.AddShaderChunk(inputSlot.valueType + " my_linear_repeat_sampler;", false);
-                    visitor.AddShaderChunk("#endif", false);
-                }
-                else
-                    inputSlot.GeneratePropertyUsages(visitor, generationMode);
+                inputSlot.GeneratePropertyUsages(visitor, generationMode);
             }
         }
 
@@ -156,14 +149,29 @@ namespace UnityEngine.MaterialGraph
                     return ConcreteSlotValueType.Matrix4;
 				case SlotValueType.SamplerState:
                     return ConcreteSlotValueType.SamplerState;
-                case SlotValueType.Sampler2D:
-                    return ConcreteSlotValueType.Sampler2D;
             }
             return ConcreteSlotValueType.Error;
         }
 
         private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
+            if (from == to)
+                return true;
+
+            var fromCount = SlotValueHelper.GetChannelCount(from);
+            var toCount = SlotValueHelper.GetChannelCount(to);
+
+
+            // can convert from v1 vectors :)
+            if (from == ConcreteSlotValueType.Vector1 && toCount > 0)
+                return true;
+
+            if (toCount == 0)
+                return false;
+
+            if (toCount <= fromCount)
+                return true;
+
             return from >= to || from == ConcreteSlotValueType.Vector1;
         }
 
@@ -329,8 +337,6 @@ namespace UnityEngine.MaterialGraph
                     return "4x4";
                 case ConcreteSlotValueType.SamplerState:
                     return "SamplerState";
-                case ConcreteSlotValueType.Sampler2D:
-                    return "sampler2D";
                 default:
                     return "Error";
             }
@@ -358,8 +364,6 @@ namespace UnityEngine.MaterialGraph
                     return "Matrix4x4";
                 case ConcreteSlotValueType.SamplerState:
                     return "SamplerState";
-                case ConcreteSlotValueType.Sampler2D:
-                    return "sampler2D";
                 default:
                     return "Error";
             }
@@ -387,8 +391,6 @@ namespace UnityEngine.MaterialGraph
                     return PropertyType.Matrix4;
 				case ConcreteSlotValueType.SamplerState:
                     return PropertyType.SamplerState;
-                case ConcreteSlotValueType.Sampler2D:
-                    return PropertyType.Texture;
                 default:
                     return PropertyType.Vector4;
             }

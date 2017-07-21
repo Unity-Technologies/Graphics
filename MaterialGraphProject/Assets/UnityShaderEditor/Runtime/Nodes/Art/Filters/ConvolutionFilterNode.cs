@@ -247,7 +247,7 @@ using System;
         }
 
         //prevent validation errors when a sampler2D input is missing
-        //use on any input requiring a TextureAssetNode
+        //use on any input requiring a Texture2DNode
         public override void ValidateNode()
         {
             base.ValidateNode();

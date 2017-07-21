@@ -8,7 +8,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Texture/Sampler Asset")]
+   /* [Title("Input/Texture/Sampler Asset")]
     public class SamplerAssetNode : PropertyNode
     {
 
@@ -87,7 +87,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(OutputID, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Sampler2D, Vector4.zero));        
+            AddSlot(new MaterialSlot(OutputID, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Sampler2D, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
@@ -131,6 +131,6 @@ namespace UnityEngine.MaterialGraph
         }
 
         public override PropertyType propertyType { get { return PropertyType.Texture; } }
-        
-    }
+
+    }*/
 }

@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
     public class PropertyNodeTests
     {
         private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
-        private TextureNode m_TextureNode;
+        private Texture2DNode m_TextureNode;
 
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
@@ -42,7 +42,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         public void TestSetUp()
         {
             m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
-            m_TextureNode = new TextureNode();
+            m_TextureNode = new Texture2DNode();
             m_Graph.AddNode(m_TextureNode);
         }
 
