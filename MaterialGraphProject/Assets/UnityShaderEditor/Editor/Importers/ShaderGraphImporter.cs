@@ -22,7 +22,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
                 return null;
 
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
+            var shaderString = masterNode.GetFullShader(GenerationMode.ForReals, graph.name, out configuredTextures);
             return shaderString;
         }
         catch (Exception)

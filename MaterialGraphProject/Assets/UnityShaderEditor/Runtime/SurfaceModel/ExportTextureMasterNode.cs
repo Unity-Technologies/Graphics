@@ -46,9 +46,9 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        public override string GetFullShader(GenerationMode generationMode, out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode generationMode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
-            
+
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
@@ -138,7 +138,7 @@ namespace UnityEngine.MaterialGraph
             {
                 shaderBodyVisitor.AddShaderChunk("return float4(0.5, 0.5, 0.5, 0.5);", true);
             }
-            
+
             ListPool<INode>.Release(activeNodeList);
 
             template = template.Replace("${ShaderName}", GetType() + guid.ToString());

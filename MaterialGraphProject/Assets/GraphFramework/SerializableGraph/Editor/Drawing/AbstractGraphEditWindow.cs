@@ -19,7 +19,7 @@ namespace UnityEditor.Graphing.Drawing
 
 		public static bool allowAlwaysRepaint = true;
 
-        private bool shouldRepaint 
+        private bool shouldRepaint
         {
             get
             {
@@ -86,14 +86,14 @@ namespace UnityEditor.Graphing.Drawing
                 {
                     return;
                 }
-                
+
                 var masterNode = ((MaterialGraphAsset)inMemoryAsset).materialGraph.masterNode;
                 if (masterNode == null)
                     return;
 
                 List<PropertyGenerator.TextureInfo> configuredTextures;
-                masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
-                
+                masterNode.GetFullShader(GenerationMode.ForReals, "NotNeeded", out configuredTextures);
+
                 var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
                 if (shaderImporter == null)
                     return;
@@ -167,7 +167,7 @@ namespace UnityEditor.Graphing.Drawing
 			m_GraphEditorDrawer.presenter = source;
 			//m_GraphView.StretchToParentSize();
 			Repaint ();
-			if (refocus) 
+			if (refocus)
 			{
 				focused = false;
 				m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);

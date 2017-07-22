@@ -28,8 +28,8 @@ namespace UnityEngine.MaterialGraph
         {
             get { return false; }
         }
-        
-        public override string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures)
+
+        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var shaderTemplateLocation = ShaderGenerator.GetTemplatePath("shader.template");
 
@@ -38,7 +38,7 @@ namespace UnityEngine.MaterialGraph
                 configuredTextures = new List<PropertyGenerator.TextureInfo>();
                 return string.Empty;
             }
-            
+
             var shaderPropertiesVisitor = new PropertyGenerator();
 
             // Step 1: Set this node as the remap target
@@ -89,7 +89,7 @@ namespace UnityEngine.MaterialGraph
             {
                 if (remapAsset == value)
                     return;
-                    
+
                 var helper = new RemapGraphHelper();
                 helper.subGraph = value;
                 m_SerialziedRemapGraph = EditorJsonUtility.ToJson(helper, true);
@@ -102,7 +102,7 @@ namespace UnityEngine.MaterialGraph
 #else
         public MaterialSubGraphAsset subGraphAsset {get; set; }
 #endif
-        
+
         public override PreviewMode previewMode
         {
             get

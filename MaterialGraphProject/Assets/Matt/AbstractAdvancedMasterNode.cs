@@ -109,9 +109,7 @@ namespace UnityEngine.MaterialGraph
             return resultShader;
         }
 
-        public override string GetFullShader(
-            GenerationMode mode,
-            out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
 
@@ -122,7 +120,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             var templateText = File.ReadAllText(templateLocation);
-            
+
             var shaderPropertiesVisitor = new PropertyGenerator();
             var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
             resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
@@ -169,7 +167,7 @@ namespace UnityEngine.MaterialGraph
                 shaderInputVisitor.AddShaderChunk("float3 worldViewDir;", true);
                 shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceViewDirection  + " = IN.worldViewDir;", true);
             }
-            
+
             if (activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos;", true);
@@ -231,7 +229,7 @@ namespace UnityEngine.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
             ListPool<INode>.Release(nodes);
-            
+
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
                 if (!CheckForCustomData(slot.id)) // Check to ignore writing surface data for items getting packed into custom data

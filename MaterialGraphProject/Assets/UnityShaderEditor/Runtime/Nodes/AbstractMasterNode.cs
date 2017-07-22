@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
         {
             get { return true; }
         }
-        
+
         public override bool allowedInSubGraph
         {
             get { return false; }
@@ -45,12 +45,12 @@ namespace UnityEngine.MaterialGraph
             get { return owner is MaterialGraph; }
         }
 
-        public abstract string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
+        public abstract string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures);
         public abstract string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor);
 
         public virtual bool has3DPreview()
         {
-            return true; 
+            return true;
         }
     }
 }
