@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Constants")]
     public class ConstantsNode : PropertyNode, IGeneratesBodyCode
     {
-        
+
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
             {ConstantType.PI, 3.1415926f },
@@ -47,7 +47,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero, false));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 

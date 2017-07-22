@@ -49,7 +49,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected override ModificationScope DoSlotsUI()
         {
-            var slots = node.GetSlots<MaterialSlot>().Where(x => x.showValue);
+            var slots = node.GetSlots<MaterialSlot>();
             if (!slots.Any())
                 return ModificationScope.Node;
 
@@ -57,7 +57,7 @@ namespace UnityEditor.Graphing.Drawing
 
             bool valueChanged = false;
             bool typeChanged = false;
-            foreach (var slot in node.GetSlots<MaterialSlot>().Where(x => x.showValue))
+            foreach (var slot in node.GetSlots<MaterialSlot>())
             {
                 EditorGUI.BeginChangeCheck();
                 GUILayout.Label(slot.displayName);

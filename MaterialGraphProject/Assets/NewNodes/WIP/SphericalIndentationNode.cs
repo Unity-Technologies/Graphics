@@ -17,7 +17,8 @@ namespace UnityEngine.MaterialGraph
             [Slot(2, Binding.None)] Vector1 height,
             [Slot(3, Binding.None, 1f, 1f, 1f, 1f)] Vector1 radius,
             [Slot(4, Binding.None)] out Vector3 resultUV,
-            [Slot(5, Binding.None)] out Vector2 resultNormal)
+            [Slot(5, Binding.None)] out Vector3 resultNormal,
+            [Slot(6, Binding.ViewDirectionTangentSpace, true)] Vector3 tangentSpaceViewDirection)
         {
             resultUV = Vector3.zero;
             resultNormal = Vector3.up;
@@ -29,8 +30,8 @@ namespace UnityEngine.MaterialGraph
     float3 sphereCenter = float3(center, height);
     float3 edgeA = sphereCenter - cur;
     float a2 = dot(edgeA, edgeA);
-    outUVs= float3(inUVs.xy, 0.0f);
-    outNormal= float3(0.0f, 0.0f, 1.0f);
+    resultUV= float3(uv.xy, 0.0f);
+    resultNormal= float3(0.0f, 0.0f, 1.0f);
     if (a2 < radius2)
     {
        float a = sqrt(a2);

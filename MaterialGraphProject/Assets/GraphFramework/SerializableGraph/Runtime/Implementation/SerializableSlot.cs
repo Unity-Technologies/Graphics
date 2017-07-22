@@ -19,12 +19,21 @@ namespace UnityEngine.Graphing
         [SerializeField]
         private int m_Priority = int.MaxValue;
 
+        [SerializeField]
+        private bool m_Hidden;
+
         public SlotReference slotReference
         {
             get { return new SlotReference(owner.guid, m_Id); }
         }
 
         public INode owner { get; set; }
+
+        public bool hidden
+        {
+            get { return m_Hidden; }
+            set { m_Hidden = value; }
+        }
 
         public int id
         {
@@ -58,19 +67,21 @@ namespace UnityEngine.Graphing
         public SerializableSlot()
         {}
 
-        public SerializableSlot(int id, string displayName, SlotType slotType, int priority)
+        public SerializableSlot(int id, string displayName, SlotType slotType, int priority, bool hidden = false)
         {
             m_Id = id;
             m_DisplayName = displayName;
             m_SlotType = slotType;
             m_Priority = priority;
+            m_Hidden = hidden;
         }
 
-        public SerializableSlot(int id, string displayName, SlotType slotType)
+        public SerializableSlot(int id, string displayName, SlotType slotType, bool hidden = false)
         {
             m_Id = id;
             m_DisplayName = displayName;
             m_SlotType = slotType;
+            m_Hidden = hidden;
         }
     }
 }

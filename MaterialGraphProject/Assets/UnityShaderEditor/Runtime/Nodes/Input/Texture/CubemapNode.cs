@@ -85,7 +85,7 @@ namespace UnityEngine.MaterialGraph
 			AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-			AddSlot(new MaterialSlot(RefDirSlot, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero, false));
+			AddSlot(new MaterialSlot(RefDirSlot, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero));
 			AddSlot (new MaterialSlot(InputSlotLod, kInputSlotLodName, kInputSlotLodName, SlotType.Input, SlotValueType.Vector1, Vector2.zero));
 			RemoveSlotsNameNotMatching(validSlots);
 		}
