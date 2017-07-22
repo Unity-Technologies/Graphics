@@ -162,9 +162,7 @@ namespace UnityEngine.MaterialGraph
             return resultShader;
         }
 
-        public override string GetFullShader(
-            GenerationMode mode,
-            out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
 

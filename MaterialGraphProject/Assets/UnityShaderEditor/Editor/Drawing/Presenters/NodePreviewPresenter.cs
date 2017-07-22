@@ -122,13 +122,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return string.Empty;
 
                 List<PropertyGenerator.TextureInfo> defaultTextures;
-                var resultShader =  ((IMasterNode) m_Node).GetFullShader(GenerationMode.Preview, out defaultTextures);
+                var resultShader =  ((IMasterNode) m_Node).GetFullShader(GenerationMode.Preview, m_Node.guid + "_preview", out defaultTextures);
 
                 if (((IMasterNode)m_Node).has3DPreview())
                 {
                     m_GeneratedShaderMode = PreviewMode.Preview3D;
                 }
-                
+
                 return resultShader;
             }
             return ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
