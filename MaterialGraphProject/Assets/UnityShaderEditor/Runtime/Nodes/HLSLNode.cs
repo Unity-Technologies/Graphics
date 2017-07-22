@@ -103,18 +103,27 @@ namespace UnityEngine.MaterialGraph
         {
             public int slotId { get; private set; }
             public Binding binding { get; private set; }
+            public bool hidden { get; private set; }
             public Vector4? defaultValue { get; private set; }
 
-            public SlotAttribute(int mslotId, Binding mImplicitBinding)
+            public SlotAttribute(int mSlotId, Binding mImplicitBinding)
             {
-                slotId = mslotId;
+                slotId = mSlotId;
                 binding = mImplicitBinding;
                 defaultValue = null;
             }
 
-            public SlotAttribute(int mslotId, Binding mImplicitBinding, float defaultX, float defaultY, float defaultZ, float defaultW)
+            public SlotAttribute(int mSlotId, Binding mImplicitBinding, bool mHidden)
             {
-                slotId = mslotId;
+                slotId = mSlotId;
+                binding = mImplicitBinding;
+                hidden = mHidden;
+                defaultValue = null;
+            }
+
+            public SlotAttribute(int mSlotId, Binding mImplicitBinding, float defaultX, float defaultY, float defaultZ, float defaultW)
+            {
+                slotId = mSlotId;
                 binding = mImplicitBinding;
                 defaultValue = new Vector4(defaultX, defaultY, defaultZ, defaultW);
             }
@@ -188,7 +197,7 @@ namespace UnityEngine.MaterialGraph
             // validate no duplicates
             var slotAtributes = method.GetParameters().Select(GetSlotAttribute).ToList();
             if (slotAtributes.Any(x => x == null))
-                throw new ArgumentException("Missing SlotAttribute does not exist on " + method.Name);
+                throw new ArgumentException("Missing SlotAttribute on " + method.Name);
 
             if(slotAtributes.GroupBy(x=>x.slotId).Any(x => x.Count() > 1))
                 throw new ArgumentException("Duplicate SlotAttribute on " + method.Name);
@@ -199,7 +208,7 @@ namespace UnityEngine.MaterialGraph
                 var attribute = GetSlotAttribute(par);
 
                 slots.Add(new MaterialSlot(attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
-                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero));
+                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero, attribute.hidden));
 
 
                 m_Slots.Add(attribute);

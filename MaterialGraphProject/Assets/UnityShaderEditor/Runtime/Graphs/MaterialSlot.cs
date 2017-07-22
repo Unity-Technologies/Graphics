@@ -21,30 +21,20 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private string m_ShaderOutputName;
 
-        [SerializeField]
-        private bool m_ShowValue;
-
         public MaterialSlot() {}
 
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
-            : base(slotId, displayName, slotType)
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool hidden = false)
+            : base(slotId, displayName, slotType, hidden)
         {
-            SharedInitialize(shaderOutputName, valueType, true, defaultValue);
+            SharedInitialize(shaderOutputName, valueType, defaultValue);
         }
 
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool usesDefaultValue)
-            : base(slotId, displayName, slotType)
-        {
-			SharedInitialize(shaderOutputName, valueType, usesDefaultValue, defaultValue);
-        }
-
-        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, bool usesDefaultValue, Vector4 inDefaultValue)
+        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue)
         {
             m_ShaderOutputName = inShaderOutputName;
             valueType = inValueType;
             m_DefaultValue = inDefaultValue;
             m_CurrentValue = inDefaultValue;
-            m_ShowValue = usesDefaultValue;
         }
 
         private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
@@ -141,12 +131,6 @@ namespace UnityEngine.MaterialGraph
         {
             get { return m_ShaderOutputName; }
             private set { m_ShaderOutputName = value; }
-        }
-
-        public bool showValue
-        {
-            get { return m_ShowValue; }
-            set { m_ShowValue = value; }
         }
 
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

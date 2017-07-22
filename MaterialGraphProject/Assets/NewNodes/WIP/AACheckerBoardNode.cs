@@ -22,10 +22,10 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    float4 derivatives = float4(ddx(inUVs), ddy(inUVs));
+    float4 derivatives = float4(ddx(uv), ddy(uv));
     float2 duv_length = sqrt(float2(dot(derivatives.xz, derivatives.xz), dot(derivatives.yw, derivatives.yw)));
     float width = 0.5f;
-    float2 distance3 = 2.0f * abs(frac(inUVs.xy * frequency) - 0.5f) - width;
+    float2 distance3 = 2.0f * abs(frac(uv.xy * frequency) - 0.5f) - width;
     float2 scale = aaTweak.x / duv_length.xy;
     float2 blend_out = saturate((scale - aaTweak.zz) / (aaTweak.yy - aaTweak.zz));
     float2 vector_alpha = clamp(distance3 * scale.xy * blend_out.xy, -1.0f, 1.0f);

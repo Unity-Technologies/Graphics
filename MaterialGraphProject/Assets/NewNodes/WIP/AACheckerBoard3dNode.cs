@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_AACheckerboard3d(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(0, Binding.MeshUV0)] Vector3 uv,
             [Slot(1, Binding.None, 0.2f, 0.2f, 0.2f, 0.2f)] Vector4 colorA,
             [Slot(2, Binding.None, 0.7f, 0.7f, 0.7f, 0.7f)] Vector4 colorB,
             [Slot(3, Binding.None, 0.5f, 3f, 0f, 0f)] Vector3 aaTweak,
@@ -22,12 +22,12 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    float3 dx = ddx(inUVs);
-    float3 dy = ddy(inUVs);
+    float3 dx = ddx(uv);
+    float3 dy = ddy(uv);
     float du=  sqrt(dx.x * dx.x + dy.x * dy.x);
     float dv=  sqrt(dx.y * dx.y + dy.y * dy.y);
     float dw=  sqrt(dx.z * dx.z + dy.z * dy.z);
-    float3 distance3 = 2.0f * abs(frac((inUVs.xyz + 0.5f) * frequency.xyz) - 0.5f) - 0.5f;
+    float3 distance3 = 2.0f * abs(frac((uv.xyz + 0.5f) * frequency.xyz) - 0.5f) - 0.5f;
     float3 scale = aaTweak.xxx / float3(du, dv, dw);
     float3 blend_out = saturate((scale - aaTweak.zzz) / (aaTweak.yyy - aaTweak.zzz));
     float3 vectorAlpha = clamp(distance3 * scale.xyz * blend_out.xyz, -1.0f, 1.0f);

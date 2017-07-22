@@ -9,5 +9,6 @@ namespace UnityEngine.Graphing
         int priority { get; set; }
         SlotReference slotReference { get; }
         INode owner { get; set; }
+        bool hidden { get; set; }
     }
 }

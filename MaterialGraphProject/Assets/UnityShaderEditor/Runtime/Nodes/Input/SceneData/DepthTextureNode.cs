@@ -30,7 +30,7 @@ namespace UnityEngine.MaterialGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-            AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero, false));
+            AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 

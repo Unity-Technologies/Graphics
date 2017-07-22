@@ -24,14 +24,14 @@ namespace UnityEditor.Graphing.Drawing
 
         protected virtual ModificationScope DoSlotsUI()
         {
-            var slots = node.GetSlots<MaterialSlot>().Where(x => x.showValue);
+            var slots = node.GetSlots<MaterialSlot>();
             if (!slots.Any())
                 return ModificationScope.Nothing;
 
             EditorGUI.BeginChangeCheck();
             GUILayout.Label("Default Slot Values", EditorStyles.boldLabel);
 
-            foreach (var slot in node.GetSlots<MaterialSlot>().Where(x => x.showValue))
+            foreach (var slot in node.GetSlots<MaterialSlot>())
                 slot.currentValue = EditorGUILayout.Vector4Field(slot.displayName, slot.currentValue);
 
             GUILayout.Space(10);
