@@ -146,7 +146,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, uint2 pixelCoord, int2 cacheAnchor,
+void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheAnchor,
                     float3 shapeParam, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
                     bool useTangentPlane, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
@@ -171,7 +171,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, uint2 pixe
     }
     else
     {
-        position = (int2)(pixelCoord + vec * pixelsPerMm);
+        position = (int2)(centerCoord + vec * pixelsPerMm);
         xy2      = r * r;
     }
 
@@ -390,7 +390,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     for (i = 1, n = SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        useTangentPlane, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
@@ -406,7 +406,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     for (i = SSS_N_SAMPLES_FAR_FIELD, n = SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        useTangentPlane, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
