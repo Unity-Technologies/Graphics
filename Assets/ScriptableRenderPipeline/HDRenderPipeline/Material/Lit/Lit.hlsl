@@ -86,10 +86,11 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /*  4 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // SSS
-    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  7 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
+    // SSS is a superset of material standard. With foliage or crowd SSS and standard can overlap a lot, better to have a dedicated combination
+    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  7 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /*  9 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
 
     // Specular/Aniso
@@ -903,15 +904,6 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     float3 cookie    = float3(1, 1, 1);
     float  shadow    = 1;
-
-    // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
-
-    //[branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    //{
-    //    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-    //    float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-    //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    //}
 
     [branch] if (lightData.shadowIndex >= 0)
     {
