@@ -1084,10 +1084,10 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
 // #define ELLIPSOIDAL_ATTENUATION
 
-void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-                       float3 V, PositionInputs posInput,
-                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                       out float3 diffuseLighting, out float3 specularLighting)
+void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                        out float3 diffuseLighting, out float3 specularLighting)
 {
     float3 positionWS = posInput.positionWS;
 
@@ -1177,6 +1177,21 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
 #endif // LIT_DISPLAY_REFERENCE_AREA
+}
+
+void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
+    out float3 diffuseLighting, out float3 specularLighting)
+{
+    if (GPULightType == GPULIGHTTYPE_LINE)
+    {
+        EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    }
+    else
+    {
+        EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    }
 }
 
 //-----------------------------------------------------------------------------
