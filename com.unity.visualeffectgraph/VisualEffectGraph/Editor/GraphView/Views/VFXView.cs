@@ -31,8 +31,7 @@ namespace UnityEditor.VFX.UI
             Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
         }
     }
-        }
-    }
+
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
