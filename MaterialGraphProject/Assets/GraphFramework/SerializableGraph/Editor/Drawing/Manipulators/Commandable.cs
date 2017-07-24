@@ -17,21 +17,28 @@ namespace UnityEditor.Graphing.Drawing
             m_Dictionary = new Dictionary<string, CommandHandler>();
         }
 
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
+        public void HandleEvent(EventBase evt)
         {
-            var isValidation = evt.type == EventType.ValidateCommand;
-            var isExecution = evt.type == EventType.ExecuteCommand;
+            var isValidation = evt.imguiEvent.type == EventType.ValidateCommand;
+            var isExecution = evt.imguiEvent.type == EventType.ExecuteCommand;
             if (isValidation || isExecution)
-                Debug.Log(evt.commandName);
+                Debug.Log(evt.imguiEvent.commandName);
             CommandHandler handler;
-            if ((!isValidation && !isExecution) || !m_Dictionary.TryGetValue(evt.commandName, out handler))
-                return EventPropagation.Continue;
+            if ((!isValidation && !isExecution) || !m_Dictionary.TryGetValue(evt.imguiEvent.commandName, out handler))
+            {
+                return;
+            }
             if (isValidation && handler.Validate())
-                return EventPropagation.Stop;
+            {
+                evt.StopPropagation();
+                return;
+            }
             if (!isExecution)
-                return EventPropagation.Continue;
+            {
+                return;
+            }
             handler.Execute();
-            return EventPropagation.Stop;
+            evt.StopPropagation();
         }
 
         public void Add(string commandName, CommandValidator validator, CommandExecutor executor)
@@ -47,6 +54,16 @@ namespace UnityEditor.Graphing.Drawing
         public IEnumerator<KeyValuePair<string, CommandHandler>> GetEnumerator()
         {
             return m_Dictionary.GetEnumerator();
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<IMGUIEvent>(HandleEvent);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<IMGUIEvent>(HandleEvent);
         }
     }
 

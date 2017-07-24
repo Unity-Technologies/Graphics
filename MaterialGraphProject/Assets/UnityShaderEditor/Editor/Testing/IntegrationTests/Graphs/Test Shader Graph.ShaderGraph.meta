@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 2d2b482951ae9934eb58e29aad0367cc
+timeCreated: 1500038004
+licenseType: Pro
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures:
+  - Texture_Texture_50D7B187_Uniform: {fileID: 2800000, guid: 225a31f233f5b82488f996901413908d,
+      type: 3}
+  - Texture_Texture_179334A_Uniform: {fileID: 2800000, guid: 225a31f233f5b82488f996901413908d,
+      type: 3}
+  - Texture_Texture_F5D09BA1_Uniform: {fileID: 10300, guid: 0000000000000000f000000000000000,
+      type: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
