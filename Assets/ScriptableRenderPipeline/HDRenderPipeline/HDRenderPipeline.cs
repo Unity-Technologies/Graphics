@@ -1152,6 +1152,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
 
                 RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, "MotionVectors", RendererConfiguration.PerObjectMotionVectors);
+
+                PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcam.camera, renderContext, FullScreenDebugMode.MotionVectors);
             }
         }
 
