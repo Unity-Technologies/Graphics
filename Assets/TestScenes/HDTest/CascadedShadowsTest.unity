@@ -5310,12 +5310,12 @@ MonoBehaviour:
   - 0.047
   - 0.136
   - 0.3
-  shadowAlgorithm: 2
-  shadowVariant: 0
+  shadowAlgorithm: 0
+  shadowVariant: 4
   shadowPrecision: 0
   shadowData:
-    format: 16
-    data: 00000000a69b443a666646400000803f02000000
+    format: 4
+    data: 0bd7a33b0000803f
   shadowDatas:
   - format: 0
     data: 0bd7a33b0000803f
@@ -5323,6 +5323,8 @@ MonoBehaviour:
     data: f4fdd43c9c50083a05000000
   - format: 16
     data: 00000000a69b443a666646400000803f02000000
+  - format: 4
+    data: 0bd7a33b0000803f
 --- !u!1 &1650770326
 GameObject:
   m_ObjectHideFlags: 0
