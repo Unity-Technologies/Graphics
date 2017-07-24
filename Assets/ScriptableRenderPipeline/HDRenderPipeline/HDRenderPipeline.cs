@@ -843,7 +843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, true); // Render deferred or forward opaque
                 RenderForwardOnlyOpaque(m_CullResults, camera, renderContext, cmd);
 
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT);
+                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_DebugDisplaySettings);
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
                 // If Deferred nothing needs copying anymore.
@@ -1084,9 +1084,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_SkyManager.ExportSkyToTexture();
         }
 
-        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer)
+        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
         {
-            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer);
+            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
