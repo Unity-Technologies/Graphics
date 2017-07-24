@@ -106,13 +106,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // PDF(r, s) = s * (Exp[-r * s] + Exp[-r * s / 3]) / 4
             // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
-            
+
             // Importance sample the near field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1.0f / n);
                 float r = KernelCdfInverse(p, s);
-                
+
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 m_FilterKernelNearField[i].x = r;
@@ -245,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set in BuildKernel().
             get { return m_FilterKernelNearField; }
         }
-        
+
         public Vector2[] filterKernelFarField
         {
             // Set in BuildKernel().
@@ -384,7 +384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Below are the cached values.
         [NonSerialized] public uint          texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-        [NonSerialized] public float[]       thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        [NonSerialized] public Vector4[]     thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public float[]       worldScales;               // Size of the world unit in meters
         [NonSerialized] public Vector4[]     shapeParams;               // RGB = S = 1 / D, A = filter radius
         [NonSerialized] public Vector4[]     transmissionTints;         // RGB = color, A = unused
@@ -476,10 +476,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             texturingModeFlags = transmissionFlags = 0;
 
-            const int thicknessRemapsLen = SssConstants.SSS_N_PROFILES * 2;
-            if (thicknessRemaps == null || thicknessRemaps.Length != thicknessRemapsLen)
+            if (thicknessRemaps == null || thicknessRemaps.Length != SssConstants.SSS_N_PROFILES)
             {
-                thicknessRemaps = new float[thicknessRemapsLen];
+                thicknessRemaps = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
             if (worldScales == null || worldScales.Length != SssConstants.SSS_N_PROFILES)
@@ -565,8 +564,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 texturingModeFlags |= (uint)profiles[i].texturingMode    << i;
                 transmissionFlags  |= (uint)profiles[i].transmissionMode << i * 2;
 
-                thicknessRemaps[2 * i]     = profiles[i].thicknessRemap.x;
-                thicknessRemaps[2 * i + 1] = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
+                thicknessRemaps[i]         = new Vector4(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x, 0.0f, 0.0f);
                 worldScales[i]             = profiles[i].worldScale;
                 shapeParams[i]             = profiles[i].shapeParameter;
                 shapeParams[i].w           = profiles[i].maxRadius;
@@ -775,7 +773,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (useDisneySSS)
                 {
                     EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
-                
+
                     GUI.enabled = false;
                     EditorGUILayout.PropertyField(m_MaxRadius, styles.sssProfileMaxRadius);
                     GUI.enabled = true;
@@ -828,7 +826,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProfileMaterial.SetFloat("_MaxRadius",  rMax);
             // <<< Old SSS Model
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
             EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);

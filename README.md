@@ -1,4 +1,4 @@
-# Unity Scriptable Render Loop testbed
+# Unity Scriptable Render Pipeline testbed
 
 **NOTE**: this is a testbed for a Unity feature that has not shipped yet! The latest commits in this project does not work
 with any public Unity version, and things in it might and will be broken.
@@ -11,6 +11,11 @@ There's a more detailed overview document here: [ScriptableRenderLoop google doc
 
 Did we mention it's a very WIP, no promises, may or might not ship feature, anything and everything in it can change? It totally is.
 
+## For Unity 2017.1 beta users
+SRP depends on PostProcessing submodule. Perform the following instructions to get a working copy of SRP:
+* git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
+* git checkout unity-2017.1b5 (or the latest tag)
+* git submodule update --init --recursive --remote
 
 ## For Unity 5.6 beta users
 

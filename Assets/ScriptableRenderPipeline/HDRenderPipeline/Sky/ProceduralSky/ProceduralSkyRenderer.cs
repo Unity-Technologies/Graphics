@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // We do not bind the depth buffer as a depth-stencil target since it is
             // bound as a color texture which is then sampled from within the shader.
-            Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
+            Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
         }
 
         void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkySettings param, bool renderForCubemap)
@@ -171,11 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set shader constants.
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
-            var cmd = CommandBufferPool.Get("");
-            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
-            builtinParams.renderContext.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-
+            builtinParams.commandBuffer.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
         }
     }
 }

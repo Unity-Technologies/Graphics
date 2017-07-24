@@ -364,7 +364,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			[branch]
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw);
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(vLw, dist));
 				atten *= shadow;
 			}
 
@@ -406,7 +406,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			[branch]
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(vLw, dist));
 				atten *= shadow;
 			}
 

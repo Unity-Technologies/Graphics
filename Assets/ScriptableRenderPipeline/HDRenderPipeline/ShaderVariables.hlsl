@@ -218,13 +218,15 @@ CBUFFER_END
 CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
+float4x4 _NonJitteredViewProjMatrix;
 float4x4 _ViewMatrix;
 float4x4 _ProjMatrix;
 float4x4 _InvViewProjMatrix;
 float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
-float4   _ScreenSize;
+float4   _ScreenSize;       // (w, h, 1/w, 1/h)
+float4   _FrustumPlanes[6]; // (N, -dot(N, P))
 CBUFFER_END
 
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES

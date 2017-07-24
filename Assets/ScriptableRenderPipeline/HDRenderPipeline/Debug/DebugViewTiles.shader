@@ -46,14 +46,19 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
 
-            struct VSOut
+            struct Attributes
             {
-                float4 Pos : SV_POSITION;
-                int Variant : TEXCOORD0;
+                uint vertexID : SV_VertexID;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                int variant : TEXCOORD0;
             };
 
 #if SHOW_FEATURE_VARIANTS
-            VSOut Vert(uint vertexID : SV_VertexID)
+            Varyings Vert(uint vertexID : SV_VertexID)
             {
                 uint quadIndex = vertexID / 6;
                 uint quadVertex = vertexID - quadIndex * 6;
@@ -75,18 +80,18 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 float2 clipCoord = (pixelCoord / _ScreenParams.xy) * 2.0 - 1.0;
                 clipCoord.y *= -1;
 
-                VSOut Out;
-                Out.Pos = float4(clipCoord, 0, 1.0);
-                Out.Variant = variant;
-                return Out;
+                Varyings output;
+                output.positionCS = float4(clipCoord, 0, 1.0);
+                output.variant = variant;
+                return output;
             }
 #else
-            VSOut Vert(float3 positionOS : POSITION)
+            Varyings Vert(Attributes input)
             {
-                VSOut Out;
-                Out.Pos = TransformWorldToHClip(TransformObjectToWorld(positionOS));
-                Out.Variant = 0;
-                return Out;
+                Varyings output;
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.variant = 0; // unused
+                return output;
             }
 #endif
 
@@ -132,10 +137,10 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 return color;
             }
 
-            float4 Frag(float4 positionCS : SV_POSITION, int Variant : TEXCOORD0) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
                 // positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw, uint2(positionCS.xy) / GetTileSize());
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
@@ -157,9 +162,10 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                         n += count;
                     }
                 }
-                if(n == 0) n = -1;
+                if (n == 0)
+                    n = -1;
 #else
-                n = Variant;
+                n = input.variant;
 #endif
 
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);

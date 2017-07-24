@@ -72,10 +72,35 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-float3 GetCurrentCameraPosition()
+float3 GetAbsolutePositionWS(float3 cameraRelativePositionWS)
+{
+    float3 pos = cameraRelativePositionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    pos += _WorldSpaceCameraPos;
+#endif
+    return pos;
+}
+
+float3 GetCameraRelativePositionWS(float3 absolutePositionWS)
+{
+    float3 pos = absolutePositionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    pos -= _WorldSpaceCameraPos;
+#endif
+    return pos;
+}
+
+// Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
+float3 GetPrimaryCameraPosition()
+{
+    return GetCameraRelativePositionWS(_WorldSpaceCameraPos);
+}
+
+// Could be e.g. the position of a primary camera or a shadow-casting light.
+float3 GetCurrentViewPosition()
 {
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    return _WorldSpaceCameraPos;
+    return GetPrimaryCameraPosition();
 #else
     // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
     // to represent the position of the primary (scene view) camera in order to
@@ -83,19 +108,19 @@ float3 GetCurrentCameraPosition()
     // Otherwise, depth comparisons become meaningless!
     float4x4 trViewMat = transpose(GetWorldToViewMatrix());
     float3   rotCamPos = trViewMat[3].xyz;
-   return mul((float3x3)trViewMat, -rotCamPos);
+    return mul((float3x3)trViewMat, -rotCamPos);
 #endif
 }
 
-// Returns the forward direction of the current camera in the world space.
-float3 GetCameraForwardDir()
+// Returns the forward (central) direction of the current view in the world space.
+float3 GetViewForwardDir()
 {
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
 }
 
-// Returns 'true' if the current camera performs a perspective projection.
-bool IsPerspectiveCamera()
+// Returns 'true' if the current view performs a perspective projection.
+bool IsPerspectiveProjection()
 {
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return (unity_OrthoParams.w == 0);
@@ -108,19 +133,19 @@ bool IsPerspectiveCamera()
 #endif
 }
 
-// Computes the world space view direction (pointing towards the camera).
+// Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    if (IsPerspectiveCamera())
+    if (IsPerspectiveProjection())
     {
         // Perspective
-        float3 V = GetCurrentCameraPosition() - positionWS;
+        float3 V = GetCurrentViewPosition() - positionWS;
         return normalize(V);
     }
     else
     {
         // Orthographic
-        return -GetCameraForwardDir();
+        return -GetViewForwardDir();
     }
 }
 

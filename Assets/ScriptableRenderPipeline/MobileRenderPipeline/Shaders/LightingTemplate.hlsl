@@ -100,7 +100,8 @@ void OnChipDeferredCalculateLightParams (
 	#if defined (SPOT)	
 		float3 tolight = _LightPos.xyz - wpos;
 		half3 lightDir = normalize (tolight);
-		
+		float dist = length(tolight);
+
 		float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
 		colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
 		[branch]if (_useLegacyCookies) {
@@ -114,7 +115,7 @@ void OnChipDeferredCalculateLightParams (
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
 		if (_LightIndexForShadowMatrixArray >= 0)
-			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, 0.0.xxx);
+			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, float4(lightDir, dist));
 	
 	// directional light case		
 	#elif defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
@@ -135,13 +136,14 @@ void OnChipDeferredCalculateLightParams (
 	// point light case	
 	#elif defined (POINT) || defined (POINT_COOKIE)
 		float3 tolight = wpos - _LightPos.xyz;
+		float dist = length(tolight);
 		half3 lightDir = -normalize (tolight);
 		
 		float att = dot(tolight, tolight) * _LightPos.w;
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
 		if (_LightIndexForShadowMatrixArray >= 0)
-			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, lightDir);
+			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, float4(lightDir, dist));
 
 		#if defined (POINT_COOKIE)
 			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
