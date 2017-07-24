@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -114,11 +114,23 @@ namespace UnityEditor.VFX.UI
         protected VFXEditableDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
         {
             clipChildren = false;
+        }
 
+        void BuildProperty()
+        {
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            if(m_PropertyRM != null)
+            {
+                RemoveChild(m_PropertyRM);
+            }
+                
             m_PropertyRM = PropertyRM.Create(presenter, 100);
             if (m_PropertyRM != null)
             {
                 AddChild(m_PropertyRM);
+                if (m_Container != null)
+                    RemoveChild(m_Container);
+                m_Container = null;
             }
             else
             {
@@ -127,6 +139,7 @@ namespace UnityEditor.VFX.UI
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                 AddChild(m_Container);
             }
+
         }
 
         void OnGUI()
@@ -155,11 +168,19 @@ namespace UnityEditor.VFX.UI
             }*/
         }
 
+        Type m_EditedType;
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
 
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+
+            if(( m_PropertyIM == null && m_PropertyRM == null) || m_EditedType != presenter.anchorType)
+            {
+                BuildProperty();
+                m_EditedType = presenter.anchorType;
+            }
             if (m_Container != null)
                 m_Container.executionContext = presenter.GetInstanceID();
 
