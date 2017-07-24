@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using RMGUI.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
-using UnityEngine.Experimental.UIElements;
 using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
@@ -160,11 +158,11 @@ namespace UnityEditor.Graphing.Drawing
 			m_GraphEditorDrawer.presenter = source;
 			//m_GraphView.StretchToParentSize();
 			Repaint ();
-			if (refocus) 
+			/*if (refocus)
 			{
 				focused = false;
 				m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
-			}
+			}*/
 		}
 
 		public void OnBeforeSerialize()

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
-using RMGUI.GraphView;
+using UIElements.GraphView;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -62,9 +61,9 @@ namespace UnityEditor.Graphing.Drawing
                 container.AddChild(new TitleBarButtonDrawer(itemPresenter));
         }
 
-        protected override object toWatch
+        protected override Object[] toWatch
         {
-            get { return dataProvider; }
+            get { return new Object[]{dataProvider}; }
         }
     }
 }

@@ -1,5 +1,5 @@
-using RMGUI.GraphView;
-using UnityEngine.Experimental.UIElements;
+using UIElements.GraphView;
+using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -52,9 +52,9 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        protected override object toWatch
+        protected override Object[] toWatch
         {
-            get { return m_Presenter; }
+            get { return new Object[]{m_Presenter}; }
         }
     }
 }
