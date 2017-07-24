@@ -1,4 +1,3 @@
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
 
@@ -137,11 +136,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 utility.camera.transform.position = -Vector3.forward * 5;
                 utility.camera.transform.rotation = Quaternion.identity;
+                utility.camera.orthographic = false;
             }
             else
             {
-                utility.camera.transform.position = -Vector3.forward * 5;
+                utility.camera.transform.position = -Vector3.forward * 2;
                 utility.camera.transform.rotation = Quaternion.identity;
+                utility.camera.orthographicSize = 1;
+                utility.camera.orthographic = true;
             }
 
             EditorUtility.SetCameraAnimateMaterialsTime(utility.camera, time);
@@ -150,20 +152,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             utility.lights[1].intensity = 1.0f;
             utility.camera.clearFlags = CameraClearFlags.Depth;
 
-            if (PreviewMode.Preview3D == mode)
-            {
-                utility.DrawMesh(
-                    s_Meshes[0],
-                    Vector3.zero,
-                    Quaternion.identity,
-                    mat,
-                    0);
-            }
-            else
-            {
-                Graphics.DrawMesh(quad, Matrix4x4.identity, mat, 0, utility.camera, 0);
-            }
-            utility.Render();
+            utility.DrawMesh(
+                mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
+                Vector3.zero,
+                Quaternion.identity,
+                mat,
+                0);
+            utility.Render(true, false);
 
             return utility.EndPreview();
         }
