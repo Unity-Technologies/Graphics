@@ -266,7 +266,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7,
                 FeatureVariants = 8
             }; //TODO: we should probably make this checkboxes
-            public TileDebug tileDebugByCategory;
 
             public TileSettings()
             {
@@ -282,8 +281,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 diffuseGlobalDimmer = 1.0f;
                 specularGlobalDimmer = 1.0f;
-
-                tileDebugByCategory = TileDebug.None;
             }
         }
 
@@ -1893,9 +1890,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
             }
 
-            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer)
+            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
             {
-                if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.None)
+                LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
+                if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
                 using (new Utilities.ProfilingSample("Tiled Lighting Debug", cmd))
@@ -1919,13 +1917,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Debug tiles
                     PushGlobalParams(hdCamera.camera, cmd, null, 0);
-                    if (m_TileSettings.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
+                    if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled())
                         {
                             // featureVariants
                             m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
-                            m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
+                            m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)lightingDebug.tileDebugByCategory);
                             m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
                             m_DebugViewTilesMaterial.SetBuffer("g_TileList", s_TileList);
                             m_DebugViewTilesMaterial.SetBuffer("g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
@@ -1937,10 +1935,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
                         }
                     }
-                    else if (m_TileSettings.tileDebugByCategory != TileSettings.TileDebug.None)
+                    else if (lightingDebug.tileDebugByCategory != TileSettings.TileDebug.None)
                     {
                         // lightCategories
-                        m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_TileSettings.tileDebugByCategory);
+                        m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)lightingDebug.tileDebugByCategory);
                         m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
                         m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
