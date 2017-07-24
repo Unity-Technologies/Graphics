@@ -55,6 +55,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
                 uint2 positionSS = (uint2)input.positionCS.xy;
 
                 // There's no need for atomics as we are always writing the same value.
+                // Note: the GCN tile size is 8x8 pixels.
                 _HTile[positionSS / 8] = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
                 return float4(STENCILLIGHTINGUSAGE_SPLIT_LIGHTING, 0, 0, 0);
