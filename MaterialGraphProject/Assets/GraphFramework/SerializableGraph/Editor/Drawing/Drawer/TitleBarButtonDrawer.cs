@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.UIElements;
-using RMGUI.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
@@ -73,9 +73,9 @@ namespace UnityEditor.Graphing.Drawing
             this.Dirty(ChangeType.Repaint);
         }
 
-        protected override object toWatch
+        protected override Object[] toWatch
         {
-            get { return dataProvider; }
+            get { return new Object[]{dataProvider}; }
         }
     }
 }
