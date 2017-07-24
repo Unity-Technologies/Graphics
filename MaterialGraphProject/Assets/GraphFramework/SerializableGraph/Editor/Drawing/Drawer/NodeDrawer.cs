@@ -4,6 +4,7 @@ using RMGUI.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -19,7 +20,7 @@ namespace UnityEditor.Graphing.Drawing
             m_ControlsContainer = new VisualContainer
             {
                 name = "controls",
-                pickingMode = PickingMode.Ignore,
+                //pickingMode = PickingMode.Ignore,
             };
 
             leftContainer.AddChild(m_ControlsContainer);
@@ -32,40 +33,26 @@ namespace UnityEditor.Graphing.Drawing
         {
             var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
 
+            m_ControlsContainer.ClearChildren();
+            m_CurrentControlPresenter.Clear();
+
             if (!nodeData.expanded)
-            {
-                m_ControlsContainer.ClearChildren();
-                m_CurrentControlPresenter.Clear();
                 return;
-            }
 
-            if (controlPresenters.ItemsReferenceEquals(m_CurrentControlPresenter))
+            foreach (var controlData in controlPresenters)
             {
-                for (int i = 0; i < controlPresenters.Count; i++)
-                {
-                    var controlData = controlPresenters[i];
-                    var imContainer = m_ControlsContainer.GetChildAt(i) as IMGUIContainer;
-                    imContainer.OnGuiHandler = controlData.OnGUIHandler;
-                    imContainer.height = controlData.GetHeight();
-                }
+                m_ControlsContainer.AddChild(CreateControl(controlData));
+                m_CurrentControlPresenter.Add(controlData);
             }
-            else
-            {
-                m_ControlsContainer.ClearChildren();
-                m_CurrentControlPresenter.Clear();
+        }
 
-                foreach (var controlData in controlPresenters)
-                {
-                    var imContainer = new IMGUIContainer(controlData.OnGUIHandler)
-                    {
-                        name = "element",
-                        pickingMode = PickingMode.Position,
-                        height = controlData.GetHeight()
-                    };
-                    m_ControlsContainer.AddChild(imContainer);
-                    m_CurrentControlPresenter.Add(controlData);
-                }
-            }
+        IMGUIContainer CreateControl(GraphControlPresenter controlPresenter)
+        {
+            return new IMGUIContainer(controlPresenter.OnGUIHandler)
+            {
+                name = "element",
+                executionContext = controlPresenter.GetInstanceID(),
+            };
         }
 
         public override void OnDataChanged()
@@ -76,7 +63,8 @@ namespace UnityEditor.Graphing.Drawing
 
             if (nodeData == null)
             {
-                ClearChildren();
+                m_ControlsContainer.ClearChildren();
+                m_CurrentControlPresenter.Clear();
                 return;
             }
 

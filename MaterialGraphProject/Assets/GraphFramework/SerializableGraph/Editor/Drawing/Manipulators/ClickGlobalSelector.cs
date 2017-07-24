@@ -11,20 +11,27 @@ namespace UnityEditor.Graphing.Drawing
     {
         public ClickGlobalSelector()
         {
-            phaseInterest = PropagationPhase.Capture;
             activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
             activators.Add(new ManipulatorActivationFilter { button = MouseButton.RightMouse});
         }
 
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
+        public void HandleEvent(MouseEventBase evt)
         {
             var graphView = target as SerializableGraphView;
 			if (graphView == null)
 				throw new InvalidOperationException("Manipulator can only be added to a SerializableGraphView");
 
             graphView.SetGlobalSelection();
+        }
 
-            return EventPropagation.Continue;
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseDownEvent>(HandleEvent, Capture.Capture);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseDownEvent>(HandleEvent, Capture.Capture);
         }
     }
 }

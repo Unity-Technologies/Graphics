@@ -1,11 +1,10 @@
 .MaterialNode #preview {
-	flex-direction: column;
-	background-color: #444;
-}
-
-.MaterialNode #preview #image {
 	height: 200;
 	width: 200;
+}
+
+.MaterialNode #preview.inactive {
+	background-color: #FF0000;
 }
 
 GridBackground {

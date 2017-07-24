@@ -11,8 +11,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class MaterialNodeDrawer : NodeDrawer
     {
-        VisualContainer m_PreviewContainer;
-        private List<NodePreviewPresenter> m_currentPreviewData;
+        Image m_PreviewImage;
+        NodePreviewPresenter m_currentPreviewData;
         bool m_IsScheduled;
 
         public MaterialNodeDrawer()
@@ -27,19 +27,18 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void CreateContainers()
         {
-            m_PreviewContainer = new VisualContainer
+            m_PreviewImage = new Image
             {
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
+                image = Texture2D.whiteTexture
             };
-            leftContainer.AddChild(m_PreviewContainer);
-
-            m_currentPreviewData = new List<NodePreviewPresenter>();
+            m_PreviewImage.AddToClassList("inactive");
+            leftContainer.AddChild(m_PreviewImage);
         }
 
         private void SchedulePolling()
         {
-            Debug.LogFormat("SchedulePolling");
             if (panel != null)
             {
                 if (!m_IsScheduled)
@@ -56,7 +55,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UnschedulePolling()
         {
-            Debug.LogFormat("UnschedulePolling");
             if (m_IsScheduled && panel != null)
             {
                 this.Unschedule(InvalidateUIIfNeedsTime);
@@ -72,31 +70,24 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (childrenNodes.OfType<IRequiresTime>().Any())
             {
                 data.OnModified(ModificationScope.Node);
+                UpdatePreviewTexture(m_currentPreviewData);
+                Dirty(ChangeType.Repaint);
             }
             ListPool<INode>.Release(childrenNodes);
         }
 
-        private void AddPreview(MaterialNodePresenter nodeData)
+        void UpdatePreviewTexture(NodePreviewPresenter previewPresenter)
         {
-            if (!nodeData.elements.OfType<NodePreviewPresenter>().Any())
-                return;
-
-            var previews = nodeData.elements.OfType<NodePreviewPresenter>().ToList();
-
-            if (!previews.ItemsReferenceEquals(m_currentPreviewData))
+            var texture = previewPresenter != null ? previewPresenter.Render(new Vector2(256, 256)) : null;
+            if (texture == null)
             {
-                m_PreviewContainer.ClearChildren();
-                m_currentPreviewData = previews;
-
-                foreach (var preview in previews)
-                {
-                    var thePreview = new NodePreviewDrawer
-                    {
-                        data = preview,
-                        name = "image"
-                    };
-                    m_PreviewContainer.AddChild(thePreview);
-                }
+                m_PreviewImage.AddToClassList("inactive");
+                m_PreviewImage.image = Texture2D.whiteTexture;
+            }
+            else
+            {
+                m_PreviewImage.RemoveFromClassList("inactive");
+                m_PreviewImage.image = texture;
             }
         }
 
@@ -107,23 +98,19 @@ namespace UnityEditor.MaterialGraph.Drawing
             var nodeData = GetPresenter<MaterialNodePresenter>();
             if (nodeData == null)
             {
-                m_PreviewContainer.ClearChildren();
-                m_currentPreviewData.Clear();
+                m_PreviewImage.AddToClassList("inactive");
+                m_currentPreviewData = null;
+                UpdatePreviewTexture(m_currentPreviewData);
                 return;
             }
-
-            AddPreview(nodeData);
+            
+            m_currentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
+            UpdatePreviewTexture(m_currentPreviewData);
 
             if (nodeData.expanded)
-            {
-                //m_PreviewContainer.paintFlags &= ~PaintFlags.Invisible;
-                m_PreviewContainer.RemoveFromClassList("hidden");
-            }
+                m_PreviewImage.RemoveFromClassList("hidden");
             else
-            {
-                //m_PreviewContainer.paintFlags |= PaintFlags.Invisible;
-                m_PreviewContainer.AddToClassList("hidden");
-            }
+                m_PreviewImage.AddToClassList("hidden");
         }
     }
 }
