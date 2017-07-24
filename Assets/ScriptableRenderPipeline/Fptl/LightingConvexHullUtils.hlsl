@@ -97,9 +97,10 @@ float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const
     return float4(vN, -dot(vN,p0));
 }
 
-bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphCen, float sphRadiusIn)
+bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphCen_in, float sphRadiusIn, bool isOrthographic)
 {
-    float3 V = dir;     // ray direction down center of tile (does not need to be normalized).
+    float3 V = float3(isOrthographic ? 0.0 : dir.x, isOrthographic ? 0.0 : dir.y, dir.z);     // ray direction down center of tile (does not need to be normalized).
+	float3 sphCen = float3(sphCen_in.x - (isOrthographic ? dir.x : 0.0), sphCen_in.y - (isOrthographic ? dir.y : 0.0), sphCen_in.z); 
 
 #if 1
     float3 maxZdir = float3(-sphCen.z*sphCen.x, -sphCen.z*sphCen.y, sphCen.x*sphCen.x + sphCen.y*sphCen.y);     // cross(sphCen,cross(Zaxis,sphCen))
@@ -112,10 +113,11 @@ bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphC
 
     // enlarge sphere so it overlaps the center of the tile assuming it overlaps the tile to begin with.
 #if USE_LEFTHAND_CAMERASPACE
-    float sphRadius = sphRadiusIn + (sphCen.z+offs)*halfTileSizeAtZDistOne;
+	float s = sphCen.z+offs;
 #else
-    float sphRadius = sphRadiusIn - (sphCen.z-offs)*halfTileSizeAtZDistOne;
+	float s = -(sphCen.z-offs);
 #endif
+	float sphRadius = sphRadiusIn + (isOrthographic ? 1.0 : s)*halfTileSizeAtZDistOne;
 
     float a = dot(V,V);
     float CdotV = dot(sphCen,V);
