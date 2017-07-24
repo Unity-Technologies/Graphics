@@ -35,7 +35,6 @@ MonoBehaviour:
     enableBigTilePrepass: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    tileDebugByCategory: 0
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
