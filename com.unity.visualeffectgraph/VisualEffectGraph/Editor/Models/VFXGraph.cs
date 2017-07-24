@@ -182,9 +182,19 @@ namespace UnityEditor.VFX
             RecompileIfNeeded();
             if (m_ExpressionGraph == null)
             {
-                throw new Exception("m_ExpressionGraph is null");
+                return uint.MaxValue;
             }
             var targetExpression = slot.GetExpression();
+            if (targetExpression == null)
+            {
+                return uint.MaxValue;
+            }
+
+            if (!m_ExpressionGraph.CPUExpressionsToReduced.ContainsKey(targetExpression))
+            {
+                return uint.MaxValue;
+            }
+
             var ouputExpression = m_ExpressionGraph.CPUExpressionsToReduced[targetExpression];
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
