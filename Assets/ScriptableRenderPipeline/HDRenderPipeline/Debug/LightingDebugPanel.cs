@@ -97,6 +97,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode).handler.OnEditorGUI();
 
+                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kTileDebug).handler.OnEditorGUI();
+
                 DebugItem displaySkyReflecItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDisplaySkyReflectionDebug);
                 displaySkyReflecItem.handler.OnEditorGUI();
                 if ((bool)displaySkyReflecItem.GetValue())

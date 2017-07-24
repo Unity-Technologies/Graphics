@@ -6,31 +6,54 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
         #include "../../ShaderLibrary/Common.hlsl"
         #include "../ShaderVariables.hlsl"
+        #include "../ShaderConfig.cs.hlsl"
         #include "../ShaderPass/FragInputs.hlsl"
         #include "../ShaderPass/VaryingMesh.hlsl"
         #include "../ShaderPass/VertMesh.hlsl"
 
-        PackedVaryingsType Vert(AttributesMesh inputMesh)
+        float4 _CameraPosDiff;
+
+        struct Attributes
         {
-            VaryingsType varyingsType;
-            varyingsType.vmesh = VertMesh(inputMesh);
-            return PackVaryingsType(varyingsType);
+            uint vertexID : SV_VertexID;
+        };
+
+        struct Varyings
+        {
+            float4 positionCS : SV_POSITION;
+        };
+
+        Varyings Vert(Attributes input)
+        {
+            Varyings output;
+            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+            return output;
         }
 
-        float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+        float4 Frag(Varyings input) : SV_Target
         {
-            PositionInputs posInput = GetPositionInput(packedInput.vmesh.positionCS.xy, _ScreenSize.zw);
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
             float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
-            float3 vPos = ComputeViewSpacePosition(posInput.positionSS, depth, _InvProjMatrix);
-            float4 worldPos = mul(unity_CameraToWorld, float4(vPos, 1.0));
+            UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+            float4 worldPos = float4(posInput.positionWS, 1.0);
+            float4 prevPos = worldPos;
 
-            float4 prevClipPos = mul(_PrevViewProjMatrix, worldPos);
-            float4 curClipPos = mul(_ViewProjMatrix, worldPos);
+        #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+            prevPos -= _CameraPosDiff;
+        #endif
+
+            float4 prevClipPos = mul(_PrevViewProjMatrix, prevPos);
+            float4 curClipPos = mul(_NonJitteredViewProjMatrix, worldPos);
             float2 prevHPos = prevClipPos.xy / prevClipPos.w;
             float2 curHPos = curClipPos.xy / curClipPos.w;
 
             float2 previousPositionCS = (prevHPos + 1.0) / 2.0;
             float2 positionCS = (curHPos + 1.0) / 2.0;
+
+        #if UNITY_UV_STARTS_AT_TOP
+            previousPositionCS.y = 1.0 - previousPositionCS.y;
+            positionCS.y = 1.0 - positionCS.y;
+        #endif
 
             return float4(positionCS - previousPositionCS, 0.0, 1.0);
         }

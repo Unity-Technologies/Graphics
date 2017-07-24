@@ -35,22 +35,22 @@ bool BackFaceCullTriangle(float3 p0, float3 p1, float3 p2, float backFaceCullEps
     return (dot(V, N) < backFaceCullEpsilon) ? true : false;
 }
 
-float2 GetScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix, float4 screenParams)
+float2 GetScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix, float4 screenSize)
 {
     float4 positionCS = mul(viewProjectionMatrix, float4(positionWS, 1.0));
     float2 positionSS = positionCS.xy / positionCS.w;
 
     // TODO: Check if we need to invert y
-    return (positionSS * 0.5 + 0.5) * float2(screenParams.x, -screenParams.y);
+    return (positionSS * 0.5 + 0.5) * float2(screenSize.x, -screenSize.y);
 }
 
 // Compute both screen and distance based adaptation - return factor between 0 and 1
-float3 GetScreenSpaceTessFactor(float3 p0, float3 p1, float3 p2, float4x4 viewProjectionMatrix, float4 screenParams, float triangleSize)
+float3 GetScreenSpaceTessFactor(float3 p0, float3 p1, float3 p2, float4x4 viewProjectionMatrix, float4 screenSize, float triangleSize)
 {
     // Get screen space adaptive scale factor
-    float2 edgeScreenPosition0 = GetScreenSpacePosition(p0, viewProjectionMatrix, screenParams);
-    float2 edgeScreenPosition1 = GetScreenSpacePosition(p1, viewProjectionMatrix, screenParams);
-    float2 edgeScreenPosition2 = GetScreenSpacePosition(p2, viewProjectionMatrix, screenParams);
+    float2 edgeScreenPosition0 = GetScreenSpacePosition(p0, viewProjectionMatrix, screenSize);
+    float2 edgeScreenPosition1 = GetScreenSpacePosition(p1, viewProjectionMatrix, screenSize);
+    float2 edgeScreenPosition2 = GetScreenSpacePosition(p2, viewProjectionMatrix, screenSize);
 
     float EdgeScale = 1.0 / triangleSize; // Edge size in reality, but name is simpler
     float3 tessFactor;

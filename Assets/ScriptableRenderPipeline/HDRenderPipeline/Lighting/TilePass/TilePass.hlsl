@@ -2,7 +2,6 @@
 #define PROCESS_DIRECTIONAL_LIGHT
 #define PROCESS_PUNCTUAL_LIGHT
 #define PROCESS_AREA_LIGHT
-#define PROCESS_PROJECTOR_LIGHT
 #endif
 
 #if defined (LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
@@ -71,7 +70,6 @@ CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
 uint _AreaLightCount;
-uint _ProjectorLightCount;
 uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 

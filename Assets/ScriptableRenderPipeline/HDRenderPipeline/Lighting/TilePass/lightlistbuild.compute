@@ -261,9 +261,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	if(t == 0)
 	{
 		uint featureFlags = ldsFeatureFlags | g_BaseFeatureFlags;
+        // In case of back
 		if(ldsZMax < ldsZMin)	// is background pixel
 		{
-			featureFlags &= ~(LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_AREA | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | 0xFFFFF);	// list of features that are not enabled on background
+            // There is no stencil usage with compute path, featureFlags set to 0 is use to have fast rejection of tile in this case. It will still execute but will do nothing
+			featureFlags = 0;
 		}
 
 		g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] = featureFlags;
