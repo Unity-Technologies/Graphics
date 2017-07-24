@@ -115,11 +115,14 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
 #if defined(_VERTEX_LIGHTS) && !defined(_SINGLE_DIRECTIONAL_LIGHT)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                int vertexLightStart = unity_LightIndicesOffsetAndCount.x + globalLightCount.x;
-                int vertexLightEnd = vertexLightStart + (unity_LightIndicesOffsetAndCount.y - globalLightCount.x);
+                // pixel lights shaded = min(pixelLights, perObjectLights)
+                // vertex lights shaded = min(vertexLights, perObjectLights) - pixel lights shaded
+                // Therefore vertexStartIndex = pixelLightCount;  vertexEndIndex = min(vertexLights, perObjectLights)
+                int vertexLightStart = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+                int vertexLightEnd = min(globalLightCount.y, unity_LightIndicesOffsetAndCount.y);
                 for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
                 {
-                    int lightIndex = globalLightIndexList[lightIter];
+                    int lightIndex = unity_4LightIndices0[lightIter];
                     LightInput lightInput;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
                     o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
@@ -164,16 +167,14 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 #ifdef _SHADOWS
                 half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
-                int pixelLightEnd = unity_LightIndicesOffsetAndCount.x + min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-                for (int lightIter = unity_LightIndicesOffsetAndCount.x; lightIter < pixelLightEnd; ++lightIter)
+                int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+                for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
                 {
-                    int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightData;
+                    int lightIndex = unity_4LightIndices0[lightIter];
                     INITIALIZE_LIGHT(lightData, lightIndex);
 #ifdef _SHADOWS
-                    // multiplies shadowAttenuation to avoid branching.
-                    // step will only evaluate to 1 when lightIndex == _ShadowData.x (shadowLightIndex)
-                    half currLightAttenuation = shadowAttenuation * step(abs(lightIndex - _ShadowData.x), 0);
+                    half currLightAttenuation = max(shadowAttenuation, half(lightIter != _ShadowData.x));
                     color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir) * currLightAttenuation;
 #else
                     color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir);

@@ -52,7 +52,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 // example of overriding punctual lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
 {
 #ifdef SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS
 	// example for choosing different algos for point and spot lights
@@ -83,7 +83,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 #endif
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS )
 {
 	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }

@@ -86,7 +86,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
-    varyingsType.vpass.positionCS = mul(_ViewProjMatrix, mul(unity_ObjectToWorld, float4(inputMesh.positionOS, 1.0)));
+    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, mul(unity_ObjectToWorld, float4(inputMesh.positionOS, 1.0)));
     varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)));
 
     return PackVaryingsType(varyingsType);
