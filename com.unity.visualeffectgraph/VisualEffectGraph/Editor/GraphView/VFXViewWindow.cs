@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEditor.VFX;
@@ -78,9 +78,9 @@ namespace  UnityEditor.VFX.UI
 
         static public VFXViewPresenter viewPresenter
         {
-            get {
-
-                if( s_ViewPresenter == null)
+            get
+            {
+                if (s_ViewPresenter == null)
                     s_ViewPresenter = ScriptableObject.CreateInstance<VFXViewPresenter>();
 
                 return s_ViewPresenter;

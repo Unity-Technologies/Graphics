@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -15,7 +15,6 @@ namespace UnityEditor.VFX.UI
 
     class ParameterDropper : Manipulator
     {
-
         public ParameterDropper()
         {
         }
@@ -42,20 +41,20 @@ namespace UnityEditor.VFX.UI
                 return;
 
             VFXParameterPresenter dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterPresenter;
-            
+
 
             switch (evt.type)
             {
                 case EventType.DragUpdated:
-                    {
-                        dropTarget.OnDragUpdated(e, dragData);
-                    }
-                    break;
+                {
+                    dropTarget.OnDragUpdated(e, dragData);
+                }
+                break;
                 case EventType.DragPerform:
-                    {
-                        dropTarget.OnDragPerform(e, dragData);
-                    }
-                    break;
+                {
+                    dropTarget.OnDragPerform(e, dragData);
+                }
+                break;
             }
         }
     }
@@ -403,9 +402,9 @@ namespace UnityEditor.VFX.UI
         {
             //TODO : show that we accept the drag
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-
         }
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt,VFXParameterPresenter parameter)
+
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
 
@@ -414,6 +413,5 @@ namespace UnityEditor.VFX.UI
             newParameter.exposedName = parameter.exposedName;
             newParameter.exposed = true;
         }
-
     }
 }
