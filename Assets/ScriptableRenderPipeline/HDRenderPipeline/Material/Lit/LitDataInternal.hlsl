@@ -31,7 +31,8 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
-    GetTriplanarCoordinate(positionWS * worldScale, uvXZ, uvXY, uvZY);
+
+    GetTriplanarCoordinate(GetAbsolutePositionWS(positionWS) * worldScale, uvXZ, uvXY, uvZY);
 
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)
@@ -122,7 +123,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
     #ifdef _DETAIL_MAP_IDX
         #ifdef SURFACE_GRADIENT
-        normalTS += detailNormalTS;
+        normalTS += detailNormalTS * detailMask;
         #else
         normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
         #endif
@@ -205,7 +206,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #elif defined(_MATID_ANISO)
     surfaceData.materialId = MATERIALID_LIT_ANISO;
 #elif defined(_MATID_SPECULAR)
-    surfaceData.materialId = MATERIALID_LIT_SPECULAR;
+    surfaceData.materialId = MATERIALID_LIT_STANDARD; // Specular is not a different BRDF, it is just different parametrization, do'nt do a separate matId for it
 #else // Default
     surfaceData.materialId = MATERIALID_LIT_STANDARD;
 #endif
@@ -230,8 +231,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
+    // This surfaceData.specular must be static to allow the compiler to optimize the code when converting / encoding the values
 #ifdef _MATID_SPECULAR
-    // To save 1bit space in GBuffer we don't store specular as materialID but in the enum of the specular value
     surfaceData.specular = SPECULARVALUE_SPECULAR_COLOR;
 #else
     surfaceData.specular = SPECULARVALUE_REGULAR;

@@ -15,7 +15,7 @@ float ShadowMoments_ChebyshevsInequality( float2 moments, float depth, float min
 	float mD = depth - moments.x;
 	float p = variance / (variance + mD * mD);
 
-	p = saturate( p / (1.0f - lightLeakBias) );
+	p = saturate( (p - lightLeakBias) / (1.0f - lightLeakBias) );
 	return max( p, depth <= moments.x );
 }
 

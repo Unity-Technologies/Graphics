@@ -13,7 +13,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
         {
             Stencil
             {
-                Ref  1 // StencilBits.SSS
+                Ref  1 // StencilLightingUsage.SplitLighting
                 Comp Equal
                 Pass Keep
             }
