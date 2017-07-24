@@ -57,6 +57,12 @@ namespace UnityEditor.VFX.UI
 
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
+            var systemDesc = new Descriptor()
+            {
+                modelDescriptor = null,
+                category = "System",
+                name = "Default System"
+            };
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
@@ -110,7 +116,8 @@ namespace UnityEditor.VFX.UI
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
                 .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorAttributeParameter);
+                .Concat(descriptorAttributeParameter)
+                .Concat(Enumerable.Repeat(systemDesc,1));
         }
     }
 
@@ -170,6 +177,18 @@ namespace UnityEditor.VFX.UI
                     else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
                     {
                         AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                    }
+                    else if( d.modelDescriptor == null)
+                    {
+
+                        var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
+                        var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
+                        var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
+                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Output"));
+
+                        spawner.LinkTo(initialize);
+                        initialize.LinkTo(update);
+                        update.LinkTo(output);
                     }
                     else
                     {
