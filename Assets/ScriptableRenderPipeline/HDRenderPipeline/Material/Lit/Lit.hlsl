@@ -29,7 +29,7 @@
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
 #ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
 //#define LIT_DISPLAY_REFERENCE_AREA
-#define LIT_DISPLAY_REFERENCE_IBL
+//#define LIT_DISPLAY_REFERENCE_IBL
 #endif
 // Use Lambert diffuse instead of Disney diffuse
 // #define LIT_DIFFUSE_LAMBERT_BRDF
