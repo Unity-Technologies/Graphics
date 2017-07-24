@@ -111,6 +111,26 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
+                {
+                #if UNITY_UV_STARTS_AT_TOP
+                    input.texcoord.y = 1.0 - input.texcoord.y;
+                #endif
+
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+
+                    if (any(isnan(color)) || any(isinf(color)))
+                    {
+                        color = float4(1.0, 0.0, 1.0, 1.0);
+                    }
+                    else
+                    {
+                        // Dim the color buffer so we can see NaNs & Infs better
+                        color.rgb *= 0.25;
+                    }
+
+                    return color;
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
                     float2 mv = SampleMotionVectors(input.texcoord);
