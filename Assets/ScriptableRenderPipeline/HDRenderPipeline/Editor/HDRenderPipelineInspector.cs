@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableClustered;
         SerializedProperty m_enableFptlForOpaqueWhenClustered;
         SerializedProperty m_enableBigTilePrepass;
-        SerializedProperty m_tileDebugByCategory;
 
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
@@ -120,7 +119,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_enableClustered = FindProperty(x => x.tileSettings.enableClustered);
             m_enableFptlForOpaqueWhenClustered = FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
             m_enableBigTilePrepass = FindProperty(x => x.tileSettings.enableBigTilePrepass);
-            m_tileDebugByCategory = FindProperty(x => x.tileSettings.tileDebugByCategory);
 
             // Shadow settings
             m_ShadowAtlasWidth = FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
@@ -173,7 +171,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
             EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
             EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
-            EditorGUILayout.PropertyField(m_tileDebugByCategory, styles.tileDebugByCategory);
 
             if (EditorGUI.EndChangeCheck())
             {
