@@ -246,7 +246,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public class TileSettings
         {
             public bool enableTileAndCluster; // For debug / test
-            public bool enableSplitLightEvaluation;
             public bool enableComputeLightEvaluation;
             public bool enableComputeLightVariants;
             public bool enableComputeMaterialVariants;
@@ -270,7 +269,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public TileSettings()
             {
                 enableTileAndCluster = true;
-                enableSplitLightEvaluation = true;
                 enableComputeLightEvaluation = true;
                 enableComputeLightVariants = true;
                 enableComputeMaterialVariants = true;
@@ -423,10 +421,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            Material m_DeferredDirectMaterialSRT   = null;
-            Material m_DeferredDirectMaterialMRT   = null;
-            Material m_DeferredIndirectMaterialSRT = null;
-            Material m_DeferredIndirectMaterialMRT = null;
             Material m_DeferredAllMaterialSRT      = null;
             Material m_DeferredAllMaterialMRT      = null;
 
@@ -564,42 +558,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 string[] tileKeywords = {"LIGHTLOOP_TILE_DIRECT", "LIGHTLOOP_TILE_INDIRECT", "LIGHTLOOP_TILE_ALL"};
 
-                m_DeferredDirectMaterialSRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, tileKeywords, 0);
-                m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
-                m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
-
-                m_DeferredDirectMaterialMRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, tileKeywords, 0);
-                m_DeferredDirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredDirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredDirectMaterialMRT.SetInt("_StencilRef", (int)StencilLightingUsage.SplitLighting);
-                m_DeferredDirectMaterialMRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                m_DeferredDirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
-                m_DeferredDirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
-
-                m_DeferredIndirectMaterialSRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, tileKeywords, 1);
-                m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
-                m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
-
-                m_DeferredIndirectMaterialMRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredIndirectMaterialMRT, tileKeywords, 1);
-                m_DeferredIndirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredIndirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredIndirectMaterialMRT.SetInt("_StencilRef", (int)StencilLightingUsage.SplitLighting);
-                m_DeferredIndirectMaterialMRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                m_DeferredIndirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
-                m_DeferredIndirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
-
                 m_DeferredAllMaterialSRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
                 Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
@@ -687,10 +645,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // enableClustered
                 Utilities.SafeRelease(s_GlobalLightListAtomic);
 
-                Utilities.Destroy(m_DeferredDirectMaterialSRT);
-                Utilities.Destroy(m_DeferredDirectMaterialMRT);
-                Utilities.Destroy(m_DeferredIndirectMaterialSRT);
-                Utilities.Destroy(m_DeferredIndirectMaterialMRT);
                 Utilities.Destroy(m_DeferredAllMaterialSRT);
                 Utilities.Destroy(m_DeferredAllMaterialMRT);
 
@@ -1880,10 +1834,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void SetupDebugDisplayMode(bool debugDisplayEnable)
             {
-                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
-                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
                 Utilities.SetKeyword(m_DeferredAllMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
                 Utilities.SetKeyword(m_DeferredAllMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
                 Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
@@ -2152,67 +2102,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Pixel shader evaluation
                             PushGlobalParams(camera, cmd, null, 0);
 
-                            if (m_TileSettings.enableSplitLightEvaluation)
+                            if (outputSplitLighting)
                             {
-                                if (outputSplitLighting)
-                                {
-                                    Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialMRT, colorBuffers, depthStencilBuffer);
-
-                                    Utilities.SelectKeyword(m_DeferredIndirectMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredIndirectMaterialMRT, colorBuffers, depthStencilBuffer);
-                                }
-                                else
-                                {
-                                    // If SSS is disable, do lighting for both split lighting and no split lighting
-                                    if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
-                                    {
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
-
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
-                                    }
-                                    else
-                                    {
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                                    }
-
-                                    Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialSRT, colorBuffers[0], depthStencilBuffer);
-
-                                    Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredIndirectMaterialSRT, colorBuffers[0], depthStencilBuffer);
-                                }
+                                Utilities.SelectKeyword(m_DeferredAllMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialMRT, colorBuffers, depthStencilBuffer);
                             }
                             else
                             {
-                                if (outputSplitLighting)
+                                // If SSS is disable, do lighting for both split lighting and no split lighting
+                                if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                                 {
-                                    Utilities.SelectKeyword(m_DeferredAllMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialMRT, colorBuffers, depthStencilBuffer);
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
                                 }
                                 else
                                 {
-                                    // If SSS is disable, do lighting for both split lighting and no split lighting
-                                    if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
-                                    {
-                                        m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
-                                        m_DeferredAllMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
-                                    }
-                                    else
-                                    {
-                                        m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                                        m_DeferredAllMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
-                                    }
-
-                                    Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
-                                    Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, colorBuffers[0], depthStencilBuffer);
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
                                 }
+
+                                Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, colorBuffers[0], depthStencilBuffer);
                             }
                         }
                     }
