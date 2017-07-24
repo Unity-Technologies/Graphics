@@ -161,8 +161,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         {
             float3 localDiffuseLighting, localSpecularLighting;
 
-            EvaluateBSDF_Directional(context, V, posInput, prelightData,
-                                     _DirectionalLightDatas[i], bsdfData,
+            EvaluateBSDF_Directional(context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
                                      localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
@@ -202,17 +201,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
         float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
 
-        // !!!!!!!!!!!!!!
-        // COMPILER BEHAVIOR WARNING
+        // COMPILER BEHAVIOR WARNING!
         // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
         // By keeping line lights first we avoid this behavior and save substantial register pressure.
+        // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
 
         i = 0;
         uint areaIndex = FetchIndex(areaLightStart, i);
         while ( i < areaLightCount && _LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
         {
             areaIndex = FetchIndex(areaLightStart, i);
-            EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE,
                                 localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
@@ -224,7 +223,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         while (i < areaLightCount) // Rectangle lights are the last area lights so no need to check type
         {
             areaIndex = FetchIndex(areaLightStart, i);
-            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE,
                                 localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
@@ -276,11 +275,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 
     diffuseLighting += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
-#endif
 
-    // TODO: currently apply GI at the same time as reflection
-#ifdef PROCESS_ENV_LIGHT
-    // Add indirect diffuse + emissive (if any)
+    // Apply GI at the same time as reflection
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
     diffuseLighting += bakeDiffuseLighting * context.ambientOcclusion;
 #endif
 
@@ -318,8 +315,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
-        EvaluateBSDF_Directional(context, V, posInput, prelightData,
-                                 _DirectionalLightDatas[i], bsdfData,
+        EvaluateBSDF_Directional(context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
                                  localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
@@ -341,16 +337,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
-        if (_LightDatas[i].lightType == GPULIGHTTYPE_LINE)
-        {
-            EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
-                                localDiffuseLighting, localSpecularLighting);
-        }
-        else
-        {
-            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
-                                localDiffuseLighting, localSpecularLighting);
-        }
+        EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType,
+                            localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
@@ -388,6 +376,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     specularLighting += iblSpecularLighting;
 
     // Add indirect diffuse + emissive (if any)
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
     diffuseLighting += bakeDiffuseLighting * context.ambientOcclusion;
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
