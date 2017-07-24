@@ -449,6 +449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         None,
         SSAO,
         SSAOBeforeFiltering,
+        MotionVectors
     }
 
     [Serializable]
