@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,7 +39,7 @@ public class VFXAssetEditor : Editor
     {
         if (b.Length != a.Length)
             return false;
-        for(int i = 0; i < a.Length; ++i)
+        for (int i = 0; i < a.Length; ++i)
         {
             if (a[i] != b[i])
                 return false;
@@ -53,10 +53,10 @@ public class VFXAssetEditor : Editor
             return;
 
         var newList = VFXViewWindow.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
-        if ( list == null || !ArraysEquals(newList,m_ExposedList) )
+        if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;
-            list = new ReorderableList(m_ExposedList,typeof(VFXParameterPresenter),true,false,false,false);
+            list = new ReorderableList(m_ExposedList, typeof(VFXParameterPresenter), true, false, false, false);
             list.elementHeightCallback = GetExposedListElementHeight;
             list.drawElementCallback = DrawExposedListElement;
             list.drawHeaderCallback = DrawExposedHeader;
@@ -72,10 +72,10 @@ public class VFXAssetEditor : Editor
         GUILayout.EndHorizontal();
 
         list.DoLayoutList();
-        
+
         for (int i = 0; i < m_ExposedList.Length; ++i)
         {
-            if( m_ExposedList[i].order != i )
+            if (m_ExposedList[i].order != i)
             {
                 var parameter = m_ExposedList[i];
                 Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
@@ -87,29 +87,30 @@ public class VFXAssetEditor : Editor
 
     public const string VFXParameterDragging = "Unity.VFX.Parameter";
 
-    public void StartDragElement(ReorderableList list,int index)
+    public void StartDragElement(ReorderableList list, int index)
     {
         DragAndDrop.PrepareStartDrag();
         DragAndDrop.SetGenericData(VFXParameterDragging, m_ExposedList[index]);
-        string title = m_ExposedList[index].exposedName; 
+        string title = m_ExposedList[index].exposedName;
         DragAndDrop.StartDrag(title);
     }
 
     public void DrawExposedHeader(Rect rect)
     {
-        GUI.Label(rect,"Exposed Parameters");
+        GUI.Label(rect, "Exposed Parameters");
     }
 
     private float GetExposedListElementHeight(int index)
     {
         ParamInfo infos;
-        m_AdvDictionary.TryGetValue(m_ExposedList[index], out infos); 
+        m_AdvDictionary.TryGetValue(m_ExposedList[index], out infos);
 
         return infos.adv ? 80 : 25;
     }
+
     private void DrawExposedListElement(Rect rect, int index, bool selected, bool focused)
     {
-        OnParamGUI(rect,m_ExposedList[index], index);
+        OnParamGUI(rect, m_ExposedList[index], index);
     }
 
     struct ParamInfo
@@ -122,7 +123,7 @@ public class VFXAssetEditor : Editor
     ReorderableList list;
     Dictionary<VFXParameterPresenter, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterPresenter, ParamInfo>();
 
-    void OnParamGUI(Rect rect,VFXParameterPresenter parameter, int order)
+    void OnParamGUI(Rect rect, VFXParameterPresenter parameter, int order)
     {
         GUILayout.BeginVertical();
 
@@ -140,7 +141,7 @@ public class VFXAssetEditor : Editor
         rect.yMin += 4;
         rect.xMin += 8;
         Rect toggleRect = rect;
-        
+
 
         int labelWidth = 130;
         int toggleWidth = 20;
@@ -182,7 +183,7 @@ public class VFXAssetEditor : Editor
                     areaRect.xMin += offsetWidth;
                     areaRect.height = lineHeight;
                     areaRect.xMin += toggleWidth;
-                    parameter.value = infos.propertyIM.OnGUI(areaRect,"value", parameter.value);
+                    parameter.value = infos.propertyIM.OnGUI(areaRect, "value", parameter.value);
 
                     areaRect.xMin -= offsetWidth;
 
@@ -192,7 +193,7 @@ public class VFXAssetEditor : Editor
                     {
                         toggleRect = areaRect;
                         toggleRect.width = toggleWidth;
-                        bool minChecked = GUI.Toggle(toggleRect,parameter.minValue != null, "");
+                        bool minChecked = GUI.Toggle(toggleRect, parameter.minValue != null, "");
                         GUI.enabled = minChecked;
                         if (infos.propertyIM != null)
                         {

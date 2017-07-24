@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -38,13 +38,13 @@ namespace UnityEditor.VFX.UI
 
         public object OnGUI(Rect rect, string label, object value)
         {
-            return DoOnGUI(rect,label, value);
+            return DoOnGUI(rect, label, value);
         }
 
         public virtual bool isNumeric { get { return true; } }
 
         protected abstract object DoOnGUI(VFXDataAnchorPresenter presenter);
-        protected abstract object DoOnGUI(Rect rect,string label, object value);
+        protected abstract object DoOnGUI(Rect rect, string label, object value);
 
 
         public float m_LabelWidth = 100;
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
             return OnParameterGUI(presenter, (T)presenter.value, presenter.name);
         }
 
-        protected override object DoOnGUI(Rect rect,string label, object value)
+        protected override object DoOnGUI(Rect rect, string label, object value)
         {
             return OnParameterGUI(rect, (T)value, label);
         }
@@ -192,7 +192,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        protected override object DoOnGUI(Rect rect,string label, object value)
+        protected override object DoOnGUI(Rect rect, string label, object value)
         {
             GUILayout.BeginHorizontal();
             Label(rect, label);
@@ -213,6 +213,7 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override float OnParameterGUI(Rect rect, float value, string label)
         {
             Label(rect, label);
@@ -234,12 +235,13 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override int OnParameterGUI(Rect rect, int value, string label)
         {
             Label(rect, label);
 
             rect.xMin += m_LabelWidth;
-            value = EditorGUI.IntField(rect,value);
+            value = EditorGUI.IntField(rect, value);
 
             return value;
         }
@@ -260,6 +262,7 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override Vector3 OnParameterGUI(Rect rect, Vector3 value, string label)
         {
             Label(rect, label);
@@ -272,15 +275,15 @@ namespace UnityEditor.VFX.UI
             rect.width = labelWidth;
             GUI.Label(rect, "x");
             rect.xMin += rect.width;
-            rect.width = paramWidth - labelWidth; 
-            value.x = EditorGUI.FloatField(rect,value.x);
+            rect.width = paramWidth - labelWidth;
+            value.x = EditorGUI.FloatField(rect, value.x);
 
             rect.xMin += rect.width;
             rect.width = labelWidth;
-            GUI.Label(rect,"y");
+            GUI.Label(rect, "y");
             rect.xMin += rect.width;
             rect.width = paramWidth - labelWidth;
-            value.y = EditorGUI.FloatField(rect,value.y);
+            value.y = EditorGUI.FloatField(rect, value.y);
 
             rect.xMin += rect.width;
             rect.width = labelWidth;
@@ -306,6 +309,7 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override Vector2 OnParameterGUI(Rect rect, Vector2 value, string label)
         {
             Label(rect, label);
@@ -353,6 +357,7 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override Vector4 OnParameterGUI(Rect rect, Vector4 value, string label)
         {
             Label(rect, label);
@@ -415,13 +420,14 @@ namespace UnityEditor.VFX.UI
 
             return startValue != value ? value : color;
         }
+
         public override Color OnParameterGUI(Rect rect, Color value, string label)
         {
             Label(rect, label);
             rect.xMin += m_LabelWidth;
 
             Color color = EditorGUI.ColorField(rect, new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
-            
+
 
             return color;
         }
@@ -441,12 +447,13 @@ namespace UnityEditor.VFX.UI
 
             return value;
         }
+
         public override AnimationCurve OnParameterGUI(Rect rect, AnimationCurve value, string label)
         {
             Label(rect, label);
             rect.xMin += m_LabelWidth;
 
-            value = EditorGUI.CurveField(rect,value);
+            value = EditorGUI.CurveField(rect, value);
 
             return value;
         }
@@ -462,11 +469,12 @@ namespace UnityEditor.VFX.UI
             GUILayout.EndHorizontal();
             return value;
         }
+
         public override Gradient OnParameterGUI(Rect rect, Gradient value, string label)
         {
             Label(rect, label);
             rect.xMin += m_LabelWidth;
-            value = EditorGUI.GradientField(rect,value);
+            value = EditorGUI.GradientField(rect, value);
             return value;
         }
     }
@@ -481,11 +489,12 @@ namespace UnityEditor.VFX.UI
             GUILayout.EndHorizontal();
             return value;
         }
+
         public override T OnParameterGUI(Rect rect, T value, string label)
         {
             Label(rect, label);
             rect.xMin += m_LabelWidth;
-            value = (T)EditorGUI.ObjectField(rect,value, typeof(T), false);
+            value = (T)EditorGUI.ObjectField(rect, value, typeof(T), false);
             return value;
         }
     }

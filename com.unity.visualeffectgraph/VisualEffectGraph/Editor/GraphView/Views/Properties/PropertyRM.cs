@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
             string labelText = provider.name;
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
-            m_Label = new VisualElement() { name = "label", text = labelText/*, tooltip = labelTooltip */};
+            m_Label = new VisualElement() { name = "label", text = labelText /*, tooltip = labelTooltip */};
 
             if (provider.depth != 0)
             {

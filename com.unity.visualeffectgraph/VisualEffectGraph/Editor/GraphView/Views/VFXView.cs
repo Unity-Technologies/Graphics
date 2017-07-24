@@ -31,6 +31,8 @@ namespace UnityEditor.VFX.UI
             Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
         }
     }
+        }
+    }
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -376,8 +378,8 @@ namespace UnityEditor.VFX.UI
         {
             //TODO : show that we accept the drag
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-
         }
+
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt,VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
@@ -387,6 +389,5 @@ namespace UnityEditor.VFX.UI
             newParameter.exposedName = parameter.exposedName;
             newParameter.exposed = true;
         }
-
     }
 }
