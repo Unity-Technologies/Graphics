@@ -16,6 +16,7 @@
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 
+uniform int g_isOrthographic;
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
@@ -74,16 +75,22 @@ float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
+	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
-	float fCx = g_mScrProjection[0].z;
 	float fSy = g_mScrProjection[1].y;
-	float fCy = g_mScrProjection[1].z;
+	float fCx = isOrthographic ? g_mScrProjection[0].w : g_mScrProjection[0].z;
+	float fCy = isOrthographic ? g_mScrProjection[1].w : g_mScrProjection[1].z;
 
 #if USE_LEFTHAND_CAMERASPACE
-	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = true;
 #else
-	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = isOrthographic;
 #endif
+
+	float s = useLeftHandVersion ? 1 : (-1);
+	float2 p = float2( (s*v2ScrPos.x-fCx)/fSx, (s*v2ScrPos.y-fCy)/fSy);
+
+	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
 float GetOnePixDiagWorldDistAtDepthOne()
@@ -295,7 +302,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	{
 		SFiniteLightBound lightData = g_data[prunedList[l]];
 
-		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius) )
+		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius, g_isOrthographic!=0) )
 		{
 			unsigned int uIndex;
 			InterlockedAdd(lightOffsSph, 1, uIndex);

@@ -12,24 +12,29 @@ uniform float4x4 g_mScrProjection;
 uniform float4x4 g_mInvScrProjection;
 
 
+uniform uint g_isOrthographic;
 uniform uint g_widthRT;
 uniform uint g_heightRT;
 
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
-    float fSx = g_mScrProjection[0].x;
-    //float fCx = g_mScrProjection[2].x;
-    float fCx = g_mScrProjection[0].z;
-    float fSy = g_mScrProjection[1].y;
-    //float fCy = g_mScrProjection[2].y;
-    float fCy = g_mScrProjection[1].z;
+	bool isOrthographic = g_isOrthographic!=0;
+	float fSx = g_mScrProjection[0].x;
+	float fSy = g_mScrProjection[1].y;
+	float fCx = isOrthographic ? g_mScrProjection[0].w : g_mScrProjection[0].z;
+	float fCy = isOrthographic ? g_mScrProjection[1].w : g_mScrProjection[1].z;
 
 #if USE_LEFTHAND_CAMERASPACE
-    return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = true;
 #else
-    return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = isOrthographic;
 #endif
+
+	float s = useLeftHandVersion ? 1 : (-1);
+	float2 p = float2( (s*v2ScrPos.x-fCx)/fSx, (s*v2ScrPos.y-fCy)/fSy);
+
+	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
 float GetLinearZFromSVPosW(float posW)
@@ -45,7 +50,8 @@ float GetLinearZFromSVPosW(float posW)
 
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
-    // todo (simplify): m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+    // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+	// however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
     float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
 
