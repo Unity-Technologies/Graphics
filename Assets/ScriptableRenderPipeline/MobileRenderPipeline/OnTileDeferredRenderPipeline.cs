@@ -220,21 +220,24 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		private ComputeBuffer s_LightDataBuffer;
 
-
-		private static RenderPassAttachment s_GBufferAlbedo;
-		private static RenderPassAttachment s_GBufferSpecRough;
-		private static RenderPassAttachment s_GBufferNormal;
-		private static RenderPassAttachment s_GBufferEmission;
-		private static RenderPassAttachment s_GBufferZ;
-		private static RenderPassAttachment s_CameraTarget;
-		// private static RenderPassAttachment s_CameraDepthTexture;
+		private RenderPassAttachment s_GBufferAlbedo;
+		private RenderPassAttachment s_GBufferSpecRough;
+		private RenderPassAttachment s_GBufferNormal;
+		private RenderPassAttachment s_GBufferEmission;
+		private RenderPassAttachment s_GBufferZ;
+		private RenderPassAttachment s_CameraTarget;
+		private RenderPassAttachment s_Depth;
 
 		// write depth to red color buffer if on mobile so we can read it back
 		// cannot read depth buffer directly in shader on iOS
-//		#if !(UNITY_EDITOR || UNITY_STANDALONE)
-		private static RenderPassAttachment s_GBufferRedF32;
-//		#endif
-	
+		private RenderPassAttachment s_GBufferRedF32;
+
+		// When rendering the game view, we need an extra blit because
+		// we're not rendering to a fullscreen resolution
+		private static int _sceneViewBlitId;
+		private static int _sceneViewDepthId;
+		private static Material _blitDepthMaterial;
+
 		private Material m_DirectionalDeferredLightingMaterial;
 		private Material m_FiniteDeferredLightingMaterial;
 		private Material m_FiniteNearDeferredLightingMaterial;
@@ -280,18 +283,27 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			s_GBufferEmission = new RenderPassAttachment(RenderTextureFormat.ARGBHalf);
 			s_GBufferZ = new RenderPassAttachment(RenderTextureFormat.Depth);
 			s_CameraTarget = new RenderPassAttachment(RenderTextureFormat.ARGB32);
-
+			s_Depth = new RenderPassAttachment(RenderTextureFormat.Depth);
+				
 			s_GBufferEmission.Clear(new Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
 			s_GBufferZ.Clear(new Color(), 1.0f, 0);
-			s_CameraTarget.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
 
-//			s_CameraDepthTexture = Shader.PropertyToID ("_CameraDepthTexture"); // copy of that for later sampling in shaders
-//
-//			#if !(UNITY_EDITOR || UNITY_STANDALONE)
-			s_GBufferRedF32 = new RenderPassAttachment(RenderTextureFormat.RFloat); 
-//			#endif
+			if (SystemInfo.supportsReadOnlyDepth)
+			{
+				s_GBufferRedF32 = null;
+			}
+			else
+			{
+				s_GBufferRedF32 = new RenderPassAttachment(RenderTextureFormat.RFloat);
+				s_GBufferRedF32.Clear(new Color(), 1.0f, 0);
+			}
 
 			m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
+
+			_blitDepthMaterial = new Material(Shader.Find("Hidden/BlitCopyWithDepth"));
+
+			_sceneViewBlitId = Shader.PropertyToID("_TempCameraRT");
+			_sceneViewDepthId = Shader.PropertyToID("_TempCameraDepth");
 
 			m_DirectionalDeferredLightingMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
 			m_DirectionalDeferredLightingMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
@@ -388,7 +400,39 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 				context.SetupCameraProperties(camera);
 
+				// The scene view needs extra blit because it'll be using a non-fullscreen viewport
+				if (camera.cameraType == CameraType.SceneView)
+				{
+					using (var cmd = new CommandBuffer())
+					{
+						cmd.GetTemporaryRT(_sceneViewBlitId, camera.pixelWidth, camera.pixelHeight, 0,
+							FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+						cmd.GetTemporaryRT(_sceneViewDepthId, camera.pixelWidth, camera.pixelHeight, 24,
+							FilterMode.Point, RenderTextureFormat.Depth, RenderTextureReadWrite.Default);
+						context.ExecuteCommandBuffer(cmd);
+					}
+					s_CameraTarget.BindSurface(new RenderTargetIdentifier(_sceneViewBlitId), false, true);
+					s_Depth.BindSurface(new RenderTargetIdentifier(_sceneViewDepthId), false, true);
+				}
+				else
+				{
+					s_CameraTarget.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
+					s_Depth.BindSurface(BuiltinRenderTextureType.Depth, false, false);
+				}
+
 				ExecuteRenderLoop(camera, cullResults, context);
+
+				if (camera.cameraType == CameraType.SceneView)
+				{
+					using (var cmd = new CommandBuffer())
+					{
+						cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+						cmd.SetGlobalTexture("_DepthTex", _sceneViewDepthId);
+						cmd.Blit(_sceneViewBlitId, BuiltinRenderTextureType.CameraTarget, _blitDepthMaterial);
+						context.ExecuteCommandBuffer(cmd);
+					}
+				}
+
 			}
 
 			context.Submit ();
@@ -396,36 +440,34 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 		{
-			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, new[] {
-				s_GBufferAlbedo,
-				s_GBufferSpecRough,
-				s_GBufferNormal,
-				s_GBufferEmission,
-				s_GBufferRedF32,
-				s_CameraTarget
-			}, s_GBufferZ)) {
+			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, SystemInfo.supportsReadOnlyDepth ? 
+				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
+				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, s_GBufferZ)) {
 
 				// GBuffer pass
-				using (new RenderPass.SubPass (rp, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, null)) {
+				using (new RenderPass.SubPass (rp, SystemInfo.supportsReadOnlyDepth ? 
+					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
+					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, null)) {
 					using (var cmd = new CommandBuffer { name = "Create G-Buffer" }) {
+
 						cmd.EnableShaderKeyword ("UNITY_HDR_ON");
-
+						cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
 						loop.ExecuteCommandBuffer (cmd);
+					
+						// render opaque objects using Deferred pass
+						var settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName ("Gbuffer Pass")) {
+							sorting = { flags = SortFlags.CommonOpaque },
+							rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe
+						};
+
+						settings.inputFilter.SetQueuesOpaque ();
+						loop.DrawRenderers (ref settings);
+
 					}
-
-					// render opaque objects using Deferred pass
-					var settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName ("Gbuffer Pass")) {
-						sorting = { flags = SortFlags.CommonOpaque },
-						rendererConfiguration = RendererConfiguration.PerObjectLightmaps
-					};
-
-					settings.inputFilter.SetQueuesOpaque ();
-					settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-					loop.DrawRenderers (ref settings);
 				}
 
 				//Lighting Pass
-				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, true))
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, SystemInfo.supportsReadOnlyDepth ? s_Depth : s_GBufferRedF32 }, true))
 				{
 					using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass"} )
 					{
@@ -437,12 +479,12 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 
 				//skybox
-				using (new RenderPass.SubPass (rp, new[] { s_GBufferEmission }, null, true)) {
+				using (new RenderPass.SubPass (rp, new[] { s_GBufferEmission }, null)) {
 					loop.DrawSkybox (camera);
 				}
 
 				//Single Pass Forward Transparencies
-				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, true))
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission }))
 				{
 					using (var cmd = new CommandBuffer { name = "Forwward Lighting Setup"} )
 					{
@@ -455,8 +497,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 							sorting = { flags = SortFlags.CommonTransparent },
 							rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe,
 						};
-						settings.inputFilter.SetQueuesTransparent();
 
+						settings.inputFilter.SetQueuesTransparent();
 						loop.DrawRenderers (ref settings);
 					}
 				}
