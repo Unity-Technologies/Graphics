@@ -29,6 +29,11 @@
 #pragma kernel ShadeOpaque_Indirect_Fptl_Variant23              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant23                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=23
 #pragma kernel ShadeOpaque_Indirect_Fptl_Variant24              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant24                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=24
 #pragma kernel ShadeOpaque_Indirect_Fptl_Variant25              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant25                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=25
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant26              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant26                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=26
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant27              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant27                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=27
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant28              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant28                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=28
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant29              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant29                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=29
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant30              SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant30                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=30
 
 // TODO: We should remove these variant for cluster opaque and only keep tile opaque.
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant0          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant0              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=0
@@ -57,12 +62,14 @@
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant23         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant23             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=23
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant24         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant24             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=24
 #pragma kernel ShadeOpaque_Indirect_Clustered_Variant25         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant25             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=25
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant26         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant26             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=26
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant27         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant27             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=27
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant28         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant28             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=28
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant29         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant29             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=29
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant30         SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant30             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=30
 
 
 #define LIGHTLOOP_TILE_PASS 1
-#define LIGHTLOOP_TILE_DIRECT 1
-#define LIGHTLOOP_TILE_INDIRECT 1
-#define LIGHTLOOP_TILE_ALL 1
 
 //#pragma enable_d3d11_debug_symbols
 
