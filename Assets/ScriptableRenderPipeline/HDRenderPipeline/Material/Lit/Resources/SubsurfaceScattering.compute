@@ -60,24 +60,25 @@ RW_TEXTURE2D(float4, _CameraColorTexture);
 
 // 6656 bytes used. It appears that the reserved LDS space must be a multiple of 512 bytes.
 #if SSS_USE_LDS_CACHE
-groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D][TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
+groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D * TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
 #endif
 groupshared bool   processGroup;
 
 bool StencilTest(int2 pixelCoord, float stencilRef)
 {
-    int2 tileCoord = pixelCoord >> 3; // Divide by 8
+    bool passedStencilTest;
 
 #if SSS_SAMPLE_TEST_HTILE
+    int2 tileCoord = pixelCoord >> 3; // Divide by 8
+
     // Perform the stencil test (reject at the tile rate).
-    bool passedStencilTest = stencilRef == LOAD_TEXTURE2D(_HTile, tileCoord).r;
+    passedStencilTest = stencilRef == LOAD_TEXTURE2D(_HTile, tileCoord).r;
 
     [branch] if (passedStencilTest)
 #else
     // It is extremely uncommon for individual samples to fail the HTile test.
     // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
     // Therefore, we choose not to perform the HiS test here.
-    bool passedStencilTest = false;
 #endif
     {
         // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
@@ -91,7 +92,7 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
 #if SSS_USE_LDS_CACHE
 float4 LoadSampleFromCacheMemory(int2 cacheCoord)
 {
-    return textureCache[cacheCoord.x][cacheCoord.y];
+    return textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)];
 }
 #endif
 
@@ -107,8 +108,7 @@ float4 LoadSampleFromVideoMemory(int2 pixelCoord)
 float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
 {
     int2 cacheCoord = pixelCoord - cacheAnchor;
-    bool isInCache  = cacheCoord.x >= 0 && cacheCoord.x < TEXTURE_CACHE_SIZE_1D &&
-                      cacheCoord.y >= 0 && cacheCoord.y < TEXTURE_CACHE_SIZE_1D;
+    bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
 
 #if SSS_USE_LDS_CACHE
     [branch] if (isInCache)
@@ -193,7 +193,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     float  linearDepth   = textureSample.a;
 
     // Check the results of the stencil test.
-    [flatten] if (linearDepth > 0)
+    if (linearDepth > 0)
     {
         // Apply bilateral weighting.
         float  z = linearDepth - centerPosVS.z;
@@ -257,7 +257,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
 #if SSS_USE_LDS_CACHE
     // Populate the central region of the LDS cache.
-    textureCache[cacheCoord.x][cacheCoord.y] = cachedValue;
+    textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)] = cachedValue;
 
     uint numBorderQuadsPerWave = TEXTURE_CACHE_SIZE_1D / 2 - 1;
     uint halfCacheWidthInQuads = TEXTURE_CACHE_SIZE_1D / 4;
@@ -302,7 +302,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         }
 
         // Populate the border region of the LDS cache.
-        textureCache[cacheCoord2.x][cacheCoord2.y] = cachedValue2;
+        textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord2.y, cacheCoord2.x)] = cachedValue2;
     }
 
     // Wait for the LDS.
