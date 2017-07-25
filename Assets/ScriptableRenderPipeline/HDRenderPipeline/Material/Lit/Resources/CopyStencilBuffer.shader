@@ -29,7 +29,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             #include "../../../ShaderVariables.hlsl"
             #include "../../../Lighting/LightDefinition.cs.hlsl"
 
-            RW_TEXTURE2D(float, _HTile) : register(u1); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
             struct Attributes
             {

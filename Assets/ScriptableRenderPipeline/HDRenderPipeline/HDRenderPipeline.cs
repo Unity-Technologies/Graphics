@@ -553,7 +553,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_CameraStencilBufferCopy.Release();
                 }
-                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
@@ -566,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_HTile.Release();
                 }
                 // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-                m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_HTile.filterMode = FilterMode.Point;
                 m_HTile.enableRandomWrite = true;
                 m_HTile.Create();
