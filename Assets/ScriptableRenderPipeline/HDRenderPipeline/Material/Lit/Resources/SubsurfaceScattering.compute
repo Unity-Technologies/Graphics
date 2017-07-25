@@ -9,6 +9,8 @@
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER  1
 #define SSS_USE_LDS_CACHE     1
+#define SSS_ENABLE_NEAR_FIELD 0
+#define SSS_SAMPLE_TEST_HTILE 0
 #define SSS_USE_TANGENT_PLANE 0
 #define SSS_CLAMP_ARTIFACT    0
 #define SSS_DEBUG_LOD         0
@@ -57,7 +59,7 @@ RW_TEXTURE2D(float4, _CameraColorTexture);
 //--------------------------------------------------------------------------------------------------
 
 // 6656 bytes used. It appears that the reserved LDS space must be a multiple of 512 bytes.
-#if SSS_USE_LDS_CACHE != 0
+#if SSS_USE_LDS_CACHE
 groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D][TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
 #endif
 groupshared bool   processGroup;
@@ -66,12 +68,19 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
 {
     int2 tileCoord = pixelCoord >> 3; // Divide by 8
 
+#if SSS_SAMPLE_TEST_HTILE
     // Perform the stencil test (reject at the tile rate).
     bool passedStencilTest = stencilRef == LOAD_TEXTURE2D(_HTile, tileCoord).r;
 
     [branch] if (passedStencilTest)
+#else
+    // It is extremely uncommon for individual samples to fail the HTile test.
+    // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
+    // Therefore, we choose not to perform the HiS test here.
+    bool passedStencilTest = false;
+#endif
     {
-        // Our copy of HTile does not allow to accept at the tile rate.
+        // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
         // Therefore, we have to additionally perform the stencil test at the pixel rate.
         passedStencilTest = stencilRef == LOAD_TEXTURE2D(_StencilTexture, pixelCoord).r;
     }
@@ -79,7 +88,7 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
     return passedStencilTest;
 }
 
-#if SSS_USE_LDS_CACHE != 0
+#if SSS_USE_LDS_CACHE
 float4 LoadSampleFromCacheMemory(int2 cacheCoord)
 {
     return textureCache[cacheCoord.x][cacheCoord.y];
@@ -101,7 +110,7 @@ float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
     bool isInCache  = cacheCoord.x >= 0 && cacheCoord.x < TEXTURE_CACHE_SIZE_1D &&
                       cacheCoord.y >= 0 && cacheCoord.y < TEXTURE_CACHE_SIZE_1D;
 
-#if SSS_USE_LDS_CACHE != 0
+#if SSS_USE_LDS_CACHE
     [branch] if (isInCache)
     {
         return LoadSampleFromCacheMemory(cacheCoord);
@@ -166,7 +175,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
     int2 position; float xy2;
 
-    #if SSS_USE_TANGENT_PLANE != 0
+    #if SSS_USE_TANGENT_PLANE
         float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
         float3 positionVS = centerPosVS + relPosVS;
         float4 positionCS = mul(projMatrix, float4(positionVS, 1));
@@ -246,7 +255,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         cachedValue      = float4(centerIrradiance, LinearEyeDepth(centerDepth, _ZBufferParams));
     }
 
-#if SSS_USE_LDS_CACHE != 0
+#if SSS_USE_LDS_CACHE
     // Populate the central region of the LDS cache.
     textureCache[cacheCoord.x][cacheCoord.y] = cachedValue;
 
@@ -369,7 +378,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 #endif
 
     // Use more samples for SS regions larger than 5x5 pixels (rotated by 45 degrees).
-    bool useNearFieldKernel = maxDistInPixels > SSS_LOD_THRESHOLD;
+    bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_LOD_THRESHOLD;
 
 #if SSS_DEBUG_LOD
     _CameraColorTexture[pixelCoord] = useNearFieldKernel ? float4(1, 0, 0, 1) : float4(0.5, 0.5, 0, 1);
