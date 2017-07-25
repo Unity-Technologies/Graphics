@@ -62,6 +62,14 @@ public class VFXAssetEditor : Editor
             list.drawHeaderCallback = DrawExposedHeader;
             list.onStartDragOutsideCallback = StartDragElement;
         }
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if( GUILayout.Button("Open Editor") )
+        {
+            EditorWindow.GetWindow<VFXViewWindow>();
+        }
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
 
         list.DoLayoutList();
 

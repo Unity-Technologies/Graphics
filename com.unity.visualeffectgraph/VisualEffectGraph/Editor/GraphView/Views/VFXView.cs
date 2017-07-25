@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -7,57 +7,31 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    interface IParameterDropTarget
-    {
-        void OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter);
-        void OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter);
-    }
 
-    class ParameterDropper : Manipulator
+    class SelectionSetter : Manipulator
     {
-        public ParameterDropper()
+        VFXView m_View;
+        public SelectionSetter(VFXView view)
         {
+            m_View = view;
         }
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback<IMGUIEvent>(OnIMGUIEvent);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            target.UnregisterCallback<IMGUIEvent>(OnIMGUIEvent);
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
-        void OnIMGUIEvent(IMGUIEvent e)
+        void OnMouseUp(MouseUpEvent evt)
         {
-            Event evt = e.imguiEvent;
-            if (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform)
-                return;
-            var pickElem = target.panel.Pick(target.LocalToGlobal(evt.mousePosition));
-            IParameterDropTarget dropTarget = pickElem != null ? pickElem.GetFirstOfType<IParameterDropTarget>() : null;
-
-            if (dropTarget == null)
-                return;
-
-            VFXParameterPresenter dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterPresenter;
-
-
-            switch (evt.type)
-            {
-                case EventType.DragUpdated:
-                {
-                    dropTarget.OnDragUpdated(e, dragData);
-                }
-                break;
-                case EventType.DragPerform:
-                {
-                    dropTarget.OnDragPerform(e, dragData);
-                }
-                break;
-            }
+            Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
         }
     }
+
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -148,6 +122,7 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
+            AddManipulator(new SelectionSetter(this));
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
             AddManipulator(new SelectionDragger());
@@ -404,7 +379,7 @@ namespace UnityEditor.VFX.UI
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
         }
 
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt,VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
 

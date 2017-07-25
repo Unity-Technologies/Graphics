@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,6 +42,10 @@ namespace UnityEditor.VFX.UI
         void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             UpdateHidden();
+            if( cause == VFXModel.InvalidationCause.kConnectionChanged)
+            {
+                UpdateInfos();
+            }
         }
 
         private void UpdateHidden()
