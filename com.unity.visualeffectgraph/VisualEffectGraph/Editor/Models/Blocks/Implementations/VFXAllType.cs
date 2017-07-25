@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
             [Normalize]
             public Vector3 aVector3 = Vector3.forward;
             public Vector4 aVector4 = Vector4.one;
+            public Transform aTransform = new Transform();
             [Tooltip("This is a color")]
             public Color aColor = Color.gray;
             public Texture2D aTexture2D = null;
@@ -28,8 +29,8 @@ namespace UnityEditor.VFX
             public Sphere aSphere;
             public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
-            public int anInt;
-            public uint anUint;
+            public int anInt = 123;
+            public uint anUint = 321;
             public FlipBook aFlipBook;
             public bool aBool;
             public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1)});

@@ -138,32 +138,35 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot set content of an immutable value");
 
             m_Content = default(T);
-            if (value != null)
-            {
-                var fromType = value.GetType();
-                var toType = typeof(T);
 
-                if (fromType == toType || toType.IsAssignableFrom(fromType))
+            if (value == null)
+            {
+                return;
+            }
+
+            var fromType = value.GetType();
+            var toType = typeof(T);
+
+            if (fromType == toType || toType.IsAssignableFrom(fromType))
+            {
+                m_Content = (T)Convert.ChangeType(value, toType);
+            }
+            else
+            {
+                var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                    .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
+                if (implicitMethod != null)
                 {
-                    m_Content = (T)Convert.ChangeType(value, toType);
+                    m_Content = (T)implicitMethod.Invoke(null, new object[] { value });
                 }
                 else
                 {
-                    var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
-                        .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
-                    if (implicitMethod != null)
-                    {
-                        m_Content = (T)implicitMethod.Invoke(null, new object[] { value });
-                    }
-                    else
-                    {
-                        Debug.LogErrorFormat("Cannot cast from {0} to {1}", fromType, toType);
-                    }
+                    Debug.LogErrorFormat("Cannot cast from {0} to {1}", fromType, toType);
                 }
             }
         }
 
-        protected T m_Content;
+        private T m_Content;
 
         private static VFXValueType ToValueType()
         {

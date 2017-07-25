@@ -290,10 +290,24 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    var parameterExposed = new List<VFXExposedDesc>();
+                    foreach (var parameter in models.OfType<VFXParameter>())
+                    {
+                        if (parameter.exposed)
+                        {
+                            parameterExposed.Add(new VFXExposedDesc()
+                            {
+                                name = parameter.exposedName,
+                                expressionIndex = (uint)m_ExpressionGraph.GetFlattenedIndex(parameter.GetOutputSlot(0).GetExpression())
+                            });
+                        }
+                    }
+
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = m_ExpressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
+                    expressionSheet.exposed = parameterExposed.ToArray();
 
                     vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();
