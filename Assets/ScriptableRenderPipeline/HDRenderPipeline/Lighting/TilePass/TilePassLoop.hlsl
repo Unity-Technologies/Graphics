@@ -154,7 +154,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
-#ifdef PROCESS_DIRECTIONAL_LIGHT
     if(featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
         for(i = 0; i < _DirectionalLightCount; ++i)
@@ -168,9 +167,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             specularLighting += localSpecularLighting;
         }
     }
-#endif
 
-#ifdef PROCESS_PUNCTUAL_LIGHT
     if(featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
         // TODO: Convert the for loop below to a while on each type as we know we are sorted!
@@ -189,9 +186,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             specularLighting += localSpecularLighting;
         }
     }
-#endif
 
-#ifdef PROCESS_AREA_LIGHT
     if(featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
         uint areaLightStart;
@@ -232,9 +227,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             i++;
         }
     }
-#endif
 
-#ifdef PROCESS_ENV_LIGHT
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
@@ -279,7 +272,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     // Apply GI at the same time as reflection
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
     diffuseLighting += bakeDiffuseLighting * context.ambientOcclusion;
-#endif
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }
