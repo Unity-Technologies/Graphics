@@ -1,13 +1,3 @@
-#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_DIRECTIONAL_LIGHT
-#define PROCESS_PUNCTUAL_LIGHT
-#define PROCESS_AREA_LIGHT
-#endif
-
-#if defined (LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_ENV_LIGHT
-#endif
-
 #include "TilePass.cs.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
