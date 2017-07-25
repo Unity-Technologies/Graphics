@@ -230,29 +230,36 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
 
         i = 0;
-        uint areaIndex = FetchIndex(areaLightStart, i);
-        while ( i < areaLightCount && _LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
+        if (areaLightCount > 0)
         {
-            areaIndex = FetchIndex(areaLightStart, i);
-            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE,
-                                localDiffuseLighting, localSpecularLighting);
+            uint areaIndex = FetchIndex(areaLightStart, 0);
+            uint lightType = _LightDatas[areaIndex].lightType;
 
-            diffuseLighting += localDiffuseLighting;
-            specularLighting += localSpecularLighting;
+            while (i < areaLightCount && lightType == GPULIGHTTYPE_LINE)
+            {
+                EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE,
+                                    localDiffuseLighting, localSpecularLighting);
 
-            i++;
-        }
+                diffuseLighting += localDiffuseLighting;
+                specularLighting += localSpecularLighting;
 
-        while (i < areaLightCount) // Rectangle lights are the last area lights so no need to check type
-        {
-            areaIndex = FetchIndex(areaLightStart, i);
-            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE,
-                                localDiffuseLighting, localSpecularLighting);
+                i++;
+                areaIndex = i < areaLightCount ? FetchIndex(areaLightStart, i) : 0;
+                lightType = i < areaLightCount ? _LightDatas[areaIndex].lightType : 0xFF;
+            }
 
-            diffuseLighting += localDiffuseLighting;
-            specularLighting += localSpecularLighting;
+            while (i < areaLightCount /* && lightType == GPULIGHTTYPE_RECT */) // Rectangle lights are the last area lights so no need to check type (for now)
+            {
+                EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE,
+                                    localDiffuseLighting, localSpecularLighting);
 
-            i++;
+                diffuseLighting += localDiffuseLighting;
+                specularLighting += localSpecularLighting;
+
+                i++;
+                areaIndex = i < areaLightCount ? FetchIndex(areaLightStart, i) : 0;
+               // lightType = i < areaLightCount ? _LightDatas[areaIndex].lightType : 0xFF;
+            }
         }
 
         #else
