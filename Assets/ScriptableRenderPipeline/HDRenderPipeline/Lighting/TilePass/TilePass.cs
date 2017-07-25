@@ -1904,7 +1904,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
-                if (m_TileSettings.enableComputeLightEvaluation && outputSplitLighting)
+                if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && outputSplitLighting)
                 {
                     // The CS is always in the MRT mode. Do not execute the same shader twice.
                     return;
