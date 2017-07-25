@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             instance.buildPerBigTileLightListShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/lightlistbuild-bigtile.compute");
             instance.buildPerVoxelLightListShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/lightlistbuild-clustered.compute");
             instance.buildMaterialFlagsShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/materialflags.compute");
-            instance.shadeOpaqueShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/shadeopaque.compute");
+            instance.deferredComputeShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/Deferred.compute");
 
             // SceneSettings
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildPerBigTileLightListShader;
         public ComputeShader buildPerVoxelLightListShader;    // clustered
         public ComputeShader buildMaterialFlagsShader;
-        public ComputeShader shadeOpaqueShader;
+        public ComputeShader deferredComputeShader;
 
         // SceneSettings
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
