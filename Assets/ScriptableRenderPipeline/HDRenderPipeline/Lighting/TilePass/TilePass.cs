@@ -352,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private ComputeShader buildMaterialFlagsShader { get { return m_Resources.buildMaterialFlagsShader; } }
             private ComputeShader buildDispatchIndirectShader { get { return m_Resources.buildDispatchIndirectShader; } }
             private ComputeShader clearDispatchIndirectShader { get { return m_Resources.clearDispatchIndirectShader; } }
-            private ComputeShader shadeOpaqueShader { get { return m_Resources.shadeOpaqueShader; } }
+            private ComputeShader deferredComputeShader { get { return m_Resources.deferredComputeShader; } }
 
             static int s_GenAABBKernel;
             static int s_GenListPerTileKernel;
@@ -541,15 +541,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_BuildMaterialFlagsOrKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Or");
                 s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Write");
 
-                s_shadeOpaqueDirectClusteredKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered");
-                s_shadeOpaqueDirectFptlKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl");
-                s_shadeOpaqueDirectClusteredDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered_DebugDisplay");
-                s_shadeOpaqueDirectFptlDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl_DebugDisplay");
+                s_shadeOpaqueDirectClusteredKernel = deferredComputeShader.FindKernel("Deferred_Direct_Clustered");
+                s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
+                s_shadeOpaqueDirectClusteredDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Clustered_DebugDisplay");
+                s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
 
                 for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
-                    s_shadeOpaqueIndirectClusteredKernels[variant] = shadeOpaqueShader.FindKernel("ShadeOpaque_Indirect_Clustered_Variant" + variant);
-                    s_shadeOpaqueIndirectFptlKernels[variant] = shadeOpaqueShader.FindKernel("ShadeOpaque_Indirect_Fptl_Variant" + variant);
+                    s_shadeOpaqueIndirectClusteredKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Clustered_Variant" + variant);
+                    s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
                 }
 
                 s_LightList = null;
@@ -1990,6 +1990,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4 zbufferParams = Shader.GetGlobalVector("_ZBufferParams");
                             Vector4 unity_OrthoParams = Shader.GetGlobalVector("unity_OrthoParams");
                             int envLightSkyEnabled = Shader.GetGlobalInt("_EnvLightSkyEnabled");
+                            float ambientOcclusionDirectLightStrenght = Shader.GetGlobalFloat("_AmbientOcclusionDirectLightStrenght");
 
                             int enableSSSAndTransmission = Shader.GetGlobalInt("_EnableSSSAndTransmission");
                             int texturingModeFlags = Shader.GetGlobalInt("_TexturingModeFlags");
@@ -2020,76 +2021,77 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 // Pass global parameters to compute shader
                                 // TODO: get rid of this by making global parameters visible to compute shaders
-                                PushGlobalParams(camera, cmd, shadeOpaqueShader, kernel);
-                                hdCamera.SetupComputeShader(shadeOpaqueShader, cmd);
+                                PushGlobalParams(camera, cmd, deferredComputeShader, kernel);
+                                hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                                 // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
-                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", debugViewMaterial);
-                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugLightingMode", debugLightingMode);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingAlbedo", debugLightingAlbedo);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingSmoothness", debugLightingSmoothness);
+                                cmd.SetComputeIntParam(deferredComputeShader, "_DebugViewMaterial", debugViewMaterial);
+                                cmd.SetComputeIntParam(deferredComputeShader, "_DebugLightingMode", debugLightingMode);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_DebugLightingAlbedo", debugLightingAlbedo);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_DebugLightingSmoothness", debugLightingSmoothness);
 
-                                cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
+                                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_MainDepthTexture", depthTexture);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture0", gbufferTexture0);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", gbufferTexture1);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", gbufferTexture2);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture3", gbufferTexture3);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_AmbientOcclusionTexture", ambientOcclusionTexture);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_MainDepthTexture", depthTexture);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_GBufferTexture0", gbufferTexture0);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_GBufferTexture1", gbufferTexture1);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_GBufferTexture2", gbufferTexture2);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_GBufferTexture3", gbufferTexture3);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_AmbientOcclusionTexture", ambientOcclusionTexture);
 
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", ltcData);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", preIntegratedFGD);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcGGXMatrix", ltcGGXMatrix);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcDisneyDiffuseMatrix", ltcDisneyDiffuseMatrix);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcMultiGGXFresnelDisneyDiffuse", ltcMultiGGXFresnelDisneyDiffuse);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LtcData", ltcData);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_PreIntegratedFGD", preIntegratedFGD);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LtcGGXMatrix", ltcGGXMatrix);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LtcDisneyDiffuseMatrix", ltcDisneyDiffuseMatrix);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LtcMultiGGXFresnelDisneyDiffuse", ltcMultiGGXFresnelDisneyDiffuse);
 
-                                cmd.SetComputeMatrixParam(shadeOpaqueShader, "g_mInvScrProjection", invScrProjection);
-                                cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", useTileLightList);
+                                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mInvScrProjection", invScrProjection);
+                                cmd.SetComputeIntParam(deferredComputeShader, "_UseTileLightList", useTileLightList);
 
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_Time", time);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_SinTime", sinTime);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_CosTime", cosTime);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "unity_DeltaTime", unity_DeltaTime);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_WorldSpaceCameraPos", worldSpaceCameraPos);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_ProjectionParams", projectionParams);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenParams", screenParams);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_ZBufferParams", zbufferParams);
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "unity_OrthoParams", unity_OrthoParams);
-                                cmd.SetComputeIntParam(shadeOpaqueShader, "_EnvLightSkyEnabled", envLightSkyEnabled);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_Time", time);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_SinTime", sinTime);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_CosTime", cosTime);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "unity_DeltaTime", unity_DeltaTime);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_WorldSpaceCameraPos", worldSpaceCameraPos);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_ProjectionParams", projectionParams);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_ScreenParams", screenParams);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "_ZBufferParams", zbufferParams);
+                                cmd.SetComputeVectorParam(deferredComputeShader, "unity_OrthoParams", unity_OrthoParams);
+                                cmd.SetComputeIntParam(deferredComputeShader, "_EnvLightSkyEnabled", envLightSkyEnabled);
+                                cmd.SetComputeFloatParam(deferredComputeShader, "_AmbientOcclusionDirectLightStrenght", ambientOcclusionDirectLightStrenght);
 
                                 Texture skyTexture = Shader.GetGlobalTexture("_SkyTexture");
                                 Texture IESArrayTexture = Shader.GetGlobalTexture("_IESArray");
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
                                 // Set SSS parameters.
-                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_EnableSSSAndTransmission", enableSSSAndTransmission);
-                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_TexturingModeFlags",       texturingModeFlags);
-                                cmd.SetComputeIntParam(   shadeOpaqueShader, "_TransmissionFlags",        transmissionFlags);
-                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_ThicknessRemaps",     thicknessRemaps);
+                                cmd.SetComputeIntParam(   deferredComputeShader, "_EnableSSSAndTransmission", enableSSSAndTransmission);
+                                cmd.SetComputeIntParam(   deferredComputeShader, "_TexturingModeFlags",       texturingModeFlags);
+                                cmd.SetComputeIntParam(   deferredComputeShader, "_TransmissionFlags",        transmissionFlags);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, "_ThicknessRemaps",     thicknessRemaps);
                                 // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
                                 // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
                                 // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
                                 // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
                                 // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
-                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_ShapeParams",       shapeParams);
-                                cmd.SetComputeVectorArrayParam(shadeOpaqueShader, "_TransmissionTints", transmissionTints);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, "_ShapeParams",       shapeParams);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, "_TransmissionTints", transmissionTints);
 
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "specularLightingUAV", colorBuffers[0]);
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "diffuseLightingUAV",  colorBuffers[1]);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "specularLightingUAV", colorBuffers[0]);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "diffuseLightingUAV",  colorBuffers[1]);
 
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
                                 if (enableFeatureVariants)
                                 {
-                                    cmd.SetComputeIntParam(shadeOpaqueShader, "g_TileListOffset", variant * numTiles);
-                                    cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_TileList", s_TileList);
-                                    cmd.DispatchCompute(shadeOpaqueShader, kernel, s_DispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
+                                    cmd.SetComputeIntParam(deferredComputeShader, "g_TileListOffset", variant * numTiles);
+                                    cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_TileList", s_TileList);
+                                    cmd.DispatchCompute(deferredComputeShader, kernel, s_DispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
                                 }
                                 else
                                 {
-                                    cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
+                                    cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, 1);
                                 }
                             }
                         }

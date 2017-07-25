@@ -56,6 +56,8 @@ SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
+TEXTURE2D(_AmbientOcclusionTexture);
+
 CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
@@ -64,6 +66,8 @@ uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
+float _AmbientOcclusionDirectLightStrenght;
+
 CBUFFER_END
 
 struct LightLoopContext
@@ -126,9 +130,3 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
-
-//-----------------------------------------------------------------------------
-// AmbientOcclusion
-// ----------------------------------------------------------------------------
-
-TEXTURE2D(_AmbientOcclusionTexture);
