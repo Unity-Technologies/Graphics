@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (!TextureCache.supportsCubemapArrayTextures)
             {
-                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
+                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano")) { hideFlags = HideFlags.HideAndDontSave };
 
                 int panoWidthTop = 4 * width;
                 int panoHeightTop = 2 * width;
@@ -142,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
-                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf);
+                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf) { hideFlags = HideFlags.HideAndDontSave };
                 }
 
                 if (m_CubeBlitMaterial)
