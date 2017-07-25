@@ -381,7 +381,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                             (packedGBuffer1 & 0x0000FFFF),
                             (packedGBuffer1 & 0xFFFF0000) >> 16);
 
-    uint packedGBuffer3 = PackR11G11B10f(outGBuffer3.xyz);
+    uint packedGBuffer3 = PackToR11G11B10f(outGBuffer3.xyz);
 
     outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer2.x, 8, 0)  | PackFloatToUInt(outGBuffer2.y, 8, 8),
                             PackFloatToUInt(outGBuffer2.z, 8, 0)  | PackFloatToUInt(outGBuffer2.w, 8, 8),
@@ -436,7 +436,7 @@ void DecodeFromGBuffer(
     inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
 
     uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
-    inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
+    inGBuffer3.xyz = UnpackFromR11G11B10f(packedGBuffer1);
     inGBuffer3.w = 0.0;
 #endif
 

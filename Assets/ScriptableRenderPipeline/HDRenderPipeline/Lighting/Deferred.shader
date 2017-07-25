@@ -92,6 +92,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             Outputs Frag(Varyings input)
             {
+                // This need to stay in sync with deferred.compute
+
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;

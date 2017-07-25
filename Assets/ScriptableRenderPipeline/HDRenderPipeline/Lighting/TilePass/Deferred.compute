@@ -97,12 +97,13 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 RWTexture2D<float3> diffuseLightingUAV;
 RWTexture2D<float4> specularLightingUAV;
 
-CBUFFER_START(UnityShadeOpaque)
+CBUFFER_START(UnityDeferredCompute)
 	uint g_TileListOffset;
 CBUFFER_END
 
 #if USE_INDIRECT
-    StructuredBuffer<uint> g_TileList;
+
+StructuredBuffer<uint> g_TileList;
 // Indirect
 [numthreads(16, 16, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
@@ -111,17 +112,22 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
     uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
     uint2 pixelCoord = tileCoord * GetTileSize() + groupThreadId;
 
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
     uint featureFlags = TileVariantToFeatureFlags(VARIANT);
 #else
+
 // Direct
 [numthreads(16, 16, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
+    uint2 tileCoord = groupId;
     uint2 pixelCoord = dispatchThreadId;
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, groupId);
 	uint featureFlags = 0xFFFFFFFF;
+
 #endif
+
+    // This need to stay in sync with deferred.shader
+
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
 
