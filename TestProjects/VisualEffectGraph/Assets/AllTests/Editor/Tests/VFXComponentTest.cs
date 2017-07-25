@@ -10,35 +10,65 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
+    [TestFixture]
     public class VFXComponentTest
     {
+        GameObject m_cubeEmpty;
+        GameObject m_sphereEmpty;
+        GameObject m_mainObject;
+        string m_pathTexture2D_A;
+        string m_pathTexture2D_B;
+        Texture2D m_texture2D_A;
+        Texture2D m_texture2D_B;
+        string m_pathTexture3D_A;
+        string m_pathTexture3D_B;
+        Texture3D m_texture3D_A;
+        Texture3D m_texture3D_B;
+
+        [OneTimeSetUp]
+        public void Init()
+        {
+            m_cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            m_sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+            m_pathTexture2D_A = "Assets/texture2D_A.asset";
+            m_pathTexture2D_B = "Assets/texture2D_B.asset";
+            m_texture2D_A = new Texture2D(16, 16);
+            m_texture2D_B = new Texture2D(32, 32);
+            AssetDatabase.CreateAsset(m_texture2D_A, m_pathTexture2D_A);
+            AssetDatabase.CreateAsset(m_texture2D_B, m_pathTexture2D_B);
+            m_texture2D_A = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_A);
+            m_texture2D_B = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_B);
+
+            m_pathTexture3D_A = "Assets/texture3D_A.asset";
+            m_pathTexture3D_B = "Assets/texture3D_B.asset";
+            m_texture3D_A = new Texture3D(16, 16, 16, TextureFormat.ARGB32, false);
+            m_texture3D_B = new Texture3D(8, 8, 8, TextureFormat.ARGB32, false);
+            AssetDatabase.CreateAsset(m_texture3D_A, m_pathTexture3D_A);
+            AssetDatabase.CreateAsset(m_texture3D_B, m_pathTexture3D_B);
+            m_texture3D_A = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_A);
+            m_texture3D_B = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_B);
+
+            m_mainObject = new GameObject("TestObject");
+        }
+
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            UnityEngine.Object.DestroyImmediate(m_mainObject);
+            UnityEngine.Object.DestroyImmediate(m_cubeEmpty);
+            UnityEngine.Object.DestroyImmediate(m_sphereEmpty);
+            AssetDatabase.DeleteAsset(m_pathTexture2D_A);
+            AssetDatabase.DeleteAsset(m_pathTexture2D_B);
+            AssetDatabase.DeleteAsset(m_pathTexture3D_A);
+            AssetDatabase.DeleteAsset(m_pathTexture3D_B);
+        }
+
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed()
         {
-            var cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            var sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-
-            var pathTexture2D_A = "Assets/texture2D_A.asset";
-            var pathTexture2D_B = "Assets/texture2D_B.asset";
-            var texture2D_A = new Texture2D(16, 16);
-            var texture2D_B = new Texture2D(32, 32);
-            AssetDatabase.CreateAsset(texture2D_A, pathTexture2D_A);
-            AssetDatabase.CreateAsset(texture2D_B, pathTexture2D_B);
-            texture2D_A = AssetDatabase.LoadAssetAtPath<Texture2D>(pathTexture2D_A);
-            texture2D_B = AssetDatabase.LoadAssetAtPath<Texture2D>(pathTexture2D_B);
-
-            var pathTexture3D_A = "Assets/texture3D_A.asset";
-            var pathTexture3D_B = "Assets/texture3D_B.asset";
-            var texture3D_A = new Texture3D(16, 16, 16, TextureFormat.ARGB32, false);
-            var texture3D_B = new Texture3D(8, 8, 8, TextureFormat.ARGB32, false);
-            AssetDatabase.CreateAsset(texture3D_A, pathTexture3D_A);
-            AssetDatabase.CreateAsset(texture3D_B, pathTexture3D_B);
-            texture3D_A = AssetDatabase.LoadAssetAtPath<Texture3D>(pathTexture3D_A);
-            texture3D_B = AssetDatabase.LoadAssetAtPath<Texture3D>(pathTexture3D_B);
-
-            var commonBaseName = "abcd";
-
+            var commonBaseName = "abcd_";
             Func<VFXValueType, object> GetValue_A = delegate(VFXValueType type)
                 {
                     switch (type)
@@ -51,9 +81,9 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kUint: return 16u;
                         case VFXValueType.kCurve: return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
                         case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
-                        case VFXValueType.kMesh: return cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.kTexture2D: return texture2D_A;
-                        case VFXValueType.kTexture3D: return texture3D_A;
+                        case VFXValueType.kMesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
+                        case VFXValueType.kTexture2D: return m_texture2D_A;
+                        case VFXValueType.kTexture3D: return m_texture3D_A;
                     }
                     Assert.Fail();
                     return null;
@@ -71,9 +101,9 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kUint: return 516u;
                         case VFXValueType.kCurve: return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
                         case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
-                        case VFXValueType.kMesh: return sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.kTexture2D: return texture2D_B;
-                        case VFXValueType.kTexture3D: return texture3D_B;
+                        case VFXValueType.kMesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
+                        case VFXValueType.kTexture2D: return m_texture2D_B;
+                        case VFXValueType.kTexture3D: return m_texture3D_B;
                     }
                     Assert.Fail();
                     return null;
@@ -143,8 +173,11 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded();
             graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
-            var gameObj = new GameObject("CreateComponentWithAllBasicTypeExposed");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
+            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
             int maxFrame = 512;
@@ -312,14 +345,6 @@ namespace UnityEditor.VFX.Test
                 }
                 yield return null;
             }
-
-            UnityEngine.Object.DestroyImmediate(gameObj);
-            UnityEngine.Object.DestroyImmediate(cubeEmpty);
-            UnityEngine.Object.DestroyImmediate(sphereEmpty);
-            AssetDatabase.DeleteAsset(pathTexture2D_A);
-            AssetDatabase.DeleteAsset(pathTexture2D_B);
-            AssetDatabase.DeleteAsset(pathTexture3D_A);
-            AssetDatabase.DeleteAsset(pathTexture3D_B);
         }
     }
 }
