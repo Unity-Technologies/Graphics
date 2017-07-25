@@ -25,7 +25,6 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             #pragma fragment Frag
 
             #include "../../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #include "../../../Lighting/LightDefinition.cs.hlsl"
 

@@ -6,7 +6,6 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
         #include "../../ShaderLibrary/Common.hlsl"
         #include "../ShaderVariables.hlsl"
-        #include "../ShaderConfig.cs.hlsl"
         #include "../ShaderPass/FragInputs.hlsl"
         #include "../ShaderPass/VaryingMesh.hlsl"
         #include "../ShaderPass/VertMesh.hlsl"

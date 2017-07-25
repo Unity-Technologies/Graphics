@@ -55,7 +55,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
             #include "../../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
             #include "../../../Material/Material.hlsl"
@@ -368,7 +367,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
                     #endif
                 }
-                
+
                 #if SSS_DEBUG_LOD
                     return float4(0.5, 0.5, 0, 1);
                 #endif
