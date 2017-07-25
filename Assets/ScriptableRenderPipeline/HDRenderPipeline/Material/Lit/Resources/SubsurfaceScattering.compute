@@ -8,6 +8,7 @@
 
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER  1
+#define SSS_USE_LDS_CACHE     1
 #define SSS_USE_TANGENT_PLANE 0
 #define SSS_CLAMP_ARTIFACT    0
 #define SSS_DEBUG_LOD         0
@@ -56,7 +57,9 @@ RW_TEXTURE2D(float4, _CameraColorTexture);
 //--------------------------------------------------------------------------------------------------
 
 // 6656 bytes used. It appears that the reserved LDS space must be a multiple of 512 bytes.
+#if SSS_USE_LDS_CACHE != 0
 groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D][TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
+#endif
 groupshared bool   processGroup;
 
 bool StencilTest(int2 pixelCoord, float stencilRef)
@@ -76,10 +79,12 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
     return passedStencilTest;
 }
 
+#if SSS_USE_LDS_CACHE != 0
 float4 LoadSampleFromCacheMemory(int2 cacheCoord)
 {
     return textureCache[cacheCoord.x][cacheCoord.y];
 }
+#endif
 
 float4 LoadSampleFromVideoMemory(int2 pixelCoord)
 {
@@ -96,11 +101,13 @@ float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
     bool isInCache  = cacheCoord.x >= 0 && cacheCoord.x < TEXTURE_CACHE_SIZE_1D &&
                       cacheCoord.y >= 0 && cacheCoord.y < TEXTURE_CACHE_SIZE_1D;
 
+#if SSS_USE_LDS_CACHE != 0
     [branch] if (isInCache)
     {
         return LoadSampleFromCacheMemory(cacheCoord);
     }
     else
+#endif
     {
         float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
@@ -239,6 +246,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         cachedValue      = float4(centerIrradiance, LinearEyeDepth(centerDepth, _ZBufferParams));
     }
 
+#if SSS_USE_LDS_CACHE != 0
     // Populate the central region of the LDS cache.
     textureCache[cacheCoord.x][cacheCoord.y] = cachedValue;
 
@@ -290,6 +298,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     // Wait for the LDS.
     GroupMemoryBarrierWithGroupSync();
+#endif
 
     bool isOffScreen = pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y;
 
