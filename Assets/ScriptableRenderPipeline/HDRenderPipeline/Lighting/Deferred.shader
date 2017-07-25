@@ -36,9 +36,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-
-            // TODO: Workflow problem here, I would like to only generate variant for the LIGHTLOOP_TILE_PASS case, not the LIGHTLOOP_SINGLE_PASS case. This must be on lightloop side and include here.... (Can we codition
-            #pragma multi_compile LIGHTLOOP_TILE_DIRECT LIGHTLOOP_TILE_INDIRECT LIGHTLOOP_TILE_ALL
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             // Split lighting is utilized during the SSS pass.
@@ -119,13 +116,11 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #ifdef OUTPUT_SPLIT_LIGHTING
                 outputs.specularLighting = float4(specularLighting, 1.0);
                 outputs.diffuseLighting  = diffuseLighting;
-                #if defined(LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
-                    // We SSSSS is enabled with use split lighting.
-                    // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS
-                    // A simpler solution is to add a slight contribution here that isn't visible (here we chose fp16 min (which is also fp11 and fp10 min).
-                    // The SSSSS algorithm will check if diffuse lighting is black and discard the pixel if it is the case
-                    outputs.diffuseLighting.r = max(outputs.diffuseLighting.r, HFLT_MIN);
-                #endif
+                // We SSSSS is enabled with use split lighting.
+                // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS
+                // A simpler solution is to add a slight contribution here that isn't visible (here we chose fp16 min (which is also fp11 and fp10 min).
+                // The SSSSS algorithm will check if diffuse lighting is black and discard the pixel if it is the case
+                outputs.diffuseLighting.r = max(outputs.diffuseLighting.r, HFLT_MIN);
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif

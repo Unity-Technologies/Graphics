@@ -202,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_TileSizeClustered = 32;
 
             // feature variants
-            public static int s_NumFeatureVariants = 26;
+            public static int s_NumFeatureVariants = 31;
 
             // Following define the maximum number of bits use in each feature category.
             public static uint s_LightFeatureMaskFlags = 0xFF00;
@@ -556,10 +556,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_TileList = null;
                 s_TileFeatureFlags = null;
 
-                string[] tileKeywords = {"LIGHTLOOP_TILE_DIRECT", "LIGHTLOOP_TILE_INDIRECT", "LIGHTLOOP_TILE_ALL"};
-
                 m_DeferredAllMaterialSRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
@@ -568,7 +565,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DeferredAllMaterialMRT = Utilities.CreateEngineMaterial(m_Resources.deferredShader);
-                Utilities.SelectKeyword(m_DeferredAllMaterialMRT, tileKeywords, 2);
                 m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialMRT.SetInt("_StencilRef", (int)StencilLightingUsage.SplitLighting);
