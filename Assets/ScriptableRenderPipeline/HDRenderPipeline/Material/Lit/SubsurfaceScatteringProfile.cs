@@ -562,12 +562,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     filterKernels[n * i + j].x = profiles[i].filterKernelNearField[j].x;
                     filterKernels[n * i + j].y = profiles[i].filterKernelNearField[j].y;
-                }
 
-                for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
-                {
-                    filterKernels[n * i + j].z = profiles[i].filterKernelFarField[j].x;
-                    filterKernels[n * i + j].w = profiles[i].filterKernelFarField[j].y;
+                    if (j < SssConstants.SSS_N_SAMPLES_FAR_FIELD)
+                    {
+                        filterKernels[n * i + j].z = profiles[i].filterKernelFarField[j].x;
+                        filterKernels[n * i + j].w = profiles[i].filterKernelFarField[j].y;
+                    }
                 }
 
                 // Old SSS Model >>>
