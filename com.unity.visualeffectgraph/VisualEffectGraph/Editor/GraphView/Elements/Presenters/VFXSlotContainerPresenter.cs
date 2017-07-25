@@ -95,18 +95,29 @@ namespace UnityEditor.VFX.UI
 
         void UpdateSlots(List<NodeAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
-            foreach (VFXSlot slot in slotList.ToArray())
+            VFXSlot[] slots = slotList.ToArray();
             {
-                VFXDataAnchorPresenter propPresenter = GetPropertyPresenter(slot, input);
-
-                if (propPresenter == null)
+                foreach (VFXSlot slot in slots)
                 {
-                    propPresenter = AddDataAnchor(slot, input);
-                }
-                newAnchors.Add(propPresenter);
-                viewPresenter.RegisterDataAnchorPresenter(propPresenter);
+                    VFXDataAnchorPresenter propPresenter = GetPropertyPresenter(slot, input);
 
-                UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
+                    if (propPresenter == null)
+                    {
+                        propPresenter = AddDataAnchor(slot, input);
+                    }
+                    newAnchors.Add(propPresenter);
+                    viewPresenter.RegisterDataAnchorPresenter(propPresenter);
+
+                    if (!typeof(Spaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
+                    {
+                        UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
+                    }
+                    else
+                    {
+                        VFXSlot firstSlot = slot.children.First();
+                        UpdateSlots(newAnchors, firstSlot.children, expanded && slot.expanded, input);
+                    }
+                }
             }
         }
 

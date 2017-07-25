@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -16,7 +16,8 @@ namespace UnityEditor.VFX
             return type == typeof(float)
                 || type == typeof(Vector2)
                 || type == typeof(Vector3)
-                || type == typeof(Vector4);
+                || type == typeof(Vector4)
+                || type == typeof(Color);
         }
 
         protected override VFXExpression ConvertExpression(VFXExpression expression)
