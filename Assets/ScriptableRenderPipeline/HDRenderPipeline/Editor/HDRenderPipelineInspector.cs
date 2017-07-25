@@ -162,12 +162,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(m_enableTileAndCluster, styles.enableTileAndCluster);
-            EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
-            EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
-            EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);
-            EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
-            EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
-            EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
+            if (m_enableTileAndCluster.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
+                EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
+                if (m_enableClustered.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
+                if (m_enableComputeLightEvaluation.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
+                    EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);
+                    EditorGUI.indentLevel--;
+                }
+            }
+
 
             if (EditorGUI.EndChangeCheck())
             {

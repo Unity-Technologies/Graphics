@@ -49,6 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (settings.enable == false || isForward)
             {
                 cmd.SetGlobalTexture(Uniforms._AOBuffer, UnityEngine.Rendering.PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
+                cmd.SetGlobalFloat("_AmbientOcclusionDirectLightStrenght", 0.0f);
                 return;
             }
 
@@ -87,8 +88,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.DrawFullScreen(cmd, m_Material, Uniforms._AOBuffer, null, 3);
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
-                // Setup texture for lighting pass (automagic of unity)
+                // Setup texture for lighting pass (automatic of unity)
                 cmd.SetGlobalTexture("_AmbientOcclusionTexture", Uniforms._AOBuffer);
+                cmd.SetGlobalFloat("_AmbientOcclusionDirectLightStrenght", settings.affectDirectLigthingStrenght);
                 hdRP.PushFullScreenDebugTexture(cmd, Uniforms._AOBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.SSAO);
             }
         }
