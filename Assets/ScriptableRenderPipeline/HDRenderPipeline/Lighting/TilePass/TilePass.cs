@@ -1640,7 +1640,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.viDimensions, w, h);
                         cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.TileFeatureFlags, s_TileFeatureFlags);
 
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.StencilTexture, cameraDepthBufferRT);
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.StencilTexture, stencilTextureRT);
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.GBufferTexture0, HDShaderIDs.GBufferTexture0);
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.GBufferTexture1, HDShaderIDs.GBufferTexture1);
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.GBufferTexture2, HDShaderIDs.GBufferTexture2);

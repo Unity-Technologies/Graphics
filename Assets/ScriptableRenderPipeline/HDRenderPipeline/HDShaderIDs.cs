@@ -123,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
         internal static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
 
+        internal static readonly int HTile = Shader.PropertyToID("_HTile");
         internal static readonly int StencilTexture = Shader.PropertyToID("_StencilTexture");
     }
 }
