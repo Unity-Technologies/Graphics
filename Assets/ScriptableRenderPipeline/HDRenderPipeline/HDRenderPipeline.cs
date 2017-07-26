@@ -1035,7 +1035,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("DebugViewMaterialGBuffer", cmd))
                     {
                         // TODO: Bind depth textures
-                        cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
+                        Utilities.DrawFullScreen(cmd, m_DebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
                 }
 
