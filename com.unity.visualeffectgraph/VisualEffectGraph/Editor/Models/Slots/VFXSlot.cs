@@ -575,7 +575,10 @@ namespace UnityEditor.VFX
 
         protected virtual bool CanConvertFrom(Type type)
         {
-            return type == null || property.type == type;
+            return type == null ||
+                property.type == type ||
+                (property.type == typeof(Vector4) && type == typeof(Color)) ||
+                (type == typeof(Vector4) && property.type == typeof(Color));
         }
 
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)

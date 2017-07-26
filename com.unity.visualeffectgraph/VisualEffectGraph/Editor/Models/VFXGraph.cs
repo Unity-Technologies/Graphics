@@ -295,11 +295,15 @@ namespace UnityEditor.VFX
                     {
                         if (parameter.exposed)
                         {
-                            parameterExposed.Add(new VFXExposedDesc()
+                            var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
+                            if (outputSlotExpr != null)
                             {
-                                name = parameter.exposedName,
-                                expressionIndex = (uint)m_ExpressionGraph.GetFlattenedIndex(parameter.GetOutputSlot(0).GetExpression())
-                            });
+                                parameterExposed.Add(new VFXExposedDesc()
+                                {
+                                    name = parameter.exposedName,
+                                    expressionIndex = (uint)m_ExpressionGraph.GetFlattenedIndex(outputSlotExpr)
+                                });
+                            }
                         }
                     }
 
