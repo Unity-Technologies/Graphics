@@ -17,7 +17,7 @@
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(1);
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(2);
-UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(3);
 UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(4);
 
 // from LightDefinitions.cs.hlsl
@@ -176,7 +176,7 @@ half4 CalculateLight (unity_v2f_deferred i)
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
-	float depth = UNITY_READ_FRAMEBUFFER_INPUT(3, i.pos);
+	float depth = UNITY_READ_FRAMEBUFFER_INPUT(4, i.pos);
 	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, depth);
 
 	#if defined (POINT_COOKIE) || defined (DIRECTIONAL_COOKIE) || defined (SPOT)
