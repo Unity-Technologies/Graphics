@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (!TextureCache.supportsCubemapArrayTextures)
             {
-                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
+                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano")) { hideFlags = HideFlags.HideAndDontSave };
 
                 int panoWidthTop = 4 * width;
                 int panoHeightTop = 2 * width;
@@ -142,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
-                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf);
+                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf) { hideFlags = HideFlags.HideAndDontSave };
                 }
 
                 if (m_CubeBlitMaterial)
@@ -201,18 +201,30 @@ namespace UnityEngine.Experimental.Rendering
     {
         protected int m_NumMipLevels;
 
-        static int s_GlobalTextureCacheVersion = 0;
-        int m_TextureCacheVersion = 0;
+#if UNITY_EDITOR
+        static int s_TextureCacheIdGenerator = 0;
+        int m_TextureCacheId = 0;
 
-    #if UNITY_EDITOR
+        static bool s_ForceReinjectGlobalFirst = false;
+        static bool s_ForceReinjectGlobalSecond = false;
+        static int s_GlobalSecondSetByTexCacheID = -1;
+        
+
+        // here we receive the in-editor updated textures. These must be reinjected into 
+        // any texture cache which has a stale copy of it. However, we don't have a this-pointer to the texture cache
+        // so instead we defer this to NewFrame() where we force reinject.
+        // Ideally we'd build up a list here of textures which are to be reinjected but unfortunately the texture we receive
+        // is an intermediate one and not the final compressed one. So instead we will have to reinject all in NewFrame().
         internal class AssetReloader : UnityEditor.AssetPostprocessor
         {
             void OnPostprocessTexture(Texture texture)
             {
-                s_GlobalTextureCacheVersion++;
+                s_ForceReinjectGlobalFirst = true;
+                s_ForceReinjectGlobalSecond = false;
+                s_GlobalSecondSetByTexCacheID = -1;
             }
         }
-    #endif
+#endif
 
         public static bool isMobileBuildTarget
         {
@@ -304,14 +316,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sliceIndex = m_LocatorInSliceArray[texId];
                 bFoundAvailOrExistingSlice = true;
-#if UNITY_EDITOR
-                if(m_TextureCacheVersion!=s_GlobalTextureCacheVersion)
-                {
-                    m_TextureCacheVersion++;
-                    Debug.Assert(m_TextureCacheVersion <= s_GlobalTextureCacheVersion);
-                    bSwapSlice = true;  // force a reinject.
-                }
-#endif
                 //assert(m_SliceArray[sliceIndex].TexID==TexID);
             }
 
@@ -395,12 +399,49 @@ namespace UnityEngine.Experimental.Rendering
 
             //for(int q=1; q<m_numTextures; q++)
             //    assert(m_SliceArray[m_SortedIdxArray[q-1]].CountLRU>=m_SliceArray[m_SortedIdxArray[q]].CountLRU);
+
+
+#if UNITY_EDITOR
+            // one or more textures got updated in editor. Unfortunately we do not know exactly which since
+            // OnPostprocessTexture() receives intermediate uncompressed textures. So we will have to reinject all slices to force an update.
+            if(s_ForceReinjectGlobalSecond && s_GlobalSecondSetByTexCacheID==m_TextureCacheId)
+            {
+                s_ForceReinjectGlobalSecond = false;
+                s_GlobalSecondSetByTexCacheID = -1;
+            }
+
+            if(s_ForceReinjectGlobalFirst)
+            {
+                s_ForceReinjectGlobalSecond = true;
+                s_GlobalSecondSetByTexCacheID = m_TextureCacheId;
+                s_ForceReinjectGlobalFirst = false;
+            }
+            
+            if(s_ForceReinjectGlobalSecond)
+            {
+                // all texture caches must loop through and force a reinject on all entries when this is true.
+                for(int i = 0; i < m_NumTextures; i++)
+                {
+                    var texID = m_SliceArray[i].texId;
+                    if(texID!=g_InvalidTexID)
+                    {
+                        Texture texture = (Texture) EditorUtility.InstanceIDToObject((int) texID);
+                        if(texture!=null) TransferToSlice(i, texture);
+                    }
+                }
+            }
+#endif
         }
 
         protected TextureCache()
         {
             m_NumTextures = 0;
             m_NumMipLevels = 0;
+
+#if UNITY_EDITOR
+            m_TextureCacheId = s_TextureCacheIdGenerator;       // assign an ID so we can tell the caches apart
+            ++s_TextureCacheIdGenerator;        // static/global
+#endif
         }
 
         public virtual void TransferToSlice(int sliceIndex, Texture texture)

@@ -16,7 +16,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #pragma fragment Frag
 
             #define LIGHTLOOP_TILE_PASS
-            #define LIGHTLOOP_TILE_ALL
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
@@ -31,7 +30,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "../ShaderConfig.cs.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
 

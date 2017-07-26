@@ -63,7 +63,6 @@ Shader "HDRenderPipeline/Unlit"
     //-------------------------------------------------------------------------------------
 
     #include "../../../ShaderLibrary/common.hlsl"
-    #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderVariables.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
