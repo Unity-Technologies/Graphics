@@ -29,7 +29,7 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../../../../ShaderLibrary/Common.hlsl"
+#include "../../../../ShaderLibrary/Packing.hlsl"
 #include "../../../../ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #define UNITY_MATERIAL_LIT
@@ -82,7 +82,7 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
     {
         // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
         // Therefore, we have to additionally perform the stencil test at the pixel rate.
-        passedStencilTest = stencilRef == LOAD_TEXTURE2D(_StencilTexture, pixelCoord).r;
+        passedStencilTest = stencilRef == UnpackByte(LOAD_TEXTURE2D(_StencilTexture, pixelCoord).r);
     }
 
     return passedStencilTest;
