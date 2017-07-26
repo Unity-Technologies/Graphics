@@ -366,7 +366,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_shadeOpaqueDirectFptlKernel;
             static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
             static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
-            static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.s_NumFeatureVariants];
             static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
             static ComputeBuffer s_LightVolumeDataBuffer = null;
@@ -548,7 +547,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
-                    s_shadeOpaqueIndirectClusteredKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Clustered_Variant" + variant);
                     s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
                 }
 
@@ -1787,9 +1785,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     SetGlobalFloat("g_fClustBase", k_ClustLogBase);
                     SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
                     SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
-                    SetGlobalFloat("g_iLog2NumClusters", k_Log2NumClusters);
+                    SetGlobalInt("g_iLog2NumClusters", k_Log2NumClusters);
 
-                    SetGlobalFloat("g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
+                    SetGlobalInt("g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
 
                     SetGlobalBuffer("g_vLayeredOffsetsBuffer", s_PerVoxelOffset);
                     if (k_UseDepthBuffer)
@@ -2005,7 +2003,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 if (enableFeatureVariants)
                                 {
-                                    kernel = usingFptl ? s_shadeOpaqueIndirectFptlKernels[variant] : s_shadeOpaqueIndirectClusteredKernels[variant];
+                                    kernel = s_shadeOpaqueIndirectFptlKernels[variant];
                                 }
                                 else
                                 {
