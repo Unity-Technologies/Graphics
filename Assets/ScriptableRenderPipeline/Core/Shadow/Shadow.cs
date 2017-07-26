@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering
                 // For lights with multiple faces, the first shadow data contains
                 // per light information, so not all fields contain valid data.
                 // Shader code must make sure to read per face data from per face entries.
-                sd.texelSizeRcp = new Vector2( m_WidthRcp, m_HeightRcp );
+                sd.texelSizeRcp = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / widths[0], 1.0f / heights[0] );
                 sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                 sd.payloadOffset = payload.Count();
                 entries.AddUnchecked( sd );

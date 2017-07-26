@@ -69,8 +69,8 @@ void UnpackShadowType( uint packedShadowType, out uint shadowType )
 
 
 // shadow sampling prototypes
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L );
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS );
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L );
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS );
 // shadow sampling prototypes with screenspace info
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L );
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS );
@@ -84,11 +84,11 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 // default dispatchers for the individual shadow types (with and without screenspace support)
 // point/spot light shadows
-float GetPunctualShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
+float GetPunctualShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
 {
 	return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
 }
-float GetPunctualShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetPunctualShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS )
 {
 	return GetPunctualShadowAttenuationDefault( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
@@ -110,11 +110,11 @@ float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float
 
 // if shadow dispatch is empty we'll fall back to default shadow sampling implementations
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
 {
 	return GetPunctualShadowAttenuationDefault( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS )
 {
 	return GetPunctualShadowAttenuationDefault( shadowContext, positionWS, normalWS, shadowDataIndex, L, unPositionSS );
 }

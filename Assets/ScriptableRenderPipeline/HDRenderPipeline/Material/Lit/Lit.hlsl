@@ -99,21 +99,28 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
     /* 14 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO,
 
-    // Future usage
-    /* 15 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 17 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 19 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    // SSS is a superset of material standard. With foliage or crowd SSS and standard can overlap a lot, better to have a dedicated combination
+    /* 15 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 17 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 19 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
 
     // Future usage
-    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED0,
 
-    /* 25 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
+    // Future usage
+    /* 25 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 26 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 27 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 28 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 29 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+
+    /* 30 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
@@ -378,7 +385,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                             (packedGBuffer1 & 0x0000FFFF),
                             (packedGBuffer1 & 0xFFFF0000) >> 16);
 
-    uint packedGBuffer3 = PackR11G11B10f(outGBuffer3.xyz);
+    uint packedGBuffer3 = PackToR11G11B10f(outGBuffer3.xyz);
 
     outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer2.x, 8, 0)  | PackFloatToUInt(outGBuffer2.y, 8, 8),
                             PackFloatToUInt(outGBuffer2.z, 8, 0)  | PackFloatToUInt(outGBuffer2.w, 8, 8),
@@ -433,7 +440,7 @@ void DecodeFromGBuffer(
     inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
 
     uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
-    inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
+    inGBuffer3.xyz = UnpackFromR11G11B10f(packedGBuffer1);
     inGBuffer3.w = 0.0;
 #endif
 
@@ -908,20 +915,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float3 cookie    = float3(1, 1, 1);
     float  shadow    = 1;
 
-    // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
-
-    //[branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    //{
-    //    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-    //    float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-    //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    //}
-
     [branch] if (lightData.shadowIndex >= 0)
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        float4 L_dist = { normalize( L.xyz ), length( unL ) };
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
         illuminance *= shadow;
@@ -992,55 +991,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     }
 }
 
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Line - Reference
-//-----------------------------------------------------------------------------
-
-void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
-                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                           out float3 diffuseLighting, out float3 specularLighting,
-                           int sampleCount = 128)
-{
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    const float  len = lightData.size.x;
-    const float3 T   = lightData.right;
-    const float3 P1  = lightData.positionWS - T * (0.5 * len);
-    const float  dt  = len * rcp(sampleCount);
-    const float  off = 0.5 * dt;
-
-    // Uniformly sample the line segment with the Pdf = 1 / len.
-    const float invPdf = len;
-
-    for (int i = 0; i < sampleCount; ++i)
-    {
-        // Place the sample in the middle of the interval.
-        float  t     = off + i * dt;
-        float3 sPos  = P1 + t * T;
-        float3 unL   = sPos - positionWS;
-        float  dist2 = dot(unL, unL);
-        float3 L     = normalize(unL);
-        float  sinLT = length(cross(L, T));
-        float  NdotL = saturate(dot(bsdfData.normalWS, L));
-
-        if (NdotL > 0)
-        {
-            float3 lightDiff, lightSpec;
-
-            BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
-
-            diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
-            specularLighting += lightSpec * (sinLT / dist2 * NdotL);
-        }
-    }
-
-    // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
-    float normFactor = 2.0 * invPdf * rcp(sampleCount);
-
-    diffuseLighting  *= normFactor * lightData.diffuseScale  * lightData.color;
-    specularLighting *= normFactor * lightData.specularScale * lightData.color;
-}
+#include "LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
@@ -1138,91 +1089,15 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Area - Reference
-//-----------------------------------------------------------------------------
-
-void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
-                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                           out float3 diffuseLighting, out float3 specularLighting,
-                           uint sampleCount = 512)
-{
-    // Add some jittering on Hammersley2d
-    float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
-
-    diffuseLighting = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    for (uint i = 0; i < sampleCount; ++i)
-    {
-        float3 P = float3(0.0, 0.0, 0.0);   // Sample light point. Random point on the light shape in local space.
-        float3 Ns = float3(0.0, 0.0, 0.0);  // Unit surface normal at P
-        float lightPdf = 0.0;               // Pdf of the light sample
-
-        float2 u = Hammersley2d(i, sampleCount);
-        u = frac(u + randNum);
-
-        // Lights in Unity point backward.
-        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(-lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
-
-        switch (lightData.lightType)
-        {
-            case GPULIGHTTYPE_SPHERE:
-                SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_HEMISPHERE:
-                SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_CYLINDER:
-                SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_RECTANGLE:
-                SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_DISK:
-                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            // case GPULIGHTTYPE_LINE: handled by a separate function.
-        }
-
-        // Get distance
-        float3 unL = P - positionWS;
-        float sqrDist = dot(unL, unL);
-        float3 L = normalize(unL);
-
-        // Cosine of the angle between the light direction and the normal of the light's surface.
-        float cosLNs = saturate(dot(-L, Ns));
-
-        // We calculate area reference light with the area integral rather than the solid angle one.
-        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
-
-        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
-        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
-
-        if (illuminance > 0.0)
-        {
-            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
-            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-            localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
-        }
-
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
-    }
-
-    diffuseLighting /= float(sampleCount);
-    specularLighting /= float(sampleCount);
-}
-
-//-----------------------------------------------------------------------------
 // EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
 // #define ELLIPSOIDAL_ATTENUATION
 
-void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-                       float3 V, PositionInputs posInput,
-                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                       out float3 diffuseLighting, out float3 specularLighting)
+void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                        out float3 diffuseLighting, out float3 specularLighting)
 {
     float3 positionWS = posInput.positionWS;
 
@@ -1314,127 +1189,19 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Env - Reference
-// ----------------------------------------------------------------------------
-
-// Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
-                              float3 V, EnvLightData lightData, BSDFData bsdfData,
-                              uint sampleCount = 4096)
+void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
+    out float3 diffuseLighting, out float3 specularLighting)
 {
-    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float3   acc          = float3(0.0, 0.0, 0.0);
-
-    // Add some jittering on Hammersley2d
-    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
-    for (uint i = 0; i < sampleCount; ++i)
+    if (GPULightType == GPULIGHTTYPE_LINE)
     {
-        float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum);
-
-        float3 L;
-        float NdotL;
-        float weightOverPdf;
-        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
-
-        if (NdotL > 0.0)
-        {
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
-
-            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
-            acc += bsdfData.diffuseColor * LambertNoPI() * weightOverPdf * val.rgb;
-        }
+        EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
     }
-
-    return acc / sampleCount;
-}
-
-float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
-                                    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
-                                    uint sampleCount = 4096)
-{
-    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
-    float3   acc          = float3(0.0, 0.0, 0.0);
-
-    // Add some jittering on Hammersley2d
-    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
-    for (uint i = 0; i < sampleCount; ++i)
+    else
     {
-        float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum);
-
-        float3 L;
-        float NdotL;
-        float weightOverPdf;
-        // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
-        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
-
-        if (NdotL > 0.0)
-        {
-            float3 H = normalize(L + V);
-            float LdotH = dot(L, H);
-            // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
-            // in weightOverPdf of ImportanceSampleLambert call.
-            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
-
-            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
-            acc += bsdfData.diffuseColor * disneyDiffuse * weightOverPdf * val.rgb;
-        }
+        EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
     }
-
-    return acc / sampleCount;
-}
-
-// Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
-                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
-                                  uint sampleCount = 4096)
-{
-    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
-    float3   acc          = float3(0.0, 0.0, 0.0);
-
-    // Add some jittering on Hammersley2d
-    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
-    for (uint i = 0; i < sampleCount; ++i)
-    {
-        float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum);
-
-        float VdotH;
-        float NdotL;
-        float3 L;
-        float weightOverPdf;
-
-        // GGX BRDF
-        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
-        {
-            ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
-        }
-        else
-        {
-            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
-        }
-
-
-        if (NdotL > 0.0)
-        {
-            // Fresnel component is apply here as describe in ImportanceSampleGGX function
-            float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
-
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
-
-            acc += FweightOverPdf * val.rgb;
-        }
-    }
-
-    return acc / sampleCount;
 }
 
 //-----------------------------------------------------------------------------

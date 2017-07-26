@@ -45,7 +45,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
             public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered", "Toggle");
-            public readonly GUIContent enableSplitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
             public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants", "Toggle");
             public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants", "Toggle");
@@ -82,7 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableClustered;
         SerializedProperty m_enableFptlForOpaqueWhenClustered;
         SerializedProperty m_enableBigTilePrepass;
-        SerializedProperty m_tileDebugByCategory;
 
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
@@ -113,14 +111,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Tile settings
             m_enableTileAndCluster = FindProperty(x => x.tileSettings.enableTileAndCluster);
-            m_enableSplitLightEvaluation = FindProperty(x => x.tileSettings.enableSplitLightEvaluation);
             m_enableComputeLightEvaluation = FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
             m_enableComputeLightVariants = FindProperty(x => x.tileSettings.enableComputeLightVariants);
             m_enableComputeMaterialVariants = FindProperty(x => x.tileSettings.enableComputeMaterialVariants);
             m_enableClustered = FindProperty(x => x.tileSettings.enableClustered);
             m_enableFptlForOpaqueWhenClustered = FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
             m_enableBigTilePrepass = FindProperty(x => x.tileSettings.enableBigTilePrepass);
-            m_tileDebugByCategory = FindProperty(x => x.tileSettings.tileDebugByCategory);
 
             // Shadow settings
             m_ShadowAtlasWidth = FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
@@ -166,14 +162,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(m_enableTileAndCluster, styles.enableTileAndCluster);
-            EditorGUILayout.PropertyField(m_enableSplitLightEvaluation, styles.enableSplitLightEvaluation);
-            EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
-            EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
-            EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);
-            EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
-            EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
-            EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
-            EditorGUILayout.PropertyField(m_tileDebugByCategory, styles.tileDebugByCategory);
+            if (m_enableTileAndCluster.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
+                EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
+                if (m_enableClustered.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
+                if (m_enableComputeLightEvaluation.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
+                    EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);
+                    EditorGUI.indentLevel--;
+                }
+            }
+
 
             if (EditorGUI.EndChangeCheck())
             {

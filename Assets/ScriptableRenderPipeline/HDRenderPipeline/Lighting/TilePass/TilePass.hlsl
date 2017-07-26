@@ -1,13 +1,3 @@
-#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_DIRECTIONAL_LIGHT
-#define PROCESS_PUNCTUAL_LIGHT
-#define PROCESS_AREA_LIGHT
-#endif
-
-#if defined (LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_ENV_LIGHT
-#endif
-
 #include "TilePass.cs.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
@@ -66,6 +56,8 @@ SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
+TEXTURE2D(_AmbientOcclusionTexture);
+
 CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
@@ -74,6 +66,8 @@ uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
+float _AmbientOcclusionDirectLightStrenght;
+
 CBUFFER_END
 
 struct LightLoopContext
@@ -136,9 +130,3 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
-
-//-----------------------------------------------------------------------------
-// AmbientOcclusion
-// ----------------------------------------------------------------------------
-
-TEXTURE2D(_AmbientOcclusionTexture);

@@ -27,7 +27,6 @@ MonoBehaviour:
     useDisneySSS: 1
   tileSettings:
     enableTileAndCluster: 1
-    enableSplitLightEvaluation: 1
     enableComputeLightEvaluation: 1
     enableComputeLightVariants: 1
     enableComputeMaterialVariants: 1
@@ -36,7 +35,6 @@ MonoBehaviour:
     enableBigTilePrepass: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    tileDebugByCategory: 0
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
