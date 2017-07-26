@@ -12,17 +12,12 @@ namespace UnityEngine.MaterialGraph
             name = "UnpackNormal";
         }
 
-        public override bool hasPreview
-        {
-            get { return false; }
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_UnpackNormal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Sign(
+        static string Unity_UnpackNormal(
             [Slot(0, Binding.None)] Vector4 packedNormal,
             [Slot(1, Binding.None)] out Vector3 normal)
         {

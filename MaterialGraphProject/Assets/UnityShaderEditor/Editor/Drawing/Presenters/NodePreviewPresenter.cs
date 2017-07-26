@@ -28,7 +28,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private AbstractMaterialNode m_Node;
 
-        [NonSerialized]
+        [SerializeField]
         private ModificationScope m_modificationScope;
 
         // Null means no modification is currently in progress.

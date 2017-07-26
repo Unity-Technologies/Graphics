@@ -31,6 +31,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            var towatch = new List<UnityEngine.Object>();
+            towatch.AddRange(base.GetObjectsToWatch());
+            towatch.Add(m_NodePreviewPresenter);
+            return towatch.ToArray();
+        }
+
         public override void OnModified(ModificationScope scope)
         {
             base.OnModified(scope);

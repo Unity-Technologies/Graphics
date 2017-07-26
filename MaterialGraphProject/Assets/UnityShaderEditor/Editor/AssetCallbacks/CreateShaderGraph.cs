@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -15,6 +16,7 @@ namespace UnityEditor.MaterialGraph
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
 			var graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            graph.AddNode(new MetallicMasterNode());
 			File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
 			AssetDatabase.Refresh ();
         }
