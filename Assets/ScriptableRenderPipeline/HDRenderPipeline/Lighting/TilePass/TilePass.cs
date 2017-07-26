@@ -366,6 +366,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_shadeOpaqueDirectFptlKernel;
             static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
             static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
+            // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
+            //static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.s_NumFeatureVariants];
             static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
             static ComputeBuffer s_LightVolumeDataBuffer = null;
@@ -547,6 +549,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
+                    // Tag: SUPPORT_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque (by default we support only fptl on opaque)
+                    // s_shadeOpaqueIndirectClusteredKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Clustered_Variant" + variant);
                     s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
                 }
 
@@ -1994,6 +1998,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 if (enableFeatureVariants)
                                 {
+                                    // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
+                                    // kernel = usingFptl ? s_shadeOpaqueIndirectFptlKernels[variant] : s_shadeOpaqueIndirectClusteredKernels[variant];
                                     kernel = s_shadeOpaqueIndirectFptlKernels[variant];
                                 }
                                 else
