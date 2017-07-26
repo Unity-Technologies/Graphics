@@ -37,10 +37,6 @@ StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
-// Use texture array for IES
-//TEXTURE2D_ARRAY(_IESArray);
-//SAMPLER2D(sampler_IESArray);
-
 // Used by directional and spot lights
 TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
@@ -98,16 +94,6 @@ float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 {
     return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
 }
-
-//-----------------------------------------------------------------------------
-// IES sampling function
-// ----------------------------------------------------------------------------
-
-// sphericalTexCoord is theta and phi spherical coordinate
-//float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
-//{
-//    return SAMPLE_TEXTURE2D_ARRAY_LOD(_IESArray, sampler_IESArray, sphericalTexCoord, index, 0);
-//}
 
 //-----------------------------------------------------------------------------
 // Reflection proble / Sky sampling function
