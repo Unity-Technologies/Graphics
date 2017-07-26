@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture m_CameraDepthStencilBuffer = null;
         private RenderTexture m_CameraDepthBufferCopy = null;
-        private RenderTexture m_CameraStencilBufferCopy = null; // Currently, it's manually copied using a pixel shader, and optimized to only contain the SSS bit
+        private RenderTexture m_CameraStencilBufferCopy = null;
         private RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
@@ -669,15 +669,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool NeedStencilBufferCopy()
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
-            // Therefore, it's manually copied using a pixel shader, and optimized to only contain the SSS bit.
-            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
+            // Therefore, it's manually copied using a pixel shader.
+            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
         }
 
         bool NeedHTileCopy()
         {
             // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
             // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
-            return NeedStencilBufferCopy();
+            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
         }
 
         RenderTargetIdentifier GetDepthTexture()
@@ -854,7 +854,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyDepthBufferIfNeeded(cmd);
             }
 
-            // Required for the SSS pass.
+            // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
 
             if (m_DebugDisplaySettings.IsDebugMaterialDisplayEnabled())
