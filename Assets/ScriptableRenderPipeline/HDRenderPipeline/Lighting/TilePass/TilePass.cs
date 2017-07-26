@@ -474,9 +474,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return (camera.pixelHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
             }
 
-            bool GetFeatureVariantsEnabled()
+            public static bool GetFeatureVariantsEnabled(TileSettings tileSettings)
             {
-                return m_TileSettings.enableComputeLightEvaluation && (m_TileSettings.enableComputeLightVariants || m_TileSettings.enableComputeMaterialVariants) && !(m_TileSettings.enableClustered && !m_TileSettings.enableFptlForOpaqueWhenClustered);
+                return tileSettings.enableComputeLightEvaluation && (tileSettings.enableComputeLightVariants || tileSettings.enableComputeMaterialVariants) && !(tileSettings.enableClustered && !tileSettings.enableFptlForOpaqueWhenClustered);
             }
 
             TileSettings m_TileSettings = null;
@@ -507,7 +507,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
-                bool enableFeatureVariants = GetFeatureVariantsEnabled();
+                bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings);
                 if (enableFeatureVariants)
                 {
                     s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_TileSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
@@ -1576,7 +1576,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var numTilesX = GetNumTileFtplX(camera);
                 var numTilesY = GetNumTileFtplY(camera);
                 var numTiles = numTilesX * numTilesY;
-                bool enableFeatureVariants = GetFeatureVariantsEnabled();
+                bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings);
 
                 if (usingFptl)       // optimized for opaques only
                 {
@@ -1863,7 +1863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     PushGlobalParams(hdCamera.camera, cmd, null, 0);
                     if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
                     {
-                        if (GetFeatureVariantsEnabled())
+                        if (GetFeatureVariantsEnabled(m_TileSettings))
                         {
                             // featureVariants
                             m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
@@ -1951,7 +1951,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_TileSettings.enableComputeLightEvaluation)
                         {
-                            bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled();
+                            bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
 
                             int numVariants = 1;
                             if (enableFeatureVariants)
