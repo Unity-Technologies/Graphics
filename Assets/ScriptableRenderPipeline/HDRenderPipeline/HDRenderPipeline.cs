@@ -284,7 +284,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly GBufferManager m_gbufferManager = new GBufferManager();
 
-        Material m_CopyStencilBuffer;
+        Material m_CopyStencilForSplitLighting;
+        Material m_CopyStencilForRegularLighting;
 
         // Various set of material use in render loop
         ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
@@ -438,8 +439,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CreateSssMaterials(sssSettings.useDisneySSS);
             // <<< Old SSS Model
 
-            m_CopyStencilBuffer           = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
-            m_CameraMotionVectorsMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
+            m_CopyStencilForSplitLighting   = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
+            m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
+            m_CopyStencilForSplitLighting.SetInt("_StencilRef", (int)StencilLightingUsage.SplitLighting);
+            m_CopyStencilForRegularLighting = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
+            m_CopyStencilForRegularLighting.DisableKeyword("EXPORT_HTILE");
+            m_CopyStencilForRegularLighting.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
+            m_CameraMotionVectorsMaterial   = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
 
@@ -713,7 +719,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Copy StencilBuffer", cmd))
                 {
                     cmd.SetRandomWriteTarget(1, GetHTile());
-                    Utilities.DrawFullScreen(cmd, m_CopyStencilBuffer, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    // Our method of exporting the stencil requires one pass per unique stencil value.
+                    Utilities.DrawFullScreen(cmd, m_CopyStencilForSplitLighting,   m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    Utilities.DrawFullScreen(cmd, m_CopyStencilForRegularLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
                     cmd.ClearRandomWriteTargets();
                 }
             }
@@ -862,7 +870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT);
+                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
                 }
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
