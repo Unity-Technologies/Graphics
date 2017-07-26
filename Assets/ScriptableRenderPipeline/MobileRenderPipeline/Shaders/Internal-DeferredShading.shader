@@ -42,22 +42,10 @@ CGPROGRAM
 
 #include "LightingTemplate.hlsl"
 
-#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-void frag (unity_v2f_deferred i,
-	in half4 outGBuffer0 : SV_Target0,
-	in half4 outGBuffer1 : SV_Target1,
-	in half4 outGBuffer2 : SV_Target2,
-	out half4 outEmission : SV_Target3, 
-	in float outLinearDepth : SV_Target4)
-#else
+
 half4 frag (unity_v2f_deferred i) : SV_TARGET
-#endif
 {
-	#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-		outEmission = CalculateLight(i, outGBuffer0, outGBuffer1, outGBuffer2, outLinearDepth);
-	#else
-		return CalculateLight(i);
-	#endif
+	return CalculateLight(i);
 }
 
 ENDCG
