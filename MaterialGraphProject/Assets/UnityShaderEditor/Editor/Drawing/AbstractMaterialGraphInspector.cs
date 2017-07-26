@@ -85,7 +85,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     var size = Mathf.Min(r.width, r.height);
                     var image = m_NodePreviewPresenter.Render(new Vector2(size, size));
                     GUI.DrawTexture(r, image, ScaleMode.ScaleToFit);
-                    m_NodePreviewPresenter.modificationScope = ModificationScope.Node;
+                   // m_NodePreviewPresenter.modificationScope = ModificationScope.Node;
                 }
                 else
                 {

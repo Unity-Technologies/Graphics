@@ -86,7 +86,7 @@ namespace UnityEditor.Graphing.Drawing
             var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (graphDataSource == null || graphDataSource.graphAsset == null)
                 return;
-            Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
+            //Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
         }
 
         private void PropagateSelection()

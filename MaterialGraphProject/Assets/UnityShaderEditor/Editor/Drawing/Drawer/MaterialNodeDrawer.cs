@@ -103,7 +103,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 UpdatePreviewTexture(m_currentPreviewData);
                 return;
             }
-            
+
             m_currentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
             UpdatePreviewTexture(m_currentPreviewData);
 
@@ -112,5 +112,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             else
                 m_PreviewImage.AddToClassList("hidden");
         }
+
     }
 }

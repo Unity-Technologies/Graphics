@@ -1,12 +1,13 @@
 using System;
 using UIElements.GraphView;
+using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public abstract class GraphControlPresenter : GraphElementPresenter
+    public abstract class GraphControlPresenter : MaterialNodePresenter
     {
         public INode node { get; private set; }
 
