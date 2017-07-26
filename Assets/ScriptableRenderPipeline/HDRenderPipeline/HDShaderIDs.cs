@@ -123,5 +123,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal static readonly int _HTile = Shader.PropertyToID("_HTile");
         internal static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
+
+        internal static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
+        internal static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
+        internal static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
+        internal static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");
+        internal static readonly int _NonJitteredViewProjMatrix = Shader.PropertyToID("_NonJitteredViewProjMatrix");
+        internal static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
+        internal static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
+        internal static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
+        internal static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        internal static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
+        internal static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
+
+
+        internal static readonly int _CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
+        internal static readonly int _CameraDiffuseIrradianceTexture = Shader.PropertyToID("_CameraDiffuseIrradianceTexture");
+        internal static readonly int _CameraFilteringBuffer = Shader.PropertyToID("_CameraFilteringBuffer");
+        internal static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
+
+
+        internal static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
+        internal static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
+
+        internal static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
+        internal static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
+        internal static readonly int _DepthTexture = Shader.PropertyToID("_DepthTexture");
+        internal static readonly int _IrradianceSource = Shader.PropertyToID("_IrradianceSource");
+        internal static readonly int _FilterKernelsBasic = Shader.PropertyToID("_FilterKernelsBasic");
+        internal static readonly int _HalfRcpWeightedVariances = Shader.PropertyToID("_HalfRcpWeightedVariances");
+
+        internal static readonly int _CameraPosDiff = Shader.PropertyToID("_CameraPosDiff");
+
+        internal static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+        internal static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
+        internal static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
+
+        internal static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
+        internal static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
+
+
+        internal static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");
+        internal static readonly int _ShapeParam = Shader.PropertyToID("_ShapeParam");
+        internal static readonly int _StdDev1 = Shader.PropertyToID("_StdDev1");
+        internal static readonly int _StdDev2 = Shader.PropertyToID("_StdDev2");
+        internal static readonly int _LerpWeight = Shader.PropertyToID("_LerpWeight");
+        internal static readonly int _TransmissionTint = Shader.PropertyToID("_TransmissionTint");
+        internal static readonly int _ThicknessRemap = Shader.PropertyToID("_ThicknessRemap");
+
+        internal static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
+        internal static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
     }
 }
