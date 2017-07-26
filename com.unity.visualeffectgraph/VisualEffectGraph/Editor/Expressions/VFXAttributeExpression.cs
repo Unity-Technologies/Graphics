@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXNoneOp; //TODOPAUL : Should we need an explicit Op for this ?
+                return VFXExpressionOp.kVFXNoneOp;
             }
         }
 
