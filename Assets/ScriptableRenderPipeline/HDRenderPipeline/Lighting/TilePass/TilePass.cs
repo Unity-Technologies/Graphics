@@ -1518,7 +1518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
-            public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT)
+            public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
@@ -1640,7 +1640,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeIntParams(buildMaterialFlagsShader, "g_viDimensions", w, h);
                         cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "g_TileFeatureFlags", s_TileFeatureFlags);
 
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "g_depth_tex", cameraDepthBufferRT);
+                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_StencilTexture", stencilTextureRT);
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
