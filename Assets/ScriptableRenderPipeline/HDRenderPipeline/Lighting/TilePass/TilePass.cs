@@ -2052,11 +2052,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, "_SinTime", sinTime);
                                 cmd.SetComputeVectorParam(deferredComputeShader, "_CosTime", cosTime);
                                 cmd.SetComputeVectorParam(deferredComputeShader, "unity_DeltaTime", unity_DeltaTime);
-                                cmd.SetComputeVectorParam(deferredComputeShader, "_WorldSpaceCameraPos", worldSpaceCameraPos);
-                                cmd.SetComputeVectorParam(deferredComputeShader, "_ProjectionParams", projectionParams);
-                                cmd.SetComputeVectorParam(deferredComputeShader, "_ScreenParams", screenParams);
-                                cmd.SetComputeVectorParam(deferredComputeShader, "_ZBufferParams", zbufferParams);
-                                cmd.SetComputeVectorParam(deferredComputeShader, "unity_OrthoParams", unity_OrthoParams);
                                 cmd.SetComputeIntParam(deferredComputeShader, "_EnvLightSkyEnabled", envLightSkyEnabled);
                                 cmd.SetComputeFloatParam(deferredComputeShader, "_AmbientOcclusionDirectLightStrenght", ambientOcclusionDirectLightStrenght);
 

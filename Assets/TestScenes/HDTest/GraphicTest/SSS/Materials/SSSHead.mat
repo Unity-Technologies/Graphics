@@ -165,7 +165,7 @@ Material:
     - _SrcBlend: 1
     - _StencilRef: 1
     - _Stiffness: 1
-    - _SubsurfaceProfile: 0
+    - _SubsurfaceProfile: 4
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1

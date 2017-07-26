@@ -28,6 +28,8 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             #include "../../../ShaderVariables.hlsl"
             #include "../../../Lighting/LightDefinition.cs.hlsl"
 
+            RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -45,9 +47,16 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
                 return output;
             }
 
-            // Should use HiS and therefore be faster than a GPU memcpy().
+            // Force the stencil test before the UAV write.
+            [earlydepthstencil]
             float4 Frag(Varyings input) : SV_Target // use SV_StencilRef in D3D 11.3+
             {
+                uint2 positionSS = (uint2)input.positionCS.xy;
+
+                // There's no need for atomics as we are always writing the same value.
+                // Note: the GCN tile size is 8x8 pixels.
+                _HTile[positionSS / 8] = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+
                 return float4(STENCILLIGHTINGUSAGE_SPLIT_LIGHTING, 0, 0, 0);
             }
             ENDHLSL
