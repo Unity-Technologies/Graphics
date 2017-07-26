@@ -46,6 +46,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+// We need to skip lighting when doing debug pass because the debug pass is done before lighting so some buffers may not be properly initialized potentially causing crashes on PS4.
+#ifndef DEBUG_DISPLAY
     uint featureFlags = 0xFFFFFFFF;
     float3 diffuseLighting;
     float3 specularLighting;
@@ -53,6 +55,7 @@ void Frag(PackedVaryingsToPS packedInput,
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+#endif
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.depthRaw;
