@@ -32,12 +32,13 @@ namespace UnityEditor.VFX
         public void Init(string attributeName)
         {
             m_attributeName = attributeName;
-            var exp = VFXAttributeExpression.Find(m_attributeName);
+            var attribute = VFXAttribute.Find(m_attributeName);
             if (outputSlots.Count == 0)
             {
-                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.ValueType), "o"), VFXSlot.Direction.kOutput));
+                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(attribute.type), "o"), VFXSlot.Direction.kOutput));
             }
-            outputSlots[0].SetExpression(exp);
+            var expression = new VFXAttributeExpression(attribute);
+            outputSlots[0].SetExpression(expression);
         }
     }
 }
