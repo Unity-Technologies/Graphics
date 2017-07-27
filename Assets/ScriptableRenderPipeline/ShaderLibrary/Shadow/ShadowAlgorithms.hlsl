@@ -277,7 +277,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
 	// normal based bias
 	float3 orig_pos = positionWS;
-	float  orig_payloadOffset = payloadOffset;
+	uint orig_payloadOffset = payloadOffset;
 	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posNDC;
@@ -342,7 +342,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										\
 		/* normal based bias */																																							\
 		float3 orig_pos = positionWS;                                                                                                                                                   \
-		float  orig_payloadOffset = payloadOffset;		                                                                                                                                \
+		uint orig_payloadOffset = payloadOffset;		                                                                                                                                \
 		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );									\
 		/* get shadowmap texcoords */																																					\
 		float3 posNDC;                                                                                                                                                                  \
