@@ -1033,12 +1033,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("DisplayDebug ViewMaterial", cmd))
             {
-                // Render Opaque forward
-                Utilities.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
-                RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
-
-                // Render GBuffer opaque
-                if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+                if(m_DebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
                     using (new Utilities.ProfilingSample("DebugViewMaterialGBuffer", cmd))
                     {
@@ -1046,9 +1041,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Utilities.DrawFullScreen(cmd, m_DebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
                 }
-
-                // Render forward transparent
+                else
                 {
+                    Utilities.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
+                    // Render Opaque forward
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
+
+                    // Render forward transparent
                     RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
                 }
             }
