@@ -101,7 +101,7 @@ namespace UnityEditor.VFX
         {
             if (attributes != null)
             {
-                foreach (var attribute in attributes)
+                foreach (VFXPropertyAttribute attribute in attributes)
                 {
                     if (attribute.m_Type == Type.kRange)
                         return new Vector2(attribute.m_Min, attribute.m_Max);
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
             kRange,
             kMin,
             kNormalize,
-            kTooltip,
+            kTooltip
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
