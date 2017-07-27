@@ -10,18 +10,25 @@ float3 EvalShadow_NormalBias( float3 normalWS, float NoL, float2 texelSize, floa
 }
 
 // function called by spot, point and directional eval routines to calculate shadow coordinates
-float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
+float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS, out float3 posNDC, bool clampToRect )
 {
-	float4 posCS = mul( float4( positionWS, 1.0 ), sd.worldToShadow );
+	float4 posCS = mul(float4(positionWS, 1.0), sd.worldToShadow);
 	posCS.z -= sd.bias * posCS.w;
-	float3 posNDC = posCS.xyz / posCS.w;
+	posNDC = posCS.xyz / posCS.w;
 	// calc TCs
 	float3 posTC = posNDC * 0.5 + 0.5;
+	posTC.xy = clampToRect ? clamp( posTC.xy, sd.texelSizeRcp.zw*0.5, 1.0.xx - sd.texelSizeRcp.zw*0.5 ) : posTC.xy;
 	posTC.xy = posTC.xy * sd.scaleOffset.xy + sd.scaleOffset.zw;
 #if UNITY_REVERSED_Z
 	posTC.z = 1.0 - posTC.z;
 #endif
 	return posTC;
+}
+
+float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
+{
+	float3 ndc;
+	return EvalShadow_GetTexcoords( sd, positionWS, ndc, false );
 }
 
 int EvalShadow_GetCubeFaceID( float3 dir )
@@ -210,7 +217,10 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 //
 //	Directional shadows (cascaded shadow map)
 //
-int EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4] )
+
+#define kMaxShadowCascades 4
+
+int EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4], out float relDistance )
 {
 	float3 fromCenter0 = positionWS.xyz - dirShadowSplitSpheres[0].xyz;
 	float3 fromCenter1 = positionWS.xyz - dirShadowSplitSpheres[1].xyz;
@@ -228,7 +238,14 @@ int EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirSh
 	weights.yzw = saturate( weights.yzw - weights.xyz );
 
 	int idx = int( 4.0 - dot( weights, float4( 4.0, 3.0, 2.0, 1.0 ) ) );
+	relDistance = distances2[idx] / dirShadowSplitSphereSqRadii[idx];
 	return idx <= 3 ? idx : -1;
+}
+
+int EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4] )
+{
+	float relDist;
+	return EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres, relDist );
 }
 
 uint EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out float4 splitSpheres[4] )
@@ -244,21 +261,27 @@ uint EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out fl
 
 float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
-	ShadowData sd = shadowContext.shadowDatas[index];
-	// normal based bias
-	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
-
 	// load the right shadow data for the current face
 	float4 dirShadowSplitSpheres[4];
 	uint payloadOffset = EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );
-	int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );
+	float relDistance;
+	int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres, relDistance );
 	if( shadowSplitIndex < 0 )
 		return 1.0;
 
-	sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
-	// get shadowmap texcoords
-	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
+	float4 scales = asfloat( shadowContext.payloads[payloadOffset] );
+	payloadOffset++;
+	float4 borders = asfloat( shadowContext.payloads[payloadOffset] );
+	payloadOffset++;
 
+	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+	// normal based bias
+	float3 orig_pos = positionWS;
+	float  orig_payloadOffset = payloadOffset;
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );
+	// get shadowmap texcoords
+	float3 posNDC;
+	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true );
 	// sample the texture
 	uint texIdx, sampIdx;
 	float slice;
@@ -266,32 +289,99 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
+	float shadow = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 
-	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
+	float border = borders[shadowSplitIndex];
+	float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
+
+	shadowSplitIndex++;
+	float shadow1 = 1.0;
+	if( shadowSplitIndex < kMaxShadowCascades )
+	{
+		float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex - 1];
+		float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[shadowSplitIndex].xyz );
+		float3 wposDir     = normalize( -splitSphere.xyz + positionWS );
+		float  cascDot     = dot( cascadeDir, wposDir );
+		alpha   = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );
+		shadow1 = shadow;
+
+		[branch]
+		if( alpha > 0.0 )
+		{
+			sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+			positionWS = orig_pos + EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );
+			posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );
+			// sample the texture
+			UnpackShadowmapId( sd.id, slice );
+
+			if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )
+				shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
+		}
+	}
+	shadow = lerp( shadow, shadow1, alpha );
+	return shadow;
 }
+
 
 #define EvalShadow_CascadedDepth_( _samplerType ) 																																		\
 	float EvalShadow_CascadedDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L ) \
 	{																																													\
-		ShadowData sd = shadowContext.shadowDatas[index];																										                        \
-		/* normal based bias */																																							\
-		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );															    \
-																																														\
 		/* load the right shadow data for the current face */																															\
-		float4 dirShadowSplitSpheres[4];																																				\
+		float4 dirShadowSplitSpheres[kMaxShadowCascades];																																\
 		uint payloadOffset = EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );																				\
-		int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );																		\
+		float relDistance;                                                                                                                                                              \
+		int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres, relDistance );															\
 		if( shadowSplitIndex < 0 )                                                                                                                                                      \
 			return 1.0;                                                                                                                                                                 \
 																																														\
-		sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										            \
+		float4 scales = asfloat( shadowContext.payloads[payloadOffset] );                                                                                                               \
+		payloadOffset++;                                                                                                                                                                \
+		float4 borders = asfloat( shadowContext.payloads[payloadOffset] );                                                                                                              \
+		payloadOffset++;                                                                                                                                                                \
+																																														\
+		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										\
+		/* normal based bias */																																							\
+		float3 orig_pos = positionWS;                                                                                                                                                   \
+		float  orig_payloadOffset = payloadOffset;		                                                                                                                                \
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );									\
 		/* get shadowmap texcoords */																																					\
-		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
+		float3 posNDC;                                                                                                                                                                  \
+		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true );																											\
 		/* sample the texture */																																						\
 		float slice;																																									\
 		UnpackShadowmapId( sd.id, slice );																																				\
 																																														\
-		return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );														\
+		float shadow = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );                                             \
+																																														\
+		float border = borders[shadowSplitIndex];                                                                                                                                       \
+		float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                       \
+																																														\
+		shadowSplitIndex++;                                                                                                                                                             \
+		float shadow1 = 1.0;                                                                                                                                                            \
+		if( shadowSplitIndex < kMaxShadowCascades )                                                                                                                                     \
+		{                                                                                                                                                                               \
+			float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex - 1];                                                                                                           \
+			float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[shadowSplitIndex].xyz );                                                                           \
+			float3 wposDir     = normalize( -splitSphere.xyz + positionWS );                                                                                                            \
+			float  cascDot     = dot( cascadeDir, wposDir );                                                                                                                            \
+			alpha   = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );                                                                                           \
+			shadow1 = shadow;                                                                                                                                                           \
+																																														\
+			[branch]                                                                                                                                                                    \
+			if( alpha > 0.0 )                                                                                                                                                           \
+			{                                                                                                                                                                           \
+				sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										    \
+				positionWS = orig_pos + EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );				\
+				posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );																										\
+				/* sample the texture */																																				\
+				UnpackShadowmapId( sd.id, slice );																																		\
+																																														\
+				if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )                                                                                                       \
+					shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );                                 \
+			}                                                                                                                                                                           \
+		}                                                                                                                                                                               \
+		shadow = lerp( shadow, shadow1, alpha );                                                                                                                                        \
+		return shadow;                                                                                                                                                                  \
 	}
 	EvalShadow_CascadedDepth_( SamplerComparisonState )
 	EvalShadow_CascadedDepth_( SamplerState )
