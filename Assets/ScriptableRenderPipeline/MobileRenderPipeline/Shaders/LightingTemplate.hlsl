@@ -69,8 +69,6 @@ void OnChipDeferredFragSetup (
 	outWPos = wpos;
 }
 
-static float4 debugLighting;
-
 int _LightIndexForShadowMatrixArray;
 int _useLegacyCookies;
 
@@ -218,7 +216,7 @@ unity_v2f_deferred onchip_vert_deferred (float4 vertex : POSITION, float3 normal
     // corners in camera space when we are drawing a full screen quad.
     // Otherwise, when rendering 3D shapes, use the ray calculated here.
     if (lightAsQuad){
-    	float2 rayXY = mul(unity_CameraInvProjection, float4(o.pos.x, -o.pos.y, -1, 1)).xy;
+    	float2 rayXY = mul(unity_CameraInvProjection, float4(o.pos.x, _ProjectionParams.x*o.pos.y, -1, 1)).xy;
         o.ray = float3(rayXY, 1.0);
     }
     else
