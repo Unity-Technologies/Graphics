@@ -84,8 +84,16 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var customAttribute = owner.settings.GetType().GetField(path).GetCustomAttributes(true);
-                return VFXPropertyAttribute.Create(customAttribute);
+                return VFXPropertyAttribute.Create(customAttributes);
+            }
+        }
+
+        public object[] customAttributes
+        {
+            get
+            {
+                var customAttributes = owner.settings.GetType().GetField(path).GetCustomAttributes(true);
+                return customAttributes;
             }
         }
 

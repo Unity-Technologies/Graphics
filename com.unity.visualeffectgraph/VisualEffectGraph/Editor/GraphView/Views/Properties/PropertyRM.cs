@@ -19,12 +19,10 @@ namespace UnityEditor.VFX.UI
         object value { get; set; }
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
-
+        object[] customAttributes { get; }
         Type anchorType { get; }
         int depth {get; }
-
         bool editable { get; }
-
         void RetractPath();
         void ExpandPath();
     }
