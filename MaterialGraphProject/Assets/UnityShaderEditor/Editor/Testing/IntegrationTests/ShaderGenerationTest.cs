@@ -7,6 +7,7 @@ using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
+using System.Text;
 
 namespace UnityEditor.MaterialGraph.IntegrationTests
 {
@@ -83,16 +84,46 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             var prjRelativeGraphsPath = s_Path.Aggregate("Assets", Path.Combine);
             var filePath = Path.Combine(prjRelativeGraphsPath, file.Name);
 
-            var graphAsset = AssetDatabase.LoadAssetAtPath<MaterialGraphAsset>(filePath);
+            var textGraph = File.ReadAllText(filePath, Encoding.UTF8);
+            var graph = JsonUtility.FromJson<UnityEngine.MaterialGraph.MaterialGraph>(textGraph);
 
-            Assert.IsNotNull(graphAsset, "Graph asset not found");
+            Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 
-            var materialGraph = graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
-            Assert.IsNotNull(materialGraph);
+            //var graphAsset = AssetDatabase.LoadAssetAtPath<MaterialGraphAsset>(filePath);
+
+            //Assert.IsNotNull(graphAsset, "Graph asset not found");
+
+            //var materialGraph = graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
+            //Assert.IsNotNull(materialGraph);
 
             // Generate the shader
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = materialGraph.masterNode.GetFullShader(GenerationMode.ForReals, materialGraph.name, out configuredTextures);
+            var shaderString = graph.masterNode.GetFullShader(GenerationMode.ForReals, graph.name, out configuredTextures);
+            
+            var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
+            var shaderTemplatePath = Path.Combine(rootPath.ToString(), "ShaderTemplates");
+            Directory.CreateDirectory(shaderTemplatePath);
+
+            var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "shader"));
+            if (!File.Exists(textTemplateFilePath)) {
+                File.WriteAllText(textTemplateFilePath, shaderString);
+            }
+            else {
+                var textTemplate = File.ReadAllText(textTemplateFilePath);
+                var textsAreEqual = shaderString == textTemplate;
+         
+                if (!textsAreEqual)
+                {
+                    var failedPath = Path.Combine(rootPath.ToString(), "Failed");
+                    Directory.CreateDirectory(failedPath);
+                    var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
+                    var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
+                    File.WriteAllText(misMatchLocationResult, shaderString);
+                    File.WriteAllText(misMatchLocationTemplate, textTemplate);
+                }
+                Assert.IsTrue(textsAreEqual);
+            }
+
             m_Shader = ShaderUtil.CreateShaderAsset(shaderString);
             m_Shader.hideFlags = HideFlags.HideAndDontSave;
             Assert.IsNotNull(m_Shader, "Shader Generation Failed");
@@ -124,15 +155,11 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_Captured.ReadPixels(new Rect(0, 0, rendered.width, rendered.height), 0, 0);
             RenderTexture.active = null; //can help avoid errors
 
-            var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
-            var templatePath = Path.Combine(rootPath.ToString(), "ImageTemplates");
-
             // find the reference image
-            var dumpFileLocation = Path.Combine(templatePath, string.Format("{0}.{1}", file.Name, "png"));
+            var dumpFileLocation = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "png"));
             if (!File.Exists(dumpFileLocation))
             {
                 // no reference exists, create it
-                Directory.CreateDirectory(templatePath);
                 var generated = m_Captured.EncodeToPNG();
                 File.WriteAllBytes(dumpFileLocation, generated);
                 Assert.Fail("Template file not found for {0}, creating it.", file);

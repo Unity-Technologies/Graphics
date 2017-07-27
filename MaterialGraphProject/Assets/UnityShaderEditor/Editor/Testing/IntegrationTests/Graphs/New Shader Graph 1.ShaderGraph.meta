@@ -1,11 +1,13 @@
 fileFormatVersion: 2
 guid: 87ebd1179c598234faa4c7d160de0e69
-timeCreated: 1499938288
+timeCreated: 1501164506
 licenseType: Pro
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
-  nonModifiableTextures: []
+  nonModifiableTextures:
+  - Texture2D_Texture2D_D281CEC8_Uniform: {fileID: 2800000, guid: 225a31f233f5b82488f996901413908d,
+      type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
