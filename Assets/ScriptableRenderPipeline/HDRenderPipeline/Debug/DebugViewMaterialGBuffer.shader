@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
         Pass
         {
             ZWrite Off
-            Blend SrcAlpha OneMinusSrcAlpha // We will lerp only the values that are valid
+            Blend One Zero
 
             HLSLPROGRAM
             #pragma target 4.5
