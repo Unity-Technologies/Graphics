@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -7,7 +7,6 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-
     class SelectionSetter : Manipulator
     {
         VFXView m_View;
@@ -117,7 +116,7 @@ namespace UnityEditor.VFX.UI
                 .Concat(descriptorParameter)
                 .Concat(descriptorBuiltInParameter)
                 .Concat(descriptorAttributeParameter)
-                .Concat(Enumerable.Repeat(systemDesc,1));
+                .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
 
@@ -178,9 +177,8 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
                     }
-                    else if( d.modelDescriptor == null)
+                    else if (d.modelDescriptor == null)
                     {
-
                         var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
                         var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
                         var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
@@ -398,7 +396,7 @@ namespace UnityEditor.VFX.UI
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
         }
 
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt,VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
 
