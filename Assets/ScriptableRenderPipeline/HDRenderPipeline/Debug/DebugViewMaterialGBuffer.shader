@@ -5,7 +5,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
         Pass
         {
             ZWrite Off
-            Blend One Zero
 
             HLSLPROGRAM
             #pragma target 4.5
