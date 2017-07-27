@@ -1,44 +1,36 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VFXAttributeParameter : VFXSlotContainerModel<VFXModel, VFXModel>
+    interface IStringProvider
     {
-        [SerializeField]
-        private string m_attributeName;
+        string[] GetAvailableString();
+    }
 
-        public string attributeName
+    class AttributeProvider : IStringProvider
+    {
+        public string[] GetAvailableString()
         {
-            get
-            {
-                return m_attributeName;
-            }
+            return VFXAttribute.All;
+        }
+    }
+
+    class VFXAttributeParameter : VFXOperator
+    {
+        public class Settings
+        {
+            [StringProvider(typeof(AttributeProvider))]
+            public string attribute = VFXAttribute.All.First();
         }
 
-        public VFXAttributeParameter()
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            if (!string.IsNullOrEmpty(m_attributeName))
-            {
-                Init(m_attributeName);
-            }
-        }
-
-        public void Init(string attributeName)
-        {
-            m_attributeName = attributeName;
-            var attribute = VFXAttribute.Find(m_attributeName);
-            if (outputSlots.Count == 0)
-            {
-                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(attribute.type), "o"), VFXSlot.Direction.kOutput));
-            }
+            var settings = GetSettings<Settings>();
+            var attribute = VFXAttribute.Find(settings.attribute);
             var expression = new VFXAttributeExpression(attribute);
-            outputSlots[0].SetExpression(expression);
+            return new VFXExpression[] { expression };
         }
     }
 }

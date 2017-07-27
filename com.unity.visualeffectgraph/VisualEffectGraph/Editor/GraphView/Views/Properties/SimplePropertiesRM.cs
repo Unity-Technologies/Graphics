@@ -97,4 +97,24 @@ namespace UnityEditor.VFX.UI
             return new Vector2Field(m_Label);
         }
     }
+
+    class StringPropertyRM : SimplePropertyRM<string>
+    {
+        public StringPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override ValueControl<string> CreateField()
+        {
+            var stringProvider = VFXPropertyAttribute.FindStringProvider(m_Provider.attributes);
+            if (stringProvider != null)
+            {
+                return new StringFieldProvider(m_Label, stringProvider);
+            }
+            else
+            {
+                return new StringField(m_Label);
+            }
+        }
+    }
 }

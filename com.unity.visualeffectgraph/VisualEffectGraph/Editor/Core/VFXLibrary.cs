@@ -136,13 +136,12 @@ namespace UnityEditor.VFX
         public VFXModelDescriptorAttributeParameters(string attributeName) : base(ScriptableObject.CreateInstance<VFXAttributeParameter>())
         {
             m_attributeName = attributeName;
-            m_Template.Init(m_attributeName);
         }
 
         public override VFXAttributeParameter CreateInstance()
         {
             var instance = base.CreateInstance();
-            instance.Init(m_attributeName);
+            instance.SetSettingValue("attribute", m_attributeName);
             return instance;
         }
     }

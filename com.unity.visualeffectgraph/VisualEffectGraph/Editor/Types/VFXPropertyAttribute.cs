@@ -14,6 +14,17 @@ namespace UnityEditor.VFX
     {
     }
 
+    [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public class StringProviderAttribute : PropertyAttribute
+    {
+        public StringProviderAttribute(Type providerType)
+        {
+            m_ProviderType = providerType;
+        }
+
+        public Type m_ProviderType;
+    }
+
     [Serializable]
     class VFXPropertyAttribute
     {
@@ -38,6 +49,10 @@ namespace UnityEditor.VFX
                 TooltipAttribute tooltipAttribute = attribute as TooltipAttribute;
                 if (tooltipAttribute != null)
                     results.Add(new VFXPropertyAttribute(tooltipAttribute.tooltip));
+
+                StringProviderAttribute stringProviderAttribute = attribute as StringProviderAttribute;
+                if (stringProviderAttribute != null)
+                    results.Add(new VFXPropertyAttribute(stringProviderAttribute.m_ProviderType));
             }
 
             return results.ToArray();
@@ -61,6 +76,8 @@ namespace UnityEditor.VFX
                             exp = VFXOperatorUtility.Normalize(exp);
                             break;
                         case Type.kTooltip:
+                            break;
+                        case Type.kStringProvider:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -90,6 +107,8 @@ namespace UnityEditor.VFX
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
+                        case Type.kStringProvider:
+                            break;
                         default:
                             throw new NotImplementedException();
                     }
@@ -101,7 +120,7 @@ namespace UnityEditor.VFX
         {
             if (attributes != null)
             {
-                foreach (VFXPropertyAttribute attribute in attributes)
+                foreach (var attribute in attributes)
                 {
                     if (attribute.m_Type == Type.kRange)
                         return new Vector2(attribute.m_Min, attribute.m_Max);
@@ -111,12 +130,33 @@ namespace UnityEditor.VFX
             return Vector2.zero;
         }
 
+        public static Func<string[]> FindStringProvider(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+            {
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.m_Type == Type.kStringProvider)
+                    {
+                        var instance = Activator.CreateInstance(attribute.m_stringProvider);
+                        if (instance is IStringProvider)
+                        {
+                            var stringProvider = instance as IStringProvider;
+                            return () => stringProvider.GetAvailableString();
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         private enum Type
         {
             kRange,
             kMin,
             kNormalize,
-            kTooltip
+            kTooltip,
+            kStringProvider
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
@@ -135,6 +175,15 @@ namespace UnityEditor.VFX
             m_Tooltip = tooltip;
         }
 
+        private VFXPropertyAttribute(System.Type stringProvider)
+        {
+            m_Type = Type.kStringProvider;
+            m_stringProvider = stringProvider;
+            m_Min = -Mathf.Infinity;
+            m_Max = Mathf.Infinity;
+            m_Tooltip = null;
+        }
+
         [SerializeField]
         private Type m_Type;
         [SerializeField]
@@ -143,5 +192,18 @@ namespace UnityEditor.VFX
         private float m_Max;
         [SerializeField]
         private string m_Tooltip;
+        [SerializeField]
+        private SerializableType m_stringProviderSerializedType;
+        private System.Type m_stringProvider
+        {
+            get
+            {
+                return m_stringProviderSerializedType;
+            }
+            set
+            {
+                m_stringProviderSerializedType = value;
+            }
+        }
     }
 }
