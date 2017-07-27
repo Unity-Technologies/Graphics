@@ -174,7 +174,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 #endif
 }
 
-void ApplyDebugToBSDFData(inout BSDFData bsdfData)
+void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
@@ -184,14 +184,13 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 
         if (overrideSmoothness)
         {
-            bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(overrideSmoothnessValue);
-            bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+            surfaceData.perceptualSmoothness = overrideSmoothnessValue;
         }
     }
 
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
     {
-        bsdfData.diffuseColor = _DebugLightingAlbedo.xyz;
+        surfaceData.baseColor = _DebugLightingAlbedo.xyz;
     }
 #endif
 }
@@ -268,6 +267,8 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
 BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
+    ApplyDebugToSurfaceData(surfaceData);
+
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
@@ -300,8 +301,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
 
-    ApplyDebugToBSDFData(bsdfData);
-
     return bsdfData;
 }
 
@@ -327,6 +326,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3;
     #endif
+
+    ApplyDebugToSurfaceData(surfaceData);
 
     // RT0 - 8:8:8:8 sRGB
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
@@ -531,8 +532,6 @@ void DecodeFromGBuffer(
     }
 
     bakeDiffuseLighting = inGBuffer3.rgb;
-
-    ApplyDebugToBSDFData(bsdfData);
 }
 
 uint MaterialFeatureFlagsFromGBuffer(
