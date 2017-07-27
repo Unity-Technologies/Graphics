@@ -362,7 +362,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 and use aniso value instead to detect we are aniso
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
+        // To be recognize as anisotropic material, we need to have anisotropy > 0 (Else artits can be confuse to not have anisotropic material in material classification), thus the max
+        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, max(surfaceData.anisotropy, 1.5 / 255.0), PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
@@ -509,7 +510,7 @@ void DecodeFromGBuffer(
                 bsdfData.diffuseColor = baseColor;
                 bsdfData.fresnel0 = inGBuffer2.rgb;
             }
-            else if (anisotropy > 0)
+            else if (anisotropy > 0.0)
             {
                 bsdfData.materialId = MATERIALID_LIT_ANISO;
                 FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
