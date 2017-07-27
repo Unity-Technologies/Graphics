@@ -48,8 +48,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If SSAO is disable, simply put a white 1x1 texture
             if (settings.enable == false || isForward)
             {
-                cmd.SetGlobalTexture(Uniforms._AOBuffer, UnityEngine.Rendering.PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
-                cmd.SetGlobalFloat("_AmbientOcclusionDirectLightStrenght", 0.0f);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, UnityEngine.Rendering.PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
+                cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, 0.0f);
                 return;
             }
 
@@ -89,8 +89,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
                 // Setup texture for lighting pass (automatic of unity)
-                cmd.SetGlobalTexture("_AmbientOcclusionTexture", Uniforms._AOBuffer);
-                cmd.SetGlobalFloat("_AmbientOcclusionDirectLightStrenght", settings.affectDirectLigthingStrenght);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Uniforms._AOBuffer);
+                cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, settings.affectDirectLigthingStrenght);
                 hdRP.PushFullScreenDebugTexture(cmd, Uniforms._AOBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.SSAO);
             }
         }
