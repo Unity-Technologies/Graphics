@@ -115,7 +115,10 @@ namespace UnityEditor.VFX.UI
 
         public object[] customAttributes
         {
-            get { return model.property.type.GetField(model.property.name).GetCustomAttributes(true); }
+            get
+            {
+                return new object[] { };
+            }
         }
 
         public VFXPropertyAttribute[] attributes
