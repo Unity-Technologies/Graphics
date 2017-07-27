@@ -167,7 +167,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
                 EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
-                if (m_enableClustered.boolValue)
+
+                // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
+                // if (m_enableClustered.boolValue)
+                if (m_enableClustered.boolValue && !m_enableComputeLightEvaluation.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
@@ -176,6 +179,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
                 if (m_enableComputeLightEvaluation.boolValue)
                 {
+                    // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
+                    m_enableFptlForOpaqueWhenClustered.boolValue = true; // Force fptl to be always true if compute evaluation is enable
+
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_enableComputeLightVariants, styles.enableComputeLightVariants);
                     EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, styles.enableComputeMaterialVariants);

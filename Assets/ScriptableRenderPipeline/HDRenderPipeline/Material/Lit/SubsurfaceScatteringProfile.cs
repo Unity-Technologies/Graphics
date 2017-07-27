@@ -795,8 +795,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool transmissionEnabled = m_TransmissionMode.intValue != (int)SubsurfaceScatteringProfile.TransmissionMode.None;
 
             // Draw the profile.
-            m_ProfileMaterial.SetFloat( "_MaxRadius",  r);
-            m_ProfileMaterial.SetVector("_ShapeParam", S);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
+            m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
             // Old SSS Model >>>
             Utilities.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
             // Apply the three-sigma rule, and rescale.
@@ -805,10 +805,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                         m_ScatterDistance2.colorValue.r, m_ScatterDistance2.colorValue.g, m_ScatterDistance2.colorValue.b);
             Vector4 stdDev1 = new Vector4(s * m_ScatterDistance1.colorValue.r, s * m_ScatterDistance1.colorValue.g, s * m_ScatterDistance1.colorValue.b);
             Vector4 stdDev2 = new Vector4(s * m_ScatterDistance2.colorValue.r, s * m_ScatterDistance2.colorValue.g, s * m_ScatterDistance2.colorValue.b);
-            m_ProfileMaterial.SetVector("_StdDev1",   stdDev1);
-            m_ProfileMaterial.SetVector("_StdDev2",   stdDev2);
-            m_ProfileMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
-            m_ProfileMaterial.SetFloat("_MaxRadius",  rMax);
+            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1,   stdDev1);
+            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev2,   stdDev2);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._LerpWeight, m_LerpWeight.floatValue);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  rMax);
             // <<< Old SSS Model
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
@@ -819,9 +819,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.
-            m_TransmittanceMaterial.SetVector("_ShapeParam",       S);
-            m_TransmittanceMaterial.SetVector("_TransmissionTint", transmissionEnabled ? T : Vector4.zero);
-            m_TransmittanceMaterial.SetVector("_ThicknessRemap",   R);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam,       S);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, transmissionEnabled ? T : Vector4.zero);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap,   R);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();
