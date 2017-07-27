@@ -12,7 +12,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             internal static readonly int _Downsample = Shader.PropertyToID("_Downsample");
             internal static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
             internal static readonly int _MainTex = Shader.PropertyToID("_MainTex");
-            internal static readonly int _AOBuffer = Shader.PropertyToID("_AmbientOcclusionTexture");
             internal static readonly int _TempTex1 = Shader.PropertyToID("_TempTex1");
             internal static readonly int _TempTex2 = Shader.PropertyToID("_TempTex2");
         }
@@ -83,15 +82,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex2);
 
                 // Final filtering
-                cmd.GetTemporaryRT(Uniforms._AOBuffer, width, height, 0, kFilter, GetAOBufferFormat(), kRWMode);
+                cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, width, height, 0, kFilter, GetAOBufferFormat(), kRWMode);
                 cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-                Utilities.DrawFullScreen(cmd, m_Material, Uniforms._AOBuffer, null, 3);
+                Utilities.DrawFullScreen(cmd, m_Material, HDShaderIDs._AmbientOcclusionTexture, null, 3);
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
                 // Setup texture for lighting pass (automatic of unity)
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Uniforms._AOBuffer);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
                 cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, settings.affectDirectLigthingStrenght);
-                hdRP.PushFullScreenDebugTexture(cmd, Uniforms._AOBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.SSAO);
+                hdRP.PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera.camera, renderContext, FullScreenDebugMode.SSAO);
             }
         }
 
