@@ -75,6 +75,8 @@
 #endif
 #include "API/Validate.hlsl"
 
+#include "Noise.hlsl"
+
 // Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
 // This is the purpose of this macro
 #define MERGE_NAME(X, Y) X##Y
@@ -590,11 +592,10 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
-void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+void LODDitheringTransition(uint2 unPositionSS, float ditherFactor, float time)
 {
-    // Generate a fixed pattern
-    float p = cos(dot(unPositionSS, float2(443.8975, 397.2973)));
-    p = frac(p * 491.1871);
+    // Generate a spatio-temporally varying pattern.
+    float p = GenerateHashedRandomFloat(uint3(unPositionSS, asuint(time)));
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
