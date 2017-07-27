@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool IsValid() { return viewport.width > 0 && viewport.height > 0; }
         }
-        protected struct CachedEntry : IComparable<CachedEntry>
+        protected class CachedEntry : IComparable<CachedEntry>
         {
             public Key  key;
             public Data current;
