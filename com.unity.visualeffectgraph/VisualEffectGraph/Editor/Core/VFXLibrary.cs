@@ -225,10 +225,10 @@ namespace UnityEditor.VFX
                     }).ToList();
 
                 m_SourceAttributeParametersDecs = VFXAttribute.All.Select(a =>
-                {
-                    var desc = new VFXModelDescriptorSourceAttributeParameters(a);
-                    return desc;
-                }).ToList();
+                    {
+                        var desc = new VFXModelDescriptorSourceAttributeParameters(a);
+                        return desc;
+                    }).ToList();
 
                 m_Loaded = true;
             }

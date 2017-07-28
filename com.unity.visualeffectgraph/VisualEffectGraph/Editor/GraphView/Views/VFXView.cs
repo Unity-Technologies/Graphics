@@ -103,14 +103,14 @@ namespace UnityEditor.VFX.UI
                 }).OrderBy(o => o.name);
 
             var descriptorSourceAttributeParameter = VFXLibrary.GetSourceAttributeParameters().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "SourceAttribute/",
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "SourceAttribute/",
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
             var descriptorCurrentAttributeParameter = VFXLibrary.GetCurrentAttributeParameters().Select(o =>
                 {
