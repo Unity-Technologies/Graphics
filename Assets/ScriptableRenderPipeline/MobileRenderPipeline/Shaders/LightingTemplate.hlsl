@@ -17,8 +17,7 @@
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(1);
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(2);
-UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(3);
-UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(4);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
 // from LightDefinitions.cs.hlsl
 #define SPOT_LIGHT (0)
@@ -78,7 +77,6 @@ void OnChipDeferredCalculateLightParams (
 	out float2 outUV,
 	out half3 outLightDir,
 	out float outAtten,
-	out float outFadeDist,
 	out float4 outCookieColor,
 	float depth
 	)
@@ -91,8 +89,6 @@ void OnChipDeferredCalculateLightParams (
 	ShadowContext shadowContext = InitShadowContext();
 
 	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth); 
-
-	float fadeDist = UnityComputeShadowFadeDistance(wpos, vpos.z);
 
 	// spot light case
 	#if defined (SPOT)	
@@ -159,7 +155,6 @@ void OnChipDeferredCalculateLightParams (
 	outUV = uv;
 	outLightDir = lightDir;
 	outAtten = atten;
-	outFadeDist = fadeDist;
 	outCookieColor = colorCookie;
 }
 
@@ -168,14 +163,14 @@ half4 CalculateLight (unity_v2f_deferred i)
 {
 	float3 wpos;
 	float2 uv;
-	float atten, fadeDist;
+	float atten;
 	float4 colorCookie = float4(1, 1, 1, 1);
 
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
-	float depth = UNITY_READ_FRAMEBUFFER_INPUT(4, i.pos);
-	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, depth);
+	float depth = UNITY_READ_FRAMEBUFFER_INPUT(3, i.pos);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, colorCookie, depth);
 
 	#if defined (POINT_COOKIE) || defined (DIRECTIONAL_COOKIE) || defined (SPOT)
 		light.color = _LightColor.rgb * colorCookie.rgb * atten;

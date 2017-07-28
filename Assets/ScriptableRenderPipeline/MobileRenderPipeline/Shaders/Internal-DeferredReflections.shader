@@ -48,7 +48,7 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
     float4 viewPos;
     float3 worldPos;
 
-	float depth = UNITY_READ_FRAMEBUFFER_INPUT(4, i.pos);
+	float depth = UNITY_READ_FRAMEBUFFER_INPUT(3, i.pos);
     OnChipDeferredFragSetup(i, uv, viewPos, worldPos, depth);
 
 	half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, i.pos);

@@ -224,7 +224,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		private RenderPassAttachment s_GBufferSpecRough;
 		private RenderPassAttachment s_GBufferNormal;
 		private RenderPassAttachment s_GBufferEmission;
-		private RenderPassAttachment s_GBufferZ;
 		private RenderPassAttachment s_CameraTarget;
 		private RenderPassAttachment s_Depth;
 
@@ -275,17 +274,15 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		public void Build()
 		{
-			s_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32);
-			s_GBufferSpecRough = new RenderPassAttachment(RenderTextureFormat.ARGB32);
-			s_GBufferNormal = new RenderPassAttachment(RenderTextureFormat.ARGB2101010);
-			s_GBufferEmission = new RenderPassAttachment(RenderTextureFormat.ARGBHalf);
-			s_GBufferZ = new RenderPassAttachment(RenderTextureFormat.Depth);
-
+			s_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32) { hideFlags = HideFlags.HideAndDontSave };
+			s_GBufferSpecRough = new RenderPassAttachment(RenderTextureFormat.ARGB32) { hideFlags = HideFlags.HideAndDontSave };
+			s_GBufferNormal = new RenderPassAttachment(RenderTextureFormat.ARGB2101010) { hideFlags = HideFlags.HideAndDontSave };
+			s_GBufferEmission = new RenderPassAttachment(RenderTextureFormat.ARGBHalf) { hideFlags = HideFlags.HideAndDontSave };
+			s_Depth = new RenderPassAttachment(RenderTextureFormat.Depth) { hideFlags = HideFlags.HideAndDontSave };
 			s_CameraTarget = s_GBufferAlbedo;
-			s_Depth = new RenderPassAttachment(RenderTextureFormat.Depth);
 				
 			s_GBufferEmission.Clear(new Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
-			s_GBufferZ.Clear(new Color(), 1.0f, 0);
+			s_Depth.Clear(new Color(), 1.0f, 0);
 
 			if (SystemInfo.supportsReadOnlyDepth)
 			{
@@ -293,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 			else
 			{
-				s_GBufferRedF32 = new RenderPassAttachment(RenderTextureFormat.RFloat);
+				s_GBufferRedF32 = new RenderPassAttachment(RenderTextureFormat.RFloat) { hideFlags = HideFlags.HideAndDontSave };
 				s_GBufferRedF32.Clear(new Color(), 1.0f, 0);
 			}
 
@@ -410,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 						context.ExecuteCommandBuffer(cmd);
 					}
 					s_CameraTarget.BindSurface(new RenderTargetIdentifier(_sceneViewBlitId), false, true);
-					s_Depth.BindSurface(new RenderTargetIdentifier(_sceneViewDepthId), false, true);
+					s_Depth.BindSurface(new RenderTargetIdentifier(_sceneViewDepthId), false, false);
 				}
 				else
 				{
@@ -431,9 +428,9 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					}
 				}
 
+				context.Submit ();
 			}
 
-			context.Submit ();
 		}
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
@@ -465,9 +462,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 
 				//Lighting Pass
-				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, SystemInfo.supportsReadOnlyDepth ? 
-					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_Depth } :
-					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, true))
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission },  
+					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, SystemInfo.supportsReadOnlyDepth ? s_Depth : s_GBufferRedF32 }, true))
 				{
 					using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass"} )
 					{
@@ -484,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 
 				//Single Pass Forward Transparencies
-				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission }))
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission }, null))
 				{
 					using (var cmd = new CommandBuffer { name = "Forwward Lighting Setup"} )
 					{
@@ -504,7 +500,6 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 
 				//Final pass
-				loop.SetupCameraProperties (camera);
 				using (new RenderPass.SubPass(rp, new[] { s_CameraTarget }, new[] { s_GBufferEmission }))
 				{
 					var cmd = new CommandBuffer { name = "FinalPass" };
