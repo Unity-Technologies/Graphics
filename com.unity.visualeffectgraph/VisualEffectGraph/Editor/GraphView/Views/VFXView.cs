@@ -102,12 +102,22 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.name);
 
-            var descriptorAttributeParameter = VFXLibrary.GetAttributeParameters().Select(o =>
+            var descriptorSourceAttributeParameter = VFXLibrary.GetSourceAttributeParameters().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "SourceAttribute/",
+                    name = o.name
+                };
+            }).OrderBy(o => o.name);
+
+            var descriptorCurrentAttributeParameter = VFXLibrary.GetCurrentAttributeParameters().Select(o =>
                 {
                     return new Descriptor()
                     {
                         modelDescriptor = o,
-                        category = "Attribute/",
+                        category = "CurrentAttribute/",
                         name = o.name
                     };
                 }).OrderBy(o => o.name);
@@ -115,7 +125,8 @@ namespace UnityEditor.VFX.UI
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
                 .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorAttributeParameter)
+                .Concat(descriptorSourceAttributeParameter)
+                .Concat(descriptorCurrentAttributeParameter)
                 .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
@@ -173,9 +184,13 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
                     }
-                    else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
+                    else if (d.modelDescriptor is VFXModelDescriptorCurrentAttributeParameters)
                     {
-                        AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                        AddVFXCurrentAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorCurrentAttributeParameters);
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptorSourceAttributeParameters)
+                    {
+                        AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
                     }
                     else if (d.modelDescriptor == null)
                     {
@@ -234,9 +249,14 @@ namespace UnityEditor.VFX.UI
             GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
         }
 
-        void AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
         {
-            GetPresenter<VFXViewPresenter>().AddVFXAttributeParameter(pos, desc);
+            GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
+        }
+
+        void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that

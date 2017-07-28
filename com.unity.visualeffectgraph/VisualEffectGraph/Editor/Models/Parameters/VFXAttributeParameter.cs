@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXAttributeParameter : VFXOperator
+    abstract class VFXAttributeParameter : VFXOperator
     {
         public class Settings
         {
@@ -28,9 +28,11 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var settings = GetSettings<Settings>();
-            var attribute = VFXAttribute.Find(settings.attribute);
+            var attribute = VFXAttribute.Find(settings.attribute, location);
             var expression = new VFXAttributeExpression(attribute);
             return new VFXExpression[] { expression };
         }
+
+        abstract public VFXAttributeLocation location { get; }
     }
 }

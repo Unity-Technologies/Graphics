@@ -508,7 +508,21 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        public VFXCurrentAttributeParameter AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
+        {
+            var model = desc.CreateInstance();
+            AddVFXModel(pos, model);
+            return model;
+        }
+
+        public VFXSourceAttributeParameter AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
+        {
+            var model = desc.CreateInstance();
+            AddVFXModel(pos, model);
+            return model;
+        }
+
+        public VFXSourceAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);

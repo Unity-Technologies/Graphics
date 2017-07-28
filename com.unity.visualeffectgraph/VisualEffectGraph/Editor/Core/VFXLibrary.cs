@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXModelDescriptorAttributeParameters : VFXModelDescriptor<VFXAttributeParameter>
+    class VFXModelDescriptorAttributeParameters<T> : VFXModelDescriptor<T> where T : VFXAttributeParameter
     {
         private string m_attributeName;
         public override string name
@@ -133,16 +133,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXModelDescriptorAttributeParameters(string attributeName) : base(ScriptableObject.CreateInstance<VFXAttributeParameter>())
+        public VFXModelDescriptorAttributeParameters(string attributeName) : base(ScriptableObject.CreateInstance<T>())
         {
             m_attributeName = attributeName;
         }
 
-        public override VFXAttributeParameter CreateInstance()
+        public override T CreateInstance()
         {
             var instance = base.CreateInstance();
             instance.SetSettingValue("attribute", m_attributeName);
             return instance;
+        }
+    }
+
+    class VFXModelDescriptorCurrentAttributeParameters : VFXModelDescriptorAttributeParameters<VFXCurrentAttributeParameter>
+    {
+        public VFXModelDescriptorCurrentAttributeParameters(string attributeName) : base(attributeName)
+        {
+        }
+    }
+
+    class VFXModelDescriptorSourceAttributeParameters : VFXModelDescriptorAttributeParameters<VFXSourceAttributeParameter>
+    {
+        public VFXModelDescriptorSourceAttributeParameters(string attributeName) : base(attributeName)
+        {
         }
     }
 
@@ -154,8 +168,8 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
         public static IEnumerable<VFXModelDescriptorBuiltInParameters> GetBuiltInParameters() { LoadIfNeeded(); return m_BuiltInParametersDescs; }
-
-        public static IEnumerable<VFXModelDescriptorAttributeParameters> GetAttributeParameters() { LoadIfNeeded(); return m_AttributeParametersDecs; }
+        public static IEnumerable<VFXModelDescriptorCurrentAttributeParameters> GetCurrentAttributeParameters() { LoadIfNeeded(); return m_CurrentAttributeParametersDecs; }
+        public static IEnumerable<VFXModelDescriptorSourceAttributeParameters> GetSourceAttributeParameters() { LoadIfNeeded(); return m_SourceAttributeParametersDecs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
         {
@@ -204,11 +218,17 @@ namespace UnityEditor.VFX
                         return desc;
                     }).ToList();
 
-                m_AttributeParametersDecs = VFXAttribute.All.Select(a =>
+                m_CurrentAttributeParametersDecs = VFXAttribute.All.Select(a =>
                     {
-                        var desc = new VFXModelDescriptorAttributeParameters(a);
+                        var desc = new VFXModelDescriptorCurrentAttributeParameters(a);
                         return desc;
                     }).ToList();
+
+                m_SourceAttributeParametersDecs = VFXAttribute.All.Select(a =>
+                {
+                    var desc = new VFXModelDescriptorSourceAttributeParameters(a);
+                    return desc;
+                }).ToList();
 
                 m_Loaded = true;
             }
@@ -320,7 +340,8 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile List<VFXModelDescriptorBuiltInParameters> m_BuiltInParametersDescs;
-        private static volatile List<VFXModelDescriptorAttributeParameters> m_AttributeParametersDecs;
+        private static volatile List<VFXModelDescriptorCurrentAttributeParameters> m_CurrentAttributeParametersDecs;
+        private static volatile List<VFXModelDescriptorSourceAttributeParameters> m_SourceAttributeParametersDecs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();

@@ -14,6 +14,12 @@ namespace UnityEditor.VFX
         ReadWrite   = Read | Write,
     }
 
+    enum VFXAttributeLocation
+    {
+        Current = 0,
+        Source = 1,
+    }
+
     struct VFXAttribute
     {
         public static readonly VFXAttribute Seed               = new VFXAttribute("seed", VFXValueType.kUint);
@@ -37,13 +43,14 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute), System.Reflection.BindingFlags.Public);
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
 
-        public VFXAttribute(string name, VFXValueType type)
+        public VFXAttribute(string name, VFXValueType type, VFXAttributeLocation location = VFXAttributeLocation.Current)
         {
             this.name = name;
             this.type = type;
+            this.location = location;
         }
 
-        public static VFXAttribute Find(string attributeName)
+        public static VFXAttribute Find(string attributeName, VFXAttributeLocation location)
         {
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
@@ -51,19 +58,22 @@ namespace UnityEditor.VFX
             }
 
             var attribute = AllAttribute.First(e => e.name == attributeName);
+            attribute.location = location;
             return attribute;
         }
 
         public string name;
         public VFXValueType type;
+        public VFXAttributeLocation location;
     }
 
     struct VFXAttributeInfo
     {
-        public VFXAttributeInfo(string name, VFXValueType type, VFXAttributeMode mode)
+        public VFXAttributeInfo(string name, VFXValueType type, VFXAttributeLocation location, VFXAttributeMode mode)
         {
             attrib.name = name;
             attrib.type = type;
+            attrib.location = location;
             this.mode = mode;
         }
 
@@ -107,9 +117,9 @@ namespace UnityEditor.VFX
                 return m_Attribute.name;
             }
         }
-
         public VFXAttribute attribute { get { return m_Attribute; } }
         private VFXAttribute m_Attribute;
+
 
         public override bool Equals(object obj)
         {

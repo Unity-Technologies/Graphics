@@ -389,7 +389,7 @@ namespace UnityEditor.VFX.Test
         public void SerializeAttributeParameter()
         {
             var testAttribute = "size";
-            Action<VFXAttributeParameter> test = delegate(VFXAttributeParameter parameter)
+            Action<VFXCurrentAttributeParameter> test = delegate(VFXCurrentAttributeParameter parameter)
                 {
                     Assert.AreEqual(VFXExpressionOp.kVFXNoneOp, parameter.outputSlots[0].GetExpression().Operation);
                     Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
@@ -399,14 +399,14 @@ namespace UnityEditor.VFX.Test
 
             Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
-                    var size = VFXLibrary.GetAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
+                    var size = VFXLibrary.GetCurrentAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
                     asset.GetOrCreateGraph().AddChild(size);
                     test(size);
                 };
 
             Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var size = asset.GetOrCreateGraph()[0] as VFXAttributeParameter;
+                    var size = asset.GetOrCreateGraph()[0] as VFXCurrentAttributeParameter;
                     Assert.AreNotEqual(null, size);
                     test(size);
                 };
