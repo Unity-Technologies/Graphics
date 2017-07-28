@@ -154,6 +154,14 @@ namespace UnityEditor.VFX
             return new VFXExpressionMul(VFXOperatorUtility.Frac(div), y);
         }
 
+		static public VFXExpression Fit(VFXExpression value, VFXExpression oldRangeMin, VFXExpression oldRangeMax, VFXExpression newRangeMin, VFXExpression newRangeMax)
+		{
+			//percent = (value - oldRangeMin) / (oldRangeMax - oldRangeMin)
+			//lerp(newRangeMin, newRangeMax, percent)
+			VFXExpression percent = new VFXExpressionDivide(new VFXExpressionSubtract(value, oldRangeMin), new VFXExpressionSubtract(oldRangeMax, oldRangeMin));
+			return Lerp(newRangeMin, newRangeMax, percent);
+		}
+
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
             if (expression.ValueType == VFXValueType.kFloat)
