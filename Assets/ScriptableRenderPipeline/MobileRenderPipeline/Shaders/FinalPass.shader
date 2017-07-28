@@ -15,7 +15,7 @@ Shader "SRP/FinalPass-Mobile"
             #include "UnityCG.cginc"
        
             struct v2f {
-                float4 vertex : SV_POSITION;
+                float4 vertex : SV_Position;
             };
 
             UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
@@ -24,7 +24,7 @@ Shader "SRP/FinalPass-Mobile"
             {
                 v2f o;
                 o.vertex.x = (id & 1) != 0 ? 3 : -1;
-                o.vertex.y = (id & 2) != 0 ? -3 : 1;
+                o.vertex.y = (id & 2) != 0 ? -5 : 1;
                 o.vertex.z = 0;
                 o.vertex.w = 1;
                 return o;

@@ -596,7 +596,7 @@ void fragDeferred (
 	out half4 outGBuffer2 : SV_Target2,
 	out half4 outEmission : SV_Target3			// RT3: emission (rgb), --unused-- (a)
 #if (UNITY_ALLOWED_MRT_COUNT > 4)
-	#if defined(UNITY_SUPPORT_DEPTH_FETCH)
+	#if !defined(UNITY_SUPPORT_DEPTH_FETCH)
 		,out float outDepth : SV_Target4		// RT4: zData (F32)
 	#elif defined(SHADOWS_SHADOWMASK)
 		,out half4 outShadowMask : SV_Target4		// RT4: shadowmask (rgba)
@@ -655,7 +655,7 @@ void fragDeferred (
 
 	// Baked direct lighting occlusion if any
 	#if (UNITY_ALLOWED_MRT_COUNT > 4)
-	 	#if defined(UNITY_SUPPORT_DEPTH_FETCH)
+	 	#if !defined(UNITY_SUPPORT_DEPTH_FETCH)
 			outDepth = i.pos.z;
 	 	#elif defined(SHADOWS_SHADOWMASK)
 	 		outShadowMask = UnityGetRawBakedOcclusions(i.ambientOrLightmapUV.xy, IN_WORLDPOS(i));	
