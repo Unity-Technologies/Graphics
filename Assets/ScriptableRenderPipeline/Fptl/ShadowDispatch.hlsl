@@ -9,7 +9,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[0];
 	uint					algo     = GPUSHADOWALGORITHM_PCF_9TAP;
 
-	return EvalShadow_CascadedDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth_Blend( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
 
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )

@@ -301,14 +301,14 @@ namespace UnityEngine.Experimental.Rendering
                     float texelSizeX = 1.0f, texelSizeY = 1.0f;
                     CachedEntry ce = m_EntryCache[ceIdx];
                     // modify
-                    Matrix4x4 vp;
+                    Matrix4x4 vp, invvp;
                     if( sr.shadowType == GPUShadowType.Point )
-                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 2.0f, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData );
+                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 2.0f, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Spot )
-                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData );
+                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
-                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
+                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
@@ -321,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
                     else
-                        vp = Matrix4x4.identity; // should never happen, though
+                        vp = invvp = Matrix4x4.identity; // should never happen, though
                     if (cameraRelativeRendering)
                     {
                         Vector3 camPosWS = camera.transform.position;
@@ -340,7 +340,9 @@ namespace UnityEngine.Experimental.Rendering
                     m_EntryCache[ceIdx] = ce;
 
                     sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
+                    sd.shadowToWorld = invvp.transpose;
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
+                    sd.textureSize   = new Vector4( m_Width, m_Height, ce.current.viewport.width, ce.current.viewport.height );
                     sd.texelSizeRcp  = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / ce.current.viewport.width, 1.0f / ce.current.viewport.height );
                     sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
                     sd.PackShadowType( sr.shadowType, sanitizedAlgo );
