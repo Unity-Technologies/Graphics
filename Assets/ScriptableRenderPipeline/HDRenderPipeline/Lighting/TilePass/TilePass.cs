@@ -1416,7 +1416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        var probe = cullResults.visibleReflectionProbes[probeIndex];
+                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
 
                         // probe.texture can be null when we are adding a reflection probe in the editor
                         if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
@@ -1426,8 +1426,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
                         ++envLightCount;
 
-                        // 16 bit lightVolume, 16 bit index
-                        sortKeys[sortCount++] = (uint)lightVolumeType << 16 | (uint)probeIndex;
+                        float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
+                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.1f), 0, 8191); // Allow for negative exponents
+
+                        // 13 bit volume, 3 bit LightVolumeType, 16 bit index
+                        sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
@@ -1437,7 +1440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = sortKeys[sortIndex];
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0xFFFF);
+                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
                         int probeIndex = (int)(sortKey & 0xFFFF);
 
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
