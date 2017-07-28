@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
                         category = "Context/" + o.info.category,
                         name = o.name
                     };
-                }).OrderBy(o => o.name);
+                }).OrderBy(o => o.category + o.name);
 
             var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
                 {
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
                         category = "Operator/" + o.info.category,
                         name = o.name
                     };
-                }).OrderBy(o => o.name);
+                }).OrderBy(o => o.category + o.name);
 
             var descriptorParameter = VFXLibrary.GetParameters().Select(o =>
                 {
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
                         category = "Parameter/",
                         name = o.name
                     };
-                }).OrderBy(o => o.name);
+                }).OrderBy(o => o.category + o.name);
 
             var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameters().Select(o =>
                 {
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
                         category = "BuiltIn/",
                         name = o.name
                     };
-                }).OrderBy(o => o.name);
+                }).OrderBy(o => o.category + o.name);
 
             var descriptorAttributeParameter = VFXLibrary.GetAttributeParameters().Select(o =>
                 {
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.UI
                         category = "Attribute/",
                         name = o.name
                     };
-                }).OrderBy(o => o.name);
+                }).OrderBy(o => o.category + o.name);
 
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
