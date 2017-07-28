@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.Test
             vec3_Two.inputSlots[1].Link(two.outputSlots[0]);
             vec3_Two.inputSlots[2].Link(two.outputSlots[0]);
 
-            var mul = ScriptableObject.CreateInstance<VFXOperatorMul>();
+            var mul = ScriptableObject.CreateInstance<VFXOperatorMultiply>();
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
@@ -77,15 +77,15 @@ namespace UnityEditor.VFX.Test
             vec3_One.inputSlots[1].Link(one.outputSlots[0]);
             Assert.AreEqual(vec3_One.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat3);
 
-            var cos = ScriptableObject.CreateInstance<VFXOperatorCos>();
+            var cos = ScriptableObject.CreateInstance<VFXOperatorCosine>();
             cos.inputSlots[0].Link(vec2_One.outputSlots[0]);
             Assert.AreEqual(cos.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
-            var sin = ScriptableObject.CreateInstance<VFXOperatorSin>();
-            sin.inputSlots[0].Link(cos.outputSlots[0]);
-            Assert.AreEqual(sin.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
+			var sin = ScriptableObject.CreateInstance<VFXOperatorSine>();
+			sin.inputSlots[0].Link(cos.outputSlots[0]);
+			Assert.AreEqual(sin.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
-            var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+            var abs = ScriptableObject.CreateInstance<VFXOperatorAbsolute>();
             abs.inputSlots[0].Link(sin.outputSlots[0]);
             Assert.AreEqual(abs.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.Test
             append.inputSlots[1].Link(one.outputSlots[0]);
             append.inputSlots[2].Link(one.outputSlots[0]);
 
-            var cross = ScriptableObject.CreateInstance<VFXOperatorCross>();
+            var cross = ScriptableObject.CreateInstance<VFXOperatorCrossProduct>();
             cross.inputSlots[0].Link(append.outputSlots[0]);
             Assert.IsTrue(cross.inputSlots[0].HasLink());
 
@@ -148,9 +148,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AppendOperator()
         {
-            var absOperator = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+            var absOperator = ScriptableObject.CreateInstance<VFXOperatorAbsolute>();
             var appendOperator = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
-            var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCos>();
+            var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCosine>();
 
             Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().ValueType);
             Assert.AreEqual(1, appendOperator.outputSlots.Count);

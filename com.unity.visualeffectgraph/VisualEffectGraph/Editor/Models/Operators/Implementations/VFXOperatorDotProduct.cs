@@ -3,16 +3,18 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorDot : VFXOperatorFloatUnified
+	[VFXInfo(category = "Vector")]
+	class VFXOperatorDotProduct : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-            public FloatN right = Vector3.zero;
-            public FloatN left = Vector3.zero;
+			[Tooltip("The first operand.")]
+			public FloatN a = Vector3.zero;
+			[Tooltip("The second operand.")]
+			public FloatN b = Vector3.zero;
         }
 
-        override public string name { get { return "Dot"; } }
+        override public string name { get { return "Dot Product"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

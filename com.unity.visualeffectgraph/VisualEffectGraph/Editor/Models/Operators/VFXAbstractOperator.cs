@@ -146,7 +146,8 @@ namespace UnityEditor.VFX
     {
         public class InputProperties
         {
-            public FloatN input = new FloatN(new[] { 0.0f });
+			[Tooltip("The operand.")]
+			public FloatN x = new FloatN(0.0f);
         }
     }
 
@@ -204,8 +205,10 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             static public float FallbackValue = 1.0f;
-            public FloatN right = FallbackValue;
-            public FloatN left = FallbackValue;
+            [Tooltip("The first operand.")]
+            public FloatN a = FallbackValue;
+            [Tooltip("The second operand.")]
+            public FloatN b = FallbackValue;
         }
     }
 
@@ -214,8 +217,10 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             static public float FallbackValue = 0.0f;
-            public FloatN right = FallbackValue;
-            public FloatN left = FallbackValue;
+            [Tooltip("The first operand.")]
+            public FloatN a = FallbackValue;
+            [Tooltip("The second operand.")]
+            public FloatN b = FallbackValue;
         }
     }
 }

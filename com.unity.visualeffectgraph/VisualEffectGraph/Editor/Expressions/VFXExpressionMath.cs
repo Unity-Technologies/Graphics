@@ -43,6 +43,25 @@ namespace UnityEditor.VFX
         }
     }
 
+	class VFXExpressionTan : VFXExpressionUnaryFloatOperation
+	{
+		public VFXExpressionTan() : this(VFXValue<float>.Default) { }
+
+		public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXTanOp)
+		{
+		}
+
+		sealed protected override string GetUnaryOperationCode(string x)
+		{
+			return string.Format("tan({0})", x);
+		}
+
+		sealed protected override float ProcessUnaryOperation(float input)
+		{
+			return Mathf.Tan(input);
+		}
+	}
+
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
@@ -61,6 +80,25 @@ namespace UnityEditor.VFX
             return Mathf.Abs(input);
         }
     }
+
+	class VFXExpressionSign : VFXExpressionUnaryFloatOperation
+	{
+		public VFXExpressionSign() : this(VFXValue<float>.Default) { }
+
+		public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSignOp)
+		{
+		}
+
+		sealed protected override string GetUnaryOperationCode(string x)
+		{
+			return string.Format("sign({0})", x);
+		}
+
+		sealed protected override float ProcessUnaryOperation(float input)
+		{
+			return Mathf.Sign(input);
+		}
+	}
 
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {

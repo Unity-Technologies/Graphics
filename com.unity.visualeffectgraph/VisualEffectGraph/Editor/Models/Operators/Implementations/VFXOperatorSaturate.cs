@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorSaturate : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Math")]
+	class VFXOperatorSaturate : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Saturate"; } }
 

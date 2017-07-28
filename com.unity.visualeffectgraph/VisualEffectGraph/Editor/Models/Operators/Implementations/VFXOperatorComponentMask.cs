@@ -4,8 +4,8 @@ using System.Linq;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorComponentMask : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Misc")]
+	class VFXOperatorComponentMask : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "ComponentMask"; } }
 

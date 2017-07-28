@@ -1,15 +1,19 @@
 using System;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorClamp : VFXOperatorFloatUnified
+	[VFXInfo(category = "Math")]
+	class VFXOperatorClamp : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-            public FloatN input = new FloatN(new[] { 0.0f });
-            public FloatN min = new FloatN(new[] { 0.0f });
-            public FloatN max = new FloatN(new[] { 1.0f });
+			[Tooltip("The value to be clamped.")]
+			public FloatN input = new FloatN(0.0f);
+			[Tooltip("The lower bound to clamp the input to.")]
+			public FloatN min = new FloatN(0.0f);
+			[Tooltip("The upper bound to clamp the input to.")]
+			public FloatN max = new FloatN(1.0f);
         }
 
         override public string name { get { return "Clamp"; } }

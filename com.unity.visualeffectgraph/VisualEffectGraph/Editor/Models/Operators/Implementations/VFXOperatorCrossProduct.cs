@@ -4,16 +4,18 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorCross : VFXOperator
+	[VFXInfo(category = "Vector")]
+	class VFXOperatorCrossProduct : VFXOperator
     {
         public class InputProperties
         {
-            public Vector3 left = Vector3.right;
-            public Vector3 right = Vector3.up;
+			[Tooltip("The first operand.")]
+			public Vector3 a = Vector3.right;
+			[Tooltip("The second operand.")]
+			public Vector3 b = Vector3.up;
         }
 
-        override public string name { get { return "Cross"; } }
+        override public string name { get { return "Cross Product"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

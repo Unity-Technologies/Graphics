@@ -2,10 +2,10 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorMax : VFXOperatorBinaryFloatOperationOne
+	[VFXInfo(category = "Math")]
+	class VFXOperatorMaximum : VFXOperatorBinaryFloatOperationOne
     {
-        override public string name { get { return "Max"; } }
+        override public string name { get { return "Maximum"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

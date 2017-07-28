@@ -2,10 +2,10 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorMul : VFXOperatorBinaryFloatOperationOne
+    [VFXInfo(category = "Math")]
+    class VFXOperatorMultiply : VFXOperatorBinaryFloatOperationOne
     {
-        override public string name { get { return "Mul"; } }
+        override public string name { get { return "Multiply"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

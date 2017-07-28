@@ -135,7 +135,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAdd);
         }
 
-        private void CheckIsolatedOperatorAbs(VFXOperatorAbs add)
+        private void CheckIsolatedOperatorAbs(VFXOperatorAbsolute add)
         {
             Assert.AreEqual(1, add.outputSlots.Count);
             Assert.AreEqual(1, add.inputSlots.Count);
@@ -145,7 +145,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAbs);
         }
 
-        private void CheckConnectedAbs(VFXOperatorAbs abs)
+        private void CheckConnectedAbs(VFXOperatorAbsolute abs)
         {
             Assert.IsTrue(abs.inputSlots[0].HasLink());
             Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count());
@@ -197,7 +197,7 @@ namespace UnityEditor.VFX.Test
 
             if (spawnAbs)
             {
-                var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+                var abs = ScriptableObject.CreateInstance<VFXOperatorAbsolute>();
                 abs.position = new Vector2(64.0f, 64.0f);
                 graph.AddChild(abs);
                 CheckIsolatedOperatorAbs(abs);
@@ -219,8 +219,8 @@ namespace UnityEditor.VFX.Test
 
             if (spawnAbs)
             {
-                Assert.IsNotNull((VFXOperatorAbs)graph[1]);
-                var abs = (VFXOperatorAbs)graph[1];
+                Assert.IsNotNull((VFXOperatorAbsolute)graph[1]);
+                var abs = (VFXOperatorAbsolute)graph[1];
                 CheckIsolatedOperatorAbs(abs);
                 Assert.AreEqual(abs.position.x, 64.0f);
                 Assert.AreEqual(abs.position.y, 64.0f);

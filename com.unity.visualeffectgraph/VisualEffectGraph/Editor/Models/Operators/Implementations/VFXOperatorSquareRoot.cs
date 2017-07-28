@@ -1,11 +1,13 @@
 using System;
+using UnityEngine;
+
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorSqrt : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Math")]
+	class VFXOperatorSquareRoot : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Sqrt"; } }
+        override public string name { get { return "Square Root"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorRound : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Math")]
+	class VFXOperatorRound : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Round"; } }
 

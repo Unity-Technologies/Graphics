@@ -4,19 +4,19 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
 	[VFXInfo(category = "Vector")]
-	class VFXOperatorLength : VFXOperatorFloatUnified
+	class VFXOperatorSquaredLength : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-            [Tooltip("The vector to be used in the length calculation.")]
+			[Tooltip("The vector used to calculate the squared length.")]
 			public FloatN x = Vector3.one;
         }
 
-        override public string name { get { return "Length"; } }
+        override public string name { get { return "Squared Length"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Length(inputExpression[0]) };
+            return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[0]) };
         }
     }
 }

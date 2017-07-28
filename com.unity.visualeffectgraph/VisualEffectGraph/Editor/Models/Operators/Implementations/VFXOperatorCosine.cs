@@ -2,10 +2,10 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorCos : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Math")]
+	class VFXOperatorCosine : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Cos"; } }
+        override public string name { get { return "Cosine"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

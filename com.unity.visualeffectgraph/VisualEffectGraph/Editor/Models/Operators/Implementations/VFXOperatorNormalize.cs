@@ -3,12 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorNormalize : VFXOperatorFloatUnified
+	[VFXInfo(category = "Vector")]
+	class VFXOperatorNormalize : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-            public FloatN input = Vector3.one;
+			[Tooltip("The vector to be normalized.")]
+			public FloatN x = Vector3.one;
         }
 
         override public string name { get { return "Normalize"; } }

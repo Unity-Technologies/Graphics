@@ -7,15 +7,15 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
 	[VFXInfo(category = "Utility")]
-	class VFXOperatorSampleCurve : VFXOperator
+	class VFXOperatorSampleGradient : VFXOperator
     {
-        override public string name { get { return "Sample Curve"; } }
+        override public string name { get { return "Sample Gradient"; } }
 
         public class InputProperties
         {
-			[Tooltip("The curve to sample from.")]
-			public AnimationCurve curve = new AnimationCurve();
-			[Range(0.0f, 1.0f), Tooltip("The time along the curve to take a sample from.")]
+			[Tooltip("The gradient to sample from.")]
+			public Gradient gradient = new Gradient();
+			[Range(0.0f, 1.0f), Tooltip("The time along the gradient to take a sample from.")]
 			public float time = 0.0f;
         }
 
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
                 return new VFXExpression[] {};
             }
 
-            return new[] { new VFXExpressionSampleCurve(inputExpression[0], inputExpression[1]) };
+            return new[] { new VFXExpressionSampleGradient(inputExpression[0], inputExpression[1]) };
         }
     }
 }

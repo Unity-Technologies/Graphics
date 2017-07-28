@@ -112,6 +112,19 @@ namespace UnityEditor.VFX
             return sum.Pop();
         }
 
+		static public VFXExpression Distance(VFXExpression x, VFXExpression y)
+		{
+			//length(a - b)
+			return Length(new VFXExpressionSubtract(x, y));
+		}
+
+		static public VFXExpression SqrDistance(VFXExpression x, VFXExpression y)
+		{
+			//dot(a - b)
+			var delta = new VFXExpressionSubtract(x, y);
+			return Dot(delta, delta);
+		}
+
         static public VFXExpression Lerp(VFXExpression x, VFXExpression y, VFXExpression s)
         {
             //x + s(y - x)

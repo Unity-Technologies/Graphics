@@ -2,10 +2,10 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorFrac : VFXOperatorUnaryFloatOperation
+	[VFXInfo(category = "Math")]
+	class VFXOperatorFractionalPart : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Frac"; } }
+        override public string name { get { return "Fractional Part"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

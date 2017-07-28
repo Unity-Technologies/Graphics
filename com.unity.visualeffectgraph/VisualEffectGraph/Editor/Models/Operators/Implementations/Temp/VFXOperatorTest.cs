@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXOperatorTest : VFXOperator
+	[VFXInfo(category = "Test")]
+	class VFXOperatorTest : VFXOperator
     {
         override public string name { get { return "Test"; } }
 
