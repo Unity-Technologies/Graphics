@@ -291,6 +291,36 @@ Prefab:
       propertyPath: shadowDatas.Array.data[1].data.Array.data[1]
       value: 1065353216
       objectReference: {fileID: 0}
+    - target: {fileID: 108232429957107678, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 108232429957107678, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 108232429957107678, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 108517636960024596, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.r
+      value: 0.034482475
+      objectReference: {fileID: 0}
+    - target: {fileID: 108517636960024596, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 108517636960024596, guid: ec7b67f3c5459455f90eb3a1f933b4e7,
+        type: 2}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: ec7b67f3c5459455f90eb3a1f933b4e7, type: 2}
   m_IsPrefabParent: 0
@@ -343,20 +373,6 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_FalloffTable:
-    m_Table[0]: 0
-    m_Table[1]: 0
-    m_Table[2]: 0
-    m_Table[3]: 0
-    m_Table[4]: 0
-    m_Table[5]: 0
-    m_Table[6]: 0
-    m_Table[7]: 0
-    m_Table[8]: 0
-    m_Table[9]: 0
-    m_Table[10]: 0
-    m_Table[11]: 0
-    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
