@@ -258,7 +258,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void InitSettings()
+        private void InitSettings()
         {
             var type = GetType().GetNestedType(GetSettingsTypeName());
             if (type != null)
