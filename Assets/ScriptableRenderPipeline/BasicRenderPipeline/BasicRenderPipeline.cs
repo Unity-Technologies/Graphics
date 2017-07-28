@@ -58,7 +58,62 @@ public static class BasicRendering
 {
     // Main entry point for our scriptable render loop
 
-    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlit)
+    static void ConfigureAndBindIntermediateRenderTarget(ScriptableRenderContext context, Camera cam, bool stereoEnabled, out RenderTargetIdentifier intermediateRTID, out bool isRTTexArray)
+    {
+        var intermediateRT = Shader.PropertyToID("_IntermediateTarget");
+        intermediateRTID = new RenderTargetIdentifier(intermediateRT);
+
+        isRTTexArray = false;
+
+        var bindIntermediateRTCmd = CommandBufferPool.Get("Bind intermediate RT");
+
+        if (stereoEnabled)
+        {
+            RenderTextureDescriptor vrDesc = XRSettings.eyeTextureDesc;
+            vrDesc.depthBufferBits = 24;
+
+            if (vrDesc.dimension == TextureDimension.Tex2DArray)
+                isRTTexArray = true;
+
+            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, vrDesc, FilterMode.Point);
+        }
+        else
+        {
+            int w = cam.pixelWidth;
+            int h = cam.pixelHeight;
+            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, w, h, 24, FilterMode.Point, RenderTextureFormat.Default, RenderTextureReadWrite.Default, 1, true);
+        }
+
+        if (isRTTexArray)
+            bindIntermediateRTCmd.SetRenderTarget(intermediateRTID, 0, CubemapFace.Unknown, -1); // depthSlice == -1 => bind all slices
+        else
+            bindIntermediateRTCmd.SetRenderTarget(intermediateRTID);
+
+        context.ExecuteCommandBuffer(bindIntermediateRTCmd);
+        CommandBufferPool.Release(bindIntermediateRTCmd);
+    }
+
+    static void BlitFromIntermediateToCameraTarget(ScriptableRenderContext context, RenderTargetIdentifier intermediateRTID, bool isRTTexArray)
+    {
+        var blitIntermediateRTCmd = CommandBufferPool.Get("Copy intermediate RT to default RT");
+
+        if (isRTTexArray)
+        {
+            // Currently, Blit does not allow specification of a slice in a texture array.
+            // It can use the CurrentActive render texture's bound slices, so we use that
+            // as a temporary workaround.
+            blitIntermediateRTCmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            blitIntermediateRTCmd.Blit(intermediateRTID, BuiltinRenderTextureType.CurrentActive);
+        }
+        else
+            blitIntermediateRTCmd.Blit(intermediateRTID, BuiltinRenderTextureType.CameraTarget);
+
+        context.ExecuteCommandBuffer(blitIntermediateRTCmd);
+        CommandBufferPool.Release(blitIntermediateRTCmd);
+
+    }
+
+    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlitPath)
     {
         bool stereoEnabled = XRSettings.isDeviceActive;
 
@@ -80,6 +135,13 @@ public static class BasicRendering
             // Draws in-between [Start|Stop]MultiEye are stereo-ized by engine
             if (stereoEnabled)
                 context.StartMultiEye(camera);
+
+            RenderTargetIdentifier intermediateRTID = new RenderTargetIdentifier(BuiltinRenderTextureType.CurrentActive);
+            bool isIntermediateRTTexArray = false;
+            if (useIntermediateBlitPath)
+            {
+                ConfigureAndBindIntermediateRenderTarget(context, camera, stereoEnabled, out intermediateRTID, out isIntermediateRTTexArray);
+            }
 
             // clear depth buffer
             var cmd = CommandBufferPool.Get();
@@ -103,6 +165,11 @@ public static class BasicRendering
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
             context.DrawRenderers(ref settings);
+
+            if (useIntermediateBlitPath)
+            {
+                BlitFromIntermediateToCameraTarget(context, intermediateRTID, isIntermediateRTTexArray);
+            }
 
             if (stereoEnabled)
             {
