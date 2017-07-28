@@ -107,6 +107,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "shader"));
             if (!File.Exists(textTemplateFilePath)) {
                 File.WriteAllText(textTemplateFilePath, shaderString);
+                Assert.Fail("Text template file not found for {0}, creating it.", file);
             }
             else {
                 var textTemplate = File.ReadAllText(textTemplateFilePath);
@@ -162,7 +163,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 // no reference exists, create it
                 var generated = m_Captured.EncodeToPNG();
                 File.WriteAllBytes(dumpFileLocation, generated);
-                Assert.Fail("Template file not found for {0}, creating it.", file);
+                Assert.Fail("Image template file not found for {0}, creating it.", file);
             }
 
             var template = File.ReadAllBytes(dumpFileLocation);
@@ -185,27 +186,33 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             Assert.IsTrue(areEqual, "Shader from graph {0}, did not match .template file.", file);
         }
 
-        private bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)
+        // compare textures, use RMS for this
+        private bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)       
         {
             if (fromDisk == null || captured == null)
                 return false;
 
-            if (fromDisk.width != captured.width
+            if (fromDisk.width != captured.width         
                 || fromDisk.height != captured.height)
                 return false;
 
             var pixels1 = fromDisk.GetPixels();
             var pixels2 = captured.GetPixels();
-
             if (pixels1.Length != pixels2.Length)
                 return false;
 
-            for (int i = 0; i < pixels1.Length; i++)
+            int numberOfPixels = pixels1.Length;
+            float sumOfSquaredColorDistances = 0;
+            for (int i = 0; i < numberOfPixels; i++)         
             {
-                if (!CompareColor(pixels1[i], pixels2[i], threshold))
-                    return false;
+                Color p1 = pixels1[i];
+                Color p2 = pixels2[i];
+                Color diff = p1 - p2;
+                diff = diff * diff;
+                sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
             }
-            return true;
+            float rmse = Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels);
+            return rmse < threshold;
         }
 
         private bool CompareColor(Vector4 left, Vector4 right, float threshold)
