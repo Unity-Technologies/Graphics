@@ -95,7 +95,7 @@ float GetPunctualShadowAttenuationDefault( ShadowContext shadowContext, float3 p
 // directional light shadows
 float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
-	return EvalShadow_CascadedDepth( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
