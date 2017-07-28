@@ -15,6 +15,8 @@ using UnityEngine.XR;
 [ExecuteInEditMode]
 public class BasicRenderPipeline : RenderPipelineAsset
 {
+    public bool UseIntermediateRenderTargetBlit;
+
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("RenderPipeline/Create BasicRenderPipeline")]
     static void CreateBasicRenderPipeline()
@@ -27,16 +29,28 @@ public class BasicRenderPipeline : RenderPipelineAsset
 
     protected override IRenderPipeline InternalCreatePipeline()
     {
-        return new BasicRenderPipelineInstance();
+        return new BasicRenderPipelineInstance(UseIntermediateRenderTargetBlit);
     }
 }
 
 public class BasicRenderPipelineInstance : RenderPipeline
 {
+    bool useIntermediateBlit;
+
+    public BasicRenderPipelineInstance()
+    {
+        useIntermediateBlit = false;
+    }
+
+    public BasicRenderPipelineInstance(bool useIntermediate)
+    {
+        useIntermediateBlit = useIntermediate;
+    }
+
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
-        BasicRendering.Render(renderContext, cameras);
+        BasicRendering.Render(renderContext, cameras, useIntermediateBlit);
     }
 }
 
@@ -44,7 +58,7 @@ public static class BasicRendering
 {
     // Main entry point for our scriptable render loop
 
-    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
+    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlit)
     {
         bool stereoEnabled = XRSettings.isDeviceActive;
 
