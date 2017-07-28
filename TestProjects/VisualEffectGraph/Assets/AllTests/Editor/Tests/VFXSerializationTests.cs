@@ -389,26 +389,33 @@ namespace UnityEditor.VFX.Test
         public void SerializeAttributeParameter()
         {
             var testAttribute = "size";
-            Action<VFXCurrentAttributeParameter> test = delegate(VFXCurrentAttributeParameter parameter)
+            Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
                 {
                     Assert.AreEqual(VFXExpressionOp.kVFXNoneOp, parameter.outputSlots[0].GetExpression().Operation);
                     Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
                     Assert.IsInstanceOf(typeof(VFXAttributeExpression), parameter.outputSlots[0].GetExpression());
+                    Assert.AreEqual(location, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeLocation);
                     Assert.AreEqual(testAttribute, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeName);
                 };
 
             Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
-                    var size = VFXLibrary.GetCurrentAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
-                    asset.GetOrCreateGraph().AddChild(size);
-                    test(size);
+                    var sizeCurrent = VFXLibrary.GetCurrentAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
+                    var sizeSource = VFXLibrary.GetSourceAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
+                    asset.GetOrCreateGraph().AddChild(sizeCurrent);
+                    asset.GetOrCreateGraph().AddChild(sizeSource);
+                    test(sizeCurrent, VFXAttributeLocation.Current);
+                    test(sizeSource, VFXAttributeLocation.Source);
                 };
 
             Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var size = asset.GetOrCreateGraph()[0] as VFXCurrentAttributeParameter;
-                    Assert.AreNotEqual(null, size);
-                    test(size);
+                    var sizeCurrent = asset.GetOrCreateGraph()[0] as VFXAttributeParameter;
+                    var sizeSource = asset.GetOrCreateGraph()[1] as VFXAttributeParameter;
+                    Assert.AreNotEqual(null, sizeCurrent);
+                    Assert.AreNotEqual(null, sizeSource);
+                    test(sizeCurrent, VFXAttributeLocation.Current);
+                    test(sizeSource, VFXAttributeLocation.Source);
                 };
             InnerSaveAndReloadTest("AttributeParameter", write, read);
         }

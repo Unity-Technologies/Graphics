@@ -117,6 +117,15 @@ namespace UnityEditor.VFX
                 return m_Attribute.name;
             }
         }
+
+        public VFXAttributeLocation attributeLocation
+        {
+            get
+            {
+                return m_Attribute.location;
+            }
+        }
+
         public VFXAttribute attribute { get { return m_Attribute; } }
         private VFXAttribute m_Attribute;
 
