@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.XR;
 
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderPipelineShader.shader (the loop expects "BasicPass" pass type to exist)
@@ -45,18 +46,26 @@ public static class BasicRendering
 
     public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
     {
+        bool stereoEnabled = XRSettings.isDeviceActive;
+
         foreach (var camera in cameras)
         {
             // Culling
             ScriptableCullingParameters cullingParams;
-            if (!CullResults.GetCullingParameters(camera, out cullingParams))
+            // Stereo-aware culling parameters are configured to perform a single cull for both eyes
+            if (!CullResults.GetCullingParameters(camera, stereoEnabled, out cullingParams))
                 continue;
             CullResults cull = new CullResults();
             CullResults.Cull(ref cullingParams, context, ref cull);
 
             // Setup camera for rendering (sets render target, view/projection matrices and other
             // per-camera built-in shader variables).
-            context.SetupCameraProperties(camera);
+            // If stereo is enabled, we also configure stereo matrices, viewports, and XR device render targets
+            context.SetupCameraProperties(camera, stereoEnabled);
+
+            // Draws in-between [Start|Stop]MultiEye are stereo-ized by engine
+            if (stereoEnabled)
+                context.StartMultiEye(camera);
 
             // clear depth buffer
             var cmd = CommandBufferPool.Get();
@@ -80,6 +89,14 @@ public static class BasicRendering
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
             context.DrawRenderers(ref settings);
+
+            if (stereoEnabled)
+            {
+                context.StopMultiEye(camera);
+                // StereoEndRender will reset state on the camera to pre-Stereo settings,
+                // and invoke XR based events/callbacks.
+                context.StereoEndRender(camera);
+            }
 
             context.Submit();
         }
