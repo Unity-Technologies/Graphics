@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -18,12 +19,10 @@ namespace UnityEditor.VFX.UI
         object value { get; set; }
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
-
+        object[] customAttributes { get; }
         Type anchorType { get; }
         int depth {get; }
-
         bool editable { get; }
-
         void RetractPath();
         void ExpandPath();
     }
@@ -123,7 +122,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static Dictionary<Type, Type> m_TypeDictionary =  new Dictionary<Type, Type>
+        static readonly Dictionary<Type, Type> m_TypeDictionary =  new Dictionary<Type, Type>
         {
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
@@ -135,7 +134,8 @@ namespace UnityEditor.VFX.UI
             {typeof(Vector3), typeof(Vector3PropertyRM)},
             {typeof(Vector4), typeof(Vector4PropertyRM)},
             {typeof(Color), typeof(ColorPropertyRM)},
-            {typeof(AnimationCurve), typeof(CurvePropertyRM)}
+            {typeof(AnimationCurve), typeof(CurvePropertyRM)},
+            {typeof(string), typeof(StringPropertyRM)}
         };
 
         public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)

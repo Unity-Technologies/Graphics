@@ -50,15 +50,15 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXBuiltInParameterUI : VFXNodeUI
+    class VFXBuiltInParameterUI : VFXSlotContainerUI
     {
     }
 
-    class VFXAttributeParameterUI : VFXNodeUI
+    class VFXAttributeParameterUI : VFXSlotContainerUI
     {
     }
 
-    class VFXParameterUI : VFXNodeUI
+    class VFXParameterUI : VFXSlotContainerUI
     {
         private TextField m_ExposedName;
         private Toggle m_Exposed;

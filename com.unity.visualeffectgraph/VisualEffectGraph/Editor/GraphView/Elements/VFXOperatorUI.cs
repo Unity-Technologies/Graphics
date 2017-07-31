@@ -47,7 +47,15 @@ namespace UnityEditor.VFX.UI
 
         protected void AddSetting(VFXSettingPresenter setting)
         {
-            m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
+            var rm = PropertyRM.Create(setting, 100);
+            if (rm != null)
+            {
+                m_SettingsContainer.AddChild(rm);
+            }
+            else
+            {
+                Debug.LogErrorFormat("Cannot create presenter for {0}", setting.name);
+            }
         }
     }
 

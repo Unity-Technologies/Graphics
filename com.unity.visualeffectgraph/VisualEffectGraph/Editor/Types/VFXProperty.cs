@@ -9,39 +9,36 @@ namespace UnityEditor.VFX
     [Serializable]
     struct VFXProperty
     {
-        private Type m_type;
         public Type type
         {
             get
             {
-                if (m_type == null)
-                {
-                    m_type = Type.GetType(typeName);
-                }
-                return m_type;
+                return m_serializedType;
+            }
+            private set
+            {
+                m_serializedType = value;
             }
         }
 
         public string name;
         [SerializeField]
-        private string typeName;
+        private SerializableType m_serializedType;
 
         [SerializeField]
         public VFXPropertyAttribute[] attributes;
 
         public VFXProperty(Type type, string name)
         {
+            m_serializedType = type;
             this.name = name;
-            typeName = type.AssemblyQualifiedName;
-            m_type = null;
             attributes = null;
         }
 
         public VFXProperty(FieldInfo info)
         {
-            this.name = info.Name;
-            typeName = info.FieldType.AssemblyQualifiedName;
-            m_type = null;
+            name = info.Name;
+            m_serializedType = info.FieldType;
             attributes = VFXPropertyAttribute.Create(info.GetCustomAttributes(true));
         }
 
@@ -51,7 +48,7 @@ namespace UnityEditor.VFX
                 return false;
 
             VFXProperty other = (VFXProperty)obj;
-            return name == other.name && typeName == other.typeName;
+            return name == other.name && type == other.type;
         }
 
         public IEnumerable<VFXProperty> SubProperties()

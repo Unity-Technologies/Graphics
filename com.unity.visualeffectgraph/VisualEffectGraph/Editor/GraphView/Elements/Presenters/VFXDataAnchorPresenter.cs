@@ -113,6 +113,14 @@ namespace UnityEditor.VFX.UI
             get { return model.path; }
         }
 
+        public object[] customAttributes
+        {
+            get
+            {
+                return new object[] {};
+            }
+        }
+
         public VFXPropertyAttribute[] attributes
         {
             get { return model.property.attributes; }

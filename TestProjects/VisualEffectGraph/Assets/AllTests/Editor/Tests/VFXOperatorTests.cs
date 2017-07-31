@@ -182,14 +182,14 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var attribute in VFXAttribute.All)
             {
-                var desc = VFXLibrary.GetAttributeParameters().First(p => p.name == attribute);
+                var desc = VFXLibrary.GetCurrentAttributeParameters().First(p => p.name == attribute);
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var referenceAttribute = VFXAttribute.Find(attribute);
+                var referenceAttribute = VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
                 var reference = new VFXAttributeExpression(referenceAttribute);
                 Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
                 Assert.AreEqual(reference, b.outputSlots[0].GetExpression());
