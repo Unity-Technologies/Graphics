@@ -41,16 +41,17 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 get
                 {
                     var absoluteGraphsPath = s_Path.Aggregate(Application.dataPath, Path.Combine);
-                    var filePaths = Directory.GetFiles(absoluteGraphsPath).Select(x => new FileInfo(x)).Where(x => x.Extension == ".ShaderGraph");
+                    var filePaths = Directory.GetFiles(absoluteGraphsPath).Select(x => new FileInfo(x))
+                        .Where(x => x.Extension == ".ShaderGraph");
 
                     foreach (var p in filePaths)
                     {
                         yield return new TestInfo
-                               {
-                                   name = p.Name,
-                                   info = p,
-                                   threshold = 0.02f
-                               };
+                        {
+                            name = p.Name,
+                            info = p,
+                            threshold = 0.02f
+                        };
                     }
                 }
             }
@@ -98,27 +99,32 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
 
             // Generate the shader
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = graph.masterNode.GetFullShader(GenerationMode.ForReals, graph.name, out configuredTextures);
-            
+            var shaderString =
+                graph.masterNode.GetFullShader(GenerationMode.ForReals, graph.name, out configuredTextures);
+
             var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
             var shaderTemplatePath = Path.Combine(rootPath.ToString(), "ShaderTemplates");
             Directory.CreateDirectory(shaderTemplatePath);
 
             var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "shader"));
-            if (!File.Exists(textTemplateFilePath)) {
+            if (!File.Exists(textTemplateFilePath))
+            {
                 File.WriteAllText(textTemplateFilePath, shaderString);
                 Assert.Fail("Text template file not found for {0}, creating it.", file);
             }
-            else {
+            else
+            {
                 var textTemplate = File.ReadAllText(textTemplateFilePath);
                 var textsAreEqual = shaderString == textTemplate;
-         
+
                 if (!textsAreEqual)
                 {
                     var failedPath = Path.Combine(rootPath.ToString(), "Failed");
                     Directory.CreateDirectory(failedPath);
-                    var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
-                    var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
+                    var misMatchLocationResult =
+                        Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
+                    var misMatchLocationTemplate =
+                        Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
                     File.WriteAllText(misMatchLocationResult, shaderString);
                     File.WriteAllText(misMatchLocationTemplate, textTemplate);
                 }
@@ -128,6 +134,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_Shader = ShaderUtil.CreateShaderAsset(shaderString);
             m_Shader.hideFlags = HideFlags.HideAndDontSave;
             Assert.IsNotNull(m_Shader, "Shader Generation Failed");
+
             //Assert.IsFalse(AbstractMaterialNodeUI.ShaderHasError(m_Shader), "Shader has error");
 
             m_PreviewMaterial = new Material(m_Shader)
@@ -146,53 +153,58 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             Assert.IsNotNull(m_PreviewMaterial, "preview material could not be created");
 
             const int res = 256;
-            var generator = new MaterialGraphPreviewGenerator();
-            var rendered = generator.DoRenderPreview(m_PreviewMaterial, PreviewMode.Preview3D, new Rect(0, 0, res, res), 10) as RenderTexture;
-
-            Assert.IsNotNull(rendered, "Render failed");
-
-            RenderTexture.active = rendered;
-            m_Captured = new Texture2D(rendered.width, rendered.height, TextureFormat.ARGB32, false);
-            m_Captured.ReadPixels(new Rect(0, 0, rendered.width, rendered.height), 0, 0);
-            RenderTexture.active = null; //can help avoid errors
-
-            // find the reference image
-            var dumpFileLocation = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "png"));
-            if (!File.Exists(dumpFileLocation))
+            using (var generator = new MaterialGraphPreviewGenerator())
             {
-                // no reference exists, create it
-                var generated = m_Captured.EncodeToPNG();
-                File.WriteAllBytes(dumpFileLocation, generated);
-                Assert.Fail("Image template file not found for {0}, creating it.", file);
+                var rendered =
+                    generator.DoRenderPreview(m_PreviewMaterial, PreviewMode.Preview3D, new Rect(0, 0, res, res), 10) as
+                        RenderTexture;
+
+                Assert.IsNotNull(rendered, "Render failed");
+
+                RenderTexture.active = rendered;
+                m_Captured = new Texture2D(rendered.width, rendered.height, TextureFormat.ARGB32, false);
+                m_Captured.ReadPixels(new Rect(0, 0, rendered.width, rendered.height), 0, 0);
+                RenderTexture.active = null; //can help avoid errors
+
+                // find the reference image
+                var dumpFileLocation = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "png"));
+                if (!File.Exists(dumpFileLocation))
+                {
+                    // no reference exists, create it
+                    var generated = m_Captured.EncodeToPNG();
+                    File.WriteAllBytes(dumpFileLocation, generated);
+                    Assert.Fail("Image template file not found for {0}, creating it.", file);
+                }
+
+                var template = File.ReadAllBytes(dumpFileLocation);
+                m_FromDisk = new Texture2D(2, 2);
+                m_FromDisk.LoadImage(template, false);
+
+                var areEqual = CompareTextures(m_FromDisk, m_Captured, testInfo.threshold);
+
+                if (!areEqual)
+                {
+                    var failedPath = Path.Combine(rootPath.ToString(), "Failed");
+                    Directory.CreateDirectory(failedPath);
+                    var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "png"));
+                    var misMatchLocationTemplate =
+                        Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "png"));
+                    var generated = m_Captured.EncodeToPNG();
+                    File.WriteAllBytes(misMatchLocationResult, generated);
+                    File.WriteAllBytes(misMatchLocationTemplate, template);
+                }
+
+                Assert.IsTrue(areEqual, "Shader from graph {0}, did not match .template file.", file);
             }
-
-            var template = File.ReadAllBytes(dumpFileLocation);
-            m_FromDisk = new Texture2D(2, 2);
-            m_FromDisk.LoadImage(template, false);
-
-            var areEqual = CompareTextures(m_FromDisk, m_Captured, testInfo.threshold);
-
-            if (!areEqual)
-            {
-                var failedPath = Path.Combine(rootPath.ToString(), "Failed");
-                Directory.CreateDirectory(failedPath);
-                var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "png"));
-                var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "png"));
-                var generated = m_Captured.EncodeToPNG();
-                File.WriteAllBytes(misMatchLocationResult, generated);
-                File.WriteAllBytes(misMatchLocationTemplate, template);
-            }
-
-            Assert.IsTrue(areEqual, "Shader from graph {0}, did not match .template file.", file);
         }
 
         // compare textures, use RMS for this
-        private bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)       
+        private bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)
         {
             if (fromDisk == null || captured == null)
                 return false;
 
-            if (fromDisk.width != captured.width         
+            if (fromDisk.width != captured.width
                 || fromDisk.height != captured.height)
                 return false;
 
@@ -203,7 +215,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
 
             int numberOfPixels = pixels1.Length;
             float sumOfSquaredColorDistances = 0;
-            for (int i = 0; i < numberOfPixels; i++)         
+            for (int i = 0; i < numberOfPixels; i++)
             {
                 Color p1 = pixels1[i];
                 Color p2 = pixels2[i];

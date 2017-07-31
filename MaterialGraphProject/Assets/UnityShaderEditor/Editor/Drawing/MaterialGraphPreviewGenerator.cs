@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    internal class MaterialGraphPreviewGenerator
+    internal class MaterialGraphPreviewGenerator : IDisposable
     {
         private PreviewRenderUtility m_PreviewUtility;
         private static readonly Mesh[] s_Meshes = {null, null, null, null, null};
@@ -161,6 +162,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             utility.Render(true, false);
 
             return utility.EndPreview();
+        }
+
+        public void Dispose()
+        {
+            Reset();
         }
     }
 }
