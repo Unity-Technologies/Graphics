@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorFloatUnified : VFXOperator
     {
-        private float m_FallbackValue = 0.0f;
+        protected float m_FallbackValue = 0.0f;
 
         protected VFXOperatorFloatUnified()
         {
@@ -146,8 +146,8 @@ namespace UnityEditor.VFX
     {
         public class InputProperties
         {
-			[Tooltip("The operand.")]
-			public FloatN x = new FloatN(0.0f);
+            [Tooltip("The operand.")]
+            public FloatN x = new FloatN(0.0f);
         }
     }
 
@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
             {
                 if (uselessSlots.Count == 0)
                 {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), ((char)((int)'a' + currentSlots.Count)).ToString()), VFXSlot.Direction.kInput, new FloatN(m_FallbackValue)));
                 }
                 else
                 {
