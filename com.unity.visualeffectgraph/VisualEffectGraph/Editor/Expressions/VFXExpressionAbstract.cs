@@ -5,6 +5,18 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    public static class VFXReflectionHelper
+    {
+        public static T[] CollectStaticReadOnlyExpression<T>(Type expressionType, System.Reflection.BindingFlags additionnalFlag = System.Reflection.BindingFlags.NonPublic)
+        {
+            var members = expressionType.GetFields(System.Reflection.BindingFlags.Static | additionnalFlag)
+                .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
+                .ToArray();
+            var expressions = members.Select(m => (T)m.GetValue(null)).ToArray();
+            return expressions;
+        }
+    }
+
     abstract partial class VFXExpression
     {
         [Flags]
@@ -72,8 +84,8 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2: return typeof(Vector2);
                 case VFXValueType.kFloat3: return typeof(Vector3);
                 case VFXValueType.kFloat4: return typeof(Vector4);
-				case VFXValueType.kCurve: return typeof(AnimationCurve);
-				case VFXValueType.kColorGradient: return typeof(Gradient);
+                case VFXValueType.kCurve: return typeof(AnimationCurve);
+                case VFXValueType.kColorGradient: return typeof(Gradient);
                 case VFXValueType.kUint: return typeof(uint);
             }
             throw new NotImplementedException(type.ToString());
@@ -141,15 +153,6 @@ namespace UnityEditor.VFX
         protected VFXExpression CreateNewInstance()
         {
             return CreateNewInstance(GetType());
-        }
-
-        protected static T[] CollectStaticReadOnlyExpression<T>(Type expressionType) where T : VFXExpression
-        {
-            var members = expressionType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
-                .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
-                .ToArray();
-            var expressions = members.Select(m => m.GetValue(null) as T).ToArray();
-            return expressions;
         }
 
         // Reduce the expression

@@ -198,7 +198,12 @@ namespace UnityEditor.VFX
             else if (obj is UnityEngine.Object) //type is a unity object
             {
                 ObjectWrapper wrapper = new ObjectWrapper { obj = obj as UnityEngine.Object };
-                return EditorJsonUtility.ToJson(wrapper);
+                var json = EditorJsonUtility.ToJson(wrapper);
+                if (json == "{\"obj\":{\"instanceID\":0}}")
+                {
+                    throw new Exception("Cannot serialize : " + obj);
+                }
+                return json;
             }
             else if (obj is AnimationCurve)
             {

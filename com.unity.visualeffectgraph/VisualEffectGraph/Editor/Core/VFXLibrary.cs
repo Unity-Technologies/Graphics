@@ -205,7 +205,7 @@ namespace UnityEditor.VFX
                         return desc;
                     }).ToList();
 
-                m_AttributeParametersDecs = VFXAttributeExpression.All.Select(a =>
+                m_AttributeParametersDecs = VFXAttribute.All.Select(a =>
                     {
                         var desc = new VFXModelDescriptorAttributeParameters(a);
                         return desc;

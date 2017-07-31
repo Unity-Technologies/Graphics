@@ -35,19 +35,58 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
 
             var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
+
+            var LocalAttributes = new List<VFXAttribute>();
+
             foreach (var kvp in m_AttributesToContexts)
             {
+                bool local = false;
                 var attribute = kvp.Key;
                 int key = 0;
+
+                bool onlyInit = true;
+                bool onlyOutput = true;
+                bool onlyUpdateRead = true;
+                bool onlyUpdateWrite = true;
+
                 foreach (var kvp2 in kvp.Value)
                 {
-                    int shift = m_Owners.IndexOf(kvp2.Key) << 1;
+                    var context = kvp2.Key;
+                    if (context.contextType != VFXContextType.kInit)
+                        onlyInit = false;
+                    if (context.contextType != VFXContextType.kOutput)
+                        onlyOutput = false;
+                    if (context.contextType != VFXContextType.kUpdate)
+                    {
+                        onlyUpdateRead = false;
+                        onlyUpdateWrite = false;
+                    }
+                    else
+                    {
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                            onlyUpdateWrite = false;
+                        if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                            onlyUpdateRead = false;
+                    }
+
+                    int shift = m_Owners.IndexOf(context) << 1;
                     int value = 0;
                     if ((kvp2.Value & VFXAttributeMode.Read) != 0)
                         value = 0x01;
                     if ((kvp2.Value & VFXAttributeMode.Write) != 0)
                         value = 0x02;
                     key |= (value << shift);
+                }
+
+                if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
+                    local = true;
+                if ((key & 0xAAAAAAAA) == 0) // no write mask
+                    local = true;
+
+                if (local)
+                {
+                    LocalAttributes.Add(attribute);
+                    continue;
                 }
 
                 List<VFXAttribute> attributes;
@@ -70,6 +109,14 @@ namespace UnityEditor.VFX
                 foreach (var attrib in kvp.Value)
                     builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
             }
+
+            if (LocalAttributes.Count > 0)
+            {
+                builder.AppendLine("Local Attributes");
+                foreach (var attrib in LocalAttributes)
+                    builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
+            }
+
 
             Debug.Log(builder.ToString());
         }

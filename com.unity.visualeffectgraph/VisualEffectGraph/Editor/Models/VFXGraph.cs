@@ -177,6 +177,28 @@ namespace UnityEditor.VFX
             vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
+        public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
+        {
+            RecompileIfNeeded();
+            if (m_ExpressionGraph == null)
+            {
+                return uint.MaxValue;
+            }
+            var targetExpression = slot.GetExpression();
+            if (targetExpression == null)
+            {
+                return uint.MaxValue;
+            }
+
+            if (!m_ExpressionGraph.CPUExpressionsToReduced.ContainsKey(targetExpression))
+            {
+                return uint.MaxValue;
+            }
+
+            var ouputExpression = m_ExpressionGraph.CPUExpressionsToReduced[targetExpression];
+            return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
+        }
+
         public void RecompileIfNeeded()
         {
             if (m_ExpressionGraphDirty)
@@ -268,10 +290,28 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    var parameterExposed = new List<VFXExposedDesc>();
+                    foreach (var parameter in models.OfType<VFXParameter>())
+                    {
+                        if (parameter.exposed)
+                        {
+                            var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
+                            if (outputSlotExpr != null)
+                            {
+                                parameterExposed.Add(new VFXExposedDesc()
+                                {
+                                    name = parameter.exposedName,
+                                    expressionIndex = (uint)m_ExpressionGraph.GetFlattenedIndex(outputSlotExpr)
+                                });
+                            }
+                        }
+                    }
+
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = m_ExpressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
+                    expressionSheet.exposed = parameterExposed.ToArray();
 
                     vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();

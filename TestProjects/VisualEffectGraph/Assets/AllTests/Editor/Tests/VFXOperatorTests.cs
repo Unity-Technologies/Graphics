@@ -81,9 +81,9 @@ namespace UnityEditor.VFX.Test
             cos.inputSlots[0].Link(vec2_One.outputSlots[0]);
             Assert.AreEqual(cos.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
-			var sin = ScriptableObject.CreateInstance<VFXOperatorSine>();
-			sin.inputSlots[0].Link(cos.outputSlots[0]);
-			Assert.AreEqual(sin.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
+            var sin = ScriptableObject.CreateInstance<VFXOperatorSine>();
+            sin.inputSlots[0].Link(cos.outputSlots[0]);
+            Assert.AreEqual(sin.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
             var abs = ScriptableObject.CreateInstance<VFXOperatorAbsolute>();
             abs.inputSlots[0].Link(sin.outputSlots[0]);
@@ -178,9 +178,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ReferenceOfAttributeEquality()
+        public void AttributeEquality()
         {
-            foreach (var attribute in VFXAttributeExpression.All)
+            foreach (var attribute in VFXAttribute.All)
             {
                 var desc = VFXLibrary.GetAttributeParameters().First(p => p.name == attribute);
                 var a = desc.CreateInstance();
@@ -189,9 +189,10 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var reference = VFXAttributeExpression.Find(attribute);
-                Assert.IsTrue(ReferenceEquals(reference, a.outputSlots[0].GetExpression()));
-                Assert.IsTrue(ReferenceEquals(reference, b.outputSlots[0].GetExpression()));
+                var referenceAttribute = VFXAttribute.Find(attribute);
+                var reference = new VFXAttributeExpression(referenceAttribute);
+                Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
+                Assert.AreEqual(reference, b.outputSlots[0].GetExpression());
             }
         }
 

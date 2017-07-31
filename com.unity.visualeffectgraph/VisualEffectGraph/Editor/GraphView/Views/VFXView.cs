@@ -7,6 +7,30 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
+    class SelectionSetter : Manipulator
+    {
+        VFXView m_View;
+        public SelectionSetter(VFXView view)
+        {
+            m_View = view;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        void OnMouseUp(MouseUpEvent evt)
+        {
+            Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
+        }
+    }
+
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -32,6 +56,12 @@ namespace UnityEditor.VFX.UI
 
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
+            var systemDesc = new Descriptor()
+            {
+                modelDescriptor = null,
+                category = "System",
+                name = "Default System"
+            };
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
@@ -85,18 +115,20 @@ namespace UnityEditor.VFX.UI
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
                 .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorAttributeParameter);
+                .Concat(descriptorAttributeParameter)
+                .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
 
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
-    class VFXView : GraphView
+    class VFXView : GraphView, IParameterDropTarget
     {
         public VFXView()
         {
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
+            AddManipulator(new SelectionSetter(this));
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
             AddManipulator(new SelectionDragger());
@@ -116,6 +148,8 @@ namespace UnityEditor.VFX.UI
                 {Event.KeyboardEvent("^#d"), OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
             }));
+
+            AddManipulator(new ParameterDropper());
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
@@ -142,6 +176,17 @@ namespace UnityEditor.VFX.UI
                     else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
                     {
                         AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                    }
+                    else if (d.modelDescriptor == null)
+                    {
+                        var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
+                        var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
+                        var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
+                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Output"));
+
+                        spawner.LinkTo(initialize);
+                        initialize.LinkTo(update);
+                        update.LinkTo(output);
                     }
                     else
                     {
@@ -343,6 +388,22 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+        }
+
+        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
+        {
+            //TODO : show that we accept the drag
+            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+        }
+
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
+        {
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
+
+            newParameter.exposedName = parameter.exposedName;
+            newParameter.exposed = true;
         }
     }
 }

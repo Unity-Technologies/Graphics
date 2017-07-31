@@ -66,11 +66,12 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
         }
 
-        public virtual VFXContextType contextType               { get { return m_ContextType; } }
-        public virtual VFXDataType inputType                    { get { return m_InputType; } }
-        public virtual VFXDataType outputType                   { get { return m_OutputType; } }
-        public virtual VFXDataType ownedType                    { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
-        public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual VFXContextType contextType                       { get { return m_ContextType; } }
+        public virtual VFXDataType inputType                            { get { return m_InputType; } }
+        public virtual VFXDataType outputType                           { get { return m_OutputType; } }
+        public virtual VFXDataType ownedType                            { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
+        public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual IEnumerable<VFXAttributeInfo> optionalAttributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
 
         public override void CollectDependencies(HashSet<Object> objs)
         {
