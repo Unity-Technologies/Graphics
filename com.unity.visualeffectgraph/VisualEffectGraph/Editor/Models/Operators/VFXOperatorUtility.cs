@@ -171,12 +171,12 @@ namespace UnityEditor.VFX
 
         static public VFXExpression DegToRad(VFXExpression degrees)
         {
-            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>((float)Math.PI / 180.0f), degrees.ValueType));
+            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>(Mathf.PI / 180.0f), degrees.ValueType));
         }
 
         static public VFXExpression RadToDeg(VFXExpression radians)
         {
-            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / (float)Math.PI), radians.ValueType));
+            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / Mathf.PI), radians.ValueType));
         }
 
         static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression radius)
@@ -225,6 +225,27 @@ namespace UnityEditor.VFX
             var phi = new VFXExpressionACos(new VFXExpressionDivide(components[2], radius));
             return new VFXExpression[] { theta, phi, radius };
         }
+
+		static public VFXExpression BoxVolume(VFXExpression dimensions)
+		{
+			//x * y * z
+			var components = ExtractComponents(dimensions).ToArray();
+			return new VFXExpressionMul(components[0], new VFXExpressionMul(components[1], components[2]));
+		}
+
+		static public VFXExpression SphereVolume(VFXExpression radius)
+		{
+			//(4 / 3) * pi * r * r * r
+			var multiplier = VFXValue.Constant<float>((4.0f / 3.0f) * Mathf.PI);
+			return new VFXExpressionMul(multiplier, new VFXExpressionMul(new VFXExpressionMul(radius, radius), radius));
+		}
+
+		static public VFXExpression CylinderVolume(VFXExpression radius, VFXExpression height)
+		{
+			//pi * r * r * h
+			var pi = VFXValue.Constant<float>(Mathf.PI);
+			return new VFXExpressionMul(pi, new VFXExpressionMul(new VFXExpressionMul(radius, radius), height));
+		}
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
