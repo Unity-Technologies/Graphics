@@ -43,24 +43,122 @@ namespace UnityEditor.VFX
         }
     }
 
-	class VFXExpressionTan : VFXExpressionUnaryFloatOperation
-	{
-		public VFXExpressionTan() : this(VFXValue<float>.Default) { }
+    class VFXExpressionTan : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionTan() : this(VFXValue<float>.Default) {}
 
-		public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXTanOp)
-		{
-		}
+        public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXTanOp)
+        {
+        }
 
-		sealed protected override string GetUnaryOperationCode(string x)
-		{
-			return string.Format("tan({0})", x);
-		}
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("tan({0})", x);
+        }
 
-		sealed protected override float ProcessUnaryOperation(float input)
-		{
-			return Mathf.Tan(input);
-		}
-	}
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Tan(input);
+        }
+    }
+
+    class VFXExpressionACos : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionACos() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionACos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXACosOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("acos({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Acos(input);
+        }
+    }
+
+    class VFXExpressionASin : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionASin() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionASin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXASinOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("asin({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Asin(input);
+        }
+    }
+
+    class VFXExpressionATan : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionATan() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionATan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXATanOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("atan({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Atan(input);
+        }
+    }
+
+    class VFXExpressionATan2 : VFXExpression
+    {
+        public VFXExpressionATan2() : this(new VFXExpression[] { VFXValue<float>.Default, VFXValue<float>.Default }
+                                           )
+        {
+        }
+
+        public VFXExpressionATan2(VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        {
+        }
+
+        public override VFXExpressionOp Operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXATan2Op;
+            }
+        }
+
+        public override VFXValueType ValueType
+        {
+            get
+            {
+                return VFXValueType.kFloat;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var xReduce = constParents[0];
+            var yReduce = constParents[1];
+
+            return VFXValue.Constant<float>((float)Math.Atan2(yReduce.Get<float>(), xReduce.Get<float>()));
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("atan2({1}, {0})", parents[0], parents[1]);
+        }
+    }
 
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
@@ -81,24 +179,24 @@ namespace UnityEditor.VFX
         }
     }
 
-	class VFXExpressionSign : VFXExpressionUnaryFloatOperation
-	{
-		public VFXExpressionSign() : this(VFXValue<float>.Default) { }
+    class VFXExpressionSign : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionSign() : this(VFXValue<float>.Default) {}
 
-		public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSignOp)
-		{
-		}
+        public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSignOp)
+        {
+        }
 
-		sealed protected override string GetUnaryOperationCode(string x)
-		{
-			return string.Format("sign({0})", x);
-		}
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("sign({0})", x);
+        }
 
-		sealed protected override float ProcessUnaryOperation(float input)
-		{
-			return Mathf.Sign(input);
-		}
-	}
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Sign(input);
+        }
+    }
 
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {

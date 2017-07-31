@@ -112,18 +112,18 @@ namespace UnityEditor.VFX
             return sum.Pop();
         }
 
-		static public VFXExpression Distance(VFXExpression x, VFXExpression y)
-		{
-			//length(a - b)
-			return Length(new VFXExpressionSubtract(x, y));
-		}
+        static public VFXExpression Distance(VFXExpression x, VFXExpression y)
+        {
+            //length(a - b)
+            return Length(new VFXExpressionSubtract(x, y));
+        }
 
-		static public VFXExpression SqrDistance(VFXExpression x, VFXExpression y)
-		{
-			//dot(a - b)
-			var delta = new VFXExpressionSubtract(x, y);
-			return Dot(delta, delta);
-		}
+        static public VFXExpression SqrDistance(VFXExpression x, VFXExpression y)
+        {
+            //dot(a - b)
+            var delta = new VFXExpressionSubtract(x, y);
+            return Dot(delta, delta);
+        }
 
         static public VFXExpression Lerp(VFXExpression x, VFXExpression y, VFXExpression s)
         {
@@ -154,13 +154,77 @@ namespace UnityEditor.VFX
             return new VFXExpressionMul(VFXOperatorUtility.Frac(div), y);
         }
 
-		static public VFXExpression Fit(VFXExpression value, VFXExpression oldRangeMin, VFXExpression oldRangeMax, VFXExpression newRangeMin, VFXExpression newRangeMax)
-		{
-			//percent = (value - oldRangeMin) / (oldRangeMax - oldRangeMin)
-			//lerp(newRangeMin, newRangeMax, percent)
-			VFXExpression percent = new VFXExpressionDivide(new VFXExpressionSubtract(value, oldRangeMin), new VFXExpressionSubtract(oldRangeMax, oldRangeMin));
-			return Lerp(newRangeMin, newRangeMax, percent);
-		}
+        static public VFXExpression Fit(VFXExpression value, VFXExpression oldRangeMin, VFXExpression oldRangeMax, VFXExpression newRangeMin, VFXExpression newRangeMax)
+        {
+            //percent = (value - oldRangeMin) / (oldRangeMax - oldRangeMin)
+            //lerp(newRangeMin, newRangeMax, percent)
+            VFXExpression percent = new VFXExpressionDivide(new VFXExpressionSubtract(value, oldRangeMin), new VFXExpressionSubtract(oldRangeMax, oldRangeMin));
+            return Lerp(newRangeMin, newRangeMax, percent);
+        }
+
+        static public VFXExpression ColorLuma(VFXExpression color)
+        {
+            //(0.299*R + 0.587*G + 0.114*B)
+            var coefficients = VFXValue.Constant<Vector4>(new Vector4(0.299f, 0.587f, 0.114f, 0.0f));
+            return Dot(color, coefficients);
+        }
+
+        static public VFXExpression DegToRad(VFXExpression degrees)
+        {
+            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>((float)Math.PI / 180.0f), degrees.ValueType));
+        }
+
+        static public VFXExpression RadToDeg(VFXExpression radians)
+        {
+            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / (float)Math.PI), radians.ValueType));
+        }
+
+        static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression radius)
+        {
+            //x = cos(angle) * radius
+            //y = sin(angle) * radius
+            var result = new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionCos(theta), new VFXExpressionSin(theta) });
+            return new VFXExpressionMul(result, CastFloat(radius, VFXValueType.kFloat2));
+        }
+
+        static public VFXExpression[] RectangularToPolar(VFXExpression coord)
+        {
+            //theta = atan2(coord.y, coord.x)
+            //radius = length(coord)
+            var theta = new VFXExpressionATan2(VFXOperatorUtility.ExtractComponents(coord).ToArray());
+            var radius = Length(coord);
+            return new VFXExpression[] { theta, radius };
+        }
+
+        static public VFXExpression SphericalToRectangular(VFXExpression theta, VFXExpression phi, VFXExpression radius)
+        {
+            //x = cos(theta) * cos(phi) * radius
+            //y = sin(theta) * cos(phi) * radius
+            //z = sin(phi) * radius
+            var cosTheta = new VFXExpressionCos(theta);
+            var cosPhi = new VFXExpressionCos(phi);
+            var sinTheta = new VFXExpressionSin(theta);
+            var sinPhi = new VFXExpressionSin(phi);
+
+            var x = new VFXExpressionMul(cosTheta, cosPhi);
+            var y = new VFXExpressionMul(sinTheta, cosPhi);
+            var z = sinPhi;
+
+            var result = new VFXExpressionCombine(new VFXExpression[] { x, y, z });
+            return new VFXExpressionMul(result, CastFloat(radius, VFXValueType.kFloat3));
+        }
+
+        static public VFXExpression[] RectangularToSpherical(VFXExpression coord)
+        {
+            //radius = length(coord)
+            //theta = atan2(y, x)
+            //phi = acos(z / radius)
+            var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
+            var radius = Length(coord);
+            var theta = new VFXExpressionATan2(components.Take(2).ToArray());
+            var phi = new VFXExpressionACos(new VFXExpressionDivide(components[2], radius));
+            return new VFXExpression[] { theta, phi, radius };
+        }
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
