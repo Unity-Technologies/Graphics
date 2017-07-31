@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float3 HCV = RGBtoHCV({0}); float S = HCV.y / (HCV.z + 1e-10); return float3(HCV.x, S, HCV.z)", parents[0]);
+            return string.Format("RGBtoHSV({0})", parents[0]);
         }
     }
 
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("((HUEtoRGB({0}.x) - 1) * {0}.y + 1) * {0}.z", parents[0]);
+            return string.Format("HSVtoRGB{0}", parents[0]);
         }
     }
 }

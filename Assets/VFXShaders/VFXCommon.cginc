@@ -203,3 +203,15 @@ float3 RGBtoHCV(in float3 RGB)
     float H = abs((Q.w - Q.y) / (6 * C + 1e-10) + Q.z);
     return float3(H, C, Q.x);
 }
+
+float3 RGBtoHSV(in float3 RGB)
+{
+    float3 HCV = RGBtoHCV(RGB);
+    float S = HCV.y / (HCV.z + 1e-10);
+    return float3(HCV.x, S, HCV.z);
+}
+
+float3 HSVtoRGB(in float3 HSV)
+{
+    return ((HUEtoRGB(HSV.x) - 1) * HSV.y + 1) * HSV.z;
+}
