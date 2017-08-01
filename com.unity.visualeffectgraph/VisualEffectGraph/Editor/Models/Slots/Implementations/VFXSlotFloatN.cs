@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override bool CanConvertFrom(VFXExpression expression)
         {
-            return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
+            return base.CanConvertFrom(expression) || VFXExpression.IsFloatValueType(expression.ValueType);
         }
 
         protected override bool CanConvertFrom(Type type)
@@ -22,32 +22,6 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            /* if (expression == null)
-             {
-                 PropagateToChildren(c => c.UnlinkAll());
-                 RemoveAllChildren();
-             }
-             else
-             {
-                 var nbComponents = VFXExpression.TypeToSize(expression.ValueType);
-                 var nbChildren = GetNbChildren();
-
-                 if (nbChildren > nbComponents)
-                 {
-                     for (int i = nbComponents; i < nbChildren; ++i)
-                     {
-                         var child = GetChild(GetNbChildren() - 1);
-                         child.UnlinkAll();
-                         GetChild(GetNbChildren() - 1).Detach();
-                     }
-                 }
-
-                 if (GetNbChildren() != nbComponents)
-                 {
-
-                 }
-             }*/
-
             return expression;
         }
 
