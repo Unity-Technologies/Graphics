@@ -76,17 +76,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         private Light Light0 { get; set; }
         private Light Light1 { get; set; }
 
-        //private SavedRenderTargetState m_SavedState;
-
         private Material m_CheckerboardMaterial;
-
-        public Light[] Lights
-        {
-            get
-            {
-                return new[] {Light0, Light1};
-            }
-        }
 
         private static readonly Mesh[] s_Meshes = {null, null, null, null, null};
         private static Mesh s_PlaneMesh;
@@ -144,8 +134,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
-            m_CheckerboardMaterial.SetFloat("_X", 8);
-            m_CheckerboardMaterial.SetFloat("_Y", 8);
 
             if (s_Meshes[0] == null)
             {
@@ -236,29 +224,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public float GetScaleFactor(float width, float height)
-        {
-            float scaleFacX = Mathf.Max(Mathf.Min(width * 2, 1024), width) / width;
-            float scaleFacY = Mathf.Max(Mathf.Min(height * 2, 1024), height) / height;
-            float result = Mathf.Min(scaleFacX, scaleFacY) * EditorGUIUtility.pixelsPerPoint;
-            //if (m_PixelPerfect)  //m_PixelPerfect = false; in PreviewRenderUtility default constructor.
-            //    result = Mathf.Max(Mathf.Round(result), 1f);
-            return result;
-        }
-
         public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size, float time)
         {
             if (mat == null || mat.shader == null)
                 return Texture2D.blackTexture;
 
-            
-
-            //utility.BeginPreview(size, GUIStyle.none);
-
-            float scaleFac = GetScaleFactor(size.width, size.height);
-
-            int rtWidth = (int)(size.width * scaleFac);
-            int rtHeight = (int)(size.height * scaleFac);
+            int rtWidth = (int)(size.width);
+            int rtHeight = (int)(size.height);
 
             if (!m_RenderTexture || m_RenderTexture.width != rtWidth || m_RenderTexture.height != rtHeight)
             {
@@ -276,30 +248,20 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_RenderTexture.hideFlags = HideFlags.HideAndDontSave;
 
                 m_Camera.targetTexture = m_RenderTexture;
-
-                foreach (var light in Lights) //redundant?
-                    light.enabled = true;
             }
             
             //Blit checkerboard background:
-            Graphics.Blit(null, m_RenderTexture, m_CheckerboardMaterial);
-            
-            //m_SavedState = new SavedRenderTargetState();
-            //EditorGUIUtility.SetRenderTextureNoViewport(m_RenderTexture);
-            GL.LoadOrtho();
-            //GL.LoadPixelMatrix(0, m_RenderTexture.width, m_RenderTexture.height, 0);
-            //ShaderUtil.rawViewportRect = new Rect(0, 0, m_RenderTexture.width, m_RenderTexture.height);
-            //ShaderUtil.rawScissorRect = new Rect(0, 0, m_RenderTexture.width, m_RenderTexture.height);
-            //GL.Clear(true, true, m_Camera.backgroundColor);
-
-            foreach (var light in Lights)
-                light.enabled = true;
-
             var oldProbe = RenderSettings.ambientProbe;
             //Unsupported.SetOverrideRenderSettings(previewScene.scene);
             // Most preview windows just want the light probe from the main scene so by default we copy it here. It can then be overridden if user wants.
             RenderSettings.ambientProbe = oldProbe;
 
+
+            //Debug.Log(string.Format("RT: {0}, Material: {1}", m_RenderTexture, m_CheckerboardMaterial));
+            
+            m_CheckerboardMaterial.SetFloat("_X", 32);
+            m_CheckerboardMaterial.SetFloat("_Y", 32);
+            Graphics.Blit(Texture2D.whiteTexture, m_RenderTexture, m_CheckerboardMaterial);
             
             if (mode == PreviewMode.Preview3D)
             {
@@ -316,9 +278,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_Camera, time);
-            Lights[0].intensity = 1.0f;
-            Lights[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
-            Lights[1].intensity = 1.0f;
+            Light0.enabled = true;
+            Light0.intensity = 1.0f;
+            Light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+            Light1.enabled = true;
+            Light1.intensity = 1.0f;
             m_Camera.clearFlags = CameraClearFlags.Depth;
 
             DrawMesh(
@@ -327,84 +291,56 @@ namespace UnityEditor.MaterialGraph.Drawing
                 Quaternion.identity,
                 mat,
                 0);
-            Render(true, false);
+            m_Camera.Render();
 
-            return EndPreview();
+            Light0.enabled = false;
+            Light1.enabled = false;
+            return m_RenderTexture;
         }
 
         public void Dispose()
         {
-            //EditorSceneManager.ClosePreviewScene(m_Scene); //Removing this line makes it work in the shader graph viewer (checkerboard disappears after windows loses and regains focus)
-
-            /*foreach (var go in m_GameObjects)
-                Object.DestroyImmediate(go);
-
-            m_GameObjects.Clear();*/
-        }
-
-        public void Reset() {
-            if (m_RenderTexture)
+            if (m_RenderTexture == null)
             {
                 UnityEngine.Object.DestroyImmediate(m_RenderTexture);
                 m_RenderTexture = null;
             }
 
-            /*if (m_InvisibleMaterial != null)
+            if (Light0 == null) 
             {
-                UnityEngine.Object.DestroyImmediate(m_InvisibleMaterial);
-                m_InvisibleMaterial = null;
-            }*/
+                UnityEngine.Object.DestroyImmediate(Light0.gameObject);
+                Light0 = null;
+            }
 
-            Dispose();
+            if (Light1 == null) 
+            {
+                UnityEngine.Object.DestroyImmediate(Light1.gameObject);
+                Light1 = null;
+            }
+
+            if (m_Camera == null) 
+            {
+                UnityEngine.Object.DestroyImmediate(m_Camera.gameObject);
+                m_Camera = null;
+            }
+
+            if (m_CheckerboardMaterial == null) 
+            {
+                UnityEngine.Object.DestroyImmediate(m_CheckerboardMaterial);
+                m_CheckerboardMaterial = null;
+            }
+
+            EditorSceneManager.ClosePreviewScene(m_Scene);
         }
 
-        public Texture EndPreview()
-        {
-            //Unsupported.RestoreOverrideRenderSettings();
-
-            //m_SavedState.Restore();
-            FinishFrame();
-            return m_RenderTexture;
-        }
-
-        private void FinishFrame()
-        {
-            foreach (var light in Lights)
-                light.enabled = false;
-        }
-
-        public void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex)
+        private void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex)
         {
             DrawMesh(mesh, pos, rot, mat, subMeshIndex, null, null, false);
         }
 
-        public void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex, MaterialPropertyBlock customProperties, Transform probeAnchor, bool useLightProbe)
+        private void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex, MaterialPropertyBlock customProperties, Transform probeAnchor, bool useLightProbe)
         {
             Graphics.DrawMesh(mesh, Matrix4x4.TRS(pos, rot, Vector3.one), mat, 1, m_Camera, subMeshIndex, customProperties, ShadowCastingMode.Off, false, probeAnchor, useLightProbe);
-        }
-
-        public void Render(bool allowScriptableRenderPipeline = false, bool updatefov = true)
-        {
-            foreach (var light in Lights)
-                light.enabled = true;
-
-            //var oldAllowPipes = Unsupported.useScriptableRenderPipeline;
-            //Unsupported.useScriptableRenderPipeline = allowScriptableRenderPipeline;
-
-            float saveFieldOfView = m_Camera.fieldOfView;
-
-            if (updatefov)
-            {
-                // Calculate a view multiplier to avoid clipping when the preview width is smaller than the height.
-                float viewMultiplier = (m_RenderTexture.width <= 0 ? 1.0f : Mathf.Max(1.0f, (float)m_RenderTexture.height / m_RenderTexture.width));
-                // Multiply the viewing area by the viewMultiplier - it requires some conversions since the camera view is expressed as an angle.
-                m_Camera.fieldOfView = Mathf.Atan(viewMultiplier * Mathf.Tan(m_Camera.fieldOfView * 0.5f * Mathf.Deg2Rad)) * Mathf.Rad2Deg * 2.0f;
-            }
-
-            m_Camera.Render();
-
-            m_Camera.fieldOfView = saveFieldOfView;
-            //Unsupported.useScriptableRenderPipeline = oldAllowPipes;
         }
     }
 }
