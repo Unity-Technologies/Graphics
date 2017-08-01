@@ -96,8 +96,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 bool status = false;
                 if (m_modificationScope >= ModificationScope.Graph)
                 {
-                    previewGenerator.Reset();
-
                     // TODO: Handle shader regeneration error
                     status = UpdatePreviewShader();
                 }
@@ -111,6 +109,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             return m_texture;
         }
+        void OnDisable()
+        {
+            if (m_PreviewGenerator != null)
+                m_PreviewGenerator.Dispose();
+        }
+
 
         protected virtual string GetPreviewShaderString()
         {
