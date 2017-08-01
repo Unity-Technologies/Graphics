@@ -4,22 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Geometry")]
-	class VFXOperatorCylinderVolume : VFXOperator
+    [VFXInfo(category = "Geometry")]
+    class VFXOperatorCylinderVolume : VFXOperator
     {
         public class InputProperties
         {
-			[Tooltip("The radius of the cylinder.")]
-			public float radius = 1.0f;
-			[Tooltip("The height of the cylinder.")]
-			public float height = 1.0f;
+            [Tooltip("The cylinder used for the volume calculation.")]
+            public Cylinder cylinder = new Cylinder();
         }
 
-        override public string name { get { return "Volume (Sphere)"; } }
+        override public string name { get { return "Volume (Cylinder)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-			return new VFXExpression[] { VFXOperatorUtility.CylinderVolume(inputExpression[0], inputExpression[1]) };
+            return new VFXExpression[] { VFXOperatorUtility.CylinderVolume(inputExpression[2], inputExpression[3]) };
         }
     }
 }

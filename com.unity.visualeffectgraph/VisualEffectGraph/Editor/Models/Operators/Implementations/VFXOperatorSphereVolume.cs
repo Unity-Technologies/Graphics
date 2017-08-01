@@ -4,20 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Geometry")]
-	class VFXOperatorSphereVolume : VFXOperator
+    [VFXInfo(category = "Geometry")]
+    class VFXOperatorSphereVolume : VFXOperator
     {
         public class InputProperties
         {
-			[Tooltip("The size of the sphere.")]
-			public float radius = 1.0f;
+            [Tooltip("The sphere used for the volume calculation.")]
+            public Sphere sphere = new Sphere();
         }
 
         override public string name { get { return "Volume (Sphere)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-			return new VFXExpression[] { VFXOperatorUtility.SphereVolume(inputExpression[0]) };
+            return new VFXExpression[] { VFXOperatorUtility.SphereVolume(inputExpression[1]) };
         }
     }
 }
