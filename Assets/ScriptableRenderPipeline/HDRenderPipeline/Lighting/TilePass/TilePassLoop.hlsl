@@ -278,58 +278,65 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         #endif
     }
 
-    float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
+    float3 iblDiffuseLighting  = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
+    float  totalIblWeight      = 0; // Max: 1
 
-    // TODO: Check the reflection hierarchy, for the current system (matching legacy unity) we must sort from bigger solid angle to lower (lower override bigger). So begging by sky
-    // TODO: Change the way it is done by reversing the order, from smaller solid angle to bigger, so we can early out when the weight is 1.
-    // Only apply sky IBL if the sky texture is available.
-    if(featureFlags & LIGHTFEATUREFLAGS_SKY)
+    // Reflection probes are sorted by volume (in the increasing order).
+    if(featureFlags & LIGHTFEATUREFLAGS_ENV)
     {
-        if(_EnvLightSkyEnabled)
+    #ifdef LIGHTLOOP_TILE_PASS
+        uint envLightStart;
+        uint envLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+    #else
+        uint envLightCount = _EnvLightCount;
+    #endif
+
+        for(i = 0; i < envLightCount && totalIblWeight < 1.0; ++i)
         {
+        #ifdef LIGHTLOOP_TILE_PASS
+            uint envLightIndex = FetchIndex(envLightStart, i);
+        #else
+            uint envLightIndex = i;
+        #endif
             float3 localDiffuseLighting, localSpecularLighting;
             float2 weight;
-            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-            EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-            EvaluateBSDF_Env(context, V, posInput, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+            EvaluateBSDF_Env(context, V, posInput, prelightData, _EnvLightDatas[envLightIndex], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+
+            // IBL weights should not exceed 1.
+            float accumulatedWeight = totalIblWeight + weight.y;
+            totalIblWeight          = saturate(accumulatedWeight);
+            weight.y               -= saturate(accumulatedWeight - totalIblWeight);
+
             iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
     }
 
-    if(featureFlags & LIGHTFEATUREFLAGS_ENV)
+    if(featureFlags & LIGHTFEATUREFLAGS_SKY)
     {
-        #ifdef LIGHTLOOP_TILE_PASS
-
-        uint envLightStart;
-        uint envLightCount;
-        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-
-        for(i = 0; i < envLightCount; ++i)
+        // Only apply the sky IBL if the sky texture is available, and if we haven't yet accumulated enough IBL lighting.
+        if(_EnvLightSkyEnabled && totalIblWeight < 1.0)
         {
             float3 localDiffuseLighting, localSpecularLighting;
             float2 weight;
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
-            EvaluateBSDF_Env(context, V, posInput, prelightData, _EnvLightDatas[FetchIndex(envLightStart, i)], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+
+            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+            EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
+            EvaluateBSDF_Env(context, V, posInput, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+
+            // IBL weights should not exceed 1.
+            float accumulatedWeight = totalIblWeight + weight.y;
+            totalIblWeight          = 1.0;
+            weight.y               -= saturate(accumulatedWeight - totalIblWeight);
+
             iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
-
-        #else
-
-        for (i = 0; i < _EnvLightCount; ++i)
-        {
-            float3 localDiffuseLighting, localSpecularLighting;
-            float2 weight;
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
-            EvaluateBSDF_Env(context, V, posInput, prelightData, _EnvLightDatas[i], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
-            iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
-            iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
-        }
-
-        #endif
     }
 
     // Apply ambient occlusion on direct lighting based on strenght factor
