@@ -583,7 +583,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Clear RenderTarget to avoid tile initialization on mobile GPUs
             // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
             if (camera.clearFlags != CameraClearFlags.Nothing)
-                cmd.ClearRenderTarget(camera.clearFlags == CameraClearFlags.Color, camera.clearFlags == CameraClearFlags.Color || camera.clearFlags == CameraClearFlags.Depth, camera.backgroundColor);
+            {
+                bool clearDepth = (camera.clearFlags != CameraClearFlags.Nothing);
+                bool clearColor = (camera.clearFlags == CameraClearFlags.Color);
+                cmd.ClearRenderTarget(clearDepth, clearColor, camera.backgroundColor);
+
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
