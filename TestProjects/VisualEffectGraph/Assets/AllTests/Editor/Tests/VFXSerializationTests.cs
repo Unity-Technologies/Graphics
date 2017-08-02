@@ -260,31 +260,31 @@ namespace UnityEditor.VFX.Test
         public void SerializeOperatorMaskWithState()
         {
             var expectedValue = new[] { VFXOperatorComponentMask.Component.X, VFXOperatorComponentMask.Component.Y, VFXOperatorComponentMask.Component.X };
-            Action<VFXAsset> write = delegate (VFXAsset asset)
-            {
-                var mask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
-                mask.SetSettingValue("x", expectedValue[0]);
-                mask.SetSettingValue("y", expectedValue[1]);
-                mask.SetSettingValue("z", expectedValue[2]);
+            Action<VFXAsset> write = delegate(VFXAsset asset)
+                {
+                    var mask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
+                    mask.SetSettingValue("x", expectedValue[0]);
+                    mask.SetSettingValue("y", expectedValue[1]);
+                    mask.SetSettingValue("z", expectedValue[2]);
 
-                asset.GetOrCreateGraph().AddChild(mask);
-                Assert.AreEqual(expectedValue[0], (mask.settings as VFXOperatorComponentMask.Settings).x);
-                Assert.AreEqual(expectedValue[1], (mask.settings as VFXOperatorComponentMask.Settings).y);
-                Assert.AreEqual(expectedValue[2], (mask.settings as VFXOperatorComponentMask.Settings).z);
-            };
+                    asset.GetOrCreateGraph().AddChild(mask);
+                    Assert.AreEqual(expectedValue[0], (mask.settings as VFXOperatorComponentMask.Settings).x);
+                    Assert.AreEqual(expectedValue[1], (mask.settings as VFXOperatorComponentMask.Settings).y);
+                    Assert.AreEqual(expectedValue[2], (mask.settings as VFXOperatorComponentMask.Settings).z);
+                };
 
-            Action<VFXAsset> read = delegate (VFXAsset asset)
-            {
-                var graph = asset.GetOrCreateGraph();
-                Assert.AreEqual(1, graph.GetNbChildren());
-                Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), graph[0]);
-                var mask = graph[0] as VFXOperatorComponentMask;
-                Assert.IsInstanceOf(typeof(VFXOperatorComponentMask.Settings), mask.settings);
+            Action<VFXAsset> read = delegate(VFXAsset asset)
+                {
+                    var graph = asset.GetOrCreateGraph();
+                    Assert.AreEqual(1, graph.GetNbChildren());
+                    Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), graph[0]);
+                    var mask = graph[0] as VFXOperatorComponentMask;
+                    Assert.IsInstanceOf(typeof(VFXOperatorComponentMask.Settings), mask.settings);
 
-                Assert.AreEqual(expectedValue[0], (mask.settings as VFXOperatorComponentMask.Settings).x);
-                Assert.AreEqual(expectedValue[1], (mask.settings as VFXOperatorComponentMask.Settings).y);
-                Assert.AreEqual(expectedValue[2], (mask.settings as VFXOperatorComponentMask.Settings).z);
-            };
+                    Assert.AreEqual(expectedValue[0], (mask.settings as VFXOperatorComponentMask.Settings).x);
+                    Assert.AreEqual(expectedValue[1], (mask.settings as VFXOperatorComponentMask.Settings).y);
+                    Assert.AreEqual(expectedValue[2], (mask.settings as VFXOperatorComponentMask.Settings).z);
+                };
 
             InnerSaveAndReloadTest("Mask", write, read);
         }
