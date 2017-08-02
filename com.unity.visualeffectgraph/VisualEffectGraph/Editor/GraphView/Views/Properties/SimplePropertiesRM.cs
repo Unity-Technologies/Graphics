@@ -26,6 +26,18 @@ namespace UnityEditor.VFX
 
 namespace UnityEditor.VFX.UI
 {
+    class UintPropertyRM : SimplePropertyRM<uint>
+    {
+        public UintPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override ValueControl<uint> CreateField()
+        {
+            return new UintField(m_Label);
+        }
+    }
+
     class IntPropertyRM : SimplePropertyRM<int>
     {
         public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)

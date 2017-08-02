@@ -130,6 +130,7 @@ namespace UnityEditor.VFX.UI
             {typeof(bool), typeof(BoolPropertyRM)},
             {typeof(float), typeof(FloatPropertyRM)},
             {typeof(int), typeof(IntPropertyRM)},
+            {typeof(uint), typeof(UintPropertyRM)},
             {typeof(Vector2), typeof(Vector2PropertyRM)},
             {typeof(Vector3), typeof(Vector3PropertyRM)},
             {typeof(Vector4), typeof(Vector4PropertyRM)},
