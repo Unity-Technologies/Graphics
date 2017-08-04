@@ -1,13 +1,3 @@
-#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_DIRECTIONAL_LIGHT
-#define PROCESS_PUNCTUAL_LIGHT
-#define PROCESS_AREA_LIGHT
-#endif
-
-#if defined (LIGHTLOOP_TILE_INDIRECT) || defined(LIGHTLOOP_TILE_ALL)
-#define PROCESS_ENV_LIGHT
-#endif
-
 #include "TilePass.cs.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
@@ -47,10 +37,6 @@ StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
-// Use texture array for IES
-//TEXTURE2D_ARRAY(_IESArray);
-//SAMPLER2D(sampler_IESArray);
-
 // Used by directional and spot lights
 TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
@@ -66,6 +52,8 @@ SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
+TEXTURE2D(_AmbientOcclusionTexture);
+
 CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
@@ -74,6 +62,8 @@ uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
+float _AmbientOcclusionDirectLightStrenght;
+
 CBUFFER_END
 
 struct LightLoopContext
@@ -106,16 +96,6 @@ float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 }
 
 //-----------------------------------------------------------------------------
-// IES sampling function
-// ----------------------------------------------------------------------------
-
-// sphericalTexCoord is theta and phi spherical coordinate
-//float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
-//{
-//    return SAMPLE_TEXTURE2D_ARRAY_LOD(_IESArray, sampler_IESArray, sphericalTexCoord, index, 0);
-//}
-
-//-----------------------------------------------------------------------------
 // Reflection proble / Sky sampling function
 // ----------------------------------------------------------------------------
 
@@ -136,9 +116,3 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
-
-//-----------------------------------------------------------------------------
-// AmbientOcclusion
-// ----------------------------------------------------------------------------
-
-TEXTURE2D(_AmbientOcclusionTexture);
