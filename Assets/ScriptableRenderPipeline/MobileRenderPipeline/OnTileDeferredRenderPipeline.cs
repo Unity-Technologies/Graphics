@@ -600,6 +600,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			var probes = cullResults.visibleReflectionProbes;
 			var worldToView = camera.worldToCameraMatrix; //WorldToCamera(camera);
 
+			// matches builtin deferred
 			float nearDistanceFudged = camera.nearClipPlane * 1.001f;
 			float farDistanceFudged = camera.farClipPlane * 0.999f;
 			var viewDir = camera.cameraToWorldMatrix.GetColumn(2);
@@ -655,6 +656,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				var min = rl.bounds.min;
 				var max = rl.bounds.max;
 
+				// TODO: (cleanup) dont use builtins like unity_SpecCube0
 				cmd.SetGlobalTexture("unity_SpecCube0", cubemap);
 				cmd.SetGlobalVector("unity_SpecCube0_HDR", rl.probe.textureHDRDecodeValues);
 				cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", min);
@@ -672,7 +674,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 
 			// draw the base probe
-			// TODO: cleanup, dont use builtins like unity_SpecCube0
+			// TODO: (cleanup) dont use builtins like unity_SpecCube0
 			{ 
 				var props = new MaterialPropertyBlock ();
 				props.SetFloat ("_LightAsQuad", 1.0f);
@@ -936,6 +938,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			var lightData = new SFiniteLightData[probeCount];
 			int idx = 0;
 
+			// TODO: (cleanup) unify reflection probe setup with deferred
 			for (int i = 0; i < probeCount; ++i) {
 				var rl = cull.visibleReflectionProbes [i];
 
