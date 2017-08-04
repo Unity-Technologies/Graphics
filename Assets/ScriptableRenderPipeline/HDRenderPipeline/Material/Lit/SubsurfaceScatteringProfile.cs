@@ -381,19 +381,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public int                           numProfiles;               // Excluding the neutral profile
         public SubsurfaceScatteringProfile[] profiles;
-        // Below are the cached values.
-        [NonSerialized] public uint          texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-        [NonSerialized] public Vector4[]     thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public float[]       worldScales;               // Size of the world unit in meters
-        [NonSerialized] public Vector4[]     shapeParams;               // RGB = S = 1 / D, A = filter radius
-        [NonSerialized] public Vector4[]     transmissionTints;         // RGB = color, A = unused
-        [NonSerialized] public float[]       filterKernelsNearField;    // 0 = radius, 1 = reciprocal of the PDF
-        [NonSerialized] public float[]       filterKernelsFarField;     // 0 = radius, 1 = reciprocal of the PDF
+        // Below are the cached values. TODO: uncomment when SSS profile asset serialization is fixed.
+        /*[NonSerialized]*/ public int           texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        /*[NonSerialized]*/ public int           transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+        /*[NonSerialized]*/ public Vector4[]     thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        /*[NonSerialized]*/ public Vector4[]     worldScales;               // Size of the world unit in meters (only the X component is used)
+        /*[NonSerialized]*/ public Vector4[]     shapeParams;               // RGB = S = 1 / D, A = filter radius
+        /*[NonSerialized]*/ public Vector4[]     transmissionTints;         // RGB = color, A = unused
+        /*[NonSerialized]*/ public Vector4[]     filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
         // Old SSS Model >>>
         public bool                          useDisneySSS;
-        [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
-        [NonSerialized] public Vector4[]     filterKernelsBasic;
+        /*[NonSerialized]*/ public Vector4[]     halfRcpWeightedVariances;
+        /*[NonSerialized]*/ public Vector4[]     filterKernelsBasic;
         // <<< Old SSS Model
 
         // --- Public Methods ---
@@ -409,8 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             worldScales            = null;
             shapeParams            = null;
             transmissionTints      = null;
-            filterKernelsNearField = null;
-            filterKernelsFarField  = null;
+            filterKernels          = null;
             // Old SSS Model >>>
             useDisneySSS             = true;
             halfRcpWeightedVariances = null;
@@ -483,7 +481,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (worldScales == null || worldScales.Length != SssConstants.SSS_N_PROFILES)
             {
-                worldScales = new float[SssConstants.SSS_N_PROFILES];
+                worldScales = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
             if (shapeParams == null || shapeParams.Length != SssConstants.SSS_N_PROFILES)
@@ -496,16 +494,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 transmissionTints = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
-            const int filterKernelsNearFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD;
-            if (filterKernelsNearField == null || filterKernelsNearField.Length != filterKernelsNearFieldLen)
+            const int filterKernelsNearFieldLen = SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD;
+            if (filterKernels == null || filterKernels.Length != filterKernelsNearFieldLen)
             {
-                filterKernelsNearField = new float[filterKernelsNearFieldLen];
-            }
-
-            const int filterKernelsFarFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_FAR_FIELD;
-            if (filterKernelsFarField == null || filterKernelsFarField.Length != filterKernelsFarFieldLen)
-            {
-                filterKernelsFarField = new float[filterKernelsFarFieldLen];
+                filterKernels = new Vector4[filterKernelsNearFieldLen];
             }
 
             // Old SSS Model >>>
@@ -528,23 +520,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (i >= numProfiles || profiles[i] == null)
                 {
                     // Pink transmission
-                    transmissionFlags |= (uint)1 << i * 2;
+                    transmissionFlags |= 1 << i * 2;
                     transmissionTints[i] = new Vector4(100.0f, 0.0f, 100.0f, 1.0f);
 
                     // Default neutral values for the rest
-                    worldScales[i] = 1.0f;
+                    worldScales[i] = Vector4.one;
                     shapeParams[i] = Vector4.zero;
 
                     for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                     {
-                        filterKernelsNearField[2 * (n * i + j) + 0] = 0.0f;
-                        filterKernelsNearField[2 * (n * i + j) + 1] = 1.0f;
-                    }
-
-                    for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
-                    {
-                        filterKernelsFarField[2 * (n * i + j) + 0] = 0.0f;
-                        filterKernelsFarField[2 * (n * i + j) + 1] = 1.0f;
+                        filterKernels[n * i + j].x = 0.0f;
+                        filterKernels[n * i + j].y = 1.0f;
+                        filterKernels[n * i + j].z = 0.0f;
+                        filterKernels[n * i + j].w = 1.0f;
                     }
 
                     // Old SSS Model >>>
@@ -561,25 +549,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Debug.Assert(numProfiles < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles.");
 
-                texturingModeFlags |= (uint)profiles[i].texturingMode    << i;
-                transmissionFlags  |= (uint)profiles[i].transmissionMode << i * 2;
+                texturingModeFlags |= (int)profiles[i].texturingMode    << i;
+                transmissionFlags  |= (int)profiles[i].transmissionMode << i * 2;
 
-                thicknessRemaps[i]         = new Vector4(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x, 0.0f, 0.0f);
-                worldScales[i]             = profiles[i].worldScale;
-                shapeParams[i]             = profiles[i].shapeParameter;
-                shapeParams[i].w           = profiles[i].maxRadius;
-                transmissionTints[i]       = profiles[i].transmissionTint;
+                thicknessRemaps[i]   = new Vector4(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x, 0.0f, 0.0f);
+                worldScales[i]       = new Vector4(profiles[i].worldScale, 0, 0, 0);
+                shapeParams[i]       = profiles[i].shapeParameter;
+                shapeParams[i].w     = profiles[i].maxRadius;
+                transmissionTints[i] = profiles[i].transmissionTint;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
-                    filterKernelsNearField[2 * (n * i + j) + 0] = profiles[i].filterKernelNearField[j].x;
-                    filterKernelsNearField[2 * (n * i + j) + 1] = profiles[i].filterKernelNearField[j].y;
-                }
+                    filterKernels[n * i + j].x = profiles[i].filterKernelNearField[j].x;
+                    filterKernels[n * i + j].y = profiles[i].filterKernelNearField[j].y;
 
-                for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
-                {
-                    filterKernelsFarField[2 * (n * i + j) + 0] = profiles[i].filterKernelFarField[j].x;
-                    filterKernelsFarField[2 * (n * i + j) + 1] = profiles[i].filterKernelFarField[j].y;
+                    if (j < SssConstants.SSS_N_SAMPLES_FAR_FIELD)
+                    {
+                        filterKernels[n * i + j].z = profiles[i].filterKernelFarField[j].x;
+                        filterKernels[n * i + j].w = profiles[i].filterKernelFarField[j].y;
+                    }
                 }
 
                 // Old SSS Model >>>
@@ -596,19 +584,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int i = SssConstants.SSS_NEUTRAL_PROFILE_ID;
 
-                worldScales[i] = 1.0f;
+                worldScales[i] = Vector4.one;
                 shapeParams[i] = Vector4.zero;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
-                    filterKernelsNearField[2 * (n * i + j) + 0] = 0.0f;
-                    filterKernelsNearField[2 * (n * i + j) + 1] = 1.0f;
-                }
-
-                for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
-                {
-                    filterKernelsFarField[2 * (n * i + j) + 0] = 0.0f;
-                    filterKernelsFarField[2 * (n * i + j) + 1] = 1.0f;
+                    filterKernels[n * i + j].x = 0.0f;
+                    filterKernels[n * i + j].y = 1.0f;
+                    filterKernels[n * i + j].z = 0.0f;
+                    filterKernels[n * i + j].w = 1.0f;
                 }
 
                 // Old SSS Model >>>
@@ -630,7 +614,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnAfterDeserialize()
         {
-            UpdateCache();
+            // TODO: uncomment when SSS profile asset serialization is fixed.
+            // UpdateCache();
         }
     }
 
@@ -810,8 +795,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool transmissionEnabled = m_TransmissionMode.intValue != (int)SubsurfaceScatteringProfile.TransmissionMode.None;
 
             // Draw the profile.
-            m_ProfileMaterial.SetFloat( "_MaxRadius",  r);
-            m_ProfileMaterial.SetVector("_ShapeParam", S);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
+            m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
             // Old SSS Model >>>
             Utilities.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
             // Apply the three-sigma rule, and rescale.
@@ -820,10 +805,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                         m_ScatterDistance2.colorValue.r, m_ScatterDistance2.colorValue.g, m_ScatterDistance2.colorValue.b);
             Vector4 stdDev1 = new Vector4(s * m_ScatterDistance1.colorValue.r, s * m_ScatterDistance1.colorValue.g, s * m_ScatterDistance1.colorValue.b);
             Vector4 stdDev2 = new Vector4(s * m_ScatterDistance2.colorValue.r, s * m_ScatterDistance2.colorValue.g, s * m_ScatterDistance2.colorValue.b);
-            m_ProfileMaterial.SetVector("_StdDev1",   stdDev1);
-            m_ProfileMaterial.SetVector("_StdDev2",   stdDev2);
-            m_ProfileMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
-            m_ProfileMaterial.SetFloat("_MaxRadius",  rMax);
+            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1,   stdDev1);
+            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev2,   stdDev2);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._LerpWeight, m_LerpWeight.floatValue);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  rMax);
             // <<< Old SSS Model
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
@@ -834,9 +819,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.
-            m_TransmittanceMaterial.SetVector("_ShapeParam",       S);
-            m_TransmittanceMaterial.SetVector("_TransmissionTint", transmissionEnabled ? T : Vector4.zero);
-            m_TransmittanceMaterial.SetVector("_ThicknessRemap",   R);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam,       S);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, transmissionEnabled ? T : Vector4.zero);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap,   R);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();

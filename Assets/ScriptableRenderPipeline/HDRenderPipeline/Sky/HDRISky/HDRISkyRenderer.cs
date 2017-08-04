@@ -36,8 +36,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
         {
-            m_SkyHDRIMaterial.SetTexture("_Cubemap", m_HdriSkyParams.skyHDRI);
-            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.skyHDRI);
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
 
             builtinParams.commandBuffer.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
         }

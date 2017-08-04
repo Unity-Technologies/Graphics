@@ -3,7 +3,6 @@ Shader "Hidden/HDPipeline/Lighting/ScreenSpaceAmbientOcclusion"
     HLSLINCLUDE
 
     #include "../../../ShaderLibrary/Common.hlsl"
-    #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderVariables.hlsl"
 
     #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl

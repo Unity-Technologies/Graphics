@@ -183,48 +183,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupGlobalParams(CommandBuffer cmd)
         {
-            cmd.SetGlobalMatrix("_ViewMatrix",                viewMatrix);
-            cmd.SetGlobalMatrix("_InvViewMatrix",             viewMatrix.inverse);
-            cmd.SetGlobalMatrix("_ProjMatrix",                projMatrix);
-            cmd.SetGlobalMatrix("_InvProjMatrix",             projMatrix.inverse);
-            cmd.SetGlobalMatrix("_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
-            cmd.SetGlobalMatrix("_ViewProjMatrix",            viewProjMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix",         viewProjMatrix.inverse);
-            cmd.SetGlobalVector("_InvProjParam",              invProjParam);
-            cmd.SetGlobalVector("_ScreenSize",                screenSize);
-            cmd.SetGlobalMatrix("_PrevViewProjMatrix",        prevViewProjMatrix);
-            cmd.SetGlobalVectorArray("_FrustumPlanes",        frustumPlaneEquations);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix,                projMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix,             projMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix,            viewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
+            cmd.SetGlobalVector(HDShaderIDs._InvProjParam,              invProjParam);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
+            cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
+            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
         public void OverrideGlobalParams(Material material)
         {
-            material.SetMatrix("_ViewMatrix",                viewMatrix);
-            material.SetMatrix("_InvViewMatrix",             viewMatrix.inverse);
-            material.SetMatrix("_ProjMatrix",                projMatrix);
-            material.SetMatrix("_InvProjMatrix",             projMatrix.inverse);
-            material.SetMatrix("_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
-            material.SetMatrix("_ViewProjMatrix",            viewProjMatrix);
-            material.SetMatrix("_InvViewProjMatrix",         viewProjMatrix.inverse);
-            material.SetVector("_InvProjParam",              invProjParam);
-            material.SetVector("_ScreenSize",                screenSize);
-            material.SetMatrix("_PrevViewProjMatrix",        prevViewProjMatrix);
-            material.SetVectorArray("_FrustumPlanes",        frustumPlaneEquations);
+            material.SetMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
+            material.SetMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
+            material.SetMatrix(HDShaderIDs._ProjMatrix,                projMatrix);
+            material.SetMatrix(HDShaderIDs._InvProjMatrix,             projMatrix.inverse);
+            material.SetMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
+            material.SetMatrix(HDShaderIDs._ViewProjMatrix,            viewProjMatrix);
+            material.SetMatrix(HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
+            material.SetVector(HDShaderIDs._InvProjParam,              invProjParam);
+            material.SetVector(HDShaderIDs._ScreenSize,                screenSize);
+            material.SetMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
+            material.SetVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
         }
 
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
         {
-            cmd.SetComputeMatrixParam(cs, "_ViewMatrix",                viewMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewMatrix",             viewMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_ProjMatrix",                projMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvProjMatrix",             projMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, "_NonJitteredViewProjMatrix", nonJitteredViewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, "_ViewProjMatrix",            viewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, "_InvViewProjMatrix",         viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, "_InvProjParam",              invProjParam);
-            cmd.SetComputeVectorParam(cs, "_ScreenSize",                screenSize);
-            cmd.SetComputeMatrixParam(cs, "_PrevViewProjMatrix",        prevViewProjMatrix);
-            cmd.SetComputeVectorArrayParam(cs, "_FrustumPlanes",        frustumPlaneEquations);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewMatrix,                viewMatrix);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ProjMatrix,                projMatrix);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvProjMatrix,             projMatrix.inverse);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewProjMatrix,            viewProjMatrix);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._InvProjParam,              invProjParam);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenSize,                screenSize);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
+            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
+            // Copy values set by Unity which are not configured in scripts.
+            cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams,    Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams,    Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams,        Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams,       Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));
         }
     }
 
@@ -278,12 +284,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly GBufferManager m_gbufferManager = new GBufferManager();
 
-        Material m_CopyStencilBuffer;
+        Material m_CopyStencilForSplitLighting;
+        Material m_CopyStencilForRegularLighting;
 
         // Various set of material use in render loop
-        Material m_FilterAndCombineSubsurfaceScattering;
+        ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
+        int m_SubsurfaceScatteringKernel;
         // Old SSS Model >>>
-        Material m_FilterSubsurfaceScattering;
+        Material m_SssVerticalFilterPass;
+        Material m_SssHorizontalFilterAndCombinePass;
         // <<< Old SSS Model
 
         Material m_CameraMotionVectorsMaterial;
@@ -294,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Various buffer
         readonly int m_CameraColorBuffer;
-        readonly int m_CameraSubsurfaceBuffer;
+        readonly int m_CameraDiffuseIrradianceBuffer;
         // Old SSS Model >>>
         readonly int m_CameraFilteringBuffer;
         // <<< Old SSS Model
@@ -304,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass.
         // It is stored within 'm_CameraSubsurfaceBufferRT'.
         readonly RenderTargetIdentifier m_CameraColorBufferRT;
-        readonly RenderTargetIdentifier m_CameraSubsurfaceBufferRT;
+        readonly RenderTargetIdentifier m_CameraDiffuseIrradianceBufferRT;
         // Old SSS Model >>>
         readonly RenderTargetIdentifier m_CameraFilteringBufferRT;
         // <<< Old SSS Model
@@ -313,10 +322,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture m_CameraDepthStencilBuffer = null;
         private RenderTexture m_CameraDepthBufferCopy = null;
-        private RenderTexture m_CameraStencilBufferCopy = null; // Currently, it's manually copied using a pixel shader, and optimized to only contain the SSS bit
+        private RenderTexture m_CameraStencilBufferCopy = null;
+        private RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
         private RenderTargetIdentifier m_CameraStencilBufferCopyRT;
+        private RenderTargetIdentifier m_HTileRT;
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -416,20 +427,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // whereas it work. Don't know what is hapening, DebugDisplay use the same code and name is correct there.
             // Debug.Assert(m_DeferredMaterial != null);
 
-            m_CameraColorBuffer             = Shader.PropertyToID("_CameraColorTexture");
-            m_CameraSubsurfaceBuffer        = Shader.PropertyToID("_CameraSubsurfaceTexture");
+            m_CameraColorBuffer               = HDShaderIDs._CameraColorTexture;
+            m_CameraColorBufferRT             = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraDiffuseIrradianceBuffer   = HDShaderIDs._CameraDiffuseIrradianceTexture;
+            m_CameraDiffuseIrradianceBufferRT = new RenderTargetIdentifier(m_CameraDiffuseIrradianceBuffer);
 
-            m_CameraColorBufferRT      = new RenderTargetIdentifier(m_CameraColorBuffer);
-            m_CameraSubsurfaceBufferRT = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
 
             // Old SSS Model >>>
-            m_CameraFilteringBuffer   = Shader.PropertyToID("_CameraFilteringBuffer");
+            m_CameraFilteringBuffer   = HDShaderIDs._CameraFilteringBuffer;
             m_CameraFilteringBufferRT = new RenderTargetIdentifier(m_CameraFilteringBuffer);
             CreateSssMaterials(sssSettings.useDisneySSS);
             // <<< Old SSS Model
 
-            m_CopyStencilBuffer           = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
-            m_CameraMotionVectorsMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
+            m_CopyStencilForSplitLighting   = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
+            m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
+            m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
+            m_CopyStencilForRegularLighting = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
+            m_CopyStencilForRegularLighting.DisableKeyword("EXPORT_HTILE");
+            m_CopyStencilForRegularLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+            m_CameraMotionVectorsMaterial   = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
 
@@ -444,7 +460,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_gbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, RTFormat[gbufferIndex], RTReadWrite[gbufferIndex]);
             }
 
-            m_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
+            m_VelocityBuffer = HDShaderIDs._VelocityTexture;
             if (ShaderConfig.s_VelocityInGbuffer == 1)
             {
                 // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
@@ -453,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             m_VelocityBufferRT = new RenderTargetIdentifier(m_VelocityBuffer);
 
-            m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
+            m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
@@ -468,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SsaoEffect.Build(asset.renderPipelineResources);
 
             m_DebugDisplaySettings.RegisterDebug();
-            m_DebugFullScreenTempRT = Shader.PropertyToID("_DebugFullScreenTexture");
+            m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
         }
 
         void InitializeDebugMaterials()
@@ -478,22 +494,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugFullScreen = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
         }
 
-        // Old SSS Model >>>
         public void CreateSssMaterials(bool useDisneySSS)
         {
-            Utilities.Destroy(m_FilterSubsurfaceScattering);
-            m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            Utilities.SelectKeyword(m_FilterSubsurfaceScattering, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
-            m_FilterSubsurfaceScattering.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
-            m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
+            m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
 
-            Utilities.Destroy(m_FilterAndCombineSubsurfaceScattering);
-            m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            Utilities.SelectKeyword(m_FilterAndCombineSubsurfaceScattering, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
-            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
-            m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
+            // Old SSS Model >>>
+            Utilities.Destroy(m_SssVerticalFilterPass);
+            m_SssVerticalFilterPass = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/SubsurfaceScattering");
+            m_SssVerticalFilterPass.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
+            m_SssVerticalFilterPass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.Zero);
+
+            Utilities.Destroy(m_SssHorizontalFilterAndCombinePass);
+            m_SssHorizontalFilterAndCombinePass = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/SubsurfaceScattering");
+            m_SssHorizontalFilterAndCombinePass.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
+            m_SssHorizontalFilterAndCombinePass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.One);
+            // <<< Old SSS Model
         }
-        // <<< Old SSS Model
 
         public void OnSceneLoad()
         {
@@ -558,10 +574,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_CameraStencilBufferCopy.Release();
                 }
-                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8);
+                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
+            }
+
+            if (NeedHTileCopy())
+            {
+                if (m_HTile!= null)
+                {
+                    m_HTile.Release();
+                }
+                // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
+                m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_HTile.filterMode = FilterMode.Point;
+                m_HTile.enableRandomWrite = true;
+                m_HTile.Create();
+                m_HTileRT = new RenderTargetIdentifier(m_HTile);
             }
         }
 
@@ -608,25 +638,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_SkyManager.IsSkyValid())
                 {
                     m_SkyManager.SetGlobalSkyTexture();
-                    Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
+                    Shader.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
                 }
                 else
                 {
-                    Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
+                    Shader.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
                 }
 
                 // Broadcast SSS parameters to all shaders.
-                Shader.SetGlobalInt(     "_EnableSSSAndTransmission",          m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
-                Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
-                Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
-                cmd.SetGlobalVectorArray( "_ThicknessRemaps",        sssParameters.thicknessRemaps);
+                Shader.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission,          m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+                Shader.SetGlobalInt(HDShaderIDs._TexturingModeFlags, (int)sssParameters.texturingModeFlags);
+                Shader.SetGlobalInt(HDShaderIDs._TransmissionFlags,  (int)sssParameters.transmissionFlags);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,        sssParameters.thicknessRemaps);
                 // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
                 // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
                 // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
                 // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
                 // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
-                cmd.SetGlobalVectorArray("_ShapeParams",             sssParameters.useDisneySSS ? sssParameters.shapeParams : sssParameters.halfRcpWeightedVariances);
-                cmd.SetGlobalVectorArray("_TransmissionTints",       sssParameters.transmissionTints);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,             sssParameters.useDisneySSS ? sssParameters.shapeParams : sssParameters.halfRcpWeightedVariances);
+                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,       sssParameters.transmissionTints);
             }
         }
 
@@ -639,7 +669,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool NeedStencilBufferCopy()
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
-            // Therefore, it's manually copied using a pixel shader, and optimized to only contain the SSS bit.
+            // Therefore, it's manually copied using a pixel shader.
+            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+        }
+
+        bool NeedHTileCopy()
+        {
+            // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
+            // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
             return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
         }
 
@@ -651,6 +688,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier GetStencilTexture()
         {
             return NeedStencilBufferCopy() ? m_CameraStencilBufferCopyRT : m_CameraDepthStencilBufferRT;
+        }
+
+        RenderTargetIdentifier GetHTile()
+        {
+            // Currently, Unity does not offer a way to access the GCN HTile.
+            return m_HTileRT;
         }
 
         private void CopyDepthBufferIfNeeded(CommandBuffer cmd)
@@ -665,7 +708,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                cmd.SetGlobalTexture("_MainDepthTexture", GetDepthTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
             }
         }
 
@@ -675,11 +718,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new Utilities.ProfilingSample("Copy StencilBuffer", cmd))
                 {
-                    Utilities.DrawFullScreen(cmd, m_CopyStencilBuffer, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    cmd.SetRandomWriteTarget(1, GetHTile());
+                    // Our method of exporting the stencil requires one pass per unique stencil value.
+                    Utilities.DrawFullScreen(cmd, m_CopyStencilForSplitLighting,   m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    Utilities.DrawFullScreen(cmd, m_CopyStencilForRegularLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+                    cmd.ClearRandomWriteTargets();
                 }
             }
 
-            cmd.SetGlobalTexture("_StencilTexture", GetStencilTexture());
+            cmd.SetGlobalTexture(HDShaderIDs._HTile, GetHTile());
+            cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, GetStencilTexture());
         }
 
         public void UpdateCommonSettings()
@@ -806,7 +854,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyDepthBufferIfNeeded(cmd);
             }
 
-            // Required for the SSS pass.
+            // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
 
             if (m_DebugDisplaySettings.IsDebugMaterialDisplayEnabled())
@@ -822,7 +870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT);
+                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
                 }
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
@@ -835,7 +883,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                 // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-                CombineSubsurfaceScattering(hdCamera, cmd, m_Asset.sssSettings);
+                SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
 
                 // For opaque forward we have split rendering in two categories
                 // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
@@ -985,22 +1033,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("DisplayDebug ViewMaterial", cmd))
             {
-                // Render Opaque forward
-                Utilities.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
-                RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
-
-                // Render GBuffer opaque
-                if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+                if(m_DebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
                     using (new Utilities.ProfilingSample("DebugViewMaterialGBuffer", cmd))
                     {
                         // TODO: Bind depth textures
-                        cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
+                        Utilities.DrawFullScreen(cmd, m_DebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
                 }
-
-                // Render forward transparent
+                else
                 {
+                    Utilities.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
+                    // Render Opaque forward
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
+
+                    // Render forward transparent
                     RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
                 }
             }
@@ -1021,7 +1068,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            RenderTargetIdentifier[] colorRTs     = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
+            RenderTargetIdentifier[] colorRTs     = { m_CameraColorBufferRT, m_CameraDiffuseIrradianceBufferRT };
             RenderTargetIdentifier   depthTexture = GetDepthTexture();
 
             if (m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
@@ -1035,7 +1082,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
-        void CombineSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
+        void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (!m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
@@ -1045,28 +1092,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (sssSettings.useDisneySSS)
                 {
-                    cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
-                    m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
-                    m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
-                    m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
+                    hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
 
-                    Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                    cmd.SetComputeIntParam(        m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, sssParameters.texturingModeFlags);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
+
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture0,    m_gbufferManager.GetGBuffers()[0]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture1,    m_gbufferManager.GetGBuffers()[1]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture2,    m_gbufferManager.GetGBuffers()[2]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture3,    m_gbufferManager.GetGBuffers()[3]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._DepthTexture,       GetDepthTexture());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._StencilTexture,     GetStencilTexture());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._HTile,              GetHTile());
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._IrradianceSource,   m_CameraDiffuseIrradianceBufferRT);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+
+                    cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
                 }
                 else
                 {
                     // Perform the vertical SSS filtering pass.
-                    cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);  // Cannot set a RT on a material
-                    m_FilterSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
-                    m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
-                    m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-                    Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+                    cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraDiffuseIrradianceBufferRT);  // Cannot set a RT on a material
+                    m_SssVerticalFilterPass.SetVectorArray(HDShaderIDs._WorldScales,              sssParameters.worldScales);
+                    m_SssVerticalFilterPass.SetVectorArray(HDShaderIDs._FilterKernelsBasic,       sssParameters.filterKernelsBasic);
+                    m_SssVerticalFilterPass.SetVectorArray(HDShaderIDs._HalfRcpWeightedVariances, sssParameters.halfRcpWeightedVariances);
+                    Utilities.DrawFullScreen(cmd, m_SssVerticalFilterPass, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
 
                     // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-                    cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);  // Cannot set a RT on a material
-                    m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",               sssParameters.worldScales);
-                    m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsBasic",       sssParameters.filterKernelsBasic);
-                    m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-                    Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                    cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBufferRT);  // Cannot set a RT on a material
+                    m_SssHorizontalFilterAndCombinePass.SetVectorArray(HDShaderIDs._WorldScales,              sssParameters.worldScales);
+                    m_SssHorizontalFilterAndCombinePass.SetVectorArray(HDShaderIDs._FilterKernelsBasic,       sssParameters.filterKernelsBasic);
+                    m_SssHorizontalFilterAndCombinePass.SetVectorArray(HDShaderIDs._HalfRcpWeightedVariances, sssParameters.halfRcpWeightedVariances);
+                    Utilities.DrawFullScreen(cmd, m_SssHorizontalFilterAndCombinePass, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
                 }
             }
         }
@@ -1147,7 +1206,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int w = (int)hdcam.screenSize.x;
                 int h = (int)hdcam.screenSize.y;
 
-                m_CameraMotionVectorsMaterial.SetVector("_CameraPosDiff", hdcam.prevCameraPos - hdcam.cameraPos);
+                m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcam.prevCameraPos - hdcam.cameraPos);
 
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
                 Utilities.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
@@ -1184,8 +1243,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (Utilities.IsPostProcessingActive(layer))
                 {
-                    cmd.SetGlobalTexture("_CameraDepthTexture", GetDepthTexture());
-                    cmd.SetGlobalTexture("_CameraMotionVectorsTexture", m_VelocityBufferRT);
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBufferRT);
 
                     var context = m_PostProcessContext;
                     context.Reset();
@@ -1213,10 +1272,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
 
-            Shader.SetGlobalInt("_DebugViewMaterial", (int)m_DebugDisplaySettings.GetDebugMaterialIndex());
-            Shader.SetGlobalInt("_DebugLightingMode", (int)m_DebugDisplaySettings.GetDebugLightingMode());
-            Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
-            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
+            Shader.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_DebugDisplaySettings.GetDebugMaterialIndex());
+            Shader.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_DebugDisplaySettings.GetDebugLightingMode());
+            Shader.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
+            Shader.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 
         public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
@@ -1245,8 +1304,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
                 {
                     m_FullScreenDebugPushed = false;
-                    cmd.SetGlobalTexture("_DebugFullScreenTexture", m_DebugFullScreenTempRT);
-                    m_DebugFullScreen.SetFloat("_FullScreenDebugMode", (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
+                    cmd.SetGlobalTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempRT);
+                    m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
                     Utilities.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
 
@@ -1261,8 +1320,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightingDebug.displaySkyReflection)
                 {
                     Texture skyReflection = m_SkyManager.skyReflection;
-                    m_SharedPropertyBlock.SetTexture("_InputCubemap", skyReflection);
-                    m_SharedPropertyBlock.SetFloat("_Mipmap", lightingDebug.skyReflectionMipmap);
+                    m_SharedPropertyBlock.SetTexture(HDShaderIDs._InputCubemap, skyReflection);
+                    m_SharedPropertyBlock.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     cmd.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, m_SharedPropertyBlock);
                     Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
@@ -1288,10 +1347,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int w = camera.pixelWidth;
                     int h = camera.pixelHeight;
 
-                    cmd.GetTemporaryRT(m_CameraColorBuffer,             w, h,  0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    cmd.GetTemporaryRT(m_CameraSubsurfaceBuffer,        w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraColorBuffer,             w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraDiffuseIrradianceBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     // Old SSS Model >>>
-                    cmd.GetTemporaryRT(m_CameraFilteringBuffer,         w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraFilteringBuffer,         w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     // <<< Old SSS Model
 
                     if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
@@ -1305,16 +1364,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear the diffuse SSS lighting target
                 using (new Utilities.ProfilingSample("Clear SSS diffuse target", cmd))
                 {
-                    Utilities.SetRenderTarget(cmd, m_CameraSubsurfaceBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                    Utilities.SetRenderTarget(cmd, m_CameraDiffuseIrradianceBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
                 }
 
                 // Old SSS Model >>>
-                // Clear the SSS filtering target
-                using (new Utilities.ProfilingSample("Clear SSS filtering target", cmd))
+                if (!sssSettings.useDisneySSS)
                 {
-                    Utilities.SetRenderTarget(cmd, m_CameraFilteringBuffer, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                    // Clear the SSS filtering target
+                    using (new Utilities.ProfilingSample("Clear SSS filtering target", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_CameraFilteringBuffer, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                    }
                 }
                 // <<< Old SSS Model
+
+                if (NeedStencilBufferCopy())
+                {
+                    using (new Utilities.ProfilingSample("Clear stencil texture", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.ClearColor, Color.black);
+                    }
+                }
+
+                if (NeedHTileCopy())
+                {
+                    using (new Utilities.ProfilingSample("Clear HTile", cmd))
+                    {
+                        Utilities.SetRenderTarget(cmd, m_HTileRT, ClearFlag.ClearColor, Color.black);
+                    }
+                }
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 

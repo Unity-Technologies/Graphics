@@ -421,6 +421,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 
+        public bool IsDebugGBufferEnabled()
+        {
+            return m_DebugViewGBuffer != 0;
+        }
+
         public bool IsDebugDisplayEnabled()
         {
             return (m_DebugViewEngine != 0 || m_DebugViewMaterial != 0 || m_DebugViewVarying != Attributes.DebugViewVarying.None || m_DebugViewProperties != Attributes.DebugViewProperties.None || m_DebugViewGBuffer != 0);

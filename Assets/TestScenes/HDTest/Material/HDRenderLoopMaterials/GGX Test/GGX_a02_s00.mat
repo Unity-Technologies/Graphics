@@ -138,7 +138,7 @@ Material:
     m_Floats:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
-    - _Anisotropy: 0
+    - _Anisotropy: 0.2
     - _BlendMode: 0
     - _BumpScale: 1
     - _CullMode: 2
