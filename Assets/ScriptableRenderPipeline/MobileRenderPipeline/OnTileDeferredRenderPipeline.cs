@@ -231,6 +231,13 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		// cannot read depth buffer directly in shader on iOS
 		private RenderPassAttachment s_GBufferRedF32;
 
+		// TODO: When graphics/renderpass lands, replace code that uses boolean below with SystemInfo.supportsReadOnlyDepth
+		#if UNITY_EDITOR || UNITY_STANDALONE
+		static bool s_SupportsReadOnlyDepth = true;
+		#else 
+		static bool s_SupportsReadOnlyDepth = false;
+		#endif
+
 		private static int _sceneViewBlitId;
 		private static int _sceneViewDepthId;
 		private static Material _blitDepthMaterial;
@@ -284,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			s_GBufferEmission.Clear(new Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
 			s_Depth.Clear(new Color(), 1.0f, 0);
 
-			if (SystemInfo.supportsReadOnlyDepth)
+			if (s_SupportsReadOnlyDepth)
 			{
 				s_GBufferRedF32 = null;
 			}
@@ -435,12 +442,12 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 		{
-			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, SystemInfo.supportsReadOnlyDepth ? 
+			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, s_SupportsReadOnlyDepth ? 
 				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
 				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, s_Depth)) {
 
 				// GBuffer pass
-				using (new RenderPass.SubPass (rp, SystemInfo.supportsReadOnlyDepth ? 
+				using (new RenderPass.SubPass (rp, s_SupportsReadOnlyDepth ? 
 					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
 					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, null)) {
 					using (var cmd = new CommandBuffer { name = "Create G-Buffer" }) {
@@ -463,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 				//Lighting Pass
 				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission },  
-					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, SystemInfo.supportsReadOnlyDepth ? s_Depth : s_GBufferRedF32 }, true))
+					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_SupportsReadOnlyDepth ? s_Depth : s_GBufferRedF32 }, true))
 				{
 					using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass"} )
 					{
