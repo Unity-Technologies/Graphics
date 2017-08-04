@@ -588,6 +588,11 @@ VertexOutputDeferred vertDeferred (VertexInput v)
 	return o;
 }
 
+// TODO: Remove this after merging in graphics/renderpass branch. This should be defined in hlslSupport.cginc
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
+#define UNITY_SUPPORT_DEPTH_FETCH 1
+#endif
+
 void fragDeferred (
 	VertexOutputDeferred i,
 	//in float inDepth : SV_Depth,
