@@ -672,6 +672,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			}
 
 			// draw the base probe
+			// TODO: cleanup, dont use builtins like unity_SpecCube0
 			{ 
 				var props = new MaterialPropertyBlock ();
 				props.SetFloat ("_LightAsQuad", 1.0f);
@@ -693,21 +694,24 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_ReflectionNearAndFarClipMaterial, 0, 0, props);
 			}
 		}
+
+		Matrix4x4 SpotlightMatrix (VisibleLight light, Matrix4x4 worldToLight, float range, float chsa)
+		{
+			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
+			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+			Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
+			return temp2 * temp1 * temp3 * worldToLight;
+		}
 			
 		void RenderSpotlight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool renderAsQuad, bool intersectsNear, bool deferred)
 		{
 			float range = light.range;
 			var lightToWorld = light.localToWorld;
 			var worldToLight = lightToWorld.inverse;
-
 			float chsa = GetCotanHalfSpotAngle (light.spotAngle);
 
 			// Setup Light Matrix
-			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
-			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-			Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
-			var LightMatrix0 = temp2 * temp1 * temp3 * worldToLight;
-			properties.SetMatrix ("_LightMatrix0", LightMatrix0);
+			properties.SetMatrix ("_LightMatrix0", SpotlightMatrix(light, worldToLight, range, chsa));
 
 			// Setup Spot Rendering mesh matrix
 			float sideLength = range / chsa;
@@ -757,18 +761,23 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, properties);
 
 		}
-		
-		void RenderDirectionalLight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool renderAsQuad, bool intersectsNear, bool deferred)
+
+		Matrix4x4 DirectionalLightmatrix(VisibleLight light, Matrix4x4 worldToLight)
+		{
+			// Setup Light Matrix
+			float scale = 1.0f / light.light.cookieSize;
+			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
+			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+			return temp2 * temp1 * worldToLight;
+		}
+
+		void RenderDirectionalLight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool intersectsNear)
 		{
 			var lightToWorld = light.localToWorld;
 			var worldToLight = lightToWorld.inverse;
 
 			// Setup Light Matrix
-			float scale = 1.0f / light.light.cookieSize;
-			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
-			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-			var LightMatrix0 = temp2 * temp1 * worldToLight;
-			properties.SetMatrix ("_LightMatrix0", LightMatrix0);
+			properties.SetMatrix ("_LightMatrix0", DirectionalLightmatrix (light, worldToLight));
 
 			Texture cookie = light.light.cookie;
 			if (cookie != null) {
@@ -827,7 +836,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					RenderSpotlight (light, cmd, props, renderAsQuad, intersectsNear, true);
 					break;
 				case LightType.Directional:
-					RenderDirectionalLight(light, cmd, props, renderAsQuad, intersectsNear, true);
+					RenderDirectionalLight(light, cmd, props, intersectsNear);
 					break;
 				}
 			}
@@ -903,10 +912,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					float chsa = GetCotanHalfSpotAngle (light.spotAngle);
 
 					// Setup Light Matrix
-					Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
-					Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-					Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
-					m_LightMatrix[i] = temp2 * temp1 * temp3 * worldToLight;
+					m_LightMatrix[i] = SpotlightMatrix (light, worldToLight, range, chsa); 
 
 					if (light.light.cookie != null)
 						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
@@ -917,10 +923,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightData[i].x = LightDefinitions.DIRECTIONAL_LIGHT;
 
 					// Setup Light Matrix
-					float scale = 1.0f / light.light.cookieSize;
-					Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
-					Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-					m_LightMatrix[i] = temp2 * temp1 * worldToLight;
+					m_LightMatrix[i] = DirectionalLightmatrix (light, worldToLight);
 
 					if (light.light.cookie != null)
 						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
