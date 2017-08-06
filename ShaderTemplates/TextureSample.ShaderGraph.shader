@@ -1,8 +1,8 @@
-Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode1cbd7aed-56c9-4a01-866e-a6b04a03c1b6" 
+Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode8d0a8307-a3eb-4434-be6c-c952f4588d6c" 
 {
 	Properties 
 	{
-		[NonModifiableTextureData] Texture2D_Texture2D_D281CEC8_Uniform("Texture2D", 2D) = "white" {}
+		[NonModifiableTextureData] Texture2D_Texture2D_ED131035_Uniform("Texture2D", 2D) = "white" {}
 
 	}	
 	
@@ -31,7 +31,7 @@ SubShader
 	#pragma glsl
 	#pragma debug
 
-		UNITY_DECLARE_TEX2D(Texture2D_Texture2D_D281CEC8_Uniform);
+		UNITY_DECLARE_TEX2D(Texture2D_Texture2D_ED131035_Uniform);
 
 
 
@@ -53,8 +53,8 @@ SubShader
 	void surf (Input IN, inout SurfaceOutputStandard o) 
 	{
 			half4 uv0 = IN.meshUV0;
-			float4 Sample2DTexture_1221CD9A_rgba = UNITY_SAMPLE_TEX2D(Texture2D_Texture2D_D281CEC8_Uniform,uv0.xy);
-			o.Albedo = Sample2DTexture_1221CD9A_rgba;
+			float4 Sample2DTexture_1EF145E2_rgba = UNITY_SAMPLE_TEX2D(Texture2D_Texture2D_ED131035_Uniform,uv0.xy);
+			o.Emission = Sample2DTexture_1EF145E2_rgba;
 
 	}
 	ENDCG
