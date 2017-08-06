@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 class ShaderGraphTextGenerator : ICustomShaderImporter
 {
@@ -48,21 +50,43 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
         return false;
     }
 
-    public void OnInspectorGUI(string path, UnityAction defaultOnInspectorGUI)
-    {
-        defaultOnInspectorGUI();
-        if (GUILayout.Button("Open Shader Editor"))
-        {
-            var window = new MaterialGraphEditWindow();
-            window.Show();
-            window.ChangeSelction(AssetDatabase.LoadAssetAtPath<Shader>(path));
-        }
-    }
 
     public void OpenAsset(string path)
     {
-        var window = new MaterialGraphEditWindow();
-        window.Show();
-        window.ChangeSelction(AssetDatabase.LoadAssetAtPath<Shader>(path));
+        ShowGraphEditWindow(path);
+    }
+
+    public void OnInspectorGUI(string path, [NotNull] UnityAction defaultOnInspectorGUI)
+    {
+        if (defaultOnInspectorGUI == null)
+            throw new ArgumentNullException("defaultOnInspectorGUI");
+        defaultOnInspectorGUI();
+
+        if (GUILayout.Button("Open Shader Editor"))
+        {
+            ShowGraphEditWindow(path);
+        }
+    }
+
+    private static void ShowGraphEditWindow(string path)
+    {
+        var asset = AssetDatabase.LoadAssetAtPath<Shader>(path);
+        var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+        bool foundWindow = false;
+        foreach (var w in windows)
+        {
+            if (w.selected == asset)
+            {
+                foundWindow = true;
+                w.Focus();
+            }
+        }
+
+        if (!foundWindow)
+        {
+            var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
+            window.Show();
+            window.ChangeSelction(asset);
+        }
     }
 }
