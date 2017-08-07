@@ -75,7 +75,7 @@ struct LightData
     int IESIndex;
     float2 size;
     int lightType;
-    float unused;
+    float minRoughness;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -207,9 +207,9 @@ int GetLightType(LightData value)
 {
 	return value.lightType;
 }
-float GetUnused(LightData value)
+float GetMinRoughness(LightData value)
 {
-	return value.unused;
+	return value.minRoughness;
 }
 
 //
