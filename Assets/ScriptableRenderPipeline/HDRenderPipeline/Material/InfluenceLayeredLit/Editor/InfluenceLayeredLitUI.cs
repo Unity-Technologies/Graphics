@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    internal class LayeredLitGUI : LitGUI
+    internal class InfluenceLayeredLitGUI : LitGUI
     {
         public enum LayerUVBaseMapping
         {

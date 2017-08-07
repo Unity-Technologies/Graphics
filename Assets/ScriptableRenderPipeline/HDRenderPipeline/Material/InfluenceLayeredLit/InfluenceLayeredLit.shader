@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/LayeredLit"
+Shader "HDRenderPipeline/InfluenceLayeredLit"
 {
     Properties
     {
@@ -231,7 +231,7 @@ Shader "HDRenderPipeline/LayeredLit"
         // WARNING
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
         // This means that they will get overridden when synchronizing the various layers.
-        // To avoid this, make sure that all properties here are in the exclusion list in LayeredLitUI.SynchronizeLayerProperties
+        // To avoid this, make sure that all properties here are in the exclusion list in InfluenceLayeredLitUI.SynchronizeLayerProperties
         _TexWorldScale0("Tiling", Float) = 1.0
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
@@ -587,5 +587,5 @@ Shader "HDRenderPipeline/LayeredLit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.InfluenceLayeredLitGUI"
 }
