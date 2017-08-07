@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -115,9 +117,9 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             else
             {
                 var textTemplate = File.ReadAllText(textTemplateFilePath);
-                var textsAreEqual = shaderString == textTemplate;
+                var textsAreEqual = string.Compare(shaderString, textTemplate, CultureInfo.CurrentCulture, CompareOptions.IgnoreSymbols);
 
-                if (!textsAreEqual)
+                if (0 != textsAreEqual)
                 {
                     var failedPath = Path.Combine(rootPath.ToString(), "Failed");
                     Directory.CreateDirectory(failedPath);
@@ -128,7 +130,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                     File.WriteAllText(misMatchLocationResult, shaderString);
                     File.WriteAllText(misMatchLocationTemplate, textTemplate);
                 }
-                Assert.IsTrue(textsAreEqual);
+                Assert.IsTrue(textsAreEqual == 0);
             }
 
             m_Shader = ShaderUtil.CreateShaderAsset(shaderString);
