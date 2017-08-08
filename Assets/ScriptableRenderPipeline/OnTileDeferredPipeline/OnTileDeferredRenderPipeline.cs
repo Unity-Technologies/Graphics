@@ -422,6 +422,13 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					s_Depth.BindSurface(BuiltinRenderTextureType.Depth, false, false);
 				}
 
+				// set load store actions
+				s_GBufferSpecRough.BindSurface (BuiltinRenderTextureType.None, false, false);
+				s_GBufferNormal.BindSurface (BuiltinRenderTextureType.None, false, false);
+				s_GBufferEmission.BindSurface (BuiltinRenderTextureType.None, false, false);
+				if (s_GBufferRedF32 != null)
+					s_GBufferRedF32.BindSurface(BuiltinRenderTextureType.None, false, false);
+
 				ExecuteRenderLoop(camera, cullResults, context);
 
 				if (camera.cameraType == CameraType.SceneView)
