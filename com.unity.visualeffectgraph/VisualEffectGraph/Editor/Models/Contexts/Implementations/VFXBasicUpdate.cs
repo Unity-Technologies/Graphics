@@ -7,6 +7,18 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicUpdate : VFXContext
     {
+        public enum VFXIntegrationMode
+        {
+            Euler,
+            None
+        }
+
+        [Serializable]
+        public class Settings
+        {
+            public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
+        }
+
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
 
