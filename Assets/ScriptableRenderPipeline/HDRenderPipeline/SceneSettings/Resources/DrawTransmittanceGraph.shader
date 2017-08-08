@@ -29,6 +29,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
+            uint   _UseDisneySSS;
+            float4 _HalfRcpVarianceAndWeight1, _HalfRcpVarianceAndWeight2;
             float4 _ShapeParam, _TransmissionTint, _ThicknessRemap;
 
             //-------------------------------------------------------------------------------------
@@ -58,10 +60,23 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             float4 Frag(Varyings input) : SV_Target
             {
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 T = ComputeTransmittance(_ShapeParam.rgb, float3(1, 1, 1), d, 1);
+                float3 T;
+
+                if (_UseDisneySSS)
+                {
+                    T = ComputeTransmittance(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
+                }
+                else
+                {
+                    T = ComputeTransmittanceJimenez(_HalfRcpVarianceAndWeight1.rgb,
+                                                    _HalfRcpVarianceAndWeight1.a,
+                                                    _HalfRcpVarianceAndWeight2.rgb,
+                                                    _HalfRcpVarianceAndWeight2.a,
+                                                    float3(0.25, 0.25, 0.25), d, 1);
+                }
 
                 // Apply gamma for visualization only. Do not apply gamma to the color.
-                return float4(pow(T, 1.0 / 3) * _TransmissionTint.rgb, 1);
+                return float4(sqrt(T) * _TransmissionTint.rgb, 1);
             }
             ENDHLSL
         }

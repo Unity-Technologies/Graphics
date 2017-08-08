@@ -89,11 +89,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _AmbientOcclusionDirectLightStrenght = Shader.PropertyToID("_AmbientOcclusionDirectLightStrenght");
         internal static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
 
+        internal static readonly int _UseDisneySSS = Shader.PropertyToID("_UseDisneySSS");
         internal static readonly int _EnableSSSAndTransmission = Shader.PropertyToID("_EnableSSSAndTransmission");
         internal static readonly int _TexturingModeFlags = Shader.PropertyToID("_TexturingModeFlags");
         internal static readonly int _TransmissionFlags = Shader.PropertyToID("_TransmissionFlags");
         internal static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
         internal static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
+        internal static readonly int _HalfRcpVariancesAndWeights = Shader.PropertyToID("_HalfRcpVariancesAndWeights");
         internal static readonly int _TransmissionTints = Shader.PropertyToID("_TransmissionTints");
         internal static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         internal static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
@@ -166,6 +168,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _StdDev1 = Shader.PropertyToID("_StdDev1");
         internal static readonly int _StdDev2 = Shader.PropertyToID("_StdDev2");
         internal static readonly int _LerpWeight = Shader.PropertyToID("_LerpWeight");
+        internal static readonly int _HalfRcpVarianceAndWeight1 = Shader.PropertyToID("_HalfRcpVarianceAndWeight1");
+        internal static readonly int _HalfRcpVarianceAndWeight2 = Shader.PropertyToID("_HalfRcpVarianceAndWeight2");
         internal static readonly int _TransmissionTint = Shader.PropertyToID("_TransmissionTint");
         internal static readonly int _ThicknessRemap = Shader.PropertyToID("_ThicknessRemap");
 
