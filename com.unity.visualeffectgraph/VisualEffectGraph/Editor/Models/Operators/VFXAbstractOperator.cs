@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
             if (inputSlots.Any(s => s.property.type != typeof(FloatN)))
             {
-                throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));
+                //throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));
             }
 
             var propertyType = GetType().GetNestedType(GetInputPropertiesTypeName());

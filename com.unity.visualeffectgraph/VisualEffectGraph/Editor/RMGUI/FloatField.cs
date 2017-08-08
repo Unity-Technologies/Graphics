@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UIElements
 
                 AddChild(m_Label);
             }
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
         }
 
         public T GetValue()

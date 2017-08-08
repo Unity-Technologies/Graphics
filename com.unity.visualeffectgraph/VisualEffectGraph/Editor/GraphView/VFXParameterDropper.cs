@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             Event evt = e.imguiEvent;
             if (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform)
                 return;
-            var pickElem = target.panel.Pick(target.LocalToGlobal(evt.mousePosition));
+            var pickElem = target.panel.Pick(target.BoundToGlobal(evt.mousePosition));
             IParameterDropTarget dropTarget = pickElem != null ? pickElem.GetFirstOfType<IParameterDropTarget>() : null;
 
             if (dropTarget == null)

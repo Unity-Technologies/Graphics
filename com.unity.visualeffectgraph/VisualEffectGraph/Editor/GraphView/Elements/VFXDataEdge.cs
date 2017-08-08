@@ -1,13 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXDataEdge : Edge
+    internal class VFXDataEdge : Edge
     {
         public VFXDataEdge()
         {
@@ -39,20 +39,14 @@ namespace UnityEditor.VFX.UI
             if (outputPresenter == null && inputPresenter == null)
                 return;
             if (outputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirty(outputPresenter);
+                panel.dataWatch.ForceDirtyNextPoll(outputPresenter);
 
             if (inputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirty(inputPresenter);
+                panel.dataWatch.ForceDirtyNextPoll(inputPresenter);
 
             System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
 
             AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
-        }
-
-        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
-        {
-            foreach (var anchor in this.GetFirstOfType<VFXView>().GetAllDataAnchors(input, output))
-                yield return anchor;
         }
 
         protected override void DrawEdge()
@@ -68,7 +62,7 @@ namespace UnityEditor.VFX.UI
             Vector2 from = Vector2.zero;
             Vector2 to = Vector2.zero;
             GetFromToPoints(ref from, ref to);
-            Color edgeColor = borderColor;
+            Color edgeColor = style.borderColor;
 
             if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
             {

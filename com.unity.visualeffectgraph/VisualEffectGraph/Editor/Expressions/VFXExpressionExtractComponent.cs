@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using UnityEngine;
+using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     class VFXExpressionExtractComponent : VFXExpressionFloatOperation

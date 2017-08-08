@@ -1,6 +1,7 @@
-using UIElements.GraphView;
+﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
@@ -11,13 +12,13 @@ namespace UnityEditor.VFX.UI
 {
     class VFXBlockDataAnchor : VFXEditableDataAnchor
     {
-        protected VFXBlockDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
+        protected VFXBlockDataAnchor()
         {
         }
 
         public static new VFXBlockDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXBlockDataAnchor(presenter);
+            var anchor = new VFXBlockDataAnchor();
             anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.presenter = presenter;
 
@@ -46,13 +47,13 @@ namespace UnityEditor.VFX.UI
 
                     GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
-                    float realWidth = edge.presenter.selected ? edge.borderBottomWidth * 2 : edge.borderBottomWidth;
+                    float realWidth = edge.presenter.selected ? edge.edgeWidth * 2 : edge.edgeWidth;
                     if (realWidth * view.scale < 1.5f)
                     {
                         realWidth = 1.5f / view.scale;
                     }
 
-                    VFXFlowEdge.RenderLine(from, to, edge.borderColor, realWidth);
+                    VFXFlowEdge.RenderLine(from, to, edge.defaultColor, realWidth);
                 }
             }
         }

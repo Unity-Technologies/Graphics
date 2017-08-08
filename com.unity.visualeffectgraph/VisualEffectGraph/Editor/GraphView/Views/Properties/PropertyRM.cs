@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using UnityEngine;
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
-            m_Icon.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
+            m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
             string text = m_Provider.name;
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            m_Icon.backgroundImage = m_IconStates[0];
+            m_Icon.style.backgroundImage = m_IconStates[0];
 
             string labelText = provider.name;
             string labelTooltip = null;
@@ -95,19 +95,18 @@ namespace UnityEditor.VFX.UI
             {
                 for (int i = 0; i < provider.depth; ++i)
                 {
-                    VisualElement line = new VisualElement()
-                    {
-                        width = 1,
-                        name = "line",
-                        marginLeft = 0.5f * VFXPropertyIM.depthOffset,
-                        marginRight = VFXPropertyIM.depthOffset * 0.5f
-                    };
+                    VisualElement line = new VisualElement();
+                    line.style.width = 1;
+                    line.name = "line";
+                    line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
+                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
+
                     AddChild(line);
                 }
             }
-            m_Label.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
+            m_Label.style.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
             //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
-            AddChild(m_Label);
+            Add(m_Label);
 
             AddToClassList("propertyrm");
         }

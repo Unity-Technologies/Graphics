@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.width : 16);
+                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
             }
         }
     }

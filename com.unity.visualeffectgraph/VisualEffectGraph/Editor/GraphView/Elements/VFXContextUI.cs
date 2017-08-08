@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
                 clipChildren = false
             };
 
-            AddChild(m_NodeContainer);
+            shadow.Add(m_NodeContainer);
 
             m_Header = new VisualContainer() {
                 name = "Header",
@@ -103,10 +103,10 @@ namespace UnityEditor.VFX.UI
             m_HeaderTitle.AddToClassList("title");
             m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
             m_HeaderIcon.AddToClassList("icon");
-            m_HeaderContainer.AddChild(m_HeaderIcon);
-            m_HeaderContainer.AddChild(m_HeaderTitle);
+            m_HeaderContainer.Add(m_HeaderIcon);
+            m_HeaderContainer.Add(m_HeaderTitle);
 
-            m_Header.AddChild(m_FlowInputConnectorContainer);
+            m_Header.shadow.Add(m_FlowInputConnectorContainer);
 
             m_HeaderSpace = new VisualElement();
             m_HeaderSpace.name = "HeaderSpace";
@@ -177,7 +177,7 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
 
-            AddChild(new VisualElement() { name = "icon" });
+            Add(new VisualElement() { name = "icon" });
             clipChildren = false;
         }
 
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
                     position.y = 0;
                 }
             }
-            m_DragDisplay.positionTop = position.y;
+            m_DragDisplay.style.positionTop = position.y;
 
             if (m_DragDisplay.parent == null)
             {
@@ -311,7 +311,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
-            this.SendToFront();
+            //this.SendToFront();
         }
 
         public EventPropagation DeleteSelection()
@@ -333,9 +333,9 @@ namespace UnityEditor.VFX.UI
             }
             else*/
             {
-                positionType = PositionType.Absolute;
-                positionLeft = newPos.x;
-                positionTop = newPos.y;
+                style.positionType = PositionType.Absolute;
+                style.positionLeft = newPos.x;
+                style.positionTop = newPos.y;
             }
         }
 
@@ -373,7 +373,7 @@ namespace UnityEditor.VFX.UI
             // recreate the children list based on the presenter list to keep the order.
 
             var blocksUIs = new Dictionary<VFXBlockPresenter, VFXBlockUI>();
-            for (int i = 0; i < m_BlockContainer.childrenCount; ++i)
+            for (int i = 0; i < m_BlockContainer.childCount; ++i)
             {
                 var child = m_BlockContainer.GetChildAt(i) as VFXBlockUI;
                 if (child != null)
@@ -463,7 +463,7 @@ namespace UnityEditor.VFX.UI
                 m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
             else
                 m_HeaderTitle.text = presenter.context.name;
-            m_HeaderIcon.backgroundImage = GetIconForVFXType(presenter.context.inputType);
+            m_HeaderIcon.style.backgroundImage = GetIconForVFXType(presenter.context.inputType);
 
             VFXContextType contextType = presenter.context.contextType;
 
@@ -499,7 +499,7 @@ namespace UnityEditor.VFX.UI
                 if (m_Footer.parent == null)
                     m_InsideContainer.AddChild(m_Footer);
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
-                m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
+                m_FooterIcon.style.backgroundImage = GetIconForVFXType(presenter.context.outputType);
             }
 
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();

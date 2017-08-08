@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor;
 
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UIElements
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
-        IPanel IEventHandler.panel { get { return target.panel; } }
+        //IPanel IEventHandler.panel { get { return target.panel; } }
 
         void IEventHandler.HandleEvent(EventBase evt) {}
         void IEventHandler.OnLostCapture()
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UIElements
             EditorGUIUtility.SetWantsMouseJumping(0);
         }
 
-        void IEventHandler.OnLostKeyboardFocus() {}
+        //void IEventHandler.OnLostKeyboardFocus() {}
 
         void OnMouseUp(MouseUpEvent evt)
         {

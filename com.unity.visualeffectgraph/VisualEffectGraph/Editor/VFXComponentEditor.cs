@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.VFX;
 
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;

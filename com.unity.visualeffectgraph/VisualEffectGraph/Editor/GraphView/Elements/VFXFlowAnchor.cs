@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
@@ -11,25 +11,16 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static VFXFlowAnchor Create<TEdgePresenter>(VFXFlowAnchorPresenter presenter) where TEdgePresenter : VFXFlowEdgePresenter
         {
-            var anchor = new VFXFlowAnchor(presenter);
+            var anchor = new VFXFlowAnchor();
             anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.AddManipulator(anchor.m_EdgeConnector);
             anchor.presenter = presenter;
             return anchor;
         }
 
-        protected VFXFlowAnchor(VFXFlowAnchorPresenter presenter) : base(presenter)
+        protected VFXFlowAnchor()
         {
             AddToClassList("EdgeConnector");
-            switch (presenter.direction)
-            {
-                case Direction.Input:
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    AddToClassList("Output");
-                    break;
-            }
         }
 
         public override void OnDataChanged()
@@ -43,6 +34,18 @@ namespace UnityEditor.VFX.UI
                 AddToClassList("connected");
             else
                 RemoveFromClassList("connected");
+
+            switch (presenter.direction)
+            {
+                case Direction.Input:
+                    RemoveFromClassList("Output");
+                    AddToClassList("Input");
+                    break;
+                case Direction.Output:
+                    RemoveFromClassList("Input");
+                    AddToClassList("Output");
+                    break;
+            }
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
@@ -56,7 +59,7 @@ namespace UnityEditor.VFX.UI
             VFXContextUI endContext = null;
             foreach (var node in view.GetAllContexts())
             {
-                if (node.globalBound.Contains(position))
+                if (node.worldBound.Contains(position))
                 {
                     endContext = node;
                 }

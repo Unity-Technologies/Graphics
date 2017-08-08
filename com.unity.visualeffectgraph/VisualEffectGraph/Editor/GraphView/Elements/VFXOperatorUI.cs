@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
 
                 m_SettingsContainer = new VisualContainer { name = "settings" };
 
-                leftContainer.InsertChild(1, m_SettingsContainer); //between title and input
+                leftContainer.Insert(1, m_SettingsContainer); //between title and input
 
                 foreach (var setting in presenter.settings)
                 {
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                for (int i = 0; i < m_SettingsContainer.childrenCount; ++i)
+                for (int i = 0; i < m_SettingsContainer.childCount; ++i)
                 {
                     PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
                     if (prop != null)

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -14,7 +14,8 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateCurve()
         {
-            m_Curve = new VisualElement() { minWidth = 4, minHeight = 4 };
+            m_Curve = new VisualElement();
+            m_Curve.style.minWidth = 4; m_Curve.style.minHeight = 4;
             m_Curve.AddToClassList("curve");
 
             m_Curve.AddManipulator(new Clickable(OnCurveClick));
@@ -59,7 +60,7 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateCurve();
 
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
             AddChild(m_Curve);
         }
 
@@ -82,7 +83,7 @@ namespace UnityEditor.VFX.UIElements
             if (previewHeight > 0 && previewWidth > 0)
             {
                 Rect range = new Rect(0, 0, 1, 1);
-                m_Curve.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
+                m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
                         previewHeight,
                         m_Value,
                         Color.green,

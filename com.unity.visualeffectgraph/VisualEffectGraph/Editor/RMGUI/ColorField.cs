@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -21,44 +21,55 @@ namespace UnityEditor.VFX.UIElements
         {
             m_Container = new VisualContainer();
 
-            m_Container.flexDirection = FlexDirection.Column;
-            m_Container.alignItems = Align.Stretch;
-            m_Container.flex = 1;
+            m_Container.style.flexDirection = FlexDirection.Column;
+            m_Container.style.alignItems = Align.Stretch;
+            m_Container.style.flex = 1;
             m_Container.AddToClassList("colorcontainer");
 
-            m_ColorDisplay = new VisualElement() {height = 10};
+            m_ColorDisplay = new VisualElement();
+            m_ColorDisplay.style.height = 10;
             m_ColorDisplay.AddToClassList("colordisplay");
 
-            m_AlphaDisplay = new VisualElement() {height = 3, backgroundColor = Color.white};
+            m_AlphaDisplay = new VisualElement();
+            m_AlphaDisplay.style.height = 3;
+            m_AlphaDisplay.style.backgroundColor = Color.white;
+
             m_AlphaDisplay.AddToClassList("alphadisplay");
 
-            m_NotAlphaDisplay = new VisualElement() {height = 3, backgroundColor = Color.black};
+            m_NotAlphaDisplay = new VisualElement();
+            m_NotAlphaDisplay.style.height = 3;
+            m_NotAlphaDisplay.style.backgroundColor = Color.black;
+
             m_NotAlphaDisplay.AddToClassList("notalphadisplay");
 
-            VisualContainer alphaContainer = new VisualContainer() { flexDirection = FlexDirection.Row, height = 3 };
+            VisualContainer alphaContainer = new VisualContainer();
+            alphaContainer.style.flexDirection = FlexDirection.Row;
+            alphaContainer.style.height = 3;
 
             m_ColorDisplay.AddManipulator(new Clickable(OnColorClick));
             m_AlphaDisplay.AddManipulator(new Clickable(OnColorClick));
 
 
             m_HDRLabel = new VisualElement() {
-                text = "HDR",
-                textAlignment = TextAnchor.MiddleCenter,
                 pickingMode = PickingMode.Ignore,
-                positionType = PositionType.Absolute,
-                positionTop = 0,
-                positionBottom = 0,
-                positionLeft = 0,
-                positionRight = 0
+                text = "HDR"
             };
+
+            m_HDRLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_HDRLabel.style.positionType = PositionType.Absolute;
+            m_HDRLabel.style.positionTop = 0;
+            m_HDRLabel.style.positionBottom = 0;
+            m_HDRLabel.style.positionLeft = 0;
+            m_HDRLabel.style.positionRight = 0;
+
             m_HDRLabel.AddToClassList("hdr");
 
-            m_Container.AddChild(m_ColorDisplay);
-            m_Container.AddChild(alphaContainer);
-            m_Container.AddChild(m_HDRLabel);
+            m_Container.Add(m_ColorDisplay);
+            m_Container.Add(alphaContainer);
+            m_Container.Add(m_HDRLabel);
 
-            alphaContainer.AddChild(m_AlphaDisplay);
-            alphaContainer.AddChild(m_NotAlphaDisplay);
+            alphaContainer.Add(m_AlphaDisplay);
+            alphaContainer.Add(m_NotAlphaDisplay);
 
 
             return m_Container;
@@ -73,7 +84,11 @@ namespace UnityEditor.VFX.UIElements
         VisualElement CreateEyeDropper()
         {
             Texture2D eyeDropperIcon = EditorGUIUtility.IconContent("EyeDropper.Large").image as Texture2D;
-            VisualElement eyeDropper = new VisualElement() {backgroundImage = eyeDropperIcon, width = eyeDropperIcon.width, height = eyeDropperIcon.height};
+            VisualElement eyeDropper = new VisualElement();
+
+            eyeDropper.style.backgroundImage = eyeDropperIcon;
+            eyeDropper.style.width = eyeDropperIcon.width;
+            eyeDropper.style.height = eyeDropperIcon.height;
 
             eyeDropper.AddManipulator(new Clickable(() => EyeDropper.Start(OnColorChanged)));
 
@@ -109,9 +124,9 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_ColorDisplay.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
-            m_AlphaDisplay.flex = m_Value.a;
-            m_NotAlphaDisplay.flex = 1 - m_Value.a;
+            m_ColorDisplay.style.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
+            m_AlphaDisplay.style.flex = m_Value.a;
+            m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
 
             bool hdr = m_Value.r > 1 || m_Value.g > 1 || m_Value.b > 1;
             if ((m_HDRLabel.parent != null) != hdr)

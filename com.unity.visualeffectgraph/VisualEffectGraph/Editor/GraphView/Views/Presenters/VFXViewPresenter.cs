@@ -1,15 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
-    partial class VFXViewPresenter : GraphViewPresenter
+    internal partial class VFXViewPresenter : GraphViewPresenter
     {
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;

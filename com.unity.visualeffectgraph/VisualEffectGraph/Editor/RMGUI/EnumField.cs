@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UIElements
 
                 menu.AddItem(new GUIContent(val), valueInt == m_Value, ChangeValue, valueInt);
             }
-            menu.DropDown(m_DropDownButton.globalBound);
+            menu.DropDown(m_DropDownButton.worldBound);
         }
 
         void ChangeValue(object val)
@@ -49,8 +49,8 @@ namespace UnityEditor.VFX.UIElements
             }
             m_EnumType = enumType;
 
-            flexDirection = FlexDirection.Row;
-            AddChild(m_DropDownButton);
+            style.flexDirection = FlexDirection.Row;
+            Add(m_DropDownButton);
         }
 
         public EnumField(VisualElement existingLabel, System.Type enumType) : base(existingLabel)
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UIElements
                 Debug.LogError("The type passed To enum field must be an enumType");
             }
             m_EnumType = enumType;
-            AddChild(m_DropDownButton);
+            Add(m_DropDownButton);
         }
 
         protected override void ValueToGUI()

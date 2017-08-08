@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UIElements
             CreateTextField();
             m_Label.AddManipulator(new DragValueManipulator<string>(this, null));
 
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
             AddChild(m_TextField);
         }
 

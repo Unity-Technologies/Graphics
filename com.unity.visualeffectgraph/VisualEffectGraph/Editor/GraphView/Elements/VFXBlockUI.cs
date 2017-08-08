@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using UIElements.GraphView;
+﻿using System.Collections.Generic;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -15,11 +15,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockUI()
         {
-            AddManipulator(new SelectionDropper(HandleDropEvent));
+            this.AddManipulator(new SelectionDropper(HandleDropEvent));
 
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
-            titleContainer.InsertChild(0, m_EnableToggle);
+            titleContainer.shadow.Insert(0, m_EnableToggle);
         }
 
         void OnToggleEnable()
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
 
         EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
-            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
+            Vector2 pos = this.transform.matrix.inverse.MultiplyPoint3x4(evt.imguiEvent.mousePosition);
 
             context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
 
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();
-            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
+            Vector2 pos = this.transform.matrix.inverse.MultiplyPoint3x4(evt.imguiEvent.mousePosition);
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
             IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());

@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
