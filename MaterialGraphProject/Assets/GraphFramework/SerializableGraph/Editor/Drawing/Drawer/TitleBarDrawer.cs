@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using UIElements.GraphView;
 using UnityEngine;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Drawing
@@ -34,13 +34,13 @@ namespace UnityEditor.Graphing.Drawing
             {
                 name = "left"
             };
-            AddChild(m_LeftContainer);
+            Add(m_LeftContainer);
 
             m_RightContainer = new VisualContainer()
             {
                 name = "right"
             };
-            AddChild(m_RightContainer);
+            Add(m_RightContainer);
 
             AddStyleSheetPath("Styles/TitleBar");
         }
