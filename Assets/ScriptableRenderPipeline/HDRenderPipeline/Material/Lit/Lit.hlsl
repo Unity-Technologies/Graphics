@@ -58,10 +58,14 @@ CBUFFER_START(UnitySSSParameters)
 uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+// Old SSS Model >>>
+uint   _UseDisneySSS;
+float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
+// <<< Old SSS Model
 // Use float4 to avoid any packing issue between compute and pixel shaders
 float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
-float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = color, A = unused
+float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
 
 //-----------------------------------------------------------------------------
@@ -230,9 +234,21 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
-                                                      _TransmissionTints[subsurfaceProfile].rgb,
-                                                      bsdfData.thickness, bsdfData.subsurfaceRadius);
+        if (_UseDisneySSS)
+        {
+            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
+                                                          _TransmissionTints[subsurfaceProfile].rgb,
+                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
+        else
+        {
+            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
+                                                                 _TransmissionTints[subsurfaceProfile].rgb,
+                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
     }
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
@@ -868,7 +884,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
         // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
+        illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -976,7 +992,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
         // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
+        illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;

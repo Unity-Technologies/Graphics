@@ -1989,9 +1989,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
                             int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
                             int transmissionFlags = Shader.GetGlobalInt(HDShaderIDs._TransmissionFlags);
+                            int useDisneySSS = Shader.GetGlobalInt(HDShaderIDs._UseDisneySSS);
                             Vector4[] thicknessRemaps = Shader.GetGlobalVectorArray(HDShaderIDs._ThicknessRemaps);
                             Vector4[] shapeParams = Shader.GetGlobalVectorArray(HDShaderIDs._ShapeParams);
                             Vector4[] transmissionTints = Shader.GetGlobalVectorArray(HDShaderIDs._TransmissionTints);
+                            Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                             Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
 
@@ -2056,17 +2058,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
                                 // Set SSS parameters.
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission, enableSSSAndTransmission);
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._TexturingModeFlags,       texturingModeFlags);
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._TransmissionFlags,        transmissionFlags);
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,     thicknessRemaps);
-                                // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
-                                // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
-                                // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
-                                // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
-                                // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,       shapeParams);
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints, transmissionTints);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TexturingModeFlags,         texturingModeFlags);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TransmissionFlags,          transmissionFlags);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._UseDisneySSS,               useDisneySSS);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,            thicknessRemaps);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,                shapeParams);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints,          transmissionTints);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._HalfRcpVariancesAndWeights, halfRcpVariancesAndWeights);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);

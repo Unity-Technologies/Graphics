@@ -119,8 +119,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernelNearField[i].y = 1.0f / KernelPdf(r, s);
             }
 
-            m_MaxRadius = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
-
             // Importance sample the far field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
@@ -132,6 +130,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernelFarField[i].x = r;
                 m_FilterKernelFarField[i].y = 1.0f / KernelPdf(r, s);
             }
+
+            m_MaxRadius = m_FilterKernelFarField[SssConstants.SSS_N_SAMPLES_FAR_FIELD - 1].x;
 
             // Old SSS Model >>>
             UpdateKernelAndVarianceData();
@@ -382,37 +382,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int                           numProfiles;               // Excluding the neutral profile
         public SubsurfaceScatteringProfile[] profiles;
         // Below are the cached values. TODO: uncomment when SSS profile asset serialization is fixed.
-        /*[NonSerialized]*/ public int           texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        /*[NonSerialized]*/ public int           transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-        /*[NonSerialized]*/ public Vector4[]     thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        /*[NonSerialized]*/ public Vector4[]     worldScales;               // Size of the world unit in meters (only the X component is used)
-        /*[NonSerialized]*/ public Vector4[]     shapeParams;               // RGB = S = 1 / D, A = filter radius
-        /*[NonSerialized]*/ public Vector4[]     transmissionTints;         // RGB = color, A = unused
-        /*[NonSerialized]*/ public Vector4[]     filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+        /*[NonSerialized]*/ public int       texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        /*[NonSerialized]*/ public int       transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+        /*[NonSerialized]*/ public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        /*[NonSerialized]*/ public Vector4[] worldScales;               // Size of the world unit in meters (only the X component is used)
+        /*[NonSerialized]*/ public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
+        /*[NonSerialized]*/ public Vector4[] transmissionTints;         // RGB = color, A = unused
+        /*[NonSerialized]*/ public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
         // Old SSS Model >>>
         public bool                          useDisneySSS;
-        /*[NonSerialized]*/ public Vector4[]     halfRcpWeightedVariances;
-        /*[NonSerialized]*/ public Vector4[]     filterKernelsBasic;
+        /*[NonSerialized]*/ public Vector4[] halfRcpWeightedVariances;
+        /*[NonSerialized]*/ public Vector4[] halfRcpVariancesAndWeights;
+        /*[NonSerialized]*/ public Vector4[] filterKernelsBasic;
         // <<< Old SSS Model
 
         // --- Public Methods ---
 
         public SubsurfaceScatteringSettings()
         {
-            numProfiles            = 1;
-            profiles               = new SubsurfaceScatteringProfile[numProfiles];
-            profiles[0]            = null;
-            texturingModeFlags     = 0;
-            transmissionFlags      = 0;
-            thicknessRemaps        = null;
-            worldScales            = null;
-            shapeParams            = null;
-            transmissionTints      = null;
-            filterKernels          = null;
+            numProfiles        = 1;
+            profiles           = new SubsurfaceScatteringProfile[numProfiles];
+            profiles[0]        = null;
+            texturingModeFlags = 0;
+            transmissionFlags  = 0;
+            thicknessRemaps    = null;
+            worldScales        = null;
+            shapeParams        = null;
+            transmissionTints  = null;
+            filterKernels      = null;
             // Old SSS Model >>>
-            useDisneySSS             = true;
-            halfRcpWeightedVariances = null;
-            filterKernelsBasic       = null;
+            useDisneySSS               = true;
+            halfRcpWeightedVariances   = null;
+            halfRcpVariancesAndWeights = null;
+            filterKernelsBasic         = null;
             // <<< Old SSS Model
 
             UpdateCache();
@@ -506,6 +508,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 halfRcpWeightedVariances = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
+            if (halfRcpVariancesAndWeights == null || halfRcpVariancesAndWeights.Length != 2 * SssConstants.SSS_N_PROFILES)
+            {
+                halfRcpVariancesAndWeights = new Vector4[2 * SssConstants.SSS_N_PROFILES];
+            }
+
             const int filterKernelsLen = SssConstants.SSS_N_PROFILES * SssConstants.SSS_BASIC_N_SAMPLES;
             if (filterKernelsBasic == null || filterKernelsBasic.Length != filterKernelsLen)
             {
@@ -536,7 +543,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Old SSS Model >>>
-                    halfRcpWeightedVariances[i] = Vector4.one;
+                    halfRcpWeightedVariances[i]           = Vector4.one;
+                    halfRcpVariancesAndWeights[2 * i + 0] = Vector4.one;
+                    halfRcpVariancesAndWeights[2 * i + 1] = Vector4.one;
 
                     for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
                     {
@@ -556,7 +565,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 worldScales[i]       = new Vector4(profiles[i].worldScale, 0, 0, 0);
                 shapeParams[i]       = profiles[i].shapeParameter;
                 shapeParams[i].w     = profiles[i].maxRadius;
-                transmissionTints[i] = profiles[i].transmissionTint;
+                transmissionTints[i] = profiles[i].transmissionTint * 0.25f; // Premultiplied
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
@@ -572,6 +581,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Old SSS Model >>>
                 halfRcpWeightedVariances[i] = profiles[i].halfRcpWeightedVariances;
+
+                Vector4 stdDev1 = ((1.0f / 3.0f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * profiles[i].scatterDistance1;
+                Vector4 stdDev2 = ((1.0f / 3.0f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * profiles[i].scatterDistance2;
+
+                // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
+                // Rescale by 4 to counter rescaling of transmission tints.
+                float a = 0.1f * SssConstants.SSS_BASIC_DISTANCE_SCALE;
+                halfRcpVariancesAndWeights[2 * i + 0] = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4 * (1.0f - profiles[i].lerpWeight));
+                halfRcpVariancesAndWeights[2 * i + 1] = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4 * profiles[i].lerpWeight);
 
                 for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
                 {
@@ -794,7 +812,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 R = m_ThicknessRemap.vector2Value;
             bool transmissionEnabled = m_TransmissionMode.intValue != (int)SubsurfaceScatteringProfile.TransmissionMode.None;
 
-            // Draw the profile.
             m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
             // Old SSS Model >>>
@@ -803,13 +820,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float   s       = (1.0f / 3.0f) * SssConstants.SSS_BASIC_DISTANCE_SCALE;
             float   rMax    = Mathf.Max(m_ScatterDistance1.colorValue.r, m_ScatterDistance1.colorValue.g, m_ScatterDistance1.colorValue.b,
                                         m_ScatterDistance2.colorValue.r, m_ScatterDistance2.colorValue.g, m_ScatterDistance2.colorValue.b);
-            Vector4 stdDev1 = new Vector4(s * m_ScatterDistance1.colorValue.r, s * m_ScatterDistance1.colorValue.g, s * m_ScatterDistance1.colorValue.b);
-            Vector4 stdDev2 = new Vector4(s * m_ScatterDistance2.colorValue.r, s * m_ScatterDistance2.colorValue.g, s * m_ScatterDistance2.colorValue.b);
+            Vector4 stdDev1 = s * m_ScatterDistance1.colorValue;
+            Vector4 stdDev2 = s * m_ScatterDistance2.colorValue;
             m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1,   stdDev1);
             m_ProfileMaterial.SetVector(HDShaderIDs._StdDev2,   stdDev2);
             m_ProfileMaterial.SetFloat(HDShaderIDs._LerpWeight, m_LerpWeight.floatValue);
             m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  rMax);
             // <<< Old SSS Model
+
+            // Draw the profile.
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
             EditorGUILayout.Space();
@@ -818,10 +837,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(styles.sssTransmittancePreview2, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space();
 
-            // Draw the transmittance graph.
+            // Old SSS Model >>>
+            // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
+            float a = 0.1f * SssConstants.SSS_BASIC_DISTANCE_SCALE;
+            Vector4 halfRcpVarianceAndWeight1 = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4 * (1.0f - m_LerpWeight.floatValue));
+            Vector4 halfRcpVarianceAndWeight2 = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4 * m_LerpWeight.floatValue);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight1, halfRcpVarianceAndWeight1);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight2, halfRcpVarianceAndWeight2);
+            // <<< Old SSS Model
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam,       S);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, transmissionEnabled ? T : Vector4.zero);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap,   R);
+
+            // Draw the transmittance graph.
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();
