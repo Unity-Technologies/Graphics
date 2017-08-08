@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Drawing
         public SerializableGraphView()
         {
             // Shortcut handler to delete elements
-            AddManipulator(new ShortcutHandler(
+            this.AddManipulator(new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
                 {Event.KeyboardEvent("a"), FrameAll},
@@ -26,20 +26,20 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("#d"), DuplicateSelection}
             }));
 
-            AddManipulator(new Commandable
+            this.AddManipulator(new Commandable
             {
                 { "Duplicate", () => true, () => Debug.Log("Duplicate!") },
                 { "Copy", () => true, () => Debug.Log("Copy!") }
             });
 
-            AddManipulator(new ClickGlobalSelector());
-            AddManipulator(new ContentZoomer());
-            AddManipulator(new ContentDragger());
-            AddManipulator(new RectangleSelector());
-            AddManipulator(new SelectionDragger());
-            AddManipulator(new ClickSelector());
+            this.AddManipulator(new ClickGlobalSelector());
+            this.AddManipulator(new ContentZoomer());
+            this.AddManipulator(new ContentDragger());
+            this.AddManipulator(new RectangleSelector());
+            this.AddManipulator(new SelectionDragger());
+            this.AddManipulator(new ClickSelector());
 
-            InsertChild(0, new GridBackground());
+            Insert(0, new GridBackground());
 
             typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
         }

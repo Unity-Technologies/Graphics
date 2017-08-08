@@ -1,6 +1,5 @@
-Shader "Hidden/PreviewShader/Sample2DTexture_1221CD9A_rgba" {
+Shader "Hidden/PreviewShader/Color_Color_3FAAF5EA_Uniform" {
 	Properties {
-		[NonModifiableTextureData] Texture2D_Texture2D_D281CEC8_Uniform("Texture2D", 2D) = "white" {}
 
 	}	
 	
@@ -25,15 +24,13 @@ Shader "Hidden/PreviewShader/Sample2DTexture_1221CD9A_rgba" {
 			#include "UnityCG.cginc"
 
 
-			UNITY_DECLARE_TEX2D(Texture2D_Texture2D_D281CEC8_Uniform);
-			float2 Sample2DTexture_1221CD9A_UV;
+			float4 Color_Color_3FAAF5EA_Uniform;
 
 
 			struct v2f 
 			{
 				float4 pos : SV_POSITION;
 				float4 color : COLOR;
-				half4 meshUV0 : TEXCOORD5;
 
 			};
 
@@ -48,16 +45,13 @@ Shader "Hidden/PreviewShader/Sample2DTexture_1221CD9A_rgba" {
 				float3 viewDir = UnityWorldSpaceViewDir(worldPos);
 				float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
 				float3 worldNormal = UnityObjectToWorldNormal(v.normal);
-				o.meshUV0 = v.texcoord;
 
 				return o;
 			}
 
 			half4 frag (v2f IN) : COLOR
 			{
-				half4 uv0 = IN.meshUV0;
-				float4 Sample2DTexture_1221CD9A_rgba = UNITY_SAMPLE_TEX2D(Texture2D_Texture2D_D281CEC8_Uniform,uv0.xy);
-				return half4(Sample2DTexture_1221CD9A_rgba.x, Sample2DTexture_1221CD9A_rgba.y, Sample2DTexture_1221CD9A_rgba.z, 1.0);
+				return half4(Color_Color_3FAAF5EA_Uniform.x, Color_Color_3FAAF5EA_Uniform.y, Color_Color_3FAAF5EA_Uniform.z, 1.0);
 
 			}
 			ENDCG
