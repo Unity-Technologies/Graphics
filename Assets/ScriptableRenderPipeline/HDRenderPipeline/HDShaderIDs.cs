@@ -136,20 +136,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         internal static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
 
+        internal static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
+        internal static readonly int _CameraColorTexture             = Shader.PropertyToID("_CameraColorTexture");
+        internal static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
+        internal static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
+        internal static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
-        internal static readonly int _CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
-        internal static readonly int _CameraDiffuseIrradianceTexture = Shader.PropertyToID("_CameraDiffuseIrradianceTexture");
-        internal static readonly int _CameraFilteringBuffer = Shader.PropertyToID("_CameraFilteringBuffer");
         internal static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
-
-
         internal static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         internal static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
 
         internal static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         internal static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
-        internal static readonly int _DepthTexture = Shader.PropertyToID("_DepthTexture");
-        internal static readonly int _IrradianceSource = Shader.PropertyToID("_IrradianceSource");
         internal static readonly int _FilterKernelsBasic = Shader.PropertyToID("_FilterKernelsBasic");
         internal static readonly int _HalfRcpWeightedVariances = Shader.PropertyToID("_HalfRcpWeightedVariances");
 
