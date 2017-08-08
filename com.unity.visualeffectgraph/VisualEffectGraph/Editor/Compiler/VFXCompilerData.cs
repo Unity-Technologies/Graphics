@@ -65,7 +65,7 @@ namespace UnityEditor.VFX
     {
         public struct Data
         {
-            public string fullName { get { return id == -1 ? name : string.Format("{0}_{1}", name, id); } }
+            public string fullName { get { return id == -1 ? name : string.Format("{0}_{1}", name, VFXCodeGeneratorHelper.GeneratePrefix((uint)id)); } }
             public string name;
             public int id;
         }

@@ -6,6 +6,22 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    static class VFXCodeGeneratorHelper
+    {
+        public static string GeneratePrefix(uint index)
+        {
+            var alpha = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
+            string prefix = "";
+            index = index + 1;
+            while (index != 0u)
+            {
+                prefix = alpha[index % alpha.Length] + prefix;
+                index /= (uint)alpha.Length;
+            }
+            return prefix;
+        }
+    }
+
     static class VFXShaderWriter
     {
         private static int WritePadding(int alignment, int offset, ref int index, StringBuilder builder)
@@ -16,7 +32,7 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public static string WriteCBuffer(VFXUniformMapper mapper)
+        public static void WriteCBuffer(VFXUniformMapper mapper, StringBuilder builder, string bufferName)
         {
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
@@ -34,9 +50,8 @@ namespace UnityEditor.VFX
 
             if (uniformBlocks.Count > 0)
             {
-                var builder = new StringBuilder();
-
-                builder.AppendLine("CBUFFER_START(test)");
+                builder.AppendFormat("CBUFFER_START({0})", bufferName);
+                builder.AppendLine();
                 builder.AppendLine("{");
 
                 int paddingIndex = 0;
@@ -56,10 +71,7 @@ namespace UnityEditor.VFX
                 }
 
                 builder.AppendLine("}");
-                return builder.ToString();
             }
-
-            return string.Empty;
         }
 
         private static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value)
@@ -90,7 +102,7 @@ namespace UnityEditor.VFX
                         WriteVariable(builder, parent, variableNames, uniformMapper);
 
                     // Generate a new variable name
-                    entry = "tmp" + variableNames.Count();
+                    entry = "tmp_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)variableNames.Count());
                     string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
 
                     WriteVariable(builder, exp.ValueType, entry, value);
@@ -100,15 +112,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static string WriteParameter(VFXExpression exp, VFXUniformMapper uniformMapper)
+        public static void WriteParameter(StringBuilder builder, VFXExpression exp, VFXUniformMapper uniformMapper, string paramName)
         {
-            var builder = new StringBuilder();
             var variableNames = new Dictionary<VFXExpression, string>();
-
             WriteVariable(builder, exp, variableNames, uniformMapper);
-            WriteVariable(builder, exp.ValueType, "param", variableNames[exp]);
-
-            return builder.ToString();
+            WriteVariable(builder, exp.ValueType, paramName, variableNames[exp]);
         }
     }
 }

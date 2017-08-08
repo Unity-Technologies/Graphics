@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,14 @@ namespace UnityEditor.VFX
     {
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
+
+        public override VFXCodeGenerator codeGenerator
+        {
+            get
+            {
+                return new VFXCodeGenerator("VFXUpdate.template");
+            }
+        }
 
         public override IEnumerable<VFXAttributeInfo> optionalAttributes
         {
