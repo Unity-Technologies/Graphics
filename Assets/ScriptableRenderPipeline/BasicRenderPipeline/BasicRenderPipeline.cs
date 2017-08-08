@@ -56,8 +56,6 @@ public class BasicRenderPipelineInstance : RenderPipeline
 
 public static class BasicRendering
 {
-    // Main entry point for our scriptable render loop
-
     static void ConfigureAndBindIntermediateRenderTarget(ScriptableRenderContext context, Camera cam, bool stereoEnabled, out RenderTargetIdentifier intermediateRTID, out bool isRTTexArray)
     {
         var intermediateRT = Shader.PropertyToID("_IntermediateTarget");
@@ -69,13 +67,13 @@ public static class BasicRendering
 
         if (stereoEnabled)
         {
-            RenderTextureDescriptor vrDesc = XRSettings.eyeTextureDesc;
-            vrDesc.depthBufferBits = 24;
+            RenderTextureDescriptor xrDesc = XRSettings.eyeTextureDesc;
+            xrDesc.depthBufferBits = 24;
 
-            if (vrDesc.dimension == TextureDimension.Tex2DArray)
+            if (xrDesc.dimension == TextureDimension.Tex2DArray)
                 isRTTexArray = true;
 
-            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, vrDesc, FilterMode.Point);
+            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, xrDesc, FilterMode.Point);
         }
         else
         {
@@ -112,6 +110,8 @@ public static class BasicRendering
         CommandBufferPool.Release(blitIntermediateRTCmd);
 
     }
+    
+    // Main entry point for our scriptable render loop
 
     public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlitPath)
     {
