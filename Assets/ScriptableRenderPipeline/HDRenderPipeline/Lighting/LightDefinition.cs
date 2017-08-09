@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;
-        public int IESIndex;      // -1 if unused
+        public int unused0;
 
         public Vector2 size;      // Used by area, frustum projector and spot lights (x = cot(outerHalfAngle))
         public GPULightType lightType;

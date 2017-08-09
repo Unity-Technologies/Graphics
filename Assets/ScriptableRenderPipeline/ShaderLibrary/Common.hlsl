@@ -295,6 +295,17 @@ float RadToDeg(float rad)
     return rad * 180.0 / PI;
 }
 
+// Square functions for cleaner code
+float Sqr(float x)
+{
+    return x * x;
+}
+
+float3 Sqr(float3 x)
+{
+    return x * x;
+}
+
 // Acos in 14 cycles.
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 float FastACos(float inX)
@@ -338,7 +349,7 @@ float FastATan(float x)
 }
 
 // Same as smoothstep except it assume 0, 1 interval for x
-float smoothstep01(float x)
+float Smoothstep01(float x)
 {
     return x * x * (3.0 - (2.0 * x));
 }

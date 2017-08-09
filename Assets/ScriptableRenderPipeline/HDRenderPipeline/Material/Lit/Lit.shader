@@ -40,6 +40,9 @@ Shader "HDRenderPipeline/Lit"
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
+        _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
+        _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5
+
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
@@ -92,7 +95,7 @@ Shader "HDRenderPipeline/Lit"
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         // Note: 2 and 3 are currently unused
-        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        [Enum(Subsurface Scattering, 0, Standard, 1, ClearCoat, 2, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -145,7 +148,7 @@ Shader "HDRenderPipeline/Lit"
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
-    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR
+    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
