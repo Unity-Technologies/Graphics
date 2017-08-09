@@ -43,6 +43,24 @@ namespace UnityEditor.VFX.UI
                         prop.Update();
                 }
             }
+
+            GraphView graphView = this.GetFirstAncestorOfType<GraphView>();
+            if (graphView != null)
+            {
+                var allEdges = graphView.Query<Edge>().ToList();
+
+                foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
+                {
+                    foreach (var edge in allEdges.Where(t =>
+                    {
+                        var pres = t.GetPresenter<EdgePresenter>();
+                        return pres.output == anchor.presenter || pres.input == anchor.presenter;
+                    }))
+                    {
+                        edge.OnDataChanged();
+                    }
+                }
+            }
         }
 
         protected void AddSetting(VFXSettingPresenter setting)

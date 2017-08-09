@@ -45,6 +45,7 @@ namespace UnityEditor.VFX.UI
         // On purpose -- until we support Drag&Drop I suppose
         public override void SetPosition(Rect newPos)
         {
+           
         }
 
         public override void OnDataChanged()
@@ -56,6 +57,8 @@ namespace UnityEditor.VFX.UI
                 return;
 
             SetPosition(presenter.position);
+
+
         }
 
         public VFXContextUI context

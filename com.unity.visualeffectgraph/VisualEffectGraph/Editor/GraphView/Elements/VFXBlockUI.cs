@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
 
         EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
-            Vector2 pos = this.transform.matrix.inverse.MultiplyPoint3x4(evt.imguiEvent.mousePosition);
+            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
 
             context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
 
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();
-            Vector2 pos = this.transform.matrix.inverse.MultiplyPoint3x4(evt.imguiEvent.mousePosition);
+            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
             IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());

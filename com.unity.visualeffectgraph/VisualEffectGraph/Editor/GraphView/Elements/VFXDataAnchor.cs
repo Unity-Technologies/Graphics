@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
 
         public override Vector3 GetGlobalCenter()
         {
-            return this.transform.matrix.MultiplyPoint3x4(GetLocalCenter());
+            return m_ConnectorBox.BoundToGlobal(GetLocalCenter());
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(position) - new Vector3(360, 0,0), parameterDesc);
+                    VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }
