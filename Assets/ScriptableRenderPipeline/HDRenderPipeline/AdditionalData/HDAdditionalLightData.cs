@@ -34,5 +34,10 @@
 
         [Range(0.0f, 20.0f)]
         public float lightWidth  = 0.0f; // Area & projector lights
+
+        [Range(0.0f, 1.0f)]
+        public float maxSmoothness = 1.0f; // this is use with punctual light to fake an area lights
+
+        public bool applyRangeAttenuation = true; // If true, we apply the smooth attenuation factor on the range attenuation to get 0 value, else the attenuation is juste inverse square and never reach 0
     }
 }

@@ -925,12 +925,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     // For point light and directional GetAngleAttenuation() return 1
 
     float3 lightToSurface = positionWS - lightData.positionWS;
-    float3 unL = -lightToSurface;
-    float3 L   = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
+    float3 unL   = -lightToSurface;
+    float3 L     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
+    float  NdotL = dot(bsdfData.normalWS, L);
+    float  illuminance = saturate(NdotL);
 
-    float NdotL = dot(bsdfData.normalWS, L);
-    float illuminance = saturate(NdotL);
-
+    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
     float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
@@ -994,6 +994,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (illuminance > 0.0)
     {
+        bsdfData.roughness = max(bsdfData.roughness, lightData.minRoughness); // Simulate that a punctual ligth have a radius with this hack
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
         diffuseLighting  *= lightData.color * (illuminance * lightData.diffuseScale);
