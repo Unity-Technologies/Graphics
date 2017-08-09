@@ -48,8 +48,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct LightData
     {
-        // DirectionalLightData >>>
-
         public Vector3 positionWS;
         public float invSqrAttenuationRadius;
 
@@ -65,8 +63,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by * (2 / lightWidth)
         public float diffuseScale;
 
-        // <<< DirectionalLightData
-
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;
@@ -74,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector2 size;      // Used by area, frustum projector and spot lights (x = cot(outerHalfAngle))
         public GPULightType lightType;
-        public float unused;
+        public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
     };
 
 

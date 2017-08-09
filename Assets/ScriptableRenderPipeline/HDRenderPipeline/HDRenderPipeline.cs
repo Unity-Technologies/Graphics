@@ -646,17 +646,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Broadcast SSS parameters to all shaders.
-                Shader.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission,          m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
-                Shader.SetGlobalInt(HDShaderIDs._TexturingModeFlags, (int)sssParameters.texturingModeFlags);
-                Shader.SetGlobalInt(HDShaderIDs._TransmissionFlags,  (int)sssParameters.transmissionFlags);
-                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,        sssParameters.thicknessRemaps);
-                // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
-                // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
-                // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
-                // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
-                // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,             sssParameters.useDisneySSS ? sssParameters.shapeParams : sssParameters.halfRcpWeightedVariances);
-                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,       sssParameters.transmissionTints);
+                Shader.SetGlobalInt(     HDShaderIDs._EnableSSSAndTransmission,   m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+                Shader.SetGlobalInt(     HDShaderIDs._TexturingModeFlags,    (int)sssParameters.texturingModeFlags);
+                Shader.SetGlobalInt(     HDShaderIDs._TransmissionFlags,     (int)sssParameters.transmissionFlags);
+                Shader.SetGlobalInt(     HDShaderIDs._UseDisneySSS,               sssParameters.useDisneySSS ? 1 : 0);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
+                cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);                
+                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
             }
         }
 
