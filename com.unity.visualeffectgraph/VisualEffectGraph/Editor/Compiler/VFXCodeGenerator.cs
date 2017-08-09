@@ -13,6 +13,44 @@ namespace UnityEditor.VFX
             m_computeShader = computeShader;
         }
 
+        //This function insure to keep padding while replacing a specific string
+        private static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
+        {
+            string[] delim = { System.Environment.NewLine, "\n" };
+            var valueLines = value.ToString().Split(delim, System.StringSplitOptions.None);
+            if (valueLines.Length <= 1)
+            {
+                target.Replace(targetQuery, value.ToString());
+            }
+            else
+            {
+                while (true)
+                {
+                    var targetCopy = target.ToString();
+                    var index = targetCopy.IndexOf(targetQuery);
+                    if (index == -1)
+                    {
+                        break;
+                    }
+
+                    var padding = "";
+                    index--;
+                    while (index > 0 && (targetCopy[index] == ' ' || targetCopy[index] == '\t'))
+                    {
+                        padding = targetCopy[index] + padding;
+                        index--;
+                    }
+
+                    var currentValue = new StringBuilder();
+                    foreach (var line in valueLines)
+                    {
+                        currentValue.AppendLine(padding + line);
+                    }
+                    target.Replace(padding + targetQuery, currentValue.ToString());
+                }
+            }
+        }
+
         public void Build(VFXContext context, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper, ref bool computeShader)
         {
             computeShader = m_computeShader;
@@ -45,8 +83,8 @@ namespace UnityEditor.VFX
                 VFXShaderWriter.WriteParameter(parameters, exp, uniformMapper, name);
             }
 
-            /* BEGIN TEMP */
             var attributes = dependencies.OfType<VFXDataParticle>().SelectMany(o => o.GetAttributes()).Select(o => o.attrib).Distinct().ToArray();
+            /* BEGIN TEMP */
             foreach (var attribute in attributes)
             {
                 var name = string.Format("param_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
@@ -92,17 +130,25 @@ namespace UnityEditor.VFX
             var globalIncludeContent = new StringBuilder();
             globalIncludeContent.AppendLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.AppendLine("#define NB_THREADS_PER_GROUP 256");
+            foreach (var attribute in attributes)
+            {
+                globalIncludeContent.AppendFormat("#define VFX_USE_{0}_{1} 1", attribute.name.ToUpper(), attribute.location == VFXAttributeLocation.Current ? "CURRENT" : "SOURCE");
+                globalIncludeContent.AppendLine();
+            }
+
             globalIncludeContent.AppendLine(System.IO.File.ReadAllText("Assets/VFXShaders/VFXCommon.cginc"));
 
             stringBuilder.Append(templateContent);
 
-            stringBuilder.Replace("${VFXGlobalInclude}", globalIncludeContent.ToString());
-            stringBuilder.Replace("${VFXCBuffer}", cbuffer.ToString());
-            stringBuilder.Replace("${VFXGeneratedBlockFunction}", blockFunction.ToString());
+            ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent);
+            ReplaceMultiline(stringBuilder, "${VFXCBuffer}", cbuffer);
+            ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction);
 
-            stringBuilder.Replace("${VFXComputeParameters}", parameters.ToString());
-            stringBuilder.Replace("${VFXProcessBlock}", blockCallFunction.ToString());
-            stringBuilder.Replace("${WriteAttribute}", "");
+            ReplaceMultiline(stringBuilder, "${VFXComputeParameters}", parameters);
+            ReplaceMultiline(stringBuilder, "${VFXProcessBlock}", blockCallFunction);
+            ReplaceMultiline(stringBuilder, "${WriteAttribute}", new StringBuilder(""));
+
+            Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }
 
         private string m_templatePath;
