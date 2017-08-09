@@ -802,7 +802,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.lightType = gpuLightType;
 
                 lightData.positionWS = light.light.transform.position;
-                lightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
+                lightData.invSqrAttenuationRadius = additionalLightData.applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
                 lightData.color = GetLightColor(light);
 
                 lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
@@ -892,6 +893,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightData.shadowIndex = shadowIdx;
                 }
+
+                // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
+                lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
                 m_lightList.lights.Add(lightData);
 
