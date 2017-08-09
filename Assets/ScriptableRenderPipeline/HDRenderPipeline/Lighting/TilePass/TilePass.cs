@@ -853,7 +853,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                     return false;
 
-                lightData.IESIndex = -1;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
 

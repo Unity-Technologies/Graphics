@@ -56,6 +56,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
 
+            // Clear Coat
+            public static GUIContent coatCoverageText = new GUIContent("Coat Coverage", "Percentage of clear coat coverage");
+            public static GUIContent coatIORText = new GUIContent("Coat IOR", "IOR of clear coat, value is [0..1] + 1.0. i.e 0.5 is IOR 1.5");
+
             // Specular color
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
 
@@ -176,6 +180,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty thicknessMap         = null;
         protected const string     kThicknessMap        = "_ThicknessMap";
 
+        protected MaterialProperty coatCoverage = null;
+        protected const string kCoatCoverage = "_CoatCoverage";
+        protected MaterialProperty coatIOR = null;
+        protected const string kCoatIOR = "_CoatIOR";
+
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
         protected MaterialProperty emissiveColor = null;
@@ -227,6 +236,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
             thickness = FindProperty(kThickness, props);
             thicknessMap = FindProperty(kThicknessMap, props);
+
+            // clear coat
+            coatCoverage = FindProperty(kCoatCoverage, props);
+            coatIOR = FindProperty(kCoatIOR, props);
 
             // Emissive
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
@@ -289,6 +302,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
             m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap);
+        }
+
+        protected void ShaderClearCoatInputGUI()
+        {
+            m_MaterialEditor.ShaderProperty(coatCoverage, Styles.coatCoverageText);
+            m_MaterialEditor.ShaderProperty(coatIOR, Styles.coatIORText);
         }
 
         protected void ShaderAnisoInputGUI()
@@ -375,6 +394,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case Lit.MaterialId.LitSpecular:
                     m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                    break;
+                case Lit.MaterialId.LitClearCoat:
+                    ShaderClearCoatInputGUI();
                     break;
                 default:
                     Debug.Assert(false, "Encountered an unsupported MaterialID.");
@@ -513,6 +535,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
             SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
             SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
+            SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
         }
     }
 } // namespace UnityEditor

@@ -9,8 +9,8 @@
 //
 #define MATERIALID_LIT_SSS (0)
 #define MATERIALID_LIT_STANDARD (1)
-#define MATERIALID_LIT_UNUSED0 (2)
-#define MATERIALID_LIT_UNUSED1 (3)
+#define MATERIALID_LIT_CLEAR_COAT (2)
+#define MATERIALID_LIT_UNUSED (3)
 #define MATERIALID_LIT_ANISO (4)
 #define MATERIALID_LIT_SPECULAR (5)
 
@@ -19,17 +19,18 @@
 //
 #define MATERIALFEATUREFLAGS_LIT_SSS (1)
 #define MATERIALFEATUREFLAGS_LIT_STANDARD (2)
-#define MATERIALFEATUREFLAGS_LIT_UNUSED0 (4)
-#define MATERIALFEATUREFLAGS_LIT_UNUSED1 (8)
+#define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (4)
+#define MATERIALFEATUREFLAGS_LIT_UNUSED (8)
 #define MATERIALFEATUREFLAGS_LIT_ANISO (16)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+SpecularValue:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+StandardDefinitions:  static fields
 //
-#define SPECULARVALUE_WATER (0)
-#define SPECULARVALUE_REGULAR (1)
-#define SPECULARVALUE_GEMSTONE (2)
-#define SPECULARVALUE_SPECULAR_COLOR (3)
+#define GBUFFER_LIT_STANDARD_REGULAR_ID (0)
+#define GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID (1)
+#define GBUFFER_LIT_STANDARD_ANISOTROPIC_ID (2)
+#define DEFAULT_SPECULAR_VALUE (0.04)
+#define SKIN_SPECULAR_VALUE (0.028)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
@@ -43,11 +44,13 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS (1006)
 #define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1007)
 #define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1008)
-#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR (1009)
-#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS (1010)
-#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1011)
-#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE (1012)
-#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1013)
+#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS (1009)
+#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1010)
+#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE (1011)
+#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1012)
+#define DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS (1013)
+#define DEBUGVIEW_LIT_SURFACEDATA_COAT_COVERAGE (1014)
+#define DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR (1015)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+TransmissionType:  static fields
@@ -77,6 +80,9 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_USE_THIN_OBJECT_MODE (1046)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1047)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1048)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE (1049)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1050)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -96,11 +102,13 @@ struct SurfaceData
     float3 tangentWS;
     float anisotropy;
     float metallic;
-    int specular;
     float subsurfaceRadius;
     float thickness;
     int subsurfaceProfile;
     float3 specularColor;
+    float3 coatNormalWS;
+    float coatCoverage;
+    float coatIOR;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
@@ -125,6 +133,9 @@ struct BSDFData
     bool enableTransmission;
     bool useThinObjectMode;
     float3 transmittance;
+    float3 coatNormalWS;
+    float coatCoverage;
+    float coatIOR;
 };
 
 //
@@ -162,9 +173,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
             result = surfacedata.metallic.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
-            result = GetIndexColor(surfacedata.specular);
-            break;
         case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS:
             result = surfacedata.subsurfaceRadius.xxx;
             break;
@@ -177,6 +185,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
             result = surfacedata.specularColor;
             needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:
+            result = surfacedata.coatNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_COVERAGE:
+            result = surfacedata.coatCoverage.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR:
+            result = surfacedata.coatIOR.xxx;
             break;
     }
 }
@@ -242,6 +259,15 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:
+            result = bsdfdata.coatNormalWS;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE:
+            result = bsdfdata.coatCoverage.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_IOR:
+            result = bsdfdata.coatIOR.xxx;
             break;
     }
 }
