@@ -876,7 +876,6 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         // Evaluate Fresnel on the Clear Coat
         F = F_Schlick(preLightData.coatFresnel0, LdotH);
         // TODO: No need to call D (to see with LaurentB) + question on * NdotL
-        //specularLighting += F * D_GGX(NdotH, max(bsdfdata.MinRoughness, 0.01)) * NdotL;
         specularLighting += F * D_GGX(NdotH, 0.01) * NdotL * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
