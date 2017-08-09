@@ -52,12 +52,12 @@ float RoughnessToPerceptualRoughness(float roughness)
 
 float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
 {
-    return (1 - perceptualSmoothness) * (1 - perceptualSmoothness);
+    return (1.0 - perceptualSmoothness) * (1.0 - perceptualSmoothness);
 }
 
 float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
-    return (1 - perceptualSmoothness);
+    return (1.0 - perceptualSmoothness);
 }
 
 // ----------------------------------------------------------------------------
