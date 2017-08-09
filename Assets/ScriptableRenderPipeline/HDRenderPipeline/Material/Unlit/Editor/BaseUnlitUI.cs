@@ -122,8 +122,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual void BaseMaterialPropertiesGUI()
         {
-            EditorGUI.indentLevel++;
             EditorGUILayout.LabelField(StylesBaseUnlit.optionText, EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+
             SurfaceTypePopup();
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
@@ -147,6 +149,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             // This function must finish with double sided option (see LitUI.cs)
             m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
+
+            EditorGUI.indentLevel--;
         }
 
         static public void SetKeyword(Material m, string keyword, bool state)
@@ -304,6 +308,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
+                //EditorGUI.indentLevel++;
                 BaseMaterialPropertiesGUI();
                 EditorGUILayout.Space();
 
@@ -314,6 +319,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 DoEmissionArea(material);
 
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
                 // NB renderqueue editor is not shown on purpose: we want to override it based on blend mode
                 EditorGUI.indentLevel++;

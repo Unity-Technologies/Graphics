@@ -183,6 +183,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.BaseMaterialPropertiesGUI();
 
+            EditorGUI.indentLevel++;
+
             // This follow double sided option
             if (doubleSidedEnable.floatValue > 0.0f)
             {
@@ -213,6 +215,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Display tessellation option if it exist
             if (tessellationMode != null)
             {
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField(StylesBaseLit.tessellationText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 TessellationModePopup();
