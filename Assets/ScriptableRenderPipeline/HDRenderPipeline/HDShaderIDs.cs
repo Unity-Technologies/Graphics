@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         internal static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
+        internal static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         internal static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
         internal static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
         internal static readonly int g_mInvScrProjection = Shader.PropertyToID("g_mInvScrProjection");
