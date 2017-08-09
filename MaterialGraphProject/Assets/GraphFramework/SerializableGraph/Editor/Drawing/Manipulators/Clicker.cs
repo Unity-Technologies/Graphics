@@ -1,5 +1,3 @@
-using System;
-using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using MouseManipulator = UnityEngine.Experimental.UIElements.MouseManipulator;
 

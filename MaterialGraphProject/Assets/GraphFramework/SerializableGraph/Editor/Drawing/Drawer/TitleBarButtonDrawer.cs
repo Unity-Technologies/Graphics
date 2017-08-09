@@ -1,6 +1,6 @@
-using UnityEngine.Experimental.UIElements;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -31,16 +31,16 @@ namespace UnityEditor.Graphing.Drawing
             m_clicker = new Clicker();
             m_clicker.onClick += OnClick;
             m_clicker.onStateChange += OnClickStateChanged;
-            AddManipulator(m_clicker);
+            this.AddManipulator(m_clicker);
 
             var ve = new VisualElement();
             ve.AddToClassList("titleBarItemBorder");
-            AddChild(ve);
+            Add(ve);
 
 
             m_label = new VisualElement();
             m_label.AddToClassList("titleBarItemLabel");
-            AddChild(m_label);
+            Add(m_label);
 
             var ve2 = new VisualElement();
             ve2.AddToClassList("titleBarItemBorder");

@@ -1,11 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
-using UIElements.GraphView;
-using UnityEditor.Graphing.Util;
-using UnityEngine;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -24,7 +20,7 @@ namespace UnityEditor.Graphing.Drawing
                 //pickingMode = PickingMode.Ignore,
             };
 
-            leftContainer.AddChild(m_ControlsContainer);
+            leftContainer.Add(m_ControlsContainer);
             m_CurrentControlPresenter = new List<GraphControlPresenter>();
 
             usePixelCaching = false;

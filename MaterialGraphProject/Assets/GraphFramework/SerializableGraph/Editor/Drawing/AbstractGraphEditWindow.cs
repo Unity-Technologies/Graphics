@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -45,7 +45,7 @@ namespace UnityEditor.Graphing.Drawing
         void OnEnable()
         {
             m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView());
-            rootVisualContainer.AddChild(m_GraphEditorDrawer);
+            rootVisualContainer.Add(m_GraphEditorDrawer);
             var source = CreateDataSource();
             source.Initialize(inMemoryAsset, this);
             m_GraphEditorDrawer.presenter = source;
@@ -53,7 +53,7 @@ namespace UnityEditor.Graphing.Drawing
 
         void OnDisable()
         {
-            rootVisualContainer.ClearChildren();
+            rootVisualContainer.Clear();
         }
 
         void Update()
