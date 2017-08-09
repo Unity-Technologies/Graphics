@@ -107,28 +107,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         [ToggleOff] _UseDensityMode("Use Density mode", Float) = 0.0
         [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
-        _HeightFactor0("_HeightFactor0", Float) = 1
-        _HeightFactor1("_HeightFactor1", Float) = 1
-        _HeightFactor2("_HeightFactor2", Float) = 1
-        _HeightFactor3("_HeightFactor3", Float) = 1
-
-        // Store result of combination of _HeightFactor and _HeightAmplitude0
-        [HideInInspector] _LayerHeightAmplitude0("_LayerHeightAmplitude0", Float) = 1
-        [HideInInspector] _LayerHeightAmplitude1("_LayerHeightAmplitude1", Float) = 1
-        [HideInInspector] _LayerHeightAmplitude2("_LayerHeightAmplitude2", Float) = 1
-        [HideInInspector] _LayerHeightAmplitude3("_LayerHeightAmplitude3", Float) = 1
-
-        _HeightCenterOffset0("_HeightCenterOffset0", Float) = 0.0
-        _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
-        _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
-        _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
-
-        // Store result of combination of _HeightCenterOffset0 and _HeightCenter0
-        [HideInInspector] _LayerCenterOffset0("_LayerCenterOffset0", Float) = 0.0
-        [HideInInspector] _LayerCenterOffset1("_LayerCenterOffset1", Float) = 0.0
-        [HideInInspector] _LayerCenterOffset2("_LayerCenterOffset2", Float) = 0.0
-        [HideInInspector] _LayerCenterOffset3("_LayerCenterOffset3", Float) = 0.0
-
         _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
         _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
         _BlendUsingHeight3("_BlendUsingHeight3", Float) = 0.0
@@ -160,10 +138,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
 
         _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
-        _LayerTiling0("_LayerTiling0", Float) = 1
-        _LayerTiling1("_LayerTiling1", Float) = 1
-        _LayerTiling2("_LayerTiling2", Float) = 1
-        _LayerTiling3("_LayerTiling3", Float) = 1
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
@@ -228,10 +202,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
 
-        // WARNING
-        // All the following properties that concern the UV mapping are the same as in the Lit shader.
-        // This means that they will get overridden when synchronizing the various layers.
-        // To avoid this, make sure that all properties here are in the exclusion list in InfluenceLayeredLitUI.SynchronizeLayerProperties
         _TexWorldScale0("Tiling", Float) = 1.0
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
