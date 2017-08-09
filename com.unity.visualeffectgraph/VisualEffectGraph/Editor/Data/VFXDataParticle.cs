@@ -27,16 +27,14 @@ namespace UnityEditor.VFX
             set { m_WorldSpace = value; }
         }
 
-        // TODO tmp function to generate attribute buffers
-        public void DebugBuildAttributeBuffers()
+        private void GenerateAttributeBuffers(out Dictionary<int, List<VFXAttribute>> keyToAttributes, out List<VFXAttribute> localAttributes)
         {
             int nbOwners = m_Owners.Count;
             if (nbOwners > 16)
                 throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
 
-            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
-
-            var LocalAttributes = new List<VFXAttribute>();
+            keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
+            localAttributes = new List<VFXAttribute>();
 
             foreach (var kvp in m_AttributesToContexts)
             {
@@ -85,7 +83,7 @@ namespace UnityEditor.VFX
 
                 if (local)
                 {
-                    LocalAttributes.Add(attribute);
+                    localAttributes.Add(attribute);
                     continue;
                 }
 
@@ -96,10 +94,21 @@ namespace UnityEditor.VFX
                     keyToAttributes[key] = attributes;
                 }
                 else
+                {
                     attributes = keyToAttributes[key];
+                }
 
                 attributes.Add(attribute);
             }
+        }
+
+        // TODO tmp function to generate attribute buffers
+        public void DebugBuildAttributeBuffers()
+        {
+            Dictionary<int, List<VFXAttribute>> keyToAttributes;
+            List<VFXAttribute> localAttributes;
+
+            GenerateAttributeBuffers(out keyToAttributes, out localAttributes);
 
             var builder = new StringBuilder();
             builder.AppendLine("ATTRIBUTES FOR PARTICLE DATA PER KEY");
@@ -110,13 +119,12 @@ namespace UnityEditor.VFX
                     builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
             }
 
-            if (LocalAttributes.Count > 0)
+            if (localAttributes.Count > 0)
             {
                 builder.AppendLine("Local Attributes");
-                foreach (var attrib in LocalAttributes)
+                foreach (var attrib in localAttributes)
                     builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
             }
-
 
             Debug.Log(builder.ToString());
         }

@@ -52,7 +52,6 @@ namespace UnityEditor.VFX
             {
                 builder.AppendFormat("CBUFFER_START({0})", bufferName);
                 builder.AppendLine();
-                builder.AppendLine("{");
 
                 int paddingIndex = 0;
                 foreach (var block in uniformBlocks)
@@ -70,8 +69,53 @@ namespace UnityEditor.VFX
                     WritePadding(4, currentSize, ref paddingIndex, builder);
                 }
 
-                builder.AppendLine("}");
+                builder.AppendLine("CBUFFER_END");
             }
+        }
+
+        private static string AggregateParameters(List<string> parameters)
+        {
+            return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
+        }
+
+        public static void WriteBlockFunction(StringBuilder builder, VFXBlock block)
+        {
+            var parameters = new List<string>();
+            foreach (var attribute in block.attributes)
+            {
+                parameters.Add(string.Format("{0}{1} {2}", (attribute.mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(attribute.attrib.type), attribute.attrib.name));
+            }
+
+            foreach (var parameter in block.parameters)
+            {
+                parameters.Add(string.Format("{0} {1}", VFXExpression.TypeToCode(parameter.exp.ValueType), parameter.name));
+            }
+
+            builder.AppendFormat("void {0}({1})", block.GetType().Name, AggregateParameters(parameters));
+            builder.AppendLine();
+            builder.AppendLine("{");
+            if (block.source != null)
+            {
+                builder.AppendLine(block.source);
+            }
+            builder.AppendLine("}");
+        }
+
+        public static void WriteCallFunction(StringBuilder builder, VFXBlock block, Dictionary<VFXExpression, string> variableNames)
+        {
+            var parameters = new List<string>();
+            foreach (var attribute in block.attributes)
+            {
+                parameters.Add(variableNames[new VFXAttributeExpression(attribute.attrib)]);
+            }
+
+            foreach (var parameter in block.parameters)
+            {
+                parameters.Add(variableNames[parameter.exp]);
+            }
+
+            builder.AppendFormat("{0}({1});", block.GetType().Name, AggregateParameters(parameters));
+            builder.AppendLine();
         }
 
         private static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value)

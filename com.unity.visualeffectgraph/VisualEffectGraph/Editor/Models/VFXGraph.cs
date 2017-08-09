@@ -377,7 +377,7 @@ namespace UnityEditor.VFX
                                 content = new System.Text.StringBuilder()
                             };
 
-                            codeGenerator.Build(generated.content, gpuMapper, ref generated.computeShader);
+                            codeGenerator.Build(context, generated.content, gpuMapper, ref generated.computeShader);
                             generatedList.Add(generated);
                         }
                     }
