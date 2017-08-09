@@ -1,4 +1,4 @@
-﻿using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -63,7 +63,6 @@ namespace UnityEditor.VFX.UI
                 m_Lines = new VisualElement[presenter.depth];
                 for (int i = 0; i < presenter.depth; ++i)
                 {
-
                     var line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";

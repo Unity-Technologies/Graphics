@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -52,10 +52,10 @@ namespace UnityEditor.VFX.UI
                 foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
                 {
                     foreach (var edge in allEdges.Where(t =>
-                    {
-                        var pres = t.GetPresenter<EdgePresenter>();
-                        return pres.output == anchor.presenter || pres.input == anchor.presenter;
-                    }))
+                        {
+                            var pres = t.GetPresenter<EdgePresenter>();
+                            return pres.output == anchor.presenter || pres.input == anchor.presenter;
+                        }))
                     {
                         edge.OnDataChanged();
                     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -18,20 +18,20 @@ namespace  UnityEditor.VFX.UI
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    { Event.KeyboardEvent("a"), view.FrameAll },
-                    { Event.KeyboardEvent("f"), view.FrameSelection },
-                    { Event.KeyboardEvent("o"), view.FrameOrigin },
-                    { Event.KeyboardEvent("delete"), view.DeleteSelection },
-                    { Event.KeyboardEvent("#tab"), view.FramePrev },
-                    { Event.KeyboardEvent("tab"), view.FrameNext },
-                    {Event.KeyboardEvent("c"), view.CloneModels},     // TEST
-                    {Event.KeyboardEvent("#r"), view.Resync},
-                    {Event.KeyboardEvent("#d"), view.OutputToDot},
-                    {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
-                    {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                });
+                    new Dictionary<Event, ShortcutDelegate>
+            {
+                { Event.KeyboardEvent("a"), view.FrameAll },
+                { Event.KeyboardEvent("f"), view.FrameSelection },
+                { Event.KeyboardEvent("o"), view.FrameOrigin },
+                { Event.KeyboardEvent("delete"), view.DeleteSelection },
+                { Event.KeyboardEvent("#tab"), view.FramePrev },
+                { Event.KeyboardEvent("tab"), view.FrameNext },
+                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
+                {Event.KeyboardEvent("#r"), view.Resync},
+                {Event.KeyboardEvent("#d"), view.OutputToDot},
+                {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
+                {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
+            });
 
             view.onEnter += OnEnterPanel;
             view.onLeave += OnLeavePanel;

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
 
         static Material VLineMat;
         static Material VCircleMat;
-        
+
 
         void RenderDisc(Vector2 center, float radius, Color color)
         {
