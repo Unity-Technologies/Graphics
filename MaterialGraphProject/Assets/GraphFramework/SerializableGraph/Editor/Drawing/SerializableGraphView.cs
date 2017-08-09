@@ -78,7 +78,10 @@ namespace UnityEditor.Graphing.Drawing
 
             ClearSelection();
             foreach (var drawer in selectedDrawers)
-                AddToSelection(drawer);
+            {
+                if (drawer != null)
+                    AddToSelection(drawer);
+            }
         }
 
         public void SetGlobalSelection()
