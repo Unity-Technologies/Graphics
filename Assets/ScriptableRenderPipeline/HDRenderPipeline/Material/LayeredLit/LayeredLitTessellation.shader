@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/InfluenceLayeredLit"
+Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
 {
     Properties
     {
@@ -175,7 +175,7 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting (fixed at compile time)
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -226,12 +226,24 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
+
+        // Tesselation specific
+        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 1
+        _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
+        _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
+        _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
+        _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
+        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        [ToggleOff] _TessellationTilingScale("Tessellation tiling scale", Float) = 1.0
+        // TODO: Handle culling mode for backface culling
     }
 
     HLSLINCLUDE
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+    #pragma target 5.0
+    #pragma only_renderers d3d11 ps4 // TEMP: until we go further in dev
     // #pragma enable_d3d11_debug_symbols
 
     #pragma shader_feature _ALPHATEST_ON
@@ -239,6 +251,10 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
+    // Default is _TESSELLATION_PHONG
+    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
+    #pragma shader_feature _TESSELLATION_TILING_SCALE
 
     #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
@@ -294,6 +310,7 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+    #define TESSELLATION_ON
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
 
@@ -303,6 +320,7 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
     #include "../../../ShaderLibrary/common.hlsl"
     #include "../../../ShaderLibrary/Wind.hlsl"
+    #include "../../../ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -353,6 +371,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
             HLSLPROGRAM
 
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
@@ -378,6 +399,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
             }
 
             HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -406,6 +430,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
+            // No tessellation for Meta pass
+            #undef TESSELLATION_ON
+
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
@@ -426,6 +453,10 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
+
+            // TODO: Tesselation can't work with velocity for now...
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../ShaderVariables.hlsl"
@@ -450,6 +481,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
             HLSLPROGRAM
 
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
@@ -471,6 +505,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
@@ -494,6 +531,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
             HLSLPROGRAM
 
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
@@ -514,6 +554,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
             Cull[_CullMode]
 
             HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
@@ -540,6 +583,9 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
             HLSLPROGRAM
 
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
@@ -557,5 +603,5 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.InfluenceLayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }

@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/InfluenceLayeredLit"
+Shader "HDRenderPipeline/LayeredLit"
 {
     Properties
     {
@@ -102,40 +102,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
-        [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        // Layer blending options V2
-        [ToggleOff] _UseDensityMode("Use Density mode", Float) = 0.0
-        [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
-
-        _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
-        _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
-        _BlendUsingHeight3("_BlendUsingHeight3", Float) = 0.0
-
-        _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
-        _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
-        _InheritBaseNormal3("_InheritBaseNormal3", Range(0, 1.0)) = 0.0
-
-        _InheritBaseHeight1("_InheritBaseHeight1", Range(0, 1.0)) = 0.0
-        _InheritBaseHeight2("_InheritBaseHeight2", Range(0, 1.0)) = 0.0
-        _InheritBaseHeight3("_InheritBaseHeight3", Range(0, 1.0)) = 0.0
-
-        _InheritBaseColor1("_InheritBaseColor1", Range(0, 1.0)) = 0.0
-        _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
-        _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
-
-        _InheritBaseColorThreshold1("_InheritBaseColorThreshold1", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
-
-        _MinimumOpacity0("_MinimumOpacity0", Range(0, 1.0)) = 1.0
-        _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
-        _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
-        _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
-
-        _OpacityAsDensity0("_OpacityAsDensity0", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
 
         _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
 
@@ -275,9 +241,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
     #pragma shader_feature _DETAIL_MAP2
     #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
-    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
-    #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
     #pragma shader_feature _VERTEX_WIND
 
@@ -322,6 +285,7 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
 
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
+    #define LAYERED_LIT_USE_SIMPLE_BLEND
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -557,5 +521,5 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.InfluenceLayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }

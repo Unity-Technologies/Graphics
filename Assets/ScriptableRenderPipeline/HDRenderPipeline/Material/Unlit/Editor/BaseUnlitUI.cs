@@ -123,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void BaseMaterialPropertiesGUI()
         {
             EditorGUI.indentLevel++;
-            GUILayout.Label(StylesBaseUnlit.optionText, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(StylesBaseUnlit.optionText, EditorStyles.boldLabel);
             SurfaceTypePopup();
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
@@ -314,10 +314,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 DoEmissionArea(material);
 
-                GUILayout.Label(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
                 // NB renderqueue editor is not shown on purpose: we want to override it based on blend mode
+                EditorGUI.indentLevel++;
                 m_MaterialEditor.EnableInstancingField();
                 m_MaterialEditor.DoubleSidedGIField();
+                EditorGUI.indentLevel--;
             }
 
             if (EditorGUI.EndChangeCheck())

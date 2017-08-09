@@ -178,8 +178,7 @@ PROP_DECL(float, _HeightCenter);
 float _BlendUsingHeight1;
 float _BlendUsingHeight2;
 float _BlendUsingHeight3;
-PROP_DECL(float, _LayerHeightAmplitude);
-PROP_DECL(float, _LayerCenterOffset);
+
 PROP_DECL(float, _MinimumOpacity);
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
@@ -195,7 +194,6 @@ float _InheritBaseColorThreshold1;
 float _InheritBaseColorThreshold2;
 float _InheritBaseColorThreshold3;
 float _LayerTilingBlendMask;
-PROP_DECL(float, _LayerTiling);
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);

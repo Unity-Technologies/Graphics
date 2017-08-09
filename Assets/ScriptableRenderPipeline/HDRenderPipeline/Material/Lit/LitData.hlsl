@@ -4,6 +4,12 @@
 #include "ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+#ifdef LAYERED_LIT_USE_SIMPLE_BLEND
+    static const float defaultHeightValue = 1.0f;
+#else
+    static const float defaultHeightValue = 0.0f;
+#endif
+
 void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
@@ -647,7 +653,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, _LayerTiling0
+                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
@@ -660,7 +666,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3,
-                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR2)
@@ -669,7 +675,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3,
-                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR3)
@@ -678,7 +684,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3,
-                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, tileObjectScale);
 }
 
 // This is call only in this file
@@ -705,13 +711,13 @@ void ApplyTessellationTileScale(inout float height0, inout float height1, inout 
     tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
     #endif
 
-    height0 /= _LayerTiling0 * max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y);
+    height0 /= max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y);
     #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
     height0 *= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
     #endif
-    height1 /= tileObjectScale * _LayerTiling1 * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y);
-    height2 /= tileObjectScale * _LayerTiling2 * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y);
-    height3 /= tileObjectScale * _LayerTiling3 * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y);
+    height1 /= tileObjectScale * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y);
+    height2 /= tileObjectScale * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y);
+    height3 /= tileObjectScale * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y);
 #endif
 }
 
@@ -719,23 +725,23 @@ void ApplyTessellationTileScale(inout float height0, inout float height1, inout 
 void SetEnabledHeightByLayer(inout float height0, inout float height1, inout float height2, inout float height3)
 {
 #ifndef _HEIGHTMAP0
-    height0 = 0.0;
+    height0 = defaultHeightValue;
 #endif
 #ifndef _HEIGHTMAP1
-    height1 = 0.0;
+    height1 = defaultHeightValue;
 #endif
 #ifndef _HEIGHTMAP2
-    height2 = 0.0;
+    height2 = defaultHeightValue;
 #endif
 #ifndef _HEIGHTMAP3
-    height3 = 0.0;
+    height3 = defaultHeightValue;
 #endif
 
 #if _LAYER_COUNT < 4
-    height3 = 0.0;
+    height3 = defaultHeightValue;
 #endif
 #if _LAYER_COUNT < 3
-    height2 = 0.0;
+    height2 = defaultHeightValue;
 #endif
 }
 
@@ -799,22 +805,22 @@ float GetMaxDisplacement()
     float maxDisplacement = 0.0;
 
 #if defined(_HEIGHTMAP0)
-    maxDisplacement = max(  _LayerHeightAmplitude0, maxDisplacement);
+    maxDisplacement = _HeightAmplitude0;
 #endif
 
 #if defined(_HEIGHTMAP1)
-    maxDisplacement = max(  _LayerHeightAmplitude1
+    maxDisplacement = max(  _HeightAmplitude1
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_LayerHeightAmplitude0 * _InheritBaseHeight1
+                            +_HeightAmplitude0 * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    maxDisplacement = max(  _LayerHeightAmplitude2
+    maxDisplacement = max(  _HeightAmplitude2
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_LayerHeightAmplitude0 * _InheritBaseHeight2
+                            +_HeightAmplitude0 * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -822,9 +828,9 @@ float GetMaxDisplacement()
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    maxDisplacement = max(  _LayerHeightAmplitude3
+    maxDisplacement = max(  _HeightAmplitude3
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_LayerHeightAmplitude0 * _InheritBaseHeight3
+                            +_HeightAmplitude0 * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
@@ -998,10 +1004,10 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         // For per pixel displacement we need to have normalized height scale to calculate the interesection (required by the algorithm we use)
         // mean that we will normalize by the highest amplitude.
         // We store this normalization factor with the weights as it will be multiply by the readed height.
-        ppdParam.weights[0] = weights[0] * (_LayerHeightAmplitude0) / maxHeight;
-        ppdParam.weights[1] = weights[1] * (_LayerHeightAmplitude1 + _LayerHeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
-        ppdParam.weights[2] = weights[2] * (_LayerHeightAmplitude2 + _LayerHeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
-        ppdParam.weights[3] = weights[3] * (_LayerHeightAmplitude3 + _LayerHeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
+        ppdParam.weights[0] = weights[0] * (_HeightAmplitude0) / maxHeight;
+        ppdParam.weights[1] = weights[1] * (_HeightAmplitude1 + _HeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
+        ppdParam.weights[2] = weights[2] * (_HeightAmplitude2 + _HeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
+        ppdParam.weights[3] = weights[3] * (_HeightAmplitude3 + _HeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
 
         // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
         float mainHeightInfluence = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
@@ -1106,10 +1112,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     ComputeMaskWeights(blendMasks, weights);
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
+    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
+    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
+    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
     ApplyTessellationTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
@@ -1138,40 +1144,60 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 {
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
 
-#if defined(_DENSITY_MODE)
-    // Note: blendMasks.argb because a is main layer
-    float4 minOpaParam = float4(_MinimumOpacity0, _MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
-    float4 remapedOpacity = lerp(minOpaParam, float4(1.0, 1.0, 1.0, 1.0), inputAlphaMask); // Remap opacity mask from [0..1] to [minOpa..1]
-    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0);
-
-    float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
-    blendMasks.argb = lerp(blendMasks.argb * remapedOpacity, opacityAsDensity, useOpacityAsDensityParam);
-#endif
-
-#if defined(_HEIGHT_BASED_BLEND)
-
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+        float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
+    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
+    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
+    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _HeightCenter3) * _HeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
-
-    // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
-    #if !defined(_PER_PIXEL_DISPLACEMENT)
-    // We don't use height 0 for the height blend based mode
-    heights.y += (heights.x * 0.0001);
-    #endif
+        // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
+#if !defined(_PER_PIXEL_DISPLACEMENT)
+        // We don't use height 0 for the height blend based mode
+        heights.y += (heights.x * 0.0001);
+#endif
 #else
-    float4 heights = float4(0.0, 0.0, 0.0, 0.0);
+        float4 heights = float4(defaultHeightValue, defaultHeightValue, defaultHeightValue, defaultHeightValue);
 #endif
 
-    // don't apply on main layer
-    blendMasks.rgb = ApplyHeightBasedBlend(blendMasks.rgb, heights.yzw, float3(_BlendUsingHeight1, _BlendUsingHeight2, _BlendUsingHeight3));
-#endif
+#ifdef LAYERED_LIT_USE_SIMPLE_BLEND
+//
+//#if _LAYER_COUNT == 2
+//        float4 layerMask = float4(1.0, 1.0, 0.0, 0.0);
+//#elif _LAYER_COUNT == 3
+//        float4 layerMask = float4(1.0, 1.0, 1.0, 0.0);
+//#else
+//        float4 layerMask = float4(1.0, 1.0, 1.0, 1.0);
+//#endif
+//
+        blendMasks *= heights;
+        float normFactor = dot(blendMasks, 1.0) + 1e-6;
+        blendMasks /= normFactor;
+
+        outWeights[0] = blendMasks.r;
+        outWeights[1] = blendMasks.g;
+        outWeights[2] = blendMasks.b;
+        outWeights[3] = blendMasks.a;
+#else
+    #if defined(_DENSITY_MODE)
+        // Note: blendMasks.argb because a is main layer
+        float4 minOpaParam = float4(_MinimumOpacity0, _MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
+        float4 remapedOpacity = lerp(minOpaParam, float4(1.0, 1.0, 1.0, 1.0), inputAlphaMask); // Remap opacity mask from [0..1] to [minOpa..1]
+        float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0);
+
+        float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
+        blendMasks.argb = lerp(blendMasks.argb * remapedOpacity, opacityAsDensity, useOpacityAsDensityParam);
+    #endif
+
+    #if defined(_HEIGHT_BASED_BLEND)
+        // don't apply on main layer
+        blendMasks.rgb = ApplyHeightBasedBlend(blendMasks.rgb, heights.yzw, float3(_BlendUsingHeight1, _BlendUsingHeight2, _BlendUsingHeight3));
+    #endif
+
 
     ComputeMaskWeights(blendMasks, outWeights);
+
+#endif
 }
 
 float3 ComputeMainNormalInfluence(FragInputs input, float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
@@ -1262,6 +1288,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS = ComputeMainNormalInfluence(input, normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
 #else
     surfaceData.baseColor = SURFACEDATA_BLEND_VECTOR3(surfaceData, baseColor, weights);
+    //surfaceData.baseColor = float3(weights[0], weights[1], weights[2]);
+    //surfaceData.baseColor = float3(1.0, 0.0, 0.0);
     float3 normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
 
