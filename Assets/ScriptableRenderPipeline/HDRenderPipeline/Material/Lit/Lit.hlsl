@@ -232,25 +232,6 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
     bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
 
-    if (bsdfData.enableTransmission)
-    {
-        if (_UseDisneySSS)
-        {
-            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
-                                                          _TransmissionTints[subsurfaceProfile].rgb,
-                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-        else
-        {
-            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
-                                                                 _TransmissionTints[subsurfaceProfile].rgb,
-                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-    }
-
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
 
     bool enableSssAndTransmission = true;
@@ -274,6 +255,27 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
         {
             bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
         }
+    }
+
+    if (bsdfData.enableTransmission)
+    {
+        if (_UseDisneySSS)
+        {
+            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
+                                                          _TransmissionTints[subsurfaceProfile].rgb,
+                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
+        else
+        {
+            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
+                                                                 _TransmissionTints[subsurfaceProfile].rgb,
+                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
+
+        bsdfData.transmittance *= bsdfData.diffuseColor; // Premultiply
     }
 }
 
@@ -809,6 +811,24 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
 }
 
+// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+// We assume that the back side of the object is a uniformly illuminated infinite plane
+// (we reuse the illumination) with the reversed normal of the current sample.
+// We apply wrapped lighting instead of the regular Lambertian diffuse
+// to compensate for these approximations.
+float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float3 lightColor, float diffuseScale, float shadow)
+{
+    float illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
+    // For low thickness, we can reuse the shadowing status for the back of the object.
+    shadow       = bsdfData.useThinObjectMode ? shadow : 1;
+    illuminance *= shadow;
+
+    float3 backLight = lightColor * (Lambert() * illuminance * diffuseScale);
+
+    return backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
+}
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional (supports directional and box projector lights)
 //-----------------------------------------------------------------------------
@@ -827,8 +847,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     diffuseLighting  = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
-    float3 cookie    = float3(1, 1, 1);
-    float  shadow    = 1;
+    float shadow     = 1;
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -845,7 +864,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
     	float2   positionNDC    = positionLS.xy;
 
-        float clipFactor = 1.0f;
+        float clipFactor;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
@@ -854,6 +873,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         {
             // Tile the texture if the 'repeat' wrap mode is enabled.
             coord = frac(coord);
+            clipFactor = 1;
         }
         else
         {
@@ -863,39 +883,27 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
         // We let the sampler handle tiling or clamping to border.
         // Note: tiling (the repeat mode) is not currently supported.
-        float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
-        // Use premultiplied alpha to save 1x VGPR.
-        cookie = c.rgb * c.a * clipFactor;
+        // Premultiply.
+        cookie.a                *= clipFactor;
+        lightData.color         *= cookie.rgb;
+        lightData.diffuseScale  *= cookie.a;
+        lightData.specularScale *= cookie.a;
     }
 
     [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= (cookie * lightData.color) * (illuminance * lightData.diffuseScale);
-        specularLighting *= (cookie * lightData.color) * (illuminance * lightData.specularScale);
+        diffuseLighting  *= lightData.color * (illuminance * lightData.diffuseScale);
+        specularLighting *= lightData.color * (illuminance * lightData.specularScale);
     }
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-        // We assume that the back side of the object is a uniformly illuminated infinite plane
-        // (we reuse the illumination) with the reversed normal of the current sample.
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-
-        // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
-        illuminance *= shadow;
-
-        float3 backLight = (cookie * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
-        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += transmittedLight;
+        diffuseLighting += EvaluateTransmission(bsdfData, NdotL, lightData.color, lightData.diffuseScale, shadow);
     }
 }
 
@@ -920,16 +928,20 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float3 unL = -lightToSurface;
     float3 L   = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
 
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL);
+
     float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-    float NdotL = dot(bsdfData.normalWS, L);
-    float illuminance = saturate(NdotL * attenuation);
+
+    // Premultiply.
+    lightData.diffuseScale  *= attenuation;
+    lightData.specularScale *= attenuation;
 
     diffuseLighting  = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
-    float3 cookie    = float3(1, 1, 1);
-    float  shadow    = 1;
+    float shadow     = 1;
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -950,12 +962,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
         float3   positionLS   = mul(lightToSurface, transpose(lightToWorld));
 
+        float4 cookie;
+
         [branch] if (lightType == GPULIGHTTYPE_POINT)
         {
-            float4 c = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
-
-            // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * c.a;
+            cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
         }
         else
         {
@@ -970,40 +981,29 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float2 coord = positionNDC * 0.5 + 0.5;
 
             // We let the sampler handle clamping to border.
-            float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
-            // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * (c.a * clipFactor);
+            cookie.a *= clipFactor;
         }
+
+        // Premultiply.
+        lightData.color         *= cookie.rgb;
+        lightData.diffuseScale  *= cookie.a;
+        lightData.specularScale *= cookie.a;
     }
 
     [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
-        specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
+        diffuseLighting  *= lightData.color * (illuminance * lightData.diffuseScale);
+        specularLighting *= lightData.color * (illuminance * lightData.specularScale);
     }
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-        // We assume that the back side of the object is a uniformly illuminated infinite plane
-        // (we reuse the illumination) with the reversed normal of the current sample.
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT) * attenuation;
-
-        // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
-        illuminance *= shadow;
-
-        float3 backLight = (cookie.rgb * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
-        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += transmittedLight;
+        diffuseLighting += EvaluateTransmission(bsdfData, NdotL, lightData.color, lightData.diffuseScale, shadow);
     }
 }
 
