@@ -1481,6 +1481,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+                bool isOrthographic = camera.orthographic;
+                cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjection, projscr);
@@ -1541,6 +1543,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
                 var projscr = temp * proj;
                 var invProjscr = projscr.inverse;
+                bool isOrthographic = camera.orthographic;
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
 
@@ -1554,6 +1557,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var projh = temp * proj;
                     var invProjh = projh.inverse;
 
+                    cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                     cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
@@ -1566,6 +1570,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
                 if (m_TileSettings.enableBigTilePrepass)
                 {
+                    cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
@@ -1587,6 +1592,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (usingFptl)       // optimized for opaques only
                 {
+                    cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
