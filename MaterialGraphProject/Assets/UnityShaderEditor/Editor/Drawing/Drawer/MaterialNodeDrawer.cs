@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEngine.Experimental.UIElements;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -34,7 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 image = Texture2D.whiteTexture
             };
             m_PreviewImage.AddToClassList("inactive");
-            leftContainer.AddChild(m_PreviewImage);
+            leftContainer.Add(m_PreviewImage);
         }
 
         private void SchedulePolling()

@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
@@ -25,8 +25,8 @@ namespace UnityEditor.Graphing.Drawing
             m_TitleBarDrawer = new TitleBarDrawer();
             m_TitleBarDrawer.name = "TitleBar";
 
-            AddChild(m_TitleBarDrawer);
-            AddChild(m_GraphView);
+            Add(m_TitleBarDrawer);
+            Add(m_GraphView);
         }
 
         public override void OnDataChanged()

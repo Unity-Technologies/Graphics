@@ -26,6 +26,14 @@ namespace UnityEngine.Graphing
 
                 return string.Format("{0}, {1}", fullName, assemblyName);
             }
+
+            public string SearchStringTestable()
+            {
+                if (!IsValid())
+                    return string.Empty;
+
+                return string.Format("{0}, {1}-testable", fullName, assemblyName);
+            }
         }
 
         [Serializable]
@@ -60,7 +68,13 @@ namespace UnityEngine.Graphing
             if (!typeInfo.IsValid())
                 return null;
 
-            return Type.GetType(typeInfo.SearchString());
+            var res =  Type.GetType(typeInfo.SearchString());
+
+            // if we are using a 'testable' dll.
+            if (res == null)
+                res = Type.GetType(typeInfo.SearchStringTestable());
+
+            return res;
         }
 
         public static JSONSerializedElement Serialize<T>(T item)
