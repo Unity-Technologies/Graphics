@@ -9,16 +9,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public CommonSettings commonSettings
         {
+            set { m_CommonSettings = value; }
             get { return m_CommonSettings; }
         }
 
         public SkySettings skySettings
         {
+            set { m_SkySettings = value; }
             get { return m_SkySettings; }
         }
 
         public ScreenSpaceAmbientOcclusionSettings ssaoSettings
         {
+            set { m_SsaoSettings = value; }
             get { return m_SsaoSettings; }
         }
 
