@@ -334,7 +334,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Generate mipmap for our cubemap
-            Debug.Assert(target.autoGenerateMips == false);
+            Debug.Assert(dest.autoGenerateMips == false);
             dest.GenerateMips();
         }
 
