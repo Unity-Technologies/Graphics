@@ -46,7 +46,9 @@ namespace  UnityEditor.VFX.UI
                 viewPresenter.SetVFXAsset(asset, true);
             }
             else
+            {
                 viewPresenter.SetVFXAsset(viewPresenter.GetVFXAsset(), true);
+            }
         }
 
         protected new void OnDisable()
@@ -69,7 +71,15 @@ namespace  UnityEditor.VFX.UI
         {
             var graph = viewPresenter.GetGraph();
             if (graph != null)
+            {
+                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                if (!graph.saved)
+                {
+                    filename += "*";
+                }
+                titleContent.text = filename;
                 graph.RecompileIfNeeded();
+            }
             viewPresenter.RecompileExpressionGraphIfNeeded();
         }
 
