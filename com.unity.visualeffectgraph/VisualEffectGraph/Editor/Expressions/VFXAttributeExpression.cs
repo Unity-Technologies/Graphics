@@ -136,12 +136,12 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXAttributeExpression)obj;
-            return ValueType == other.ValueType && attributeName == other.attributeName;
+            return ValueType == other.ValueType && attributeName == other.attributeName && attributeLocation == other.attributeLocation;
         }
 
         public override int GetHashCode()
         {
-            return attributeName.GetHashCode();
+            return (attributeName.GetHashCode() * 397) ^ attributeLocation.GetHashCode();
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)

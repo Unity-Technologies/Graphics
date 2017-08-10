@@ -47,7 +47,7 @@ uint nbMax = 2048; //TEMP
 		{
 			${WriteAttribute}
 #if COMPUTE_DYNAMIC_AABB
-			uint3 sortablePos = ConvertFloatToSortableUint(${Attribute_position});
+			uint3 sortablePos = ConvertFloatToSortableUint(${Attribute_Current_position});
 			
 			InterlockedMin(boundsLDS[0].x,sortablePos.x);
 			InterlockedMin(boundsLDS[0].y,sortablePos.y);

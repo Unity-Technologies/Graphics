@@ -1,8 +1,10 @@
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
+using Object = UnityEngine.Object;
 namespace UnityEditor.VFX
 {
     class VFXCodeGenerator
@@ -72,6 +74,42 @@ namespace UnityEditor.VFX
             var parameters = new StringBuilder();
             var expressionToName = new Dictionary<VFXExpression, string>();
 
+            var attributesFromDepencies = dependencies.OfType<VFXDataParticle>().SelectMany(o => o.GetAttributes()).ToArray();
+            Func<VFXAttributeLocation, string, string> fnAttributeMarker = delegate(VFXAttributeLocation location, string name)
+                {
+                    return string.Format("${{Attribute_{0}_{1}}}", location == VFXAttributeLocation.Current ? "Current" : "Source", name);
+                };
+
+            Func<VFXAttributeLocation, VFXAttributeInfo[]> fnCollectAttributeFromTemplate = delegate(VFXAttributeLocation location)
+                {
+                    return VFXAttribute.AllAttribute.Where(o =>
+                    {
+                        var attributeMarker = fnAttributeMarker(location, o.name);
+                        return templateContent.ToString().Contains(attributeMarker);
+                    }).Select(o => new VFXAttributeInfo(o.name, o.type, location, VFXAttributeMode.Read)).ToArray();
+                };
+            var implicitAttributeSource = fnCollectAttributeFromTemplate(VFXAttributeLocation.Source);
+            var implicitAttributeCurrent = fnCollectAttributeFromTemplate(VFXAttributeLocation.Current);
+            var attributes = attributesFromDepencies.Concat(implicitAttributeSource).Concat(implicitAttributeCurrent).Distinct().ToArray();
+
+            var attributesSource = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Source).ToArray();
+            var attributesCurrent = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
+
+            //< Attribute source
+            foreach (var attribute in attributesSource.Select(o => o.attrib))
+            {
+                VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, "0", "Temp, should extract parameters from attribute buffer here");
+                expressionToName.Add(new VFXAttributeExpression(attribute), attribute.name);
+            }
+
+            //< Attribute current which except a default source
+            foreach (var attribute in attributesCurrent.Where(c => !attributesSource.Any(s => s.attrib.name == c.attrib.name)).Select(o => o.attrib))
+            {
+                VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, "0", "Temp, need a default value");
+                expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.type, VFXAttributeLocation.Source)), attribute.name);
+            }
+
+            //< Parameters (computed and/or extracted from uniform)
             foreach (var exp in gpuMapper.expressions)
             {
                 if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
@@ -83,38 +121,22 @@ namespace UnityEditor.VFX
                 VFXShaderWriter.WriteParameter(parameters, exp, uniformMapper, name);
             }
 
-            var attributes = dependencies.OfType<VFXDataParticle>().SelectMany(o => o.GetAttributes()).Select(o => o.attrib).Distinct().ToArray();
-            /* BEGIN TEMP */
-            foreach (var attribute in attributes)
+            //< Current Attribute
+            foreach (var attribute in attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).Select(o => o.attrib))
             {
-                var name = string.Format("param_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
+                var name = string.Format("current_{0}_{1}", attribute.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
                 expressionToName.Add(new VFXAttributeExpression(attribute), name);
-                parameters.AppendFormat("{0} {1} = ({0})0; //{2}", VFXExpression.TypeToCode(attribute.type), name, attribute.name);
-                parameters.AppendLine();
+                VFXShaderWriter.WriteVariable(parameters, attribute.type, name, attribute.name);
             }
-            /* END TEMP */
 
-            //Add dummy attribute if needed (if used in template code)
-            foreach (var builtInAttribute in VFXAttribute.All)
+            //< Replace parameters in template code
+            foreach (var implicitAttribute in implicitAttributeCurrent.Concat(implicitAttributeSource).Select(o => o.attrib))
             {
-                var attributeMarker = string.Format("{{Attribute_{0}}}", builtInAttribute);
-                if (templateContent.ToString().Contains(attributeMarker))
-                {
-                    string name;
-                    var attribute = VFXAttribute.Find(builtInAttribute, VFXAttributeLocation.Source);
-                    if (expressionToName.Any(o => (o.Key is VFXAttributeExpression) && (o.Key as VFXAttributeExpression).attributeName == builtInAttribute))
-                    {
-                        name = expressionToName[new VFXAttributeExpression(attribute)];
-                    }
-                    else
-                    {
-                        name = string.Format("dummy_for_{0}", builtInAttribute);
-                        parameters.AppendFormat("{0} {1} = ({0})0;", VFXExpression.TypeToCode(attribute.type), name);
-                    }
-                    templateContent.Replace(attributeMarker, name);
-                }
+                var attributeMarker = fnAttributeMarker(implicitAttribute.location, implicitAttribute.name);
+                templateContent.Replace(attributeMarker, expressionToName[new VFXAttributeExpression(implicitAttribute)]);
             }
 
+            //< Block processor
             var blockFunction = new StringBuilder();
             foreach (var block in context.GetChildren().GroupBy(o => o.name))
             {
@@ -127,10 +149,11 @@ namespace UnityEditor.VFX
                 VFXShaderWriter.WriteCallFunction(blockCallFunction, block, expressionToName);
             }
 
+            //< Final composition
             var globalIncludeContent = new StringBuilder();
             globalIncludeContent.AppendLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.AppendLine("#define NB_THREADS_PER_GROUP 256");
-            foreach (var attribute in attributes)
+            foreach (var attribute in attributes.Select(o => o.attrib))
             {
                 globalIncludeContent.AppendFormat("#define VFX_USE_{0}_{1} 1", attribute.name.ToUpper(), attribute.location == VFXAttributeLocation.Current ? "CURRENT" : "SOURCE");
                 globalIncludeContent.AppendLine();
