@@ -263,7 +263,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -353,7 +353,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -443,7 +443,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -524,6 +524,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &113580756
 Light:
   m_ObjectHideFlags: 0
@@ -579,6 +581,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -646,7 +653,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -736,7 +743,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -883,7 +890,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 2e59d95585e72d64ba03c9a2d2d400e4, type: 2}
+  - {fileID: 2100000, guid: a4895dde5062b86498cb244d8ec29364, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -894,7 +901,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -1038,7 +1045,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -1223,6 +1230,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &192903506
 Light:
   m_ObjectHideFlags: 0
@@ -1278,6 +1287,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -1315,6 +1329,68 @@ Transform:
   m_Father: {fileID: 505986554}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &213621734
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 213621735}
+  - component: {fileID: 213621736}
+  m_Layer: 0
+  m_Name: Reflection Probe
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &213621735
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 213621734}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 25.23, y: -0.38, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1220811895}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!215 &213621736
+ReflectionProbe:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 213621734}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Type: 0
+  m_Mode: 2
+  m_RefreshMode: 0
+  m_TimeSlicingMode: 0
+  m_Resolution: 128
+  m_UpdateFrequency: 0
+  m_BoxSize: {x: 30, y: 10, z: 20}
+  m_BoxOffset: {x: 0, y: 0, z: 0}
+  m_NearClip: 0.3
+  m_FarClip: 1000
+  m_ShadowDistance: 100
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IntensityMultiplier: 1
+  m_BlendDistance: 1
+  m_HDR: 1
+  m_BoxProjection: 0
+  m_RenderDynamicObjects: 0
+  m_UseOcclusionCulling: 1
+  m_Importance: 1
+  m_CustomBakedTexture: {fileID: 8900000, guid: a6bda31e5e5c82a40b8e91ad0be087e8,
+    type: 3}
 --- !u!1001 &232324227
 Prefab:
   m_ObjectHideFlags: 0
@@ -1515,7 +1591,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -1596,6 +1672,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &269387786
 Light:
   m_ObjectHideFlags: 0
@@ -1651,6 +1729,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -1714,7 +1797,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2030,7 +2113,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2118,7 +2201,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 2e59d95585e72d64ba03c9a2d2d400e4, type: 2}
+  - {fileID: 2100000, guid: a4895dde5062b86498cb244d8ec29364, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2129,7 +2212,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2215,7 +2298,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2350,7 +2433,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 1a5c63b3aa502e6419f403dd3f0f0410, type: 2}
+  - {fileID: 2100000, guid: 4e560d4bc2c20cc4fba9fb5b1f1be541, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2361,7 +2444,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2436,7 +2519,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 444534c618931b84ab4770dc517021df, type: 2}
+  - {fileID: 2100000, guid: 4a2884ce64f12e1488bb34a0b873c9d3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2447,7 +2530,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2536,7 +2619,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -2739,6 +2822,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &476925264
 Light:
   m_ObjectHideFlags: 0
@@ -2794,6 +2879,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -2952,7 +3042,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3042,7 +3132,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3145,7 +3235,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3317,6 +3407,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &563884888
 Light:
   m_ObjectHideFlags: 0
@@ -3372,6 +3464,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -3430,6 +3527,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &580932149
 Light:
   m_ObjectHideFlags: 0
@@ -3485,6 +3584,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -3565,7 +3669,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3651,7 +3755,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3788,7 +3892,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -3963,7 +4067,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -4127,7 +4231,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -4215,7 +4319,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -4296,6 +4400,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &682868819
 Light:
   m_ObjectHideFlags: 0
@@ -4351,6 +4457,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -4444,7 +4555,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -4590,6 +4701,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 16
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &710116622
 Light:
   m_ObjectHideFlags: 0
@@ -4665,6 +4778,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -4801,6 +4919,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &726298023
 Light:
   m_ObjectHideFlags: 0
@@ -4856,6 +4976,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 4
   shadowPrecision: 0
@@ -4952,6 +5077,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!114 &733865597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4971,6 +5098,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -5036,7 +5168,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5120,7 +5252,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5249,7 +5381,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 1a5c63b3aa502e6419f403dd3f0f0410, type: 2}
+  - {fileID: 2100000, guid: 4e560d4bc2c20cc4fba9fb5b1f1be541, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5260,7 +5392,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5427,7 +5559,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5513,7 +5645,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5653,7 +5785,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5728,7 +5860,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: dcad493d968f31e4ba561145c394919b, type: 2}
+  - {fileID: 2100000, guid: 72599c9a42ea42049a2a36b1828875c3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5739,7 +5871,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -5856,6 +5988,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!114 &785457128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5875,6 +6009,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -5942,7 +6081,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -6010,6 +6149,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 16
   lightWidth: 2
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &827169275
 Light:
   m_ObjectHideFlags: 0
@@ -6085,6 +6226,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -6148,7 +6294,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -6234,7 +6380,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -6351,6 +6497,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!114 &834722899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6370,6 +6518,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -6433,7 +6586,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -6581,6 +6734,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &858501141
 Light:
   m_ObjectHideFlags: 0
@@ -6636,6 +6791,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -6703,7 +6863,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -6784,6 +6944,8 @@ MonoBehaviour:
   spotLightShape: 1
   lightLength: 4
   lightWidth: 2
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &903116312
 Light:
   m_ObjectHideFlags: 0
@@ -6839,6 +7001,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -6932,7 +7099,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -7109,7 +7276,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -7222,6 +7389,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &970745599
 Light:
   m_ObjectHideFlags: 0
@@ -7277,6 +7446,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -7374,7 +7548,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -7455,6 +7629,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &990293191
 Light:
   m_ObjectHideFlags: 0
@@ -7510,6 +7686,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -7651,7 +7832,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -7735,7 +7916,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -7795,6 +7976,92 @@ Transform:
   m_Father: {fileID: 179154810}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1008051411
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1008051412}
+  - component: {fileID: 1008051415}
+  - component: {fileID: 1008051414}
+  - component: {fileID: 1008051413}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1008051412
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1008051411}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 24.13, y: 0, z: 0}
+  m_LocalScale: {x: 2, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1220811895}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1008051413
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1008051411}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 9d65ced14251eb743ba9702a6f3c2ce8, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!64 &1008051414
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1008051411}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Convex: 0
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!33 &1008051415
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1008051411}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1013563951
 GameObject:
   m_ObjectHideFlags: 0
@@ -7846,6 +8113,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1013563954
 Light:
   m_ObjectHideFlags: 0
@@ -7901,6 +8170,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -7968,7 +8242,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -8074,7 +8348,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 7af9798eeefeae34c83aca56762a2938, type: 2}
+  - {fileID: 2100000, guid: d3953630a3c6bd64eb0cb867beae30d3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8085,7 +8359,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -8245,6 +8519,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1046252902
 Light:
   m_ObjectHideFlags: 0
@@ -8313,6 +8589,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -8422,6 +8703,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1063426086
 Light:
   m_ObjectHideFlags: 0
@@ -8477,6 +8760,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -8544,7 +8832,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -8655,6 +8943,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1083738370
 Light:
   m_ObjectHideFlags: 0
@@ -8710,6 +9000,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -8768,6 +9063,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 1
   lightWidth: 1
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1085128924
 Light:
   m_ObjectHideFlags: 0
@@ -8823,6 +9120,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -8903,7 +9205,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -9004,7 +9306,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -9203,6 +9505,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1148469246
 Light:
   m_ObjectHideFlags: 0
@@ -9258,6 +9562,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -9316,6 +9625,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1161056799
 Light:
   m_ObjectHideFlags: 0
@@ -9371,6 +9682,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -9421,7 +9737,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -9616,7 +9932,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -9733,6 +10049,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!114 &1220024537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9752,6 +10070,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -9759,6 +10082,37 @@ MonoBehaviour:
     format: 0
     data: 
   shadowDatas: []
+--- !u!1 &1220811894
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1220811895}
+  m_Layer: 0
+  m_Name: Test - clearcoat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1220811895
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1220811894}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -70.41, y: 0, z: -24.94}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1008051412}
+  - {fileID: 213621735}
+  - {fileID: 1566813408}
+  m_Father: {fileID: 0}
+  m_RootOrder: 26
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1226270484
 GameObject:
   m_ObjectHideFlags: 0
@@ -9846,7 +10200,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -9925,6 +10279,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1235762390
 Light:
   m_ObjectHideFlags: 0
@@ -9980,6 +10336,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -10074,7 +10435,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -10160,7 +10521,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -10250,7 +10611,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -10336,7 +10697,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -10417,6 +10778,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1308071701
 Light:
   m_ObjectHideFlags: 0
@@ -10472,6 +10835,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -10530,6 +10898,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1309651670
 Light:
   m_ObjectHideFlags: 0
@@ -10585,6 +10955,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -11109,6 +11484,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1352160402
 Light:
   m_ObjectHideFlags: 0
@@ -11164,6 +11541,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -11231,7 +11613,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11321,7 +11703,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11437,7 +11819,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11553,7 +11935,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11639,7 +12021,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11727,7 +12109,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11817,7 +12199,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -11972,7 +12354,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -12092,7 +12474,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -12182,7 +12564,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -12294,6 +12676,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1555751258
 Light:
   m_ObjectHideFlags: 0
@@ -12349,6 +12733,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -12407,6 +12796,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1559142270
 Light:
   m_ObjectHideFlags: 0
@@ -12462,6 +12853,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -12469,6 +12865,167 @@ MonoBehaviour:
     format: 0
     data: 
   shadowDatas: []
+--- !u!1001 &1566813407
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 1220811895}
+    m_Modifications:
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 23.689999
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0.89
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0.37000084
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 23000013751080654, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e2e42696f2e31d547ab4f28dd7cfb2f4, type: 2}
+    - target: {fileID: 23000013069349862, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b45676e6a29be9f4aa5de4a46e59b83b, type: 2}
+    - target: {fileID: 23000012856979566, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 3767b656300590342a9554dccb9a7edf, type: 2}
+    - target: {fileID: 23000012140681540, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f79111ae752a5fd4180cae1bc70ade85, type: 2}
+    - target: {fileID: 23000012881930702, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b5fcf448a7a4c6c448a408a8a8fb8b64, type: 2}
+    - target: {fileID: 23000013442133786, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 127f2c7811374ad4fad53f18801edb4f, type: 2}
+    - target: {fileID: 23000010311915246, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9a3f90a8aa2b172419e90af1e74e1dac, type: 2}
+    - target: {fileID: 23000013523107472, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b2057fa34ee25c14dae970a3d294d7c7, type: 2}
+    - target: {fileID: 23000012532277778, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f897d9840e59e174fba126e1c4e09489, type: 2}
+    - target: {fileID: 23000011727209500, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 97a7c6248093f4d489fc79ab797602a0, type: 2}
+    - target: {fileID: 23000010922128364, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ca92b8db52d1f3a4cb5d434ea99e355e, type: 2}
+    - target: {fileID: 23000010816873258, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bbfc67d465c3bb449844859a31dbbf92, type: 2}
+    - target: {fileID: 23000012055495256, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f72b22016ecb9ec4cb9c566aebf48bf8, type: 2}
+    - target: {fileID: 23000013898528828, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6b034fd42e0a0d54db21e39da2c990a1, type: 2}
+    - target: {fileID: 23000013421624772, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 0d9feb391f0632046ab9d4ad07140a4d, type: 2}
+    - target: {fileID: 23000014070242114, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9db64b9bdb4683c4689467d8325f6c8d, type: 2}
+    - target: {fileID: 23000010636634114, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e40a25b0949f8840a0c01cca412b4db, type: 2}
+    - target: {fileID: 23000012703457538, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 5ce38c8f52bfecd4e8356258583438b5, type: 2}
+    - target: {fileID: 23000013032495660, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 746b3c4e051dcbd4187ec4bb9dd89e84, type: 2}
+    - target: {fileID: 23000013796798692, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 62263dd2b6b901e4ab0962456fc4987f, type: 2}
+    - target: {fileID: 23000011036715798, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 2aaf0d1ccaa18bd4ba07d4c2a6035391, type: 2}
+    - target: {fileID: 23000012110281398, guid: 1faa212e4ad88f04a81c5ed019001de5,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f55b318efb40fdd4ca63a3feb55abd2c, type: 2}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 1faa212e4ad88f04a81c5ed019001de5, type: 2}
+  m_IsPrefabParent: 0
+--- !u!4 &1566813408 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5,
+    type: 2}
+  m_PrefabInternal: {fileID: 1566813407}
 --- !u!1 &1586360511
 GameObject:
   m_ObjectHideFlags: 0
@@ -12529,7 +13086,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -12714,7 +13271,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -12830,6 +13387,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 4
   lightWidth: 2
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1640077385
 Light:
   m_ObjectHideFlags: 0
@@ -12900,6 +13459,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -12967,7 +13531,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13057,7 +13621,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13225,7 +13789,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13378,7 +13942,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13453,7 +14017,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: f03665895dc89b84487310c5216b8458, type: 2}
+  - {fileID: 2100000, guid: 044b04b8868827a4b9c545bf762f0adc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13464,7 +14028,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13626,6 +14190,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1737381190
 Light:
   m_ObjectHideFlags: 0
@@ -13681,6 +14247,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -13748,7 +14319,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13838,7 +14409,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -13924,7 +14495,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14138,7 +14709,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14224,7 +14795,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14310,7 +14881,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14400,7 +14971,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14569,6 +15140,7 @@ MonoBehaviour:
   volumeLayer:
     serializedVersion: 2
     m_Bits: 1
+  stopNaNPropagation: 1
   antialiasingMode: 0
   temporalAntialiasing:
     jitterSpread: 0.75
@@ -14577,6 +15149,7 @@ MonoBehaviour:
     motionBlending: 0.85
   fastApproximateAntialiasing:
     mobileOptimized: 0
+    keepAlpha: 0
   ambientOcclusion:
     enabled: 1
     intensity: 0.5
@@ -14588,25 +15161,21 @@ MonoBehaviour:
     excludeSkybox: 1
   monitors:
     lightMeter:
-      enabled: 0
       width: 512
       height: 256
       showCurves: 1
     histogram:
-      enabled: 0
       width: 512
       height: 256
       channel: 3
     waveform:
-      enabled: 0
       exposure: 0.12
       height: 256
     vectorscope:
-      enabled: 0
       size: 256
       exposure: 0.12
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
-  m_ShowDebugLayer: 0
+  m_ShowRenderingFeatures: 0
   m_ShowToolkit: 0
   m_ShowCustomSorter: 0
   breakBeforeColorGrading: 0
@@ -14673,7 +15242,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -14878,6 +15447,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!114 &1854618468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14897,6 +15468,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -14947,6 +15523,8 @@ MonoBehaviour:
   spotLightShape: 2
   lightLength: 4
   lightWidth: 2
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1879857774
 Light:
   m_ObjectHideFlags: 0
@@ -15015,6 +15593,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -15067,7 +15650,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 444534c618931b84ab4770dc517021df, type: 2}
+  - {fileID: 2100000, guid: 4a2884ce64f12e1488bb34a0b873c9d3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -15078,7 +15661,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15210,7 +15793,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15300,7 +15883,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15375,7 +15958,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: dcad493d968f31e4ba561145c394919b, type: 2}
+  - {fileID: 2100000, guid: 72599c9a42ea42049a2a36b1828875c3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -15386,7 +15969,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15506,7 +16089,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15617,6 +16200,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1943835614
 Light:
   m_ObjectHideFlags: 0
@@ -15672,13 +16257,20 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
   shadowData:
     format: 0
-    data: 
-  shadowDatas: []
+    data: 0bd7a33b0000803f
+  shadowDatas:
+  - format: 0
+    data: 0bd7a33b0000803f
 --- !u!1 &1945509644
 GameObject:
   m_ObjectHideFlags: 0
@@ -15730,6 +16322,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1945509647
 Light:
   m_ObjectHideFlags: 0
@@ -15785,6 +16379,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -15852,7 +16451,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -15933,6 +16532,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &1988224188
 Light:
   m_ObjectHideFlags: 0
@@ -15988,6 +16589,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -16055,7 +16661,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16136,6 +16742,8 @@ MonoBehaviour:
   spotLightShape: 0
   lightLength: 0
   lightWidth: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
 --- !u!108 &2015022936
 Light:
   m_ObjectHideFlags: 0
@@ -16191,6 +16799,11 @@ MonoBehaviour:
   - 0.05
   - 0.2
   - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
@@ -16349,7 +16962,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16472,7 +17085,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16575,7 +17188,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16716,7 +17329,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16791,7 +17404,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 7af9798eeefeae34c83aca56762a2938, type: 2}
+  - {fileID: 2100000, guid: d3953630a3c6bd64eb0cb867beae30d3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -16802,7 +17415,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16891,7 +17504,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -16981,7 +17594,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -17067,7 +17680,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchSeams: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5

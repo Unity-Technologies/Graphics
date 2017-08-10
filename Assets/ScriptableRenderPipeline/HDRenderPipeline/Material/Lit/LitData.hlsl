@@ -1282,6 +1282,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
+    surfaceData.coatCoverage = 0.0f;
+    surfaceData.coatIOR = 0.5;
 
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
