@@ -1203,6 +1203,27 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
+
+    [branch] if (bsdfData.enableTransmission)
+    {
+        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+        // We assume that the back side of the object is a uniformly illuminated infinite plane
+        // (we reuse the illumination) with the reversed normal of the current sample.
+
+    #if 1 // Reference transmission implementation
+        float3 backN = -bsdfData.normalWS;
+        float3 backV = -V;
+
+        // Assume a Lambertian model for performance and simplicity.
+        ltcValue = LTCEvaluate(matL, backV, backN, preLightData.NdotV, k_identity3x3);
+    #else
+    #endif // Reference transmission implementation
+
+        float3 backLight = lightData.color * (ltcValue * lightData.diffuseScale);
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
+    }
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
