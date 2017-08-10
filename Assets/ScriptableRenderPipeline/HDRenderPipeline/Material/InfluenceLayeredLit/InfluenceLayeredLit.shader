@@ -123,15 +123,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        _InheritBaseColorThreshold1("_InheritBaseColorThreshold1", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
-
-        _MinimumOpacity0("_MinimumOpacity0", Range(0, 1.0)) = 1.0
-        _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
-        _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
-        _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
-
         _OpacityAsDensity0("_OpacityAsDensity0", Range(0, 1.0)) = 0.0
         _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
         _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
@@ -226,6 +217,11 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
+
+        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
+        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
+        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
+        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
     }
 
     HLSLINCLUDE

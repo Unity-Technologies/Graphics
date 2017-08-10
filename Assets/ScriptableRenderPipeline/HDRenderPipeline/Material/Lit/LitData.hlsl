@@ -1144,60 +1144,37 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 {
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
 
+#if defined(_DENSITY_MODE)
+    // Note: blendMasks.argb because a is main layer
+    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0);
+    float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
+    blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
+#endif
+
+#if defined(_HEIGHT_BASED_BLEND)
+
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-        float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
+    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _HeightCenter3) * _HeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
-        // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
-#if !defined(_PER_PIXEL_DISPLACEMENT)
-        // We don't use height 0 for the height blend based mode
-        heights.y += (heights.x * 0.0001);
-#endif
-#else
-        float4 heights = float4(defaultHeightValue, defaultHeightValue, defaultHeightValue, defaultHeightValue);
-#endif
 
-#ifdef LAYERED_LIT_USE_SIMPLE_BLEND
-//
-//#if _LAYER_COUNT == 2
-//        float4 layerMask = float4(1.0, 1.0, 0.0, 0.0);
-//#elif _LAYER_COUNT == 3
-//        float4 layerMask = float4(1.0, 1.0, 1.0, 0.0);
-//#else
-//        float4 layerMask = float4(1.0, 1.0, 1.0, 1.0);
-//#endif
-//
-        blendMasks *= heights;
-        float normFactor = dot(blendMasks, 1.0) + 1e-6;
-        blendMasks /= normFactor;
-
-        outWeights[0] = blendMasks.r;
-        outWeights[1] = blendMasks.g;
-        outWeights[2] = blendMasks.b;
-        outWeights[3] = blendMasks.a;
-#else
-    #if defined(_DENSITY_MODE)
-        // Note: blendMasks.argb because a is main layer
-        float4 minOpaParam = float4(_MinimumOpacity0, _MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
-        float4 remapedOpacity = lerp(minOpaParam, float4(1.0, 1.0, 1.0, 1.0), inputAlphaMask); // Remap opacity mask from [0..1] to [minOpa..1]
-        float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0);
-
-        float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
-        blendMasks.argb = lerp(blendMasks.argb * remapedOpacity, opacityAsDensity, useOpacityAsDensityParam);
+    // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
+    #if !defined(_PER_PIXEL_DISPLACEMENT)
+    // We don't use height 0 for the height blend based mode
+    heights.y += (heights.x * 0.0001);
     #endif
+#else
+    float4 heights = float4(0.0, 0.0, 0.0, 0.0);
+#endif
 
-    #if defined(_HEIGHT_BASED_BLEND)
-        // don't apply on main layer
-        blendMasks.rgb = ApplyHeightBasedBlend(blendMasks.rgb, heights.yzw, float3(_BlendUsingHeight1, _BlendUsingHeight2, _BlendUsingHeight3));
-    #endif
-
+    // don't apply on main layer
+    blendMasks.rgb = ApplyHeightBasedBlend(blendMasks.rgb, heights.yzw, float3(_BlendUsingHeight1, _BlendUsingHeight2, _BlendUsingHeight3));
+#endif
 
     ComputeMaskWeights(blendMasks, outWeights);
-
-#endif
 }
 
 float3 ComputeMainNormalInfluence(FragInputs input, float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
@@ -1220,14 +1197,11 @@ float3 ComputeMainNormalInfluence(FragInputs input, float3 normalTS0, float3 nor
     #endif
 }
 
-float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, float compoMask, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
+float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
 {
     float3 baseColor = BlendLayeredVector3(baseColor0, baseColor1, baseColor2, baseColor3, weights);
 
     float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights);
-    float influenceThreshold = BlendLayeredScalar(1.0, _InheritBaseColorThreshold1, _InheritBaseColorThreshold2, _InheritBaseColorThreshold3, weights);
-
-    influenceFactor = influenceFactor * (1.0 - saturate(compoMask / influenceThreshold));
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
@@ -1284,12 +1258,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    surfaceData.baseColor = ComputeMainBaseColorInfluence(surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, alpha0, layerTexCoord, weights);
+    surfaceData.baseColor = ComputeMainBaseColorInfluence(surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, layerTexCoord, weights);
     float3 normalTS = ComputeMainNormalInfluence(input, normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
 #else
     surfaceData.baseColor = SURFACEDATA_BLEND_VECTOR3(surfaceData, baseColor, weights);
-    //surfaceData.baseColor = float3(weights[0], weights[1], weights[2]);
-    //surfaceData.baseColor = float3(1.0, 0.0, 0.0);
     float3 normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
 

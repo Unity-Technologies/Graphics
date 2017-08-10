@@ -123,15 +123,6 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        _InheritBaseColorThreshold1("_InheritBaseColorThreshold1", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
-        _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
-
-        _MinimumOpacity0("_MinimumOpacity0", Range(0, 1.0)) = 1.0
-        _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
-        _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
-        _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
-
         _OpacityAsDensity0("_OpacityAsDensity0", Range(0, 1.0)) = 0.0
         _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
         _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
@@ -238,6 +229,11 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
         [ToggleOff] _TessellationTilingScale("Tessellation tiling scale", Float) = 1.0
         // TODO: Handle culling mode for backface culling
+
+        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
+        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
+        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
+        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
     }
 
     HLSLINCLUDE

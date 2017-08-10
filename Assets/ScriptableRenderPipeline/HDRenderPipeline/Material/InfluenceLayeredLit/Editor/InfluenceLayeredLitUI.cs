@@ -59,15 +59,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent layeringOptionText = new GUIContent("Layering Options");
 
-            public readonly GUIContent mainLayerInfluenceText = new GUIContent("Main layer influence", "Main layer influence.");
-            public readonly GUIContent densityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
             public readonly GUIContent useDensityModeModeText = new GUIContent("Use Density Mode", "Enable density mode");
             public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
 
             public readonly GUIContent blendUsingHeight = new GUIContent("Blend Using Height", "Blend Layers using height.");
-            public readonly GUIContent inheritBaseColorThresholdText = new GUIContent("Threshold", "Inherit the base color from the base layer.");
-            public readonly GUIContent minimumOpacityText = new GUIContent("Minimum Opacity", "Minimum Opacity.");
             public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity as Density", "Use Opacity as Density.");
             public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Inherit the normal from the base layer.");
             public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Inherit the height from the base layer.");
@@ -103,9 +99,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_PropertySuffixes[3] = "3";
         }
 
-        [SerializeField]
-        private bool[] showLayer = { false, false, false, false };
-
         Material[] m_MaterialLayers = new Material[kMaxLayerCount];
 
         // Layer options
@@ -133,8 +126,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kUseDensityMode = "_UseDensityMode";
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
-        MaterialProperty[] minimumOpacity = new MaterialProperty[kMaxLayerCount];
-        const string kMinimumOpacity = "_MinimumOpacity";
 
         // HeightmapMode control
         MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1]; // Only in case of influence mode
@@ -147,8 +138,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kInheritBaseHeight = "_InheritBaseHeight";
         MaterialProperty[] inheritBaseColor = new MaterialProperty[kMaxLayerCount - 1];
         const string kInheritBaseColor = "_InheritBaseColor";
-        MaterialProperty[] inheritBaseColorThreshold = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseColorThreshold = "_InheritBaseColorThreshold";
+
+        // UI
+        MaterialProperty[] showLayer = new MaterialProperty[kMaxLayerCount];
+        const string kShowLayer = "_ShowLayer";
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -172,7 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-                minimumOpacity[i] = FindProperty(string.Format("{0}{1}", kMinimumOpacity, i), props);
+                showLayer[i] = FindProperty(string.Format("{0}{1}", kShowLayer, i), props);
 
                 if (i != 0)
                 {
@@ -181,7 +174,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
                     inheritBaseHeight[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseHeight, i), props);
                     inheritBaseColor[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColor, i), props);
-                    inheritBaseColorThreshold[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColorThreshold, i), props);
                 }
             }
         }
@@ -305,8 +297,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool result = false;
 
-            showLayer[layerIndex] = EditorGUILayout.Foldout(showLayer[layerIndex], styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]);
-            if (!showLayer[layerIndex])
+            showLayer[layerIndex].floatValue = EditorGUILayout.Foldout(showLayer[layerIndex].floatValue != 0.0f, styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]) ? 1.0f : 0.0f;
+            if (showLayer[layerIndex].floatValue == 0.0f)
                 return false;
             ;
 
@@ -336,7 +328,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (useDensityModeEnable)
                     {
                         m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
-                        m_MaterialEditor.ShaderProperty(minimumOpacity[layerIndex], styles.minimumOpacityText);
                     }
 
 
@@ -349,9 +340,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (mainLayerInfluenceEnable)
                     {
                         m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
-                        EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(inheritBaseColorThreshold[paramIndex], styles.inheritBaseColorThresholdText);
-                        EditorGUI.indentLevel--;
                         m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
                         // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
                         // We always display it as it can be tricky to know when per pixel displacement is enabled or not
