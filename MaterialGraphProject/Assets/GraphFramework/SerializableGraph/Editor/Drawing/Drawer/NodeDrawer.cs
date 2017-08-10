@@ -24,6 +24,9 @@ namespace UnityEditor.Graphing.Drawing
             m_CurrentControlPresenter = new List<GraphControlPresenter>();
 
             usePixelCaching = false;
+
+            // Nodes need to be focusable to make the keyboard shortcuts work.
+            focusIndex = 0;
         }
 
         private void AddControls(GraphNodePresenter nodeData)

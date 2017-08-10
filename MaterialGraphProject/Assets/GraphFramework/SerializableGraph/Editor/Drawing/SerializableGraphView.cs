@@ -42,6 +42,9 @@ namespace UnityEditor.Graphing.Drawing
             Insert(0, new GridBackground());
 
             typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
+
+            // Make this GraphView focusable or keyboard shortcuts won't work.
+            focusIndex = 0;
         }
 
         // TODO JOCE Remove the "new" here. Use the base class' impl
@@ -78,10 +81,7 @@ namespace UnityEditor.Graphing.Drawing
 
             ClearSelection();
             foreach (var drawer in selectedDrawers)
-            {
-                if (drawer != null)
-                    AddToSelection(drawer);
-            }
+                AddToSelection(drawer);
         }
 
         public void SetGlobalSelection()
