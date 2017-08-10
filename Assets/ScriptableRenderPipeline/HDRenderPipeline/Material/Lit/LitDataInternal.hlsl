@@ -262,15 +262,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.materialId = MATERIALID_LIT_STANDARD;
 
     // All these parameters are ignore as they are re-setup outside of the layers function
+    // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
-
     surfaceData.subsurfaceRadius = 0.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
-
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-
     surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
     surfaceData.coatCoverage = 0.0f;
     surfaceData.coatIOR = 0.5;

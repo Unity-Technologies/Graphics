@@ -363,7 +363,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
     // Encode normal on 20bit with oct compression + 2bit of sign
-    float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctEncode((surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT) ? surfaceData.coatNormalWS : surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
     // Store octNormalSign on two bits with perceptualRoughness
@@ -392,8 +392,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
-        float2 octCoatNormalWS = PackNormalOctEncode(surfaceData.coatNormalWS);
-        outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, surfaceData.coatCoverage, PackFloatInt8bit(surfaceData.coatIOR, (int)(surfaceData.metallic * 15.5f), 16.0) );
+        // In the cae of clear coat, we want more precision for the coat normal than for the bottom normal (as it is expected to be smooth). So swap the normal encoding storage in Gbuffer.
+        // It also allow to use clear coat normal for SSR
+        float2 octBottomNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+        outGBuffer2 = float4(octBottomNormalWS * 0.5 + 0.5, surfaceData.coatCoverage, PackFloatInt8bit(surfaceData.coatIOR, (int)(surfaceData.metallic * 15.5f), 16.0) );
     }
 
     // Lighting
@@ -566,7 +568,9 @@ void DecodeFromGBuffer(
     }
     else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
-        float3 coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        // We have swap the encoding of the normal to have more precision for coat normal as it is more smooth
+        float3 coatNormalWS = bsdfData.normalWS;
+        bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
 
         float coatCoverage = inGBuffer2.b;
         float coatIOR;
