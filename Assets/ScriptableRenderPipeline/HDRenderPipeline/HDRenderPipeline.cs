@@ -359,6 +359,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly ShadowSettings m_ShadowSettings = new ShadowSettings();
 
         // Debugging
+        MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         public DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
         private int m_DebugFullScreenTempRT;
         private bool m_FullScreenDebugPushed = false;
@@ -367,7 +368,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_Asset.sssSettings; }
         }
-
 
         private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
         private SkySettings m_SkySettings = null;
@@ -424,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO: Handle the case of no Gbuffer material
             // TODO: I comment the assert here because m_DeferredMaterial for whatever reasons contain the correct class but with a "null" in the name instead of the real name and then trigger the assert
-            // whereas it work. Don't know what is hapening, DebugDisplay use the same code and name is correct there.
+            // whereas it work. Don't know what is happening, DebugDisplay use the same code and name is correct there.
             // Debug.Assert(m_DeferredMaterial != null);
 
             m_CameraColorBuffer                = HDShaderIDs._CameraColorTexture;
@@ -652,7 +652,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Shader.SetGlobalInt(     HDShaderIDs._UseDisneySSS,               sssParameters.useDisneySSS ? 1 : 0);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
-                cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);                
+                cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
                 cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
             }
         }
@@ -979,15 +979,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            // If we are forward only we will do a depth prepass
-            // TODO: Depth prepass should be enabled based on light loop settings. LightLoop define if they need a depth prepass + forward only...
-            if (!m_Asset.renderingSettings.useDepthPrepass)
+           if (!m_Asset.renderingSettings.useDepthPrepass)
                 return;
 
             using (new Utilities.ProfilingSample("Depth Prepass", cmd))
             {
                 // TODO: Must do opaque then alpha masked for performance!
-                // TODO: front to back for opaque and by materal for opaque tested when we split in two
+                // TODO: front to back for opaque and by material for opaque tested when we split in two
                 Utilities.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
                 RenderOpaqueRenderList(cull, camera, renderContext, cmd, "DepthOnly");
             }
@@ -996,9 +994,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
-            {
                 return;
-            }
 
             string passName = m_DebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer";
 
@@ -1034,7 +1030,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new Utilities.ProfilingSample("DebugViewMaterialGBuffer", cmd))
                     {
-                        // TODO: Bind depth textures
                         Utilities.DrawFullScreen(cmd, m_DebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
                 }
@@ -1108,6 +1103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                     // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
+                    //
                     cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
 
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBufferRT);  // Cannot set a RT on a material
@@ -1156,8 +1152,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
         {
-            // TODO: Currently we can't render opaque object forward when deferred is enabled
-            // miss option
             if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && renderOpaque)
                 return;
 
@@ -1292,7 +1286,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         void RenderDebug(HDCamera camera, CommandBuffer cmd)
         {
             // We don't want any overlay for these kind of rendering
