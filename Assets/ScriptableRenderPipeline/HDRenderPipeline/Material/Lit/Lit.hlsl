@@ -813,18 +813,13 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
 // We assume that the back side of the object is a uniformly illuminated infinite plane
-// (we reuse the illumination) with the reversed normal of the current sample.
-// We apply wrapped lighting instead of the regular Lambertian diffuse
-// to compensate for these approximations.
-float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float3 lightColor, float diffuseScale, float shadow)
+// with the reversed normal (and the view vector) of the current sample.
+float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float3 lightColor, float diffuseScale, float shadow)
 {
-    float illuminance = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-
     // For low thickness, we can reuse the shadowing status for the back of the object.
-    shadow       = bsdfData.useThinObjectMode ? shadow : 1;
-    illuminance *= shadow;
+    shadow = bsdfData.useThinObjectMode ? shadow : 1;
 
-    float3 backLight = lightColor * (Lambert() * illuminance * diffuseScale);
+    float3 backLight = lightColor * (intensity * shadow * diffuseScale);
 
     return backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
 }
@@ -902,8 +897,12 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
+        // We apply wrapped lighting instead of the regular Lambertian diffuse
+        // to compensate for approximations within EvaluateTransmission().
+        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, NdotL, lightData.color, lightData.diffuseScale, shadow);
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.color, lightData.diffuseScale, shadow);
     }
 }
 
@@ -1003,8 +1002,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
+        // We apply wrapped lighting instead of the regular Lambertian diffuse
+        // to compensate for approximations within EvaluateTransmission().
+        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, NdotL, lightData.color, lightData.diffuseScale, shadow);
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.color, lightData.diffuseScale, shadow);
     }
 }
 
@@ -1206,23 +1209,17 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-        // We assume that the back side of the object is a uniformly illuminated infinite plane
-        // (we reuse the illumination) with the reversed normal of the current sample.
-
     #if 1 // Reference transmission implementation
         float3 backN = -bsdfData.normalWS;
         float3 backV = -V;
 
-        // Assume a Lambertian model for performance and simplicity.
+        // Use the Lambertian model for performance and simplicity.
         ltcValue = LTCEvaluate(matL, backV, backN, preLightData.NdotV, k_identity3x3);
     #else
     #endif // Reference transmission implementation
 
-        float3 backLight = lightData.color * (ltcValue * lightData.diffuseScale);
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
     }
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
