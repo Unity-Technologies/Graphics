@@ -1,4 +1,4 @@
-using UnityEditor.Experimental.UIElements.GraphView;
+﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
                         realWidth = 1.5f / view.scale;
                     }
 
-                    VFXFlowEdge.RenderLine(from, to, edge.defaultColor, realWidth);
+                    VFXFlowEdge.RenderLine(from, to, edge.style.borderColor, realWidth);
                 }
             }
         }
