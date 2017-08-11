@@ -1234,15 +1234,13 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformClearCoat);
-        specularLighting += ltcValue * bsdfData.coatCoverage;
-        // TODO: no fresnel ?
+        specularLighting += preLightData.ltcClearCoatFresnelTerm * (ltcValue * bsdfData.coatCoverage);
     }
 
     // Evaluate the specular part
     {
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformGGX);
-        specularLighting += ltcValue;
-        // TODO: no fresnel ?
+        specularLighting += preLightData.ltcGGXFresnelTerm * ltcValue;
 
         specularLighting *= lightData.color * lightData.specularScale;
     }
@@ -1337,7 +1335,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         ltcValue = LTCEvaluate(matL, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
-        specularLighting += preLightData.ltcClearCoatFresnelTerm  * ltcValue * bsdfData.coatCoverage;
+        specularLighting += preLightData.ltcClearCoatFresnelTerm  * (ltcValue * bsdfData.coatCoverage);
 
         // modify matL value based on Fresnel transmission
         matL = mul(matL, preLightData.ltcCoatT);
