@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -15,15 +15,15 @@ namespace UnityEditor.VFX.UI
     {
         public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            VisualContainer mainContainer = new VisualContainer();
+            VisualElement mainContainer = new VisualElement();
 
             m_ColorField = new ColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
 
-            mainContainer.AddChild(m_ColorField);
+            mainContainer.Add(m_ColorField);
             mainContainer.AddToClassList("maincontainer");
 
-            VisualContainer fieldContainer = new VisualContainer();
+            VisualElement fieldContainer = new VisualElement();
             fieldContainer.AddToClassList("fieldContainer");
 
             m_RFloatField = new FloatField("R");
@@ -38,16 +38,16 @@ namespace UnityEditor.VFX.UI
             m_AFloatField = new FloatField("A");
             m_AFloatField.OnValueChanged = OnValueChanged;
 
-            fieldContainer.AddChild(m_RFloatField);
-            fieldContainer.AddChild(m_GFloatField);
-            fieldContainer.AddChild(m_BFloatField);
-            fieldContainer.AddChild(m_AFloatField);
+            fieldContainer.Add(m_RFloatField);
+            fieldContainer.Add(m_GFloatField);
+            fieldContainer.Add(m_BFloatField);
+            fieldContainer.Add(m_AFloatField);
 
-            mainContainer.AddChild(fieldContainer);
+            mainContainer.Add(fieldContainer);
 
             mainContainer.style.flexDirection = FlexDirection.Column;
             mainContainer.style.alignItems = Align.Stretch;
-            AddChild(mainContainer);
+            Add(mainContainer);
         }
 
         public void OnValueChanged()

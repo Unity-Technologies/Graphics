@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -15,11 +15,11 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement m_HDRLabel;
 
-        VisualContainer m_Container;
+        VisualElement m_Container;
 
-        VisualContainer CreateColorContainer()
+        VisualElement CreateColorContainer()
         {
-            m_Container = new VisualContainer();
+            m_Container = new VisualElement();
 
             m_Container.style.flexDirection = FlexDirection.Column;
             m_Container.style.alignItems = Align.Stretch;
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.UIElements
 
             m_NotAlphaDisplay.AddToClassList("notalphadisplay");
 
-            VisualContainer alphaContainer = new VisualContainer();
+            VisualElement alphaContainer = new VisualElement();
             alphaContainer.style.flexDirection = FlexDirection.Row;
             alphaContainer.style.height = 3;
 
@@ -97,19 +97,19 @@ namespace UnityEditor.VFX.UIElements
 
         public ColorField(string label) : base(label)
         {
-            VisualContainer container = CreateColorContainer();
-            AddChild(container);
+            VisualElement container = CreateColorContainer();
+            Add(container);
 
 
-            AddChild(CreateEyeDropper());
+            Add(CreateEyeDropper());
         }
 
         public ColorField(VisualElement existingLabel) : base(existingLabel)
         {
-            VisualContainer container = CreateColorContainer();
-            AddChild(container);
+            VisualElement container = CreateColorContainer();
+            Add(container);
 
-            AddChild(CreateEyeDropper());
+            Add(CreateEyeDropper());
         }
 
         void OnColorChanged(Color color)
@@ -132,9 +132,9 @@ namespace UnityEditor.VFX.UIElements
             if ((m_HDRLabel.parent != null) != hdr)
             {
                 if (hdr)
-                    m_Container.AddChild(m_HDRLabel);
+                    m_Container.Add(m_HDRLabel);
                 else
-                    m_Container.RemoveChild(m_HDRLabel);
+                    m_Container.Remove(m_HDRLabel);
             }
         }
     }

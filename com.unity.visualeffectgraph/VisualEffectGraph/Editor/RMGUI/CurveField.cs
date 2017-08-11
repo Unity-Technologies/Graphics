@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -61,13 +61,13 @@ namespace UnityEditor.VFX.UIElements
             CreateCurve();
 
             style.flexDirection = FlexDirection.Row;
-            AddChild(m_Curve);
+            Add(m_Curve);
         }
 
         public CurveField(VisualElement existingLabel) : base(existingLabel)
         {
             CreateCurve();
-            AddChild(m_Curve);
+            Add(m_Curve);
         }
 
         protected internal override void OnPostLayout(bool hasNewLayout)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSlotContainerUI : VFXNodeUI
     {
-        public VisualContainer m_SettingsContainer;
+        public VisualElement m_SettingsContainer;
 
         public override void OnDataChanged()
         {
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
             {
                 object settings = presenter.settings;
 
-                m_SettingsContainer = new VisualContainer { name = "settings" };
+                m_SettingsContainer = new VisualElement { name = "settings" };
 
                 leftContainer.Insert(1, m_SettingsContainer); //between title and input
 
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UI
             {
                 for (int i = 0; i < m_SettingsContainer.childCount; ++i)
                 {
-                    PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
+                    PropertyRM prop = m_SettingsContainer.ElementAt(i) as PropertyRM;
                     if (prop != null)
                         prop.Update();
                 }
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
             var rm = PropertyRM.Create(setting, 100);
             if (rm != null)
             {
-                m_SettingsContainer.AddChild(rm);
+                m_SettingsContainer.Add(rm);
             }
             else
             {

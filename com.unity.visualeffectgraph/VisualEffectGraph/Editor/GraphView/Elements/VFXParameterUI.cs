@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
     {
         private TextField m_ExposedName;
         private Toggle m_Exposed;
-        VisualContainer m_ExposedContainer;
+        VisualElement m_ExposedContainer;
 
         public void OnNameChanged(string str)
         {
@@ -96,17 +96,17 @@ namespace UnityEditor.VFX.UI
             exposedNameLabel.text = "name";
             exposedNameLabel.AddToClassList("label");
 
-            m_ExposedContainer = new VisualContainer();
-            VisualContainer exposedNameContainer = new VisualContainer();
+            m_ExposedContainer = new VisualElement();
+            VisualElement exposedNameContainer = new VisualElement();
 
-            m_ExposedContainer.AddChild(exposedLabel);
-            m_ExposedContainer.AddChild(m_Exposed);
+            m_ExposedContainer.Add(exposedLabel);
+            m_ExposedContainer.Add(m_Exposed);
 
             m_ExposedContainer.name = "exposedContainer";
             exposedNameContainer.name = "exposedNameContainer";
 
-            exposedNameContainer.AddChild(exposedNameLabel);
-            exposedNameContainer.AddChild(m_ExposedName);
+            exposedNameContainer.Add(exposedNameLabel);
+            exposedNameContainer.Add(m_ExposedName);
 
 
             inputContainer.Add(exposedNameContainer);

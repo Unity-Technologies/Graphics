@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
         void ExpandPath();
     }
 
-    abstract class PropertyRM : VisualContainer
+    abstract class PropertyRM : VisualElement
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             m_labelWidth = labelWidth;
 
             m_Icon =  new VisualElement() {name = "icon"};
-            AddChild(m_Icon);
+            Add(m_Icon);
 
             if (provider.expandable)
             {
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UI
                     line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
                     line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
 
-                    AddChild(line);
+                    Add(line);
                 }
             }
             m_Label.style.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
@@ -245,7 +245,7 @@ namespace UnityEditor.VFX.UI
             m_Field = CreateField();
             m_Field.AddToClassList("fieldContainer");
             m_Field.OnValueChanged += OnValueChanged;
-            AddChild(m_Field);
+            Add(m_Field);
 
             m_Field.enabled = enabled;
         }

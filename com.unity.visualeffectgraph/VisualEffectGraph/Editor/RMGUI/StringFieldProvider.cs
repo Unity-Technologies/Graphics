@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -42,14 +42,14 @@ namespace UnityEditor.VFX.UIElements
             m_fnStringProvider = stringProvider;
             CreateButton();
             style.flexDirection = FlexDirection.Row;
-            AddChild(m_DropDownButton);
+            Add(m_DropDownButton);
         }
 
         public StringFieldProvider(VisualElement existingLabel, Func<string[]> stringProvider) : base(existingLabel)
         {
             m_fnStringProvider = stringProvider;
             CreateButton();
-            AddChild(m_DropDownButton);
+            Add(m_DropDownButton);
         }
 
         protected override void ValueToGUI()

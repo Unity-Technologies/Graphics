@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         public BoolPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             m_Toggle =  new Toggle(OnValueChanged);
-            AddChild(m_Toggle);
+            Add(m_Toggle);
 
 
             m_Toggle.enabled = enabled;

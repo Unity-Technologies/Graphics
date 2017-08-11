@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -96,14 +96,14 @@ namespace  UnityEditor.VFX.UI
 
         void OnEnterPanel()
         {
-            //VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualContainer.parent.AddManipulator(m_ShortcutHandler);
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
         }
 
         void OnLeavePanel()
         {
-            //VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualContainer.parent.RemoveManipulator(m_ShortcutHandler);
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
         }
 
         void Update()

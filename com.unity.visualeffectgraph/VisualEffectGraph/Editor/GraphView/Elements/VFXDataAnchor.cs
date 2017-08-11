@@ -1,4 +1,4 @@
-using UnityEditor.Experimental.UIElements.GraphView;
+﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -26,14 +26,14 @@ namespace UnityEditor.VFX.UI
             m_ConnectorHighlight.style.positionRight = 0;
             m_ConnectorHighlight.pickingMode = PickingMode.Ignore;
 
-            VisualContainer connector = m_ConnectorBox as VisualContainer;
+            VisualElement connector = m_ConnectorBox as VisualElement;
 
-            connector.AddChild(m_ConnectorHighlight);
+            connector.Add(m_ConnectorHighlight);
         }
 
         protected override VisualElement CreateConnector()
         {
-            return new VisualContainer();
+            return new VisualElement();
         }
 
         public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
