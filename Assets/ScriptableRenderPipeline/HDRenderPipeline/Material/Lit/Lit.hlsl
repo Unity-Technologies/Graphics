@@ -631,8 +631,9 @@ struct PreLightData
     float diffuseFGD;
 
     // area light
-    float3x3 ltcXformGGX;                // TODO: make sure the compiler not wasting VGPRs on constants
-    float3x3 ltcXformDisneyDiffuse;      // TODO: make sure the compiler not wasting VGPRs on constants
+    float3x3 orthoBasisVN;               // Right-handed view-dependent orthogonal basis around the normal
+    float3x3 ltcXformGGX;                // Sparse: should only use 4x VGPRs. Could be scalarized
+    float3x3 ltcXformDisneyDiffuse;      // Sparse: should only use 4x VGPRs. Could be scalarized
     float    ltcGGXFresnelMagnitudeDiff; // The difference of magnitudes of GGX and Fresnel
     float    ltcGGXFresnelMagnitude;
     float    ltcDisneyDiffuseMagnitude;
@@ -678,6 +679,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light
+    preLightData.orthoBasisVN[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
+    preLightData.orthoBasisVN[1] = normalize(cross(bsdfData.normalWS, preLightData.orthoBasisVN[0]));
+    preLightData.orthoBasisVN[2] = bsdfData.normalWS;
+
     // UVs for sampling the LUTs
     float theta = FastACos(NdotV);
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
@@ -1054,24 +1059,16 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
-    // TODO: This could be precomputed.
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    lightData.positionWS -= positionWS;
+
+    // TODO: some of this could be precomputed.
     float3 P1 = lightData.positionWS - T * (0.5 * len);
     float3 P2 = lightData.positionWS + T * (0.5 * len);
 
-    // Translate the endpoints s.t. the shaded point is at the origin of the coordinate system.
-    P1 -= positionWS;
-    P2 -= positionWS;
-
-    // Construct a view-dependent orthonormal basis around N.
-    // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
-    float3x3 basis;
-    basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
-    basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
-    basis[2] = bsdfData.normalWS;
-
-    // Rotate the endpoints into the local coordinate system (left-handed).
-    P1 = mul(P1, transpose(basis));
-    P2 = mul(P2, transpose(basis));
+    // Rotate the endpoints into the local coordinate system.
+    P1 = mul(P1, transpose(preLightData.orthoBasisVN));
+    P2 = mul(P2, transpose(preLightData.orthoBasisVN));
 
     // Compute the binormal.
     float3 B = normalize(cross(P1, P2));
@@ -1169,58 +1166,77 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
-    // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
-    float3 p0 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    float3 p1 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    lightData.positionWS -= positionWS;
 
-    float4x3 matL = float4x3(p0, p1, p2, p3) - float4x3(positionWS, positionWS, positionWS, positionWS);
+    float4x3 lightVerts;
 
-    float ltcValue;
+    // TODO: some of this could be precomputed.
+    lightVerts[0] = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+
+    // Rotate the endpoints into the local coordinate system.
+    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisVN));
+
+    float3x3 ltcMatrix;
+    float    ltcValue;
 
     // Evaluate the diffuse part.
     {
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, k_identity3x3);
+        ltcMatrix = k_identity3x3;
     #else
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformDisneyDiffuse);
+        ltcMatrix = preLightData.ltcXformDisneyDiffuse;
     #endif
+
+        // Polygon irradiance in the transformed configuration.
+        ltcValue = PolygonIrradiance(mul(lightVerts, ltcMatrix));
 
     #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
-
         ltcValue *= lightData.diffuseScale;
+
         diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+    }
+
+    [branch] if (bsdfData.enableTransmission)
+    {
+        // Flip the view vector and the normal. The bitangent stays the same.
+        float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                        0,  1,  0,
+                                        0,  0, -1);
+
+        // Use the Lambertian approximation for performance reasons.
+        // The matrix multiplication should not generate any extra ALU on GCN.
+        ltcMatrix = mul(flipMatrix, k_identity3x3);
+
+        // Polygon irradiance in the transformed configuration.
+        ltcValue = PolygonIrradiance(mul(lightVerts, ltcMatrix));
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
     }
 
     // Evaluate the specular part.
     {
+        ltcMatrix = preLightData.ltcXformGGX;
+
+        // Polygon irradiance in the transformed configuration.
+        ltcValue = PolygonIrradiance(mul(lightVerts, ltcMatrix));
+
+        ltcValue *= lightData.specularScale;
+
         // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
         // to match the reference for rough metals, but further darkens dielectrics.
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformGGX);
-        ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
 
-    [branch] if (bsdfData.enableTransmission)
-    {
-    #if 1 // Reference transmission implementation
-        float3 backN = -bsdfData.normalWS;
-        float3 backV = -V;
-
-        // Use the Lambertian model for performance and simplicity.
-        ltcValue = LTCEvaluate(matL, backV, backN, preLightData.NdotV, k_identity3x3);
-    #else
-    #endif // Reference transmission implementation
-
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
-    }
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
