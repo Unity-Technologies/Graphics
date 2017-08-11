@@ -9,10 +9,13 @@ namespace UnityEditor.Graphing.Drawing
     // TODO JOCE Maybe bring SimpleGraphView public. This implements pretty much all that it does.
     public class SerializableGraphView : GraphView
     {
-        public SerializableGraphView()
+        private ShortcutHandler m_ShortcutHandler;
+        private EditorWindow m_EditorWindow;
+
+        public SerializableGraphView(EditorWindow editorWindow)
         {
-            // Shortcut handler to delete elements
-            this.AddManipulator(new ShortcutHandler(
+            m_EditorWindow = editorWindow;
+            m_ShortcutHandler = new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
                 {Event.KeyboardEvent("a"), FrameAll},
@@ -24,7 +27,10 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("#c"), CopySelection},
                 {Event.KeyboardEvent("#v"), Paste},
                 {Event.KeyboardEvent("#d"), DuplicateSelection}
-            }));
+            });
+
+            onEnter += () => m_EditorWindow.rootVisualContainer.parent.AddManipulator(m_ShortcutHandler);
+            onLeave += () => m_EditorWindow.rootVisualContainer.parent.RemoveManipulator(m_ShortcutHandler);
 
             this.AddManipulator(new Commandable
             {
@@ -42,9 +48,6 @@ namespace UnityEditor.Graphing.Drawing
             Insert(0, new GridBackground());
 
             typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
-
-            // Make this GraphView focusable or keyboard shortcuts won't work.
-            focusIndex = 0;
         }
 
         // TODO JOCE Remove the "new" here. Use the base class' impl

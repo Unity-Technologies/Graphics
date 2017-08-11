@@ -39,7 +39,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public virtual GraphView CreateGraphView()
         {
-            return new SerializableGraphView();
+            return new SerializableGraphView(this);
         }
 
         void OnEnable()
