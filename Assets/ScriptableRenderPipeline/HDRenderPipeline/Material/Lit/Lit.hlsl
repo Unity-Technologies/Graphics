@@ -819,12 +819,12 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
 // We assume that the back side of the object is a uniformly illuminated infinite plane
 // with the reversed normal (and the view vector) of the current sample.
-float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float3 lightColor, float diffuseScale, float shadow)
+float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float diffuseScale, float shadow)
 {
     // For low thickness, we can reuse the shadowing status for the back of the object.
     shadow = bsdfData.useThinObjectMode ? shadow : 1;
 
-    float3 backLight = lightColor * (intensity * shadow * diffuseScale);
+    float backLight = intensity * shadow * diffuseScale;
 
     return backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
 }
@@ -896,8 +896,8 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= lightData.color * (illuminance * lightData.diffuseScale);
-        specularLighting *= lightData.color * (illuminance * lightData.specularScale);
+        diffuseLighting  *= illuminance * lightData.diffuseScale;
+        specularLighting *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -907,8 +907,12 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.color, lightData.diffuseScale, shadow);
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.diffuseScale, shadow);
     }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 }
 
 //-----------------------------------------------------------------------------
@@ -1001,8 +1005,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         bsdfData.roughness = max(bsdfData.roughness, lightData.minRoughness); // Simulate that a punctual ligth have a radius with this hack
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= lightData.color * (illuminance * lightData.diffuseScale);
-        specularLighting *= lightData.color * (illuminance * lightData.specularScale);
+        diffuseLighting  *= illuminance * lightData.diffuseScale;
+        specularLighting *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1012,8 +1016,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.color, lightData.diffuseScale, shadow);
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance, lightData.diffuseScale, shadow);
     }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 }
 
 #include "LitReference.hlsl"
@@ -1088,7 +1096,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     #endif
 
         ltcValue *= lightData.diffuseScale;
-        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+        diffuseLighting = bsdfData.diffuseColor * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1103,7 +1111,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.diffuseScale, 1);
     }
 
     // Evaluate the specular part.
@@ -1115,8 +1123,12 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
         ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformGGX);
         ltcValue *= lightData.specularScale;
-        specularLighting = fresnelTerm * lightData.color * ltcValue;
+        specularLighting = fresnelTerm * ltcValue;
     }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
@@ -1214,7 +1226,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     #endif
         ltcValue *= lightData.diffuseScale;
 
-        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+        diffuseLighting = bsdfData.diffuseColor * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1232,7 +1244,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         ltcValue = PolygonIrradiance(mul(lightVerts, ltcMatrix));
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.diffuseScale, 1);
     }
 
     // Evaluate the specular part.
@@ -1249,9 +1261,12 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        specularLighting = fresnelTerm * lightData.color * ltcValue;
+        specularLighting = fresnelTerm * ltcValue;
     }
 
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
