@@ -14,7 +14,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class MaterialGraphView : SerializableGraphView
     {
-        public MaterialGraphView()
+        public MaterialGraphView(EditorWindow editorWindow) : base(editorWindow)
         {
             RegisterCallback<MouseUpEvent>(DoContextMenu);
 

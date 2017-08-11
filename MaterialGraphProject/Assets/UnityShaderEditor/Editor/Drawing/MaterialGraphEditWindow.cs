@@ -35,7 +35,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override GraphView CreateGraphView()
         {
-            return new MaterialGraphView();
+            return new MaterialGraphView(this);
         }
     }
 }
