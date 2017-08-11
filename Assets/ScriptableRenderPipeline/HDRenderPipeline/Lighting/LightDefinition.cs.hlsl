@@ -72,7 +72,7 @@ struct LightData
     float angleScale;
     float angleOffset;
     float shadowDimmer;
-    int IESIndex;
+    int unused0;
     float2 size;
     int lightType;
     float minRoughness;
@@ -195,9 +195,9 @@ float GetShadowDimmer(LightData value)
 {
 	return value.shadowDimmer;
 }
-int GetIESIndex(LightData value)
+int GetUnused0(LightData value)
 {
-	return value.IESIndex;
+	return value.unused0;
 }
 float2 GetSize(LightData value)
 {
