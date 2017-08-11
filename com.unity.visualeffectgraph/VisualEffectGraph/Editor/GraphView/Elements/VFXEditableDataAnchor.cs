@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXEditableDataAnchor(presenter);
+            var anchor = new VFXEditableDataAnchor();
 
             anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.presenter = presenter;
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXEditableDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
+        protected VFXEditableDataAnchor()
         {
             clipChildren = false;
         }
@@ -121,15 +121,15 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
             if (m_PropertyRM != null)
             {
-                RemoveChild(m_PropertyRM);
+                Remove(m_PropertyRM);
             }
 
             m_PropertyRM = PropertyRM.Create(presenter, 100);
             if (m_PropertyRM != null)
             {
-                AddChild(m_PropertyRM);
+                Add(m_PropertyRM);
                 if (m_Container != null)
-                    RemoveChild(m_Container);
+                    Remove(m_Container);
                 m_Container = null;
             }
             else
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
                 m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 100);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                AddChild(m_Container);
+                Add(m_Container);
             }
         }
 

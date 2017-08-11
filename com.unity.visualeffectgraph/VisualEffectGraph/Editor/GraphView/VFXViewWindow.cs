@@ -1,7 +1,11 @@
-using System;
-using UIElements.GraphView;
+﻿using System;
+using UnityEditor.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
+using System.Collections.Generic;
 using UnityEditor;
 
 namespace  UnityEditor.VFX.UI
@@ -9,6 +13,30 @@ namespace  UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {
+        ShortcutHandler m_ShortcutHandler;
+
+        protected void SetupFramingShortcutHandler(VFXView view)
+        {
+            m_ShortcutHandler = new ShortcutHandler(
+                    new Dictionary<Event, ShortcutDelegate>
+            {
+                { Event.KeyboardEvent("a"), view.FrameAll },
+                { Event.KeyboardEvent("f"), view.FrameSelection },
+                { Event.KeyboardEvent("o"), view.FrameOrigin },
+                { Event.KeyboardEvent("delete"), view.DeleteSelection },
+                { Event.KeyboardEvent("#tab"), view.FramePrev },
+                { Event.KeyboardEvent("tab"), view.FrameNext },
+                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
+                {Event.KeyboardEvent("#r"), view.Resync},
+                {Event.KeyboardEvent("#d"), view.OutputToDot},
+                {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
+                {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
+            });
+
+            view.onEnter += OnEnterPanel;
+            view.onLeave += OnLeavePanel;
+        }
+
         [MenuItem("Window/VFXEditor")]
         public static void ShowWindow()
         {
@@ -18,6 +46,7 @@ namespace  UnityEditor.VFX.UI
         protected override GraphView BuildView()
         {
             BuildPresenters();
+            SetupFramingShortcutHandler(viewPresenter.View);
             return viewPresenter.View;
         }
 
@@ -65,6 +94,18 @@ namespace  UnityEditor.VFX.UI
                 m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
                 viewPresenter.SetVFXAsset(objs[0] as VFXAsset, false);
             }
+        }
+
+        void OnEnterPanel()
+        {
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+        }
+
+        void OnLeavePanel()
+        {
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
         }
 
         void Update()

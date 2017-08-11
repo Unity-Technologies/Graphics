@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 

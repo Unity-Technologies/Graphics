@@ -21,14 +21,14 @@ namespace UnityEditor.VFX.UIElements
             CreateTextField();
             m_Label.AddManipulator(new DragValueManipulator<uint>(this, null));
 
-            flexDirection = FlexDirection.Row;
-            AddChild(m_TextField);
+            style.flexDirection = FlexDirection.Row;
+            Add(m_TextField);
         }
 
         public UintField(VisualElement existingLabel) : base(existingLabel)
         {
             CreateTextField();
-            AddChild(m_TextField);
+            Add(m_TextField);
 
             if (m_Label != null)
                 m_Label.AddManipulator(new DragValueManipulator<uint>(this, null));

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 menu.AddItem(new GUIContent(val), val == m_Value, ChangeValue, val);
             }
-            menu.DropDown(m_DropDownButton.globalBound);
+            menu.DropDown(m_DropDownButton.worldBound);
         }
 
         void ChangeValue(object val)
@@ -41,15 +41,15 @@ namespace UnityEditor.VFX.UIElements
         {
             m_fnStringProvider = stringProvider;
             CreateButton();
-            flexDirection = FlexDirection.Row;
-            AddChild(m_DropDownButton);
+            style.flexDirection = FlexDirection.Row;
+            Add(m_DropDownButton);
         }
 
         public StringFieldProvider(VisualElement existingLabel, Func<string[]> stringProvider) : base(existingLabel)
         {
             m_fnStringProvider = stringProvider;
             CreateButton();
-            AddChild(m_DropDownButton);
+            Add(m_DropDownButton);
         }
 
         protected override void ValueToGUI()

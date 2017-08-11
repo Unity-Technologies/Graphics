@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
@@ -18,13 +18,13 @@ namespace UnityEditor.VFX.UIElements
         public SliderField(string label, Vector2 range) : base(label)
         {
             CreateSlider(range);
-            AddChild(m_Slider);
+            Add(m_Slider);
         }
 
         public SliderField(VisualElement existingLabel, Vector2 range) : base(existingLabel)
         {
             CreateSlider(range);
-            AddChild(m_Slider);
+            Add(m_Slider);
         }
 
         void OnValueChanged(float newValue)

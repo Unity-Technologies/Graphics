@@ -1,12 +1,12 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXFlowEdge : Edge
+    internal class VFXFlowEdge : Edge
     {
         public override int layer
         {
@@ -61,12 +61,6 @@ namespace UnityEditor.VFX.UI
         static Material VLineMat;
         static Material VCircleMat;
 
-        // Only flow anchors are of interest to flow edges
-        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
-        {
-            foreach (var anchor in this.GetFirstOfType<VFXView>().GetAllFlowAnchors(input, output))
-                yield return anchor;
-        }
 
         void RenderDisc(Vector2 center, float radius, Color color)
         {

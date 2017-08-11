@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -15,11 +15,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockUI()
         {
-            AddManipulator(new SelectionDropper(HandleDropEvent));
+            this.AddManipulator(new SelectionDropper(HandleDropEvent));
 
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
-            titleContainer.InsertChild(0, m_EnableToggle);
+            titleContainer.shadow.Insert(0, m_EnableToggle);
         }
 
         void OnToggleEnable()

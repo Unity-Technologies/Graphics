@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+
 
 namespace UnityEditor.VFX.UI
 {
@@ -139,12 +140,12 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
-            AddManipulator(new SelectionSetter(this));
-            AddManipulator(new ContentDragger());
-            AddManipulator(new RectangleSelector());
-            AddManipulator(new SelectionDragger());
-            AddManipulator(new ClickSelector());
-            AddManipulator(new ShortcutHandler(
+            this.AddManipulator(new SelectionSetter(this));
+            this.AddManipulator(new ContentDragger());
+            this.AddManipulator(new RectangleSelector());
+            this.AddManipulator(new SelectionDragger());
+            this.AddManipulator(new ClickSelector());
+            this.AddManipulator(new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
                 {Event.KeyboardEvent("a"), FrameAll},
@@ -160,12 +161,12 @@ namespace UnityEditor.VFX.UI
                 {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
             }));
 
-            AddManipulator(new ParameterDropper());
+            this.AddManipulator(new ParameterDropper());
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            InsertChild(0, bg);
+            Insert(0, bg);
 
-            AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
+            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
                 {
                     Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
                     if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)

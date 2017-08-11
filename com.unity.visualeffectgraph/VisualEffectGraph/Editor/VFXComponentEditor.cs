@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.VFX;
 
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;

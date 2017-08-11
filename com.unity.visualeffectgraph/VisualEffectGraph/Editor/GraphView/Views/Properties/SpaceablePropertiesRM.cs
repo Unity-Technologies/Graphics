@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Button = new VisualElement() {name = "spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
-            AddChild(m_Button);
+            Add(m_Button);
             AddToClassList("spaceablepropertyrm");
         }
 
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.width : 16);
+                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
             }
         }
     }
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
             m_VectorField.OnValueChanged = OnValueChanged;
             m_VectorField.AddToClassList("fieldContainer");
 
-            AddChild(m_VectorField);
+            Add(m_VectorField);
         }
 
         public abstract void OnValueChanged();

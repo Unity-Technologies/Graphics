@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -13,33 +13,32 @@ namespace UnityEditor.VFX.UI
     {
         VisualElement m_ConnectorHighlight;
 
-        protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
+        protected VFXDataAnchor()
         {
             AddToClassList("VFXDataAnchor");
 
-            m_ConnectorHighlight = new VisualElement()
-            {
-                positionType = PositionType.Absolute,
-                positionTop = 0,
-                positionLeft = 0,
-                positionBottom = 0,
-                positionRight = 0,
-                pickingMode = PickingMode.Ignore
-            };
+            m_ConnectorHighlight = new VisualElement();
 
-            VisualContainer connector = m_ConnectorBox as VisualContainer;
+            m_ConnectorHighlight.style.positionType = PositionType.Absolute;
+            m_ConnectorHighlight.style.positionTop = 0;
+            m_ConnectorHighlight.style.positionLeft = 0;
+            m_ConnectorHighlight.style.positionBottom = 0;
+            m_ConnectorHighlight.style.positionRight = 0;
+            m_ConnectorHighlight.pickingMode = PickingMode.Ignore;
 
-            connector.AddChild(m_ConnectorHighlight);
+            VisualElement connector = m_ConnectorBox as VisualElement;
+
+            connector.Add(m_ConnectorHighlight);
         }
 
         protected override VisualElement CreateConnector()
         {
-            return new VisualContainer();
+            return new VisualElement();
         }
 
         public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXDataAnchor(presenter);
+            var anchor = new VFXDataAnchor();
             anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.presenter = presenter;
 
@@ -149,7 +148,7 @@ namespace UnityEditor.VFX.UI
 
         public override Vector3 GetGlobalCenter()
         {
-            return this.LocalToGlobal(GetLocalCenter());
+            return m_ConnectorBox.BoundToGlobal(GetLocalCenter());
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
@@ -166,7 +165,7 @@ namespace UnityEditor.VFX.UI
             Node endNode = null;
             foreach (var node in view.GetAllNodes())
             {
-                if (node.globalBound.Contains(position))
+                if (node.worldBound.Contains(position))
                 {
                     endNode = node;
                 }

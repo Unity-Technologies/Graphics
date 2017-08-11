@@ -66,22 +66,22 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateTextField();
 
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
             m_Label = new VisualElement { text = label };
-            AddChild(m_Label);
-            AddChild(m_X);
-            AddChild(m_Y);
-            AddChild(m_Z);
-            AddChild(m_W);
+            Add(m_Label);
+            Add(m_X);
+            Add(m_Y);
+            Add(m_Z);
+            Add(m_W);
         }
 
         public Vector4Field(VisualElement existingLabel) : base(existingLabel)
         {
             CreateTextField();
-            AddChild(m_X);
-            AddChild(m_Y);
-            AddChild(m_Z);
-            AddChild(m_W);
+            Add(m_X);
+            Add(m_Y);
+            Add(m_Z);
+            Add(m_W);
 
             m_Label = existingLabel;
         }

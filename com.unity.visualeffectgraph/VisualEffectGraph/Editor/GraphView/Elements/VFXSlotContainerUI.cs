@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
 
-            leftContainer.alignContent = Align.Stretch;
+            leftContainer.style.alignContent = Align.Stretch;
 
 
             AddToClassList("VFXContextSlotContainerUI");

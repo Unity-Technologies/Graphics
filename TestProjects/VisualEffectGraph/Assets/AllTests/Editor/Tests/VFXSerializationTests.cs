@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 

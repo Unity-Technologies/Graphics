@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
     {
         private TextField m_ExposedName;
         private Toggle m_Exposed;
-        VisualContainer m_ExposedContainer;
+        VisualElement m_ExposedContainer;
 
         public void OnNameChanged(string str)
         {
@@ -96,21 +96,21 @@ namespace UnityEditor.VFX.UI
             exposedNameLabel.text = "name";
             exposedNameLabel.AddToClassList("label");
 
-            m_ExposedContainer = new VisualContainer();
-            VisualContainer exposedNameContainer = new VisualContainer();
+            m_ExposedContainer = new VisualElement();
+            VisualElement exposedNameContainer = new VisualElement();
 
-            m_ExposedContainer.AddChild(exposedLabel);
-            m_ExposedContainer.AddChild(m_Exposed);
+            m_ExposedContainer.Add(exposedLabel);
+            m_ExposedContainer.Add(m_Exposed);
 
             m_ExposedContainer.name = "exposedContainer";
             exposedNameContainer.name = "exposedNameContainer";
 
-            exposedNameContainer.AddChild(exposedNameLabel);
-            exposedNameContainer.AddChild(m_ExposedName);
+            exposedNameContainer.Add(exposedNameLabel);
+            exposedNameContainer.Add(m_ExposedName);
 
 
-            inputContainer.AddChild(exposedNameContainer);
-            inputContainer.AddChild(m_ExposedContainer);
+            inputContainer.Add(exposedNameContainer);
+            inputContainer.Add(m_ExposedContainer);
         }
 
         void OnGUI()
@@ -128,8 +128,8 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return;
 
-            m_ExposedName.height = 24.0f;
-            m_Exposed.height = 24.0f;
+            m_ExposedName.style.height = 24.0f;
+            m_Exposed.style.height = 24.0f;
             m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
             m_Exposed.on = presenter.exposed;
 
@@ -137,13 +137,13 @@ namespace UnityEditor.VFX.UI
             {
                 m_Property = PropertyRM.Create(presenter, 55);
                 if (m_Property != null)
-                    inputContainer.AddChild(m_Property);
+                    inputContainer.Add(m_Property);
                 else
                 {
                     m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
 
                     m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                    inputContainer.AddChild(m_Container);
+                    inputContainer.Add(m_Container);
                 }
             }
             if (m_Property != null)

@@ -54,20 +54,20 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateTextField();
 
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
             m_Label = new VisualElement { text = label };
-            AddChild(m_Label);
-            AddChild(m_X);
-            AddChild(m_Y);
-            AddChild(m_Z);
+            Add(m_Label);
+            Add(m_X);
+            Add(m_Y);
+            Add(m_Z);
         }
 
         public Vector3Field(VisualElement existingLabel) : base(existingLabel)
         {
             CreateTextField();
-            AddChild(m_X);
-            AddChild(m_Y);
-            AddChild(m_Z);
+            Add(m_X);
+            Add(m_Y);
+            Add(m_Z);
 
             m_Label = existingLabel;
         }
