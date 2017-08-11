@@ -666,7 +666,7 @@ struct PreLightData
     float3 specularFGD;                  // Store preconvoled BRDF for both specular and diffuse
     float diffuseFGD;
 
-    // Area lights (17 VGPRs). Scalarize?
+    // Area lights (17 VGPRs)
     float3x3 orthoBasisViewNormal; // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;  // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular; // Inverse transformation for GGX                                 (4x VGPRs)
