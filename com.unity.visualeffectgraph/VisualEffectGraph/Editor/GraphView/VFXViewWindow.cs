@@ -32,9 +32,6 @@ namespace  UnityEditor.VFX.UI
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
             });
-
-            view.onEnter += OnEnterPanel;
-            view.onLeave += OnLeavePanel;
         }
 
         [MenuItem("Window/VFXEditor")]
@@ -76,10 +73,14 @@ namespace  UnityEditor.VFX.UI
             }
             else
                 viewPresenter.SetVFXAsset(viewPresenter.GetVFXAsset(), true);
+            graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
         }
 
         protected new void OnDisable()
         {
+            graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
         }
@@ -94,13 +95,13 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        void OnEnterPanel()
+        void OnEnterPanel(AttachToPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
         }
 
-        void OnLeavePanel()
+        void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);

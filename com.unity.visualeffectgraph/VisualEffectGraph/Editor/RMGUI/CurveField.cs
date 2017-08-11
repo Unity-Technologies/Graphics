@@ -70,8 +70,9 @@ namespace UnityEditor.VFX.UIElements
             Add(m_Curve);
         }
 
-        protected internal override void OnPostLayout(bool hasNewLayout)
+        public override void OnPersistentDataReady()
         {
+            base.OnPersistentDataReady();
             ValueToGUI();
         }
 
