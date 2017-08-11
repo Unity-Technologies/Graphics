@@ -121,6 +121,8 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
+    - _CoatCoverage: 1
+    - _CoatIOR: 0.5
     - _CullMode: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
@@ -165,7 +167,7 @@ Material:
     - _SrcBlend: 1
     - _StencilRef: 1
     - _Stiffness: 1
-    - _SubsurfaceProfile: 4
+    - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1

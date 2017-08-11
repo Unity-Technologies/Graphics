@@ -7,17 +7,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialId
         {
-            LitSSS      = 0,
-            LitStandard = 1,
-            LitUnused0  = 2,
-            LitUnused1  = 3,
+            LitSSS          = 0,
+            LitStandard     = 1,
+            LitClearCoat    = 2,
+            LitUnused       = 3,
             // We don't store any materialId for aniso but instead deduce it from LitStandard + value of specular + anisotropy parameters
             // Consequence is that when querying materialId alone, it will read 2 RT and not only one. This may be a performance hit when only materialId is desired (like in material classification pass)
             // Alternative is to use a materialId slot, if any are available.
-            LitAniso = 4,
+            LitAniso        = 4,
             // LitSpecular (DiffuseColor/SpecularColor) is an alternate parametrization for LitStandard (BaseColor/Metal/Specular), but it is the same shading model
             // We don't want any specific materialId for it, instead we use LitStandard as materialId. However for UI purpose we still define this value here.
-            LitSpecular = 5,
+            // For material classification we will use LitStandard too
+            LitSpecular     = 5,
         };
 
         // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
@@ -25,21 +26,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public enum MaterialFeatureFlags
         {
-            LitSSS      = 1 << MaterialId.LitSSS,
-            LitStandard = 1 << MaterialId.LitStandard,
-            LitUnused0  = 1 << MaterialId.LitUnused0,
-            LitUnused1  = 1 << MaterialId.LitUnused1,
-            LitAniso    = 1 << MaterialId.LitAniso,
+            LitSSS          = 1 << MaterialId.LitSSS,
+            LitStandard     = 1 << MaterialId.LitStandard,
+            LitClearCoat    = 1 << MaterialId.LitClearCoat,
+            LitUnused       = 1 << MaterialId.LitUnused,
+            LitAniso        = 1 << MaterialId.LitAniso,
         };
 
         [GenerateHLSL]
-        public enum SpecularValue
+        public class StandardDefinitions
         {
-            // Value are defined in the tab name convertSpecularToValue in lit.hlsl
-            Water = 0, // 0.02  Water or ice
-            Regular = 1, // 0.04 regular dieletric
-            Gemstone = 2, // 0.20
-            SpecularColor = 3 // Special case: use specular color
+            public static int s_GBufferLitStandardRegularId = 0;
+            public static int s_GBufferLitStandardSpecularColorId = 1;
+            public static int s_GBufferLitStandardAnisotropicId = 2;
+
+            public static float s_DefaultSpecularValue = 0.04f;
+            public static float s_SkinSpecularValue = 0.028f;
         }
 
         //-----------------------------------------------------------------------------
@@ -60,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
             [SurfaceDataAttributes("Material ID")]
-            public MaterialId materialId;
+            public MaterialId materialId; // matId above 3 are store in standard material gbuffer (2bit reserved)
 
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
@@ -74,8 +76,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
-            [SurfaceDataAttributes("Specular")]
-            public SpecularValue specular;
 
             // SSS
             [SurfaceDataAttributes("Subsurface Radius")]
@@ -88,6 +88,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecColor
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
+
+            // ClearCoat
+            [SurfaceDataAttributes("Coat Normal", true)]
+            public Vector3 coatNormalWS;
+            [SurfaceDataAttributes("Coat coverage")]
+            public float coatCoverage;
+            [SurfaceDataAttributes("Coat IOR")]
+            public float coatIOR; // Value is [0..1] for artists but the UI will display the value between [1..2]
         };
 
         //-----------------------------------------------------------------------------
@@ -141,6 +149,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // SpecColor
             // fold into fresnel0
+
+            // ClearCoat
+            public Vector3 coatNormalWS;
+            public float coatCoverage;
+            public float coatIOR; // CoatIOR is in range[1..2] it is surfaceData + 1
         };
 
         //-----------------------------------------------------------------------------
