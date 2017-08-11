@@ -425,7 +425,7 @@ namespace UnityEditor.VFX
 
                         foreach (var path in tempPathList)
                         {
-                            //AssetDatabase.DeleteAsset(path);
+                            AssetDatabase.DeleteAsset(path);
                         }
                     }
 

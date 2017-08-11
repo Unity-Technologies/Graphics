@@ -1,47 +1,47 @@
-Shader "Hidden/Mito"
+Shader "Example/Mito"
 {
-	Properties
-	{
-	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
+		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		Pass
 		{
+			Blend SrcAlpha OneMinusSrcAlpha
+			ZTest LEqual
+			ZWrite Off
+			Cull Back
+				
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma multi_compile_fog
-			
-			#include "UnityCG.cginc"
-			${VFXGlobalInclude}
-			${VFXCBuffer}
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-			};
-
-			struct v2f
-			{
-				UNITY_FOG_COORDS(1)
-				float4 vertex : SV_POSITION;
-			};
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
-				fixed4 col = (fixed4)0;
-				return col;
-			}
+				#pragma target 4.5
+				${VFXGlobalInclude}
+				
+				#pragma vertex vert
+				#pragma fragment frag
+				
+				struct ps_input
+				{
+					float4 pos : SV_POSITION;
+					float4 color : TEXCOORD0;
+				};
+				
+				struct ps_output
+				{
+					float4 color : SV_Target0;
+				};
+				
+				ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+				{
+					ps_input o = (ps_input)0;
+					o.pos = -1.0f;
+					return o;
+				}
+				
+				ps_output frag(ps_input i)
+				{
+					ps_output o = (ps_output)0;
+					return o;
+				}
 			ENDCG
 		}
 	}
+	Fallback "Diffuse"
 }
