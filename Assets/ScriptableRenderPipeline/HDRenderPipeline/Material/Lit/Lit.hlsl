@@ -1091,6 +1091,21 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
     }
 
+    [branch] if (bsdfData.enableTransmission)
+    {
+        // Flip the view vector and the normal. The bitangent stays the same.
+        float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                        0,  1,  0,
+                                        0,  0, -1);
+
+        // Use the Lambertian approximation for performance reasons.
+        // The matrix multiplication should not generate any extra ALU on GCN.
+        ltcValue = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, lightData.color, lightData.diffuseScale, 1);
+    }
+
     // Evaluate the specular part.
     {
         // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
