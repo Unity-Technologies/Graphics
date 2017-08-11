@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Generate mipmap for our cubemap
             Debug.Assert(target.autoGenerateMips == false);
-            target.GenerateMips();
+            builtinParams.commandBuffer.GenerateMips(target);
         }
 
         private void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
@@ -335,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Generate mipmap for our cubemap
             Debug.Assert(dest.autoGenerateMips == false);
-            dest.GenerateMips();
+            cmd.GenerateMips(dest);
         }
 
         private void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
