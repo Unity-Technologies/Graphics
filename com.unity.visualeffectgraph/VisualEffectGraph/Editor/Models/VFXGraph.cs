@@ -8,6 +8,24 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        static string[] OnWillSaveAssets(string[] paths)
+        {
+            foreach (string path in paths)
+            {
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                if (vfxAsset != null)
+                {
+                    var graph = vfxAsset.GetOrCreateGraph();
+                    //optionnal : process advanced, heavy and processes dedicated to the runtime
+                    graph.saved = true;
+                }
+            }
+            return paths;
+        }
+    }
+
     static class VFXAssetExtensions
     {
         public static VFXGraph GetOrCreateGraph(this VFXAsset asset)
@@ -114,6 +132,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            saved = false;
             base.OnInvalidate(model, cause);
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
@@ -481,6 +500,8 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected List<Shader> m_GeneratedShader;
+
+        public bool saved { get; set; }
 
         private VFXAsset m_Owner;
     }
