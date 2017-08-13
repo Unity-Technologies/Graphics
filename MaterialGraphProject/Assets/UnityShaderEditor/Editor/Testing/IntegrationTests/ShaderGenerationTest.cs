@@ -92,7 +92,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
 
             Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 
-            //var graphAsset = AssetDatabase.LoadAssetAtPath<MaterialGraphAsset>(filePath);
+            //
 
             //Assert.IsNotNull(graphAsset, "Graph asset not found");
 
@@ -102,7 +102,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             // Generate the shader
             List<PropertyGenerator.TextureInfo> configuredTextures;
             var shaderString =
-                graph.masterNode.GetFullShader(GenerationMode.ForReals, graph.name, out configuredTextures);
+                graph.masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(filePath), out configuredTextures);
 
             var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
             var shaderTemplatePath = Path.Combine(rootPath.ToString(), "ShaderTemplates");

@@ -175,7 +175,7 @@ namespace UnityEngine.MaterialGraph
             var templateText = File.ReadAllText(templateLocation);
 
             var shaderPropertiesVisitor = new PropertyGenerator();
-            var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
+            var resultShader = templateText.Replace("${ShaderName}", name);
             resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
             resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();

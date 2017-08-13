@@ -36,15 +36,10 @@ namespace UnityEngine.MaterialGraph
                     m_ActiveMasterNodeGUID = Guid.NewGuid();
                 else
                     m_ActiveMasterNodeGUID = value.guid;
-                
+
                 masterNode.onModified(masterNode, ModificationScope.Node);
                 previousMaster.onModified(previousMaster, ModificationScope.Node);
             }
-        }
-
-        public string name
-        {
-            get { return "Graph_ " + masterNode.GetVariableNameForNode(); }
         }
 
         public override void OnBeforeSerialize()
