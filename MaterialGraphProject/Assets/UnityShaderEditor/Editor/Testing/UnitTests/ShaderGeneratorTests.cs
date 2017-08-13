@@ -43,7 +43,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
+            Assert.AreEqual(string.Format("({0}.xx)", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
+            Assert.AreEqual(string.Format("({0}.xxx)", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
@@ -59,7 +59,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector4);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
+            Assert.AreEqual(string.Format("({0}.xxxx)", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
@@ -157,7 +157,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector4);
             Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
-        
+
         [Test]
         public void AdaptNodeOutput1To4PreviewWorks()
         {
@@ -165,7 +165,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out);
             Assert.AreEqual(string.Format("half4({0}, {0}, {0}, 1.0)", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
-        
+
         [Test]
         public void AdaptNodeOutput2To4PreviewWorks()
         {
@@ -183,7 +183,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out);
             Assert.AreEqual(expected, result);
         }
-        
+
         [Test]
         public void AdaptNodeOutput4To4PreviewWorks()
         {

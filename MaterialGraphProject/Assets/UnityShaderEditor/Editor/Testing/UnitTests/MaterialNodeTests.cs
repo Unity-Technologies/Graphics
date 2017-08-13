@@ -71,7 +71,11 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual("2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector2));
             Assert.AreEqual("3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector3));
             Assert.AreEqual("4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector4));
-            Assert.AreEqual("5", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
+            Assert.AreEqual("Texture2D", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Texture2D));
+            Assert.AreEqual("2x2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix2));
+            Assert.AreEqual("3x3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix3));
+            Assert.AreEqual("4x4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix4));
+            Assert.AreEqual("SamplerState", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.SamplerState));
             Assert.AreEqual("Error", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
         }
 
@@ -86,7 +90,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var pp = properties.FirstOrDefault();
 
             Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.m_Name);
-            Assert.AreEqual(PropertyType.Vector4, pp.m_PropType);
+            Assert.AreEqual(PropertyType.Float, pp.m_PropType);
             Assert.AreEqual(slot.currentValue, pp.m_Vector4);
         }
 

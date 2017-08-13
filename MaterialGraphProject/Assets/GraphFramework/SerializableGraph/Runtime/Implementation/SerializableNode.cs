@@ -105,11 +105,16 @@ namespace UnityEngine.Graphing
 
         public void RemoveSlot(int slotId)
         {
-            //Remove edges that use this slot
-            var edges = owner.GetEdges(GetSlotReference(slotId));
+            // Remove edges that use this slot
+            // no owner can happen after creation
+            // but before added to graph
+            if (owner != null)
+            {
+                var edges = owner.GetEdges(GetSlotReference(slotId));
 
-            foreach (var edge in edges.ToArray())
-                owner.RemoveEdge(edge);
+                foreach (var edge in edges.ToArray())
+                    owner.RemoveEdge(edge);
+            }
 
             //remove slots
             m_Slots.RemoveAll(x => x.id == slotId);

@@ -110,9 +110,9 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
             m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
-            var expected = "sampler2D "
+            var expected = "UNITY_DECLARE_TEX2D("
                 + m_TextureNode.propertyName
-                + ";"
+                + ");"
                 + Environment.NewLine;
             Assert.AreEqual(expected, generator.GetShaderString(0));
 

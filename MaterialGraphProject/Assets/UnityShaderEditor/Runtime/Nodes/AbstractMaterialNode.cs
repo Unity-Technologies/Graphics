@@ -172,7 +172,7 @@ namespace UnityEngine.MaterialGraph
             if (toCount <= fromCount)
                 return true;
 
-            return from >= to || from == ConcreteSlotValueType.Vector1;
+            return false;
         }
 
         private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
@@ -191,7 +191,7 @@ namespace UnityEngine.MaterialGraph
                 default:
                     // find the 'minumum' channel width excluding 1 as it can promote
                     inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
-                    var ordered = inputTypesDistinct.OrderBy(x => x);
+                    var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())
                         return ordered.FirstOrDefault();
                     break;

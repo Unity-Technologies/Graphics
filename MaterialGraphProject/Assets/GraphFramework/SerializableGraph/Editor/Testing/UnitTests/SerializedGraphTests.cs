@@ -454,20 +454,8 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(3, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode);
-            Assert.AreEqual(3, result.Count);
-
-            result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode);
-            Assert.AreEqual(1, result.Count);
-
-            result.Clear();
             NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, NodeUtils.IncludeSelf.Exclude);
             Assert.AreEqual(2, result.Count);
-
-            result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, NodeUtils.IncludeSelf.Exclude);
-            Assert.AreEqual(0, result.Count);
 
             result.Clear();
             NodeUtils.DepthFirstCollectNodesFromNode(result, null);
