@@ -1,4 +1,4 @@
-Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode8d0a8307-a3eb-4434-be6c-c952f4588d6c" 
+Shader "TextureSample" 
 {
 	Properties 
 	{

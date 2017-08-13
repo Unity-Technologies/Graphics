@@ -1,4 +1,4 @@
-Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode54a42f5e-c675-49a8-84b7-53d88fc52b4d" 
+Shader "Multiply" 
 {
 	Properties 
 	{
