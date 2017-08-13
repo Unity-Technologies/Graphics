@@ -119,9 +119,7 @@ namespace UnityEngine.MaterialGraph
             var slotTexture2D = FindOutputSlot<MaterialSlot>(0);
             if (slotTexture2D != null)
             {
-                var edgesTexture2D = owner.GetEdges(slotTexture2D.slotReference).ToList();
-                if (edgesTexture2D.Count > 0)
-                    visitor.AddShaderChunk("UNITY_DECLARE_TEX2D(" + propertyName + ");", true);
+                visitor.AddShaderChunk("UNITY_DECLARE_TEX2D(" + propertyName + ");", true);
             }
         }
 

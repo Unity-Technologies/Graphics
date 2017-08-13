@@ -36,6 +36,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_NodeA = new TestNode();
+            m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
             m_Graph.AddNode(m_NodeA);
         }
 
