@@ -141,7 +141,7 @@ namespace UnityEngine.MaterialGraph
 
             ListPool<INode>.Release(activeNodeList);
 
-            template = template.Replace("${ShaderName}", GetType() + guid.ToString());
+            template = template.Replace("${ShaderName}", name);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
             template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));

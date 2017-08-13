@@ -48,7 +48,7 @@ namespace UnityEngine.MaterialGraph
             var subShaders = remapAsset.masterRemapGraph.GetSubShadersFor(this, mode, shaderPropertiesVisitor);
 
             var templateText = File.ReadAllText(shaderTemplateLocation);
-            var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
+            var resultShader = templateText.Replace("${ShaderName}", name);
             resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             if (subShaders != null)
                 resultShader = resultShader.Replace("${SubShader}", subShaders.Aggregate(string.Empty, (i, j) => i + Environment.NewLine + j));
