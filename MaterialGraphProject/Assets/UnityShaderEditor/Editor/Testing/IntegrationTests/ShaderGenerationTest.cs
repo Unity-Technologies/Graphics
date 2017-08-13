@@ -52,7 +52,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                         {
                             name = p.Name,
                             info = p,
-                            threshold = 0.02f
+                            threshold = 0.05f
                         };
                     }
                 }
@@ -123,14 +123,13 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 {
                     var failedPath = Path.Combine(rootPath.ToString(), "Failed");
                     Directory.CreateDirectory(failedPath);
-                    var misMatchLocationResult =
-                        Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
-                    var misMatchLocationTemplate =
-                        Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
+                    var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
+                    var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
                     File.WriteAllText(misMatchLocationResult, shaderString);
                     File.WriteAllText(misMatchLocationTemplate, textTemplate);
+
+                    Assert.Fail("Shader text from graph {0}, did not match .template file.", file);
                 }
-                Assert.IsTrue(textsAreEqual == 0);
             }
 
             m_Shader = ShaderUtil.CreateShaderAsset(shaderString);
@@ -182,9 +181,9 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 m_FromDisk = new Texture2D(2, 2);
                 m_FromDisk.LoadImage(template, false);
 
-                var areEqual = CompareTextures(m_FromDisk, m_Captured, testInfo.threshold);
+                var rmse = CompareTextures(m_FromDisk, m_Captured);
 
-                if (!areEqual)
+                if (rmse > testInfo.threshold)
                 {
                     var failedPath = Path.Combine(rootPath.ToString(), "Failed");
                     Directory.CreateDirectory(failedPath);
@@ -194,26 +193,26 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                     var generated = m_Captured.EncodeToPNG();
                     File.WriteAllBytes(misMatchLocationResult, generated);
                     File.WriteAllBytes(misMatchLocationTemplate, template);
-                }
 
-                Assert.IsTrue(areEqual, "Shader from graph {0}, did not match .template file.", file);
+                    Assert.Fail("Shader image from graph {0}, did not match .template file.", file);
+                }
             }
         }
 
         // compare textures, use RMS for this
-        private bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)
+        private float CompareTextures(Texture2D fromDisk, Texture2D captured)
         {
             if (fromDisk == null || captured == null)
-                return false;
+                return 1f;
 
             if (fromDisk.width != captured.width
                 || fromDisk.height != captured.height)
-                return false;
+                return 1f;
 
             var pixels1 = fromDisk.GetPixels();
             var pixels2 = captured.GetPixels();
             if (pixels1.Length != pixels2.Length)
-                return false;
+                return 1f;
 
             int numberOfPixels = pixels1.Length;
             float sumOfSquaredColorDistances = 0;
@@ -226,23 +225,8 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
             }
             float rmse = Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels);
-            return rmse < threshold;
-        }
-
-        private bool CompareColor(Vector4 left, Vector4 right, float threshold)
-        {
-            Vector4 diff = left - right;
-
-            if (Mathf.Abs(diff.x) > threshold)
-                return false;
-            if (Mathf.Abs(diff.y) > threshold)
-                return false;
-            if (Mathf.Abs(diff.z) > threshold)
-                return false;
-            if (Mathf.Abs(diff.w) > threshold)
-                return false;
-
-            return true;
+            Debug.Log(rmse);
+            return rmse;
         }
     }
 }

@@ -1,4 +1,4 @@
-Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode619b20e6-2273-4e23-807b-84c0dab1f9b9" 
+Shader "Add" 
 {
 	Properties 
 	{
