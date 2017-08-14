@@ -87,6 +87,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
                 case VFXValueType.kColorGradient: return typeof(Gradient);
                 case VFXValueType.kUint: return typeof(uint);
+                case VFXValueType.kTransform: return typeof(Matrix4x4);
             }
             throw new NotImplementedException(type.ToString());
         }
