@@ -75,12 +75,12 @@ namespace UnityEditor.VFX
             {
                 bool autoClearCache = false;
 
-                float stepCount = 2 + (m_GeneratedComputeShader.Count + m_GeneratedShader.Count) * (autoClearCache ? 2 : 1);
-                float currentStep = 0;
-
-                EditorUtility.DisplayProgressBar("Saving...", "Rebuild", (++currentStep) / stepCount);
+                EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
                 m_ExpressionGraphDirty = true;
                 RecompileIfNeeded();
+
+                float stepCount = (m_GeneratedComputeShader.Count + m_GeneratedShader.Count) * (autoClearCache ? 2 : 1) + 1;
+                float currentStep = 0;
 
                 var oldComputeShader = m_GeneratedComputeShader.ToArray();
                 var oldShader = m_GeneratedShader.ToArray();
@@ -478,10 +478,16 @@ namespace UnityEditor.VFX
                     }
 
                     {
+                        if (m_GeneratedComputeShader == null)
+                            m_GeneratedComputeShader = new List<ComputeShader>();
+
+                        if (m_GeneratedShader == null)
+                            m_GeneratedShader = new List<Shader>();
+
                         var oldGeneratedFile = m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()).ToDictionary(o => AssetDatabase.GetAssetPath(o));
 
-                        m_GeneratedComputeShader = new List<ComputeShader>();
-                        m_GeneratedShader = new List<Shader>();
+                        m_GeneratedComputeShader.Clear();
+                        m_GeneratedShader.Clear();
 
                         var baseFolder = "Assets/VFXCache";
                         if (vfxAsset != null)
