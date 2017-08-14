@@ -19,8 +19,7 @@ namespace UnityEditor.VFX
                 if (vfxAsset != null)
                 {
                     var graph = vfxAsset.GetOrCreateGraph();
-                    //optionnal : process advanced, heavy and processes dedicated to the runtime
-                    graph.saved = true;
+                    graph.OnSaved();
                 }
             }
             return paths;
@@ -68,6 +67,65 @@ namespace UnityEditor.VFX
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
+        }
+
+        public void OnSaved()
+        {
+            try
+            {
+                bool autoClearCache = false;
+
+                float stepCount = 2 + (m_GeneratedComputeShader.Count + m_GeneratedShader.Count) * (autoClearCache ? 2 : 1);
+                float currentStep = 0;
+
+                EditorUtility.DisplayProgressBar("Saving...", "Rebuild", (++currentStep) / stepCount);
+                m_ExpressionGraphDirty = true;
+                RecompileIfNeeded();
+
+                var oldComputeShader = m_GeneratedComputeShader.ToArray();
+                var oldShader = m_GeneratedShader.ToArray();
+                var oldPath = oldComputeShader.Select(o => AssetDatabase.GetAssetPath(o)).Concat(oldShader.Select(o => AssetDatabase.GetAssetPath(o))).ToArray();
+
+                m_GeneratedComputeShader.Clear();
+                m_GeneratedShader.Clear();
+
+                for (int i = 0; i < oldComputeShader.Length; ++i)
+                {
+                    var compute = oldComputeShader[i];
+                    EditorUtility.DisplayProgressBar("Saving...", string.Format("ComputeShader embedding {0}/{1}", i, oldComputeShader.Length), (++currentStep) / stepCount);
+                    var computeShaderCopy = Instantiate<ComputeShader>(compute);
+                    DestroyImmediate(compute, true);
+                    m_GeneratedComputeShader.Add(computeShaderCopy);
+                }
+
+                for (int i = 0; i < oldShader.Length; ++i)
+                {
+                    var shader = oldShader[i];
+                    EditorUtility.DisplayProgressBar("Saving...", string.Format("Shader embedding {0}/{1}", i, oldShader.Length), (++currentStep) / stepCount);
+                    var shaderCopy = Instantiate<Shader>(shader);
+                    DestroyImmediate(shader, true);
+                    m_GeneratedShader.Add(shaderCopy);
+                }
+
+                if (autoClearCache)
+                {
+                    for (int i = 0; i < oldPath.Length; ++i)
+                    {
+                        var path = oldPath[i];
+                        EditorUtility.DisplayProgressBar("Saving...", string.Format("Clear cache {0}/{1}", i, oldPath.Length), (++currentStep) / stepCount);
+                        AssetDatabase.DeleteAsset(path);
+                    }
+                }
+
+                EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
+                UpdateSubAssets();
+                m_saved = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogErrorFormat("Save failed : {0}", e);
+            }
+            EditorUtility.ClearProgressBar();
         }
 
         public bool UpdateSubAssets()
@@ -133,7 +191,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            saved = false;
+            m_saved = false;
             base.OnInvalidate(model, cause);
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
@@ -399,53 +457,67 @@ namespace UnityEditor.VFX
                     }
 
                     {
+                        var oldGeneratedFile = m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()).ToDictionary(o => AssetDatabase.GetAssetPath(o));
+
                         m_GeneratedComputeShader = new List<ComputeShader>();
                         m_GeneratedShader = new List<Shader>();
 
-                        var tempPathList = new List<string>();
+                        var baseFolder = "Assets/VFXCache";
+                        if (vfxAsset != null)
+                        {
+                            var path = AssetDatabase.GetAssetPath(vfxAsset);
+                            path = path.Replace("Assets", "");
+                            path = path.Replace(".asset", "");
+                            baseFolder += path;
+                        }
+
+                        System.IO.Directory.CreateDirectory(baseFolder);
                         for (int i = 0; i < generatedList.Count; ++i)
                         {
                             var generated = generatedList[i];
-                            var path = string.Format("Assets/Temp_{0}.{1}", i, generated.computeShader ? "compute" : "shader");
-                            System.IO.File.WriteAllText(path, generated.content.ToString());
-                            tempPathList.Add(path);
-                        }
+                            var path = string.Format("{0}/Temp_{2}_{1}.{2}", baseFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader");
 
-                        foreach (var path in tempPathList)
-                        {
-                            AssetDatabase.ImportAsset(path);
-                        }
-
-                        for (int i = 0; i < generatedList.Count; ++i)
-                        {
-                            var generated = generatedList[i];
-                            var path = tempPathList[i];
-                            if (generated.computeShader)
+                            string oldContent = "";
+                            if (System.IO.File.Exists(path))
                             {
-                                var importer = AssetImporter.GetAtPath(path) as AssetImporter;
-                                importer.SaveAndReimport();
-                                var imported = AssetDatabase.LoadAssetAtPath(path, typeof(ComputeShader)) as ComputeShader;
-                                var computeShader = Instantiate<ComputeShader>(imported);//or use CopyAsset...
-                                DestroyImmediate(imported, true);
-
-                                m_GeneratedComputeShader.Add(computeShader);
+                                oldContent = System.IO.File.ReadAllText(path);
+                            }
+                            var newContent = generated.content.ToString();
+                            if (oldContent != newContent)
+                            {
+                                System.IO.File.WriteAllText(path, generated.content.ToString());
                             }
                             else
                             {
-                                AssetDatabase.LoadAssetAtPath(path, typeof(Shader));
-                                var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
-                                importer.SaveAndReimport();
-                                var imported = importer.GetShader();
-                                var shader = Instantiate<Shader>(imported);//or use CopyAsset...
-                                DestroyImmediate(imported, true);
-
-                                m_GeneratedShader.Add(shader);
+                                if (oldGeneratedFile.ContainsKey(path))
+                                {
+                                    if (generated.computeShader)
+                                    {
+                                        m_GeneratedComputeShader.Add(oldGeneratedFile[path] as ComputeShader);
+                                    }
+                                    else
+                                    {
+                                        m_GeneratedShader.Add(oldGeneratedFile[path] as Shader);
+                                    }
+                                    continue;
+                                }
                             }
-                        }
 
-                        foreach (var path in tempPathList)
-                        {
-                            AssetDatabase.DeleteAsset(path);
+                            //Generated file as been modified or not yet imported
+                            AssetDatabase.ImportAsset(path);
+                            if (generated.computeShader)
+                            {
+                                var imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                                EditorUtility.SetDirty(imported);
+                                m_GeneratedComputeShader.Add(imported);
+                            }
+                            else
+                            {
+                                var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
+                                var imported = importer.GetShader();
+                                EditorUtility.SetDirty(imported);
+                                m_GeneratedShader.Add(imported);
+                            }
                         }
                     }
 
@@ -490,7 +562,6 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_ExpressionValuesDirty = true;
 
-
         [NonSerialized]
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
@@ -502,7 +573,10 @@ namespace UnityEditor.VFX
         [SerializeField]
         protected List<Shader> m_GeneratedShader;
 
-        public bool saved { get; set; }
+        [SerializeField]
+        protected bool m_saved = false;
+
+        public bool saved { get { return m_saved; } }
 
         private VFXAsset m_Owner;
     }

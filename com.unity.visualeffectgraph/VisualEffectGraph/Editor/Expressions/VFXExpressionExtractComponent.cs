@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
 
         sealed public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[{1}];", parents[0], AdditionalParameters[1]);
+            return string.Format("{0}[{1}]", parents[0], AdditionalParameters[1]);
         }
 
         public sealed override void FillOperands(int[] data, VFXExpressionGraph graph)
