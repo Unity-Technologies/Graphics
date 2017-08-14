@@ -217,7 +217,7 @@ namespace UnityEditor.VFX
         public VFXContext GetOutput(int index)          { return m_Outputs[index]; }
 
         public IEnumerable<VFXContext> inputContexts    { get { return m_Inputs; } }
-        public IEnumerable<VFXContext> outputContexts   { get { return m_Inputs; } }
+        public IEnumerable<VFXContext> outputContexts   { get { return m_Outputs; } }
 
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
         {
