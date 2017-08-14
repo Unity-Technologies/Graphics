@@ -59,7 +59,6 @@ namespace UnityEditor.VFX
 
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
-
             foreach (var data in dependencies.OfType<VFXDataParticle>())
             {
                 data.DebugBuildAttributeBuffers(); //TMP Debug log
@@ -74,7 +73,7 @@ namespace UnityEditor.VFX
             var parameters = new StringBuilder();
             var expressionToName = new Dictionary<VFXExpression, string>();
 
-            var attributesFromDepencies = dependencies.OfType<VFXDataParticle>().SelectMany(o => o.GetAttributes()).ToArray();
+            var attributesFromContext = context.GetData().GetAttributes().ToArray();
             Func<VFXAttributeLocation, string, string> fnAttributeMarker = delegate(VFXAttributeLocation location, string name)
                 {
                     return string.Format("${{Attribute_{0}_{1}}}", location == VFXAttributeLocation.Current ? "Current" : "Source", name);
@@ -90,7 +89,7 @@ namespace UnityEditor.VFX
                 };
             var implicitAttributeSource = fnCollectAttributeFromTemplate(VFXAttributeLocation.Source);
             var implicitAttributeCurrent = fnCollectAttributeFromTemplate(VFXAttributeLocation.Current);
-            var attributes = attributesFromDepencies.Concat(implicitAttributeSource).Concat(implicitAttributeCurrent).Distinct().ToArray();
+            var attributes = attributesFromContext.Concat(implicitAttributeSource).Concat(implicitAttributeCurrent).Distinct().ToArray();
 
             var attributesSource = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Source).ToArray();
             var attributesCurrent = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();

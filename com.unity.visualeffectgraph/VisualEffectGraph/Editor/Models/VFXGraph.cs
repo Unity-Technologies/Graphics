@@ -484,25 +484,34 @@ namespace UnityEditor.VFX
                         if (m_GeneratedShader == null)
                             m_GeneratedShader = new List<Shader>();
 
-                        var oldGeneratedFile = m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()).ToDictionary(o => AssetDatabase.GetAssetPath(o));
+                        var baseCacheFolder = "Assets/VFXCache";
+
+                        var oldGeneratedFile = new Dictionary<string, Object>();
+                        foreach (var shader in m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()))
+                        {
+                            var path = AssetDatabase.GetAssetPath(shader);
+                            if (!string.IsNullOrEmpty(path) && path.StartsWith(baseCacheFolder))
+                            {
+                                oldGeneratedFile.Add(path, shader);
+                            }
+                        }
 
                         m_GeneratedComputeShader.Clear();
                         m_GeneratedShader.Clear();
 
-                        var baseFolder = "Assets/VFXCache";
                         if (vfxAsset != null)
                         {
                             var path = AssetDatabase.GetAssetPath(vfxAsset);
                             path = path.Replace("Assets", "");
                             path = path.Replace(".asset", "");
-                            baseFolder += path;
+                            baseCacheFolder += path;
                         }
 
-                        System.IO.Directory.CreateDirectory(baseFolder);
+                        System.IO.Directory.CreateDirectory(baseCacheFolder);
                         for (int i = 0; i < generatedList.Count; ++i)
                         {
                             var generated = generatedList[i];
-                            var path = string.Format("{0}/Temp_{2}_{1}.{2}", baseFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader");
+                            var path = string.Format("{0}/Temp_{2}_{1}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader");
 
                             string oldContent = "";
                             if (System.IO.File.Exists(path))
