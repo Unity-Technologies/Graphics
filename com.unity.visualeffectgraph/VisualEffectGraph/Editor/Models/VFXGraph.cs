@@ -308,6 +308,7 @@ namespace UnityEditor.VFX
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
 
+
                     // build expressions data and set them to vfx asset
                     var flatGraph = m_ExpressionGraph.FlattenedExpressions;
                     var numFlattenedExpressions = flatGraph.Count;
@@ -353,6 +354,9 @@ namespace UnityEditor.VFX
                     var models = new HashSet<Object>();
                     CollectDependencies(models);
 
+                    foreach (var data in models.OfType<VFXData>())
+                        data.CollectAttributes(m_ExpressionGraph);
+
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
                     {
@@ -393,18 +397,35 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    var eventAttributes = new List<VFXEventAttributeDesc>();
+                    foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
+                    {
+                        foreach (var linked in context.outputContexts)
+                        {
+                            foreach (var attribute in linked.GetData().GetAttributes())
+                            {
+                                if (attribute.attrib.location == VFXAttributeLocation.Source)
+                                {
+                                    eventAttributes.Add(new VFXEventAttributeDesc()
+                                    {
+                                        name = attribute.attrib.name,
+                                        type = attribute.attrib.type
+                                    });
+                                }
+                            }
+                        }
+                    }
+
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = m_ExpressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
                     expressionSheet.exposed = parameterExposed.ToArray();
+                    expressionSheet.eventAttributes = eventAttributes.ToArray();
 
                     vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
-
-                    foreach (var data in models.OfType<VFXData>())
-                        data.CollectAttributes(m_ExpressionGraph);
 
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
