@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -17,11 +18,25 @@ namespace UnityEditor.VFX
                 || type == typeof(Vector2)
                 || type == typeof(Vector3)
                 || type == typeof(Vector4)
-                || type == typeof(Color);
+                || type == typeof(Color)
+                || type == typeof(uint)
+                || type == typeof(int);
         }
 
         protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
+            if (expression.ValueType == VFXValueType.kUint)
+            {
+                var floatExpression = new VFXExpressionCastIntToFloat(expression);
+                return floatExpression;
+            }
+
+            if (expression.ValueType == VFXValueType.kInt)
+            {
+                var floatExpression = new VFXExpressionCastUintToFloat(expression);
+                return floatExpression;
+            }
+
             return expression;
         }
 
