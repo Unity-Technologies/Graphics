@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
@@ -8,34 +12,171 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialGraphEditWindow : AbstractGraphEditWindow
+    public class MaterialGraphEditWindow : EditorWindow, ISerializationCallbackReceiver
     {
-        [SerializeField]
-        private Object m_Selected;
+        public static bool allowAlwaysRepaint = true;
+
+        bool shouldRepaint
+        {
+            get { return allowAlwaysRepaint && inMemoryAsset != null && inMemoryAsset.shouldRepaint; }
+        }
 
         [SerializeField]
-        private MaterialGraphAsset m_InMemoryAsset;
+        Object m_Selected;
 
-        public override IGraphAsset inMemoryAsset
+        [SerializeField]
+        MaterialGraphAsset m_InMemoryAsset;
+
+        GraphEditorDrawer m_GraphEditorDrawer;
+
+        public IGraphAsset inMemoryAsset
         {
             get { return m_InMemoryAsset; }
             set { m_InMemoryAsset = value as MaterialGraphAsset; }
         }
 
-        public override Object selected
+        public Object selected
         {
             get { return m_Selected; }
             set { m_Selected = value; }
         }
 
-        public override AbstractGraphPresenter CreateDataSource()
+        public MaterialGraphPresenter CreateDataSource()
         {
             return CreateInstance<MaterialGraphPresenter>();
         }
 
-        public override GraphView CreateGraphView()
+        public GraphView CreateGraphView()
         {
             return new MaterialGraphView(this);
         }
+
+        void OnEnable()
+        {
+            m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView());
+            rootVisualContainer.Add(m_GraphEditorDrawer);
+            var source = CreateDataSource();
+            source.Initialize(inMemoryAsset, this);
+            m_GraphEditorDrawer.presenter = source;
+        }
+
+        void OnDisable()
+        {
+            rootVisualContainer.Clear();
+        }
+
+        void Update()
+        {
+            if (shouldRepaint)
+                Repaint();
+        }
+
+        public void PingAsset()
+        {
+            if (selected != null)
+                EditorGUIUtility.PingObject(selected);
+        }
+
+        public void UpdateAsset()
+        {
+            if (selected != null && inMemoryAsset != null)
+            {
+                var path = AssetDatabase.GetAssetPath(selected);
+                if (string.IsNullOrEmpty(path) || inMemoryAsset == null)
+                {
+                    return;
+                }
+
+                var masterNode = ((MaterialGraphAsset)inMemoryAsset).materialGraph.masterNode;
+                if (masterNode == null)
+                    return;
+
+                List<PropertyGenerator.TextureInfo> configuredTextures;
+                masterNode.GetFullShader(GenerationMode.ForReals, "NotNeeded", out configuredTextures);
+
+                var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+                if (shaderImporter == null)
+                    return;
+
+                var textureNames = new List<string>();
+                var textures = new List<Texture>();
+                foreach (var textureInfo in configuredTextures.Where(
+                    x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+                {
+                    var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                    if (texture == null)
+                        continue;
+                    textureNames.Add(textureInfo.name);
+                    textures.Add(texture);
+                }
+                shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+
+                textureNames.Clear();
+                textures.Clear();
+                foreach (var textureInfo in configuredTextures.Where(
+                    x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+                {
+                    var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                    if (texture == null)
+                        continue;
+                    textureNames.Add(textureInfo.name);
+                    textures.Add(texture);
+                }
+                shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+                File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset.graph));
+                shaderImporter.SaveAndReimport();
+                AssetDatabase.ImportAsset(path);
+            }
+        }
+
+        public virtual void ToggleRequiresTime()
+        {
+            allowAlwaysRepaint = !allowAlwaysRepaint;
+        }
+
+        public void ChangeSelction(Object newSelection)
+        {
+            if (!EditorUtility.IsPersistent(newSelection))
+                return;
+
+            if (selected == newSelection)
+                return;
+
+            if (selected != null)
+            {
+                if (EditorUtility.DisplayDialog("Save Old Graph?", "Save Old Graph?", "yes!", "no"))
+                {
+                    UpdateAsset();
+                }
+            }
+
+            selected = newSelection;
+
+            var mGraph = CreateInstance<MaterialGraphAsset>();
+            var path = AssetDatabase.GetAssetPath(newSelection);
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            mGraph.materialGraph = JsonUtility.FromJson<UnityEngine.MaterialGraph.MaterialGraph>(textGraph);
+
+            inMemoryAsset = mGraph;
+            var graph = inMemoryAsset.graph;
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            var source = CreateDataSource();
+            source.Initialize(inMemoryAsset, this);
+            m_GraphEditorDrawer.presenter = source;
+
+            //m_GraphView.StretchToParentSize();
+            Repaint();
+            /*if (refocus)
+            {
+                focused = false;
+                m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
+            }*/
+        }
+
+        public void OnBeforeSerialize() { }
+
+        public void OnAfterDeserialize() { }
     }
 }

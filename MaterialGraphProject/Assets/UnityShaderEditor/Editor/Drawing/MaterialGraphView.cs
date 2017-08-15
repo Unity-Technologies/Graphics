@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Drawing;
@@ -12,10 +14,44 @@ using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialGraphView : SerializableGraphView
+    public sealed class MaterialGraphView : GraphView
     {
-        public MaterialGraphView(EditorWindow editorWindow) : base(editorWindow)
+        public MaterialGraphView(EditorWindow editorWindow)
         {
+            var shortcutHandler = new ShortcutHandler(
+                new Dictionary<Event, ShortcutDelegate>
+                {
+                    {Event.KeyboardEvent("a"), FrameAll},
+                    {Event.KeyboardEvent("f"), FrameSelection},
+                    {Event.KeyboardEvent("o"), FrameOrigin},
+                    {Event.KeyboardEvent("delete"), DeleteSelection},
+                    {Event.KeyboardEvent("#tab"), FramePrev},
+                    {Event.KeyboardEvent("tab"), FrameNext},
+                    {Event.KeyboardEvent("#c"), CopySelection},
+                    {Event.KeyboardEvent("#v"), Paste},
+                    {Event.KeyboardEvent("#d"), DuplicateSelection}
+                });
+
+            onEnter += () => editorWindow.rootVisualContainer.parent.AddManipulator(shortcutHandler);
+            onLeave += () => editorWindow.rootVisualContainer.parent.RemoveManipulator(shortcutHandler);
+
+            this.AddManipulator(new Commandable
+            {
+                { "Duplicate", () => true, () => Debug.Log("Duplicate!") },
+                { "Copy", () => true, () => Debug.Log("Copy!") }
+            });
+
+            this.AddManipulator(new ClickGlobalSelector());
+            this.AddManipulator(new ContentZoomer());
+            this.AddManipulator(new ContentDragger());
+            this.AddManipulator(new RectangleSelector());
+            this.AddManipulator(new SelectionDragger());
+            this.AddManipulator(new ClickSelector());
+
+            Insert(0, new GridBackground());
+
+            typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
+
             RegisterCallback<MouseUpEvent>(DoContextMenu);
 
             typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
@@ -25,12 +61,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddStyleSheetPath("Styles/MaterialGraph");
         }
 
-        public virtual bool CanAddToNodeMenu(Type type)
+        public bool CanAddToNodeMenu(Type type)
         {
             return true;
         }
 
-        protected void DoContextMenu(MouseUpEvent evt)
+        void DoContextMenu(MouseUpEvent evt)
         {
             if (evt.button == (int)MouseButton.RightMouse)
             {
@@ -54,7 +90,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             evt.StopPropagation();
         }
 
-        private class AddNodeCreationObject
+        class AddNodeCreationObject
         {
             public Vector2 m_Pos;
             public readonly Type m_Type;
@@ -66,7 +102,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         };
 
-        private void AddNode(object obj)
+        void AddNode(object obj)
         {
             var posObj = obj as AddNodeCreationObject;
             if (posObj == null)
@@ -91,75 +127,105 @@ namespace UnityEditor.MaterialGraph.Drawing
             drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
             node.drawState = drawstate;
 
-            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
             graphDataSource.AddNode(node);
         }
 
-        /*
-        public EventPropagation Export()
+        // TODO JOCE Remove the "new" here. Use the base class' impl
+        new EventPropagation DeleteSelection()
         {
-            var path = EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
+            var nodalViewData = GetPresenter<MaterialGraphPresenter>();
+            if (nodalViewData == null)
+                return EventPropagation.Stop;
 
-            var ds = presenter as AbstractGraphPresenter;
-            if (ds != null && !string.IsNullOrEmpty(path))
-            {
-                ExportShader(ds.graphAsset as MaterialGraphAsset, path);
-            }
-            else
-                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
+            nodalViewData.RemoveElements(
+                selection.OfType<MaterialNodeDrawer>().Select(x => x.GetPresenter<GraphNodePresenter>()),
+                selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
+                );
 
             return EventPropagation.Stop;
         }
 
-        public static Shader ExportShader(MaterialGraphAsset graphAsset, string path)
+        public override void OnDataChanged()
         {
-            if (graphAsset == null)
-                return null;
+            base.OnDataChanged();
 
-            var materialGraph = graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
-            if (materialGraph == null)
-                return null;
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (graphDataSource == null)
+                return;
 
-            List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = materialGraph.masterNode.GetShader(GenerationMode.ForReals, out configuredTextures);
-            File.WriteAllText(path, shaderString);
-            AssetDatabase.Refresh(); // Investigate if this is optimal
+            var graphAsset = graphDataSource.graphAsset;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
 
-            var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
-            if (shader == null)
-                return null;
+            var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
+                .Select(guid => contentViewContainer
+                            .OfType<NodeDrawer>()
+                            .FirstOrDefault(drawer => ((GraphNodePresenter) drawer.presenter).node.guid == guid))
+                .ToList();
 
-            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
-            if (shaderImporter == null)
-                return null;
+            ClearSelection();
+            foreach (var drawer in selectedDrawers)
+                AddToSelection(drawer);
+        }
 
-            var textureNames = new List<string>();
-            var textures = new List<Texture>();
-            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+        public void SetGlobalSelection()
+        {
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (graphDataSource == null || graphDataSource.graphAsset == null)
+                return;
+            //Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
+        }
 
-            textureNames.Clear();
-            textures.Clear();
-            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+        void PropagateSelection()
+        {
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (graphDataSource == null || graphDataSource.graphAsset == null)
+                return;
 
-            shaderImporter.SaveAndReimport();
+            var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((GraphNodePresenter) x.presenter).node.guid);
+            graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
+        }
 
-            return shaderImporter.GetShader();
-        }*/
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            PropagateSelection();
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            PropagateSelection();
+        }
+
+        public override void ClearSelection()
+        {
+            base.ClearSelection();
+            PropagateSelection();
+        }
+
+        public EventPropagation CopySelection()
+        {
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (selection.Any() && graphDataSource != null)
+                graphDataSource.Copy(selection.OfType<GraphElement>().Select(ge => ge.presenter));
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation DuplicateSelection()
+        {
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (selection.Any() && graphDataSource != null)
+                graphDataSource.Duplicate(selection.OfType<GraphElement>().Select(ge => ge.presenter));
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation Paste()
+        {
+            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
+            if (graphDataSource != null)
+                graphDataSource.Paste();
+            return EventPropagation.Stop;
+        }
     }
 }

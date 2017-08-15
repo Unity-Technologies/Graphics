@@ -1,4 +1,5 @@
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
@@ -35,9 +36,9 @@ namespace UnityEditor.Graphing.Drawing
             m_TitleBarDrawer.dataProvider = m_Presenter.titleBar;
         }
 
-        private AbstractGraphPresenter m_Presenter;
+        private MaterialGraphPresenter m_Presenter;
 
-        public AbstractGraphPresenter presenter
+        public MaterialGraphPresenter presenter
         {
             get { return m_Presenter; }
             set
