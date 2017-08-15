@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Drawing;
+using UnityEditor.Graphing.Util;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
@@ -80,7 +81,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 data.OnModified(ModificationScope.Node);
                 UpdatePreviewTexture(m_currentPreviewData);
-                Dirty(ChangeType.Repaint);
             }
             ListPool<INode>.Release(childrenNodes);
         }
@@ -98,13 +98,17 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_PreviewImage.RemoveFromClassList("inactive");
                 m_PreviewImage.image = texture;
             }
+            Dirty(ChangeType.Repaint);
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)
         {
             var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
 
-            m_ControlsContainer.ClearChildren();
+            if (controlPresenters.ItemsReferenceEquals(m_CurrentControlPresenter) && nodeData.expanded)
+                return;
+
+            m_ControlsContainer.Clear();
             m_CurrentControlPresenter.Clear();
 
             if (!nodeData.expanded)
@@ -112,7 +116,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             foreach (var controlData in controlPresenters)
             {
-                m_ControlsContainer.AddChild(CreateControl(controlData));
+                m_ControlsContainer.Add(CreateControl(controlData));
                 m_CurrentControlPresenter.Add(controlData);
             }
         }

@@ -6,13 +6,18 @@ using UnityEditor.Graphing.Drawing;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
     public class MaterialNodePresenter : GraphNodePresenter
     {
+        [SerializeField]
         NodePreviewPresenter m_NodePreviewPresenter;
+
+        [SerializeField]
+        int m_Version;
 
         public bool requiresTime
         {
@@ -42,6 +47,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override void OnModified(ModificationScope scope)
         {
+            m_Version++;
             base.OnModified(scope);
             // TODO: Propagate callback rather than setting property
             if (m_NodePreviewPresenter != null)
@@ -54,6 +60,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void Initialize(INode inNode)
         {
             base.Initialize(inNode);
+            m_Version = 0;
             AddPreview(inNode);
         }
 

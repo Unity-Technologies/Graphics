@@ -92,16 +92,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (m_Node.hasPreview == false)
                 return null;
 
-            if (m_modificationScope != ModificationScope.Nothing)
+            var scope = m_modificationScope;
+            m_modificationScope = ModificationScope.Nothing;
+
+            if (scope != ModificationScope.Nothing)
             {
                 bool status = false;
-                if (m_modificationScope >= ModificationScope.Graph)
+                if (scope >= ModificationScope.Graph)
                 {
                     // TODO: Handle shader regeneration error
                     status = UpdatePreviewShader();
                 }
                 m_texture = RenderPreview(dimension);
-                m_modificationScope = ModificationScope.Nothing;
             }
             else if (m_texture == null)
             {
