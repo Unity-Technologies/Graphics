@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualContainer m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControlPresenter;
         Image m_PreviewImage;
-        NodePreviewPresenter m_currentPreviewData;
+        NodePreviewPresenter m_CurrentPreviewData;
         bool m_IsScheduled;
 
         public MaterialNodeDrawer()
@@ -80,7 +80,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (childrenNodes.OfType<IRequiresTime>().Any())
             {
                 data.OnModified(ModificationScope.Node);
-                UpdatePreviewTexture(m_currentPreviewData);
+                UpdatePreviewTexture(m_CurrentPreviewData);
             }
             ListPool<INode>.Release(childrenNodes);
         }
@@ -141,15 +141,15 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_ControlsContainer.Clear();
                 m_CurrentControlPresenter.Clear();
                 m_PreviewImage.AddToClassList("inactive");
-                m_currentPreviewData = null;
-                UpdatePreviewTexture(m_currentPreviewData);
+                m_CurrentPreviewData = null;
+                UpdatePreviewTexture(m_CurrentPreviewData);
                 return;
             }
 
             UpdateControls(nodeData);
 
-            m_currentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
-            UpdatePreviewTexture(m_currentPreviewData);
+            m_CurrentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
+            UpdatePreviewTexture(m_CurrentPreviewData);
 
             if (nodeData.expanded)
                 m_PreviewImage.RemoveFromClassList("hidden");

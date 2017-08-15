@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using UnityEngine.MaterialGraph;
 using System.IO;
 using System.Linq;
+using UnityEditor.MaterialGraph.Drawing;
 
 namespace UnityEditor.Graphing.Drawing
 {
     // TODO JOCE: Not sure the title bar requires a presenter at all.
-    public class TitleBarPresenter : ScriptableObject 
+    public class TitleBarPresenter : ScriptableObject
     {
         List<TitleBarButtonPresenter> m_leftItems;
         List<TitleBarButtonPresenter> m_rightItems;
-		AbstractGraphEditWindow m_Owner;
+		MaterialGraphEditWindow m_Owner;
 
         public IEnumerable<TitleBarButtonPresenter> leftItems
         {
@@ -27,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
         protected TitleBarPresenter()
         {}
 
-		public void Initialize(AbstractGraphEditWindow graphWindow)
+		public void Initialize(MaterialGraphEditWindow graphWindow)
         {
 			m_Owner = graphWindow;
             m_leftItems = new List<TitleBarButtonPresenter>();
@@ -59,12 +60,6 @@ namespace UnityEditor.Graphing.Drawing
 				m_Owner.PingAsset ();
 		}
 
-		class CallbackData
-		{
-			public IGraphAsset asset;
-			public AbstractGraphEditWindow owner;
-		}
-
 		public static List<IGraphAsset> FindAssets()
 		{
 			var assets = new List<IGraphAsset>();
@@ -82,7 +77,7 @@ namespace UnityEditor.Graphing.Drawing
 			}
 			return assets;
 		}
-        
+
         void UpdateAsset()
         {
 			m_Owner.UpdateAsset ();
