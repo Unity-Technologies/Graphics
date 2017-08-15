@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -7,8 +9,10 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialNodeDrawer : NodeDrawer
+    public class MaterialNodeDrawer : Node
     {
+        VisualContainer m_ControlsContainer;
+        List<GraphControlPresenter> m_CurrentControlPresenter;
         Image m_PreviewImage;
         NodePreviewPresenter m_currentPreviewData;
         bool m_IsScheduled;
@@ -23,8 +27,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             onLeave += UnschedulePolling;
         }
 
-        private void CreateContainers()
+        void CreateContainers()
         {
+            m_ControlsContainer = new VisualContainer
+            {
+                name = "controls"
+            };
+            leftContainer.Add(m_ControlsContainer);
+            m_CurrentControlPresenter = new List<GraphControlPresenter>();
+
             m_PreviewImage = new Image
             {
                 name = "preview", // for USS&Flexbox
@@ -35,7 +46,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             leftContainer.Add(m_PreviewImage);
         }
 
-        private void SchedulePolling()
+        void SchedulePolling()
         {
             if (panel != null)
             {
@@ -51,7 +62,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private void UnschedulePolling()
+        void UnschedulePolling()
         {
             if (m_IsScheduled && panel != null)
             {
@@ -60,7 +71,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_IsScheduled = false;
         }
 
-        private void InvalidateUIIfNeedsTime(TimerState timerState)
+        void InvalidateUIIfNeedsTime(TimerState timerState)
         {
             var data = GetPresenter<MaterialNodePresenter>();
             var childrenNodes = ListPool<INode>.Get();
@@ -89,18 +100,49 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        void UpdateControls(MaterialNodePresenter nodeData)
+        {
+            var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
+
+            m_ControlsContainer.ClearChildren();
+            m_CurrentControlPresenter.Clear();
+
+            if (!nodeData.expanded)
+                return;
+
+            foreach (var controlData in controlPresenters)
+            {
+                m_ControlsContainer.AddChild(CreateControl(controlData));
+                m_CurrentControlPresenter.Add(controlData);
+            }
+        }
+
+        IMGUIContainer CreateControl(GraphControlPresenter controlPresenter)
+        {
+            return new IMGUIContainer(controlPresenter.OnGUIHandler)
+            {
+                name = "element",
+                executionContext = controlPresenter.GetInstanceID(),
+            };
+        }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
 
             var nodeData = GetPresenter<MaterialNodePresenter>();
+
             if (nodeData == null)
             {
+                m_ControlsContainer.Clear();
+                m_CurrentControlPresenter.Clear();
                 m_PreviewImage.AddToClassList("inactive");
                 m_currentPreviewData = null;
                 UpdatePreviewTexture(m_currentPreviewData);
                 return;
             }
+
+            UpdateControls(nodeData);
 
             m_currentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
             UpdatePreviewTexture(m_currentPreviewData);
@@ -110,6 +152,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             else
                 m_PreviewImage.AddToClassList("hidden");
         }
-
     }
 }
