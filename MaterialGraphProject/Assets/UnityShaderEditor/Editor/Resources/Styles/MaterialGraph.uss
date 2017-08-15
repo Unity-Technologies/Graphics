@@ -3,8 +3,10 @@
 	width: 200;
 }
 
-.MaterialNode #preview.inactive {
-	background-color: #FF0000;
+.MaterialNode #preview.inactive,
+.MaterialNode #preview.hidden {
+	width: 0;
+	height: 0;
 }
 
 GridBackground {
