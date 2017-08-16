@@ -4,7 +4,7 @@ using MouseManipulator = UnityEngine.Experimental.UIElements.MouseManipulator;
 using ManipulatorActivationFilter = UnityEngine.Experimental.UIElements.ManipulatorActivationFilter;
 using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public enum ClickerState
     {

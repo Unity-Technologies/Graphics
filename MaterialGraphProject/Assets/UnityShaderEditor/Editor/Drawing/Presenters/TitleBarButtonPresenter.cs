@@ -1,5 +1,5 @@
 using UnityEngine;
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: Needed at all?
     public class TitleBarButtonPresenter : ScriptableObject

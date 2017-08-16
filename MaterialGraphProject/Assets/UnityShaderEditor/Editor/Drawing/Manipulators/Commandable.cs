@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public class Commandable : Manipulator, IEnumerable<KeyValuePair<string, CommandHandler>>
     {

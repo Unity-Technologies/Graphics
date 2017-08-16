@@ -2,7 +2,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: Maybe this needs to derive from something we already have?
     public class GraphEditorDrawer : DataWatchContainer
