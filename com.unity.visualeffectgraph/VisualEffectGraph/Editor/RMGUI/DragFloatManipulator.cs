@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.UIElements
         {
             target.RegisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);
             target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
-            target.RegisterCallback<MouseMoveEvent>(OnMouseDrag);
+            //target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UIElements
         {
             target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
-            target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
+            //target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
@@ -103,13 +103,24 @@ namespace UnityEditor.VFX.UIElements
 
         //void IEventHandler.OnLostKeyboardFocus() {}
 
+        void Release()
+        {
+            if (m_Dragging)
+            {
+                m_Dragging = false;
+                UIElementsUtility.eventDispatcher.ReleaseCapture(target);
+                EditorGUIUtility.SetWantsMouseJumping(0);
+
+                target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
+            }
+        }
+
         void OnMouseUp(MouseUpEvent evt)
         {
             if (evt.button == 0 && m_Dragging)
             {
-                m_Dragging = false;
-                UIElementsUtility.eventDispatcher.ReleaseCapture(this);
-                EditorGUIUtility.SetWantsMouseJumping(0);
+                Release();
+                evt.StopPropagation();
             }
         }
 
@@ -118,7 +129,8 @@ namespace UnityEditor.VFX.UIElements
             if (evt.button == 0)
             {
                 EditorGUIUtility.SetWantsMouseJumping(1);
-                UIElementsUtility.eventDispatcher.TakeCapture(this);
+                target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
+                UIElementsUtility.eventDispatcher.TakeCapture(target);
                 m_Dragging = true;
                 m_OriginalValue = m_Listener.GetValue(m_UserData);
                 evt.StopPropagation();
@@ -127,9 +139,19 @@ namespace UnityEditor.VFX.UIElements
 
         void OnMouseDrag(MouseMoveEvent evt)
         {
-            if (evt.button == 0 && m_Dragging)
+            if (m_Dragging)
             {
-                ApplyDelta(HandleUtility.niceMouseDelta);
+                if (!Input.GetMouseButtonDown(0) && !!Input.GetMouseButton(0))
+                {
+                    Release();
+                    evt.StopPropagation();
+                    return;
+                }
+                if (evt.button == 0 && m_Dragging)
+                {
+                    ApplyDelta(HandleUtility.niceMouseDelta);
+                }
+                evt.StopPropagation();
             }
         }
 
@@ -138,7 +160,7 @@ namespace UnityEditor.VFX.UIElements
             if (m_Dragging && evt.keyCode == KeyCode.Escape)
             {
                 m_Listener.SetValue(m_OriginalValue, m_UserData);
-                m_Dragging = false;
+                Release();
             }
         }
 
