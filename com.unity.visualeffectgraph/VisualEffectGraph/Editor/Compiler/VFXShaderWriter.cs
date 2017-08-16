@@ -119,17 +119,24 @@ namespace UnityEditor.VFX
             builder.AppendLine();
         }
 
+        public static void WriteAssignement(StringBuilder builder, VFXValueType type, string variableName, string value)
+        {
+            var format = value == "0" ? "{1} = ({0}){2};" : "{1} = {2};";
+            builder.AppendFormat(format, VFXExpression.TypeToCode(type), variableName, value);
+        }
+
         public static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value, string comment = null)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            string format = value == "0" ? "{0} {1} = ({0}){2};{3}" : "{0} {1} = {2};{3}";
-            builder.AppendFormat(format, VFXExpression.TypeToCode(type), variableName, value, comment == null ? "" : "//" + comment);
+            builder.AppendFormat("{0} ", VFXExpression.TypeToCode(type));
+            WriteAssignement(builder, type, variableName, value);
+            builder.AppendFormat(comment == null ? "" : "//" + comment);
             builder.AppendLine();
         }
 
-        private static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
+        public static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
         {
             if (!variableNames.ContainsKey(exp))
             {

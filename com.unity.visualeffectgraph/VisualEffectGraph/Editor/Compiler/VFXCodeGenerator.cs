@@ -108,24 +108,35 @@ namespace UnityEditor.VFX
                 expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.type, VFXAttributeLocation.Source)), attribute.name);
             }
 
-            //< Parameters (computed and/or extracted from uniform)
-            foreach (var exp in gpuMapper.expressions)
-            {
-                if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
-                {
-                    continue;
-                }
-                var name = string.Format("param_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
-                expressionToName.Add(exp, name);
-                VFXShaderWriter.WriteParameter(parameters, exp, uniformMapper, name);
-            }
-
             //< Current Attribute
             foreach (var attribute in attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).Select(o => o.attrib))
             {
                 var name = string.Format("current_{0}_{1}", attribute.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
                 expressionToName.Add(new VFXAttributeExpression(attribute), name);
                 VFXShaderWriter.WriteVariable(parameters, attribute.type, name, attribute.name);
+            }
+
+            //< Parameters (computed and/or extracted from uniform)
+            {
+                var parameterCompute = new StringBuilder();
+                var variableNames = new Dictionary<VFXExpression, string>();
+                foreach (var exp in gpuMapper.expressions)
+                {
+                    if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
+                    {
+                        continue;
+                    }
+                    var name = string.Format("param_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
+                    expressionToName.Add(exp, name);
+                    VFXShaderWriter.WriteVariable(parameters, exp.ValueType, name, "0");
+
+                    VFXShaderWriter.WriteVariable(parameterCompute, exp, variableNames, uniformMapper);
+                    VFXShaderWriter.WriteAssignement(parameterCompute, exp.ValueType, name, variableNames[exp]);
+                    parameterCompute.AppendLine();
+                }
+
+                parameters.Append("{\n\t${tabParameterCompute}}\n");
+                ReplaceMultiline(parameters, "${tabParameterCompute}", parameterCompute);
             }
 
             //< Replace parameters in template code
