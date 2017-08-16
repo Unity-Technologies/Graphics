@@ -1,3 +1,17 @@
+GraphEditorDrawer {
+    flex-direction: column;
+    background: #f00;
+    flex: 1;
+}
+
+GraphEditorDrawer #TitleBar {
+
+}
+
+GraphEditorDrawer #GraphView {
+    flex: 1;
+}
+
 .MaterialNode #preview {
 	height: 200;
 	width: 200;
