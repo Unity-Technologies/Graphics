@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public class SubgraphInputNodeInspector : BasicNodeInspector
     {

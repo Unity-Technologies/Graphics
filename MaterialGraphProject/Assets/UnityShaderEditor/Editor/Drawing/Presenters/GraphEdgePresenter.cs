@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Experimental.UIElements.GraphView;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
     public class GraphEdgePresenter : EdgePresenter

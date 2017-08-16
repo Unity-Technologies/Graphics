@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: we should not need a title bar drawer. It should just be a visual element in the nodedrawer.
     public class TitleBarDrawer : DataWatchContainer

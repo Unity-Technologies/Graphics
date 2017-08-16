@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.Graphing.Drawing;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing

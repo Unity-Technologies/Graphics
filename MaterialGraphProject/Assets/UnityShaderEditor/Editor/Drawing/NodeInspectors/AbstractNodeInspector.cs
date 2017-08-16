@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Graphing;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public abstract class AbstractNodeInspector : ScriptableObject, ISerializationCallbackReceiver
     {

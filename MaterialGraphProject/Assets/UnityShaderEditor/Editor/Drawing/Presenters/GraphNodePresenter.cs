@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEditor.Experimental.UIElements.GraphView;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public class GraphNodePresenter : NodePresenter
     {

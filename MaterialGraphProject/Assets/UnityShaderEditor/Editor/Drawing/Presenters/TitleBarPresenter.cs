@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.MaterialGraph.Drawing;
 
-namespace UnityEditor.Graphing.Drawing
+namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: Not sure the title bar requires a presenter at all.
     public class TitleBarPresenter : ScriptableObject
