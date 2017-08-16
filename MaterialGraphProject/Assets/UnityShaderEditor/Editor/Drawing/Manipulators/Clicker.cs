@@ -29,19 +29,6 @@ namespace UnityEditor.Graphing.Drawing
 			activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
 		}
 
-        void UpdateState(MouseEventBase evt)
-        {
-            ClickerState newState;
-            if (initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition))
-                newState = ClickerState.Active;
-            else
-                newState = ClickerState.Inactive;
-
-            if (onStateChange != null && state != newState)
-                onStateChange(newState);
-            state = newState;
-        }
-
         protected override void RegisterCallbacksOnTarget()
         {
             target.RegisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);

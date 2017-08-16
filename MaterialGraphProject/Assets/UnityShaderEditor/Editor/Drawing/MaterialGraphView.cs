@@ -41,7 +41,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 { "Copy", () => true, () => Debug.Log("Copy!") }
             });
 
-            this.AddManipulator(new ClickGlobalSelector());
             this.AddManipulator(new ContentZoomer());
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new RectangleSelector());
@@ -49,8 +48,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             this.AddManipulator(new ClickSelector());
 
             Insert(0, new GridBackground());
-
-            typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
 
             RegisterCallback<MouseUpEvent>(DoContextMenu);
 
@@ -155,11 +152,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer
-                            .OfType<NodeDrawer>()
+                            .OfType<MaterialNodeDrawer>()
                             .FirstOrDefault(drawer => ((GraphNodePresenter) drawer.presenter).node.guid == guid))
                 .ToList();
 
@@ -182,7 +179,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphDataSource == null || graphDataSource.graphAsset == null)
                 return;
 
-            var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((GraphNodePresenter) x.presenter).node.guid);
+            var selectedNodeGuids = selection.OfType<MaterialNodeDrawer>().Select(x => ((GraphNodePresenter) x.presenter).node.guid);
             graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
         }
 

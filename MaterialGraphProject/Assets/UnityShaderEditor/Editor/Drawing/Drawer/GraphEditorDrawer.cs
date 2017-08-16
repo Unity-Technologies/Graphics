@@ -19,7 +19,7 @@ namespace UnityEditor.Graphing.Drawing
         // TODO: Create graphView from here rather than have it passed in through constructor
         public GraphEditorDrawer(GraphView graphView)
         {
-            AddStyleSheetPath("Styles/GraphEditor");
+            AddStyleSheetPath("Styles/MaterialGraph");
 
             m_GraphView = graphView;
             m_GraphView.name = "GraphView";
