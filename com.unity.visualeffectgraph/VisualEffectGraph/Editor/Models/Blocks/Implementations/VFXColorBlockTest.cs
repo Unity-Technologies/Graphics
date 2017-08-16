@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return string.Format("{0}.rgb = Color.rgb;", VFXAttribute.Color.name);
+                return "color.rgb = Color.rgb;";
             }
         }
     }
