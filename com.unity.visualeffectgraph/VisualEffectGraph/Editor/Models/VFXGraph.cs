@@ -297,6 +297,7 @@ namespace UnityEditor.VFX
             public VFXContext context;
             public bool computeShader;
             public System.Text.StringBuilder content;
+            public string compilMode;
         }
 
         public void RecompileIfNeeded()
@@ -456,24 +457,34 @@ namespace UnityEditor.VFX
                         vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
                     }
 
+                    var compilMode = new Dictionary<string, string>()
+                    {
+                        {"debug", "#define DEBUG 1"},
+                        {"release", "/* release */" }
+                    };
+
                     var generatedList = new List<GeneratedCodeData>();
                     foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                     {
                         var codeGenerator = context.codeGenerator;
                         if (codeGenerator != null)
                         {
-                            var contextId = (uint)context.GetParent().GetIndex(context);
-                            var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
-
-                            var generated = new GeneratedCodeData()
+                            foreach (var mode in compilMode)
                             {
-                                context = context,
-                                computeShader = false,
-                                content = new System.Text.StringBuilder()
-                            };
+                                var contextId = (uint)context.GetParent().GetIndex(context);
+                                var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
 
-                            codeGenerator.Build(context, generated.content, gpuMapper, ref generated.computeShader);
-                            generatedList.Add(generated);
+                                var generated = new GeneratedCodeData()
+                                {
+                                    context = context,
+                                    computeShader = false,
+                                    content = new System.Text.StringBuilder(),
+                                    compilMode = mode.Key
+                                };
+
+                                codeGenerator.Build(context, mode.Value, generated.content, gpuMapper, ref generated.computeShader);
+                                generatedList.Add(generated);
+                            }
                         }
                     }
 
@@ -511,7 +522,7 @@ namespace UnityEditor.VFX
                         for (int i = 0; i < generatedList.Count; ++i)
                         {
                             var generated = generatedList[i];
-                            var path = string.Format("{0}/Temp_{2}_{1}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader");
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.compilMode);
 
                             string oldContent = "";
                             if (System.IO.File.Exists(path))

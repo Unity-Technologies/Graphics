@@ -1,7 +1,13 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 
-#ifndef COMPUTE_DYNAMIC_AABB
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+#if DEBUG
+#define COMPUTE_DYNAMIC_AABB 1
+#else
 #define COMPUTE_DYNAMIC_AABB 0
 #endif
 
@@ -14,12 +20,14 @@ ${VFXGeneratedBlockFunction}
 
 RWStructuredBuffer<int> flags;
 AppendStructuredBuffer<uint> deadListOut;
+
 #if COMPUTE_DYNAMIC_AABB
 groupshared uint3 boundsLDS[2];
+RWStructuredBuffer<uint3> bounds;
 #endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 {
 #if COMPUTE_DYNAMIC_AABB
 	if (groupId.x == 0)

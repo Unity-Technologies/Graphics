@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void Build(VFXContext context, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper, ref bool computeShader)
+        public void Build(VFXContext context, string additionnalDefinition, StringBuilder stringBuilder,  VFXExpressionMapper gpuMapper, ref bool computeShader)
         {
             computeShader = m_computeShader;
 
@@ -150,6 +150,7 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var globalIncludeContent = new StringBuilder();
+            globalIncludeContent.AppendLine(additionnalDefinition);
             globalIncludeContent.AppendLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.AppendLine("#define NB_THREADS_PER_GROUP 256");
             foreach (var attribute in attributes.Select(o => o.attrib))
