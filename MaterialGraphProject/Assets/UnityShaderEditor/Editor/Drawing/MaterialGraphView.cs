@@ -135,7 +135,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return EventPropagation.Stop;
 
             nodalViewData.RemoveElements(
-                selection.OfType<MaterialNodeDrawer>().Select(x => x.GetPresenter<GraphNodePresenter>()),
+                selection.OfType<MaterialNodeDrawer>().Select(x => x.GetPresenter<MaterialNodePresenter>()),
                 selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
                 );
 
@@ -151,12 +151,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeDrawer>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer
                             .OfType<MaterialNodeDrawer>()
-                            .FirstOrDefault(drawer => ((GraphNodePresenter) drawer.presenter).node.guid == guid))
+                            .FirstOrDefault(drawer => ((MaterialNodePresenter) drawer.presenter).node.guid == guid))
                 .ToList();
 
             ClearSelection();
