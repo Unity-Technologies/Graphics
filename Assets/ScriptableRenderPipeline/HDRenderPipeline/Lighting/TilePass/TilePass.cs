@@ -802,7 +802,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.lightType = gpuLightType;
 
                 lightData.positionWS = light.light.transform.position;
-                lightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
+                lightData.invSqrAttenuationRadius = additionalLightData.applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
                 lightData.color = GetLightColor(light);
 
                 lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
@@ -853,7 +854,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                     return false;
 
-                lightData.IESIndex = -1;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
 
@@ -892,6 +892,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightData.shadowIndex = shadowIdx;
                 }
+
+                // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
+                lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
                 m_lightList.lights.Add(lightData);
 
@@ -1416,7 +1419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        var probe = cullResults.visibleReflectionProbes[probeIndex];
+                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
 
                         // probe.texture can be null when we are adding a reflection probe in the editor
                         if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
@@ -1426,8 +1429,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
                         ++envLightCount;
 
-                        // 16 bit lightVolume, 16 bit index
-                        sortKeys[sortCount++] = (uint)lightVolumeType << 16 | (uint)probeIndex;
+                        float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
+                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.1f), 0, 8191); // Allow for negative exponents
+
+                        // 13 bit volume, 3 bit LightVolumeType, 16 bit index
+                        sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
@@ -1437,7 +1443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = sortKeys[sortIndex];
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0xFFFF);
+                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
                         int probeIndex = (int)(sortKey & 0xFFFF);
 
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
@@ -1478,6 +1484,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+                bool isOrthographic = camera.orthographic;
+                cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjection, projscr);
@@ -1538,6 +1546,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
                 var projscr = temp * proj;
                 var invProjscr = projscr.inverse;
+                bool isOrthographic = camera.orthographic;
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
 
@@ -1551,6 +1560,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var projh = temp * proj;
                     var invProjh = projh.inverse;
 
+                    cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                     cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
@@ -1563,6 +1573,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
                 if (m_TileSettings.enableBigTilePrepass)
                 {
+                    cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
@@ -1584,6 +1595,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (usingFptl)       // optimized for opaques only
                 {
+                    cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
@@ -1986,9 +1998,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
                             int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
                             int transmissionFlags = Shader.GetGlobalInt(HDShaderIDs._TransmissionFlags);
+                            int useDisneySSS = Shader.GetGlobalInt(HDShaderIDs._UseDisneySSS);
                             Vector4[] thicknessRemaps = Shader.GetGlobalVectorArray(HDShaderIDs._ThicknessRemaps);
                             Vector4[] shapeParams = Shader.GetGlobalVectorArray(HDShaderIDs._ShapeParams);
                             Vector4[] transmissionTints = Shader.GetGlobalVectorArray(HDShaderIDs._TransmissionTints);
+                            Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                             Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
 
@@ -2053,17 +2067,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
                                 // Set SSS parameters.
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission, enableSSSAndTransmission);
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._TexturingModeFlags,       texturingModeFlags);
-                                cmd.SetComputeIntParam(   deferredComputeShader, HDShaderIDs._TransmissionFlags,        transmissionFlags);
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,     thicknessRemaps);
-                                // We are currently supporting two different SSS mode: Jimenez (with 2-Gaussian profile) and Disney
-                                // We have added the ability to switch between each other for subsurface scattering, but for transmittance this is more tricky as we need to add
-                                // shader variant for forward, gbuffer and deferred shader. We want to avoid this.
-                                // So for transmittance we use Disney profile formulation (that we know is more correct) in both case, and in the case of Jimenez we hack the parameters with 2-Gaussian parameters (Ideally we should fit but haven't find good fit) so it approximately match.
-                                // Note: Jimenez SSS is in cm unit whereas Disney is in mm unit making an inconsistency here to compare model side by side
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,       shapeParams);
-                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints, transmissionTints);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TexturingModeFlags,         texturingModeFlags);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TransmissionFlags,          transmissionFlags);
+                                cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._UseDisneySSS,               useDisneySSS);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,            thicknessRemaps);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,                shapeParams);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints,          transmissionTints);
+                                cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._HalfRcpVariancesAndWeights, halfRcpVariancesAndWeights);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);

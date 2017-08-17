@@ -76,7 +76,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         result = (builtinData.emissiveColor / builtinData.emissiveIntensity); needLinearToSRGB = true;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
-        result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity unity is 1m
+        result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity is 1m
         break;
     }
 }

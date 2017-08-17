@@ -130,6 +130,8 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
+    - _CoatCoverage: 1
+    - _CoatIOR: 0.5
     - _CullMode: 0
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
@@ -182,7 +184,7 @@ Material:
     - _SrcBlend: 1
     - _StencilRef: 1
     - _Stiffness: 1
-    - _SubsurfaceProfile: 0
+    - _SubsurfaceProfile: 1
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TessellationBackFaceCullEpsilon: -0.375
@@ -194,7 +196,7 @@ Material:
     - _TessellationObjectScale: 0
     - _TessellationShapeFactor: 0.75
     - _TexWorldScale: 1
-    - _Thickness: 0.5
+    - _Thickness: 1
     - _UVBase: 0
     - _UVDetail: 0
     - _UVMappingPlanar: 0

@@ -36,9 +36,8 @@
 // Use optimization of Precomputing LambdaV
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
-// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
-// Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
+// Area light textures specific constant
 SamplerState ltc_linear_clamp_sampler;
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
@@ -51,6 +50,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+
+// Subsurface scattering specific constant
 #define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
@@ -58,10 +59,14 @@ CBUFFER_START(UnitySSSParameters)
 uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+// Old SSS Model >>>
+uint   _UseDisneySSS;
+float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
+// <<< Old SSS Model
 // Use float4 to avoid any packing issue between compute and pixel shaders
 float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
-float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = color, A = unused
+float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
 
 //-----------------------------------------------------------------------------
@@ -106,19 +111,19 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 19 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
 
-    // Future usage
-    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED0,
-    /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED0,
+    // ClearCoat
+    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
 
     // Future usage
-    /* 25 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 26 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 27 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 28 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED1,
-    /* 29 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED1,
+    /* 25 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED,
+    /* 26 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED,
+    /* 27 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED,
+    /* 28 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED,
+    /* 29 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED,
 
     /* 30 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
@@ -151,6 +156,89 @@ float PackMaterialId(int materialId)
 int UnpackMaterialId(float f)
 {
     return int(round(f * 3.0));
+}
+
+void FillMaterialIdStandardData(float3 baseColor, float metallic, inout BSDFData bsdfData)
+{
+    bsdfData.diffuseColor = baseColor * (1.0 - metallic);
+    float val = DEFAULT_SPECULAR_VALUE;
+    bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
+}
+
+void FillMaterialIdAnisoData(float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
+{
+    bsdfData.tangentWS = tangentWS;
+    bsdfData.bitangentWS = cross(normalWS, tangentWS);
+    ConvertAnisotropyToRoughness(roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    bsdfData.anisotropy = anisotropy;
+}
+
+void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
+{
+    bsdfData.diffuseColor = baseColor;
+
+    bsdfData.fresnel0 = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
+    bsdfData.subsurfaceProfile = subsurfaceProfile;
+    bsdfData.subsurfaceRadius  = subsurfaceRadius;
+    bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
+
+    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
+
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
+    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
+
+    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
+
+    bool enableSssAndTransmission = true;
+
+#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
+    enableSssAndTransmission = false;
+#elif (SSS_PASS == 0)
+    enableSssAndTransmission = _EnableSSSAndTransmission != 0;
+#endif
+
+    if (enableSssAndTransmission) // If we globally disable SSS effect, don't modify diffuseColor
+    {
+        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+        if (performPostScatterTexturing)
+        {
+        #ifndef SSS_PASS
+            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
+        #endif
+        }
+        else
+        {
+            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        }
+    }
+
+    if (bsdfData.enableTransmission)
+    {
+        if (_UseDisneySSS)
+        {
+            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
+                                                          _TransmissionTints[subsurfaceProfile].rgb,
+                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
+        else
+        {
+            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
+                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
+                                                                 _TransmissionTints[subsurfaceProfile].rgb,
+                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
+        }
+
+        bsdfData.transmittance *= bsdfData.diffuseColor; // Premultiply
+    }
+}
+
+void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float coatIOR, inout BSDFData bsdfData)
+{
+    bsdfData.coatNormalWS = lerp(bsdfData.normalWS, coatNormalWS, coatCoverage);
+    bsdfData.coatIOR = lerp(1.0, 1.0 + coatIOR, coatCoverage);
+    bsdfData.coatCoverage = coatCoverage;
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -195,72 +283,6 @@ void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
 #endif
 }
 
-static const float3 convertSpecularToValue = float3(0.02, 0.04, 0.20);
-
-void FillMaterialIdStandardData(float3 baseColor, int specular, float metallic, inout BSDFData bsdfData)
-{
-    bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-    float val = convertSpecularToValue[specular];
-    bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
-}
-
-void FillMaterialIdAnisoData(float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
-{
-    bsdfData.tangentWS = tangentWS;
-    bsdfData.bitangentWS = cross(normalWS, tangentWS);
-    ConvertAnisotropyToRoughness(roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
-    bsdfData.anisotropy = anisotropy;
-}
-
-void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
-{
-    bsdfData.diffuseColor = baseColor;
-
-    // TODO take from subsurfaceProfile
-    bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
-    bsdfData.subsurfaceProfile = subsurfaceProfile;
-    bsdfData.subsurfaceRadius  = subsurfaceRadius;
-    bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile].x +
-                                 _ThicknessRemaps[subsurfaceProfile].y * thickness;
-
-    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
-
-    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
-    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
-
-    if (bsdfData.enableTransmission)
-    {
-        bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
-                                                      _TransmissionTints[subsurfaceProfile].rgb,
-                                                      bsdfData.thickness, bsdfData.subsurfaceRadius);
-    }
-
-    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
-
-    bool enableSssAndTransmission = true;
-
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
-    enableSssAndTransmission = false;
-#elif (SSS_PASS == 0)
-    enableSssAndTransmission = _EnableSSSAndTransmission != 0;
-#endif
-
-    if (enableSssAndTransmission) // If we globally disable SSS effect, don't modify diffuseColor
-    {
-        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-        if (performPostScatterTexturing)
-        {
-        #ifndef SSS_PASS
-            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-        #endif
-        }
-        else
-        {
-            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
-        }
-    }
-}
-
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -281,24 +303,29 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     // IMPORTANT: In case of foward or gbuffer pass we must know what we are statically, so compiler can do compile time optimization
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        if (surfaceData.specular == SPECULARVALUE_SPECULAR_COLOR)
-        {
-            bsdfData.diffuseColor = surfaceData.baseColor;
-            bsdfData.fresnel0 = surfaceData.specularColor;
-        }
-        else
-        {
-            FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
-        }
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
+    }
+    else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
+    {
+        // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
+        bsdfData.materialId = MATERIALID_LIT_STANDARD;
+        bsdfData.diffuseColor = surfaceData.baseColor;
+        bsdfData.fresnel0 = surfaceData.specularColor;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData);
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdAnisoData(bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
+    }
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // When using clear coat we assume that bottom layer is regular
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
+        FillMaterialIdClearCoatData(surfaceData.coatNormalWS, surfaceData.coatCoverage, surfaceData.coatIOR, bsdfData);
     }
 
     return bsdfData;
@@ -323,9 +350,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                         #endif
                         )
 {
-    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3;
-    #endif
+#endif
 
     ApplyDebugToSurfaceData(surfaceData);
 
@@ -336,7 +363,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
     // Encode normal on 20bit with oct compression + 2bit of sign
-    float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctEncode((surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT) ? surfaceData.coatNormalWS : surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
     // Store octNormalSign on two bits with perceptualRoughness
@@ -345,35 +372,36 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // RT2 - 8:8:8:8
     if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
     {
-        // Encode specular on two bit for the enum
-        // Note: we encode two parametrization at the same time, specularColor and metal/specular
-        if (surfaceData.specular == SPECULARVALUE_SPECULAR_COLOR)
-        {
-            outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, surfaceData.specular, 4.0)); // As all is static, Pack function should produce the result compile time
-        }
-        else
-        {
-            // Note: it is important to setup anisotropy field to 0 else materialId will be anisotropic
-            outGBuffer2 = float4(float3(0.0, 0.0, 0.0), PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
-        }
+        outGBuffer2 = float4(float3(0.0, 0.0, 0.0), PackFloatInt8bit(surfaceData.metallic, GBUFFER_LIT_STANDARD_REGULAR_ID, 4.0));
+    }
+    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
+    {
+        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID value in GBuffer2
+        outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
-        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // We save 1bit in gbuffer1 and use aniso value instead to detect we are aniso
+        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_ANISOTROPIC_ID value in GBuffer2
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-        // To be recognize as anisotropic material, we need to have anisotropy > 0 (Else artits can be confuse to not have anisotropic material in material classification), thus the max
-        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, max(surfaceData.anisotropy, 1.5 / 255.0), PackFloatInt8bit(surfaceData.metallic, surfaceData.specular, 4.0));
+        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, GBUFFER_LIT_STANDARD_ANISOTROPIC_ID, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0, PackByte(surfaceData.subsurfaceProfile));
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
+    }
+    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // In the cae of clear coat, we want more precision for the coat normal than for the bottom normal (as it is expected to be smooth). So swap the normal encoding storage in Gbuffer.
+        // It also allow to use clear coat normal for SSR
+        float2 octBottomNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+        outGBuffer2 = float4(octBottomNormalWS * 0.5 + 0.5, surfaceData.coatCoverage, PackFloatInt8bit(surfaceData.coatIOR, (int)(surfaceData.metallic * 15.5f), 16.0) );
     }
 
     // Lighting
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
 
-    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     // Now pack all buffer into 2 uint buffer
 
     // We don't have hardware sRGB to store base color in case we pack int u16, so rather than perform full sRGB encoding just use cheap gamma20
@@ -393,7 +421,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                             PackFloatToUInt(outGBuffer2.z, 8, 0)  | PackFloatToUInt(outGBuffer2.w, 8, 8),
                             (packedGBuffer3 & 0x0000FFFF),
                             (packedGBuffer3 & 0xFFFF0000) >> 16);
-    #endif
+#endif
 }
 
 float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
@@ -462,8 +490,9 @@ void DecodeFromGBuffer(
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
     int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
     int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
+    int supportClearCoat = (featureFlags & (MATERIALFEATUREFLAGS_LIT_CLEAR_COAT)) != 0;
 
-    if (supportsStandard + supportsSSS > 1)
+    if (supportsStandard + supportsSSS + supportClearCoat > 1)
     {
         // only fetch materialid if it is not statically known from feature flags
         bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
@@ -473,57 +502,63 @@ void DecodeFromGBuffer(
         // materialid is statically known. this allows the compiler to eliminate a lot of code.
         if (supportsStandard)
             bsdfData.materialId = MATERIALID_LIT_STANDARD;
-        else // if (supportsSSS)
+        else if (supportsSSS)
             bsdfData.materialId = MATERIALID_LIT_SSS;
+        else
+            bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
         float metallic;
-        int specular;
-        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, specular);
+        int materialIdExtent;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, materialIdExtent);
         float anisotropy = inGBuffer2.b;
 
         if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_STANDARD)
         {
-            if (specular == SPECULARVALUE_SPECULAR_COLOR)
+            if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
             {
+                // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
+                // For material classification it will be consider as Standard as well, thus no need to create special case
                 bsdfData.diffuseColor = baseColor;
                 bsdfData.fresnel0 = inGBuffer2.rgb;
             }
             else
             {
-                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
             }
         }
         else if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_ANISO)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
-            FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+            FillMaterialIdStandardData(baseColor, metallic, bsdfData);
             float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
             FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
         }
         else // either MATERIAL_FEATURE_MASK_FLAGS or MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO
         {
-            if (specular == SPECULARVALUE_SPECULAR_COLOR)
+            if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
             {
+                // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
+                // For material classification it will be consider as Standard as well, thus no need to create special case
                 bsdfData.diffuseColor = baseColor;
                 bsdfData.fresnel0 = inGBuffer2.rgb;
             }
-            else if (anisotropy > 0.0)
+            else if (materialIdExtent == GBUFFER_LIT_STANDARD_ANISOTROPIC_ID)
             {
                 bsdfData.materialId = MATERIALID_LIT_ANISO;
-                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
                 float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
                 FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
             }
-            else
+            else // GBUFFER_LIT_STANDARD_REGULAR_ID
             {
-                FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData);
+                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
             }
         }
     }
-    else // bsdfData.materialId == MATERIALID_LIT_SSS
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         float subsurfaceRadius  = inGBuffer2.x;
         float thickness         = inGBuffer2.y;
@@ -531,10 +566,27 @@ void DecodeFromGBuffer(
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
+    else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // We have swap the encoding of the normal to have more precision for coat normal as it is more smooth
+        float3 coatNormalWS = bsdfData.normalWS;
+        bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+
+        float coatCoverage = inGBuffer2.b;
+        float coatIOR;
+        int metallic;
+        UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatIOR, metallic);
+
+        // When using clear coat we assume that bottom layer is regular
+        FillMaterialIdStandardData(baseColor, metallic / 15.0f, bsdfData);
+        FillMaterialIdClearCoatData(coatNormalWS, coatCoverage, coatIOR, bsdfData);
+    }
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 }
 
+// Function call from the material classification compute shader
+// Note that as we store materialId on two buffer (for anisotropy case), the code need to load 2 RGBA8 buffer
 uint MaterialFeatureFlagsFromGBuffer(
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     GBufferType0 inGBufferU0,
@@ -572,14 +624,6 @@ uint MaterialFeatureFlagsFromGBuffer(
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
-
-    switch (paramId)
-    {
-        // TODO: Remap here!
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
-            result = surfaceData.specular.xxx;
-            break;
-    }
 }
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
@@ -595,7 +639,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     // General
-    float NdotV;                         // Geometric version (not clamped)
+    float NdotV;                         // Geometric version (could be negative)
 
     // GGX iso
     float ggxLambdaV;
@@ -605,40 +649,102 @@ struct PreLightData
     float BdotV;
     float anisoGGXLambdaV;
 
+    // Clear coat
+    float coatNdotV;
+    float ieta;
+    float coatFresnel0;
+    float3 coatV;
+    float3 refractV; // The view vector refracted through clear coat interface
+
     // IBL
     float3 iblDirWS;                     // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblMipLevel;
 
+    // IBL clear coat
+    float3 coatIblDirWS;
+
     float3 specularFGD;                  // Store preconvoled BRDF for both specular and diffuse
     float diffuseFGD;
 
-    // area light
-    float3x3 ltcXformGGX;                // TODO: make sure the compiler not wasting VGPRs on constants
-    float3x3 ltcXformDisneyDiffuse;      // TODO: make sure the compiler not wasting VGPRs on constants
-    float    ltcGGXFresnelMagnitudeDiff; // The difference of magnitudes of GGX and Fresnel
-    float    ltcGGXFresnelMagnitude;
-    float    ltcDisneyDiffuseMagnitude;
+    // Area lights (17 VGPRs)
+    float3x3 orthoBasisViewNormal; // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
+    float3x3 ltcTransformDiffuse;  // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
+    float3x3 ltcTransformSpecular; // Inverse transformation for GGX                                 (4x VGPRs)
+    float    ltcMagnitudeDiffuse;
+    float3   ltcMagnitudeFresnel;
+
+    // area light clear coat
+    float3x3 ltcXformClearCoat;                // TODO: make sure the compiler not wasting VGPRs on constants
+    float    ltcClearCoatFresnelTerm;
+    float3x3 ltcCoatT;
 };
+
+// This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
+float3 ClearCoatTransform(float3 X, float3 N, float ieta)
+{
+    float XdotN = saturate(dot(N, X));
+    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
+}
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
 
-    float NdotV = dot(bsdfData.normalWS, V);
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
+        preLightData.ieta = ieta;
+        preLightData.coatFresnel0 = Sqr(bsdfData.coatIOR - 1.0) / Sqr(bsdfData.coatIOR + 1.0);
 
-    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V);
+        preLightData.coatNdotV = dot(bsdfData.coatNormalWS, V);
 
-    preLightData.NdotV = NdotV;      // Store the unaltered (geometric) version
-    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+        // Clear coat IBL
 
+        // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
+        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V);
+        preLightData.coatIblDirWS = reflect(-V, coatIblNormalWS);
+
+        // Clear coat area light
+        float theta = FastACos(preLightData.coatNdotV);
+        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(0.0, theta * INV_HALF_PI); // Use Roughness of 0.0 for clearCoat roughness
+
+                                                                                       // Get the inverse LTC matrix for GGX
+                                                                                       // Note we load the matrix transpose (avoid to have to transpose it in shader)
+        preLightData.ltcXformClearCoat = 0.0;
+        preLightData.ltcXformClearCoat._m22 = 1.0;
+        preLightData.ltcXformClearCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+
+        float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+        float ltcClearCoatFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
+        float ltcClearCoatFresnelMagnitude = ltcMagnitude.g;
+        preLightData.ltcClearCoatFresnelTerm = preLightData.coatFresnel0 * ltcClearCoatFresnelMagnitudeDiff + ltcClearCoatFresnelMagnitude;
+
+        // TODO: Convert the area light with respect to Fresnel transmission
+        float3 N = bsdfData.coatNormalWS; // TODO : check with Laurentb
+        preLightData.ltcCoatT = float3x3(   ieta + (1.0 - ieta) * N.x * N.x, 0.0 + (1.0 - ieta) * N.y * N.x, 0.0 + (1.0 - ieta) * N.z * N.x,
+                                            0.0 + (1.0 - ieta) * N.x * N.y, ieta + (1.0 - ieta) * N.y * N.y, 0.0 + (1.0 - ieta) * N.z * N.y,
+                                            0.0 + (1.0 - ieta) * N.x * N.z, 0.0 + (1.0 - ieta) * N.y * N.z, ieta + (1.0 - ieta) * N.z * N.z );
+
+        // Modify V for following calculation
+        preLightData.refractV = ClearCoatTransform(V, bsdfData.coatNormalWS, ieta);
+        V = preLightData.refractV;
+    }
+
+    preLightData.NdotV = dot(bsdfData.normalWS, V); // Store the unaltered (geometric) version
+    float NdotV = preLightData.NdotV;
+
+    // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
+    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V); // Use non clamped NdotV
     float3 iblR = reflect(-V, iblNormalWS);
+
+    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX iso
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
-    preLightData.TdotV = 0;
-    preLightData.BdotV = 0;
+    preLightData.TdotV = 0.0;
+    preLightData.BdotV = 0.0;
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
@@ -656,30 +762,74 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // IBL
     GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
-    preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, bsdfData.roughness, NdotV);
-    preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // Update the roughness and the IBL miplevel
+        // Bottom layer is affected by upper layer BRDF, result can't be more sharp than input (it is to mimic what a path tracer will do)
+        float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        float shininess = Sqr(preLightData.ieta) * (2.0 / Sqr(roughness) - 2.0);
+        roughness = sqrt(2.0 / (shininess + 2.0));
+        preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, roughness, NdotV);
+        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(RoughnessToPerceptualRoughness(roughness));
+    }
+    else
+    {
+        preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, bsdfData.roughness, NdotV);
+        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    }
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACos(NdotV);
+    float theta = FastACos(NdotV); // For Area light - UVs for sampling the LUTs
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    preLightData.ltcTransformDiffuse = k_identity3x3;
+#else
+    // Get the inverse LTC matrix for Disney Diffuse
+    preLightData.ltcTransformDiffuse      = 0.0;
+    preLightData.ltcTransformDiffuse._m22 = 1.0;
+    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
+#endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcXformGGX      = 0.0;
-    preLightData.ltcXformGGX._m22 = 1.0;
-    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+    preLightData.ltcTransformSpecular      = 0.0;
+    preLightData.ltcTransformSpecular._m22 = 1.0;
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
-    // Get the inverse LTC matrix for Disney Diffuse
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcXformDisneyDiffuse      = 0.0;
-    preLightData.ltcXformDisneyDiffuse._m22 = 1.0;
-    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
+    // Construct a right-handed view-dependent orthogonal basis around the normal
+    preLightData.orthoBasisViewNormal[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
+    preLightData.orthoBasisViewNormal[2] = bsdfData.normalWS;
+    preLightData.orthoBasisViewNormal[1] = normalize(cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]));
 
     float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
-    preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
-    preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
-    preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
+    float  ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
+    float  ltcGGXFresnelMagnitude     = ltcMagnitude.g;
+    float  ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
+
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    preLightData.ltcMagnitudeDiffuse = 1;
+#else
+    preLightData.ltcMagnitudeDiffuse = ltcDisneyDiffuseMagnitude;
+#endif
+
+    // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
+    // to match the reference for rough metals, but further darkens dielectrics.
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
+        float F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
+        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F /= preLightData.ieta; //TODO: LaurentB why / ieta here and not for other lights ?
+
+        preLightData.ltcMagnitudeFresnel = F * bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+    }
+    else
+    {
+        preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+    }
 
     return preLightData;
 }
@@ -730,6 +880,33 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
+    float3 F = 1.0;
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
+        float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
+        float NdotV = preLightData.coatNdotV;
+        float LdotV = dot(L, V);
+        float invLenLV = rsqrt(abs(2 * LdotV + 2));
+        float NdotH = saturate((NdotL + NdotV) * invLenLV);
+        float LdotH = saturate(invLenLV * LdotV + invLenLV);
+
+        // Evaluate Fresnel on the Clear Coat
+        F = F_Schlick(preLightData.coatFresnel0, LdotH);
+        // TODO: No need to call D (to see with LaurentB) + question on * NdotL
+        specularLighting += F * D_GGX(NdotH, 0.01) * NdotL * bsdfData.coatCoverage;
+
+        // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
+        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+
+        // Change the Light and View direction to account for IOR change.
+        // Update the half vector accordingly
+        V = preLightData.refractV;
+        L = ClearCoatTransform(L, bsdfData.coatNormalWS, preLightData.ieta);
+    }
+
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
@@ -740,12 +917,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     NdotV          = max(NdotV, MIN_N_DOT_V);             // Use the modified (clamped) version
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    F *= F_Schlick(bsdfData.fresnel0, LdotH);
 
     float Vis;
     float D;
-    // TODO: this way of handling aniso may not be efficient, or maybe with material classification, need to check perf here
-    // Maybe always using aniso maybe a win ?
+
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         float3 H = (L + V) * invLenLV;
@@ -780,7 +956,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting = F * (Vis * D);
+    specularLighting += F * (Vis * D);
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
@@ -791,6 +967,19 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #endif
 
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
+}
+
+// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+// We assume that the back side of the object is a uniformly illuminated infinite plane
+// with the reversed normal (and the view vector) of the current sample.
+float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
+{
+    // For low thickness, we can reuse the shadowing status for the back of the object.
+    shadow = bsdfData.useThinObjectMode ? shadow : 1;
+
+    float backLight = intensity * shadow;
+
+    return backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
 }
 
 //-----------------------------------------------------------------------------
@@ -811,8 +1000,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     diffuseLighting  = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
-    float3 cookie    = float3(1, 1, 1);
-    float  shadow    = 1;
+    float shadow     = 1;
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -829,7 +1017,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
     	float2   positionNDC    = positionLS.xy;
 
-        float clipFactor = 1.0f;
+        float clipFactor;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
@@ -838,6 +1026,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         {
             // Tile the texture if the 'repeat' wrap mode is enabled.
             coord = frac(coord);
+            clipFactor = 1;
         }
         else
         {
@@ -847,40 +1036,36 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
         // We let the sampler handle tiling or clamping to border.
         // Note: tiling (the repeat mode) is not currently supported.
-        float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
-        // Use premultiplied alpha to save 1x VGPR.
-        cookie = c.rgb * c.a * clipFactor;
+        // Premultiply.
+        cookie.a                *= clipFactor;
+        lightData.color         *= cookie.rgb;
+        lightData.diffuseScale  *= cookie.a;
+        lightData.specularScale *= cookie.a;
     }
 
     [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= (cookie * lightData.color) * (illuminance * lightData.diffuseScale);
-        specularLighting *= (cookie * lightData.color) * (illuminance * lightData.specularScale);
+        diffuseLighting  *= illuminance * lightData.diffuseScale;
+        specularLighting *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-        // We assume that the back side of the object is a uniformly illuminated infinite plane
-        // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
-
-        // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
-        illuminance *= shadow;
-
-        float3 backLight = (cookie * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
-        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
+        // to compensate for approximations within EvaluateTransmission().
+        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += transmittedLight;
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 }
 
 //-----------------------------------------------------------------------------
@@ -901,19 +1086,23 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     // For point light and directional GetAngleAttenuation() return 1
 
     float3 lightToSurface = positionWS - lightData.positionWS;
-    float3 unL = -lightToSurface;
-    float3 L   = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
+    float3 unL   = -lightToSurface;
+    float3 L     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
+    float  NdotL = dot(bsdfData.normalWS, L);
+    float  illuminance = saturate(NdotL);
 
+    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
     float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-    float NdotL = dot(bsdfData.normalWS, L);
-    float illuminance = saturate(NdotL * attenuation);
+
+    // Premultiply.
+    lightData.diffuseScale  *= attenuation;
+    lightData.specularScale *= attenuation;
 
     diffuseLighting  = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
     specularLighting = float3(0, 0, 0); // TODO: check whether using 'out' instead of 'inout' increases the VGPR pressure
-    float3 cookie    = float3(1, 1, 1);
-    float  shadow    = 1;
+    float shadow     = 1;
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -934,12 +1123,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
         float3   positionLS   = mul(lightToSurface, transpose(lightToWorld));
 
+        float4 cookie;
+
         [branch] if (lightType == GPULIGHTTYPE_POINT)
         {
-            float4 c = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
-
-            // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * c.a;
+            cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
         }
         else
         {
@@ -954,41 +1142,39 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float2 coord = positionNDC * 0.5 + 0.5;
 
             // We let the sampler handle clamping to border.
-            float4 c = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
-            // Use premultiplied alpha to save 1x VGPR.
-            cookie = c.rgb * (c.a * clipFactor);
+            cookie.a *= clipFactor;
         }
+
+        // Premultiply.
+        lightData.color         *= cookie.rgb;
+        lightData.diffuseScale  *= cookie.a;
+        lightData.specularScale *= cookie.a;
     }
 
     [branch] if (illuminance > 0.0)
     {
+        bsdfData.roughness = max(bsdfData.roughness, lightData.minRoughness); // Simulate that a punctual ligth have a radius with this hack
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-        diffuseLighting  *= (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
-        specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
+        diffuseLighting  *= illuminance * lightData.diffuseScale;
+        specularLighting *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-        // We assume that the back side of the object is a uniformly illuminated infinite plane
-        // (we reuse the illumination) with the reversed normal of the current sample.
         // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for these approximations.
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
-
-        // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
-        illuminance *= shadow;
-
-        float3 backLight = (cookie.rgb * lightData.color) * (Lambert() * illuminance * lightData.diffuseScale);
-        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
+        // to compensate for approximations within EvaluateTransmission().
+        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += transmittedLight;
+        diffuseLighting += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 }
 
 #include "LitReference.hlsl"
@@ -1034,57 +1220,64 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
-    // TODO: This could be precomputed.
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    lightData.positionWS -= positionWS;
+
+    // TODO: some of this could be precomputed.
     float3 P1 = lightData.positionWS - T * (0.5 * len);
     float3 P2 = lightData.positionWS + T * (0.5 * len);
 
-    // Translate the endpoints s.t. the shaded point is at the origin of the coordinate system.
-    P1 -= positionWS;
-    P2 -= positionWS;
+    // Rotate the endpoints into the local coordinate system.
+    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
+    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
 
-    // Construct a view-dependent orthonormal basis around N.
-    // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
-    float3x3 basis;
-    basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
-    basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
-    basis[2] = bsdfData.normalWS;
-
-    // Rotate the endpoints into the local coordinate system (left-handed).
-    P1 = mul(P1, transpose(basis));
-    P2 = mul(P2, transpose(basis));
-
-    // Compute the binormal.
+    // Compute the binormal in the local coordinate system.
     float3 B = normalize(cross(P1, P2));
 
     float ltcValue;
 
-    // Evaluate the diffuse part.
+    // Evaluate the diffuse part
     {
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);
-    #else
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
-    #endif
-
-    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
-    #endif
-
+        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
         ltcValue *= lightData.diffuseScale;
-        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+        diffuseLighting = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
     }
 
-    // Evaluate the specular part.
+    [branch] if (bsdfData.enableTransmission)
     {
-        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
-        // to match the reference for rough metals, but further darkens dielectrics.
-        float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
-                           + (float3)preLightData.ltcGGXFresnelMagnitude;
+        // Flip the view vector and the normal. The bitangent stays the same.
+        float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                        0,  1,  0,
+                                        0,  0, -1);
 
-        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformGGX);
-        ltcValue *= lightData.specularScale;
-        specularLighting = fresnelTerm * lightData.color * ltcValue;
+        // Use the Lambertian approximation for performance reasons.
+        // The matrix multiplication should not generate any extra ALU on GCN.
+        ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
+        ltcValue *= lightData.diffuseScale;
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
+
+    // Evaluate the coat part
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // TODO
+        // ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformClearCoat);
+        // ltcValue *= lightData.specularScale;
+        // specularLighting = preLightData.ltcClearCoatFresnelTerm * (ltcValue * bsdfData.coatCoverage);
+    }
+
+    // Evaluate the specular part
+    {
+        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
+        ltcValue *= lightData.specularScale;
+        specularLighting += preLightData.ltcMagnitudeFresnel * ltcValue;
+    }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
@@ -1149,43 +1342,73 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
-    // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
-    float3 p0 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    float3 p1 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    lightData.positionWS -= positionWS;
 
-    float4x3 matL = float4x3(p0, p1, p2, p3) - float4x3(positionWS, positionWS, positionWS, positionWS);
+    float4x3 lightVerts;
+
+    // TODO: some of this could be precomputed.
+    lightVerts[0] = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+
+    // Rotate the endpoints into the local coordinate system.
+    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
     float ltcValue;
 
-    // Evaluate the diffuse part.
+    // Evaluate the diffuse part
     {
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, k_identity3x3);
-    #else
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformDisneyDiffuse);
-    #endif
-
-    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
-    #endif
-
+        // Polygon irradiance in the transformed configuration.
+        ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
         ltcValue *= lightData.diffuseScale;
-        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+        diffuseLighting = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
     }
 
-    // Evaluate the specular part.
+    [branch] if (bsdfData.enableTransmission)
     {
-        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
-        // to match the reference for rough metals, but further darkens dielectrics.
-        float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
-                           + (float3)preLightData.ltcGGXFresnelMagnitude;
+        // Flip the view vector and the normal. The bitangent stays the same.
+        float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                        0,  1,  0,
+                                        0,  0, -1);
 
-        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformGGX);
-        ltcValue *= lightData.specularScale;
-        specularLighting = fresnelTerm * lightData.color * ltcValue;
+        // Use the Lambertian approximation for performance reasons.
+        // The matrix multiplication should not generate any extra ALU on GCN.
+        float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
+
+        // Polygon irradiance in the transformed configuration.
+        ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
+        ltcValue *= lightData.diffuseScale;
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
+
+    // Evaluate the coat part
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        // TODO
+        // ltcValue = LTCEvaluate(lightVerts, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
+        // specularLighting = preLightData.ltcClearCoatFresnelTerm  * (ltcValue * bsdfData.coatCoverage);
+
+        // modify matL value based on Fresnel transmission
+        // matL = mul(matL, preLightData.ltcCoatT);
+
+        // V = preLightData.refractV;
+    }
+
+    // Evaluate the specular part
+    {
+        // Polygon irradiance in the transformed configuration.
+        ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+        ltcValue *= lightData.specularScale;
+        specularLighting += preLightData.ltcMagnitudeFresnel * ltcValue;
+    }
+
+    // Save ALU by applying 'lightData.color' only once.
+    diffuseLighting  *= lightData.color;
+    specularLighting *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
@@ -1252,11 +1475,29 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // We use this formulation as it is the one of legacy unity that was using only AABB box.
 
     float3 R = preLightData.iblDirWS;
+    float3 coatR = preLightData.coatIblDirWS;
+
     float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
     float3 positionLS = positionWS - lightData.positionWS;
     positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
-    if (lightData.envShapeType == ENVSHAPETYPE_BOX)
+    if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
+    {
+        float3 dirLS = mul(R, worldToLocal);
+        float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
+        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+
+        R = (positionWS + dist * R) - lightData.positionWS;
+
+        // Test again for clear code
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        {
+            dirLS = mul(coatR, worldToLocal);
+            dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+        }
+    }
+    else if (lightData.envShapeType == ENVSHAPETYPE_BOX)
     {
         float3 dirLS = mul(R, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
@@ -1267,14 +1508,14 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         R = (positionWS + dist * R) - lightData.positionWS;
 
         // TODO: add distance based roughness
-    }
-    else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
-    {
-        float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
-        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
 
-        R = (positionWS + dist * R) - lightData.positionWS;
+        // Test again for clear code
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        {
+            dirLS = mul(coatR, worldToLocal);
+            dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+        }
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
@@ -1296,13 +1537,29 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // Smooth weighting
     weight.x = 0.0;
-    weight.y = smoothstep01(weight.y);
+    weight.y = Smoothstep01(weight.y);
+
+    float3 F = 1.0;
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    // Evaluate the Clear Coat component if needed and change the BSDF roughness to match Fresnel transmission
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
+
+        // Evaluate the Clear Coat color
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
+        specularLighting += F * preLD.rgb * bsdfData.coatCoverage;
+
+        // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer.
+        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+    }
 
     // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
     // So goal is to split into two category and have an option to say if we parallax correct or not.
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
-    specularLighting = preLD.rgb * preLightData.specularFGD;
+    specularLighting += F * preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
     specularLighting *= bsdfData.specularOcclusion * GetSpecularOcclusion(preLightData.NdotV, lightLoopContext.ambientOcclusion, bsdfData.roughness);

@@ -62,6 +62,7 @@ CGPROGRAM
 #pragma target 3.0
 #pragma vertex vert
 #pragma fragment frag
+#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 #pragma shader_feature _METALLICGLOSSMAP
 #include "UnityCG.cginc"
 #include "UnityStandardBRDF.cginc"
@@ -155,6 +156,7 @@ struct v2f
     float3 positionWS : TEXCOORD1;
     float3 normalWS : TEXCOORD2;
     float4 hpos : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 float4 _MainTex_ST;
@@ -162,6 +164,8 @@ float4 _MainTex_ST;
 v2f vert(appdata_base v)
 {
     v2f o;
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     o.uv = TRANSFORM_TEX(v.texcoord,_MainTex);
     o.hpos = UnityObjectToClipPos(v.vertex);
     o.positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;

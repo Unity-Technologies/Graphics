@@ -72,10 +72,10 @@ struct LightData
     float angleScale;
     float angleOffset;
     float shadowDimmer;
-    int IESIndex;
+    int unused0;
     float2 size;
     int lightType;
-    float unused;
+    float minRoughness;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -195,9 +195,9 @@ float GetShadowDimmer(LightData value)
 {
 	return value.shadowDimmer;
 }
-int GetIESIndex(LightData value)
+int GetUnused0(LightData value)
 {
-	return value.IESIndex;
+	return value.unused0;
 }
 float2 GetSize(LightData value)
 {
@@ -207,9 +207,9 @@ int GetLightType(LightData value)
 {
 	return value.lightType;
 }
-float GetUnused(LightData value)
+float GetMinRoughness(LightData value)
 {
-	return value.unused;
+	return value.minRoughness;
 }
 
 //

@@ -40,7 +40,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_DIR_SMP];
 	uint			        algo     = SHADOW_DISPATCH_DIR_ALG;
 
-	return EvalShadow_CascadedDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth_Blend( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
 
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )

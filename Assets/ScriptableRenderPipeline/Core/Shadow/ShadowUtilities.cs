@@ -97,7 +97,54 @@ namespace UnityEngine.Experimental.Rendering
     }
     public class ShadowUtils
     {
-        public static Matrix4x4 ExtractSpotLightMatrix( VisibleLight vl, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 lightDir, out ShadowSplitData splitData )
+        public static void InvertView( ref Matrix4x4 view, out Matrix4x4 invview )
+        {
+            invview = Matrix4x4.zero;
+            invview.m00 = view.m00; invview.m01 = view.m10; invview.m02 = view.m20;
+            invview.m10 = view.m01; invview.m11 = view.m11; invview.m12 = view.m21;
+            invview.m20 = view.m02; invview.m21 = view.m12; invview.m22 = view.m22;
+            invview.m33 = 1.0f;
+            invview.m03 = -(invview.m00 * view.m03 + invview.m01 * view.m13 + invview.m02 * view.m23);
+            invview.m13 = -(invview.m10 * view.m03 + invview.m11 * view.m13 + invview.m12 * view.m23);
+            invview.m23 = -(invview.m20 * view.m03 + invview.m21 * view.m13 + invview.m22 * view.m23);
+        }
+
+        public static void InvertOrthographic( ref Matrix4x4 proj, ref Matrix4x4 view, out Matrix4x4 vpinv )
+        {
+            Matrix4x4 invview;
+            InvertView( ref view, out invview );
+
+            Matrix4x4 invproj = Matrix4x4.zero;
+            invproj.m00 = 1.0f / proj.m00;
+            invproj.m11 = 1.0f / proj.m11;
+            invproj.m22 = 1.0f / proj.m22;
+            invproj.m33 = 1.0f;
+            invproj.m03 =   proj.m03 * invproj.m00;
+            invproj.m13 =   proj.m13 * invproj.m11;
+            invproj.m23 = - proj.m23 * invproj.m22;
+
+            vpinv = invview * invproj;
+        }
+
+        public static void InvertPerspective( ref Matrix4x4 proj, ref Matrix4x4 view, out Matrix4x4 vpinv )
+        {
+            Matrix4x4 invview;
+            InvertView(ref view, out invview);
+
+            Matrix4x4 invproj = Matrix4x4.zero;
+            invproj.m00 = 1.0f / proj.m00;
+            invproj.m03 = proj.m02 * invproj.m00;
+            invproj.m11 = 1.0f / proj.m11;
+            invproj.m13 = proj.m12 * invproj.m11;
+            invproj.m22 = 0.0f;
+            invproj.m23 = -1.0f;
+            invproj.m33 = proj.m22 / proj.m23;
+            invproj.m32 = invproj.m33 / proj.m22;
+
+            vpinv = invview * invproj;
+        }
+
+        public static Matrix4x4 ExtractSpotLightMatrix( VisibleLight vl, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData )
         {
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set( 0.0f, 0.0f, 0.0f, float.NegativeInfinity );
@@ -118,11 +165,12 @@ namespace UnityEngine.Experimental.Rendering
             float fov = vl.spotAngle;
             proj = Matrix4x4.Perspective(fov, 1.0f, znear, zfar);
             // and the compound
+            InvertPerspective( ref proj, ref view, out vpinverse );
             return proj * view;
         }
 
 
-        public static Matrix4x4 ExtractPointLightMatrix( VisibleLight vl, uint faceIdx, float fovBias, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 lightDir, out ShadowSplitData splitData )
+        public static Matrix4x4 ExtractPointLightMatrix( VisibleLight vl, uint faceIdx, float fovBias, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData )
         {
             Debug.Assert( faceIdx <= (uint) CubemapFace.NegativeZ, "Tried to extract cubemap face " + faceIdx + "." );
 
@@ -152,10 +200,11 @@ namespace UnityEngine.Experimental.Rendering
             float nearPlane = vl.light.shadowNearPlane >= nearmin ? vl.light.shadowNearPlane : nearmin;
             proj = Matrix4x4.Perspective( 90.0f + fovBias, 1.0f, nearPlane, farPlane );
             // and the compound
+            InvertPerspective( ref proj, ref view, out vpinverse );
             return proj * view;
         }
 
-        public static Matrix4x4 ExtractDirectionalLightMatrix( VisibleLight vl, uint cascadeIdx, int cascadeCount, float[] splitRatio, float nearPlaneOffset, uint width, uint height, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 lightDir, out ShadowSplitData splitData, CullResults cullResults, int lightIndex )
+        public static Matrix4x4 ExtractDirectionalLightMatrix( VisibleLight vl, uint cascadeIdx, int cascadeCount, float[] splitRatio, float nearPlaneOffset, uint width, uint height, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData, CullResults cullResults, int lightIndex )
         {
             Debug.Assert( width == height, "Currently the cascaded shadow mapping code requires square cascades." );
             splitData = new ShadowSplitData();
@@ -171,6 +220,7 @@ namespace UnityEngine.Experimental.Rendering
                 ratios[i] = splitRatio[i];
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
             // and the compound
+            InvertOrthographic( ref proj, ref view, out vpinverse );
             return proj * view;
         }
 

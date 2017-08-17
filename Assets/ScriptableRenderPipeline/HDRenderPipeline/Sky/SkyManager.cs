@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
                 m_SkyboxCubemapRT.useMipMap = true;
-                m_SkyboxCubemapRT.autoGenerateMips = true; // Generate regular mipmap for filtered importance sampling
+                m_SkyboxCubemapRT.autoGenerateMips = false; // We will generate regular mipmap for filtered importance sampling manually
                 m_SkyboxCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxCubemapRT.Create();
 
@@ -314,6 +314,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
                 m_Renderer.RenderSky(builtinParams, skySettings, true);
             }
+
+            // Generate mipmap for our cubemap
+            Debug.Assert(target.autoGenerateMips == false);
+            builtinParams.commandBuffer.GenerateMips(target);
         }
 
         private void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
@@ -329,6 +333,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
 
+            // Generate mipmap for our cubemap
+            Debug.Assert(dest.autoGenerateMips == false);
+            cmd.GenerateMips(dest);
         }
 
         private void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
@@ -377,7 +384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {
-            // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed direclty but the renderloop is not (so we need to wait for the sky texture to be rendered first)
+            // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
             if (m_NeedLowLevelUpdateEnvironment)
             {
                 using (new Utilities.ProfilingSample("DynamicGI.UpdateEnvironment", cmd))
@@ -428,15 +435,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_UpdatedFramesRequired--;
                         m_SkyParametersHash = skySettings.GetHash();
                         m_CurrentUpdateTime = 0.0f;
-//#if UNITY_EDITOR
-//                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHash(), 0, 0, 0);
-//#endif
+                        #if UNITY_EDITOR
+                        // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
+                        // Changing the hash of the rendertarget allow to say that GI is dirty
+                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHash(), 0, 0, 0);
+                        #endif
                     }
                 }
             }
             else
             {
-                if(m_SkyParametersHash != 0)
+                if (m_SkyParametersHash != 0)
                 {
                     using (new Utilities.ProfilingSample("Reset Sky Environment", cmd))
                     {
@@ -515,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Flip texture.
             // Temporarily disabled until proper API reaches trunk
             Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
-            
+
             result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
             result.Apply();
 

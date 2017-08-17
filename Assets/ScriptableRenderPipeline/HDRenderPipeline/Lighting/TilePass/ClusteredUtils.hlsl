@@ -8,6 +8,11 @@ float GetScaleFromBase(float base)
     return geomSeries / (g_fFarPlane - g_fNearPlane);
 }
 
+float LogBase(float x, float b)
+{
+	return log2(x) / log2(b);
+}
+
 int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
 {
 #if USE_LEFT_HAND_CAMERA_SPACE
@@ -16,13 +21,17 @@ int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
     float z = -z_in;
 #endif
 
-    float userscale = g_fClustScale;
-    if (logBasePerTile)
-        userscale = GetScaleFromBase(suggestedBase);
+    //float userscale = g_fClustScale;
+    //if (logBasePerTile)
+    //    userscale = GetScaleFromBase(suggestedBase);
 
     // using the inverse of the geometric series
-    const float dist = max(0, z - g_fNearPlane);
-    return (int)clamp(log2(dist * userscale * (suggestedBase - 1.0f) + 1) / log2(suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
+    //const float dist = max(0, z - g_fNearPlane);
+    //return (int)clamp(log2(dist * userscale * (suggestedBase - 1.0f) + 1) / log2(suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
+
+	const float C = (float)(1 << g_iLog2NumClusters);
+	const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
+    return (int)clamp( LogBase( lerp(1.0, PositivePow(suggestedBase, C), rangeFittedDistance), suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
 }
 
 int SnapToClusterIdx(float z_in, float suggestedBase)
@@ -40,12 +49,17 @@ float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
 {
     float res;
 
-    float userscale = g_fClustScale;
-    if (logBasePerTile)
-        userscale = GetScaleFromBase(suggestedBase);
+    //float userscale = g_fClustScale;
+    //if (logBasePerTile)
+    //    userscale = GetScaleFromBase(suggestedBase);
 
-    float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
-    res = dist + g_fNearPlane;
+    //float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
+    //res = dist + g_fNearPlane;
+
+	const float C = (float)(1 << g_iLog2NumClusters);
+	float rangeFittedDistance = (PositivePow(suggestedBase, (float)k) - 1.0) / (PositivePow(suggestedBase, C) - 1.0);
+	res = lerp(g_fNearPlane, g_fFarPlane, rangeFittedDistance);
+
 
 #if USE_LEFT_HAND_CAMERA_SPACE
     return res;
