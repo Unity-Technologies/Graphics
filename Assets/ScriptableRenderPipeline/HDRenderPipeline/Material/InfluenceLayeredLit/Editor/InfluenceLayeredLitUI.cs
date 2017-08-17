@@ -48,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
+            public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
@@ -107,6 +108,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kLayerCount = "_LayerCount";
         MaterialProperty layerMaskMap = null;
         const string kLayerMaskMap = "_LayerMaskMap";
+        MaterialProperty layerInfluenceMaskMap = null;
+        const string kLayerInfluenceMaskMap = "_LayerInfluenceMaskMap";
         MaterialProperty vertexColorMode = null;
         const string kVertexColorMode = "_VertexColorMode";
         MaterialProperty objectScaleAffectTile = null;
@@ -151,6 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             layerCount = FindProperty(kLayerCount, props);
             layerMaskMap = FindProperty(kLayerMaskMap, props);
+            layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
             vertexColorMode = FindProperty(kVertexColorMode, props);
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
@@ -401,6 +405,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
+            }
+            if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
+                EditorGUI.indentLevel--;
             }
 
             EditorGUI.BeginChangeCheck();

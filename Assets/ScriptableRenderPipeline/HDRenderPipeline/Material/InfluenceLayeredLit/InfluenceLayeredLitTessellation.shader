@@ -102,6 +102,7 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
 
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
+        _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
         _HeightOffset0("Height Offset0", Float) = 0
