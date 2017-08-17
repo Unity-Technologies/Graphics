@@ -524,7 +524,7 @@ namespace UnityEditor.VFX
                         for (int i = 0; i < generatedList.Count; ++i)
                         {
                             var generated = generatedList[i];
-                            var path = string.Format("{0}/Temp_{2}_{1}_{3}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.compilMode);
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
                             string oldContent = "";
                             if (System.IO.File.Exists(path))

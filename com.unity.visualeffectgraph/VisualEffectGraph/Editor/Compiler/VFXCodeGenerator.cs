@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
                     {
                         var attributeMarker = fnAttributeMarker(location, o.name);
                         return templateContent.ToString().Contains(attributeMarker);
-                    }).Select(o => new VFXAttributeInfo(o.name, o.type, location, VFXAttributeMode.Read)).ToArray();
+                    }).Select(o => new VFXAttributeInfo(o, VFXAttributeMode.Read)).ToArray();
                 };
             var implicitAttributeSource = fnCollectAttributeFromTemplate(VFXAttributeLocation.Source);
             var implicitAttributeCurrent = fnCollectAttributeFromTemplate(VFXAttributeLocation.Current);
@@ -104,8 +104,13 @@ namespace UnityEditor.VFX
             //< Attribute current which except a default source
             foreach (var attribute in attributesCurrent.Where(c => !attributesSource.Any(s => s.attrib.name == c.attrib.name)).Select(o => o.attrib))
             {
-                VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, "0", "Temp, need a default value");
-                expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.type, VFXAttributeLocation.Source)), attribute.name);
+                if (!attribute.value.Is(VFXExpression.Flags.Constant))
+                {
+                    throw new Exception(string.Format("Attribute expects constant default value"));
+                }
+
+                VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, attribute.name);
+                expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Source)), attribute.name);
             }
 
             //< Current Attribute
@@ -156,7 +161,7 @@ namespace UnityEditor.VFX
             var blockCallFunction = new StringBuilder();
             foreach (var block in context.GetChildren())
             {
-                VFXShaderWriter.WriteCallFunction(blockCallFunction, block, expressionToName);
+                VFXShaderWriter.WriteCallFunction(blockCallFunction, block, gpuMapper, expressionToName);
             }
 
             //< Final composition

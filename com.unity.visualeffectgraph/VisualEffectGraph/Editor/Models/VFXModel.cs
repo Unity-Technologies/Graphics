@@ -24,14 +24,8 @@ namespace UnityEditor.VFX
         }
 
         public new virtual string name  { get { return string.Empty; } }
-        public Guid id              { get { return m_Id; } }
 
         public int m_OnEnabledCount = 0;
-
-        public string DebugName
-        {
-            get { return string.Format("{0} {1}", GetType().Name, id); }
-        }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 

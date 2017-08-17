@@ -33,6 +33,27 @@ namespace UnityEditor.VFX
             return padding;
         }
 
+        public static string WriteConstructValue(VFXValueType type, object value)
+        {
+            var format = "";
+            switch (type)
+            {
+                case VFXValueType.kBool:
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                case VFXValueType.kFloat:
+                    format = "({0}){1}";
+                    break;
+                case VFXValueType.kFloat2:
+                case VFXValueType.kFloat3:
+                case VFXValueType.kFloat4:
+                    format = "{0}{1}";
+                    break;
+                default: throw new Exception("WriteConstructValue missing type: " + type);
+            }
+            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString());
+        }
+
         public static void WriteCBuffer(VFXUniformMapper mapper, StringBuilder builder, string bufferName)
         {
             var uniformValues = mapper.uniforms
@@ -102,7 +123,7 @@ namespace UnityEditor.VFX
             builder.AppendLine("}");
         }
 
-        public static void WriteCallFunction(StringBuilder builder, VFXBlock block, Dictionary<VFXExpression, string> variableNames)
+        public static void WriteCallFunction(StringBuilder builder, VFXBlock block, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
         {
             var parameters = new List<string>();
             foreach (var attribute in block.attributes)
@@ -112,7 +133,12 @@ namespace UnityEditor.VFX
 
             foreach (var parameter in block.parameters)
             {
-                parameters.Add(variableNames[parameter.exp]);
+                var expReduced = mapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
+                if (!variableNames.ContainsKey(expReduced))
+                {
+                    throw new Exception(string.Format("Cannot find variable name for {0}", expReduced));
+                }
+                parameters.Add(variableNames[expReduced]);
             }
 
             builder.AppendFormat("{0}({1});", block.GetType().Name, AggregateParameters(parameters));
