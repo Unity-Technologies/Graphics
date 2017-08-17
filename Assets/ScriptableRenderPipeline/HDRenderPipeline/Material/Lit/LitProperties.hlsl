@@ -139,6 +139,9 @@ int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
 
+float _CoatCoverage;
+float _CoatIOR;
+
 float4 _SpecularColor;
 
 float _TexWorldScale;

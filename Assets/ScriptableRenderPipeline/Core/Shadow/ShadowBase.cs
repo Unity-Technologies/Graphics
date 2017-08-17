@@ -399,7 +399,9 @@ namespace UnityEngine.Experimental.Rendering
     {
         // shadow texture related params (need to be set by ShadowmapBase and derivatives)
         public Matrix4x4     worldToShadow;  // to light space matrix
+        public Matrix4x4     shadowToWorld;  // from light space matrix
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
+        public Vector4       textureSize;    // the shadowmap's size in x and y. xy is texture relative, zw is viewport relative.
         public Vector4       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y. xy is texture relative, zw is viewport relative.
         public uint          id;             // packed texture id, sampler id and slice idx
         public uint          shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data

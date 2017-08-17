@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.XR;
 
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderPipelineShader.shader (the loop expects "BasicPass" pass type to exist)
@@ -14,6 +15,8 @@ using UnityEngine.Experimental.Rendering;
 [ExecuteInEditMode]
 public class BasicRenderPipeline : RenderPipelineAsset
 {
+    public bool UseIntermediateRenderTargetBlit;
+
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("RenderPipeline/Create BasicRenderPipeline")]
     static void CreateBasicRenderPipeline()
@@ -26,37 +29,119 @@ public class BasicRenderPipeline : RenderPipelineAsset
 
     protected override IRenderPipeline InternalCreatePipeline()
     {
-        return new BasicRenderPipelineInstance();
+        return new BasicRenderPipelineInstance(UseIntermediateRenderTargetBlit);
     }
 }
 
 public class BasicRenderPipelineInstance : RenderPipeline
 {
+    bool useIntermediateBlit;
+
+    public BasicRenderPipelineInstance()
+    {
+        useIntermediateBlit = false;
+    }
+
+    public BasicRenderPipelineInstance(bool useIntermediate)
+    {
+        useIntermediateBlit = useIntermediate;
+    }
+
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
-        BasicRendering.Render(renderContext, cameras);
+        BasicRendering.Render(renderContext, cameras, useIntermediateBlit);
     }
 }
 
 public static class BasicRendering
 {
+    static void ConfigureAndBindIntermediateRenderTarget(ScriptableRenderContext context, Camera cam, bool stereoEnabled, out RenderTargetIdentifier intermediateRTID, out bool isRTTexArray)
+    {
+        var intermediateRT = Shader.PropertyToID("_IntermediateTarget");
+        intermediateRTID = new RenderTargetIdentifier(intermediateRT);
+
+        isRTTexArray = false;
+
+        var bindIntermediateRTCmd = CommandBufferPool.Get("Bind intermediate RT");
+
+        if (stereoEnabled)
+        {
+            RenderTextureDescriptor xrDesc = XRSettings.eyeTextureDesc;
+            xrDesc.depthBufferBits = 24;
+
+            if (xrDesc.dimension == TextureDimension.Tex2DArray)
+                isRTTexArray = true;
+
+            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, xrDesc, FilterMode.Point);
+        }
+        else
+        {
+            int w = cam.pixelWidth;
+            int h = cam.pixelHeight;
+            bindIntermediateRTCmd.GetTemporaryRT(intermediateRT, w, h, 24, FilterMode.Point, RenderTextureFormat.Default, RenderTextureReadWrite.Default, 1, true);
+        }
+
+        if (isRTTexArray)
+            bindIntermediateRTCmd.SetRenderTarget(intermediateRTID, 0, CubemapFace.Unknown, -1); // depthSlice == -1 => bind all slices
+        else
+            bindIntermediateRTCmd.SetRenderTarget(intermediateRTID);
+
+        context.ExecuteCommandBuffer(bindIntermediateRTCmd);
+        CommandBufferPool.Release(bindIntermediateRTCmd);
+    }
+
+    static void BlitFromIntermediateToCameraTarget(ScriptableRenderContext context, RenderTargetIdentifier intermediateRTID, bool isRTTexArray)
+    {
+        var blitIntermediateRTCmd = CommandBufferPool.Get("Copy intermediate RT to default RT");
+
+        if (isRTTexArray)
+        {
+            // Currently, Blit does not allow specification of a slice in a texture array.
+            // It can use the CurrentActive render texture's bound slices, so we use that
+            // as a temporary workaround.
+            blitIntermediateRTCmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            blitIntermediateRTCmd.Blit(intermediateRTID, BuiltinRenderTextureType.CurrentActive);
+        }
+        else
+            blitIntermediateRTCmd.Blit(intermediateRTID, BuiltinRenderTextureType.CameraTarget);
+
+        context.ExecuteCommandBuffer(blitIntermediateRTCmd);
+        CommandBufferPool.Release(blitIntermediateRTCmd);
+
+    }
+    
     // Main entry point for our scriptable render loop
 
-    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
+    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlitPath)
     {
+        bool stereoEnabled = XRSettings.isDeviceActive;
+
         foreach (var camera in cameras)
         {
             // Culling
             ScriptableCullingParameters cullingParams;
-            if (!CullResults.GetCullingParameters(camera, out cullingParams))
+            // Stereo-aware culling parameters are configured to perform a single cull for both eyes
+            if (!CullResults.GetCullingParameters(camera, stereoEnabled, out cullingParams))
                 continue;
             CullResults cull = new CullResults();
             CullResults.Cull(ref cullingParams, context, ref cull);
 
             // Setup camera for rendering (sets render target, view/projection matrices and other
             // per-camera built-in shader variables).
-            context.SetupCameraProperties(camera);
+            // If stereo is enabled, we also configure stereo matrices, viewports, and XR device render targets
+            context.SetupCameraProperties(camera, stereoEnabled);
+
+            // Draws in-between [Start|Stop]MultiEye are stereo-ized by engine
+            if (stereoEnabled)
+                context.StartMultiEye(camera);
+
+            RenderTargetIdentifier intermediateRTID = new RenderTargetIdentifier(BuiltinRenderTextureType.CurrentActive);
+            bool isIntermediateRTTexArray = false;
+            if (useIntermediateBlitPath)
+            {
+                ConfigureAndBindIntermediateRenderTarget(context, camera, stereoEnabled, out intermediateRTID, out isIntermediateRTTexArray);
+            }
 
             // clear depth buffer
             var cmd = CommandBufferPool.Get();
@@ -80,6 +165,19 @@ public static class BasicRendering
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
             context.DrawRenderers(ref settings);
+
+            if (useIntermediateBlitPath)
+            {
+                BlitFromIntermediateToCameraTarget(context, intermediateRTID, isIntermediateRTTexArray);
+            }
+
+            if (stereoEnabled)
+            {
+                context.StopMultiEye(camera);
+                // StereoEndRender will reset state on the camera to pre-Stereo settings,
+                // and invoke XR based events/callbacks.
+                context.StereoEndRender(camera);
+            }
 
             context.Submit();
         }

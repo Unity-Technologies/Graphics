@@ -1021,6 +1021,12 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float height; // final height processed
         float NdotV;
 
+        // planar/triplanar
+        float2 uvXZ;
+        float2 uvXY;
+        float2 uvZY;
+        GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
+
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
         {
@@ -1060,7 +1066,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
+            float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             NdotV = viewDirTS.z;
 
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
@@ -1325,11 +1331,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Init other parameters
     surfaceData.materialId = 1; // MaterialId.LitStandard
     surfaceData.anisotropy = 0;
-    surfaceData.specular = 0.04;
     surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
+    surfaceData.coatCoverage = 0.0f;
+    surfaceData.coatIOR = 0.5;
 
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
