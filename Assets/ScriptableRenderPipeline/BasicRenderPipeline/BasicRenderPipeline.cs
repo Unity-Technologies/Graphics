@@ -153,18 +153,17 @@ public static class BasicRendering
             SetupLightShaderVariables(cull.visibleLights, context);
 
             // Draw opaque objects using BasicPass shader pass
-            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("BasicPass"));
-            settings.sorting.flags = SortFlags.CommonOpaque;
-            settings.inputFilter.SetQueuesOpaque();
-            context.DrawRenderers(ref settings);
+            var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("BasicPass")) { sorting = { flags = SortFlags.CommonOpaque } };
+            var filterSettings = new FilterRenderersSettings(true) { renderQueueRange = RenderQueueRange.opaque };
+            context.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
 
             // Draw skybox
             context.DrawSkybox(camera);
 
             // Draw transparent objects using BasicPass shader pass
-            settings.sorting.flags = SortFlags.CommonTransparent;
-            settings.inputFilter.SetQueuesTransparent();
-            context.DrawRenderers(ref settings);
+            drawSettings.sorting.flags = SortFlags.CommonTransparent;
+            filterSettings.renderQueueRange = RenderQueueRange.transparent;
+            context.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
 
             if (useIntermediateBlitPath)
             {
