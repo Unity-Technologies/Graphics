@@ -131,8 +131,73 @@ namespace UnityEditor.VFX
 
             FillAttributesToContext(); // A second time to update with optional attributes
 
+            ProcessAttributes();
+
             //TMP Debug only
             DebugLogAttributes();
+        }
+
+        private void ProcessAttributes()
+        {
+            m_StoredAttributes.Clear();
+            m_LocalAttributes.Clear();
+
+            int nbOwners = m_Owners.Count;
+            if (nbOwners > 16)
+                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
+
+            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
+
+            foreach (var kvp in m_AttributesToContexts)
+            {
+                bool local = false;
+                var attribute = kvp.Key;
+                int key = 0;
+
+                bool onlyInit = true;
+                bool onlyOutput = true;
+                bool onlyUpdateRead = true;
+                bool onlyUpdateWrite = true;
+
+                foreach (var kvp2 in kvp.Value)
+                {
+                    var context = kvp2.Key;
+                    if (context.contextType != VFXContextType.kInit)
+                        onlyInit = false;
+                    if (context.contextType != VFXContextType.kOutput)
+                        onlyOutput = false;
+                    if (context.contextType != VFXContextType.kUpdate)
+                    {
+                        onlyUpdateRead = false;
+                        onlyUpdateWrite = false;
+                    }
+                    else
+                    {
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                            onlyUpdateWrite = false;
+                        if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                            onlyUpdateRead = false;
+                    }
+
+                    int shift = m_Owners.IndexOf(context) << 1;
+                    int value = 0;
+                    if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                        value = 0x01;
+                    if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                        value = 0x02;
+                    key |= (value << shift);
+                }
+
+                if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
+                    local = true;
+                if ((key & 0xAAAAAAAA) == 0) // no write mask
+                    local = true;
+
+                if (local)
+                    m_LocalAttributes.Add(attribute);
+                else
+                    m_StoredAttributes.Add(attribute, key);
+            }
         }
 
         private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
@@ -140,8 +205,8 @@ namespace UnityEditor.VFX
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
 
-            if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
-                throw new ArgumentException("Output contexts cannot write attributes");
+            //if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
+            //    throw new ArgumentException("Output contexts cannot write attributes");
 
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
@@ -217,5 +282,8 @@ namespace UnityEditor.VFX
 
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
         protected Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
+
+        protected Dictionary<VFXAttribute, int> m_StoredAttributes = new Dictionary<VFXAttribute, int>();
+        protected HashSet<VFXAttribute> m_LocalAttributes = new HashSet<VFXAttribute>();
     }
 }
