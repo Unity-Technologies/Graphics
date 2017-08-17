@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         MaterialGraphAsset m_InMemoryAsset;
 
-        GraphEditorDrawer m_GraphEditorDrawer;
+        GraphEditorView m_GraphEditorView;
 
         public IGraphAsset inMemoryAsset
         {
@@ -52,11 +52,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnEnable()
         {
-            m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView());
-            rootVisualContainer.Add(m_GraphEditorDrawer);
+            m_GraphEditorView = new GraphEditorView(CreateGraphView());
+            rootVisualContainer.Add(m_GraphEditorView);
             var source = CreateDataSource();
             source.Initialize(inMemoryAsset, this);
-            m_GraphEditorDrawer.presenter = source;
+            m_GraphEditorView.presenter = source;
         }
 
         void OnDisable()
@@ -163,7 +163,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var source = CreateDataSource();
             source.Initialize(inMemoryAsset, this);
-            m_GraphEditorDrawer.presenter = source;
+            m_GraphEditorView.presenter = source;
 
             //m_GraphView.StretchToParentSize();
             Repaint();

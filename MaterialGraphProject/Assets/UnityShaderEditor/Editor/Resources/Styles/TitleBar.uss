@@ -1,4 +1,4 @@
-TitleBarDrawer {
+TitleBarView {
     flex-direction: row;
     justify-content: space-between;
     align-items: stretch;
@@ -7,8 +7,8 @@ TitleBarDrawer {
     /*margin-top: -1;*/
 }
 
-TitleBarDrawer #left,
-TitleBarDrawer #right {
+TitleBarView #left,
+TitleBarView #right {
     flex: 1;
     height: 16;
     background-color: #3d3d3d;
@@ -16,11 +16,11 @@ TitleBarDrawer #right {
     flex-direction: row;
 }
 
-TitleBarDrawer #left {
+TitleBarView #left {
     justify-content: flex-start;
 }
 
-TitleBarDrawer #right {
+TitleBarView #right {
     justify-content: flex-end;
 }
 

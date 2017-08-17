@@ -3,7 +3,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class NodePreviewDrawer : Image
+    public class NodePreviewView : Image
     {
         public NodePreviewPresenter data;
 

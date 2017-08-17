@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialNodeDrawer : Node
+    public class MaterialNodeView : Node
     {
         VisualContainer m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControlPresenter;
@@ -17,7 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         NodePreviewPresenter m_CurrentPreviewData;
         bool m_IsScheduled;
 
-        public MaterialNodeDrawer()
+        public MaterialNodeView()
         {
             CreateContainers();
 
