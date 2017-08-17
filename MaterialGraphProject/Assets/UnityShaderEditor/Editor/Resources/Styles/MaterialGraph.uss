@@ -8,7 +8,24 @@ GraphEditorDrawer #TitleBar {
 
 }
 
-GraphEditorDrawer #GraphView {
+GraphEditorDrawer #content {
+    flex: 1;
+    flex-direction: row;
+}
+
+GraphEditorDrawer #content #GraphView {
+    flex: 1;
+}
+
+GraphEditorDrawer #content GraphInspectorView {
+    width: 300;
+    padding-left: 10;
+    padding-right: 10;
+    padding-top: 10;
+    padding-bottom: 10;
+}
+
+GraphEditorDrawer #content GraphInspectorView IMGUIContainer {
     flex: 1;
 }
 
@@ -29,4 +46,8 @@ GridBackground {
 	thick-line-color: rgb(20, 21, 21);
 	spacing:75.0;
 	thick-lines:10;
+}
+
+GraphInspectorView {
+
 }

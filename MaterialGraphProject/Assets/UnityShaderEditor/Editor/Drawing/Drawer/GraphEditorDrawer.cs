@@ -1,13 +1,16 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
+using UnityEditor.MaterialGraph.Drawing.Views;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: Maybe this needs to derive from something we already have?
     public class GraphEditorDrawer : DataWatchContainer
     {
-        private GraphView m_GraphView;
+        GraphView m_GraphView;
+        GraphInspectorView m_GraphInspectorView;
 
         public GraphView graphView
         {
@@ -26,17 +29,22 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_TitleBarDrawer = new TitleBarDrawer();
             m_TitleBarDrawer.name = "TitleBar";
 
+            m_GraphInspectorView = new GraphInspectorView();
+
             Add(m_TitleBarDrawer);
-            Add(m_GraphView);
+            var contentContainer = new VisualElement() { m_GraphView, m_GraphInspectorView };
+            contentContainer.name = "content";
+            Add(contentContainer);
         }
 
         public override void OnDataChanged()
         {
             m_GraphView.presenter = m_Presenter;
             m_TitleBarDrawer.dataProvider = m_Presenter.titleBar;
+            m_GraphInspectorView.presenter = m_Presenter.graphInspectorPresenter;
         }
 
-        private MaterialGraphPresenter m_Presenter;
+        MaterialGraphPresenter m_Presenter;
 
         public MaterialGraphPresenter presenter
         {
