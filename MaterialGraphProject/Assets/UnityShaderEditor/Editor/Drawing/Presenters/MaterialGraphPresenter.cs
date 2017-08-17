@@ -17,15 +17,24 @@ namespace UnityEditor.MaterialGraph.Drawing
         public IGraphAsset graphAsset { get; private set; }
 
         [SerializeField]
-        private TitleBarPresenter m_TitleBar;
+        EditorWindow m_Container;
 
         [SerializeField]
-        private EditorWindow m_Container;
+        TitleBarPresenter m_TitleBar;
 
         public TitleBarPresenter titleBar
         {
             get { return m_TitleBar; }
         }
+
+        public GraphInspectorPresenter graphInspectorPresenter
+        {
+            get { return m_GraphInspectorPresenter; }
+            set { m_GraphInspectorPresenter = value; }
+        }
+
+        [SerializeField]
+        GraphInspectorPresenter m_GraphInspectorPresenter;
 
         protected MaterialGraphPresenter()
         {
@@ -232,6 +241,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_TitleBar = CreateInstance<TitleBarPresenter>();
 			m_TitleBar.Initialize(container);
 
+            m_GraphInspectorPresenter = CreateInstance<GraphInspectorPresenter>();
+            m_GraphInspectorPresenter.Initialize();
+
             if (graphAsset == null)
                 return;
 
@@ -367,6 +379,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void AddElement(EdgePresenter edge)
         {
             Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
+        }
+
+        public void UpdateSelection(IEnumerable<MaterialNodePresenter> presenters)
+        {
+            if (graphAsset == null)
+                return;
+            graphAsset.drawingData.selection = presenters.Select(x => x.node.guid);
+            m_GraphInspectorPresenter.UpdateSelection(presenters.Select(x => x.node));
         }
 
         public override void AddElement(GraphElementPresenter element)

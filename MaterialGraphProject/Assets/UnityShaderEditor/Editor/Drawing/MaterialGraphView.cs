@@ -164,22 +164,14 @@ namespace UnityEditor.MaterialGraph.Drawing
                 AddToSelection(drawer);
         }
 
-        public void SetGlobalSelection()
-        {
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (graphDataSource == null || graphDataSource.graphAsset == null)
-                return;
-            //Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
-        }
-
         void PropagateSelection()
         {
             var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (graphDataSource == null || graphDataSource.graphAsset == null)
+            if (graphDataSource == null)
                 return;
 
-            var selectedNodeGuids = selection.OfType<MaterialNodeDrawer>().Select(x => ((GraphNodePresenter) x.presenter).node.guid);
-            graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
+            var selectedNodes = selection.OfType<MaterialNodeDrawer>().Select(x => (MaterialNodePresenter) x.presenter);
+            graphDataSource.UpdateSelection(selectedNodes);
         }
 
         public override void AddToSelection(ISelectable selectable)

@@ -104,7 +104,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
 
-            if (controlPresenters.ItemsReferenceEquals(m_CurrentControlPresenter) && nodeData.expanded)
+            if (controlPresenters.SequenceEqual(m_CurrentControlPresenter) && nodeData.expanded)
                 return;
 
             m_ControlsContainer.Clear();

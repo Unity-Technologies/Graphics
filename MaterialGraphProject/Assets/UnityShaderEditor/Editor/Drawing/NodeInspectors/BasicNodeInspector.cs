@@ -18,7 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (scope == ModificationScope.Graph || scope == ModificationScope.Topological)
                 node.owner.ValidateGraph();
 
-            if (node.onModified != null)
+            if (scope > ModificationScope.Nothing && node.onModified != null)
                 node.onModified(node, scope);
         }
 
