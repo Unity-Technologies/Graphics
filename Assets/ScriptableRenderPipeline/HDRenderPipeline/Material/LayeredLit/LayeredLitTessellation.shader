@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
+Shader "HDRenderPipeline/LayeredLitTessellation"
 {
     Properties
     {
@@ -603,5 +603,5 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.InfluenceLayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }

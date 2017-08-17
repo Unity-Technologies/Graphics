@@ -52,9 +52,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (Object obj in materials)
             {
                 Material mat = obj as Material;
-                if (mat.shader.name == "HDRenderPipeline/InfluenceLayeredLit" || mat.shader.name == "HDRenderPipeline/InfluenceLayeredLitTessellation")
+                if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
-                    InfluenceLayeredLitGUI.SynchronizeAllLayers(mat);
+                    LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }
@@ -88,11 +88,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials cleaned.", i, length),
                         i / (float)(length - 1));
 
-                    if (mat.shader.name == "HDRenderPipeline/InfluenceLayeredLit" || mat.shader.name == "HDRenderPipeline/InfluenceLayeredLitTessellation")
+                    if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
                         // We remove all keyword already present
                         RemoveMaterialKeywords(mat);
-                        InfluenceLayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                        LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                         EditorUtility.SetDirty(mat);
                     }
                     else if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
 
             Shader litShader = Shader.Find("HDRenderPipeline/Lit");
-            Shader layeredLitShader = Shader.Find("HDRenderPipeline/InfluenceLayeredLit");
+            Shader layeredLitShader = Shader.Find("HDRenderPipeline/LayeredLit");
 
             foreach (Object obj in materials)
             {
@@ -137,12 +137,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     LitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
-                else if (mat.shader.name == "HDRenderPipeline/InfluenceLayeredLitTessellation")
+                else if (mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     RemoveMaterialKeywords(mat);
-                    InfluenceLayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    internal class InfluenceLayeredLitGUI : LitGUI
+    internal class LayeredLitGUI : LitGUI
     {
         public enum LayerUVBaseMapping
         {
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const int kMaxLayerCount = 4;
         const int kSyncButtonWidth = 58;
 
-        public InfluenceLayeredLitGUI()
+        public LayeredLitGUI()
         {
             m_LayerCount = 4;
             m_PropertySuffixes[0] = "0";
@@ -377,7 +377,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(material, "Change layer count");
                 layerCount.floatValue = (float)newLayerCount;
-                SynchronizeAllLayersProperties();
                 layerChanged = true;
             }
 

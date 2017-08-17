@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/InfluenceLayeredLit"
+Shader "HDRenderPipeline/LayeredLit"
 {
     Properties
     {
@@ -557,5 +557,5 @@ Shader "HDRenderPipeline/InfluenceLayeredLit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.InfluenceLayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
