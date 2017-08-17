@@ -61,6 +61,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Texture3D), typeof(VFXObjectPropertyIM<Texture3D>) },
             {typeof(Mesh), typeof(VFXObjectPropertyIM<Mesh>) },
             {typeof(int), typeof(VFXIntPropertyIM) },
+            {typeof(uint), typeof(VFXUIntPropertyIM) },
             {typeof(bool), typeof(VFXBoolPropertyIM) },
             {typeof(Gradient), typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) },

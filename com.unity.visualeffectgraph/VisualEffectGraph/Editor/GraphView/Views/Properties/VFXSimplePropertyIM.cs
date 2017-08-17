@@ -52,6 +52,28 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
+    class VFXUIntPropertyIM : VFXPropertyIM<uint>
+    {
+        public override uint OnParameterGUI(VFXDataAnchorPresenter presenter, uint value, string label)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, label);
+            value = (uint)EditorGUILayout.IntField((int)value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
+            GUILayout.EndHorizontal();
+
+            return value;
+        }
+
+        public override uint OnParameterGUI(Rect rect, uint value, string label)
+        {
+            Label(rect, label);
+
+            rect.xMin += m_LabelWidth;
+            value = (uint)EditorGUI.IntField(rect, (int)value);
+
+            return value;
+        }
+    }
 
     class VFXBoolPropertyIM : VFXPropertyIM<bool>
     {
