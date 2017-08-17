@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class SurfaceMasterPresenter : MasterNodePresenter
+    public class SurfaceMasterNodePresenter : MasterNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
