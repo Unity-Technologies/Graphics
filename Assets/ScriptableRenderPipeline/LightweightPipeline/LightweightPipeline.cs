@@ -168,26 +168,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 BeginForwardRendering(camera, ref context, stereoEnabled);
 
+                var litDrawSettings = new DrawRendererSettings(camera, m_LitPassName);
+                litDrawSettings.sorting.flags = SortFlags.CommonOpaque;
+                litDrawSettings.rendererConfiguration = configuration;
+
+                var unlitDrawSettings = new DrawRendererSettings(camera, m_UnlitPassName);
+                unlitDrawSettings.sorting.flags = SortFlags.CommonTransparent;
+
                 // Render Opaques
-                var litSettings = new DrawRendererSettings(m_CullResults, camera, m_LitPassName);
-                litSettings.sorting.flags = SortFlags.CommonOpaque;
-                litSettings.inputFilter.SetQueuesOpaque();
-                litSettings.rendererConfiguration = configuration;
+                var opaqueFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
 
-                var unlitSettings = new DrawRendererSettings(m_CullResults, camera, m_UnlitPassName);
-                unlitSettings.sorting.flags = SortFlags.CommonTransparent;
-                unlitSettings.inputFilter.SetQueuesTransparent();
-
-                context.DrawRenderers(ref litSettings);
+                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, opaqueFilterSettings);
 
                 // TODO: Check skybox shader
                 context.DrawSkybox(camera);
 
                 // Render Alpha blended
-                litSettings.sorting.flags = SortFlags.CommonTransparent;
-                litSettings.inputFilter.SetQueuesTransparent();
-                context.DrawRenderers(ref litSettings);
-                context.DrawRenderers(ref unlitSettings);
+                var transparentFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
+
+                litDrawSettings.sorting.flags = SortFlags.CommonTransparent;
+                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, transparentFilterSettings);
+                context.DrawRenderers(m_CullResults.visibleRenderers, ref unlitDrawSettings, transparentFilterSettings);
 
                 EndForwardRendering(camera, ref context, stereoEnabled);
 
