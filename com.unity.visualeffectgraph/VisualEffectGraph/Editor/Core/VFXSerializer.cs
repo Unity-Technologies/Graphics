@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
 
         public object Get()
         {
-            return VFXSerializer.Load(m_Type, m_SerializableObject);
+            return VFXSerializer.Load(m_Type, m_SerializableObject, m_CachedValue);
         }
 
         public T Get<T>()
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
                 }
                 newValue = VFXSerializer.Save(obj);
             }
-
+            m_CachedValue = obj;
             if (m_SerializableObject != newValue)
             {
                 m_SerializableObject = newValue;
@@ -101,6 +101,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private string m_SerializableObject;
+
+
+        private object m_CachedValue;
     }
 
 
@@ -169,7 +172,7 @@ namespace UnityEditor.VFX
             return data;
         }
 
-        public static object LoadWithType(TypedSerializedData data)
+        public static object LoadWithType(TypedSerializedData data, object oldValue)
         {
             if (!string.IsNullOrEmpty(data.data))
             {
@@ -180,7 +183,7 @@ namespace UnityEditor.VFX
                     return null;
                 }
 
-                return VFXSerializer.Load(type, data.data);
+                return VFXSerializer.Load(type, data.data, oldValue);
             }
 
             return null;
@@ -251,7 +254,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static object Load(System.Type type, string text)
+        public static object Load(System.Type type, string text, object oldValue)
         {
             if (type == null)
                 return null;
@@ -276,7 +279,7 @@ namespace UnityEditor.VFX
 
                 JsonUtility.FromJsonOverwrite(text, sac);
 
-                AnimationCurve curve = new AnimationCurve();
+                AnimationCurve curve = oldValue != null ? (AnimationCurve)oldValue : new AnimationCurve();
 
                 if (sac.frames != null)
                 {
@@ -299,7 +302,7 @@ namespace UnityEditor.VFX
             else if (type.IsAssignableFrom(typeof(Gradient)))
             {
                 GradientWrapper gw = new GradientWrapper();
-                Gradient gradient = new Gradient();
+                Gradient gradient = oldValue != null ? (Gradient)oldValue : new Gradient();
 
                 JsonUtility.FromJsonOverwrite(text, gw);
 

@@ -55,6 +55,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4: return 4;
                 case VFXValueType.kInt: return 1;
                 case VFXValueType.kUint: return 1;
+                case VFXValueType.kBool: return 1;
                 case VFXValueType.kTransform: return 16;
             }
             throw new NotImplementedException(type.ToString());
@@ -73,6 +74,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kTexture2D: return "Texture2D";
                 case VFXValueType.kTexture3D: return "Texture3D";
                 case VFXValueType.kTransform: return "float4x4";
+                case VFXValueType.kBool: return "bool";
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -92,6 +94,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
                 case VFXValueType.kColorGradient: return typeof(Gradient);
+                case VFXValueType.kBool: return typeof(bool);
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -109,6 +112,37 @@ namespace UnityEditor.VFX
                 case VFXValueType.kTexture2D:
                 case VFXValueType.kTexture3D:
                 case VFXValueType.kTransform:
+                case VFXValueType.kBool:
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsTexture(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture3D:
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsUniform(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat:
+                case VFXValueType.kFloat2:
+                case VFXValueType.kFloat3:
+                case VFXValueType.kFloat4:
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                case VFXValueType.kTransform:
+                case VFXValueType.kBool:
                     return true;
             }
 

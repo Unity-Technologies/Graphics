@@ -80,7 +80,6 @@ namespace UnityEditor.VFX.UIElements
         {
             target.RegisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);
             target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
-            //target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
@@ -88,11 +87,8 @@ namespace UnityEditor.VFX.UIElements
         {
             target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
-            //target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
         }
-
-        //IPanel IEventHandler.panel { get { return target.panel; } }
 
         void IEventHandler.HandleEvent(EventBase evt) {}
         void IEventHandler.OnLostCapture()
@@ -100,8 +96,6 @@ namespace UnityEditor.VFX.UIElements
             m_Dragging = false;
             EditorGUIUtility.SetWantsMouseJumping(0);
         }
-
-        //void IEventHandler.OnLostKeyboardFocus() {}
 
         void Release()
         {
@@ -141,12 +135,6 @@ namespace UnityEditor.VFX.UIElements
         {
             if (m_Dragging)
             {
-                if (!Input.GetMouseButtonDown(0) && !!Input.GetMouseButton(0))
-                {
-                    Release();
-                    evt.StopPropagation();
-                    return;
-                }
                 if (evt.button == 0 && m_Dragging)
                 {
                     ApplyDelta(HandleUtility.niceMouseDelta);
@@ -163,41 +151,6 @@ namespace UnityEditor.VFX.UIElements
                 Release();
             }
         }
-
-        /*
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
-        {
-            if (!m_Listener.enabled) return EventPropagation.Continue;
-            switch (evt.type)
-            {
-                case EventType.MouseDown:
-                    break;
-                case EventType.MouseUp:
-                    if (evt.button == 0 && m_Dragging)
-                    {
-                        m_Dragging = false;
-                        this.ReleaseCapture();
-                        EditorGUIUtility.SetWantsMouseJumping(0);
-                        return EventPropagation.Stop;
-                    }
-                    break;
-                case EventType.MouseDrag:
-                    if (evt.button == 0 && m_Dragging)
-                    {
-                        ApplyDelta(HandleUtility.niceMouseDelta);
-                    }
-                    break;
-                case EventType.KeyDown:
-                    if (m_Dragging && evt.keyCode == KeyCode.Escape)
-                    {
-                        m_Listener.SetValue(m_OriginalValue, m_UserData);
-                        m_Dragging = false;
-                        return EventPropagation.Stop;
-                    }
-                    break;
-            }
-            return EventPropagation.Continue;
-        }*/
 
         void ApplyDelta(float delta)
         {

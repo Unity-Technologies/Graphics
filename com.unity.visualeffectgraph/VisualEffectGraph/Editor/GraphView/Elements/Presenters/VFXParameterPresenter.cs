@@ -29,6 +29,10 @@ namespace UnityEditor.VFX.UI
 
             exposed = parameter.exposed;
             exposedName = parameter.exposedName;
+
+            m_CachedValue = parameter.value;
+            m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
+            m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
 
         public string exposedName
@@ -86,10 +90,11 @@ namespace UnityEditor.VFX.UI
 
         public object minValue
         {
-            get { return parameter.m_Min == null ? null : parameter.m_Min.Get(); }
+            get { return m_CachedMinValue; }
             set
             {
                 Undo.RecordObject(parameter, "Parameter Min");
+                m_CachedMinValue = value;
                 if (value != null)
                 {
                     if (parameter.m_Min == null)
@@ -103,10 +108,11 @@ namespace UnityEditor.VFX.UI
         }
         public object maxValue
         {
-            get { return parameter.m_Max == null ? null : parameter.m_Max.Get(); }
+            get { return m_CachedMaxValue; }
             set
             {
                 Undo.RecordObject(parameter, "Parameter Max");
+                m_CachedMaxValue = value;
                 if (value != null)
                 {
                     if (parameter.m_Max == null)
@@ -119,18 +125,27 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the presenter (or, in the case of serialization, before the presenter is created)
+        object m_CachedValue;
+        object m_CachedMinValue;
+        object m_CachedMaxValue;
+
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
         public object value
         {
             get
             {
-                return parameter.GetOutputSlot(0).value;
+                return m_CachedValue;
             }
             set
             {
-                if (parameter.GetOutputSlot(0).value != value)
+                object b = value;
+
+
+                if (!object.Equals(m_CachedValue, b))
                 {
+                    m_CachedValue = value;
                     Undo.RecordObject(parameter, "Change Value");
                     parameter.GetOutputSlot(0).value = value;
                 }

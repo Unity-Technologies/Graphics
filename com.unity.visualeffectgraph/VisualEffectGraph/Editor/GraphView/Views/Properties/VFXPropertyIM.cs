@@ -61,6 +61,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Texture3D), typeof(VFXObjectPropertyIM<Texture3D>) },
             {typeof(Mesh), typeof(VFXObjectPropertyIM<Mesh>) },
             {typeof(int), typeof(VFXIntPropertyIM) },
+            {typeof(bool), typeof(VFXBoolPropertyIM) },
             {typeof(Gradient), typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) }
         };
@@ -242,6 +243,29 @@ namespace UnityEditor.VFX.UI
 
             rect.xMin += m_LabelWidth;
             value = EditorGUI.IntField(rect, value);
+
+            return value;
+        }
+    }
+
+    class VFXBoolPropertyIM : VFXPropertyIM<bool>
+    {
+        public override bool OnParameterGUI(VFXDataAnchorPresenter presenter, bool value, string label)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, label);
+            value = EditorGUILayout.Toggle(value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
+            GUILayout.EndHorizontal();
+
+            return value;
+        }
+
+        public override bool OnParameterGUI(Rect rect, bool value, string label)
+        {
+            Label(rect, label);
+
+            rect.xMin += m_LabelWidth;
+            value = EditorGUI.Toggle(rect, value);
 
             return value;
         }

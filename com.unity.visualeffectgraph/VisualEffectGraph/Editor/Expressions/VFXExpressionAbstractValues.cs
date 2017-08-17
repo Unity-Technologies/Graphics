@@ -185,6 +185,7 @@ namespace UnityEditor.VFX
             if (t == typeof(Gradient)) return VFXValueType.kColorGradient;
             if (t == typeof(Mesh)) return VFXValueType.kMesh;
             if (t == typeof(System.Collections.Generic.List<Vector3>)) return VFXValueType.kSpline;
+            if (t == typeof(bool)) return VFXValueType.kBool;
             throw new ArgumentException("Invalid type");
         }
 
