@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
 
             // MaterialID
-            materialID = FindProperty(kMaterialID, props, false); // InfluenceLayeredLit is force to be standard for now, so materialID could not exist
+            materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
 
             horizonFade = FindProperty(kHorizonFade, props);
 
