@@ -74,7 +74,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // w - inside tessellation factor
 float3 GetTessellationDisplacement(VaryingsMeshToDS input)
 {
-    // This call will work for both InfluenceLayeredLit and Lit shader
+    // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(
