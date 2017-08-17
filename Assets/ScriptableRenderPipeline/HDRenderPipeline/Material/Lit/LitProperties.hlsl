@@ -175,10 +175,6 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);
 
-float _BlendUsingHeight1;
-float _BlendUsingHeight2;
-float _BlendUsingHeight3;
-
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
 float _InheritBaseNormal2;
@@ -190,6 +186,8 @@ float _InheritBaseColor1;
 float _InheritBaseColor2;
 float _InheritBaseColor3;
 float _LayerTilingBlendMask;
+PROP_DECL(float, _HeightOffset);
+float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);

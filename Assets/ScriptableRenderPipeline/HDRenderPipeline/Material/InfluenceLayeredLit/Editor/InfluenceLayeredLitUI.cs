@@ -63,11 +63,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent useDensityModeModeText = new GUIContent("Use Density Mode", "Enable density mode");
             public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
 
-            public readonly GUIContent blendUsingHeight = new GUIContent("Blend Using Height", "Blend Layers using height.");
             public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity as Density", "Use Opacity as Density.");
             public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Inherit the normal from the base layer.");
             public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Inherit the height from the base layer.");
             public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the base color from the base layer.");
+            public readonly GUIContent heightOffset = new GUIContent("Height Offset", "Offset applied to the height before layering.");
+            public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
+
             public StylesLayer()
             {
                 layerLabelColors[0].normal.textColor = Color.white;
@@ -127,10 +129,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
-        // HeightmapMode control
-        MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1]; // Only in case of influence mode
-        const string kBlendUsingHeight = "_BlendUsingHeight";
-
         // Influence
         MaterialProperty[] inheritBaseNormal = new MaterialProperty[kMaxLayerCount - 1];
         const string kInheritBaseNormal = "_InheritBaseNormal";
@@ -138,6 +136,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kInheritBaseHeight = "_InheritBaseHeight";
         MaterialProperty[] inheritBaseColor = new MaterialProperty[kMaxLayerCount - 1];
         const string kInheritBaseColor = "_InheritBaseColor";
+
+        // Height blend
+        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
+        const string kHeightOffset = "_HeightOffset";
+        MaterialProperty heightTransition = null;
+        const string kHeightTransition = "_HeightTransition";
 
         // UI
         MaterialProperty[] showLayer = new MaterialProperty[kMaxLayerCount];
@@ -158,6 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
+            heightTransition = FindProperty(kHeightTransition, props);
 
             useDensityMode = FindProperty(kUseDensityMode, props);
 
@@ -165,11 +170,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
+                heightOffset[i] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
                 showLayer[i] = FindProperty(string.Format("{0}{1}", kShowLayer, i), props);
 
                 if (i != 0)
                 {
-                    blendUsingHeight[i - 1] = FindProperty(string.Format("{0}{1}", kBlendUsingHeight, i), props);
                     // Influence
                     inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
                     inheritBaseHeight[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseHeight, i), props);
@@ -305,6 +310,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Material material = m_MaterialEditor.target as Material;
 
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
+            bool heightBasedBlend = useHeightBasedBlend.floatValue > 0.0f;
 
             EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
             {
@@ -330,13 +336,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
                     }
 
-
-                    bool heightBasedBlendEnable = useHeightBasedBlend.floatValue > 0.0f;
-                    if (heightBasedBlendEnable)
-                    {
-                        m_MaterialEditor.ShaderProperty(blendUsingHeight[paramIndex], styles.blendUsingHeight);
-                    }
-
                     if (mainLayerInfluenceEnable)
                     {
                         m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
@@ -345,6 +344,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // We always display it as it can be tricky to know when per pixel displacement is enabled or not
                         m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
                     }
+                }
+
+                if(heightBasedBlend)
+                {
+                    m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
                 }
 
                 EditorGUI.indentLevel--;
@@ -422,6 +426,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
+            }
+
+            if (enabled)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
+                EditorGUI.indentLevel--;
             }
 
             m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);
