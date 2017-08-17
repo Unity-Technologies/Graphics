@@ -40,6 +40,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Front              = new VFXAttribute("front", VFXValueType.kFloat3);
         public static readonly VFXAttribute Side               = new VFXAttribute("side", VFXValueType.kFloat3);
         public static readonly VFXAttribute Up                 = new VFXAttribute("up", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Alive              = new VFXAttribute("alive", VFXValueType.kBool);
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute), System.Reflection.BindingFlags.Public);
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();

@@ -14,35 +14,6 @@ namespace UnityEditor.VFX
             Init(mapper);
         }
 
-        private static bool IsTexture(VFXExpression exp)
-        {
-            switch (exp.ValueType)
-            {
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture3D:
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsUniform(VFXExpression exp)
-        {
-            switch (exp.ValueType)
-            {
-                case VFXValueType.kFloat:
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kTransform:
-                    return true;
-            }
-
-            return false;
-        }
-
         private void CollectAndAddUniforms(VFXExpression exp, string name)
         {
             if (!exp.Is(VFXExpression.Flags.PerElement))
@@ -53,18 +24,24 @@ namespace UnityEditor.VFX
                 string prefix;
                 Dictionary<VFXExpression, string> expressions;
 
-                if (IsUniform(exp))
+                if (VFXExpression.IsUniform(exp.ValueType))
                 {
                     prefix = "uniform_" + (exp.Is(VFXExpression.Flags.Constant) ? "CONSTANT_" : "");
                     expressions = m_UniformToName;
                 }
-                else if (IsTexture(exp))
+                else if (VFXExpression.IsTexture(exp.ValueType))
                 {
                     prefix = "texture_";
                     expressions = m_TextureToName;
                 }
                 else
+                {
+                    if (VFXExpression.IsTypeValidOnGPU(exp.ValueType))
+                    {
+                        throw new InvalidOperationException(string.Format("Missing handling for type: {0}", exp.ValueType));
+                    }
                     return;
+                }
 
                 if (expressions.ContainsKey(exp)) // Only need one name
                     return;
@@ -92,8 +69,8 @@ namespace UnityEditor.VFX
         public int numUniforms { get { return m_UniformToName.Count(); } }
         public int numTextures { get { return m_TextureToName.Count(); } }
 
-        public string GetName(VFXExpression exp)    { return IsTexture(exp) ? m_TextureToName[exp] : m_UniformToName[exp]; }
-        public bool Contains(VFXExpression exp)     { return IsTexture(exp) ? m_TextureToName.ContainsKey(exp) : m_UniformToName.ContainsKey(exp); }
+        public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        public bool Contains(VFXExpression exp)     { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName.ContainsKey(exp) : m_UniformToName.ContainsKey(exp); }
 
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;

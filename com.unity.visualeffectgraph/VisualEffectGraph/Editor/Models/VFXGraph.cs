@@ -170,6 +170,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kCurve:           SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient:   SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.kMesh:            SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.kBool:            SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }
@@ -241,6 +242,7 @@ namespace UnityEditor.VFX
                                 case VFXValueType.kCurve:           value = CreateValueDesc<AnimationCurve>(exp, i); break;
                                 case VFXValueType.kColorGradient:   value = CreateValueDesc<Gradient>(exp, i); break;
                                 case VFXValueType.kMesh:            value = CreateValueDesc<Mesh>(exp, i); break;
+                                case VFXValueType.kBool:            value = CreateValueDesc<bool>(exp, i); break;
                                 default: throw new InvalidOperationException("Invalid type");
                             }
                             value.expressionIndex = (uint)i;

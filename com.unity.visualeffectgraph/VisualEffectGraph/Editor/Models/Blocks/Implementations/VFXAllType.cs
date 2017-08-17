@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
             public int anInt = 123;
             public uint anUint = 321;
             public FlipBook aFlipBook;
-            public bool aBool;
+            public bool aBool = true;
             public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1)});
             public Mesh aMesh;
         }
