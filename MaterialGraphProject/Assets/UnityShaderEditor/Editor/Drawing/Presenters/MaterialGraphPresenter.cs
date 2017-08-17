@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected MaterialGraphPresenter()
         {
-            typeMapper = new GraphTypeMapper(typeof(GraphNodePresenter));
+            typeMapper = new GraphTypeMapper(typeof(MaterialNodePresenter));
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
@@ -100,7 +100,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theElements = m_Elements.OfType<GraphNodePresenter>().ToList();
+                var theElements = m_Elements.OfType<MaterialNodePresenter>().ToList();
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in found)
                     drawableNodeData.OnModified(scope);
@@ -119,7 +119,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
             var deletedElements = m_Elements
-                .OfType<GraphNodePresenter>()
+                .OfType<MaterialNodePresenter>()
                 .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
                 .OfType<GraphElementPresenter>()
                 .ToList();
@@ -135,7 +135,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 edgeData.input.Disconnect(edgeData);
 
                 var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
-                var toNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+                var toNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
                 if (toNode != null)
                 {
                     // Make the input node (i.e. right side of the connection) re-render
@@ -151,16 +151,16 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Elements.Remove(deletedElement);
             }
 
-            var addedNodes = new List<GraphNodePresenter>();
+            var addedNodes = new List<MaterialNodePresenter>();
 
             // Find all new nodes and mark for addition
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
                 // Check whether node already exists
-                if (m_Elements.OfType<GraphNodePresenter>().Any(e => e.node == node))
+                if (m_Elements.OfType<MaterialNodePresenter>().Any(e => e.node == node))
                     continue;
 
-                var nodeData = (GraphNodePresenter)typeMapper.Create(node);
+                var nodeData = (MaterialNodePresenter)typeMapper.Create(node);
 
                 node.onModified += OnNodeChanged;
 
@@ -208,13 +208,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                 {
                     var fromNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     var fromSlot = fromNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-                    var sourceNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(x => x.node == fromNode);
+                    var sourceNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == fromNode);
                     var sourceAnchors = sourceNode.elements.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == fromSlot);
 
                     var toNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                     var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                    var targetNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(x => x.node == toNode);
+                    var targetNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == toNode);
                     var targetAnchors = targetNode.elements.OfType<GraphAnchorPresenter>();
                     var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
@@ -257,7 +257,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdateData();
         }
 
-        public void RemoveElements(IEnumerable<GraphNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
+        public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
         {
             graphAsset.graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
             graphAsset.graph.ValidateGraph();
@@ -280,7 +280,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var graph = new CopyPasteGraph();
             foreach (var presenter in selection)
             {
-                var nodePresenter = presenter as GraphNodePresenter;
+                var nodePresenter = presenter as MaterialNodePresenter;
                 if (nodePresenter != null)
                 {
                     graph.AddNode(nodePresenter.node);
