@@ -63,10 +63,10 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         _HeightAmplitude2("Height Scale2", Float) = 1
         _HeightAmplitude3("Height Scale3", Float) = 1
 
-        _HeightCenter0("Height Bias0", Float) = 0
-        _HeightCenter1("Height Bias1", Float) = 0
-        _HeightCenter2("Height Bias2", Float) = 0
-        _HeightCenter3("Height Bias3", Float) = 0
+        _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
+        _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
+        _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
+        _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
@@ -103,13 +103,16 @@ Shader "HDRenderPipeline/InfluenceLayeredLitTessellation"
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        // Layer blending options V2
+
+        _HeightOffset0("Height Offset0", Float) = 0
+        _HeightOffset1("Height Offset1", Float) = 0
+        _HeightOffset2("Height Offset2", Float) = 0
+        _HeightOffset3("Height Offset3", Float) = 0
+
+        _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
+
         [ToggleOff] _UseDensityMode("Use Density mode", Float) = 0.0
         [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
-
-        _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
-        _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
-        _BlendUsingHeight3("_BlendUsingHeight3", Float) = 0.0
 
         _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
         _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0

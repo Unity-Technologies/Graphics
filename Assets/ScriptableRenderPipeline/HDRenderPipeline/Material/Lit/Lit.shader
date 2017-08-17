@@ -21,7 +21,7 @@ Shader "HDRenderPipeline/Lit"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
-        _HeightCenter("Height Center", Float) = 0.5 // In texture space
+        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailMask("DetailMask", 2D) = "white" {}
