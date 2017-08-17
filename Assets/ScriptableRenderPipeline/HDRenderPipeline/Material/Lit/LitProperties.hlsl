@@ -79,6 +79,7 @@ PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
+TEXTURE2D(_LayerInfluenceMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
 #endif
