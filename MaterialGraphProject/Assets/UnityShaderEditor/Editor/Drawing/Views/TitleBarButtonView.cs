@@ -4,7 +4,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class TitleBarButtonDrawer : DataWatchContainer
+    public class TitleBarButtonView : DataWatchContainer
     {
         TitleBarButtonPresenter m_dataProvider;
         Clicker m_clicker;
@@ -24,7 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public TitleBarButtonDrawer(TitleBarButtonPresenter dataProvider)
+        public TitleBarButtonView(TitleBarButtonPresenter dataProvider)
         {
             AddToClassList("titleBarItem");
 

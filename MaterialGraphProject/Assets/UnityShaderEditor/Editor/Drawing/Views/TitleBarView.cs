@@ -6,7 +6,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: we should not need a title bar drawer. It should just be a visual element in the nodedrawer.
-    public class TitleBarDrawer : DataWatchContainer
+    public class TitleBarView : DataWatchContainer
     {
         TitleBarPresenter m_DataProvider;
         VisualContainer m_LeftContainer;
@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public TitleBarDrawer()
+        public TitleBarView()
         {
             name = "TitleBar";
 
@@ -58,7 +58,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             container.ClearChildren();
             foreach (var itemPresenter in itemDatas)
-                container.AddChild(new TitleBarButtonDrawer(itemPresenter));
+                container.AddChild(new TitleBarButtonView(itemPresenter));
         }
 
         protected override Object[] toWatch

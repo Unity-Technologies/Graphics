@@ -1,23 +1,23 @@
-GraphEditorDrawer {
+GraphEditorView {
     flex-direction: column;
     background: #f00;
     flex: 1;
 }
 
-GraphEditorDrawer #TitleBar {
+GraphEditorView #TitleBar {
 
 }
 
-GraphEditorDrawer #content {
+GraphEditorView #content {
     flex: 1;
     flex-direction: row;
 }
 
-GraphEditorDrawer #content #GraphView {
+GraphEditorView #content #GraphView {
     flex: 1;
 }
 
-GraphEditorDrawer #content GraphInspectorView {
+GraphEditorView #content GraphInspectorView {
     width: 300;
     padding-left: 10;
     padding-right: 10;
@@ -25,7 +25,7 @@ GraphEditorDrawer #content GraphInspectorView {
     padding-bottom: 10;
 }
 
-GraphEditorDrawer #content GraphInspectorView IMGUIContainer {
+GraphEditorView #content GraphInspectorView IMGUIContainer {
     flex: 1;
 }
 

@@ -50,7 +50,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             RegisterCallback<MouseUpEvent>(DoContextMenu);
 
-            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
+            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeView);
             typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
             typeFactory[typeof(EdgePresenter)] = typeof(Edge);
 
@@ -135,7 +135,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return EventPropagation.Stop;
 
             nodalViewData.RemoveElements(
-                selection.OfType<MaterialNodeDrawer>().Select(x => x.GetPresenter<MaterialNodePresenter>()),
+                selection.OfType<MaterialNodeView>().Select(x => x.GetPresenter<MaterialNodePresenter>()),
                 selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
                 );
 
@@ -151,11 +151,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeDrawer>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer
-                            .OfType<MaterialNodeDrawer>()
+                            .OfType<MaterialNodeView>()
                             .FirstOrDefault(drawer => ((MaterialNodePresenter) drawer.presenter).node.guid == guid))
                 .ToList();
 
@@ -170,7 +170,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphDataSource == null)
                 return;
 
-            var selectedNodes = selection.OfType<MaterialNodeDrawer>().Select(x => (MaterialNodePresenter) x.presenter);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter) x.presenter);
             graphDataSource.UpdateSelection(selectedNodes);
         }
 

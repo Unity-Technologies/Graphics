@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     // TODO JOCE: Maybe this needs to derive from something we already have?
-    public class GraphEditorDrawer : DataWatchContainer
+    public class GraphEditorView : DataWatchContainer
     {
         GraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
@@ -17,21 +17,21 @@ namespace UnityEditor.MaterialGraph.Drawing
             get { return m_GraphView; }
         }
 
-        private TitleBarDrawer m_TitleBarDrawer;
+        private TitleBarView m_TitleBarView;
 
         // TODO: Create graphView from here rather than have it passed in through constructor
-        public GraphEditorDrawer(GraphView graphView)
+        public GraphEditorView(GraphView graphView)
         {
             AddStyleSheetPath("Styles/MaterialGraph");
 
             m_GraphView = graphView;
             m_GraphView.name = "GraphView";
-            m_TitleBarDrawer = new TitleBarDrawer();
-            m_TitleBarDrawer.name = "TitleBar";
+            m_TitleBarView = new TitleBarView();
+            m_TitleBarView.name = "TitleBar";
 
             m_GraphInspectorView = new GraphInspectorView();
 
-            Add(m_TitleBarDrawer);
+            Add(m_TitleBarView);
             var contentContainer = new VisualElement() { m_GraphView, m_GraphInspectorView };
             contentContainer.name = "content";
             Add(contentContainer);
@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void OnDataChanged()
         {
             m_GraphView.presenter = m_Presenter;
-            m_TitleBarDrawer.dataProvider = m_Presenter.titleBar;
+            m_TitleBarView.dataProvider = m_Presenter.titleBar;
             m_GraphInspectorView.presenter = m_Presenter.graphInspectorPresenter;
         }
 
