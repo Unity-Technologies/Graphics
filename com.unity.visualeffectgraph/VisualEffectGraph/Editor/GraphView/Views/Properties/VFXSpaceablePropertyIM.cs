@@ -65,78 +65,85 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class VFXPositionPropertyIM : VFXSpacedPropertyIM<Position>
+    abstract class VFXVector3SpacedPropertyIM<T> : VFXSpacedPropertyIM<T>
     {
-        public override Position OnParameterGUI(VFXDataAnchorPresenter presenter, Position value, string label)
+        public override T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label)
         {
             throw new System.NotImplementedException();
         }
 
-        public override Position OnParameterGUI(Rect rect, Position value, string label)
+        public override T OnParameterGUI(Rect rect, T value, string label)
         {
             rect.xMin += m_LabelWidth;
 
             float paramWidth = Mathf.Floor(rect.width / 3);
             float labelWidth = 20;
 
+            Vector3 val = GetV(value);
+
             rect.width = labelWidth;
             GUI.Label(rect, "x");
             rect.xMin += rect.width;
             rect.width = paramWidth - labelWidth;
-            value.position.x = EditorGUI.FloatField(rect, value.position.x);
+            val.x = EditorGUI.FloatField(rect, val.x);
 
             rect.xMin += rect.width;
             rect.width = labelWidth;
             GUI.Label(rect, "y");
             rect.xMin += rect.width;
             rect.width = paramWidth - labelWidth;
-            value.position.y = EditorGUI.FloatField(rect, value.position.y);
+            val.y = EditorGUI.FloatField(rect, val.y);
 
             rect.xMin += rect.width;
             rect.width = labelWidth;
             GUI.Label(rect, "z");
             rect.xMin += rect.width;
             rect.width = paramWidth - labelWidth;
-            value.position.y = EditorGUI.FloatField(rect, value.position.z);
+            val.y = EditorGUI.FloatField(rect, val.z);
+
+            SetV(ref value, val);
 
             return value;
+        }
+
+        protected abstract Vector3 GetV(T value);
+        protected abstract void SetV(ref T value, Vector3 vec);
+    }
+
+    class VFXPositionPropertyIM : VFXVector3SpacedPropertyIM<Position>
+    {
+        protected override Vector3 GetV(Position value)
+        {
+            return value.position;
+        }
+
+        protected override void SetV(ref Position value, Vector3 vec)
+        {
+            value.position = vec;
         }
     }
-    class VFXDirectionPropertyIM : VFXSpacedPropertyIM<DirectionType>
+    class VFXDirectionPropertyIM : VFXVector3SpacedPropertyIM<DirectionType>
     {
-        public override DirectionType OnParameterGUI(VFXDataAnchorPresenter presenter, DirectionType value, string label)
+        protected override Vector3 GetV(DirectionType value)
         {
-            throw new System.NotImplementedException();
+            return value.direction;
         }
 
-        public override DirectionType OnParameterGUI(Rect rect, DirectionType value, string label)
+        protected override void SetV(ref DirectionType value, Vector3 vec)
         {
-            rect.xMin += m_LabelWidth;
+            value.direction = vec;
+        }
+    }
+    class VFXVectorPropertyIM : VFXVector3SpacedPropertyIM<Vector>
+    {
+        protected override Vector3 GetV(Vector value)
+        {
+            return value.vector;
+        }
 
-            float paramWidth = Mathf.Floor(rect.width / 3);
-            float labelWidth = 20;
-
-            rect.width = labelWidth;
-            GUI.Label(rect, "x");
-            rect.xMin += rect.width;
-            rect.width = paramWidth - labelWidth;
-            value.direction.x = EditorGUI.FloatField(rect, value.direction.x);
-
-            rect.xMin += rect.width;
-            rect.width = labelWidth;
-            GUI.Label(rect, "y");
-            rect.xMin += rect.width;
-            rect.width = paramWidth - labelWidth;
-            value.direction.y = EditorGUI.FloatField(rect, value.direction.y);
-
-            rect.xMin += rect.width;
-            rect.width = labelWidth;
-            GUI.Label(rect, "z");
-            rect.xMin += rect.width;
-            rect.width = paramWidth - labelWidth;
-            value.direction.y = EditorGUI.FloatField(rect, value.direction.z);
-
-            return value;
+        protected override void SetV(ref Vector value, Vector3 vec)
+        {
+            value.vector = vec;
         }
     }
 }

@@ -65,7 +65,8 @@ namespace UnityEditor.VFX.UI
             {typeof(Gradient), typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) },
             {typeof(Position), typeof(VFXPositionPropertyIM) },
-            {typeof(DirectionType), typeof(VFXDirectionPropertyIM) }
+            {typeof(DirectionType), typeof(VFXDirectionPropertyIM) },
+            {typeof(Vector), typeof(VFXVectorPropertyIM) }
         };
         public static VFXPropertyIM Create(Type type, float labelWidth)
         {

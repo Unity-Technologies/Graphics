@@ -132,4 +132,27 @@ namespace UnityEditor.VFX.UI
             m_VectorField.SetValue(m_Value.position);
         }
     }
+
+    class DirectionPropertyRM : Vector3SpaceablePropertyRM<DirectionType>
+    {
+        public DirectionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override void OnValueChanged()
+        {
+            Vector3 newValue = m_VectorField.GetValue();
+            if (newValue != m_Value.direction)
+            {
+                m_Value.direction = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        public override void UpdateGUI()
+        {
+            base.UpdateGUI();
+            m_VectorField.SetValue(m_Value.direction);
+        }
+    }
 }

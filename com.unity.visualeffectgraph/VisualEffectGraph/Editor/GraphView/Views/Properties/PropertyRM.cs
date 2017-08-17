@@ -125,6 +125,7 @@ namespace UnityEditor.VFX.UI
         {
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
+            {typeof(DirectionType), typeof(DirectionPropertyRM)},
             {typeof(Spaceable), typeof(SpaceablePropertyRM<Spaceable>)},
             {typeof(bool), typeof(BoolPropertyRM)},
             {typeof(float), typeof(FloatPropertyRM)},
