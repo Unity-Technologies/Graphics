@@ -21,7 +21,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
-        _HeightCenter("Height Center", Float) = 0.5 // In texture space
+        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailMask("DetailMask", 2D) = "white" {}
@@ -89,7 +89,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
+        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
