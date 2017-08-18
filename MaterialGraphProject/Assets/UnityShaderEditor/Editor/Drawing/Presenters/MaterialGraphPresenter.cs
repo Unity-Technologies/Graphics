@@ -115,7 +115,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Container.Repaint();
         }
 
-        private void UpdateData()
+        void UpdateData()
         {
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
             var deletedElements = m_Elements
@@ -275,7 +275,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
+        CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
         {
             var graph = new CopyPasteGraph();
             foreach (var presenter in selection)
@@ -295,7 +295,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             return graph;
         }
 
-        private CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
+        CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
         {
             try
             {
@@ -308,7 +308,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private void InsertCopyPasteGraph(CopyPasteGraph graph)
+        void InsertCopyPasteGraph(CopyPasteGraph graph)
         {
             if (graph == null || graphAsset == null || graphAsset.graph == null)
                 return;
@@ -358,22 +358,37 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphAsset.drawingData.selection = addedNodes.Select(n => n.guid);
         }
 
-        public void Copy(IEnumerable<GraphElementPresenter> selection)
+        public bool canCopy
         {
-            var graph = CreateCopyPasteGraph(selection);
+            get { return elements.Any(e => e.selected); }
+        }
+
+        public void Copy()
+        {
+            var graph = CreateCopyPasteGraph(elements.Where(e => e.selected));
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
         }
 
-        public void Duplicate(IEnumerable<GraphElementPresenter> selection)
+        public bool canPaste
         {
-            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(selection), true));
-            InsertCopyPasteGraph(graph);
+            get { return DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer) != null; }
         }
 
         public void Paste()
         {
             var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
             InsertCopyPasteGraph(pastedGraph);
+        }
+
+        public bool canDuplicate
+        {
+            get { return canCopy; }
+        }
+
+        public void Duplicate()
+        {
+            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(elements.Where(e => e.selected)), true));
+            InsertCopyPasteGraph(graph);
         }
 
         public override void AddElement(EdgePresenter edge)

@@ -25,20 +25,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                     {Event.KeyboardEvent("o"), FrameOrigin},
                     {Event.KeyboardEvent("delete"), DeleteSelection},
                     {Event.KeyboardEvent("#tab"), FramePrev},
-                    {Event.KeyboardEvent("tab"), FrameNext},
-                    {Event.KeyboardEvent("#c"), CopySelection},
-                    {Event.KeyboardEvent("#v"), Paste},
-                    {Event.KeyboardEvent("#d"), DuplicateSelection}
+                    {Event.KeyboardEvent("tab"), FrameNext}
                 });
 
             onEnter += () => editorWindow.rootVisualContainer.parent.AddManipulator(shortcutHandler);
             onLeave += () => editorWindow.rootVisualContainer.parent.RemoveManipulator(shortcutHandler);
-
-            this.AddManipulator(new Commandable
-            {
-                { "Duplicate", () => true, () => Debug.Log("Duplicate!") },
-                { "Copy", () => true, () => Debug.Log("Copy!") }
-            });
 
             this.AddManipulator(new ContentZoomer());
             this.AddManipulator(new ContentDragger());
@@ -190,30 +181,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.ClearSelection();
             PropagateSelection();
-        }
-
-        public EventPropagation CopySelection()
-        {
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (selection.Any() && graphDataSource != null)
-                graphDataSource.Copy(selection.OfType<GraphElement>().Select(ge => ge.presenter));
-            return EventPropagation.Stop;
-        }
-
-        public EventPropagation DuplicateSelection()
-        {
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (selection.Any() && graphDataSource != null)
-                graphDataSource.Duplicate(selection.OfType<GraphElement>().Select(ge => ge.presenter));
-            return EventPropagation.Stop;
-        }
-
-        public EventPropagation Paste()
-        {
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (graphDataSource != null)
-                graphDataSource.Paste();
-            return EventPropagation.Stop;
         }
     }
 }
