@@ -23,7 +23,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     {Event.KeyboardEvent("a"), FrameAll},
                     {Event.KeyboardEvent("f"), FrameSelection},
                     {Event.KeyboardEvent("o"), FrameOrigin},
-                    {Event.KeyboardEvent("delete"), DeleteSelection},
                     {Event.KeyboardEvent("#tab"), FramePrev},
                     {Event.KeyboardEvent("tab"), FrameNext}
                 });
@@ -116,21 +115,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var graphDataSource = GetPresenter<MaterialGraphPresenter>();
             graphDataSource.AddNode(node);
-        }
-
-        // TODO JOCE Remove the "new" here. Use the base class' impl
-        new EventPropagation DeleteSelection()
-        {
-            var presenter = GetPresenter<MaterialGraphPresenter>();
-            if (presenter == null)
-                return EventPropagation.Stop;
-
-            presenter.RemoveElements(
-                selection.OfType<MaterialNodeView>().Select(x => x.GetPresenter<MaterialNodePresenter>()),
-                selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
-                );
-
-            return EventPropagation.Stop;
         }
 
         public override void OnDataChanged()
