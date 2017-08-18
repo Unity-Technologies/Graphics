@@ -41,11 +41,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class CubeNodePresenter : MaterialNodePresenter
     {
-        protected override IEnumerable<GraphElementPresenter> GetControlData()
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<CubeContolPresenter>();
             instance.Initialize(node);
-            return new List<GraphElementPresenter> { instance };
+            return new List<GraphControlPresenter> { instance };
         }
     }
 }

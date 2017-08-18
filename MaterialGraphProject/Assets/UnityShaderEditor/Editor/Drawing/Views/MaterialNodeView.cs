@@ -102,9 +102,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdateControls(MaterialNodePresenter nodeData)
         {
-            var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
-
-            if (controlPresenters.SequenceEqual(m_CurrentControlPresenter) && nodeData.expanded)
+            if (nodeData.controls.SequenceEqual(m_CurrentControlPresenter) && nodeData.expanded)
                 return;
 
             m_ControlsContainer.Clear();
@@ -113,7 +111,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!nodeData.expanded)
                 return;
 
-            foreach (var controlData in controlPresenters)
+            foreach (var controlData in nodeData.controls)
             {
                 m_ControlsContainer.Add(CreateControl(controlData));
                 m_CurrentControlPresenter.Add(controlData);
@@ -147,7 +145,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             UpdateControls(nodeData);
 
-            m_CurrentPreviewData = nodeData.elements.OfType<NodePreviewPresenter>().FirstOrDefault();
+            m_CurrentPreviewData = nodeData.preview;
             UpdatePreviewTexture(m_CurrentPreviewData);
 
             if (nodeData.expanded)
