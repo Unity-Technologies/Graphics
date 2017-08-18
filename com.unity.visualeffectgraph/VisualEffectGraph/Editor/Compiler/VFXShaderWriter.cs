@@ -54,7 +54,16 @@ namespace UnityEditor.VFX
             return string.Format(format, VFXExpression.TypeToCode(type), value.ToString());
         }
 
-        public static void WriteCBuffer(VFXUniformMapper mapper, StringBuilder builder, string bufferName)
+        public static void WriteTexture(StringBuilder builder, VFXUniformMapper mapper)
+        {
+            foreach (var texture in mapper.textures)
+            {
+                builder.AppendFormat("{0} {1};", VFXExpression.TypeToCode(texture.ValueType), mapper.GetName(texture));
+                builder.AppendLine();
+            }
+        }
+
+        public static void WriteCBuffer(StringBuilder builder, VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
@@ -100,7 +109,7 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        public static void WriteBlockFunction(StringBuilder builder, VFXBlock block)
+        public static void WriteBlockFunction(StringBuilder builder, VFXExpressionMapper mapper, VFXBlock block)
         {
             var parameters = new List<string>();
             foreach (var attribute in block.attributes)
@@ -110,7 +119,11 @@ namespace UnityEditor.VFX
 
             foreach (var parameter in block.parameters)
             {
-                parameters.Add(string.Format("{0} {1}", VFXExpression.TypeToCode(parameter.exp.ValueType), parameter.name));
+                var expReduced = mapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
+                if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
+                {
+                    parameters.Add(string.Format("{0} {1}", VFXExpression.TypeToCode(expReduced.ValueType), parameter.name));
+                }
             }
 
             builder.AppendFormat("void {0}({1})", block.GetType().Name, AggregateParameters(parameters));
@@ -134,11 +147,14 @@ namespace UnityEditor.VFX
             foreach (var parameter in block.parameters)
             {
                 var expReduced = mapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
-                if (!variableNames.ContainsKey(expReduced))
+                if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
                 {
-                    throw new Exception(string.Format("Cannot find variable name for {0}", expReduced));
+                    if (!variableNames.ContainsKey(expReduced))
+                    {
+                        throw new Exception(string.Format("Cannot find variable name for {0}", expReduced));
+                    }
+                    parameters.Add(variableNames[expReduced]);
                 }
-                parameters.Add(variableNames[expReduced]);
             }
 
             builder.AppendFormat("{0}({1});", block.GetType().Name, AggregateParameters(parameters));

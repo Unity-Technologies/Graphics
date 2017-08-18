@@ -33,7 +33,6 @@ namespace UnityEditor.VFX
 
         protected VFXModel()
         {
-            m_Id = Guid.NewGuid();
         }
 
         public virtual void OnEnable()
@@ -233,8 +232,6 @@ namespace UnityEditor.VFX
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);
         }
-
-        private Guid m_Id; // TODO Not used
 
         [SerializeField]
         protected VFXModel m_Parent = null;

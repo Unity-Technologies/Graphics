@@ -68,7 +68,8 @@ namespace UnityEditor.VFX
 
             var uniformMapper = new VFXUniformMapper(gpuMapper);
             var cbuffer = new StringBuilder();
-            VFXShaderWriter.WriteCBuffer(uniformMapper, cbuffer, "parameters");
+            VFXShaderWriter.WriteCBuffer(cbuffer, uniformMapper, "parameters");
+            VFXShaderWriter.WriteTexture(cbuffer, uniformMapper);
 
             var parameters = new StringBuilder();
             var expressionToName = new Dictionary<VFXExpression, string>();
@@ -121,29 +122,6 @@ namespace UnityEditor.VFX
                 VFXShaderWriter.WriteVariable(parameters, attribute.type, name, attribute.name);
             }
 
-            //< Parameters (computed and/or extracted from uniform)
-            {
-                var parameterCompute = new StringBuilder();
-                var variableNames = new Dictionary<VFXExpression, string>();
-                foreach (var exp in gpuMapper.expressions)
-                {
-                    if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
-                    {
-                        continue;
-                    }
-                    var name = string.Format("param_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
-                    expressionToName.Add(exp, name);
-                    VFXShaderWriter.WriteVariable(parameters, exp.ValueType, name, "0");
-
-                    VFXShaderWriter.WriteVariable(parameterCompute, exp, variableNames, uniformMapper);
-                    VFXShaderWriter.WriteAssignement(parameterCompute, exp.ValueType, name, variableNames[exp]);
-                    parameterCompute.AppendLine();
-                }
-
-                parameters.Append("{\n\t${tabParameterCompute}}\n");
-                ReplaceMultiline(parameters, "${tabParameterCompute}", parameterCompute);
-            }
-
             //< Replace parameters in template code
             foreach (var implicitAttribute in implicitAttributeCurrent.Concat(implicitAttributeSource).Select(o => o.attrib))
             {
@@ -155,13 +133,34 @@ namespace UnityEditor.VFX
             var blockFunction = new StringBuilder();
             foreach (var block in context.GetChildren().GroupBy(o => o.name))
             {
-                VFXShaderWriter.WriteBlockFunction(blockFunction, block.First());
+                VFXShaderWriter.WriteBlockFunction(blockFunction, gpuMapper, block.First());
             }
 
             var blockCallFunction = new StringBuilder();
             foreach (var block in context.GetChildren())
             {
-                VFXShaderWriter.WriteCallFunction(blockCallFunction, block, gpuMapper, expressionToName);
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                //< Parameters (computed and/or extracted from uniform)
+                {
+                    var parameterCompute = new StringBuilder();
+                    var variableNames = new Dictionary<VFXExpression, string>();
+                    foreach (var exp in gpuMapper.expressions)
+                    {
+                        if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
+                        {
+                            continue;
+                        }
+                        var name = string.Format("param_local_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToNameLocal.Count));
+                        expressionToNameLocal.Add(exp, name);
+
+                        VFXShaderWriter.WriteVariable(parameterCompute, exp, variableNames, uniformMapper);
+                        VFXShaderWriter.WriteVariable(parameterCompute, exp.ValueType, name, variableNames[exp]);
+                    }
+                    blockCallFunction.Append("{\n\t${tempParameterCompute}\n\t");
+                    VFXShaderWriter.WriteCallFunction(blockCallFunction, block, gpuMapper, expressionToNameLocal);
+                    blockCallFunction.AppendLine("}");
+                    ReplaceMultiline(blockCallFunction, "${tempParameterCompute}", parameterCompute);
+                }
             }
 
             //< Final composition
