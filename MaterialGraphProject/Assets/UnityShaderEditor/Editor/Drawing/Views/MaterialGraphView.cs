@@ -121,11 +121,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         // TODO JOCE Remove the "new" here. Use the base class' impl
         new EventPropagation DeleteSelection()
         {
-            var nodalViewData = GetPresenter<MaterialGraphPresenter>();
-            if (nodalViewData == null)
+            var presenter = GetPresenter<MaterialGraphPresenter>();
+            if (presenter == null)
                 return EventPropagation.Stop;
 
-            nodalViewData.RemoveElements(
+            presenter.RemoveElements(
                 selection.OfType<MaterialNodeView>().Select(x => x.GetPresenter<MaterialNodePresenter>()),
                 selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
                 );

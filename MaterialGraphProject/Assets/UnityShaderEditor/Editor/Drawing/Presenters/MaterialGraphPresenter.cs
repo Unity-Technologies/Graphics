@@ -369,6 +369,17 @@ namespace UnityEditor.MaterialGraph.Drawing
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
         }
 
+        public bool canCut
+        {
+            get { return canCopy; }
+        }
+
+        public void Cut()
+        {
+            Copy();
+            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+        }
+
         public bool canPaste
         {
             get { return DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer) != null; }
