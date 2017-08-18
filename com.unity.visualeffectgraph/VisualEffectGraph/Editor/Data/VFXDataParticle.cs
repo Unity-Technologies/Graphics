@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -7,6 +8,12 @@ namespace UnityEditor.VFX
 {
     class VFXDataParticle : VFXData
     {
+        public struct AttributeLayout
+        {
+            int offset;
+            int bucket;
+        }
+
         public override VFXDataType type { get { return VFXDataType.kParticle; } }
 
         public uint capacity
@@ -27,98 +34,41 @@ namespace UnityEditor.VFX
             set { m_WorldSpace = value; }
         }
 
-        // TODO tmp function to generate attribute buffers
-        public void DebugBuildAttributeBuffers()
+        public void GenerateAttributeLayout()
         {
-            int nbOwners = m_Owners.Count;
-            if (nbOwners > 16)
-                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
-
-            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
-
-            var LocalAttributes = new List<VFXAttribute>();
-
-            foreach (var kvp in m_AttributesToContexts)
+            var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
+            foreach (var kvp in m_StoredAttributes)
             {
-                bool local = false;
-                var attribute = kvp.Key;
-                int key = 0;
-
-                bool onlyInit = true;
-                bool onlyOutput = true;
-                bool onlyUpdateRead = true;
-                bool onlyUpdateWrite = true;
-
-                foreach (var kvp2 in kvp.Value)
-                {
-                    var context = kvp2.Key;
-                    if (context.contextType != VFXContextType.kInit)
-                        onlyInit = false;
-                    if (context.contextType != VFXContextType.kOutput)
-                        onlyOutput = false;
-                    if (context.contextType != VFXContextType.kUpdate)
-                    {
-                        onlyUpdateRead = false;
-                        onlyUpdateWrite = false;
-                    }
-                    else
-                    {
-                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
-                            onlyUpdateWrite = false;
-                        if ((kvp2.Value & VFXAttributeMode.Write) != 0)
-                            onlyUpdateRead = false;
-                    }
-
-                    int shift = m_Owners.IndexOf(context) << 1;
-                    int value = 0;
-                    if ((kvp2.Value & VFXAttributeMode.Read) != 0)
-                        value = 0x01;
-                    if ((kvp2.Value & VFXAttributeMode.Write) != 0)
-                        value = 0x02;
-                    key |= (value << shift);
-                }
-
-                if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
-                    local = true;
-                if ((key & 0xAAAAAAAA) == 0) // no write mask
-                    local = true;
-
-                if (local)
-                {
-                    LocalAttributes.Add(attribute);
-                    continue;
-                }
-
                 List<VFXAttribute> attributes;
-                if (!keyToAttributes.ContainsKey(key))
+                if (!attributeBuckets.ContainsKey(kvp.Value))
                 {
                     attributes = new List<VFXAttribute>();
-                    keyToAttributes[key] = attributes;
+                    attributeBuckets[kvp.Value] = attributes;
                 }
                 else
-                    attributes = keyToAttributes[key];
+                    attributes = attributeBuckets[kvp.Value];
 
-                attributes.Add(attribute);
+                attributes.Add(kvp.Key);
             }
 
-            var builder = new StringBuilder();
-            builder.AppendLine("ATTRIBUTES FOR PARTICLE DATA PER KEY");
-            foreach (var kvp in keyToAttributes)
+            int bucketId = 0;
+            foreach (var bucket in attributeBuckets)
+                GenerateBucketLayout(bucket.Value, bucketId++);
+        }
+
+        private void GenerateBucketLayout(List<VFXAttribute> attributes, int bucketId)
+        {
+            var sortedAttrib = attributes.OrderByDescending(a => VFXValue.TypeToSize(a.type));
+
+            var attribBlocks = new List<List<VFXAttribute>>();
+            foreach (var value in sortedAttrib)
             {
-                builder.AppendLine(kvp.Key.ToString());
-                foreach (var attrib in kvp.Value)
-                    builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
+                var block = attribBlocks.FirstOrDefault(b => b.Sum(a => VFXValue.TypeToSize(a.type)) + VFXValue.TypeToSize(value.type) <= 4);
+                if (block != null)
+                    block.Add(value);
+                else
+                    attribBlocks.Add(new List<VFXAttribute>() { value });
             }
-
-            if (LocalAttributes.Count > 0)
-            {
-                builder.AppendLine("Local Attributes");
-                foreach (var attrib in LocalAttributes)
-                    builder.AppendLine(string.Format("\t{0} {1}", attrib.type, attrib.name));
-            }
-
-
-            Debug.Log(builder.ToString());
         }
 
         [SerializeField]
@@ -127,5 +77,8 @@ namespace UnityEditor.VFX
         private Bounds m_Bounds;
         [SerializeField]
         private bool m_WorldSpace;
+
+        [NonSerialized]
+        private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
     }
 }
