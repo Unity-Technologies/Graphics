@@ -11,7 +11,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class NodePreviewPresenter : GraphElementPresenter
+    public class NodePreviewPresenter : ScriptableObject
     {
         protected NodePreviewPresenter()
         {}
