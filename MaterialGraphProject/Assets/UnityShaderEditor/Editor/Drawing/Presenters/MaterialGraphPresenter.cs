@@ -402,6 +402,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             InsertCopyPasteGraph(graph);
         }
 
+        public bool canDelete
+        {
+            get { return canCopy; }
+        }
+
+        public void Delete()
+        {
+            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+        }
+
         public override void AddElement(EdgePresenter edge)
         {
             Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);

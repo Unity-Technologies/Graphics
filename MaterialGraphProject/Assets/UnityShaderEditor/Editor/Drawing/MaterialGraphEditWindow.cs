@@ -79,7 +79,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 e.commandName == "Copy" && presenter.canCopy
                 || e.commandName == "Paste" && presenter.canPaste
                 || e.commandName == "Duplicate" && presenter.canDuplicate
-                || e.commandName == "Cut" && presenter.canCut))
+                || e.commandName == "Cut" && presenter.canCut
+                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
             {
                 e.Use();
             }
@@ -94,6 +95,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                     presenter.Duplicate();
                 if (e.commandName == "Cut")
                     presenter.Cut();
+                if (e.commandName == "Delete" || e.commandName == "SoftDelete")
+                    presenter.Delete();
             }
         }
 
