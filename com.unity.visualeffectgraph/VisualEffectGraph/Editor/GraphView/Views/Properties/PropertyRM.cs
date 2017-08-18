@@ -125,6 +125,7 @@ namespace UnityEditor.VFX.UI
         {
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
+            {typeof(DirectionType), typeof(DirectionPropertyRM)},
             {typeof(Spaceable), typeof(SpaceablePropertyRM<Spaceable>)},
             {typeof(bool), typeof(BoolPropertyRM)},
             {typeof(float), typeof(FloatPropertyRM)},
@@ -192,6 +193,8 @@ namespace UnityEditor.VFX.UI
         }
 
         protected IPropertyRMProvider m_Provider;
+
+        public abstract bool showsEverything { get; }
     }
 
     interface IFloatNAffector<T>
@@ -275,5 +278,6 @@ namespace UnityEditor.VFX.UI
                     m_Field.enabled = value;
             }
         }
+        public override bool showsEverything { get { return true; } }
     }
 }

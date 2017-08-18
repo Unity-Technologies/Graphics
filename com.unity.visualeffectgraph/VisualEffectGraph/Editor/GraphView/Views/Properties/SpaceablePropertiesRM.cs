@@ -59,6 +59,8 @@ namespace UnityEditor.VFX.UI
                 return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
             }
         }
+
+        public override bool showsEverything { get { return false; } }
     }
 
     abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
@@ -85,6 +87,7 @@ namespace UnityEditor.VFX.UI
                     m_VectorField.enabled = value;
             }
         }
+        public override bool showsEverything { get { return true; } }
     }
 
     class VectorPropertyRM : Vector3SpaceablePropertyRM<Vector>
@@ -130,6 +133,29 @@ namespace UnityEditor.VFX.UI
         {
             base.UpdateGUI();
             m_VectorField.SetValue(m_Value.position);
+        }
+    }
+
+    class DirectionPropertyRM : Vector3SpaceablePropertyRM<DirectionType>
+    {
+        public DirectionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override void OnValueChanged()
+        {
+            Vector3 newValue = m_VectorField.GetValue();
+            if (newValue != m_Value.direction)
+            {
+                m_Value.direction = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        public override void UpdateGUI()
+        {
+            base.UpdateGUI();
+            m_VectorField.SetValue(m_Value.direction);
         }
     }
 }

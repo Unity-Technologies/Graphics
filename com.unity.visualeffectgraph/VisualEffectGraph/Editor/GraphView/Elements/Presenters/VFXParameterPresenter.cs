@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -20,8 +21,84 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
     }
+
+    class VFXSubParameterPresenter : IPropertyRMProvider
+    {
+        VFXParameterPresenter m_Parameter;
+        int m_Field;
+        FieldInfo m_FieldInfo;
+
+
+        public  VFXSubParameterPresenter(VFXParameterPresenter parameter, int field)
+        {
+            m_Parameter = parameter;
+            m_Field = field;
+
+            System.Type type = m_Parameter.anchorType;
+            m_FieldInfo = type.GetFields()[field];
+        }
+
+        bool IPropertyRMProvider.expanded
+        {
+            get
+            {
+                return false;
+            }
+        }
+        bool IPropertyRMProvider.editable
+        {
+            get { return true; }
+        }
+
+        bool IPropertyRMProvider.expandable { get { return false; } }
+
+        string IPropertyRMProvider.name
+        {
+            get { return m_FieldInfo.Name; }
+        }
+
+        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+
+        int IPropertyRMProvider.depth { get { return 1; } }
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Type anchorType
+        {
+            get
+            {
+                return m_FieldInfo.FieldType;
+            }
+        }
+
+        public object value
+        {
+            get
+            {
+                return m_FieldInfo.GetValue(m_Parameter.value);
+            }
+            set
+            {
+                object val = m_Parameter.value;
+                m_FieldInfo.SetValue(val, value);
+
+                m_Parameter.value = val;
+            }
+        }
+    }
     class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
     {
+        VFXSubParameterPresenter[] m_SubPresenters;
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
@@ -33,6 +110,40 @@ namespace UnityEditor.VFX.UI
             m_CachedValue = parameter.value;
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+        }
+
+        public int CreateSubPresenters()
+        {
+            if (m_SubPresenters == null)
+            {
+                System.Type type = anchorType;
+
+                FieldInfo[] fields = type.GetFields();
+
+                int count = fields.Length;
+
+                bool spaceable = typeof(Spaceable).IsAssignableFrom(type);
+                if (spaceable)
+                {
+                    --count;
+                }
+
+                m_SubPresenters = new VFXSubParameterPresenter[count];
+
+                int startIndex = spaceable ? 1 : 0;
+
+                for (int i = startIndex; i < count + startIndex; ++i)
+                {
+                    m_SubPresenters[i - startIndex] = new VFXSubParameterPresenter(this, i);
+                }
+            }
+
+            return m_SubPresenters.Length;
+        }
+
+        public VFXSubParameterPresenter GetSubPresenter(int i)
+        {
+            return m_SubPresenters[i];
         }
 
         public string exposedName

@@ -228,6 +228,9 @@ namespace UnityEditor.VFX.UI
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);
+
+            AddLayer(-1);
+            AddLayer(1);
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)

@@ -78,6 +78,7 @@ namespace UnityEditor.VFX.UI
         }
 
         PropertyRM m_Property;
+        PropertyRM[] m_SubProperties;
         VFXPropertyIM m_PropertyIM;
         IMGUIContainer m_Container;
 
@@ -117,7 +118,9 @@ namespace UnityEditor.VFX.UI
         {
             if (m_PropertyIM != null)
             {
-                m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault());
+                var presenter = GetPresenter<VFXParameterPresenter>();
+                var all = presenter.allChildren.OfType<VFXDataAnchorPresenter>();
+                m_PropertyIM.OnGUI(all.FirstOrDefault());
             }
         }
 
@@ -137,7 +140,21 @@ namespace UnityEditor.VFX.UI
             {
                 m_Property = PropertyRM.Create(presenter, 55);
                 if (m_Property != null)
+                {
                     inputContainer.Add(m_Property);
+
+                    if (!m_Property.showsEverything)
+                    {
+                        int count = presenter.CreateSubPresenters();
+                        m_SubProperties = new PropertyRM[count];
+
+                        for (int i = 0; i < count; ++i)
+                        {
+                            m_SubProperties[i] = PropertyRM.Create(presenter.GetSubPresenter(i), 55);
+                            inputContainer.Add(m_SubProperties[i]);
+                        }
+                    }
+                }
                 else
                 {
                     m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
@@ -148,6 +165,13 @@ namespace UnityEditor.VFX.UI
             }
             if (m_Property != null)
                 m_Property.Update();
+            if (m_SubProperties != null)
+            {
+                foreach (var subProp in m_SubProperties)
+                {
+                    subProp.Update();
+                }
+            }
         }
     }
 }
