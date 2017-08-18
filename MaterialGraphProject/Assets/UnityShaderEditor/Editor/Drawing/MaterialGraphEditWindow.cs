@@ -78,7 +78,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (e.type == EventType.ValidateCommand && (
                 e.commandName == "Copy" && presenter.canCopy
                 || e.commandName == "Paste" && presenter.canPaste
-                || e.commandName == "Duplicate" && presenter.canDuplicate))
+                || e.commandName == "Duplicate" && presenter.canDuplicate
+                || e.commandName == "Cut" && presenter.canCut))
             {
                 e.Use();
             }
@@ -91,6 +92,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                     presenter.Paste();
                 if (e.commandName == "Duplicate")
                     presenter.Duplicate();
+                if (e.commandName == "Cut")
+                    presenter.Cut();
             }
         }
 
