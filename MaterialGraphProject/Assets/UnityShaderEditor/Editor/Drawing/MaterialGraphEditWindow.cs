@@ -70,6 +70,30 @@ namespace UnityEditor.MaterialGraph.Drawing
                 Repaint();
         }
 
+        void OnGUI()
+        {
+            var presenter = m_GraphEditorView.presenter;
+            var e = Event.current;
+
+            if (e.type == EventType.ValidateCommand && (
+                e.commandName == "Copy" && presenter.canCopy
+                || e.commandName == "Paste" && presenter.canPaste
+                || e.commandName == "Duplicate" && presenter.canDuplicate))
+            {
+                e.Use();
+            }
+
+            if (e.type == EventType.ExecuteCommand)
+            {
+                if (e.commandName == "Copy")
+                    presenter.Copy();
+                if (e.commandName == "Paste")
+                    presenter.Paste();
+                if (e.commandName == "Duplicate")
+                    presenter.Duplicate();
+            }
+        }
+
         public void PingAsset()
         {
             if (selected != null)
