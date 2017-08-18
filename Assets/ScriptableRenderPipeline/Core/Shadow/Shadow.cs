@@ -1229,7 +1229,11 @@ namespace UnityEngine.Experimental.Rendering
             ShadowDataVector shadowVector = m_ShadowCtxt.shadowDatas;
             ShadowPayloadVector payloadVector = m_ShadowCtxt.payloads;
             m_ShadowIndices.Reset( m_TmpRequests.Count() );
-            AllocateShadows( frameId, camera, cameraRelativeRendering, lights, totalGranted, ref m_TmpRequests, ref m_ShadowIndices, ref shadowVector, ref payloadVector );
+            if (!AllocateShadows(frameId, camera, cameraRelativeRendering, lights, totalGranted, ref m_TmpRequests, ref m_ShadowIndices, ref shadowVector, ref payloadVector))
+            {
+                shadowRequestsCount = 0;
+                return;
+            }
             Debug.Assert( m_TmpRequests.Count() == m_ShadowIndices.Count() );
             m_ShadowCtxt.shadowDatas = shadowVector;
             m_ShadowCtxt.payloads = payloadVector;
@@ -1340,7 +1344,7 @@ namespace UnityEngine.Experimental.Rendering
             m_TmpSortKeys.ExtractTo( ref shadowRequests, (long idx) => { return (int) idx; } );
         }
 
-        protected override void AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
+        protected override bool AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref ShadowRequestVector grantedRequests, ref ShadowIndicesVector shadowIndices, ref ShadowDataVector shadowDatas, ref ShadowPayloadVector shadowmapPayload )
         {
             ShadowData sd = new ShadowData();
             shadowDatas.Reserve( totalGranted );
@@ -1366,15 +1370,23 @@ namespace UnityEngine.Experimental.Rendering
                     smidx++;
                 }
                 if( smidx == k_MaxShadowmapPerType )
-                    throw new ArgumentException("The requested shadows do not fit into any shadowmap.");
+                {
+                    Debug.LogError("The requested shadows do not fit into any shadowmap.");
+                    return false;
+                }
             }
 
             // final step for shadowmaps that only gather data during the previous loop and do the actual allocation once they have all the data.
             foreach( var sm in m_Shadowmaps )
             {
                 if( !sm.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
-                    throw new ArgumentException( "Shadow allocation failed in the ReserveFinalize step." );
+                {
+                    Debug.LogError("Shadow allocation failed in the ReserveFinalize step." );
+                    return false;
+                }
             }
+
+            return true;
         }
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
