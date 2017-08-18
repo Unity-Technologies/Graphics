@@ -15,10 +15,10 @@ namespace UnityEditor.MaterialGraph.Drawing
         public INode node { get; private set; }
 
         [SerializeField]
-        protected List<GraphElementPresenter> m_Controls = new List<GraphElementPresenter>();
+        protected List<GraphControlPresenter> m_Controls = new List<GraphControlPresenter>();
 
         [SerializeField]
-        NodePreviewPresenter m_NodePreviewPresenter;
+        NodePreviewPresenter m_Preview;
 
         [SerializeField]
         int m_Version;
@@ -26,15 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public bool requiresTime
         {
             get { return node is IRequiresTime; }
-        }
-
-        public IEnumerable<GraphElementPresenter> elements
-        {
-            // TODO JOCE Sub ideal to use yield, but will do for now.
-            get
-            {
-                return inputAnchors.Concat(outputAnchors).Cast<GraphElementPresenter>().Concat(m_Controls).Concat(new [] {m_NodePreviewPresenter});
-            }
         }
 
         public override bool expanded
@@ -52,11 +43,21 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        public List<GraphControlPresenter> controls
+        {
+            get { return m_Controls; }
+        }
+
+        public NodePreviewPresenter preview
+        {
+            get { return m_Preview; }
+        }
+
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             var towatch = new List<UnityEngine.Object>();
             towatch.AddRange(base.GetObjectsToWatch());
-            towatch.Add(m_NodePreviewPresenter);
+            towatch.Add(preview);
             return towatch.ToArray();
         }
 
@@ -80,8 +81,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             // TODO: Propagate callback rather than setting property
-            if (m_NodePreviewPresenter != null)
-                m_NodePreviewPresenter.modificationScope = scope;
+            if (preview != null)
+                preview.modificationScope = scope;
         }
 
         public override void CommitChanges()
@@ -91,9 +92,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             node.drawState = drawState;
         }
 
-        protected virtual IEnumerable<GraphElementPresenter> GetControlData()
+        protected virtual IEnumerable<GraphControlPresenter> GetControlData()
         {
-            return Enumerable.Empty<GraphElementPresenter>();
+            return Enumerable.Empty<GraphControlPresenter>();
         }
 
         protected void AddSlots(IEnumerable<ISlot> slots)
@@ -134,7 +135,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddSlots(node.GetSlots<ISlot>());
 
             var controlData = GetControlData();
-            m_Controls.AddRange(controlData);
+            controls.AddRange(controlData);
 
             position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
 
@@ -148,8 +149,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (materialNode == null || !materialNode.hasPreview)
                 return;
 
-            m_NodePreviewPresenter = CreateInstance<NodePreviewPresenter>();
-            m_NodePreviewPresenter.Initialize(materialNode);
+            m_Preview = CreateInstance<NodePreviewPresenter>();
+            preview.Initialize(materialNode);
         }
     }
 }

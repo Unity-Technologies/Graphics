@@ -175,7 +175,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var baseNode = addedNode.node;
                 foreach (var slot in baseNode.GetOutputSlots<ISlot>())
                 {
-                    var sourceAnchors = addedNode.elements.OfType<GraphAnchorPresenter>();
+                    var sourceAnchors = addedNode.outputAnchors.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == slot);
 
                     var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.id));
@@ -184,7 +184,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
                         var targetNode = addedNodes.FirstOrDefault(x => x.node == toNode);
-                        var targetAnchors = targetNode.elements.OfType<GraphAnchorPresenter>();
+                        var targetAnchors = targetNode.inputAnchors.OfType<GraphAnchorPresenter>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
                         var edgeData = CreateInstance<GraphEdgePresenter>();
@@ -209,13 +209,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                     var fromNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     var fromSlot = fromNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
                     var sourceNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == fromNode);
-                    var sourceAnchors = sourceNode.elements.OfType<GraphAnchorPresenter>();
+                    var sourceAnchors = sourceNode.outputAnchors.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == fromSlot);
 
                     var toNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                     var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
                     var targetNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == toNode);
-                    var targetAnchors = targetNode.elements.OfType<GraphAnchorPresenter>();
+                    var targetAnchors = targetNode.inputAnchors.OfType<GraphAnchorPresenter>();
                     var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
                     OnNodeChanged(targetNode.node, ModificationScope.Graph);

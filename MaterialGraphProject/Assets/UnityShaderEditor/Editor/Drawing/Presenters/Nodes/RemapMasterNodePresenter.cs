@@ -32,11 +32,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class RemapMasterNodePresenter : MasterNodePresenter
     {
-        protected override IEnumerable<GraphElementPresenter> GetControlData()
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<RemapMasterControlPresenter>();
             instance.Initialize(node);
-            var controls = new List<GraphElementPresenter>(base.GetControlData());
+            var controls = new List<GraphControlPresenter>(base.GetControlData());
             controls.Add(instance);
             return controls;
         }

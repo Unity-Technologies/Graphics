@@ -41,11 +41,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class TextureLODNodePresenter : MaterialNodePresenter
     {
-        protected override IEnumerable<GraphElementPresenter> GetControlData()
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<TextureLODContolPresenter>();
             instance.Initialize(node);
-            return new List<GraphElementPresenter> { instance };
+            return new List<GraphControlPresenter> { instance };
         }
     }
 }

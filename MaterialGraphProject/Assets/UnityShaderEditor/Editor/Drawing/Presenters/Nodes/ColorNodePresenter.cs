@@ -31,11 +31,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class ColorNodePresenter : MaterialNodePresenter
     {
-        protected override IEnumerable<GraphElementPresenter> GetControlData()
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<ColorContolPresenter>();
             instance.Initialize(node);
-            return new List<GraphElementPresenter> { instance };
+            return new List<GraphControlPresenter> { instance };
         }
     }
 }

@@ -72,11 +72,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class Vector1NodePresenter : PropertyNodePresenter
     {
-        protected override IEnumerable<GraphElementPresenter> GetControlData()
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<Vector1ControlPresenter>();
             instance.Initialize(node);
-            return new List<GraphElementPresenter>(base.GetControlData()) { instance };
+            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
         }
     }
 }
