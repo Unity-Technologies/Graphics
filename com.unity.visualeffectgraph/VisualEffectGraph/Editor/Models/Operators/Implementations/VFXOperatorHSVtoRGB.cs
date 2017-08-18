@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -16,7 +17,8 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionHSVtoRGB(inputExpression[0]) };
+            VFXExpression[] rgb = VFXOperatorUtility.ExtractComponents(new VFXExpressionHSVtoRGB(inputExpression[0])).Take(3).ToArray();
+            return new[] { new VFXExpressionCombine(new[] { rgb[0], rgb[1], rgb[2], VFXValue.Constant(1.0f) }) };
         }
     }
 }

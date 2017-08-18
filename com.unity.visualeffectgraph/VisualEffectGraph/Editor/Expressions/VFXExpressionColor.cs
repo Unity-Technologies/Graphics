@@ -7,11 +7,11 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionRGBtoHSV : VFXExpression
     {
-        public VFXExpressionRGBtoHSV() : this(VFXValue<Vector4>.Default)
+        public VFXExpressionRGBtoHSV() : this(VFXValue<Vector3>.Default)
         {
         }
 
-        public VFXExpressionRGBtoHSV(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        public VFXExpressionRGBtoHSV(VFXExpression parent) : base(VFXExpression.Flags.None, new[] { parent })
         {
         }
 
@@ -34,10 +34,11 @@ namespace UnityEditor.VFX
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var rgbReduce = constParents[0];
-            var rgb = rgbReduce.Get<Vector4>();
+            var rgb = rgbReduce.Get<Vector3>();
+            Color color = new Color(rgb.x, rgb.y, rgb.z, 1.0f);
 
             float h, s, v;
-            Color.RGBToHSV(rgb, out h, out s, out v);
+            Color.RGBToHSV(color, out h, out s, out v);
 
             return VFXValue.Constant(new Vector3(h, s, v));
         }
@@ -70,7 +71,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat4;
+                return VFXValueType.kFloat3;
             }
         }
 
@@ -81,7 +82,7 @@ namespace UnityEditor.VFX
 
             var rgb = Color.HSVToRGB(hsv.x, hsv.y, hsv.z, true);
 
-            return VFXValue.Constant<Vector4>(rgb);
+            return VFXValue.Constant<Vector3>(new Vector3(rgb.r, rgb.g, rgb.b));
         }
 
         public override string GetCodeString(string[] parents)
