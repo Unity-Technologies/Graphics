@@ -45,5 +45,7 @@ namespace UnityEditor.VFX.UI
         }
 
         Toggle m_Toggle;
+
+        public override bool showsEverything { get { return true; } }
     }
 }

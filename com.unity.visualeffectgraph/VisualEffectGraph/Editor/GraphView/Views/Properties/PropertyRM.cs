@@ -193,6 +193,8 @@ namespace UnityEditor.VFX.UI
         }
 
         protected IPropertyRMProvider m_Provider;
+
+        public abstract bool showsEverything { get; }
     }
 
     interface IFloatNAffector<T>
@@ -276,5 +278,6 @@ namespace UnityEditor.VFX.UI
                     m_Field.enabled = value;
             }
         }
+        public override bool showsEverything { get { return true; } }
     }
 }

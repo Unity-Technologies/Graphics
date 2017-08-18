@@ -101,5 +101,6 @@ namespace UnityEditor.VFX.UI
                     m_ColorField.enabled = value;
             }
         }
+        public override bool showsEverything { get { return true; } }
     }
 }
