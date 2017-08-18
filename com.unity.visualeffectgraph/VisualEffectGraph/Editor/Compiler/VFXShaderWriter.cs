@@ -109,55 +109,39 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        public static void WriteBlockFunction(StringBuilder builder, VFXExpressionMapper mapper, VFXBlock block)
+        public static void WriteBlockFunction(StringBuilder builder, VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
         {
             var parameters = new List<string>();
-            foreach (var attribute in block.attributes)
+            for (int i = 0; i < parameterNames.Count; ++i)
             {
-                parameters.Add(string.Format("{0}{1} {2}", (attribute.mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(attribute.attrib.type), attribute.attrib.name));
+                var parameter = parameterNames[i];
+                var mode = modes[i];
+                var expression = expressions[i];
+                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.ValueType), parameter));
             }
 
-            foreach (var parameter in block.parameters)
-            {
-                var expReduced = mapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
-                if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
-                {
-                    parameters.Add(string.Format("{0} {1}", VFXExpression.TypeToCode(expReduced.ValueType), parameter.name));
-                }
-            }
-
-            builder.AppendFormat("void {0}({1})", block.GetType().Name, AggregateParameters(parameters));
+            builder.AppendFormat("void {0}({1})", functionName, AggregateParameters(parameters));
             builder.AppendLine();
             builder.AppendLine("{");
-            if (block.source != null)
+            if (source != null)
             {
-                builder.AppendLine(block.source);
+                builder.AppendLine(source);
             }
             builder.AppendLine("}");
         }
 
-        public static void WriteCallFunction(StringBuilder builder, VFXBlock block, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
+        public static void WriteCallFunction(StringBuilder builder, string functionName, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
         {
             var parameters = new List<string>();
-            foreach (var attribute in block.attributes)
+            for (int i = 0; i < parameterNames.Count; ++i)
             {
-                parameters.Add(variableNames[new VFXAttributeExpression(attribute.attrib)]);
+                var parameter = parameterNames[i];
+                var mode = modes[i];
+                var expression = expressions[i];
+                parameters.Add(string.Format("{0} /*{1}{2}*/", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", parameter));
             }
 
-            foreach (var parameter in block.parameters)
-            {
-                var expReduced = mapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
-                if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
-                {
-                    if (!variableNames.ContainsKey(expReduced))
-                    {
-                        throw new Exception(string.Format("Cannot find variable name for {0}", expReduced));
-                    }
-                    parameters.Add(variableNames[expReduced]);
-                }
-            }
-
-            builder.AppendFormat("{0}({1});", block.GetType().Name, AggregateParameters(parameters));
+            builder.AppendFormat("{0}({1});", functionName, AggregateParameters(parameters));
             builder.AppendLine();
         }
 

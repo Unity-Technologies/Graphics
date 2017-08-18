@@ -131,33 +131,52 @@ namespace UnityEditor.VFX
 
             //< Block processor
             var blockFunction = new StringBuilder();
-            foreach (var block in context.GetChildren().GroupBy(o => o.name))
-            {
-                VFXShaderWriter.WriteBlockFunction(blockFunction, gpuMapper, block.First());
-            }
-
             var blockCallFunction = new StringBuilder();
+            var blockDeclared = new HashSet<string>();
             foreach (var block in context.GetChildren())
             {
-                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                var expressionParameter = new List<VFXExpression>();
+                var nameParameter = new List<string>();
+                var modeParameter = new List<VFXAttributeMode>();
+                foreach (var attribute in block.attributes)
+                {
+                    expressionParameter.Add(new VFXAttributeExpression(attribute.attrib));
+                    nameParameter.Add(attribute.attrib.name);
+                    modeParameter.Add(attribute.mode);
+                }
+
+                foreach (var parameter in block.parameters)
+                {
+                    var expReduced = gpuMapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
+                    if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
+                    {
+                        expressionParameter.Add(expReduced);
+                        nameParameter.Add(parameter.name);
+                        modeParameter.Add(VFXAttributeMode.None);
+                    }
+                }
+
+                if (!blockDeclared.Contains(block.name))
+                {
+                    blockDeclared.Add(block.name);
+                    VFXShaderWriter.WriteBlockFunction(blockFunction, gpuMapper, block.name, block.source, expressionParameter, nameParameter, modeParameter);
+                }
+
                 //< Parameters (computed and/or extracted from uniform)
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
                 {
                     var parameterCompute = new StringBuilder();
-                    var variableNames = new Dictionary<VFXExpression, string>();
-                    foreach (var exp in gpuMapper.expressions)
+                    foreach (var exp in expressionParameter)
                     {
-                        if (exp.Is(VFXExpression.Flags.InvalidOnGPU))
+                        if (expressionToNameLocal.ContainsKey(exp))
                         {
                             continue;
                         }
-                        var name = string.Format("param_local_{0}", VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToNameLocal.Count));
-                        expressionToNameLocal.Add(exp, name);
-
-                        VFXShaderWriter.WriteVariable(parameterCompute, exp, variableNames, uniformMapper);
-                        VFXShaderWriter.WriteVariable(parameterCompute, exp.ValueType, name, variableNames[exp]);
+                        VFXShaderWriter.WriteVariable(parameterCompute, exp, expressionToNameLocal, uniformMapper);
                     }
+
                     blockCallFunction.Append("{\n\t${tempParameterCompute}\n\t");
-                    VFXShaderWriter.WriteCallFunction(blockCallFunction, block, gpuMapper, expressionToNameLocal);
+                    VFXShaderWriter.WriteCallFunction(blockCallFunction, block.name, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
                     blockCallFunction.AppendLine("}");
                     ReplaceMultiline(blockCallFunction, "${tempParameterCompute}", parameterCompute);
                 }
