@@ -73,10 +73,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void InvalidateUIIfNeedsTime(TimerState timerState)
         {
-            var node = GetPresenter<MaterialNodePresenter>();
-            if (node.requiresTime)
+            var nodePresenter = GetPresenter<MaterialNodePresenter>();
+            if (nodePresenter.requiresTime)
             {
-                node.OnModified(ModificationScope.Node);
+                nodePresenter.OnModified(ModificationScope.Node);
                 UpdatePreviewTexture(m_CurrentPreview);
             }
         }

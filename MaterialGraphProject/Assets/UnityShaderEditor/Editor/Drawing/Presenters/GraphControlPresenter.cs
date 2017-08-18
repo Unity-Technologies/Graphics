@@ -7,7 +7,7 @@ using UnityEngine.Graphing;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public abstract class GraphControlPresenter : MaterialNodePresenter
+    public abstract class GraphControlPresenter : ScriptableObject
     {
         public INode node { get; private set; }
 
