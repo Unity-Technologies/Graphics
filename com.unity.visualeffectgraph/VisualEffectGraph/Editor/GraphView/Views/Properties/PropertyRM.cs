@@ -250,7 +250,7 @@ namespace UnityEditor.VFX.UI
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
 
-            m_Field.enabled = enabled;
+            //m_Field.SetEnabled(enabledSelf);
         }
 
         public void OnValueChanged()
@@ -269,15 +269,13 @@ namespace UnityEditor.VFX.UI
             m_Field.SetValue(m_Value);
         }
 
-        public override bool enabled
+        /*
+        public override void SetEnabled(bool value)
         {
-            set
-            {
-                base.enabled = value;
-                if (m_Field != null)
-                    m_Field.enabled = value;
-            }
-        }
+            base.SetEnabled(value);
+            if (m_Field != null)
+                m_Field.SetEnabled(value);
+        }*/
         public override bool showsEverything { get { return true; } }
     }
 }

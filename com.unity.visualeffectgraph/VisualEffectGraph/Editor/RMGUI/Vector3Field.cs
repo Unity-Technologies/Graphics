@@ -78,19 +78,5 @@ namespace UnityEditor.VFX.UIElements
             m_Y.SetValue(m_Value.y);
             m_Z.SetValue(m_Value.z);
         }
-
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_X != null)
-                {
-                    m_X.enabled = value;
-                    m_Y.enabled = value;
-                    m_Z.enabled = value;
-                }
-            }
-        }
     }
 }

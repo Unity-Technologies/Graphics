@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnCurveClick()
         {
-            if (!enabled)
+            if (!enabledInHierarchy)
                 return;
             /*
             CurveEditorSettings settings = new CurveEditorSettings();

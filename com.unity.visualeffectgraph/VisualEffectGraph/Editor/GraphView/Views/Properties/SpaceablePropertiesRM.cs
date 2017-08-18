@@ -41,16 +41,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_Button;
-
-        public override bool enabled
+        /*
+        public override void SetEnabled(bool value)
         {
-            set
-            {
-                base.enabled = value;
-                if (m_Button != null)
-                    m_Button.enabled = value;
-            }
-        }
+            base.SetEnabled(value);
+            if (m_Button != null)
+                m_Button.SetEnabled(value);
+        }*/
 
         public override float effectiveLabelWidth
         {
@@ -78,15 +75,6 @@ namespace UnityEditor.VFX.UI
 
         protected Vector3Field m_VectorField;
 
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_VectorField != null)
-                    m_VectorField.enabled = value;
-            }
-        }
         public override bool showsEverything { get { return true; } }
     }
 

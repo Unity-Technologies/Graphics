@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UI
             var presenter = GetPresenter<VFXBlockPresenter>();
 
             presenter.block.collapsed = !presenter.expanded;
-            this.enabled = m_EnableToggle.on = presenter.block.enabled;
+            this.SetEnabled(m_EnableToggle.on = presenter.block.enabled);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)

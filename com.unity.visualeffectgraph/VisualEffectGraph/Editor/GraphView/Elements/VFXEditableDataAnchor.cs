@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
             if (m_PropertyRM != null && presenter != null)
             {
-                m_PropertyRM.enabled = presenter.editable && !presenter.collapsed;
+                m_PropertyRM.SetEnabled(presenter.editable && !presenter.collapsed);
                 m_PropertyRM.Update();
             }
         }
