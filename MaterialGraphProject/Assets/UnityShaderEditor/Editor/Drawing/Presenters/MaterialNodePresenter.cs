@@ -17,15 +17,32 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         protected List<GraphControlPresenter> m_Controls = new List<GraphControlPresenter>();
 
+        public List<GraphControlPresenter> controls
+        {
+            get { return m_Controls; }
+        }
+
         [SerializeField]
         NodePreviewPresenter m_Preview;
+
+        public NodePreviewPresenter preview
+        {
+            get { return m_Preview; }
+        }
 
         [SerializeField]
         int m_Version;
 
         public bool requiresTime
         {
-            get { return node is IRequiresTime; }
+            get
+            {
+                using (var childrenNodes = ListPool<INode>.GetDisposable())
+                {
+                    NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes.value, node);
+                    return childrenNodes.value.OfType<IRequiresTime>().Any();
+                }
+            }
         }
 
         public override bool expanded
@@ -36,21 +53,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                 if (base.expanded != value)
                 {
                     base.expanded = value;
-                    DrawState ds = node.drawState;
+                    var ds = node.drawState;
                     ds.expanded = value;
                     node.drawState = ds;
                 }
             }
-        }
-
-        public List<GraphControlPresenter> controls
-        {
-            get { return m_Controls; }
-        }
-
-        public NodePreviewPresenter preview
-        {
-            get { return m_Preview; }
         }
 
         public override UnityEngine.Object[] GetObjectsToWatch()
