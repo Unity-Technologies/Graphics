@@ -11,10 +11,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class MaterialNodeView : Node
     {
-        VisualContainer m_ControlsContainer;
-        List<GraphControlPresenter> m_CurrentControlPresenter;
+        VisualElement m_ControlsContainer;
+        List<GraphControlPresenter> m_CurrentControls;
         Image m_PreviewImage;
-        NodePreviewPresenter m_CurrentPreviewData;
+        NodePreviewPresenter m_CurrentPreview;
         bool m_IsScheduled;
 
         public MaterialNodeView()
@@ -29,16 +29,16 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void CreateContainers()
         {
-            m_ControlsContainer = new VisualContainer
+            m_ControlsContainer = new VisualElement
             {
                 name = "controls"
             };
             leftContainer.Add(m_ControlsContainer);
-            m_CurrentControlPresenter = new List<GraphControlPresenter>();
+            m_CurrentControls = new List<GraphControlPresenter>();
 
             m_PreviewImage = new Image
             {
-                name = "preview", // for USS&Flexbox
+                name = "preview",
                 pickingMode = PickingMode.Ignore,
                 image = Texture2D.whiteTexture
             };
@@ -73,20 +73,17 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void InvalidateUIIfNeedsTime(TimerState timerState)
         {
-            var data = GetPresenter<MaterialNodePresenter>();
-            var childrenNodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, data.node);
-            if (childrenNodes.OfType<IRequiresTime>().Any())
+            var node = GetPresenter<MaterialNodePresenter>();
+            if (node.requiresTime)
             {
-                data.OnModified(ModificationScope.Node);
-                UpdatePreviewTexture(m_CurrentPreviewData);
+                node.OnModified(ModificationScope.Node);
+                UpdatePreviewTexture(m_CurrentPreview);
             }
-            ListPool<INode>.Release(childrenNodes);
         }
 
-        void UpdatePreviewTexture(NodePreviewPresenter previewPresenter)
+        void UpdatePreviewTexture(NodePreviewPresenter preview)
         {
-            var texture = previewPresenter != null ? previewPresenter.Render(new Vector2(256, 256)) : null;
+            var texture = preview != null ? preview.Render(new Vector2(256, 256)) : null;
             if (texture == null)
             {
                 m_PreviewImage.AddToClassList("inactive");
@@ -102,53 +99,48 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdateControls(MaterialNodePresenter nodeData)
         {
-            if (nodeData.controls.SequenceEqual(m_CurrentControlPresenter) && nodeData.expanded)
+            if (nodeData.controls.SequenceEqual(m_CurrentControls) && nodeData.expanded)
                 return;
 
             m_ControlsContainer.Clear();
-            m_CurrentControlPresenter.Clear();
+            m_CurrentControls.Clear();
 
             if (!nodeData.expanded)
                 return;
 
             foreach (var controlData in nodeData.controls)
             {
-                m_ControlsContainer.Add(CreateControl(controlData));
-                m_CurrentControlPresenter.Add(controlData);
+                m_ControlsContainer.Add(new IMGUIContainer(controlData.OnGUIHandler)
+                {
+                    name = "element",
+                    executionContext = controlData.GetInstanceID(),
+                });
+                m_CurrentControls.Add(controlData);
             }
-        }
-
-        IMGUIContainer CreateControl(GraphControlPresenter controlPresenter)
-        {
-            return new IMGUIContainer(controlPresenter.OnGUIHandler)
-            {
-                name = "element",
-                executionContext = controlPresenter.GetInstanceID(),
-            };
         }
 
         public override void OnDataChanged()
         {
             base.OnDataChanged();
 
-            var nodeData = GetPresenter<MaterialNodePresenter>();
+            var node = GetPresenter<MaterialNodePresenter>();
 
-            if (nodeData == null)
+            if (node == null)
             {
                 m_ControlsContainer.Clear();
-                m_CurrentControlPresenter.Clear();
+                m_CurrentControls.Clear();
                 m_PreviewImage.AddToClassList("inactive");
-                m_CurrentPreviewData = null;
-                UpdatePreviewTexture(m_CurrentPreviewData);
+                m_CurrentPreview = null;
+                UpdatePreviewTexture(m_CurrentPreview);
                 return;
             }
 
-            UpdateControls(nodeData);
+            UpdateControls(node);
 
-            m_CurrentPreviewData = nodeData.preview;
-            UpdatePreviewTexture(m_CurrentPreviewData);
+            m_CurrentPreview = node.preview;
+            UpdatePreviewTexture(m_CurrentPreview);
 
-            if (nodeData.expanded)
+            if (node.expanded)
                 m_PreviewImage.RemoveFromClassList("hidden");
             else
                 m_PreviewImage.AddToClassList("hidden");
