@@ -72,7 +72,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
 
     private static void ShowGraphEditWindow(string path)
     {
-        var asset = AssetDatabase.LoadAssetAtPath<Shader>(path);
+        var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
         var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
         bool foundWindow = false;
         foreach (var w in windows)
@@ -80,7 +80,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
             if (w.selected == asset)
             {
                 foundWindow = true;
-                w.Focus();
+                w.Focus();  
             }
         }
 

@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         List<TitleBarButtonPresenter> m_leftItems;
         List<TitleBarButtonPresenter> m_rightItems;
-		MaterialGraphEditWindow m_Owner;
+		IMaterialGraphEditWindow m_Owner;
 
         public IEnumerable<TitleBarButtonPresenter> leftItems
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected TitleBarPresenter()
         {}
 
-		public void Initialize(MaterialGraphEditWindow graphWindow)
+		public void Initialize(IMaterialGraphEditWindow graphWindow)
         {
 			m_Owner = graphWindow;
             m_leftItems = new List<TitleBarButtonPresenter>();
@@ -58,24 +58,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 		{
 			if (m_Owner != null)
 				m_Owner.PingAsset ();
-		}
-
-		public static List<IGraphAsset> FindAssets()
-		{
-			var assets = new List<IGraphAsset>();
-			List<string> guids = AssetDatabase.FindAssets(string.Format("t:MaterialGraphAsset", typeof(MaterialGraphAsset))).ToList();
-			guids.AddRange( AssetDatabase.FindAssets(string.Format("t:MaterialSubGraphAsset", typeof(MaterialSubGraphAsset))));
-
-			for( int i = 0; i < guids.Count; i++ )
-			{
-				string assetPath = AssetDatabase.GUIDToAssetPath( guids[i] );
-				ScriptableObject asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>( assetPath );
-				if( asset != null && EditorUtility.IsPersistent(asset) && asset is IGraphAsset)
-				{
-					assets.Add((IGraphAsset)asset);
-				}
-			}
-			return assets;
 		}
 
         void UpdateAsset()

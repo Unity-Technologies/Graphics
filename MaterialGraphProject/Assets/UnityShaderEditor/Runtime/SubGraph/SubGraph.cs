@@ -88,12 +88,6 @@ namespace UnityEngine.MaterialGraph
             base.AddNode(node);
         }
 
-        public void PostCreate()
-        {
-            AddNode(new SubGraphInputNode());
-            AddNode(new SubGraphOutputNode());
-        }
-
         private IEnumerable<AbstractMaterialNode> usedNodes
         {
             get

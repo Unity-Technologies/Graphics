@@ -10,7 +10,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+ /*   [Serializable]
     [Title("Master/Remapper")]
     public class RemapMasterNode : AbstractMasterNode
         , IOnAssetEnabled
@@ -136,5 +136,5 @@ namespace UnityEngine.MaterialGraph
             }
             RemoveSlotsNameNotMatching(validNames);
         }
-    }
+    }*/
 }

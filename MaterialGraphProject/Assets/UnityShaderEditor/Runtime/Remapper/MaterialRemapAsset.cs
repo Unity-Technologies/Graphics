@@ -4,7 +4,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public class MaterialRemapAsset : AbstractMaterialGraphAsset
+   /* public class MaterialRemapAsset : AbstractMaterialGraphAsset
     {
         [SerializeField]
         private MasterRemapGraph m_MasterRemapGraph = new MasterRemapGraph();
@@ -18,5 +18,5 @@ namespace UnityEngine.MaterialGraph
         {
             get { return m_MasterRemapGraph; }
         }
-    }
+    }*/
 }
