@@ -250,14 +250,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.targetTexture = m_RenderTexture;
             }
             
-            //Blit checkerboard background:
-            var oldProbe = RenderSettings.ambientProbe;
-            //Unsupported.SetOverrideRenderSettings(previewScene.scene);
-            // Most preview windows just want the light probe from the main scene so by default we copy it here. It can then be overridden if user wants.
-            RenderSettings.ambientProbe = oldProbe;
-
-
-            //Debug.Log(string.Format("RT: {0}, Material: {1}", m_RenderTexture, m_CheckerboardMaterial));
+            Unsupported.SetOverrideRenderSettings(m_Scene);
             
             m_CheckerboardMaterial.SetFloat("_X", 32);
             m_CheckerboardMaterial.SetFloat("_Y", 32);
@@ -292,6 +285,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 mat,
                 0);
             m_Camera.Render();
+
+            Unsupported.RestoreOverrideRenderSettings();
 
             Light0.enabled = false;
             Light1.enabled = false;
