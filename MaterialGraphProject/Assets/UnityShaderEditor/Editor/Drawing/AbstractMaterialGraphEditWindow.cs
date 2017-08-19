@@ -11,27 +11,38 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialGraphEditWindow : EditorWindow, ISerializationCallbackReceiver
+    public interface IMaterialGraphEditWindow
+    {
+        void PingAsset();
+
+        void UpdateAsset();
+
+        void Repaint();
+
+        void ToggleRequiresTime();
+    }
+
+    public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>
+    { }
+    public class SubGraphEditWindow : AbstractMaterialGraphEditWindow<SubGraph>
+    { }
+
+    public abstract class AbstractMaterialGraphEditWindow<TGraphType> : EditorWindow, IMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         public static bool allowAlwaysRepaint = true;
-
-        bool shouldRepaint
-        {
-            get { return allowAlwaysRepaint && inMemoryAsset != null && inMemoryAsset.shouldRepaint; }
-        }
 
         [SerializeField]
         Object m_Selected;
 
         [SerializeField]
-        MaterialGraphAsset m_InMemoryAsset;
+        TGraphType m_InMemoryAsset;
 
         GraphEditorView m_GraphEditorView;
 
-        public IGraphAsset inMemoryAsset
+        public TGraphType inMemoryAsset
         {
             get { return m_InMemoryAsset; }
-            set { m_InMemoryAsset = value as MaterialGraphAsset; }
+            set { m_InMemoryAsset = value; }
         }
 
         public Object selected
@@ -62,12 +73,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnDisable()
         {
             rootVisualContainer.Clear();
-        }
-
-        void Update()
-        {
-            if (shouldRepaint)
-                Repaint();
         }
 
         void OnGUI()
@@ -116,46 +121,68 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return;
                 }
 
-                var masterNode = ((MaterialGraphAsset)inMemoryAsset).materialGraph.masterNode;
-                if (masterNode == null)
-                    return;
+                if (typeof(TGraphType) == typeof(UnityEngine.MaterialGraph.MaterialGraph))
+                    UpdateShaderGraphOnDisk(path);
 
-                List<PropertyGenerator.TextureInfo> configuredTextures;
-                masterNode.GetFullShader(GenerationMode.ForReals, "NotNeeded", out configuredTextures);
-
-                var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
-                if (shaderImporter == null)
-                    return;
-
-                var textureNames = new List<string>();
-                var textures = new List<Texture>();
-                foreach (var textureInfo in configuredTextures.Where(
-                    x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
-                {
-                    var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                    if (texture == null)
-                        continue;
-                    textureNames.Add(textureInfo.name);
-                    textures.Add(texture);
-                }
-                shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
-
-                textureNames.Clear();
-                textures.Clear();
-                foreach (var textureInfo in configuredTextures.Where(
-                    x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
-                {
-                    var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                    if (texture == null)
-                        continue;
-                    textureNames.Add(textureInfo.name);
-                    textures.Add(texture);
-                }
-                shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
-                File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset.graph));
-                shaderImporter.SaveAndReimport();
-                AssetDatabase.ImportAsset(path);
+                if (typeof(TGraphType) == typeof(SubGraph))
+                    UpdateShaderSubGraphOnDisk(path);
             }
+        }
+
+        private void UpdateShaderSubGraphOnDisk(string path)
+        {
+            var graph = inMemoryAsset as SubGraph;
+            if (graph == null)
+                return;
+
+            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset));
+        }
+
+        private void UpdateShaderGraphOnDisk(string path)
+        {
+            var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
+            if (graph == null)
+                return;
+
+            var masterNode = graph.masterNode;
+            if (masterNode == null)
+                return;
+
+            List<PropertyGenerator.TextureInfo> configuredTextures;
+            masterNode.GetFullShader(GenerationMode.ForReals, "NotNeeded", out configuredTextures);
+
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+            if (shaderImporter == null)
+                return;
+
+            var textureNames = new List<string>();
+            var textures = new List<Texture>();
+            foreach (var textureInfo in configuredTextures.Where(
+                x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+
+            textureNames.Clear();
+            textures.Clear();
+            foreach (var textureInfo in configuredTextures.Where(
+                x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset));
+            shaderImporter.SaveAndReimport();
+            AssetDatabase.ImportAsset(path);
         }
 
         public virtual void ToggleRequiresTime()
@@ -180,16 +207,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             selected = newSelection;
-
-            var mGraph = CreateInstance<MaterialGraphAsset>();
+            
             var path = AssetDatabase.GetAssetPath(newSelection);
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            mGraph.materialGraph = JsonUtility.FromJson<UnityEngine.MaterialGraph.MaterialGraph>(textGraph);
-
-            inMemoryAsset = mGraph;
-            var graph = inMemoryAsset.graph;
-            graph.OnEnable();
-            graph.ValidateGraph();
+            inMemoryAsset = JsonUtility.FromJson<TGraphType>(textGraph);
+            inMemoryAsset.OnEnable();
+            inMemoryAsset.ValidateGraph();
 
             var source = CreateDataSource();
             source.Initialize(inMemoryAsset, this);
@@ -203,9 +226,5 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
             }*/
         }
-
-        public void OnBeforeSerialize() { }
-
-        public void OnAfterDeserialize() { }
     }
 }

@@ -1,15 +1,7 @@
 ﻿using UnityEditor.Experimental.AssetImporters;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-#if UNITY_EDITOR
-using System.Reflection;
-using UnityEditor;
-#endif
-using UnityEngine.Graphing;
 using System.Text;
 
 [ScriptedImporter(1, "ShaderSubGraph")]

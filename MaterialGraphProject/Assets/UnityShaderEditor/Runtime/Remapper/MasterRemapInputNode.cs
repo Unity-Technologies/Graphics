@@ -5,6 +5,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    /*
     [Title("Remapper/Remap Input Node")]
     public class MasterRemapInputNode : AbstractSubGraphIONode
         , INodeGroupRemapper
@@ -88,5 +89,5 @@ namespace UnityEngine.MaterialGraph
 
             return fromNode.GetVariableNameForSlot(outputRef.slotId);
         }
-    }
+    }*/
 }
