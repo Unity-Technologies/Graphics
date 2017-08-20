@@ -62,7 +62,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(SphericalIndentationNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter*/
-           // typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
+            typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
          //   typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
            // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
