@@ -271,7 +271,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
+        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
         {
             var graph = new CopyPasteGraph();
             foreach (var presenter in selection)
@@ -291,7 +291,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             return graph;
         }
 
-        CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
+        internal static CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
         {
             try
             {

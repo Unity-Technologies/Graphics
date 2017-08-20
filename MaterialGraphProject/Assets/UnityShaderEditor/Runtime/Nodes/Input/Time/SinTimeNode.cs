@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Time/Sine Time")]
-    public class SinTimeNode : AbstractMaterialNode, IRequiresTime
+    public class SinTimeNode : AbstractMaterialNode, IMayRequireTime
     {
         public SinTimeNode()
         {
@@ -28,6 +28,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotIds)
         {
             return "_SinTime";
+        }
+
+        public bool RequiresTime()
+        {
+            return true;
         }
     }
 }

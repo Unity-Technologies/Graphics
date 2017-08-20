@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 using (var childrenNodes = ListPool<INode>.GetDisposable())
                 {
                     NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes.value, node);
-                    return childrenNodes.value.OfType<IRequiresTime>().Any();
+                    return childrenNodes.value.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
                 }
             }
         }

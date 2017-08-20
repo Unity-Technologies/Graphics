@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -77,9 +78,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         }
                     }
                 }
-
-                //gm.AddSeparator("");
-                // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
+                
                 gm.ShowAsContext();
             }
             evt.StopPropagation();
