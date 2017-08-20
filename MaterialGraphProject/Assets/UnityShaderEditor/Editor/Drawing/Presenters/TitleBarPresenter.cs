@@ -43,7 +43,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             updateAsset.onClick += UpdateAsset;
             m_leftItems.Add(updateAsset);
 
-			var showInProjectItem = CreateInstance<TitleBarButtonPresenter>();
+            var toSubGraph = CreateInstance<TitleBarButtonPresenter>();
+            toSubGraph.text = "Selection -> Subgraph";
+            toSubGraph.onClick += ToSubGraph;
+            m_leftItems.Add(toSubGraph);
+
+            var showInProjectItem = CreateInstance<TitleBarButtonPresenter>();
 			showInProjectItem.text = "Show in project";
 			showInProjectItem.onClick += OnShowInProjectClick;
 			m_leftItems.Add(showInProjectItem);
@@ -63,6 +68,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         void UpdateAsset()
         {
 			m_Owner.UpdateAsset ();
+        }
+
+        void ToSubGraph()
+        {
+            m_Owner.ToSubGraph();
         }
 
 		void ToggleTime()
