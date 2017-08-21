@@ -91,3 +91,19 @@
 	align-items: stretch;
 	padding-bottom:3;
 }
+
+VFXBlockUI
+{
+	flex:direction:row;
+}
+
+VFXBlockUI .mainContainer
+{
+	flex:direction:row;
+	flex:1;
+}
+VFXBlockUI .mainContainer #left
+{
+	width:-1;
+	flex:1;
+}

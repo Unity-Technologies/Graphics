@@ -90,6 +90,16 @@ namespace UnityEditor.VFX.UIElements
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
+        public bool HasCaptureHandlers()
+        {
+            return true;
+        }
+
+        public bool HasBubbleHandlers()
+        {
+            return true;
+        }
+
         void IEventHandler.HandleEvent(EventBase evt) {}
         void IEventHandler.OnLostCapture()
         {
