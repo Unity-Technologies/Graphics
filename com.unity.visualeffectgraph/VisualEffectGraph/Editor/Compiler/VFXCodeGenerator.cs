@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
             var blockFunction = new StringBuilder();
             var blockCallFunction = new StringBuilder();
             var blockDeclared = new HashSet<string>();
-            foreach (var block in context.GetChildren())
+            foreach (var block in context.children)
             {
                 var expressionParameter = new List<VFXExpression>();
                 var nameParameter = new List<string>();
