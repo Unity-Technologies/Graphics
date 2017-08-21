@@ -21,7 +21,15 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Color color = Color.red;
+            public Color Color = Color.red;
+        }
+
+        public override string source
+        {
+            get
+            {
+                return "color.rgb = Color.rgb;";
+            }
         }
     }
 }

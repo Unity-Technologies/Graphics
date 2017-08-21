@@ -7,6 +7,22 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    static class VFXCodeGeneratorHelper
+    {
+        public static string GeneratePrefix(uint index)
+        {
+            var alpha = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
+            string prefix = "";
+            index = index + 1;
+            while (index != 0u)
+            {
+                prefix = alpha[index % alpha.Length] + prefix;
+                index /= (uint)alpha.Length;
+            }
+            return prefix;
+        }
+    }
+
     static class VFXShaderWriter
     {
         private static int WritePadding(int alignment, int offset, ref int index, StringBuilder builder)
@@ -17,7 +33,37 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public static string WriteCBuffer(VFXUniformMapper mapper)
+        public static string WriteConstructValue(VFXValueType type, object value)
+        {
+            var format = "";
+            switch (type)
+            {
+                case VFXValueType.kBool:
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                case VFXValueType.kFloat:
+                    format = "({0}){1}";
+                    break;
+                case VFXValueType.kFloat2:
+                case VFXValueType.kFloat3:
+                case VFXValueType.kFloat4:
+                    format = "{0}{1}";
+                    break;
+                default: throw new Exception("WriteConstructValue missing type: " + type);
+            }
+            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString());
+        }
+
+        public static void WriteTexture(StringBuilder builder, VFXUniformMapper mapper)
+        {
+            foreach (var texture in mapper.textures)
+            {
+                builder.AppendFormat("{0} {1};", VFXExpression.TypeToCode(texture.ValueType), mapper.GetName(texture));
+                builder.AppendLine();
+            }
+        }
+
+        public static void WriteCBuffer(StringBuilder builder, VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
@@ -35,10 +81,8 @@ namespace UnityEditor.VFX
 
             if (uniformBlocks.Count > 0)
             {
-                var builder = new StringBuilder();
-
-                builder.AppendLine("CBUFFER_START(test)");
-                builder.AppendLine("{");
+                builder.AppendFormat("CBUFFER_START({0})", bufferName);
+                builder.AppendLine();
 
                 int paddingIndex = 0;
                 foreach (var block in uniformBlocks)
@@ -56,27 +100,69 @@ namespace UnityEditor.VFX
                     WritePadding(4, currentSize, ref paddingIndex, builder);
                 }
 
-                builder.AppendLine("}");
-                return builder.ToString();
+                builder.AppendLine("CBUFFER_END");
             }
-
-            return string.Empty;
         }
 
-        private static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value)
+        private static string AggregateParameters(List<string> parameters)
+        {
+            return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
+        }
+
+        public static void WriteBlockFunction(StringBuilder builder, VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
+        {
+            var parameters = new List<string>();
+            for (int i = 0; i < parameterNames.Count; ++i)
+            {
+                var parameter = parameterNames[i];
+                var mode = modes[i];
+                var expression = expressions[i];
+                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.ValueType), parameter));
+            }
+
+            builder.AppendFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            builder.AppendLine();
+            builder.AppendLine("{");
+            if (source != null)
+            {
+                builder.AppendLine(source);
+            }
+            builder.AppendLine("}");
+        }
+
+        public static void WriteCallFunction(StringBuilder builder, string functionName, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
+        {
+            var parameters = new List<string>();
+            for (int i = 0; i < parameterNames.Count; ++i)
+            {
+                var parameter = parameterNames[i];
+                var mode = modes[i];
+                var expression = expressions[i];
+                parameters.Add(string.Format("{0} /*{1}{2}*/", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", parameter));
+            }
+
+            builder.AppendFormat("{0}({1});", functionName, AggregateParameters(parameters));
+            builder.AppendLine();
+        }
+
+        public static void WriteAssignement(StringBuilder builder, VFXValueType type, string variableName, string value)
+        {
+            var format = value == "0" ? "{1} = ({0}){2};" : "{1} = {2};";
+            builder.AppendFormat(format, VFXExpression.TypeToCode(type), variableName, value);
+        }
+
+        public static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value, string comment = null)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            builder.Append(VFXExpression.TypeToCode(type));
-            builder.Append(" ");
-            builder.Append(variableName);
-            builder.Append(" = ");
-            builder.Append(value);
-            builder.AppendLine(";");
+            builder.AppendFormat("{0} ", VFXExpression.TypeToCode(type));
+            WriteAssignement(builder, type, variableName, value);
+            builder.AppendFormat(comment == null ? "" : "//" + comment);
+            builder.AppendLine();
         }
 
-        private static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
+        public static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
         {
             if (!variableNames.ContainsKey(exp))
             {
@@ -91,7 +177,7 @@ namespace UnityEditor.VFX
                         WriteVariable(builder, parent, variableNames, uniformMapper);
 
                     // Generate a new variable name
-                    entry = "tmp" + variableNames.Count();
+                    entry = "tmp_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)variableNames.Count());
                     string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
 
                     WriteVariable(builder, exp.ValueType, entry, value);
@@ -101,15 +187,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static string WriteParameter(VFXExpression exp, VFXUniformMapper uniformMapper)
+        public static void WriteParameter(StringBuilder builder, VFXExpression exp, VFXUniformMapper uniformMapper, string paramName)
         {
-            var builder = new StringBuilder();
             var variableNames = new Dictionary<VFXExpression, string>();
-
             WriteVariable(builder, exp, variableNames, uniformMapper);
-            WriteVariable(builder, exp.ValueType, "param", variableNames[exp]);
-
-            return builder.ToString();
+            WriteVariable(builder, exp.ValueType, paramName, variableNames[exp]);
         }
     }
 }

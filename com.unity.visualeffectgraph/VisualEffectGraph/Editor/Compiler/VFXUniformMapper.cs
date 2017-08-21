@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
                 if (expressions.ContainsKey(exp)) // Only need one name
                     return;
 
-                name = prefix + (name != null ? name : expressions.Count().ToString());
+                name = prefix + (name != null ? name : VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count()));
                 expressions[exp] = name;
             }
             else

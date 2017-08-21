@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
             kStructureChanged,      // Model structure (hierarchy) has changed
             kParamChanged,          // Some parameter values have changed
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
-            kParamExpanded,         // Some parameter values have beed expanded or retracted
+            kParamExpanded,         // Some parameter values have been expanded or retracted
             kSettingChanged,        // A setting value has changed
             kConnectionChanged,     // Connection have changed
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
@@ -24,14 +24,8 @@ namespace UnityEditor.VFX
         }
 
         public new virtual string name  { get { return string.Empty; } }
-        public Guid id              { get { return m_Id; } }
 
         public int m_OnEnabledCount = 0;
-
-        public string DebugName
-        {
-            get { return string.Format("{0} {1}", GetType().Name, id); }
-        }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
@@ -39,7 +33,6 @@ namespace UnityEditor.VFX
 
         protected VFXModel()
         {
-            m_Id = Guid.NewGuid();
         }
 
         public virtual void OnEnable()
@@ -168,19 +161,9 @@ namespace UnityEditor.VFX
             get { return m_Children; }
         }
 
-        public IEnumerable<VFXModel> GetChildren()
-        {
-            return m_Children;
-        }
-
-        public VFXModel GetChild(int index)
-        {
-            return m_Children[index];
-        }
-
         public VFXModel this[int index]
         {
-            get { return GetChild(index); }
+            get { return m_Children[index]; }
         }
 
         public Vector2 position
@@ -240,8 +223,6 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        private Guid m_Id; // TODO Not used
-
         [SerializeField]
         protected VFXModel m_Parent = null;
 
@@ -269,24 +250,19 @@ namespace UnityEditor.VFX
             return (ParentType)m_Parent;
         }
 
-        public new ChildrenType GetChild(int index)
+        public new int GetNbChildren()
         {
-            return (ChildrenType)m_Children[index];
+            return m_Children.Count;
         }
 
         public new ChildrenType this[int index]
         {
-            get { return GetChild(index); }
+            get { return m_Children[index] as ChildrenType; }
         }
 
         public new IEnumerable<ChildrenType> children
         {
             get { return m_Children.Cast<ChildrenType>(); }
-        }
-
-        public new IEnumerable<ChildrenType> GetChildren()
-        {
-            return base.GetChildren().Cast<ChildrenType>();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Test
         {}
 
         // VFXModelA <>- VFXModelB <>- VFXModelC
-        private class VFXModelA : VFXModel<VFXModel,  VFXModelB>
+        private class VFXModelA : VFXModel<VFXModel, VFXModelB>
         {
             protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelA " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelA"); }
@@ -50,17 +50,17 @@ namespace UnityEditor.VFX.Test
             modelC.Attach(modelB);
 
             Assert.AreEqual(1, modelA.GetNbChildren());
-            Assert.AreEqual(modelB, modelA.GetChild(0));
+            Assert.AreEqual(modelB, modelA[0]);
             Assert.AreEqual(modelA, modelB.GetParent());
 
             Assert.AreEqual(1, modelB.GetNbChildren());
-            Assert.AreEqual(modelC, modelB.GetChild(0));
+            Assert.AreEqual(modelC, modelB[0]);
             Assert.AreEqual(modelB, modelC.GetParent());
 
             Assert.AreEqual(5, s_logs.Count);
-            Assert.AreEqual("OnAdded VFXModelB",                    s_logs[0]);
+            Assert.AreEqual("OnAdded VFXModelB", s_logs[0]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[1]);
-            Assert.AreEqual("OnAdded VFXModelC",                    s_logs[2]);
+            Assert.AreEqual("OnAdded VFXModelC", s_logs[2]);
             Assert.AreEqual("OnInvalidate VFXModelB kStructureChanged", s_logs[3]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[4]);
         }
@@ -79,16 +79,16 @@ namespace UnityEditor.VFX.Test
             modelA.AddChild(modelB1, 1);
 
             Assert.AreEqual(3, modelA.GetNbChildren(), 3);
-            Assert.AreEqual(modelB0, modelA.GetChild(0));
-            Assert.AreEqual(modelB1, modelA.GetChild(1));
-            Assert.AreEqual(modelB2, modelA.GetChild(2));
+            Assert.AreEqual(modelB0, modelA[0]);
+            Assert.AreEqual(modelB1, modelA[1]);
+            Assert.AreEqual(modelB2, modelA[2]);
 
             Assert.AreEqual(6, s_logs.Count);
-            Assert.AreEqual("OnAdded VFXModelB",                    s_logs[0]);
+            Assert.AreEqual("OnAdded VFXModelB",                        s_logs[0]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[1]);
-            Assert.AreEqual("OnAdded VFXModelB",                    s_logs[2]);
+            Assert.AreEqual("OnAdded VFXModelB",                        s_logs[2]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[3]);
-            Assert.AreEqual("OnAdded VFXModelB",                    s_logs[4]);
+            Assert.AreEqual("OnAdded VFXModelB",                        s_logs[4]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[5]);
         }
 
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.Test
             VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
             VFXModel modelC = ScriptableObject.CreateInstance<VFXModelC>();
 
-            // First add children but dont notify
+            // First add children but don't notify
             modelB.Attach(modelA, false);
             modelC.Attach(modelB, false);
 
@@ -115,10 +115,10 @@ namespace UnityEditor.VFX.Test
             Assert.IsNull(modelC.GetParent());
 
             Assert.AreEqual(5, s_logs.Count);
-            Assert.AreEqual("OnRemoved VFXModelC",                  s_logs[0]);
+            Assert.AreEqual("OnRemoved VFXModelC",                      s_logs[0]);
             Assert.AreEqual("OnInvalidate VFXModelB kStructureChanged", s_logs[1]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[2]);
-            Assert.AreEqual("OnRemoved VFXModelB",                  s_logs[3]);
+            Assert.AreEqual("OnRemoved VFXModelB",                      s_logs[3]);
             Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[4]);
         }
 

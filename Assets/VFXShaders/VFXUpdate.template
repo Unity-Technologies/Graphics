@@ -1,0 +1,42 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+
+#ifndef HAS_KILL
+#define HAS_KILL 0
+#endif
+
+${VFXCBuffer}
+${VFXGeneratedBlockFunction}
+
+RWStructuredBuffer<int> flags;
+AppendStructuredBuffer<uint> deadListOut;
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+{
+	uint nbMax = 2048; //TEMP
+#if HAS_KILL
+	if (id.x < nbMax && && flags[id.x] == 1)
+	{
+		bool kill = false;
+		${VFXComputeParameters}
+		${VFXProcessBlock}
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			${WriteAttribute}
+		}
+	}
+#else
+	if (id.x < nbMax)
+	{
+		${VFXComputeParameters}
+		${VFXProcessBlock}
+		${WriteAttribute}
+	}
+#endif
+}

@@ -22,6 +22,14 @@ namespace UnityEditor.VFX
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
 
+        public override VFXCodeGenerator codeGenerator
+        {
+            get
+            {
+                return new VFXCodeGenerator("VFXUpdate");
+            }
+        }
+
         public override IEnumerable<VFXAttributeInfo> optionalAttributes
         {
             get
