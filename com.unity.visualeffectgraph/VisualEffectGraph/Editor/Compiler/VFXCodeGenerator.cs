@@ -219,7 +219,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.AppendLine();
             }
 
-            globalIncludeContent.AppendLine(System.IO.File.ReadAllText("Assets/VFXShaders/VFXCommon.cginc"));
+            globalIncludeContent.AppendLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             stringBuilder.Append(templateContent);
 
