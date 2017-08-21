@@ -39,7 +39,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.skyHDRI);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
 
-            builtinParams.commandBuffer.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
+            // This matrix needs to be updated at the draw call frequency.
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+            Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(builtinParams.verticalFoV, builtinParams.screenSize, builtinParams.worldToViewMatrix, renderForCubemap);
+            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+
+            Utilities.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, properties, renderForCubemap ? 0 : 1);
         }
 
         public override bool IsSkyValid()

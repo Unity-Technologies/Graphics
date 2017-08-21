@@ -28,6 +28,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             // x exposure, y multiplier, z rotation
             float4 _SkyParam;
+            float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
             // x = width, y = height, z = 1.0/width, w = 1.0/height
             float4 _ScreenSize;
@@ -43,32 +44,30 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
+
             struct Attributes
             {
-                float3 positionCS : POSITION;
-                float3 eyeVector : NORMAL;
+                uint vertexID : SV_VertexID;
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float3 eyeVector : TEXCOORD0;
             };
 
             Varyings Vert(Attributes input)
             {
-                // TODO: implement SV_vertexID full screen quad
                 Varyings output;
-                // Unity renders upside down, so the clip space coordinates have to be flipped.
-                output.positionCS = float4(input.positionCS.x, -input.positionCS.y, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
-                output.eyeVector  = input.eyeVector;
-
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 dir = normalize(input.eyeVector);
+                // Points towards the camera
+                float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
+                // Reverse it to point into the scene
+                float3 dir = -viewDirWS;
 
                 // Rotate direction
                 float phi = DegToRad(_SkyParam.z);

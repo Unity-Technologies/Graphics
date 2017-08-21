@@ -159,6 +159,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We do not render the height fog into the sky IBL cubemap.
             properties.SetFloat("_HeightRayleighDensity",   renderForCubemap ? -0.0f : -param.heightRayleighDensity / 100000f);
             properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
+
+            Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(builtinParams.verticalFoV, builtinParams.screenSize, builtinParams.worldToViewMatrix, renderForCubemap);
+            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
         }
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
@@ -171,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set shader constants.
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
-            builtinParams.commandBuffer.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
+            Utilities.DrawFullScreen(builtinParams.commandBuffer, m_ProceduralSkyMaterial, properties);
         }
     }
 }
