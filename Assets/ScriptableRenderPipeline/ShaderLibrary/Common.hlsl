@@ -594,10 +594,10 @@ float2 GetFullScreenTriangleTexCoord(uint vertexID)
 #endif
 }
 
-float4 GetFullScreenTriangleVertexPosition(uint vertexID)
+float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 {
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
-    return float4(uv * 2.0 - 1.0, 1.0, 1.0);
+    return float4(uv * 2.0 - 1.0, z, 1.0);
 }
 
 // LOD dithering transition helper
