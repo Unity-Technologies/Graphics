@@ -10,8 +10,14 @@ namespace UnityEditor.VFX
     {
         public struct AttributeLayout
         {
-            int offset;
-            int bucket;
+            public int bucket;
+            public int offset;
+
+            public AttributeLayout(int bucket, int offset)
+            {
+                this.bucket = bucket;
+                this.offset = offset;
+            }
         }
 
         public override VFXDataType type { get { return VFXDataType.kParticle; } }
@@ -36,6 +42,9 @@ namespace UnityEditor.VFX
 
         public void GenerateAttributeLayout()
         {
+            m_BucketSizes.Clear();
+            m_AttributeLayout.Clear();
+
             var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
             foreach (var kvp in m_StoredAttributes)
             {
@@ -53,10 +62,22 @@ namespace UnityEditor.VFX
 
             int bucketId = 0;
             foreach (var bucket in attributeBuckets)
-                GenerateBucketLayout(bucket.Value, bucketId++);
+                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId++));
+
+            // Debug log
+            var builder = new StringBuilder();
+            builder.AppendLine("ATTRIBUTE LAYOUT");
+            builder.Append(string.Format("NbBuckets:{0} ( ", m_BucketSizes.Count));
+            foreach (int size in m_BucketSizes)
+                builder.Append(size + " ");
+            builder.AppendLine(")");
+            foreach (var kvp in m_AttributeLayout)
+                builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
+            Debug.Log(builder.ToString());
         }
 
-        private void GenerateBucketLayout(List<VFXAttribute> attributes, int bucketId)
+        // return size
+        private int GenerateBucketLayout(List<VFXAttribute> attributes, int bucketId)
         {
             var sortedAttrib = attributes.OrderByDescending(a => VFXValue.TypeToSize(a.type));
 
@@ -69,6 +90,24 @@ namespace UnityEditor.VFX
                 else
                     attribBlocks.Add(new List<VFXAttribute>() { value });
             }
+
+            int currentOffset = 0;
+            int minAlignment = 0;
+            foreach (var block in attribBlocks)
+            {
+                foreach (var attrib in block)
+                {
+                    int size = VFXValue.TypeToSize(attrib.type);
+                    int alignment = size > 2 ? 4 : size;
+                    minAlignment = Math.Max(alignment, minAlignment);
+                    // align offset
+                    currentOffset = (currentOffset + alignment - 1) & ~(alignment - 1);
+                    m_AttributeLayout.Add(attrib, new AttributeLayout(bucketId, currentOffset));
+                    currentOffset += size;
+                }
+            }
+
+            return (currentOffset + minAlignment - 1) & ~(minAlignment - 1);
         }
 
         [SerializeField]
@@ -80,5 +119,7 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
+        [NonSerialized]
+        private List<int> m_BucketSizes = new List<int>();
     }
 }

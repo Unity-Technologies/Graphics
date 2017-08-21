@@ -137,6 +137,13 @@ namespace UnityEditor.VFX
             DebugLogAttributes();
         }
 
+        private bool HasImplicitInit(VFXAttribute attrib)
+        {
+            return (attrib.Equals(VFXAttribute.Seed)
+                    || attrib.Equals(VFXAttribute.ParticleId)
+                    || attrib.Equals(VFXAttribute.Alive));
+        }
+
         private void ProcessAttributes()
         {
             m_StoredAttributes.Clear();
@@ -158,6 +165,7 @@ namespace UnityEditor.VFX
                 bool onlyOutput = true;
                 bool onlyUpdateRead = true;
                 bool onlyUpdateWrite = true;
+                bool writtenInInit = HasImplicitInit(attribute);
 
                 foreach (var kvp2 in kvp.Value)
                 {
@@ -189,11 +197,13 @@ namespace UnityEditor.VFX
                             value = 0x02;
                         key |= (value << shift);
                     }
+                    else if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                        writtenInInit = true;
                 }
 
                 if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
                     local = true;
-                if ((key & 0xAAAAAAAA) == 0) // no write mask
+                if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
                     local = true;
 
                 if (local)

@@ -333,6 +333,9 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    foreach (var data in models.OfType<VFXDataParticle>())
+                        data.GenerateAttributeLayout();
+
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = m_ExpressionValues.ToArray();
