@@ -231,6 +231,8 @@ namespace UnityEditor.VFX.UI
 
             AddLayer(-1);
             AddLayer(1);
+
+            focusIndex = 0;
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
