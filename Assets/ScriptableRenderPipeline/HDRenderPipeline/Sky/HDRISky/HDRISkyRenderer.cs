@@ -41,8 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // This matrix needs to be updated at the draw call frequency.
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
-            Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(builtinParams.verticalFoV, builtinParams.screenSize, builtinParams.worldToViewMatrix, renderForCubemap);
-            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
             Utilities.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, properties, renderForCubemap ? 0 : 1);
         }

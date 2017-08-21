@@ -31,11 +31,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
+        public Matrix4x4                pixelCoordToViewDirMatrix;
         public Matrix4x4                invViewProjMatrix;
-        public Matrix4x4                worldToViewMatrix;
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
-        public float                    verticalFoV;
         public Mesh                     skyMesh;
         public CommandBuffer            commandBuffer;
         public Light                    sunLight;
@@ -58,8 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IBLFilterGGX            m_iblFilterGgx = null;
 
         Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_faceWorldToViewMatrices = new Matrix4x4[6];
-        Matrix4x4[]             m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
+        Matrix4x4[]             m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
         Mesh[]                  m_CubemapFaceMesh = new Mesh[6];
 
@@ -252,10 +250,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int i = 0; i < 6; ++i)
                 {
-                    Matrix4x4 lookAt = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
-                    m_faceWorldToViewMatrices[i] = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
-                    m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
-                    m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
+                    Matrix4x4 lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
+                    Matrix4x4 worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+                    Vector4   screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
+
+                    m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
+                    m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
 
                     m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i]);
                 }
@@ -290,8 +290,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
             // Remove the translation component.
-            Vector4 homogeniousZero = new Vector4(0, 0, 0, 1);
-            worldToViewMatrix.SetColumn(3, homogeniousZero);
+            Vector4 homogeneousZero = new Vector4(0, 0, 0, 1);
+            worldToViewMatrix.SetColumn(3, homogeneousZero);
 
             // Flip the Z to make the coordinate system left-handed.
             worldToViewMatrix.SetRow(2, -worldToViewMatrix.GetRow(2));
@@ -348,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int i = 0; i < 6; ++i)
             {
-                builtinParams.worldToViewMatrix = m_faceWorldToViewMatrices[i];
+                builtinParams.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
@@ -452,7 +452,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
-                m_BuiltinParameters.verticalFoV = 0.5f * Mathf.PI;
                 m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
 
                 if (
@@ -514,9 +513,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.worldToViewMatrix = camera.viewMatrix;
-                    m_BuiltinParameters.screenSize = camera.screenSize;
-                    m_BuiltinParameters.verticalFoV = camera.camera.fieldOfView * Mathf.Deg2Rad;
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
                     m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix);
