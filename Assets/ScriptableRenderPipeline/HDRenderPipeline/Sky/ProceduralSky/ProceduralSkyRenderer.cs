@@ -160,8 +160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             properties.SetFloat("_HeightRayleighDensity",   renderForCubemap ? -0.0f : -param.heightRayleighDensity / 100000f);
             properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
 
-            Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(builtinParams.verticalFoV, builtinParams.screenSize, builtinParams.worldToViewMatrix, renderForCubemap);
-            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
         }
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
