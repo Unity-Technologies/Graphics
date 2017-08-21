@@ -210,10 +210,11 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (!blockDeclared.Contains(block.name))
+                var methodName = block.GetType().Name;
+                if (!blockDeclared.Contains(methodName))
                 {
-                    blockDeclared.Add(block.name);
-                    VFXShaderWriter.WriteBlockFunction(blockFunction, gpuMapper, block.name, block.source, expressionParameter, nameParameter, modeParameter);
+                    blockDeclared.Add(methodName);
+                    VFXShaderWriter.WriteBlockFunction(blockFunction, gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter);
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
@@ -230,7 +231,7 @@ namespace UnityEditor.VFX
                     }
 
                     blockCallFunction.Append("{\n\t${tempParameterCompute}\n\t");
-                    VFXShaderWriter.WriteCallFunction(blockCallFunction, block.name, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
+                    VFXShaderWriter.WriteCallFunction(blockCallFunction, methodName, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
                     blockCallFunction.AppendLine("}");
                     ReplaceMultiline(blockCallFunction, "${tempParameterCompute}", parameterCompute);
                 }
