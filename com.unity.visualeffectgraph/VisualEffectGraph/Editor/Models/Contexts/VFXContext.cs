@@ -278,6 +278,30 @@ namespace UnityEditor.VFX
             return m_Data;
         }
 
+        protected virtual IEnumerable<VFXBlock> implicitPreBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        protected virtual IEnumerable<VFXBlock> implicitPostBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        public IEnumerable<VFXBlock> childrenWithImplicit
+        {
+            get
+            {
+                return implicitPreBlock.Concat(children).Concat(implicitPostBlock);
+            }
+        }
+
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;

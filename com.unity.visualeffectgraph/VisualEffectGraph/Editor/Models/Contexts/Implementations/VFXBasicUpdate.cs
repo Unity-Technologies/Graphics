@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -27,6 +28,22 @@ namespace UnityEditor.VFX
             get
             {
                 return new VFXCodeGenerator("VFXUpdate");
+            }
+        }
+
+        protected override IEnumerable<VFXBlock> implicitPostBlock
+        {
+            get
+            {
+                var implicitPostBlock = new List<VFXBlock>();
+                var settings = GetSettings<Settings>();
+                var data = GetData();
+                if (settings.integration != VFXIntegrationMode.None && data.AttributeExists(VFXAttribute.Velocity))
+                {
+                    var eulerIntergration = CreateInstance<VFXEulerIntegration>();
+                    implicitPostBlock.Add(eulerIntergration);
+                }
+                return implicitPostBlock;
             }
         }
 

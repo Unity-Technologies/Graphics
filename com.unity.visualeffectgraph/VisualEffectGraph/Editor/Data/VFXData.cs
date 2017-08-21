@@ -85,25 +85,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void FillAttributesToContext()
+        private struct VFXAttributeInfoContext
         {
-            // Create attributesToContexts from contextsToAttributes
-            foreach (var contextKvp in m_ContextsToAttributes)
-            {
-                var context = contextKvp.Key;
-                foreach (var attribKvp in contextKvp.Value)
-                {
-                    var attrib = attribKvp.Key;
-                    Dictionary<VFXContext, VFXAttributeMode> contexts;
-                    if (!m_AttributesToContexts.TryGetValue(attrib, out contexts))
-                    {
-                        contexts = new Dictionary<VFXContext, VFXAttributeMode>();
-                        m_AttributesToContexts.Add(attrib, contexts);
-                    }
-
-                    contexts[context] = attribKvp.Value;
-                }
-            }
+            public VFXAttributeInfo[] attributes;
+            public VFXContext context;
         }
 
         public void CollectAttributes(VFXExpressionGraph graph)
@@ -111,31 +96,55 @@ namespace UnityEditor.VFX
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
 
-            foreach (var context in owners)
+            bool changed = true;
+            while (changed)
             {
-                AddAttributes(context, context.attributes);
-                foreach (var block in context.children)
-                    AddAttributes(context, block.attributes);
+                var attributeContexts = new List<VFXAttributeInfoContext>();
+                foreach (var context in owners)
+                {
+                    var attibutes = Enumerable.Empty<VFXAttributeInfo>();
+                    attibutes = attibutes.Concat(context.attributes);
+                    foreach (var block in context.childrenWithImplicit)
+                        attibutes = attibutes.Concat(block.attributes);
 
-                CollectInputAttributes(context, graph);
+                    var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);
+                    foreach (var exp in mapper.expressions)
+                        attibutes = attibutes.Concat(CollectInputAttributes(exp));
+
+                    attributeContexts.Add(new VFXAttributeInfoContext
+                    {
+                        attributes = attibutes.ToArray(),
+                        context = context
+                    });
+                }
+
+                for (int i = 0; i < m_Owners.Count; ++i)
+                {
+                    attributeContexts.Add(new VFXAttributeInfoContext
+                    {
+                        attributes = m_Owners[i].optionalAttributes.ToArray(),
+                        context = m_Owners[i]
+                    });
+                }
+
+                changed = false;
+                foreach (var context in attributeContexts)
+                {
+                    foreach (var attribute in context.attributes)
+                    {
+                        if (AddAttribute(context.context, attribute))
+                        {
+                            changed = true;
+                        }
+                    }
+                }
             }
-
-            FillAttributesToContext(); // Must fill a first time so that attributes can be fetched in optional attribute pass
-
-            // Add optional attributes
-            var optionalAttributes = new List<VFXAttributeInfo>[m_Owners.Count];
-            for (int i = 0; i < m_Owners.Count; ++i)
-                optionalAttributes[i] = m_Owners[i].optionalAttributes.ToList();
-            for (int i = 0; i < m_Owners.Count; ++i)
-                AddAttributes(m_Owners[i], optionalAttributes[i]);
-
-            FillAttributesToContext(); // A second time to update with optional attributes
 
             //TMP Debug only
             DebugLogAttributes();
         }
 
-        private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
+        private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
@@ -153,25 +162,35 @@ namespace UnityEditor.VFX
             var attrib = attribInfo.attrib;
             var mode = attribInfo.mode;
 
+            bool hasChanged = false;
             if (attribs.ContainsKey(attrib))
+            {
+                var oldMode = attribs[attrib];
                 mode |= attribs[attrib];
+                if (mode != oldMode)
+                {
+                    attribs[attrib] = mode;
+                    hasChanged = true;
+                }
+            }
+            else
+            {
+                attribs[attrib] = mode;
+                hasChanged = true;
+            }
 
-            //if (mode != VFXAttributeMode.None)
-            attribs[attrib] = mode;
-        }
+            if (hasChanged)
+            {
+                Dictionary<VFXContext, VFXAttributeMode> contexts;
+                if (!m_AttributesToContexts.TryGetValue(attrib, out contexts))
+                {
+                    contexts = new Dictionary<VFXContext, VFXAttributeMode>();
+                    m_AttributesToContexts.Add(attrib, contexts);
+                }
+                contexts[context] = mode;
+            }
 
-        private void AddAttributes(VFXContext context, IEnumerable<VFXAttributeInfo> attribInfos)
-        {
-            foreach (var attribInfo in attribInfos)
-                AddAttribute(context, attribInfo);
-        }
-
-        // Collect attribute expressions linked to a context
-        private void CollectInputAttributes(VFXContext context, VFXExpressionGraph graph)
-        {
-            var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);
-            foreach (var exp in mapper.expressions)
-                AddAttributes(context, CollectInputAttributes(exp));
+            return hasChanged;
         }
 
         // Collect attribute expressions recursively

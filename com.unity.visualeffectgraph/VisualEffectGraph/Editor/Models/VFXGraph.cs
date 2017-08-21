@@ -432,7 +432,7 @@ namespace UnityEditor.VFX
 
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
-                        var spawnDescs = spawnerContext.children.Select(b =>
+                        var spawnDescs = spawnerContext.childrenWithImplicit.Select(b =>
                             {
                                 var spawner = b as VFXAbstractSpawner;
                                 if (spawner == null)

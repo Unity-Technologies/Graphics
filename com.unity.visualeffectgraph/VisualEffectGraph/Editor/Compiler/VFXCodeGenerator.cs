@@ -120,8 +120,29 @@ namespace UnityEditor.VFX
                 };
             var implicitAttributeSource = fnCollectAttributeFromTemplate(VFXAttributeLocation.Source);
             var implicitAttributeCurrent = fnCollectAttributeFromTemplate(VFXAttributeLocation.Current);
-            var attributes = attributesFromContext.Concat(implicitAttributeSource).Concat(implicitAttributeCurrent).Distinct().ToArray();
 
+            //< helper to merge attributesFromContext & attributeFromTemplate
+            Func<VFXAttributeInfo[], VFXAttributeInfo[], VFXAttributeInfo[]> fnMergeAttributeInfo = delegate(VFXAttributeInfo[] left, VFXAttributeInfo[] right)
+                {
+                    var res = new List<VFXAttributeInfo>();
+                    foreach (var current in left.Concat(right))
+                    {
+                        int i = res.FindIndex(o => current.attrib.name == o.attrib.name && current.attrib.location == o.attrib.location);
+                        if (i != -1)
+                        {
+                            VFXAttributeInfo copy = current;
+                            copy.mode |= res[i].mode;
+                            res[i] = copy;
+                        }
+                        else
+                        {
+                            res.Add(current);
+                        }
+                    }
+                    return res.ToArray();
+                };
+
+            var attributes = fnMergeAttributeInfo(attributesFromContext, implicitAttributeSource.Concat(implicitAttributeCurrent).ToArray());
             var attributesSource = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Source).ToArray();
             var attributesCurrent = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
 
@@ -163,8 +184,11 @@ namespace UnityEditor.VFX
             var blockFunction = new StringBuilder();
             var blockCallFunction = new StringBuilder();
             var blockDeclared = new HashSet<string>();
-            foreach (var block in context.children)
+            foreach (var current in context.childrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {
+                var block = current.block;
+                var blockIndex = current.blockIndex;
+
                 var expressionParameter = new List<VFXExpression>();
                 var nameParameter = new List<string>();
                 var modeParameter = new List<VFXAttributeMode>();
@@ -177,7 +201,7 @@ namespace UnityEditor.VFX
 
                 foreach (var parameter in block.parameters)
                 {
-                    var expReduced = gpuMapper.FromNameAndId(parameter.name, block.GetParent().GetIndex(block));
+                    var expReduced = gpuMapper.FromNameAndId(parameter.name, blockIndex);
                     if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
                     {
                         expressionParameter.Add(expReduced);

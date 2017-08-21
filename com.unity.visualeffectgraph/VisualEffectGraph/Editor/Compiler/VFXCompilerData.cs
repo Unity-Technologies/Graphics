@@ -94,8 +94,9 @@ namespace UnityEditor.VFX
             var mapper = new VFXExpressionMapper();
 
             mapper.AddExpressionFromSlotContainer(context, -1);
-            for (int i = 0; i < context.GetNbChildren(); ++i)
-                mapper.AddExpressions(context[i].parameters, i);
+            int i = 0;
+            foreach (var block in context.childrenWithImplicit)
+                mapper.AddExpressions(block.parameters, i++);
 
             return mapper;
         }
