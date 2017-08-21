@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnColorClick()
         {
-            if (enabled)
+            if (enabledInHierarchy)
                 ColorPicker.Show(OnColorChanged, m_Value, true, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
         }
 

@@ -84,22 +84,6 @@ namespace UnityEditor.VFX.UI
             m_AFloatField.SetValue(m_Value.a);
         }
 
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_RFloatField != null)
-                    m_RFloatField.enabled = value;
-                if (m_GFloatField != null)
-                    m_GFloatField.enabled = value;
-                if (m_BFloatField != null)
-                    m_BFloatField.enabled = value;
-                if (m_AFloatField != null)
-                    m_AFloatField.enabled = value;
-                if (m_ColorField != null)
-                    m_ColorField.enabled = value;
-            }
-        }
+        public override bool showsEverything { get { return true; } }
     }
 }

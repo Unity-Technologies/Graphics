@@ -106,15 +106,5 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField.text = m_Value.ToString("0.###");
         }
-
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_TextField != null)
-                    m_TextField.enabled = value;
-            }
-        }
     }
 }
