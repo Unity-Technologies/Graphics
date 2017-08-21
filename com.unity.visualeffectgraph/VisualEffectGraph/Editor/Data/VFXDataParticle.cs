@@ -40,10 +40,11 @@ namespace UnityEditor.VFX
             set { m_WorldSpace = value; }
         }
 
-        public void GenerateAttributeLayout()
+        public override void GenerateAttributeLayout()
         {
             m_BucketSizes.Clear();
             m_AttributeLayout.Clear();
+            m_BucketOffsets.Clear();
 
             var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
             foreach (var kvp in m_StoredAttributes)
@@ -62,7 +63,14 @@ namespace UnityEditor.VFX
 
             int bucketId = 0;
             foreach (var bucket in attributeBuckets)
-                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId++));
+            {
+                int bucketSize = GenerateBucketLayout(bucket.Value, bucketId);
+                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId] + (int)m_Capacity * m_BucketSizes[bucketId];
+                bucketOffset = (bucketOffset + 3) & ~3; // align of dword;
+                m_BucketSizes.Add(bucketSize);
+                m_BucketOffsets.Add(bucketOffset);
+                ++bucketId;
+            }
 
             // Debug log
             var builder = new StringBuilder();
@@ -74,6 +82,50 @@ namespace UnityEditor.VFX
             foreach (var kvp in m_AttributeLayout)
                 builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
             Debug.Log(builder.ToString());
+        }
+
+        public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
+        {
+            if (m_StoredAttributes.Count == 0)
+                return string.Empty;
+            else if ((mode & VFXAttributeMode.Write) != 0)
+                return "RWByteAddressBuffer attributeData;";
+            else
+                return "ByteAddressBuffer attributeData;";
+        }
+
+        private string GetByteAddressBufferMethodSuffix(VFXAttribute attrib)
+        {
+            int size = VFXExpression.TypeToSize(attrib.type);
+            if (size == 1)
+                return string.Empty;
+            else if (size <= 4)
+                return size.ToString();
+            else
+                throw new ArgumentException(string.Format("Attribute {0} of type {1} cannot be handled in ByteAddressBuffer due to its size of {2}", attrib.name, attrib.type, size));
+        }
+
+        private string GetOffset(VFXAttribute attrib)
+        {
+            AttributeLayout layout = m_AttributeLayout[attrib];
+            return string.Format("{0} + index * {2}", m_BucketOffsets[layout.bucket], m_BucketSizes[layout.bucket]);
+        }
+
+        public override string GetLoadAttributeCode(VFXAttribute attrib, int index)
+        {
+            if (!m_StoredAttributes.ContainsKey(attrib))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+
+
+            return string.Format("attributeBuffer.Load{0}({1});", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib));
+        }
+
+        public override string GetStoreAttributeCode(VFXAttribute attrib, int index, string value)
+        {
+            if (!m_StoredAttributes.ContainsKey(attrib))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+
+            return string.Format("attributeBuffer.Store{0}({1},{2});", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value);
         }
 
         // return size
@@ -121,5 +173,7 @@ namespace UnityEditor.VFX
         private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
         [NonSerialized]
         private List<int> m_BucketSizes = new List<int>();
+        [NonSerialized]
+        private List<int> m_BucketOffsets = new List<int>();
     }
 }

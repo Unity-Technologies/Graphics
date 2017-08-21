@@ -419,7 +419,7 @@ namespace UnityEditor.VFX
                         }
                     }
 
-                    foreach (var data in models.OfType<VFXDataParticle>())
+                    foreach (var data in models.OfType<VFXData>())
                         data.GenerateAttributeLayout();
 
                     var expressionSheet = new VFXExpressionSheet();
@@ -613,10 +613,10 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
 
-        [SerializeField]
+        [NonSerialized]
         protected List<ComputeShader> m_GeneratedComputeShader;
 
-        [SerializeField]
+        [NonSerialized]
         protected List<Shader> m_GeneratedShader;
 
         [SerializeField]

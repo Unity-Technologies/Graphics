@@ -52,6 +52,9 @@ namespace UnityEditor.VFX
         public bool IsAttributeWritten(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
         public bool AttributeExists(VFXAttribute attrib)    { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
 
+        public bool IsAttributeLocal(VFXAttribute attrib)   { return m_LocalAttributes.Contains(attrib); }
+        public bool IsAttributeStored(VFXAttribute attrib)  { return m_StoredAttributes.ContainsKey(attrib); }
+
         public VFXAttributeMode GetAttributeMode(VFXAttribute attrib)
         {
             VFXAttributeMode mode = VFXAttributeMode.None;
@@ -137,7 +140,7 @@ namespace UnityEditor.VFX
             DebugLogAttributes();
         }
 
-        private bool HasImplicitInit(VFXAttribute attrib)
+        protected bool HasImplicitInit(VFXAttribute attrib)
         {
             return (attrib.Equals(VFXAttribute.Seed)
                     || attrib.Equals(VFXAttribute.ParticleId)
@@ -212,6 +215,12 @@ namespace UnityEditor.VFX
                     m_StoredAttributes.Add(attribute, key);
             }
         }
+
+        public virtual void GenerateAttributeLayout()                                               {}
+
+        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)                    { throw new NotImplementedException(); }
+        public virtual string GetLoadAttributeCode(VFXAttribute attrib, int index)                  { throw new NotImplementedException(); }
+        public virtual string GetStoreAttributeCode(VFXAttribute attrib, int index, string value)   { throw new NotImplementedException(); }
 
         private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
