@@ -9,9 +9,15 @@ namespace UnityEditor.VFX
 {
     class VFXCodeGenerator
     {
+        public enum CompilationMode
+        {
+            Debug,
+            Runtime
+        }
+
         public VFXCodeGenerator(string templatePath, bool computeShader = true)
         {
-            m_templatePath = templatePath;
+            m_templateName = templatePath;
             m_computeShader = computeShader;
         }
 
@@ -53,10 +59,34 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void Build(VFXContext context, string additionnalDefinition, StringBuilder stringBuilder,  VFXExpressionMapper gpuMapper, ref bool computeShader)
+        public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXExpressionMapper gpuMapper, ref bool computeShader)
         {
             computeShader = m_computeShader;
+            var fallbackTemplate = string.Format("Assets/VFXShaders/{0}.template", m_templateName);
+            var processedFile = new Dictionary<string, StringBuilder>();
+            for (int i = 0; i < modes.Length; ++i)
+            {
+                var mode = modes[i];
+                var currentTemplate = string.Format("Assets/VFXShaders/{0}_{1}.template", m_templateName, mode.ToString().ToLower());
+                if (!System.IO.File.Exists(currentTemplate))
+                {
+                    currentTemplate = fallbackTemplate;
+                }
 
+                if (processedFile.ContainsKey(currentTemplate))
+                {
+                    stringBuilders[i] = new StringBuilder(processedFile[currentTemplate].ToString());
+                }
+                else
+                {
+                    Build(context, currentTemplate, stringBuilders[i], gpuMapper);
+                    processedFile.Add(currentTemplate, stringBuilders[i]);
+                }
+            }
+        }
+
+        private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper)
+        {
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
             foreach (var data in dependencies.OfType<VFXDataParticle>())
@@ -64,7 +94,7 @@ namespace UnityEditor.VFX
                 data.DebugBuildAttributeBuffers(); //TMP Debug log
             }
 
-            var templateContent = new StringBuilder(System.IO.File.ReadAllText("Assets/VFXShaders/" + m_templatePath));
+            var templateContent = new StringBuilder(System.IO.File.ReadAllText(templatePath));
 
             var uniformMapper = new VFXUniformMapper(gpuMapper);
             var cbuffer = new StringBuilder();
@@ -184,7 +214,6 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var globalIncludeContent = new StringBuilder();
-            globalIncludeContent.AppendLine(additionnalDefinition);
             globalIncludeContent.AppendLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.AppendLine("#define NB_THREADS_PER_GROUP 256");
             foreach (var attribute in attributes.Select(o => o.attrib))
@@ -208,7 +237,7 @@ namespace UnityEditor.VFX
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }
 
-        private string m_templatePath;
+        private string m_templateName;
         private bool m_computeShader;
     }
 }

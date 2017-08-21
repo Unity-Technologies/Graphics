@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return new VFXCodeGenerator("VFXUpdate.template");
+                return new VFXCodeGenerator("VFXUpdate");
             }
         }
 

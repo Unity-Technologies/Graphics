@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return new VFXCodeGenerator("VFXInit.template");
+                return new VFXCodeGenerator("VFXInit");
             }
         }
     }

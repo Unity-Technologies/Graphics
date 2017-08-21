@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -298,7 +299,7 @@ namespace UnityEditor.VFX
             public VFXContext context;
             public bool computeShader;
             public System.Text.StringBuilder content;
-            public string compilMode;
+            public VFXCodeGenerator.CompilationMode compilMode;
         }
 
         public void RecompileIfNeeded()
@@ -309,7 +310,6 @@ namespace UnityEditor.VFX
                 {
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
-
 
                     // build expressions data and set them to vfx asset
                     var flatGraph = m_ExpressionGraph.FlattenedExpressions;
@@ -459,33 +459,27 @@ namespace UnityEditor.VFX
                         vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
                     }
 
-                    var compilMode = new Dictionary<string, string>()
-                    {
-                        {"debug", "#define DEBUG 1"},
-                        {"release", "/* release */" }
-                    };
-
+                    var compilMode = new[] { VFXCodeGenerator.CompilationMode.Debug, VFXCodeGenerator.CompilationMode.Runtime };
                     var generatedList = new List<GeneratedCodeData>();
                     foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                     {
                         var codeGenerator = context.codeGenerator;
                         if (codeGenerator != null)
                         {
-                            foreach (var mode in compilMode)
-                            {
-                                var contextId = (uint)context.GetParent().GetIndex(context);
-                                var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
+                            var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
+                            var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
+                            bool computeShader = false;
+                            codeGenerator.Build(context, compilMode, generatedContent, gpuMapper, ref computeShader);
 
-                                var generated = new GeneratedCodeData()
+                            for (int i = 0; i < compilMode.Length; ++i)
+                            {
+                                generatedList.Add(new GeneratedCodeData()
                                 {
                                     context = context,
-                                    computeShader = false,
-                                    content = new System.Text.StringBuilder(),
-                                    compilMode = mode.Key
-                                };
-
-                                codeGenerator.Build(context, mode.Value, generated.content, gpuMapper, ref generated.computeShader);
-                                generatedList.Add(generated);
+                                    computeShader = computeShader,
+                                    compilMode = compilMode[i],
+                                    content = generatedContent[i]
+                                });
                             }
                         }
                     }
