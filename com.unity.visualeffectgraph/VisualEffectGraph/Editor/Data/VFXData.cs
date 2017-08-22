@@ -52,6 +52,9 @@ namespace UnityEditor.VFX
         public bool IsAttributeWritten(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
         public bool AttributeExists(VFXAttribute attrib)    { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
 
+        public bool IsAttributeLocal(VFXAttribute attrib)   { return m_LocalAttributes.Contains(attrib); }
+        public bool IsAttributeStored(VFXAttribute attrib)  { return m_StoredAttributes.ContainsKey(attrib); }
+
         public VFXAttributeMode GetAttributeMode(VFXAttribute attrib)
         {
             VFXAttributeMode mode = VFXAttributeMode.None;
@@ -140,17 +143,100 @@ namespace UnityEditor.VFX
                 }
             }
 
+            ProcessAttributes();
+
             //TMP Debug only
             DebugLogAttributes();
         }
 
-        private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
+        protected bool HasImplicitInit(VFXAttribute attrib)
+        {
+            return (attrib.Equals(VFXAttribute.Seed)
+                    || attrib.Equals(VFXAttribute.ParticleId)
+                    || attrib.Equals(VFXAttribute.Alive));
+        }
+
+        private void ProcessAttributes()
+        {
+            m_StoredAttributes.Clear();
+            m_LocalAttributes.Clear();
+
+            int nbOwners = m_Owners.Count;
+            if (nbOwners > 16)
+                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
+
+            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
+
+            foreach (var kvp in m_AttributesToContexts)
+            {
+                bool local = false;
+                var attribute = kvp.Key;
+                int key = 0;
+
+                bool onlyInit = true;
+                bool onlyOutput = true;
+                bool onlyUpdateRead = true;
+                bool onlyUpdateWrite = true;
+                bool writtenInInit = HasImplicitInit(attribute);
+
+                foreach (var kvp2 in kvp.Value)
+                {
+                    var context = kvp2.Key;
+                    if (context.contextType != VFXContextType.kInit)
+                        onlyInit = false;
+                    if (context.contextType != VFXContextType.kOutput)
+                        onlyOutput = false;
+                    if (context.contextType != VFXContextType.kUpdate)
+                    {
+                        onlyUpdateRead = false;
+                        onlyUpdateWrite = false;
+                    }
+                    else
+                    {
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                            onlyUpdateWrite = false;
+                        if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                            onlyUpdateRead = false;
+                    }
+
+                    if (context.contextType != VFXContextType.kInit) // Init isnt taken into account for key computation
+                    {
+                        int shift = m_Owners.IndexOf(context) << 1;
+                        int value = 0;
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
+                            value = 0x01;
+                        if (((kvp2.Value & VFXAttributeMode.Write) != 0) && context.contextType == VFXContextType.kUpdate)
+                            value = 0x02;
+                        key |= (value << shift);
+                    }
+                    else if ((kvp2.Value & VFXAttributeMode.Write) != 0)
+                        writtenInInit = true;
+                }
+
+                if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
+                    local = true;
+                if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
+                    local = true;
+
+                if (local)
+                    m_LocalAttributes.Add(attribute);
+                else
+                    m_StoredAttributes.Add(attribute, key);
+            }
+        }
+
+        public virtual void GenerateAttributeLayout()                                   {}
+
+        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)        { throw new NotImplementedException(); }
+        public virtual string GetLoadAttributeCode(VFXAttribute attrib)                 { throw new NotImplementedException(); }
+        public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
+
         {
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
 
-            if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
-                throw new ArgumentException("Output contexts cannot write attributes");
+            //if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
+            //    throw new ArgumentException("Output contexts cannot write attributes");
 
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
@@ -219,10 +305,24 @@ namespace UnityEditor.VFX
                 Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
                 if (m_ContextsToAttributes.TryGetValue(context, out attributeInfos))
                 {
-                    builder.AppendLine(string.Format("\tContext {0}", context.GetHashCode()));
+                    builder.AppendLine(string.Format("\tContext {1} {0}", context.GetHashCode(), context.contextType));
                     foreach (var kvp in attributeInfos)
                         builder.AppendLine(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
                 }
+            }
+
+            if (m_StoredAttributes.Count > 0)
+            {
+                builder.AppendLine("--- STORED ATTRIBUTES ---");
+                foreach (var kvp in m_StoredAttributes)
+                    builder.AppendLine(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
+            }
+
+            if (m_AttributesToContexts.Count > 0)
+            {
+                builder.AppendLine("--- LOCAL ATTRIBUTES ---");
+                foreach (var attrib in m_LocalAttributes)
+                    builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
 
             Debug.Log(builder.ToString());
@@ -234,7 +334,14 @@ namespace UnityEditor.VFX
         //[NonSerialized]
         public int m_TestId;
 
+        [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
+        [NonSerialized]
         protected Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
+
+        [NonSerialized]
+        protected Dictionary<VFXAttribute, int> m_StoredAttributes = new Dictionary<VFXAttribute, int>();
+        [NonSerialized]
+        protected HashSet<VFXAttribute> m_LocalAttributes = new HashSet<VFXAttribute>();
     }
 }

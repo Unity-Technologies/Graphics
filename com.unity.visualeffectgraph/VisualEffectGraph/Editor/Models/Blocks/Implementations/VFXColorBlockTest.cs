@@ -10,11 +10,12 @@ namespace UnityEditor.VFX
         public override string name { get { return "Color Test"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write) };
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
             }
         }
 

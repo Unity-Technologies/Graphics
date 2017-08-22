@@ -14,6 +14,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
             }
         }
 

@@ -89,10 +89,6 @@ namespace UnityEditor.VFX
         {
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
-            foreach (var data in dependencies.OfType<VFXDataParticle>())
-            {
-                data.DebugBuildAttributeBuffers(); //TMP Debug log
-            }
 
             var templateContent = new StringBuilder(System.IO.File.ReadAllText(templatePath));
 
@@ -112,7 +108,14 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, name);
+                if (context.GetData().IsAttributeStored(attribute))
+                {
+                    VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, context.GetData().GetLoadAttributeCode(attribute));
+                }
+                else
+                {
+                    VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, name);
+                }
                 expressionToName.Add(new VFXAttributeExpression(attribute), name);
             }
 
@@ -199,7 +202,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.AppendLine();
             }
 
-            globalIncludeContent.AppendLine(System.IO.File.ReadAllText("Assets/VFXShaders/VFXCommon.cginc"));
+            globalIncludeContent.AppendLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             stringBuilder.Append(templateContent);
 
