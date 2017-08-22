@@ -815,7 +815,7 @@ namespace UnityEngine.Experimental.Rendering
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount
         protected abstract void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref VectorArray<ShadowmapBase.ShadowRequest> requestsGranted, out uint totalRequestCount );
         // allocate the shadow requests in the shadow map, only is called if shadowsCount > 0 - may modify shadowRequests and shadowsCount
-        protected abstract void AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
+        protected abstract bool AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
 
         public abstract uint GetShadowMapCount();
         public abstract uint GetShadowMapSliceCount(uint shadowMapIndex);
