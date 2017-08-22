@@ -266,6 +266,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
+            MaterialPropertyBlock properties = null, int shaderPassID = 0)
+        {
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
