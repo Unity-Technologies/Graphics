@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
                     break;
                 default: throw new Exception("WriteConstructValue missing type: " + type);
             }
-            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString());
+            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString().ToLower());
         }
 
         public static void WriteTexture(StringBuilder builder, VFXUniformMapper mapper)

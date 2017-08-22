@@ -43,18 +43,14 @@ namespace UnityEditor.VFX
                     var eulerIntergration = CreateInstance<VFXEulerIntegration>();
                     implicitPostBlock.Add(eulerIntergration);
                 }
-                return implicitPostBlock;
-            }
-        }
 
-        public override IEnumerable<VFXAttributeInfo> optionalAttributes
-        {
-            get
-            {
-                if (GetData().AttributeExists(VFXAttribute.Velocity)) // If there is velocity, position becomes writable
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
-                if (GetData().AttributeExists(VFXAttribute.Lifetime)) // If there is a lifetime, aging is enabled
-                    yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadWrite);
+                if (GetData().AttributeExists(VFXAttribute.Lifetime))
+                {
+                    var ageAndDie = CreateInstance<VFXAgeAndDie>();
+                    implicitPostBlock.Add(ageAndDie);
+                }
+
+                return implicitPostBlock;
             }
         }
     }
