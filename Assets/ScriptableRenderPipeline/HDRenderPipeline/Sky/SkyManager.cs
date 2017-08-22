@@ -165,6 +165,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RebuildSkyMatrices(float nearPlane, float farPlane)
         {
+            if (!m_SkySettings) return;
+
             Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
             // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
