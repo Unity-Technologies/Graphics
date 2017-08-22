@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     public static class VFXReflectionHelper
     {
-        public static T[] CollectStaticReadOnlyExpression<T>(Type expressionType, System.Reflection.BindingFlags additionnalFlag = System.Reflection.BindingFlags.NonPublic)
+        public static T[] CollectStaticReadOnlyExpression<T>(Type expressionType, System.Reflection.BindingFlags additionnalFlag = System.Reflection.BindingFlags.Public)
         {
             var members = expressionType.GetFields(System.Reflection.BindingFlags.Static | additionnalFlag)
                 .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
