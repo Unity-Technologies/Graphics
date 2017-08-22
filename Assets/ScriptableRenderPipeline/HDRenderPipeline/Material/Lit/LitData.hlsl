@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "ShaderLibrary/SampleUVMapping.hlsl"
+#include "Core/ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
 
@@ -239,7 +239,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     return SAMPLE_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, param.uv + texOffsetCurrent, lod).r;
 }
 
-#include "ShaderLibrary/PerPixelDisplacement.hlsl"
+#include "Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
@@ -925,7 +925,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 #endif
 }
 
-#include "ShaderLibrary/PerPixelDisplacement.hlsl"
+#include "Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
 // PPD is affecting only one mapping at the same time, mean we need to execute it for each mapping (UV0, UV1, 3 times for triplanar etc..)
 // We chose to not support all this case that are extremely hard to manage (for example mixing different mapping, mean it also require different tangent space that is not supported in Unity)
@@ -1210,7 +1210,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     #endif
 
     blendMasks = ApplyHeightBlend(heights, blendMasks);
-#endif 
+#endif
     // If no heightmap is set on any layer, we don't need to try and blend them based on height...
 #endif
 

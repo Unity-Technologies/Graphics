@@ -25,19 +25,19 @@ uniform uint g_nNumDirLights;
 
 #define SHADOW_FPTL
 #	if defined(SHADER_API_D3D11)
-#		include "../ShaderLibrary/API/D3D11.hlsl"
+#		include "../Core/ShaderLibrary/API/D3D11.hlsl"
 #	elif defined(SHADER_API_PSSL)
-#		include "../ShaderLibrary/API/PSSL.hlsl"
+#		include "../Core/ShaderLibrary/API/PSSL.hlsl"
 #	elif defined(SHADER_API_XBOXONE)
-#		include "../ShaderLibrary/API/D3D11.hlsl"
-#		include "../ShaderLibrary/API/D3D11_1.hlsl"
+#		include "../Core/ShaderLibrary/API/D3D11.hlsl"
+#		include "../Core/ShaderLibrary/API/D3D11_1.hlsl"
 #	elif defined(SHADER_API_METAL)
-#		include "../ShaderLibrary/API/Metal.hlsl"
+#		include "../Core/ShaderLibrary/API/Metal.hlsl"
 #	else
 #		error unsupported shader api
 #	endif
-#	include "../ShaderLibrary/API/Validate.hlsl"
-#	include "../ShaderLibrary/Shadow/Shadow.hlsl"
+#	include "../Core/ShaderLibrary/API/Validate.hlsl"
+#	include "../Core/ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
 
 CBUFFER_START(ShadowLightData)
@@ -87,7 +87,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 			float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz));
 			atten *= shadow;
 		}
-        
+
         light.color.xyz = lightData.color.xyz * atten;
 
         ints += EvalMaterial(light, ind);
