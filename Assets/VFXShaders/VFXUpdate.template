@@ -1,40 +1,33 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 
-#ifndef HAS_KILL
-#define HAS_KILL 0
+#ifndef VFX_USE_ALIVE_CURRENT
+#define VFX_USE_ALIVE_CURRENT 0
 #endif
 
 ${VFXCBuffer}
 ${VFXGeneratedBlockFunction}
 
-RWStructuredBuffer<int> flags;
 AppendStructuredBuffer<uint> deadListOut;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 {
 	uint nbMax = 2048; //TEMP
-#if HAS_KILL
-	if (id.x < nbMax && && flags[id.x] == 1)
+	${VFXComputeParameters}
+#if VFX_USE_ALIVE_CURRENT
+	if (id.x < nbMax && ${Attribute_Current_alive})
 	{
-		bool kill = false;
-		${VFXComputeParameters}
 		${VFXProcessBlock}
-		if (kill)
+		${WriteAttribute}
+		if (!${Attribute_Current_alive})
 		{
-			flags[index] = 0;
-			deadListOut.Append(index);
-		}
-		else
-		{
-			${WriteAttribute}
+			deadListOut.Append(id.x);
 		}
 	}
 #else
 	if (id.x < nbMax)
 	{
-		${VFXComputeParameters}
 		${VFXProcessBlock}
 		${WriteAttribute}
 	}

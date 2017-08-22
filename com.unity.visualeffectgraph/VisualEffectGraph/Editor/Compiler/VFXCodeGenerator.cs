@@ -241,7 +241,7 @@ namespace UnityEditor.VFX
             var globalIncludeContent = new StringBuilder();
             globalIncludeContent.AppendLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.AppendLine("#define NB_THREADS_PER_GROUP 256");
-            foreach (var attribute in attributes.Select(o => o.attrib))
+            foreach (var attribute in attributesFromContext.Select(o => o.attrib)) //only from context !
             {
                 globalIncludeContent.AppendFormat("#define VFX_USE_{0}_{1} 1", attribute.name.ToUpper(), attribute.location == VFXAttributeLocation.Current ? "CURRENT" : "SOURCE");
                 globalIncludeContent.AppendLine();
