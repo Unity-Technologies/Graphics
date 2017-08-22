@@ -71,9 +71,9 @@ namespace UnityEditor.VFX
             foreach (var bucket in attributeBuckets)
             {
                 int bucketSize = GenerateBucketLayout(bucket.Value, bucketId);
-                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId] + (int)m_Capacity * m_BucketSizes[bucketId];
-                bucketOffset = (bucketOffset + 3) & ~3; // align on dword;
                 m_BucketSizes.Add(bucketSize);
+                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)m_Capacity * m_BucketSizes[bucketId];
+                bucketOffset = (bucketOffset + 3) & ~3; // align on dword;
                 m_BucketOffsets.Add(bucketOffset);
                 ++bucketId;
             }
