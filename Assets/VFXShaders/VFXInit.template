@@ -1,0 +1,11 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXCBuffer}
+${VFXGeneratedBlockFunction}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	${VFXComputeParameters}
+	${VFXProcessBlock}
+}

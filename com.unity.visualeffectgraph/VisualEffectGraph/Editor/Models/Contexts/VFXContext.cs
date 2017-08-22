@@ -66,6 +66,8 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
         }
 
+        public virtual VFXCodeGenerator codeGenerator                   { get { return null; } }
+
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
         public virtual VFXDataType inputType                            { get { return m_InputType; } }
         public virtual VFXDataType outputType                           { get { return m_OutputType; } }
@@ -274,6 +276,30 @@ namespace UnityEditor.VFX
         public VFXData GetData()
         {
             return m_Data;
+        }
+
+        protected virtual IEnumerable<VFXBlock> implicitPreBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        protected virtual IEnumerable<VFXBlock> implicitPostBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        public IEnumerable<VFXBlock> childrenWithImplicit
+        {
+            get
+            {
+                return implicitPreBlock.Concat(children).Concat(implicitPostBlock);
+            }
         }
 
         // Not serialized nor exposed

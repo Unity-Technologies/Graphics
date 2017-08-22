@@ -65,14 +65,13 @@ namespace UnityEditor.VFX
     {
         public struct Data
         {
-            public string fullName { get { return id == -1 ? name : string.Format("{0}_{1}", name, id); } }
+            public string fullName { get { return id == -1 ? name : string.Format("{0}_{1}", name, VFXCodeGeneratorHelper.GeneratePrefix((uint)id)); } }
             public string name;
             public int id;
         }
 
-        public VFXExpressionMapper(string prefix = null)
+        public VFXExpressionMapper()
         {
-            m_Prefix = string.IsNullOrEmpty(prefix) ? "" : string.Format("{0}_", prefix);
         }
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
@@ -90,13 +89,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static VFXExpressionMapper FromContext(VFXContext context, string prefix = null)
+        public static VFXExpressionMapper FromContext(VFXContext context)
         {
-            var mapper = new VFXExpressionMapper(prefix);
+            var mapper = new VFXExpressionMapper();
 
             mapper.AddExpressionFromSlotContainer(context, -1);
-            for (int i = 0; i < context.GetNbChildren(); ++i)
-                mapper.AddExpressions(context[i].parameters, i);
+            int i = 0;
+            foreach (var block in context.childrenWithImplicit)
+                mapper.AddExpressions(block.parameters, i++);
 
             return mapper;
         }
@@ -121,16 +121,28 @@ namespace UnityEditor.VFX
             AddExpression(exp, data.name, data.id);
         }
 
+        public VFXExpression FromNameAndId(string name, int id)
+        {
+            foreach (var expression in m_ExpressionsData)
+            {
+                if (expression.Value.Any(o => o.name == name && o.id == id))
+                {
+                    return expression.Key;
+                }
+            }
+            return null;
+        }
+
         public void AddExpression(VFXExpression exp, string name, int id)
         {
             if (exp == null || name == null)
                 throw new ArgumentNullException();
 
             if (m_ExpressionsData.SelectMany(o => o.Value).Any(o => o.name == name && o.id == id))
-                throw new ArgumentException(string.Format("{0}{1}_{2} has been added twice: {3}", m_Prefix, name, id, exp));
+                throw new ArgumentException(string.Format("{0}_{1} has been added twice: {2}", name, id, exp));
 
             var data = new Data();
-            data.name = m_Prefix + name;
+            data.name = name;
             data.id = id;
 
             if (!m_ExpressionsData.ContainsKey(exp))
@@ -147,6 +159,5 @@ namespace UnityEditor.VFX
         }
 
         private Dictionary<VFXExpression, List<Data>> m_ExpressionsData = new Dictionary<VFXExpression, List<Data>>();
-        private string m_Prefix;
     }
 }

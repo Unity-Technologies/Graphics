@@ -1,0 +1,28 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+
+${VFXCBuffer}
+${VFXGeneratedBlockFunction}
+
+AppendStructuredBuffer<uint> deadListOut;
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+{
+	uint index = id.x;
+	${VFXComputeParameters}
+#if VFX_USE_ALIVE_CURRENT
+	if (alive)
+	{
+		${VFXProcessBlock}
+		${WriteAttribute}
+		if (!alive)
+		{
+			deadListOut.Append(index);
+		}
+	}
+#else
+	${VFXProcessBlock}
+	${WriteAttribute}
+#endif
+}

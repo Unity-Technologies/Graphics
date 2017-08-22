@@ -5,29 +5,29 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Tests")]
-    class VFXColorBlockTest : VFXBlock
+    class VFXSetVelocity : VFXBlock
     {
-        public override string name { get { return "Color Test"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override string name { get { return "SetVelocity"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write) };
+                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Write) };
             }
         }
 
         public class InputProperties
         {
-            public Color Color = Color.red;
+            public Vector3 inputVelocity = new Vector3(0.0f, 1.0f, 0.0f);
         }
 
         public override string source
         {
             get
             {
-                return "color.rgb = Color.rgb;";
+                return "velocity = inputVelocity;";
             }
         }
     }
