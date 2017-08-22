@@ -30,7 +30,7 @@ public class CullResultsTest
     [Test]
     public void TestReflectionProbes()
     {
-        UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Editor/Tests/TestScene.unity");
+        UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/AutomatedTests/RenderloopTests/Editor/TestScene.unity");
         RenderLoopTestFixtureInstance.Run(InspectCullResults);
     }
 }

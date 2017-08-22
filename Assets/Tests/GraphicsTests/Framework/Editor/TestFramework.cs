@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering
 		// path where the tests live
         private static readonly string[] s_Path =
         {
+            "AutomatedTests",
             "GraphicsTests",
             "RenderPipeline"
         };
