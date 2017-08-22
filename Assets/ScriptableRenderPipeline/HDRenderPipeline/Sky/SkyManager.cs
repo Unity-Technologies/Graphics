@@ -57,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IBLFilterGGX            m_iblFilterGgx = null;
 
         Vector4                 m_CubemapScreenSize;
+        Matrix4x4[]             m_faceWorldToViewMatrixMatrices = new Matrix4x4[6];
         Matrix4x4[]             m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
         Mesh[]                  m_CubemapFaceMesh = new Mesh[6];
@@ -254,6 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Matrix4x4 worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
                     Vector4   screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
+                    m_faceWorldToViewMatrixMatrices[i]     = worldToView;
                     m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
                     m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
 
@@ -410,11 +412,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (m_useMIS && m_iblFilterGgx.SupportMIS)
                     {
-                        m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
+                        m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_faceWorldToViewMatrixMatrices);
                     }
                     else
                     {
-                        m_iblFilterGgx.FilterCubemap(cmd, input, target, mipCount, m_CubemapFaceMesh);
+                        m_iblFilterGgx.FilterCubemap(cmd, input, target, mipCount, m_faceWorldToViewMatrixMatrices);
                     }
                 }
             }
