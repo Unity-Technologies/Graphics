@@ -308,6 +308,12 @@ namespace UnityEditor.VFX
             {
                 try
                 {
+                    var models = new HashSet<Object>();
+                    CollectDependencies(models);
+
+                    foreach (var data in models.OfType<VFXData>())
+                        data.CollectAttributes();
+
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
 
@@ -352,13 +358,6 @@ namespace UnityEditor.VFX
                         expressionDescs[i].op = exp.Operation;
                         expressionDescs[i].data = data;
                     }
-
-                    // Generate uniforms
-                    var models = new HashSet<Object>();
-                    CollectDependencies(models);
-
-                    foreach (var data in models.OfType<VFXData>())
-                        data.CollectAttributes(m_ExpressionGraph);
 
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
