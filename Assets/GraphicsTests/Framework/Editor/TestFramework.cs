@@ -110,7 +110,7 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
-            while (Lightmapping.isRunning)
+            while (UnityEditor.Lightmapping.isRunning)
             {
                 yield return null;
             }

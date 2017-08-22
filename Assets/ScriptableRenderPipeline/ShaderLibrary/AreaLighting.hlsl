@@ -117,8 +117,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
             float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
             float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
 
-            // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
-            return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
+            return saturate(INV_PI * (a * sinSqSigma + b));
         }
     #endif
 #endif
@@ -300,24 +299,6 @@ float PolygonIrradiance(float4x3 L)
 
     return isfinite(sum) ? sum : 0.0;
 #endif
-}
-
-// For polygonal lights.
-float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, float3x3 invM)
-{
-    // Construct a view-dependent orthonormal basis around N.
-    // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
-    float3x3 basis;
-    basis[0] = normalize(V - N * NdotV);
-    basis[1] = normalize(cross(N, basis[0]));
-    basis[2] = N;
-
-    // rotate area light in local basis
-    invM = mul(transpose(basis), invM);
-    L = mul(L, invM);
-
-    // Polygon irradiance in the transformed configuration
-    return PolygonIrradiance(L);
 }
 
 float LineFpo(float tLDDL, float lrcpD, float rcpD)

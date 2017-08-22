@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -79,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CameraRTID;
 
         private bool m_RenderToIntermediateTarget = false;
+        private bool m_IntermediateTextureArray = false;
 
         private const int kShadowDepthBufferBits = 16;
         private const int kCameraDepthBufferBits = 32;
@@ -125,10 +127,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             base.Render(context, cameras);
 
+            bool stereoEnabled = XRSettings.isDeviceActive;
+
             foreach (Camera camera in cameras)
             {
                 ScriptableCullingParameters cullingParameters;
-                if (!CullResults.GetCullingParameters(camera, out cullingParameters))
+                if (!CullResults.GetCullingParameters(camera, stereoEnabled, out cullingParameters))
                     continue;
 
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance, camera.farClipPlane);
@@ -144,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, ref context);
 
                 // Setup camera matrices and RT
-                context.SetupCameraProperties(camera);
+                context.SetupCameraProperties(camera, stereoEnabled);
 
                 // Setup light and shadow shader constants
                 SetupShaderLightConstants(visibleLights, ref lightData, ref m_CullResults, ref context);
@@ -162,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!lightData.isSingleDirectionalLight)
                     configuration |= RendererConfiguration.PerObjectLightIndices8;
 
-                BeginForwardRendering(camera, ref context);
+                BeginForwardRendering(camera, ref context, stereoEnabled);
 
                 // Render Opaques
                 var litSettings = new DrawRendererSettings(m_CullResults, camera, m_LitPassName);
@@ -176,13 +180,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 context.DrawRenderers(ref litSettings);
 
-                // Release temporary RT
-                var discardRT = CommandBufferPool.Get();
-                discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
-                discardRT.ReleaseTemporaryRT(m_CameraRTProperty);
-                context.ExecuteCommandBuffer(discardRT);
-                CommandBufferPool.Release(discardRT);
-
                 // TODO: Check skybox shader
                 context.DrawSkybox(camera);
 
@@ -192,7 +189,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.DrawRenderers(ref litSettings);
                 context.DrawRenderers(ref unlitSettings);
 
-                EndForwardRendering(camera, ref context);
+                EndForwardRendering(camera, ref context, stereoEnabled);
+
+                // Release temporary RT
+                var discardRT = CommandBufferPool.Get();
+                discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
+                discardRT.ReleaseTemporaryRT(m_CameraRTProperty);
+                context.ExecuteCommandBuffer(discardRT);
+                CommandBufferPool.Release(discardRT);
             }
 
             context.Submit();
@@ -562,8 +566,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return (type == LightType.Directional || type == LightType.Spot);
         }
 
-        private void BeginForwardRendering(Camera camera, ref ScriptableRenderContext context)
+        private void BeginForwardRendering(Camera camera, ref ScriptableRenderContext context, bool stereoEnabled)
         {
+            if (stereoEnabled)
+                context.StartMultiEye(camera);
+
             m_RenderToIntermediateTarget = GetRenderToIntermediateTarget(camera);
 
             var cmd = CommandBufferPool.Get("SetCameraRenderTarget");
@@ -571,9 +578,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 if (camera.activeTexture == null)
                 {
-                    cmd.GetTemporaryRT(m_CameraRTProperty, Screen.width, Screen.height, kCameraDepthBufferBits,
-                        FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, m_Asset.MSAASampleCount);
-                    cmd.SetRenderTarget(m_CameraRTID);
+                    m_IntermediateTextureArray = false;
+                    if (stereoEnabled)
+                    {
+                        RenderTextureDescriptor xrDesc = XRSettings.eyeTextureDesc;
+                        xrDesc.depthBufferBits = kCameraDepthBufferBits;
+                        xrDesc.colorFormat = RenderTextureFormat.ARGB32;
+                        xrDesc.msaaSamples = m_Asset.MSAASampleCount;
+
+                        m_IntermediateTextureArray = (xrDesc.dimension == TextureDimension.Tex2DArray);
+
+                        cmd.GetTemporaryRT(m_CameraRTProperty, xrDesc, FilterMode.Bilinear);
+                    }
+                    else
+                    {
+                        cmd.GetTemporaryRT(m_CameraRTProperty, Screen.width, Screen.height, kCameraDepthBufferBits,
+                            FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, m_Asset.MSAASampleCount);
+                    }
+
+                    if (m_IntermediateTextureArray)
+                        cmd.SetRenderTarget(m_CameraRTID, 0, CubemapFace.Unknown, -1);
+                    else
+                        cmd.SetRenderTarget(m_CameraRTID);
                 }
                 else
                 {
@@ -582,29 +608,47 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             else
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.None);
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CurrentActive);
             }
 
             // Clear RenderTarget to avoid tile initialization on mobile GPUs
             // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
             if (camera.clearFlags != CameraClearFlags.Nothing)
-                cmd.ClearRenderTarget(camera.clearFlags == CameraClearFlags.Color, camera.clearFlags == CameraClearFlags.Color || camera.clearFlags == CameraClearFlags.Depth, camera.backgroundColor);
+            {
+                bool clearDepth = (camera.clearFlags != CameraClearFlags.Nothing);
+                bool clearColor = (camera.clearFlags == CameraClearFlags.Color);
+                cmd.ClearRenderTarget(clearDepth, clearColor, camera.backgroundColor);
+
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void EndForwardRendering(Camera camera, ref ScriptableRenderContext context)
+        private void EndForwardRendering(Camera camera, ref ScriptableRenderContext context, bool stereoEnabled)
         {
-            if (!m_RenderToIntermediateTarget)
-                return;
+            if (m_RenderToIntermediateTarget)
+            {
+                var cmd = CommandBufferPool.Get("Blit");
+                if (m_IntermediateTextureArray)
+                {
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                    cmd.Blit(m_CameraRTID, BuiltinRenderTextureType.CurrentActive);
+                }
+                else
+                    cmd.Blit(BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
 
-            var cmd = CommandBufferPool.Get("Blit");
-            cmd.Blit(BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
-            if (camera.cameraType == CameraType.SceneView)
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+                if (camera.cameraType == CameraType.SceneView)
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
+            if (stereoEnabled)
+            {
+                context.StopMultiEye(camera);
+                context.StereoEndRender(camera);
+            }
         }
 
         private bool GetRenderToIntermediateTarget(Camera camera)

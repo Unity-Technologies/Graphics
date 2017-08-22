@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public abstract class SkySettings : ScriptableObject
     {
         protected class Unhashed : System.Attribute {}
-
+        [Range(0,360)]
         public float                    rotation = 0.0f;
         public float                    exposure = 0.0f;
         public float                    multiplier = 1.0f;

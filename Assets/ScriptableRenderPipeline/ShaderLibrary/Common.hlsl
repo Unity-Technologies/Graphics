@@ -53,6 +53,12 @@
 
 // headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
 
+// Rules: When doing an array for constant buffer variables, we always use float4 to avoid any packing issue, particularly between compute shader and pixel shaders
+// i.e don't use SetGlobalFloatArray or SetComputeFloatParams
+// The array can be alias in hlsl. Exemple:
+// uniform float4 packedArray[3];
+// static float unpackedArray[12] = (float[12]packedArray;
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)
@@ -68,6 +74,8 @@
 #error unsupported shader api
 #endif
 #include "API/Validate.hlsl"
+
+#include "Noise.hlsl"
 
 // Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
 // This is the purpose of this macro
@@ -269,6 +277,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define INV_FOUR_PI 0.07957747155
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
+#define INFINITY    asfloat(0x7F800000)
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
@@ -284,6 +293,17 @@ float DegToRad(float deg)
 float RadToDeg(float rad)
 {
     return rad * 180.0 / PI;
+}
+
+// Square functions for cleaner code
+float Sqr(float x)
+{
+    return x * x;
+}
+
+float3 Sqr(float3 x)
+{
+    return x * x;
 }
 
 // Acos in 14 cycles.
@@ -329,7 +349,7 @@ float FastATan(float x)
 }
 
 // Same as smoothstep except it assume 0, 1 interval for x
-float smoothstep01(float x)
+float Smoothstep01(float x)
 {
     return x * x * (3.0 - (2.0 * x));
 }
@@ -581,18 +601,17 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 }
 
 // LOD dithering transition helper
-// ditherFactor should be a quantized value between 0..15/16, i.e the one provide by Unity
 // LOD0 must use this function with ditherFactor 1..0
-// LOD1 must use this functoin with ditherFactor 0..1
+// LOD1 must use this function with ditherFactor 0..1
 void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
 {
-    // Generate a fixed pattern
-    float p = cos(dot(unPositionSS, float2(443.8975, 397.2973)));
-    p = frac(p * 491.1871);
+    // Generate a spatially varying pattern.
+    // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
+    float p = GenerateHashedRandomFloat(unPositionSS);
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
-    p = (ditherFactor >= 0.5) ? (15.0 / 16.0) - p : p;
+    p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
 

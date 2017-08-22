@@ -10,6 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SerializeField]
             bool m_Enable;
 
+            [SerializeField, Range(0, 1)]
+            float m_AffectDirectLigthingStrenght;
+
             [SerializeField, Range(0, 2)]
             float m_Intensity;
             [SerializeField]
@@ -21,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool m_Downsampling;
 
             public bool enable { set { m_Enable = value; } get { return m_Enable; } }
+            public float affectDirectLigthingStrenght { set { m_AffectDirectLigthingStrenght = value; OnValidate(); } get { return m_AffectDirectLigthingStrenght; } }
             public float intensity { set { m_Intensity = value; OnValidate(); } get { return m_Intensity; } }
             public float radius { set { m_Radius = value; OnValidate(); } get { return m_Radius; } }
             public int sampleCount { set { m_SampleCount = value; OnValidate(); } get { return m_SampleCount; } }
@@ -28,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void OnValidate()
             {
+                m_AffectDirectLigthingStrenght = Mathf.Clamp(m_AffectDirectLigthingStrenght, 0, 1);
                 m_Intensity = Mathf.Clamp(m_Intensity, 0, 2);
                 m_Radius = Mathf.Max(0, m_Radius);
                 m_SampleCount = Mathf.Clamp(m_SampleCount, 1, 32);
@@ -36,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static readonly Settings s_Defaultsettings = new Settings
             {
                 m_Enable = false,
+                m_AffectDirectLigthingStrenght = 0.0f,
                 m_Intensity = 1.0f,
                 m_Radius = 0.5f,
                 m_SampleCount = 8,

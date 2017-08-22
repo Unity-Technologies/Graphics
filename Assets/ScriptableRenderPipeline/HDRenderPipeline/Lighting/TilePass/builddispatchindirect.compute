@@ -6,8 +6,6 @@
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 
-#include "FeatureFlags.hlsl"
-
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );	// Indirect arguments have to be in a _buffer_, not a structured buffer
 RWStructuredBuffer<uint> g_TileList;
 StructuredBuffer<uint> g_TileFeatureFlags;
@@ -26,8 +24,12 @@ void BuildDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
 	uint tileY = (dispatchThreadId + 0.5f) / (float)g_NumTilesX;	// Integer division is extremely expensive, so we better avoid it
 	uint tileX = dispatchThreadId - tileY * g_NumTilesX;
 
-	uint variant = FeatureFlagsToTileVariant(featureFlags);
-	uint offset;
-	InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
-	g_TileList[variant * g_NumTiles + offset] = (tileY << 16) | tileX;
+    // Check if there is no light or no material (mean we are sky/background pixel) / Both test as we can enable/disable light/material classification
+    if ((featureFlags & LIGHT_FEATURE_MASK_FLAGS) != 0 && (featureFlags & MATERIAL_FEATURE_MASK_FLAGS) != 0)
+    {
+        uint variant = FeatureFlagsToTileVariant(featureFlags);
+        uint offset;
+        InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+        g_TileList[variant * g_NumTiles + offset] = (tileY << 16) | tileX;
+    }
 }

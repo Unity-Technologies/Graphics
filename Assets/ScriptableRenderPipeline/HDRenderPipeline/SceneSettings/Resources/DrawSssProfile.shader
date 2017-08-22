@@ -74,7 +74,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
 
                 // N.b.: we multiply by the surface albedo of the actual geometry during shading.
                 // Apply gamma for visualization only. Do not apply gamma to the color.
-                return float4(pow(M, 1.0 / 3.0) * A, 1);
+                return float4(sqrt(M) * A, 1);
             #else
                 float  r    = (2 * length(input.texcoord - 0.5)) * _MaxRadius * SSS_BASIC_DISTANCE_SCALE;
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
@@ -87,7 +87,9 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
                 float3 magnitude = lerp(exp(-r * r / (2 * var1)) / (TWO_PI * var1),
                                         exp(-r * r / (2 * var2)) / (TWO_PI * var2), _LerpWeight);
 
-                return float4(magnitude, 1);
+                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
+                // Apply gamma for visualization only.
+                return float4(sqrt(magnitude), 1);
             #endif
             }
             ENDHLSL

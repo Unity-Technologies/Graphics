@@ -6,6 +6,7 @@
 #include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 
+uniform int g_isOrthographic;
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
 uniform float4x4 g_mProjection;
@@ -273,8 +274,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			}
 			else
 			{
-				//if((center.z+radius)<0.0)
-				if( length(center)>radius)
+				if(g_isOrthographic==0 && length(center)>radius)
 				{
 					float2 vMi, vMa;
 					bool2 bMi, bMa;
@@ -282,6 +282,13 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 					vMin.xy = bMi ? max(vMin.xy, vMi) : vMin.xy;
 					vMax.xy = bMa ? min(vMax.xy, vMa) : vMax.xy;
+				}
+				else if(g_isOrthographic!=0)
+				{
+					float2 vMi = mul(g_mProjection, float4(center.xyz-radius,1)).xy;	 // no division needed for ortho
+					float2 vMa = mul(g_mProjection, float4(center.xyz+radius,1)).xy;	 // no division needed for ortho
+					vMin.xy = max(vMin.xy, vMi);
+					vMax.xy = min(vMax.xy, vMa);
 				}
 
 #if USE_LEFTHAND_CAMERASPACE

@@ -399,7 +399,9 @@ namespace UnityEngine.Experimental.Rendering
     {
         // shadow texture related params (need to be set by ShadowmapBase and derivatives)
         public Matrix4x4     worldToShadow;  // to light space matrix
+        public Matrix4x4     shadowToWorld;  // from light space matrix
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
+        public Vector4       textureSize;    // the shadowmap's size in x and y. xy is texture relative, zw is viewport relative.
         public Vector4       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y. xy is texture relative, zw is viewport relative.
         public uint          id;             // packed texture id, sampler id and slice idx
         public uint          shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
@@ -813,7 +815,7 @@ namespace UnityEngine.Experimental.Rendering
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount
         protected abstract void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref VectorArray<ShadowmapBase.ShadowRequest> requestsGranted, out uint totalRequestCount );
         // allocate the shadow requests in the shadow map, only is called if shadowsCount > 0 - may modify shadowRequests and shadowsCount
-        protected abstract void AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
+        protected abstract bool AllocateShadows( FrameId frameId, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
 
         public abstract uint GetShadowMapCount();
         public abstract uint GetShadowMapSliceCount(uint shadowMapIndex);

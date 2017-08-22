@@ -40,6 +40,7 @@ struct LightweightVertexInput
     float4 tangent : TANGENT;
     float3 texcoord : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
@@ -56,6 +57,7 @@ struct v2f
     half4 viewDir : TEXCOORD5; // xyz: viewDir
     UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
     float4 hpos : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 // Per object light list data

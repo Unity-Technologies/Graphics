@@ -1245,6 +1245,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+            bool isOrthographic = camera.orthographic;
+            cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_isOrthographic", isOrthographic ? 1 : 0);
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
             cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, "g_mScrProjection", projscr);
             cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
@@ -1296,6 +1298,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             var cmd = CommandBufferPool.Get("Build light list" );
 
+            bool isOrthographic = camera.orthographic;
+
             // generate screen-space AABBs (used for both fptl and clustered).
             if (numLights != 0)
             {
@@ -1308,6 +1312,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 var projh = temp * proj;
                 var invProjh = projh.inverse;
 
+                cmd.SetComputeIntParam(buildScreenAABBShader, "g_isOrthographic", isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
                 cmd.SetComputeMatrixParam(buildScreenAABBShader, "g_mProjection", projh);
                 cmd.SetComputeMatrixParam(buildScreenAABBShader, "g_mInvProjection", invProjh);
@@ -1318,6 +1323,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
             if (enableBigTilePrepass)
             {
+                cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_isOrthographic", isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, "g_mScrProjection", projscr);
@@ -1330,6 +1336,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             if (usingFptl)        // optimized for opaques only
             {
+                cmd.SetComputeIntParam(buildPerTileLightListShader, "g_isOrthographic", isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
                 cmd.SetComputeMatrixParam(buildPerTileLightListShader, "g_mScrProjection", projscr);
@@ -1352,7 +1359,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
-
+                  
+            bool isOrthographic = camera.orthographic;
+            cmd.SetGlobalFloat("g_isOrthographic", (float) (isOrthographic ? 1 : 0));
             cmd.SetGlobalFloat("g_widthRT", (float)camera.pixelWidth);
             cmd.SetGlobalFloat("g_heightRT", (float)camera.pixelHeight);
 

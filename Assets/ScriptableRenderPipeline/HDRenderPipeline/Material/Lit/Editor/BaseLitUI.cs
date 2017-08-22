@@ -19,6 +19,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
+            public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
+
             // Per pixel displacement
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimum samples to use with per pixel displacement mapping");
@@ -76,6 +78,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string     kStencilRef = "_StencilRef";
 
+        protected MaterialProperty horizonFade = null;
+        protected const string kHorizonFade = "_HorizonFade";
+
         // Wind
         protected MaterialProperty windEnable = null;
         protected const string kWindEnabled = "_EnableWind";
@@ -130,6 +135,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // MaterialID
             materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
 
+            horizonFade = FindProperty(kHorizonFade, props);
+
             // Per pixel displacement
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
@@ -176,6 +183,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.BaseMaterialPropertiesGUI();
 
+            EditorGUI.indentLevel++;
+
             // This follow double sided option
             if (doubleSidedEnable.floatValue > 0.0f)
             {
@@ -199,12 +208,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
+            m_MaterialEditor.ShaderProperty(horizonFade, StylesBaseLit.horizonFadeText);
+
             EditorGUI.indentLevel--;
 
             // Display tessellation option if it exist
             if (tessellationMode != null)
             {
-                GUILayout.Label(StylesBaseLit.tessellationText, EditorStyles.boldLabel);
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(StylesBaseLit.tessellationText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 TessellationModePopup();
                 m_MaterialEditor.ShaderProperty(tessellationFactor, StylesBaseLit.tessellationFactorText);
@@ -230,7 +242,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
-            GUILayout.Label(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
 

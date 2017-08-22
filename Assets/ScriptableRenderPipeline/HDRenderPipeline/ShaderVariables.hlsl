@@ -3,6 +3,8 @@
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
+#include "ShaderConfig.cs.hlsl"
+
 // CAUTION:
 // Currently the shaders compiler always include regualr Unity shaderVariables, so I get a conflict here were UNITY_SHADER_VARIABLES_INCLUDED is already define, this need to be fixed.
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
@@ -218,6 +220,7 @@ CBUFFER_END
 CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
+float4x4 _NonJitteredViewProjMatrix;
 float4x4 _ViewMatrix;
 float4x4 _ProjMatrix;
 float4x4 _InvViewProjMatrix;
