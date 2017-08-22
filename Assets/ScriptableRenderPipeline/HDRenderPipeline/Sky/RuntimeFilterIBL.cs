@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void FilterCubemapCommon(CommandBuffer cmd,
             Texture source, RenderTexture target, int mipCount,
-            Mesh[] cubemapFaceMesh)
+            Matrix4x4[] worldToViewMatrices)
         {
             // Solid angle associated with a texel of the cubemap.
             float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
@@ -93,14 +93,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string sampleName = String.Format("Filter Cubemap Mip {0}", mip);
                 cmd.BeginSample(sampleName);
 
-                MaterialPropertyBlock props = new MaterialPropertyBlock();
-                props.SetFloat("_Level", mip);
-
                 for (int face = 0; face < 6; ++face)
                 {
-                    Utilities.SetRenderTarget(cmd, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
+                    Vector4   faceSize  = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
+                    Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, faceSize, worldToViewMatrices[face], true);
 
-                    cmd.DrawMesh(cubemapFaceMesh[face], Matrix4x4.identity, m_GgxConvolveMaterial, 0, 0, props);
+                    MaterialPropertyBlock props = new MaterialPropertyBlock();
+                    props.SetFloat("_Level", mip);
+                    props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+
+                    Utilities.SetRenderTarget(cmd, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
+                    Utilities.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
                 }
                 cmd.EndSample(sampleName);
             }
@@ -109,18 +112,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
         public void FilterCubemap(CommandBuffer cmd,
             Texture source, RenderTexture target, int mipCount,
-            Mesh[] cubemapFaceMesh)
+            Matrix4x4[] worldToViewMatrices)
         {
             m_GgxConvolveMaterial.DisableKeyword("USE_MIS");
 
-            FilterCubemapCommon(cmd, source, target, mipCount, cubemapFaceMesh);
+            FilterCubemapCommon(cmd, source, target, mipCount, worldToViewMatrices);
         }
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
         public void FilterCubemapMIS(CommandBuffer cmd,
             Texture source, RenderTexture target, int mipCount,
             RenderTexture conditionalCdf, RenderTexture marginalRowCdf,
-            Mesh[] cubemapFaceMesh)
+            Matrix4x4[] worldToViewMatrices)
         {
             // Bind the input cubemap.
             m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", source);
@@ -142,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GgxConvolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);
             m_GgxConvolveMaterial.SetTexture("_MarginalRowDensities", marginalRowCdf);
 
-            FilterCubemapCommon(cmd, source, target, mipCount, cubemapFaceMesh);
+            FilterCubemapCommon(cmd, source, target, mipCount, worldToViewMatrices);
         }
     }
 }
