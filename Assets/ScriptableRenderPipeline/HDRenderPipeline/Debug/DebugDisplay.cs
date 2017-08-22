@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         public float debugOverlayRatio = 0.33f;
+        public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -50,6 +51,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] debugViewMaterialPropertiesValues = null;
         public static GUIContent[] debugViewMaterialGBufferStrings = null;
         public static int[] debugViewMaterialGBufferValues = null;
+
+        public static GUIContent[] lightingFullScreenDebugStrings = null;
+        public static int[] lightingFullScreenDebugValues = null;
+        public static GUIContent[] renderingFullScreenDebugStrings = null;
+        public static int[] renderingFullScreenDebugValues = null;
+
 
         public DebugDisplaySettings()
         {
@@ -136,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowAtlasIndexDebug, () => lightingDebugSettings.shadowAtlasIndex, (value) => lightingDebugSettings.shadowAtlasIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowAtlasIndex(1));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, FullScreenDebugMode>(kFullScreenDebugMode, () => lightingDebugSettings.fullScreenDebugMode, (value) => lightingDebugSettings.fullScreenDebugMode = (FullScreenDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, int>(kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
@@ -149,6 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => renderingDebugSettings.enableDistortion, (value) => renderingDebugSettings.enableDistortion = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSSAndTransmission, (value) => renderingDebugSettings.enableSSSAndTransmission = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
         }
 
         public void OnValidate()
@@ -309,10 +317,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewGbuffer), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);
                 FillWithProperties(typeof(Lit.BSDFData), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);
 
+                // Lighting Full Screen Debug
+                FillFullScreenDebugEnum(ref lightingFullScreenDebugStrings, ref lightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
+                FillFullScreenDebugEnum(ref renderingFullScreenDebugStrings, ref renderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
+
                 isDebugViewMaterialInit = true;
             }
         }
+
+        void FillFullScreenDebugEnum(ref GUIContent[] strings, ref int[] values, FullScreenDebugMode min, FullScreenDebugMode max)
+        {
+            int count = max - min - 1;
+            strings = new GUIContent[count + 1];
+            values = new int[count + 1];
+            strings[0] = new GUIContent(FullScreenDebugMode.None.ToString());
+            values[0] = (int)FullScreenDebugMode.None;
+            int index = 1;
+            for (int i = (int)min + 1; i < (int)max; ++i)
+            {
+                strings[index] = new GUIContent(((FullScreenDebugMode)i).ToString());
+                values[index] = i;
+                index++;
+            }
+        }
     }
+
 
     namespace Attributes
     {
@@ -452,10 +481,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum FullScreenDebugMode
     {
         None,
+        // Lighting
+        MinLightingFullScreenDebug, 
         SSAO,
         SSAOBeforeFiltering,
+        MaxLightingFullScreenDebug,
+
+        // Rendering
+        MinRenderingFullScreenDebug,
         MotionVectors,
-        NanTracker
+        NanTracker,
+        MaxRenderingFullScreenDebug
     }
 
     [Serializable]
@@ -474,7 +510,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint                 shadowAtlasIndex = 0;
         public float                shadowMinValue = 0.0f;
         public float                shadowMaxValue = 1.0f;
-        public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
 
         public bool                 overrideSmoothness = false;
         public float                overrideSmoothnessValue = 0.5f;
