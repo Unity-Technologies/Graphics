@@ -25,7 +25,13 @@ namespace UnityEditor.VFX
         public uint capacity
         {
             get { return m_Capacity; }
-            set { m_Capacity = value; }
+            set
+            {
+                const uint kThreadPerGroup = 64;
+                if (value > kThreadPerGroup)
+                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                m_Capacity = value;
+            }
         }
 
         public Bounds bbox
@@ -66,7 +72,7 @@ namespace UnityEditor.VFX
             {
                 int bucketSize = GenerateBucketLayout(bucket.Value, bucketId);
                 int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId] + (int)m_Capacity * m_BucketSizes[bucketId];
-                bucketOffset = (bucketOffset + 3) & ~3; // align of dword;
+                bucketOffset = (bucketOffset + 3) & ~3; // align on dword;
                 m_BucketSizes.Add(bucketSize);
                 m_BucketOffsets.Add(bucketOffset);
                 ++bucketId;
@@ -94,6 +100,13 @@ namespace UnityEditor.VFX
                 return "ByteAddressBuffer attributeData;";
         }
 
+        private string GetCastAttributePrefix(VFXAttribute attrib)
+        {
+            if (VFXExpression.IsFloatValueType(attrib.type))
+                return "asfloat";
+            return "";
+        }
+
         private string GetByteAddressBufferMethodSuffix(VFXAttribute attrib)
         {
             int size = VFXExpression.TypeToSize(attrib.type);
@@ -108,24 +121,24 @@ namespace UnityEditor.VFX
         private string GetOffset(VFXAttribute attrib)
         {
             AttributeLayout layout = m_AttributeLayout[attrib];
-            return string.Format("{0} + index * {2}", m_BucketOffsets[layout.bucket], m_BucketSizes[layout.bucket]);
+            return string.Format("({0} + index * {1}) << 2", m_BucketOffsets[layout.bucket], m_BucketSizes[layout.bucket]);
         }
 
-        public override string GetLoadAttributeCode(VFXAttribute attrib, int index)
+        public override string GetLoadAttributeCode(VFXAttribute attrib)
         {
             if (!m_StoredAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
 
-            return string.Format("attributeBuffer.Load{0}({1});", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib));
+            return string.Format("{0}(attributeBuffer.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib));
         }
 
-        public override string GetStoreAttributeCode(VFXAttribute attrib, int index, string value)
+        public override string GetStoreAttributeCode(VFXAttribute attrib, string value)
         {
             if (!m_StoredAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{0}({1},{2});", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value);
+            return string.Format("attributeBuffer.Store{1}({2},asuint({3}))", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value);
         }
 
         // return size

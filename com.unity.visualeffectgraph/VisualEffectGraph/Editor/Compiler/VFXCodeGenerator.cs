@@ -128,16 +128,23 @@ namespace UnityEditor.VFX
                 expressionToName.Add(new VFXAttributeExpression(attribute), attribute.name);
             }
 
-            //< Attribute current which except a default source
+            //< Attribute current which accept a default source
             foreach (var attribute in attributesCurrent.Where(c => !attributesSource.Any(s => s.attrib.name == c.attrib.name)).Select(o => o.attrib))
             {
-                if (!attribute.value.Is(VFXExpression.Flags.Constant))
+                if (context.GetData().IsAttributeStored(attribute))
                 {
-                    throw new Exception(string.Format("Attribute expects constant default value"));
+                    VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, context.GetData().GetLoadAttributeCode(attribute));
                 }
+                else
+                {
+                    if (!attribute.value.Is(VFXExpression.Flags.Constant))
+                    {
+                        throw new Exception(string.Format("Attribute expects constant default value"));
+                    }
 
-                VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, attribute.name);
-                expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Source)), attribute.name);
+                    VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, attribute.name);
+                    expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Source)), attribute.name);
+                }
             }
 
             //< Current Attribute

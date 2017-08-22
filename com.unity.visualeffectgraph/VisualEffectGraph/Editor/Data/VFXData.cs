@@ -216,11 +216,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void GenerateAttributeLayout()                                               {}
+        public virtual void GenerateAttributeLayout()                                   {}
 
-        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)                    { throw new NotImplementedException(); }
-        public virtual string GetLoadAttributeCode(VFXAttribute attrib, int index)                  { throw new NotImplementedException(); }
-        public virtual string GetStoreAttributeCode(VFXAttribute attrib, int index, string value)   { throw new NotImplementedException(); }
+        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)        { throw new NotImplementedException(); }
+        public virtual string GetLoadAttributeCode(VFXAttribute attrib)                 { throw new NotImplementedException(); }
+        public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
 
         private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
