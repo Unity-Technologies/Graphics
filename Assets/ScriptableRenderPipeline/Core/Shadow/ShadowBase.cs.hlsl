@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/core/Shadow/ShadowBase.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderPipeline/Core/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADOWBASE_CS_HLSL
@@ -34,7 +34,9 @@
 struct ShadowData
 {
     float4x4 worldToShadow;
+    float4x4 shadowToWorld;
     float4 scaleOffset;
+    float4 textureSize;
     float4 texelSizeRcp;
     uint id;
     uint shadowType;
@@ -50,9 +52,17 @@ float4x4 GetWorldToShadow(ShadowData value)
 {
 	return value.worldToShadow;
 }
+float4x4 GetShadowToWorld(ShadowData value)
+{
+	return value.shadowToWorld;
+}
 float4 GetScaleOffset(ShadowData value)
 {
 	return value.scaleOffset;
+}
+float4 GetTextureSize(ShadowData value)
+{
+	return value.textureSize;
 }
 float4 GetTexelSizeRcp(ShadowData value)
 {

@@ -21,7 +21,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
-        _HeightCenter("Height Center", Float) = 0.5 // In texture space
+        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailMask("DetailMask", 2D) = "white" {}
@@ -39,6 +39,9 @@ Shader "HDRenderPipeline/LitTessellation"
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
+
+        _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
+        _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5
 
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
@@ -86,13 +89,13 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
+        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         // Note: 2 and 3 are currently unused
-        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        [Enum(Subsurface Scattering, 0, Standard, 1, ClearCoat, 2, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -161,7 +164,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
-    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR
+    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -187,7 +190,6 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "../../../ShaderLibrary/common.hlsl"
     #include "../../../ShaderLibrary/Wind.hlsl"
     #include "../../../ShaderLibrary/tessellation.hlsl"
-    #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

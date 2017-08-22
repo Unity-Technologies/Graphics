@@ -8,9 +8,12 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // Thus the following code play with both.
 
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
+    bool frustumCulledCurrentView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
+    bool frustumCulledMainView = false;
 #else
-    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes); // unity_CameraWorldClipPlanes is set by legacy Unity in case of shadow and contain shadow view plan
+    bool frustumCulledCurrentView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes); // unity_CameraWorldClipPlanes is set by legacy Unity in case of shadow and contain shadow view plan
+    // In the case of shadow, we don't want to tessellate anything that is not seen by the main view frustum. It can result in minor popping of tessellation into a shadow but we can't afford it anyway.
+    bool frustumCulledMainView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes);
 #endif
 
     bool faceCull = false;
@@ -23,10 +26,17 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     }
 #endif
 
-    if (frustumCulled || faceCull)
+    if (frustumCulledCurrentView || faceCull)
     {
         // Settings factor to 0 will kill the triangle
         return float4(0.0, 0.0, 0.0, 0.0);
+    }
+    
+    // See comment above:
+    // During shadow passes, we decide that anything outside the main view frustum should not be tessellated.
+    if (frustumCulledMainView)
+    {
+        return float4(1.0, 1.0, 1.0, 1.0);
     }
 
     // We use the parameters of the primary (scene view) camera in order

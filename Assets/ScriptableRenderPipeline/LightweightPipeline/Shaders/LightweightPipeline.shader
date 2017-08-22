@@ -1,4 +1,5 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
+// Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
 Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
@@ -73,7 +74,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
-            #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+	    #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON
@@ -91,6 +93,9 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             v2f vert(LightweightVertexInput v)
             {
                 v2f o = (v2f)0;
+
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
                 o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;

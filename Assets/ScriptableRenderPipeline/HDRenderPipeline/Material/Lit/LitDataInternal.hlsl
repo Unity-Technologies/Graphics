@@ -123,7 +123,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
     #ifdef _DETAIL_MAP_IDX
         #ifdef SURFACE_GRADIENT
-        normalTS += detailNormalTS;
+        normalTS += detailNormalTS * detailMask;
         #else
         normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
         #endif
@@ -207,6 +207,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.materialId = MATERIALID_LIT_ANISO;
 #elif defined(_MATID_SPECULAR)
     surfaceData.materialId = MATERIALID_LIT_SPECULAR;
+#elif defined(_MATID_CLEARCOAT)
+    surfaceData.materialId = MATERIALID_LIT_CLEAR_COAT;
 #else // Default
     surfaceData.materialId = MATERIALID_LIT_STANDARD;
 #endif
@@ -231,13 +233,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
-#ifdef _MATID_SPECULAR
-    // To save 1bit space in GBuffer we don't store specular as materialID but in the enum of the specular value
-    surfaceData.specular = SPECULARVALUE_SPECULAR_COLOR;
-#else
-    surfaceData.specular = SPECULARVALUE_REGULAR;
-#endif
-
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
     surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
     surfaceData.thickness         = _Thickness;
@@ -255,23 +250,28 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
 
+    surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
+    surfaceData.coatCoverage    = _CoatCoverage;
+    surfaceData.coatIOR         = _CoatIOR;
+
 #else // #if !defined(LAYERED_LIT_SHADER)
 
     // Mandatory to setup value to keep compiler quiet
 
     // Layered shader only supports the standard material
-    surfaceData.materialId = 1; // MaterialId.LitStandard
+    surfaceData.materialId = MATERIALID_LIT_STANDARD;
 
     // All these parameters are ignore as they are re-setup outside of the layers function
+    // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
-    surfaceData.specular = 0.0;
-
     surfaceData.subsurfaceRadius = 0.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
-
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
+    surfaceData.coatCoverage = 0.0f;
+    surfaceData.coatIOR = 0.5;
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
 

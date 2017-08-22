@@ -335,8 +335,7 @@ namespace UnityEngine.Experimental
         {
             for (idx = 0; idx < m_count; ++idx)
             {
-                T obj = this[idx];
-                if (compareDelegate(ref designator, ref obj))
+                if (compareDelegate(ref designator, ref m_array[m_offset + idx]))
                     return true;
             }
             idx = k_InvalidIdx;
@@ -348,7 +347,7 @@ namespace UnityEngine.Experimental
         {
             for (idx = 0; idx < m_count; ++idx)
             {
-                if (this[idx].Equals(designator))
+                if (m_array[m_offset + idx].Equals(designator))
                     return true;
             }
             idx = k_InvalidIdx;

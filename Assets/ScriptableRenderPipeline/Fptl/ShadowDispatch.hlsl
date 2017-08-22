@@ -9,7 +9,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[0];
 	uint					algo     = GPUSHADOWALGORITHM_PCF_9TAP;
 
-	return EvalShadow_CascadedDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth_Blend( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
 
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
@@ -21,7 +21,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 // example of overriding punctual lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
 {
 	// example for choosing the same algo 
 	Texture2DArray			tex = shadowContext.tex2DArray[0];
@@ -29,7 +29,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 	uint					algo     = GPUSHADOWALGORITHM_PCF_9TAP;
 	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS )
 {
 	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }

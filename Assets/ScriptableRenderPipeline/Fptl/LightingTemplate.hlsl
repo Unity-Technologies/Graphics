@@ -77,17 +77,18 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
         DirectionalLight lightData = g_dirLightData[i];
         float atten = 1;
 
+        UnityLight light;
+        light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.lightAxisZ).xyz;
+
 		int shadowIdx = asint(lightData.shadowLightIndex);
 		[branch]
 		if (shadowIdx >= 0)
 		{
-			float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+			float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz));
 			atten *= shadow;
 		}
         
-        UnityLight light;
         light.color.xyz = lightData.color.xyz * atten;
-        light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.lightAxisZ).xyz;
 
         ints += EvalMaterial(light, ind);
     }
@@ -127,17 +128,18 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             }
             atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
 
+            UnityLight light;
+            light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
+
 			int shadowIdx = asint(lgtDat.shadowLightIndex);
 			[branch]
 			if (shadowIdx >= 0)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(normalize(light.dir.xyz), dist));
 				atten *= shadow;
 			}
 
-            UnityLight light;
             light.color.xyz = lgtDat.color.xyz*atten*angularAtt.xyz;
-            light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
 
             ints += EvalMaterial(light, ind);
 
@@ -173,7 +175,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 			[branch]
 			if (shadowIdx >= 0)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw);
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(vLw, dist));
 				atten *= shadow;
 			}
 

@@ -79,6 +79,7 @@ PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
+TEXTURE2D(_LayerInfluenceMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
 #endif
@@ -138,6 +139,9 @@ int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
 
+float _CoatCoverage;
+float _CoatIOR;
+
 float4 _SpecularColor;
 
 float _TexWorldScale;
@@ -175,12 +179,6 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);
 
-float _BlendUsingHeight1;
-float _BlendUsingHeight2;
-float _BlendUsingHeight3;
-PROP_DECL(float, _LayerHeightAmplitude);
-PROP_DECL(float, _LayerCenterOffset);
-PROP_DECL(float, _MinimumOpacity);
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
 float _InheritBaseNormal2;
@@ -191,11 +189,9 @@ float _InheritBaseHeight3;
 float _InheritBaseColor1;
 float _InheritBaseColor2;
 float _InheritBaseColor3;
-float _InheritBaseColorThreshold1;
-float _InheritBaseColorThreshold2;
-float _InheritBaseColorThreshold3;
 float _LayerTilingBlendMask;
-PROP_DECL(float, _LayerTiling);
+PROP_DECL(float, _HeightOffset);
+float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);

@@ -17,6 +17,7 @@ uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
+uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
 
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
@@ -34,27 +35,38 @@ RWStructuredBuffer<uint> g_vLightList : register( u0 );		// don't support RWBuff
 groupshared unsigned int lightsListLDS[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE];
 groupshared uint lightOffs;
 
-
-float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
+float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
-	float3 vP = float3(0.0f,0.0f,zDptBufSpace);
-	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-	return v4Pres.z / v4Pres.w;
-}
+    // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+	// however this function must also work for orthographic projection so we keep it like this.
+    float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
+    float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
 
+    return (m22*zDptBufSpace+m23) / (m32*zDptBufSpace+m33);
+
+    //float3 vP = float3(0.0f,0.0f,zDptBufSpace);
+    //float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
+    //return v4Pres.z / v4Pres.w;
+}
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
+	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
-	float fCx = g_mScrProjection[0].z;
 	float fSy = g_mScrProjection[1].y;
-	float fCy = g_mScrProjection[1].z;
+	float fCx = isOrthographic ? g_mScrProjection[0].w : g_mScrProjection[0].z;
+	float fCy = isOrthographic ? g_mScrProjection[1].w : g_mScrProjection[1].z;
 
 #if USE_LEFT_HAND_CAMERA_SPACE
-	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = true;
 #else
-	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
+	bool useLeftHandVersion = isOrthographic;
 #endif
+
+	float s = useLeftHandVersion ? 1 : (-1);
+	float2 p = float2( (s*v2ScrPos.x-fCx)/fSx, (s*v2ScrPos.y-fCy)/fSy);
+
+	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
 float GetOnePixDiagWorldDistAtDepthOne()
@@ -164,7 +176,7 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 	{
 		SFiniteLightBound lgtDat = g_data[lightsListLDS[l]];
 
-		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius) )
+		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
 			lightsListLDS[l]=0xffffffff;
 	}
 
@@ -199,7 +211,14 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
 	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
-	vE0 = iSection == 0 ? vP0 : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
+
+#if USE_LEFT_HAND_CAMERA_SPACE
+	float3 edgeSectionZero = g_isOrthographic==0 ? vP0 : float3(0.0,0.0,1.0);
+#else
+	float3 edgeSectionZero = g_isOrthographic==0 ? vP0 : float3(0.0,0.0,-1.0);
+#endif
+
+	vE0 = iSection == 0 ? edgeSectionZero : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
 void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR)
