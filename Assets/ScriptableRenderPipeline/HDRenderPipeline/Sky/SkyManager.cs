@@ -35,7 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4                invViewProjMatrix;
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
-        public Mesh                     skyMesh;
         public CommandBuffer            commandBuffer;
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
@@ -57,10 +56,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IBLFilterGGX            m_iblFilterGgx = null;
 
         Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_faceWorldToViewMatrixMatrices = new Matrix4x4[6];
-        Matrix4x4[]             m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
+        Matrix4x4[]             m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
+        Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
-        Mesh[]                  m_CubemapFaceMesh = new Mesh[6];
 
         BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
         SkyRenderer             m_Renderer = null;
@@ -100,63 +98,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public Texture skyReflection { get { return m_SkyboxGGXCubemapRT; } }
-
-        protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix)
-        {
-            // These are clip space coords.
-            Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 0.0f, 1.0f);
-            Vector4 vertData1 = new Vector4( 1.0f, -1.0f, 0.0f, 1.0f);
-            Vector4 vertData2 = new Vector4( 1.0f,  1.0f, 0.0f, 1.0f);
-            Vector4 vertData3 = new Vector4(-1.0f,  1.0f, 0.0f, 1.0f);
-
-            Vector3[] vertData = new Vector3[4];
-            vertData[0] = new Vector3(vertData0.x, vertData0.y, vertData0.z);
-            vertData[1] = new Vector3(vertData1.x, vertData1.y, vertData1.z);
-            vertData[2] = new Vector3(vertData2.x, vertData2.y, vertData2.z);
-            vertData[3] = new Vector3(vertData3.x, vertData3.y, vertData3.z);
-
-            // Get view vector based on the frustum, i.e (invert transform frustum get position etc...)
-            Vector3[] eyeVectorData = new Vector3[4];
-
-            Matrix4x4 transformMatrix = cameraInvViewProjectionMatrix;
-
-            Vector4 posWorldSpace0 = transformMatrix * vertData0;
-            Vector4 posWorldSpace1 = transformMatrix * vertData1;
-            Vector4 posWorldSpace2 = transformMatrix * vertData2;
-            Vector4 posWorldSpace3 = transformMatrix * vertData3;
-
-            Vector4 cameraPos = new Vector4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 0.0f);
-
-            Vector4 direction0 = (posWorldSpace0 / posWorldSpace0.w - cameraPos);
-            Vector4 direction1 = (posWorldSpace1 / posWorldSpace1.w - cameraPos);
-            Vector4 direction2 = (posWorldSpace2 / posWorldSpace2.w - cameraPos);
-            Vector4 direction3 = (posWorldSpace3 / posWorldSpace3.w - cameraPos);
-
-            if (SystemInfo.graphicsUVStartsAtTop)
-            {
-                eyeVectorData[3] = new Vector3(direction0.x, direction0.y, direction0.z).normalized;
-                eyeVectorData[2] = new Vector3(direction1.x, direction1.y, direction1.z).normalized;
-                eyeVectorData[1] = new Vector3(direction2.x, direction2.y, direction2.z).normalized;
-                eyeVectorData[0] = new Vector3(direction3.x, direction3.y, direction3.z).normalized;
-            }
-            else
-            {
-                eyeVectorData[0] = new Vector3(direction0.x, direction0.y, direction0.z).normalized;
-                eyeVectorData[1] = new Vector3(direction1.x, direction1.y, direction1.z).normalized;
-                eyeVectorData[2] = new Vector3(direction2.x, direction2.y, direction2.z).normalized;
-                eyeVectorData[3] = new Vector3(direction3.x, direction3.y, direction3.z).normalized;
-            }
-
-            // Write out the mesh
-            var triangles = new int[6] { 0, 1, 2, 2, 3, 0 };
-
-            return new Mesh
-            {
-                vertices = vertData,
-                normals = eyeVectorData,
-                triangles = triangles
-            };
-        }
 
         void RebuildTextures(SkySettings skySettings)
         {
@@ -222,45 +163,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
         }
 
-        void RebuildSkyMeshes(float nearPlane, float farPlane)
+        void RebuildSkyMatrices(float nearPlane, float farPlane)
         {
-            if (m_CubemapFaceMesh[0] == null)
+            Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
+
+            // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+            Vector3[] lookAtList =
             {
-                Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
+                new Vector3(1.0f, 0.0f, 0.0f),
+                new Vector3(-1.0f, 0.0f, 0.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, -1.0f, 0.0f),
+                new Vector3(0.0f, 0.0f, 1.0f),
+                new Vector3(0.0f, 0.0f, -1.0f),
+            };
 
-                // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-                Vector3[] lookAtList =
-                {
-                    new Vector3(1.0f, 0.0f, 0.0f),
-                    new Vector3(-1.0f, 0.0f, 0.0f),
-                    new Vector3(0.0f, 1.0f, 0.0f),
-                    new Vector3(0.0f, -1.0f, 0.0f),
-                    new Vector3(0.0f, 0.0f, 1.0f),
-                    new Vector3(0.0f, 0.0f, -1.0f),
-                };
+            Vector3[] upVectorList =
+            {
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, 0.0f, -1.0f),
+                new Vector3(0.0f, 0.0f, 1.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+            };
 
-                Vector3[] upVectorList =
-                {
-                    new Vector3(0.0f, 1.0f, 0.0f),
-                    new Vector3(0.0f, 1.0f, 0.0f),
-                    new Vector3(0.0f, 0.0f, -1.0f),
-                    new Vector3(0.0f, 0.0f, 1.0f),
-                    new Vector3(0.0f, 1.0f, 0.0f),
-                    new Vector3(0.0f, 1.0f, 0.0f),
-                };
+            for (int i = 0; i < 6; ++i)
+            {
+                Matrix4x4 lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
+                Matrix4x4 worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+                Vector4   screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
-                for (int i = 0; i < 6; ++i)
-                {
-                    Matrix4x4 lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
-                    Matrix4x4 worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
-                    Vector4   screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
-
-                    m_faceWorldToViewMatrixMatrices[i]     = worldToView;
-                    m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
-                    m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
-
-                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i]);
-                }
+                m_faceWorldToViewMatrixMatrices[i]     = worldToView;
+                m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
+                m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
         }
 
@@ -313,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // When loading RenderDoc, RenderTextures will go null
             RebuildTextures(skySettings);
-            RebuildSkyMeshes(nearPlane, farPlane);
+            RebuildSkyMatrices(nearPlane, farPlane);
         }
 
         public void Build(RenderPipelineResources renderPipelinesResources)
@@ -352,7 +288,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 builtinParams.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
-                builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
                 builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
 
@@ -518,7 +453,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
                     m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
-                    m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
