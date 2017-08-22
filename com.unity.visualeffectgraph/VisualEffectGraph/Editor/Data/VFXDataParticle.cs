@@ -121,7 +121,7 @@ namespace UnityEditor.VFX
         private string GetOffset(VFXAttribute attrib)
         {
             AttributeLayout layout = m_AttributeLayout[attrib];
-            return string.Format("({0} + index * {1}) << 2", m_BucketOffsets[layout.bucket], m_BucketSizes[layout.bucket]);
+            return string.Format("(index * 0x{0:X} + 0x{1:X}) << 2", m_BucketSizes[layout.bucket], m_BucketOffsets[layout.bucket] + layout.offset);
         }
 
         public override string GetLoadAttributeCode(VFXAttribute attrib)
