@@ -18,8 +18,8 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../ShaderLibrary/Common.hlsl"
-            #include "../../ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "SkyManager.cs.hlsl"
 
             struct Attributes

@@ -4,7 +4,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
 
-        #include "../../../ShaderLibrary/Common.hlsl"
+        #include "../../../Core/ShaderLibrary/Common.hlsl"
 
         float4 _TextureScaleBias;
         float _TextureSlice;
@@ -47,7 +47,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 
             #pragma vertex Vert
             #pragma fragment FragRegular
-            
+
             float4 FragRegular(Varyings input) : SV_Target
             {
                 return saturate( (SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).x - _ValidRange.x) * _ValidRange.y ).xxxx;
@@ -68,7 +68,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 
             #pragma vertex Vert
             #pragma fragment FragVariance
-            
+
             float4 FragVariance(Varyings input) : SV_Target
             {
                 return saturate((SAMPLE_TEXTURE2D_ARRAY(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord, _TextureSlice).x - _ValidRange.x) * _ValidRange.y).xxxx;

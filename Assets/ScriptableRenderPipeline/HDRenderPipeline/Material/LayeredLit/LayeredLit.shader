@@ -104,7 +104,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        
+
         _HeightOffset0("Height Offset0", Float) = 0
         _HeightOffset1("Height Offset1", Float) = 0
         _HeightOffset2("Height Offset2", Float) = 0
@@ -301,8 +301,8 @@ Shader "HDRenderPipeline/LayeredLit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../ShaderLibrary/common.hlsl"
-    #include "../../../ShaderLibrary/Wind.hlsl"
+    #include "../../../Core/ShaderLibrary/common.hlsl"
+    #include "../../../Core/ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

@@ -23,19 +23,19 @@
 
 #define SHADOW_FPTL
 #	if defined(SHADER_API_D3D11)
-#		include "../../ShaderLibrary/API/D3D11.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
 #	elif defined(SHADER_API_PSSL)
-#		include "../../ShaderLibrary/API/PSSL.hlsl"
+#		include "../../Core/ShaderLibrary/API/PSSL.hlsl"
 #	elif defined(SHADER_API_XBOXONE)
-#		include "../../ShaderLibrary/API/D3D11.hlsl"
-#		include "../../ShaderLibrary/API/D3D11_1.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11_1.hlsl"
 #	elif defined(SHADER_API_METAL)
-#		include "../../ShaderLibrary/API/Metal.hlsl"
+#		include "../../Core/ShaderLibrary/API/Metal.hlsl"
 #	else
 #		error unsupported shader api
 #	endif
-#	include "../../ShaderLibrary/API/Validate.hlsl"
-#	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
+#	include "../../Core/ShaderLibrary/API/Validate.hlsl"
+#	include "../../Core/ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
 
 struct VertexOutputForwardNew
@@ -183,7 +183,7 @@ float3 RenderReflectionList(uint start, uint numReflProbes, float3 vP, float3 vN
         ints = EvalIndirectSpecular(light, ind);
     }
     // root ibl end
-   
+
     for (int uIndex=0; uIndex<gLightData.y; uIndex++)
     {
         SFiniteLightData lgtDat = g_vProbeData[uIndex];
@@ -302,7 +302,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
     for (int lightIndex = 0; lightIndex < gLightData.x; ++lightIndex)
     {
-  		if (gPerLightData[lightIndex].x == DIRECTIONAL_LIGHT) 
+  		if (gPerLightData[lightIndex].x == DIRECTIONAL_LIGHT)
   		{
   			float atten = 1;
 
@@ -432,7 +432,7 @@ float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vPw,
 }
 
 // fragment shader main
-half4 singlePassForward(VertexOutputForwardNew i)                               
+half4 singlePassForward(VertexOutputForwardNew i)
 {
 	// matching script side where camera space is right handed.
     float3 vP = i.posView;
@@ -467,7 +467,7 @@ half4 singlePassForward(VertexOutputForwardNew i)
     // diffuse GI
     res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
     res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
-    	
+
 	return OutputForward (float4(res,1.0), gdata.alpha);
 
 }

@@ -27,19 +27,19 @@ UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
 #define SHADOW_FPTL
 #	if defined(SHADER_API_D3D11)
-#		include "../../ShaderLibrary/API/D3D11.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
 #	elif defined(SHADER_API_PSSL)
-#		include "../../ShaderLibrary/API/PSSL.hlsl"
+#		include "../../Core/ShaderLibrary/API/PSSL.hlsl"
 #	elif defined(SHADER_API_XBOXONE)
-#		include "../../ShaderLibrary/API/D3D11.hlsl"
-#		include "../../ShaderLibrary/API/D3D11_1.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
+#		include "../../Core/ShaderLibrary/API/D3D11_1.hlsl"
 #	elif defined(SHADER_API_METAL)
-#		include "../../ShaderLibrary/API/Metal.hlsl"
+#		include "../../Core/ShaderLibrary/API/Metal.hlsl"
 #	else
 #		error unsupported shader api
 #	endif
-#	include "../../ShaderLibrary/API/Validate.hlsl"
-#	include "../../ShaderLibrary/Shadow/Shadow.hlsl"
+#	include "../../Core/ShaderLibrary/API/Validate.hlsl"
+#	include "../../Core/ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
@@ -83,15 +83,15 @@ void OnChipDeferredCalculateLightParams (
 {
 	float4 vpos;
 	float3 wpos;
-	float2 uv; 
+	float2 uv;
 	float4 colorCookie = float4(1, 1, 1, 1);
 
 	ShadowContext shadowContext = InitShadowContext();
 
-	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth); 
+	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth);
 
 	// spot light case
-	#if defined (SPOT)	
+	#if defined (SPOT)
 		float3 tolight = _LightPos.xyz - wpos;
 		half3 lightDir = normalize (tolight);
 		float dist = length(tolight);
@@ -110,8 +110,8 @@ void OnChipDeferredCalculateLightParams (
 
 		if (_LightIndexForShadowMatrixArray >= 0)
 			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, float4(lightDir, dist));
-	
-	// directional light case		
+
+	// directional light case
 	#elif defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
 		half3 lightDir = -_LightDir.xyz;
 		float atten = 1.0;
@@ -127,12 +127,12 @@ void OnChipDeferredCalculateLightParams (
 		atten *= colorCookie.w;
 		#endif //DIRECTIONAL_COOKIE
 
-	// point light case	
+	// point light case
 	#elif defined (POINT) || defined (POINT_COOKIE)
 		float3 tolight = wpos - _LightPos.xyz;
 		float dist = length(tolight);
 		half3 lightDir = -normalize (tolight);
-		
+
 		float att = dot(tolight, tolight) * _LightPos.w;
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
@@ -145,7 +145,7 @@ void OnChipDeferredCalculateLightParams (
 				colorCookie.xyz = 1;
 			}
 			atten *= colorCookie.w;
-		#endif //POINT_COOKIE	
+		#endif //POINT_COOKIE
 	#else
 		half3 lightDir = 0;
 		float atten = 0;
@@ -191,7 +191,7 @@ half4 CalculateLight (unity_v2f_deferred i)
 	ind.diffuse = 0;
 	ind.specular = 0;
 
-	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. 
+	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha.
     half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
 
 	return res;
