@@ -51,14 +51,11 @@ namespace UnityEditor.VFX.Test
             if (init != null)
                 init(graph);
 
-            var expressionGraph = new VFXExpressionGraph();
-            expressionGraph.CompileExpressions(graph, VFXExpressionContextOption.None);
-
             var models = new HashSet<Object>();
             graph.CollectDependencies(models);
 
             var data = models.OfType<VFXData>().First();
-            data.CollectAttributes(expressionGraph);
+            data.CollectAttributes();
 
             test(data);
         }

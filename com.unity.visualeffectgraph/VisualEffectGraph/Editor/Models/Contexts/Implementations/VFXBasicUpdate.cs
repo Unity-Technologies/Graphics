@@ -35,22 +35,14 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var implicitPostBlock = new List<VFXBlock>();
                 var settings = GetSettings<Settings>();
                 var data = GetData();
+
                 if (settings.integration != VFXIntegrationMode.None && data.AttributeExists(VFXAttribute.Velocity))
-                {
-                    var eulerIntergration = CreateInstance<VFXEulerIntegration>();
-                    implicitPostBlock.Add(eulerIntergration);
-                }
+                    yield return CreateInstance<VFXEulerIntegration>();
 
                 if (GetData().AttributeExists(VFXAttribute.Lifetime))
-                {
-                    var ageAndDie = CreateInstance<VFXAgeAndDie>();
-                    implicitPostBlock.Add(ageAndDie);
-                }
-
-                return implicitPostBlock;
+                    yield return CreateInstance<VFXAgeAndDie>();
             }
         }
     }

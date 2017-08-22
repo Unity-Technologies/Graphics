@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
             public VFXContext context;
         }
 
-        public void CollectAttributes(VFXExpressionGraph graph)
+        public void CollectAttributes()
         {
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
@@ -105,18 +105,18 @@ namespace UnityEditor.VFX
                 var attributeContexts = new List<VFXAttributeInfoContext>();
                 foreach (var context in owners)
                 {
-                    var attibutes = Enumerable.Empty<VFXAttributeInfo>();
-                    attibutes = attibutes.Concat(context.attributes);
+                    var attributes = Enumerable.Empty<VFXAttributeInfo>();
+                    attributes = attributes.Concat(context.attributes);
                     foreach (var block in context.childrenWithImplicit)
-                        attibutes = attibutes.Concat(block.attributes);
+                        attributes = attributes.Concat(block.attributes);
 
                     var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);
                     foreach (var exp in mapper.expressions)
-                        attibutes = attibutes.Concat(CollectInputAttributes(exp));
+                        attributes = attributes.Concat(CollectInputAttributes(exp));
 
                     attributeContexts.Add(new VFXAttributeInfoContext
                     {
-                        attributes = attibutes.ToArray(),
+                        attributes = attributes.ToArray(),
                         context = context
                     });
                 }
