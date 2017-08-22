@@ -23,16 +23,96 @@ namespace UnityEditor.VFX
         }
     }
 
-    static class VFXShaderWriter
+    class VFXShaderWriter
     {
-        private static int WritePadding(int alignment, int offset, ref int index, StringBuilder builder)
+        public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
+        public void WriteFormat(string str, object arg0, object arg1)                   { m_Builder.AppendFormat(str, arg0, arg1); }
+        public void WriteFormat(string str, object arg0, object arg1, object arg2)      { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
+
+        public void WriteLineFormat(string str, object arg0)                            { WriteFormat(str, arg0); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1)               { WriteFormat(str, arg0, arg1); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1, object arg2)  { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
+
+        // Generic builder method
+        public void Write<T>(T t)
+        {
+            m_Builder.Append(t);
+        }
+
+        // Optimize version to append substring and avoid useless allocation
+        public void Write(String s, int start, int length)
+        {
+            m_Builder.Append(s, start, length);
+        }
+
+        public void WriteLine<T>(T t)
+        {
+            Write(t);
+            WriteLine();
+        }
+
+        public void WriteLine()
+        {
+            m_Builder.AppendLine();
+            WriteIndent();
+        }
+
+        public void EnterScope()
+        {
+            WriteLine('{');
+            Indent();
+        }
+
+        public void ExitScope()
+        {
+            Deindent();
+            WriteLine('}');
+        }
+
+        public void ExitScopeStruct()
+        {
+            Deindent();
+            WriteLine("};");
+        }
+
+        public void WriteWithIndent<T>(T str)
+        {
+            if (m_Indent == 0)
+                Write(str);
+            else
+            {
+                var indentStr = new StringBuilder(m_Indent);
+                indentStr.Append('\t', m_Indent);
+                WriteMultilineWithPrefix(str, indentStr.ToString());
+            }
+        }
+
+        public void WriteMultilineWithPrefix<T>(T str, string linePrefix)
+        {
+            if (linePrefix.Length == 0)
+                Write(str);
+            else
+            {
+                var builder = new StringBuilder(str.ToString());
+                WriteMultilineWithPrefix(builder, linePrefix);
+                Write(builder.ToString());
+            }
+        }
+
+        public override string ToString()
+        {
+            return m_Builder.ToString();
+        }
+
+        private int WritePadding(int alignment, int offset, ref int index)
         {
             int padding = (alignment - (offset % alignment)) % alignment;
             if (padding != 0)
-                builder.AppendLine(string.Format("\tuint{0} PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++));
+                WriteLineFormat("uint{0} PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
             return padding;
         }
 
+        // TODO Change that
         public static string WriteConstructValue(VFXValueType type, object value)
         {
             var format = "";
@@ -54,16 +134,13 @@ namespace UnityEditor.VFX
             return string.Format(format, VFXExpression.TypeToCode(type), value.ToString().ToLower());
         }
 
-        public static void WriteTexture(StringBuilder builder, VFXUniformMapper mapper)
+        public void WriteTexture(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
-            {
-                builder.AppendFormat("{0} {1};", VFXExpression.TypeToCode(texture.ValueType), mapper.GetName(texture));
-                builder.AppendLine();
-            }
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.ValueType), mapper.GetName(texture));
         }
 
-        public static void WriteCBuffer(StringBuilder builder, VFXUniformMapper mapper, string bufferName)
+        public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
@@ -81,8 +158,8 @@ namespace UnityEditor.VFX
 
             if (uniformBlocks.Count > 0)
             {
-                builder.AppendFormat("CBUFFER_START({0})", bufferName);
-                builder.AppendLine();
+                WriteLineFormat("CBUFFER_START({0})", bufferName);
+                Indent();
 
                 int paddingIndex = 0;
                 foreach (var block in uniformBlocks)
@@ -94,22 +171,23 @@ namespace UnityEditor.VFX
                         string name = mapper.GetName(value);
                         currentSize += VFXExpression.TypeToSize(value.ValueType);
 
-                        builder.AppendLine(string.Format("\t{0} {1};", type, name));
+                        WriteLineFormat("{0} {1};", type, name);
                     }
 
-                    WritePadding(4, currentSize, ref paddingIndex, builder);
+                    WritePadding(4, currentSize, ref paddingIndex);
                 }
 
-                builder.AppendLine("CBUFFER_END");
+                Deindent();
+                WriteLine("CBUFFER_END");
             }
         }
 
-        private static string AggregateParameters(List<string> parameters)
+        private string AggregateParameters(List<string> parameters)
         {
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        public static void WriteBlockFunction(StringBuilder builder, VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
+        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
         {
             var parameters = new List<string>();
             for (int i = 0; i < parameterNames.Count; ++i)
@@ -120,17 +198,14 @@ namespace UnityEditor.VFX
                 parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.ValueType), parameter));
             }
 
-            builder.AppendFormat("void {0}({1})", functionName, AggregateParameters(parameters));
-            builder.AppendLine();
-            builder.AppendLine("{");
+            WriteLineFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            EnterScope();
             if (source != null)
-            {
-                builder.AppendLine(source);
-            }
-            builder.AppendLine("}");
+                WriteLine(source);
+            ExitScope();
         }
 
-        public static void WriteCallFunction(StringBuilder builder, string functionName, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
+        public void WriteCallFunction(string functionName, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
         {
             var parameters = new List<string>();
             for (int i = 0; i < parameterNames.Count; ++i)
@@ -141,28 +216,26 @@ namespace UnityEditor.VFX
                 parameters.Add(string.Format("{0} /*{1}{2}*/", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", parameter));
             }
 
-            builder.AppendFormat("{0}({1});", functionName, AggregateParameters(parameters));
-            builder.AppendLine();
+            WriteLineFormat("{0}({1});", functionName, AggregateParameters(parameters));
         }
 
-        public static void WriteAssignement(StringBuilder builder, VFXValueType type, string variableName, string value)
+        public void WriteAssignement(VFXValueType type, string variableName, string value)
         {
             var format = value == "0" ? "{1} = ({0}){2};" : "{1} = {2};";
-            builder.AppendFormat(format, VFXExpression.TypeToCode(type), variableName, value);
+            WriteFormat(format, VFXExpression.TypeToCode(type), variableName, value);
         }
 
-        public static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value, string comment = null)
+        public void WriteVariable(VFXValueType type, string variableName, string value, string comment = null)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            builder.AppendFormat("{0} ", VFXExpression.TypeToCode(type));
-            WriteAssignement(builder, type, variableName, value);
-            builder.AppendFormat(comment == null ? "" : "//" + comment);
-            builder.AppendLine();
+            WriteFormat("{0} ", VFXExpression.TypeToCode(type));
+            WriteAssignement(type, variableName, value);
+            WriteLine(comment == null ? "" : "//" + comment);
         }
 
-        public static void WriteVariable(StringBuilder builder, VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
+        public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
         {
             if (!variableNames.ContainsKey(exp))
             {
@@ -174,24 +247,59 @@ namespace UnityEditor.VFX
                 else
                 {
                     foreach (var parent in exp.Parents)
-                        WriteVariable(builder, parent, variableNames, uniformMapper);
+                        WriteVariable(parent, variableNames, uniformMapper);
 
                     // Generate a new variable name
                     entry = "tmp_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)variableNames.Count());
                     string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
 
-                    WriteVariable(builder, exp.ValueType, entry, value);
+                    WriteVariable(exp.ValueType, entry, value);
                 }
 
                 variableNames[exp] = entry;
             }
         }
 
-        public static void WriteParameter(StringBuilder builder, VFXExpression exp, VFXUniformMapper uniformMapper, string paramName)
+        public void WriteParameter(VFXExpression exp, VFXUniformMapper uniformMapper, string paramName)
         {
             var variableNames = new Dictionary<VFXExpression, string>();
-            WriteVariable(builder, exp, variableNames, uniformMapper);
-            WriteVariable(builder, exp.ValueType, paramName, variableNames[exp]);
+            WriteVariable(exp, variableNames, uniformMapper);
+            WriteVariable(exp.ValueType, paramName, variableNames[exp]);
         }
+
+        public StringBuilder Builder { get { return m_Builder; } }
+
+        // Private stuff
+        private void Indent()
+        {
+            ++m_Indent;
+            Write('\t');
+        }
+
+        private void Deindent()
+        {
+            if (m_Indent == 0)
+                throw new InvalidOperationException("Cannot de-indent as current indentation is 0");
+
+            --m_Indent;
+            m_Builder.Remove(m_Builder.Length - 1, 1); // remove last \t
+        }
+
+        private void WriteIndent()
+        {
+            for (int i = 0; i < m_Indent; ++i)
+                m_Builder.Append('\t');
+        }
+
+        private static void WriteMultilineWithPrefix(StringBuilder builder, string linePrefix)
+        {
+            if (linePrefix.Length == 0)
+                return;
+
+            throw new NotImplementedException();
+        }
+
+        private StringBuilder m_Builder = new StringBuilder();
+        private int m_Indent = 0;
     }
 }
