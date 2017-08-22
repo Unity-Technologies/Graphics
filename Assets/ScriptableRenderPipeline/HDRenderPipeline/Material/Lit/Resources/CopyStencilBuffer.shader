@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../../../ShaderLibrary/Packing.hlsl"
+            #include "../../../../Core/ShaderLibrary/Packing.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #include "../../../Lighting/LightDefinition.cs.hlsl"
 

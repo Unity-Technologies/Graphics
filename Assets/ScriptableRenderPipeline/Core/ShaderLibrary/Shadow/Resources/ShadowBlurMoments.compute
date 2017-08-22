@@ -41,8 +41,8 @@
 #pragma kernel main_MSM_15			KERNEL_MAIN=main_MSM_15		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=1	BLUR_SIZE=15
 #pragma kernel main_MSM_17			KERNEL_MAIN=main_MSM_17		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=1	BLUR_SIZE=17
 
-#include "ShaderLibrary/common.hlsl"
-#include "ShaderLibrary/Shadow/ShadowMoments.hlsl"
+#include "Core/ShaderLibrary/common.hlsl"
+#include "Core/ShaderLibrary/Shadow/ShadowMoments.hlsl"
 
 #define BLUR_BORDER (BLUR_SIZE / 2)
 #define LDS_SIZE	(THREADS + BLUR_BORDER + BLUR_BORDER)
@@ -136,7 +136,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 	}
 	sumWeights = 1.0 / sumWeights;
 #endif
-	
+
 	// load moments into LDS
 	// each workgroup works on THREADS * THREADS tiles, but the blur filter requires
 	// us to fetch enough data around the border of the current tile.
@@ -180,7 +180,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 			avgMoments = DepthToMoments( reverse_z ? (1.0-depth) : depth );
 #endif
 			moments[ldsIdx.y][ldsIdx.x] = avgMoments;
-		
+
 			ldsIdx.x += threadsCnt.x;
 			srcIdx.x += threadsCnt.x;
 		}
@@ -219,7 +219,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 	if( ldsIdx.y < ldsSize.y )
 		moments[ldsIdx.y][ldsIdx.x] = hblurredMoment2;
 	GroupMemoryBarrierWithGroupSync();
-	
+
 
 	// second pass blurs vertically
 	ldsIdx = groupThreadId.xy + blurBorder.xx;
