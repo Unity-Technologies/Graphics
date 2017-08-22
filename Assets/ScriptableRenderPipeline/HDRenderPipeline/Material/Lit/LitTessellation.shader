@@ -187,9 +187,9 @@ Shader "HDRenderPipeline/LitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../ShaderLibrary/common.hlsl"
-    #include "../../../ShaderLibrary/Wind.hlsl"
-    #include "../../../ShaderLibrary/tessellation.hlsl"
+    #include "../../../Core/ShaderLibrary/common.hlsl"
+    #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "../../../Core/ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
