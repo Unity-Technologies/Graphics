@@ -105,79 +105,31 @@ namespace UnityEditor.VFX
             var expressionToName = new Dictionary<VFXExpression, string>();
 
             var attributesFromContext = context.GetData().GetAttributes().ToArray();
-            Func<VFXAttributeLocation, string, string> fnAttributeMarker = delegate(VFXAttributeLocation location, string name)
-                {
-                    return string.Format("${{Attribute_{0}_{1}}}", location == VFXAttributeLocation.Current ? "Current" : "Source", name);
-                };
-
-            Func<VFXAttributeLocation, VFXAttributeInfo[]> fnCollectAttributeFromTemplate = delegate(VFXAttributeLocation location)
-                {
-                    return VFXAttribute.AllAttribute.Where(o =>
-                    {
-                        var attributeMarker = fnAttributeMarker(location, o.name);
-                        return templateContent.ToString().Contains(attributeMarker);
-                    }).Select(o => new VFXAttributeInfo(o, VFXAttributeMode.Read)).ToArray();
-                };
-            var implicitAttributeSource = fnCollectAttributeFromTemplate(VFXAttributeLocation.Source);
-            var implicitAttributeCurrent = fnCollectAttributeFromTemplate(VFXAttributeLocation.Current);
-
-            //< helper to merge attributesFromContext & attributeFromTemplate
-            Func<VFXAttributeInfo[], VFXAttributeInfo[], VFXAttributeInfo[]> fnMergeAttributeInfo = delegate(VFXAttributeInfo[] left, VFXAttributeInfo[] right)
-                {
-                    var res = new List<VFXAttributeInfo>();
-                    foreach (var current in left.Concat(right))
-                    {
-                        int i = res.FindIndex(o => current.attrib.name == o.attrib.name && current.attrib.location == o.attrib.location);
-                        if (i != -1)
-                        {
-                            VFXAttributeInfo copy = current;
-                            copy.mode |= res[i].mode;
-                            res[i] = copy;
-                        }
-                        else
-                        {
-                            res.Add(current);
-                        }
-                    }
-                    return res.ToArray();
-                };
-
-            var attributes = fnMergeAttributeInfo(attributesFromContext, implicitAttributeSource.Concat(implicitAttributeCurrent).ToArray());
-            var attributesSource = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Source).ToArray();
-            var attributesCurrent = attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
-
-            //< Attribute source
-            foreach (var attribute in attributesSource.Select(o => o.attrib))
-            {
-                VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, "0", "Temp, should extract parameters from attribute buffer here");
-                expressionToName.Add(new VFXAttributeExpression(attribute), attribute.name);
-            }
-
-            //< Attribute current which except a default source
-            foreach (var attribute in attributesCurrent.Where(c => !attributesSource.Any(s => s.attrib.name == c.attrib.name)).Select(o => o.attrib))
-            {
-                if (!attribute.value.Is(VFXExpression.Flags.Constant))
-                {
-                    throw new Exception(string.Format("Attribute expects constant default value"));
-                }
-
-                VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, attribute.name);
-                expressionToName.Add(new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Source)), attribute.name);
-            }
+            var attributesSource = attributesFromContext.Where(o => o.attrib.location == VFXAttributeLocation.Source).ToArray();
+            var attributesCurrent = attributesFromContext.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
 
             //< Current Attribute
-            foreach (var attribute in attributes.Where(o => o.attrib.location == VFXAttributeLocation.Current).Select(o => o.attrib))
+            foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
-                var name = string.Format("current_{0}_{1}", attribute.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)expressionToName.Count));
+                var name = attribute.name;
+                VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, name);
                 expressionToName.Add(new VFXAttributeExpression(attribute), name);
-                VFXShaderWriter.WriteVariable(parameters, attribute.type, name, attribute.name);
             }
 
-            //< Replace parameters in template code
-            foreach (var implicitAttribute in implicitAttributeCurrent.Concat(implicitAttributeSource).Select(o => o.attrib))
+            //< Source Attribute
+            foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
-                var attributeMarker = fnAttributeMarker(implicitAttribute.location, implicitAttribute.name);
-                templateContent.Replace(attributeMarker, expressionToName[new VFXAttributeExpression(implicitAttribute)]);
+                var name = string.Format("{0}_source", attribute.name);
+                var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Current));
+                if (!expressionToName.ContainsKey(reference))
+                {
+                    VFXShaderWriter.WriteParameter(parameters, attribute.value, uniformMapper, name);
+                }
+                else
+                {
+                    VFXShaderWriter.WriteVariable(parameters, attribute.type, name, expressionToName[reference]);
+                }
+                expressionToName.Add(new VFXAttributeExpression(attribute), name);
             }
 
             //< Block processor

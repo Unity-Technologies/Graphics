@@ -459,7 +459,7 @@ namespace UnityEditor.VFX
                         vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
                     }
 
-                    var compilMode = new[] { VFXCodeGenerator.CompilationMode.Debug, VFXCodeGenerator.CompilationMode.Runtime };
+                    var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
                     var generatedList = new List<GeneratedCodeData>();
                     foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                     {
