@@ -231,6 +231,7 @@ namespace UnityEditor.VFX
         public virtual string GetLoadAttributeCode(VFXAttribute attrib)                 { throw new NotImplementedException(); }
         public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
 
+        private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");

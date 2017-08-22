@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                if (context.GetData().IsAttributeStored(attribute))
+                if (context.GetData().IsAttributeStored(attribute) && context.contextType != VFXContextType.kInit)
                 {
                     VFXShaderWriter.WriteVariable(parameters, attribute.type, attribute.name, context.GetData().GetLoadAttributeCode(attribute));
                 }

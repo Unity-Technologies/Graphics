@@ -3,9 +3,12 @@ ${VFXGlobalInclude}
 ${VFXCBuffer}
 ${VFXGeneratedBlockFunction}
 
+RWByteAddressBuffer attributeBuffer;
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
+	uint index = id.x;
 	${VFXComputeParameters}
 	${VFXProcessBlock}
 }
