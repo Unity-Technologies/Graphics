@@ -94,12 +94,12 @@
 
 VFXBlockUI
 {
-	flex:direction:row;
+	flex-direction:row;
 }
 
 VFXBlockUI .mainContainer
 {
-	flex:direction:row;
+	flex-direction:row;
 	flex:1;
 }
 VFXBlockUI .mainContainer #left
