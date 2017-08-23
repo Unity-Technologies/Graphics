@@ -42,5 +42,49 @@ namespace UnityEditor.VFX.Test
             length.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
             graph.RecompileIfNeeded();
         }
+
+        void GraphWithImplicitBehavior_Internal(VFXBlock[] initBlocks)
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputContext = ScriptableObject.CreateInstance<VFXBasicOutput>();
+
+            graph.AddChild(spawnerContext);
+            graph.AddChild(initContext);
+            graph.AddChild(updateContext);
+            graph.AddChild(outputContext);
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(updateContext);
+            updateContext.LinkTo(outputContext);
+
+            foreach (var initBlock in initBlocks)
+            {
+                graph.AddChild(initBlock);
+                initContext.AddChild(initBlock);
+            }
+
+            graph.vfxAsset = new VFXAsset();
+            graph.RecompileIfNeeded();
+        }
+
+        [Test]
+        public void GraphWithImplicitBehavior()
+        {
+            var testCasesGraphWithImplicitBehavior = new[]
+            {
+                new[] { ScriptableObject.CreateInstance<VFXSetLifetime>() },
+                new[] { ScriptableObject.CreateInstance<VFXSetVelocity>() },
+                new[] { ScriptableObject.CreateInstance<VFXSetLifetime>() as VFXBlock, ScriptableObject.CreateInstance<VFXSetVelocity>() as VFXBlock },
+                new VFXBlock[] {},
+            };
+
+            foreach (var currentTest in testCasesGraphWithImplicitBehavior)
+            {
+                GraphWithImplicitBehavior_Internal(currentTest);
+            }
+        }
     }
 }
