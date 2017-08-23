@@ -9,6 +9,7 @@ RWByteAddressBuffer attributeBuffer;
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	uint index = id.x;
-	${VFXComputeParameters}
-	${VFXProcessBlock}
+	${VFXLoadAttributes}
+	${VFXProcessBlocks}
+	${VFXStoreAttributes}
 }

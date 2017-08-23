@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
             if (!m_StoredAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{1}({2},asuint({3}))", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value);
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
         }
 
         // return size

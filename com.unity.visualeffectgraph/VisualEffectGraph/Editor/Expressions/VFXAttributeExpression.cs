@@ -174,7 +174,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return attributeName;
+            return attributeLocation == VFXAttributeLocation.Current ? attributeName : attributeName + "_source";
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()

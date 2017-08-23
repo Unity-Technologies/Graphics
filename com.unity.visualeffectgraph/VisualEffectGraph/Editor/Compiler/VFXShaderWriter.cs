@@ -151,14 +151,13 @@ namespace UnityEditor.VFX
             builder.AppendFormat(format, VFXExpression.TypeToCode(type), variableName, value);
         }
 
-        public static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value, string comment = null)
+        public static void WriteVariable(StringBuilder builder, VFXValueType type, string variableName, string value)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
             builder.AppendFormat("{0} ", VFXExpression.TypeToCode(type));
             WriteAssignement(builder, type, variableName, value);
-            builder.AppendFormat(comment == null ? "" : "//" + comment);
             builder.AppendLine();
         }
 
