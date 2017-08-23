@@ -91,7 +91,8 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
-                cause == InvalidationCause.kExpressionInvalidated)
+                cause == InvalidationCause.kExpressionInvalidated ||
+                cause == InvalidationCause.kSettingChanged)
             {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
