@@ -1,7 +1,6 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
-
-${VFXCBuffer}
+${VFXGlobalDeclaration}
 ${VFXGeneratedBlockFunction}
 
 AppendStructuredBuffer<uint> deadListOut;

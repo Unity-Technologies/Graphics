@@ -150,9 +150,9 @@ namespace UnityEditor.VFX
             var templateContent = new StringBuilder(System.IO.File.ReadAllText(templatePath));
 
             var uniformMapper = new VFXUniformMapper(gpuMapper);
-            var cbuffer = new VFXShaderWriter();
-            cbuffer.WriteCBuffer(uniformMapper, "parameters");
-            cbuffer.WriteTexture(uniformMapper);
+            var globalDeclaration = new VFXShaderWriter();
+            globalDeclaration.WriteCBuffer(uniformMapper, "parameters");
+            globalDeclaration.WriteTexture(uniformMapper);
 
             var parameters = new VFXShaderWriter();
             //< Block processor
@@ -229,7 +229,7 @@ namespace UnityEditor.VFX
             stringBuilder.Append(templateContent);
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
-            ReplaceMultiline(stringBuilder, "${VFXCBuffer}", cbuffer.builder);
+            ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 

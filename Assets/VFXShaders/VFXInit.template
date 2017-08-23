@@ -1,6 +1,6 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
-${VFXCBuffer}
+${VFXGlobalDeclaration}
 ${VFXGeneratedBlockFunction}
 
 RWByteAddressBuffer attributeBuffer;
