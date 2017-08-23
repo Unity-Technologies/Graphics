@@ -33,16 +33,13 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         int m_Version;
 
+        [SerializeField]
+        bool m_RequiresTime;
+
         public bool requiresTime
         {
-            get
-            {
-                using (var childrenNodes = ListPool<INode>.GetDisposable())
-                {
-                    NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes.value, node);
-                    return childrenNodes.value.OfType<IRequiresTime>().Any();
-                }
-            }
+            get { return m_RequiresTime; }
+            set { m_RequiresTime = value; }
         }
 
         public override bool expanded

@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -12,6 +13,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
+        HashSet<INode> m_TimeDependentNodes = new HashSet<INode>();
+
         protected GraphTypeMapper typeMapper { get; set; }
 
         public IGraphAsset graphAsset { get; private set; }
@@ -118,40 +121,42 @@ namespace UnityEditor.MaterialGraph.Drawing
         void UpdateData()
         {
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
-            var deletedElements = m_Elements
+            var deletedElementPresenters = m_Elements
                 .OfType<MaterialNodePresenter>()
                 .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
                 .OfType<GraphElementPresenter>()
                 .ToList();
 
-            var deletedEdges = m_Elements.OfType<GraphEdgePresenter>()
+            var deletedEdgePresenters = m_Elements.OfType<GraphEdgePresenter>()
                 .Where(ed => !graphAsset.graph.edges.Contains(ed.edge));
 
             // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
-            foreach (var edgeData in deletedEdges)
+            foreach (var edgePresenter in deletedEdgePresenters)
             {
                 // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
-                edgeData.output.Disconnect(edgeData);
-                edgeData.input.Disconnect(edgeData);
+                edgePresenter.output.Disconnect(edgePresenter);
+                edgePresenter.input.Disconnect(edgePresenter);
 
-                var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
-                var toNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
-                if (toNode != null)
-                {
+                var fromNodeGuid = edgePresenter.edge.outputSlot.nodeGuid;
+                var fromNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == fromNodeGuid);
+
+                var toNodeGuid = edgePresenter.edge.inputSlot.nodeGuid;
+                var toNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+
+                if (toNodePresenter != null)
                     // Make the input node (i.e. right side of the connection) re-render
-                    OnNodeChanged(toNode.node, ModificationScope.Graph);
-                }
+                    OnNodeChanged(toNodePresenter.node, ModificationScope.Graph);
 
-                deletedElements.Add(edgeData);
+                deletedElementPresenters.Add(edgePresenter);
             }
 
             // Remove all nodes and edges marked for deletion
-            foreach (var deletedElement in deletedElements)
+            foreach (var elementPresenter in deletedElementPresenters)
             {
-                m_Elements.Remove(deletedElement);
+                m_Elements.Remove(elementPresenter);
             }
 
-            var addedNodes = new List<MaterialNodePresenter>();
+            var addedNodePresenters = new List<MaterialNodePresenter>();
 
             // Find all new nodes and mark for addition
             foreach (var node in graphAsset.graph.GetNodes<INode>())
@@ -160,77 +165,111 @@ namespace UnityEditor.MaterialGraph.Drawing
                 if (m_Elements.OfType<MaterialNodePresenter>().Any(e => e.node == node))
                     continue;
 
-                var nodeData = (MaterialNodePresenter)typeMapper.Create(node);
-
+                var nodePresenter = (MaterialNodePresenter)typeMapper.Create(node);
                 node.onModified += OnNodeChanged;
-
-                nodeData.Initialize(node);
-                addedNodes.Add(nodeData);
+                nodePresenter.Initialize(node);
+                addedNodePresenters.Add(nodePresenter);
             }
 
             // Create edge data for nodes marked for addition
-            var drawableEdges = new List<GraphEdgePresenter>();
-            foreach (var addedNode in addedNodes)
+            var edgePresenters = new List<GraphEdgePresenter>();
+            foreach (var addedNodePresenter in addedNodePresenters)
             {
-                var baseNode = addedNode.node;
-                foreach (var slot in baseNode.GetOutputSlots<ISlot>())
+                var addedNode = addedNodePresenter.node;
+                foreach (var slot in addedNode.GetOutputSlots<ISlot>())
                 {
-                    var sourceAnchors = addedNode.outputAnchors.OfType<GraphAnchorPresenter>();
+                    var sourceAnchors = addedNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == slot);
 
-                    var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.id));
+                    var edges = addedNode.owner.GetEdges(new SlotReference(addedNode.guid, slot.id));
                     foreach (var edge in edges)
                     {
-                        var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var toNode = addedNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                        var targetNode = addedNodes.FirstOrDefault(x => x.node == toNode);
+                        var targetNode = addedNodePresenters.FirstOrDefault(x => x.node == toNode);
                         var targetAnchors = targetNode.inputAnchors.OfType<GraphAnchorPresenter>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
-                        var edgeData = CreateInstance<GraphEdgePresenter>();
-                        edgeData.Initialize(edge);
-                        edgeData.output = sourceAnchor;
-                        edgeData.output.Connect(edgeData);
-                        edgeData.input = targetAnchor;
-                        edgeData.input.Connect(edgeData);
-                        drawableEdges.Add(edgeData);
+                        var edgePresenter = CreateInstance<GraphEdgePresenter>();
+                        edgePresenter.Initialize(edge);
+                        edgePresenter.output = sourceAnchor;
+                        edgePresenter.output.Connect(edgePresenter);
+                        edgePresenter.input = targetAnchor;
+                        edgePresenter.input.Connect(edgePresenter);
+                        edgePresenters.Add(edgePresenter);
                     }
                 }
             }
 
             // Add nodes marked for addition
-            m_Elements.AddRange(addedNodes.OfType<GraphElementPresenter>());
+            m_Elements.AddRange(addedNodePresenters.OfType<GraphElementPresenter>());
 
             // Find edges in the graph that are not being drawn and create edge data for them
             foreach (var edge in graphAsset.graph.edges)
             {
-                if (!m_Elements.OfType<GraphEdgePresenter>().Any(ed => ed.edge == edge))
+                if (m_Elements.OfType<GraphEdgePresenter>().Any(ed => ed.edge == edge))
+                    continue;
+
+                var sourceNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
+                var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
+                var sourceAnchorPresenters = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>();
+                var sourceAnchorPresenter = sourceAnchorPresenters.FirstOrDefault(x => x.slot == sourceSlot);
+
+                var targetNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
+                var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
+                var targetAnchors = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>();
+                var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == targetSlot);
+
+                OnNodeChanged(targetNodePresenter.node, ModificationScope.Graph);
+
+                var edgePresenter = CreateInstance<GraphEdgePresenter>();
+                edgePresenter.Initialize(edge);
+                edgePresenter.output = sourceAnchorPresenter;
+                edgePresenter.output.Connect(edgePresenter);
+                edgePresenter.input = targetAnchor;
+                edgePresenter.input.Connect(edgePresenter);
+                edgePresenters.Add(edgePresenter);
+            }
+
+            m_Elements.AddRange(edgePresenters.OfType<GraphElementPresenter>());
+
+
+            // Calculate which nodes require updates each frame (i.e. are time-dependent).
+
+            // Let the node set contain all the nodes that are directly time-dependent.
+            m_TimeDependentNodes.Clear();
+            foreach (var node in graphAsset.graph.GetNodes<INode>().Where(x => x is IRequiresTime))
+                m_TimeDependentNodes.Add(node);
+
+            // The wavefront contains time-dependent nodes from which we wish to propagate time-dependency into the
+            // nodes that it feeds into.
+            var wavefront = new Stack<INode>(m_TimeDependentNodes);
+            while (wavefront.Count > 0)
+            {
+                var node = wavefront.Pop();
+                // Loop through all nodes that the node feeds into.
+                foreach (var slot in node.GetOutputSlots<ISlot>())
                 {
-                    var fromNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    var fromSlot = fromNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-                    var sourceNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == fromNode);
-                    var sourceAnchors = sourceNode.outputAnchors.OfType<GraphAnchorPresenter>();
-                    var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == fromSlot);
+                    foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        if (!m_TimeDependentNodes.Contains(inputNode))
+                        {
+                            // If the node is not in the set of time-dependent nodes, add it.
+                            m_TimeDependentNodes.Add(inputNode);
 
-                    var toNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                    var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                    var targetNode = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == toNode);
-                    var targetAnchors = targetNode.inputAnchors.OfType<GraphAnchorPresenter>();
-                    var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-
-                    OnNodeChanged(targetNode.node, ModificationScope.Graph);
-
-                    var edgeData = CreateInstance<GraphEdgePresenter>();
-                    edgeData.Initialize(edge);
-                    edgeData.output = sourceAnchor;
-                    edgeData.output.Connect(edgeData);
-                    edgeData.input = targetAnchor;
-                    edgeData.input.Connect(edgeData);
-                    drawableEdges.Add(edgeData);
+                            // Also add it to the wavefront, such that we can process the nodes that it feeds into.
+                            wavefront.Push(inputNode);
+                        }
+                    }
                 }
             }
 
-            m_Elements.AddRange(drawableEdges.OfType<GraphElementPresenter>());
+            // Update presenters `requiresTime` based on the hash set values.
+            foreach (var nodePresenter in m_Elements.OfType<MaterialNodePresenter>())
+                nodePresenter.requiresTime = m_TimeDependentNodes.Contains(nodePresenter.node);
         }
 
         public virtual void Initialize(IGraphAsset graphAsset, MaterialGraphEditWindow container)
