@@ -47,7 +47,9 @@ namespace UnityEditor.VFX.UI
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
-            m_Label.tooltip = tooltip;
+
+            TooltipExtension.AddTooltip(m_Label, tooltip);
+            //m_Label.AddTooltip(tooltip);
         }
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
@@ -89,7 +91,8 @@ namespace UnityEditor.VFX.UI
             string labelText = provider.name;
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
-            m_Label = new VisualElement() { name = "label", text = labelText , tooltip = labelTooltip };
+            m_Label = new VisualElement() { name = "label", text = labelText };
+            m_Label.AddTooltip(labelTooltip);
 
             if (provider.depth != 0)
             {
