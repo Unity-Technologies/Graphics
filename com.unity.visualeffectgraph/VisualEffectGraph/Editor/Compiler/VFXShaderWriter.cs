@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
             WriteVariable(exp.ValueType, paramName, variableNames[exp]);
         }
 
-        public StringBuilder Builder { get { return m_Builder; } }
+        public StringBuilder builder { get { return m_Builder; } }
 
         // Private stuff
         private void Indent()

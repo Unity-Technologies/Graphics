@@ -228,16 +228,16 @@ namespace UnityEditor.VFX
 
             stringBuilder.Append(templateContent);
 
-            ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.Builder);
-            ReplaceMultiline(stringBuilder, "${VFXCBuffer}", cbuffer.Builder);
-            ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.Builder);
-            ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.Builder);
+            ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
+            ReplaceMultiline(stringBuilder, "${VFXCBuffer}", cbuffer.builder);
+            ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
+            ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
             {
                 var loadAttribute = GenerateLoadAttribute(".*", context);
-                ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttribute.Builder);
+                ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttribute.builder);
             }
 
             var loadAttributeRegex = new Regex("\\${VFXLoadAttributes:{(.*?)}}");
@@ -247,7 +247,7 @@ namespace UnityEditor.VFX
                 var match = current.Groups[0].Value;
                 var pattern = current.Groups[1].Value;
                 var loadAttribute = GenerateLoadAttribute(pattern, context);
-                ReplaceMultiline(stringBuilder, match, loadAttribute.Builder);
+                ReplaceMultiline(stringBuilder, match, loadAttribute.builder);
             }
 
             //< Store Attribute
