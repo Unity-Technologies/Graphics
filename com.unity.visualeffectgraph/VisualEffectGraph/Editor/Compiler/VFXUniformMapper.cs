@@ -26,8 +26,13 @@ namespace UnityEditor.VFX
 
                 if (VFXExpression.IsUniform(exp.ValueType))
                 {
-                    prefix = "uniform_" + (exp.Is(VFXExpression.Flags.Constant) ? "CONSTANT_" : "");
-                    expressions = m_UniformToName;
+                    if (!exp.Is(VFXExpression.Flags.Constant)) // Filter out constant uniform that should be patched directly in shader
+                    {
+                        prefix = "uniform_";
+                        expressions = m_UniformToName;
+                    }
+                    else
+                        return;
                 }
                 else if (VFXExpression.IsTexture(exp.ValueType))
                 {
