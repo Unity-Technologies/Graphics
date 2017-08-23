@@ -32,11 +32,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        static private string GenerateLocalAttributeName(string name)
+        {
+            return name[0].ToString().ToUpper() + name.Substring(1);
+        }
+
         public override string source
         {
             get
             {
-                return string.Format("{0} = i{0};", currentAttribute.name);
+                var attribute = currentAttribute;
+                return string.Format("{0} = {1};", attribute.name, GenerateLocalAttributeName(attribute.name));
             }
         }
 
@@ -67,7 +73,7 @@ namespace UnityEditor.VFX
         {
             var attribute = currentAttribute;
             var expression = new VFXAttributeExpression(attribute);
-            AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "i" + attribute.name), VFXSlot.Direction.kInput));
+            AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), GenerateLocalAttributeName(attribute.name)), VFXSlot.Direction.kInput));
             if (inputSlots.Count == 2)
             {
                 CopyLink(inputSlots[0], inputSlots[1]);

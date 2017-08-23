@@ -14,7 +14,8 @@ namespace UnityEditor.VFX.Test
         {
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var blockSetVelocity = ScriptableObject.CreateInstance<VFXSetVelocity>();
+            var blockSetVelocity = ScriptableObject.CreateInstance<VFXSetAttribute>();
+            blockSetVelocity.SetSettingValue("attribute", "velocity");
 
             var attributeParameter = ScriptableObject.CreateInstance<VFXCurrentAttributeParameter>();
             attributeParameter.SetSettingValue("attribute", "color");
@@ -75,12 +76,16 @@ namespace UnityEditor.VFX.Test
         {
             var testCasesGraphWithImplicitBehavior = new[]
             {
-                new[] { ScriptableObject.CreateInstance<VFXSetLifetime>() },
-                new[] { ScriptableObject.CreateInstance<VFXSetVelocity>() },
-                new[] { ScriptableObject.CreateInstance<VFXSetLifetime>() as VFXBlock, ScriptableObject.CreateInstance<VFXSetVelocity>() as VFXBlock },
+                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() },
+                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() },
+                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() as VFXBlock, ScriptableObject.CreateInstance<VFXSetAttribute>() as VFXBlock },
                 new VFXBlock[] {},
             };
 
+            testCasesGraphWithImplicitBehavior[0][0].SetSettingValue("attribute", "velocity");
+            testCasesGraphWithImplicitBehavior[1][0].SetSettingValue("attribute", "lifetime");
+            testCasesGraphWithImplicitBehavior[2][0].SetSettingValue("attribute", "velocity");
+            testCasesGraphWithImplicitBehavior[2][1].SetSettingValue("attribute", "lifetime");
             foreach (var currentTest in testCasesGraphWithImplicitBehavior)
             {
                 GraphWithImplicitBehavior_Internal(currentTest);
