@@ -9,26 +9,26 @@ RWByteAddressBuffer attributeBuffer;
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 {
-	uint index = id.x;
+    uint index = id.x;
 #if VFX_USE_ALIVE_CURRENT
-	${VFXLoadAttributes:{alive}}
-	if (alive)
-	{
-		${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-		${VFXProcessBlocks}
-		if (!alive)
-		{
-			deadListOut.Append(index);
-			${VFXStoreAttributes:{alive}}
-		}
-		else
-		{
-			${VFXStoreAttributes:{(?!(alive))(\b\w)}}
-		}
-	}
+    ${VFXLoadAttributes:{alive}}
+    if (alive)
+    {
+        ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+        ${VFXProcessBlocks}
+        if (!alive)
+        {
+            ${VFXStoreAttributes:{(?!(alive))(\b\w)}}
+        }
+        else
+        {
+            deadListOut.Append(index);
+            ${VFXStoreAttributes:{alive}}
+        }
+    }
 #else
-	${VFXLoadAttributes}
-	${VFXProcessBlocks}
-	${VFXStoreAttributes}
+    ${VFXLoadAttributes}
+    ${VFXProcessBlocks}
+    ${VFXStoreAttributes}
 #endif
 }

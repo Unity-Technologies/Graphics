@@ -5,8 +5,8 @@ ${VFXGlobalDeclaration}
 RWByteAddressBuffer attributeBuffer;
 
 CBUFFER_START(initParams)
-	uint nbSpawned;		// Numbers of particle spawned
-	uint spawnIndex;	// Index of the first particle spawned
+    uint nbSpawned;		// Numbers of particle spawned
+    uint spawnIndex;	// Index of the first particle spawned
 CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT 
@@ -20,21 +20,21 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 #if VFX_USE_ALIVE_CURRENT
-	if (id.x < min(nbSpawned,deadListCount[0]))
-	{
-		${VFXLoadAttributes}
-		${VFXProcessBlocks}	
+    if (id.x < min(nbSpawned,deadListCount[0]))
+    {
+        ${VFXLoadAttributes}
+        ${VFXProcessBlocks}	
 
-		if (alive)
-		{	
-			uint index = deadListIn.Consume();
-			${VFXStoreAttributes}
-		}		
-	}
+        if (alive)
+        {	
+            uint index = deadListIn.Consume();
+            ${VFXStoreAttributes}
+        }		
+    }
 #else
-	uint index = id.x + spawnIndex;
-	${VFXLoadAttributes}
-	${VFXProcessBlocks}	
-	${VFXStoreAttributes}
+    uint index = id.x + spawnIndex;
+    ${VFXLoadAttributes}
+    ${VFXProcessBlocks}	
+    ${VFXStoreAttributes}
 #endif
 }

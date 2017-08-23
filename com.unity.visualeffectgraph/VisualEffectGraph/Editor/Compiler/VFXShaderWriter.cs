@@ -25,6 +25,48 @@ namespace UnityEditor.VFX
 
     class VFXShaderWriter
     {
+        public static string GetValueString(VFXValueType type, object value)
+        {
+            var format = "";
+            switch (type)
+            {
+                case VFXValueType.kBool:
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                case VFXValueType.kFloat:
+                    format = "({0}){1}";
+                    break;
+                case VFXValueType.kFloat2:
+                case VFXValueType.kFloat3:
+                case VFXValueType.kFloat4:
+                    format = "{0}{1}";
+                    break;
+                default: throw new Exception("GetValueString missing type: " + type);
+            }
+            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString().ToLower());
+        }
+
+        public static string GetMultilineWithPrefix(string str, string linePrefix)
+        {
+            if (linePrefix.Length == 0)
+                return str;
+
+            if (str.Length == 0)
+                return linePrefix;
+
+            string[] delim = { System.Environment.NewLine, "\n" };
+            var lines = str.Split(delim, System.StringSplitOptions.None);
+            var dst = new StringBuilder(linePrefix.Length * lines.Length + str.Length);
+
+            foreach (var line in lines)
+            {
+                dst.Append(linePrefix);
+                dst.AppendLine(line);
+            }
+
+            return dst.ToString(0, dst.Length - Environment.NewLine.Length); // Remove the last line terminator
+        }
+
         public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
         public void WriteFormat(string str, object arg0, object arg1)                   { m_Builder.AppendFormat(str, arg0, arg1); }
         public void WriteFormat(string str, object arg0, object arg1, object arg2)      { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
@@ -75,14 +117,37 @@ namespace UnityEditor.VFX
             WriteLine("};");
         }
 
-        public void WriteWithIndent<T>(T str)
+        public void ReplaceMultilineWithIndent(string tag, string src)
+        {
+            var str = m_Builder.ToString();
+            int startIndex = 0;
+            while (true)
+            {
+                int index = str.IndexOf(tag, startIndex);
+                if (index == -1)
+                    break;
+
+                var lastPrefixIndex = index;
+                while (index > 0 && (str[index] == ' ' || str[index] == '\t'))
+                    --index;
+
+                var prefix = str.Substring(index, lastPrefixIndex - index);
+                var formattedStr = GetMultilineWithPrefix(src, prefix).Substring(prefix.Length);
+                m_Builder.Replace(tag, formattedStr, lastPrefixIndex, tag.Length);
+
+                startIndex = index;
+            }
+        }
+
+        public void WriteMultilineWithIndent<T>(T str)
         {
             if (m_Indent == 0)
                 Write(str);
             else
             {
-                var indentStr = new StringBuilder(m_Indent);
-                indentStr.Append('\t', m_Indent);
+                var indentStr = new StringBuilder(m_Indent * kIndentStr.Length);
+                for (int i = 0; i < m_Indent; ++i)
+                    indentStr.Append(kIndentStr);
                 WriteMultilineWithPrefix(str, indentStr.ToString());
             }
         }
@@ -93,9 +158,8 @@ namespace UnityEditor.VFX
                 Write(str);
             else
             {
-                var builder = new StringBuilder(str.ToString());
-                WriteMultilineWithPrefix(builder, linePrefix);
-                Write(builder.ToString());
+                var res = GetMultilineWithPrefix(str.ToString(), linePrefix);
+                WriteLine(res.Substring(linePrefix.Length)); // Remove first line length;
             }
         }
 
@@ -110,28 +174,6 @@ namespace UnityEditor.VFX
             if (padding != 0)
                 WriteLineFormat("uint{0} PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
             return padding;
-        }
-
-        // TODO Change that
-        public static string WriteConstructValue(VFXValueType type, object value)
-        {
-            var format = "";
-            switch (type)
-            {
-                case VFXValueType.kBool:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kFloat:
-                    format = "({0}){1}";
-                    break;
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                    format = "{0}{1}";
-                    break;
-                default: throw new Exception("WriteConstructValue missing type: " + type);
-            }
-            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString().ToLower());
         }
 
         public void WriteTexture(VFXUniformMapper mapper)
@@ -201,7 +243,7 @@ namespace UnityEditor.VFX
             WriteLineFormat("void {0}({1})", functionName, AggregateParameters(parameters));
             EnterScope();
             if (source != null)
-                WriteLine(source);
+                WriteMultilineWithIndent(source);
             ExitScope();
         }
 
@@ -264,7 +306,7 @@ namespace UnityEditor.VFX
         private void Indent()
         {
             ++m_Indent;
-            Write('\t');
+            Write(kIndentStr);
         }
 
         private void Deindent()
@@ -273,24 +315,17 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot de-indent as current indentation is 0");
 
             --m_Indent;
-            m_Builder.Remove(m_Builder.Length - 1, 1); // remove last \t
+            m_Builder.Remove(m_Builder.Length - kIndentStr.Length, kIndentStr.Length); // remove last indent
         }
 
         private void WriteIndent()
         {
             for (int i = 0; i < m_Indent; ++i)
-                m_Builder.Append('\t');
-        }
-
-        private static void WriteMultilineWithPrefix(StringBuilder builder, string linePrefix)
-        {
-            if (linePrefix.Length == 0)
-                return;
-
-            throw new NotImplementedException();
+                m_Builder.Append(kIndentStr);
         }
 
         private StringBuilder m_Builder = new StringBuilder();
         private int m_Indent = 0;
+        private const string kIndentStr = "    ";
     }
 }

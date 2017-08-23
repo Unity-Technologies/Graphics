@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
                 throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", ValueType));
 
-            return VFXShaderWriter.WriteConstructValue(ValueType, GetContent());
+            return VFXShaderWriter.GetValueString(ValueType, GetContent());
         }
 
         public override void FillOperands(int[] data, VFXExpressionGraph graph)
