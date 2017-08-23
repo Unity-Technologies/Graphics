@@ -1,5 +1,4 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
-// Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
 Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
@@ -57,7 +56,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
         Pass
         {
-            Name "LD_SINGLE_PASS_FORWARD"
             Tags { "LightMode" = "LightweightForward" }
 
             // Use same blending / depth states as Standard shader
@@ -220,7 +218,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
         Pass
         {
-            Name "LD_SHADOW_CASTER"
             Tags { "Lightmode" = "ShadowCaster" }
 
             ZWrite On ZTest LEqual
@@ -253,7 +250,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
-            Name "LD_META"
             Tags{ "LightMode" = "Meta" }
 
             Cull Off
