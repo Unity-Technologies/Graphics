@@ -119,47 +119,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionATan2 : VFXExpression
-    {
-        public VFXExpressionATan2() : this(new VFXExpression[] { VFXValue<float>.Default, VFXValue<float>.Default }
-                                           )
-        {
-        }
-
-        public VFXExpressionATan2(VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
-        {
-        }
-
-        public override VFXExpressionOp Operation
-        {
-            get
-            {
-                return VFXExpressionOp.kVFXATan2Op;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
-            }
-        }
-
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            var xReduce = constParents[0];
-            var yReduce = constParents[1];
-
-            return VFXValue.Constant<float>((float)Math.Atan2(yReduce.Get<float>(), xReduce.Get<float>()));
-        }
-
-        public override string GetCodeString(string[] parents)
-        {
-            return string.Format("atan2({1}, {0})", parents[0], parents[1]);
-        }
-    }
-
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
@@ -361,6 +320,27 @@ namespace UnityEditor.VFX
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("pow({0}, {1})", left, right);
+        }
+    }
+
+    class VFXExpressionATan2 : VFXExpressionBinaryFloatOperation
+    {
+        public VFXExpressionATan2() : this(VFXValue<float>.Default, VFXValue<float>.Default)
+        {
+        }
+
+        public VFXExpressionATan2(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXATan2Op)
+        {
+        }
+
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return Mathf.Atan2(left, right);
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("atan2({0}, {1})", left, right);
         }
     }
 
