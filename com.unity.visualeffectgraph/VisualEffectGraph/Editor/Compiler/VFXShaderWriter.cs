@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{0} /*{1}{2}*/", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", parameter));
+                parameters.Add(string.Format("{1}{0}", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "/*inout*/" : ""));
             }
 
             WriteLineFormat("{0}({1});", functionName, AggregateParameters(parameters));
@@ -234,36 +234,28 @@ namespace UnityEditor.VFX
             WriteAssignement(type, variableName, value);
         }
 
-        public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames, VFXUniformMapper uniformMapper)
+        public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)
         {
             if (!variableNames.ContainsKey(exp))
             {
                 string entry;
                 if (exp.Is(VFXExpression.Flags.Constant))
                     entry = exp.GetCodeString(null); // Patch constant directly
-                else if (uniformMapper.Contains(exp))
-                    entry = uniformMapper.GetName(exp);
                 else
                 {
                     foreach (var parent in exp.Parents)
-                        WriteVariable(parent, variableNames, uniformMapper);
+                        WriteVariable(parent, variableNames);
 
                     // Generate a new variable name
                     entry = "tmp_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)variableNames.Count());
                     string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
 
                     WriteVariable(exp.ValueType, entry, value);
+                    WriteLine();
                 }
 
                 variableNames[exp] = entry;
             }
-        }
-
-        public void WriteParameter(VFXExpression exp, VFXUniformMapper uniformMapper, string paramName)
-        {
-            var variableNames = new Dictionary<VFXExpression, string>();
-            WriteVariable(exp, variableNames, uniformMapper);
-            WriteVariable(exp.ValueType, paramName, variableNames[exp]);
         }
 
         public StringBuilder builder { get { return m_Builder; } }

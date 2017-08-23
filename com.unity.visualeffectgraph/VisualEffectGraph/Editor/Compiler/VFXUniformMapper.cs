@@ -66,11 +66,15 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
 
-        public int numUniforms { get { return m_UniformToName.Count(); } }
-        public int numTextures { get { return m_TextureToName.Count(); } }
-
         public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
-        public bool Contains(VFXExpression exp)     { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName.ContainsKey(exp) : m_UniformToName.ContainsKey(exp); }
+
+        public Dictionary<VFXExpression, string> expressionToName
+        {
+            get
+            {
+                return m_UniformToName.Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
+            }
+        }
 
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;

@@ -82,6 +82,7 @@ namespace UnityEditor.VFX
                 {
                     r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
+                r.WriteLine();
             }
 
             //< Source Attribute
@@ -97,6 +98,7 @@ namespace UnityEditor.VFX
                 {
                     r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
+                r.WriteLine();
             }
             return r;
         }
@@ -154,11 +156,13 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(uniformMapper, "parameters");
             globalDeclaration.WriteTexture(uniformMapper);
 
-            var parameters = new VFXShaderWriter();
             //< Block processor
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
+
             foreach (var current in context.childrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {
                 var block = current.block;
@@ -193,28 +197,26 @@ namespace UnityEditor.VFX
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
-                var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                var expressionToNameLocal = expressionToName;
+                bool needScope = expressionParameter.Any(e => !expressionToNameLocal.ContainsKey(e));
+                if (needScope)
                 {
-                    bool needScope = true;//expressionToNameLocal.Count > expressionToName.Count;
-                    if (needScope)
+                    expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToNameLocal);
+                    blockCallFunction.EnterScope();
+                    foreach (var exp in expressionParameter)
                     {
-                        blockCallFunction.EnterScope();
-                        foreach (var exp in expressionParameter)
+                        if (expressionToNameLocal.ContainsKey(exp))
                         {
-                            if (expressionToNameLocal.ContainsKey(exp))
-                            {
-                                continue;
-                            }
-                            blockCallFunction.WriteVariable(exp, expressionToNameLocal, uniformMapper);
+                            continue;
                         }
+                        blockCallFunction.WriteVariable(exp, expressionToNameLocal);
                     }
-
-                    blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
-
-                    if (needScope)
-                        blockCallFunction.ExitScope();
                 }
+
+                blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
+
+                if (needScope)
+                    blockCallFunction.ExitScope();
             }
 
             //< Final composition
