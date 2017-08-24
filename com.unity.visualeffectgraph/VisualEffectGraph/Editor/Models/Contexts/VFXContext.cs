@@ -67,8 +67,8 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
         }
 
-        public virtual VFXCodeGenerator codeGenerator                   { get { return null; } }
-
+        public virtual string codeGeneratorTemplate                     { get { return null; } }
+        public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
         public virtual VFXDataType inputType                            { get { return m_InputType; } }
         public virtual VFXDataType outputType                           { get { return m_OutputType; } }

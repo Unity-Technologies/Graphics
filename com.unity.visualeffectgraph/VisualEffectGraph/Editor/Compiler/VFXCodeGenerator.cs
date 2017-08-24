@@ -9,18 +9,12 @@ using System.Text.RegularExpressions;
 
 namespace UnityEditor.VFX
 {
-    class VFXCodeGenerator
+    static class VFXCodeGenerator
     {
         public enum CompilationMode
         {
             Debug,
             Runtime
-        }
-
-        public VFXCodeGenerator(string templatePath, bool computeShader = true)
-        {
-            m_templateName = templatePath;
-            m_computeShader = computeShader;
         }
 
         //This function insure to keep padding while replacing a specific string
@@ -61,7 +55,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
+        static private VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
         {
             var r = new VFXShaderWriter();
 
@@ -103,7 +97,7 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        private StringBuilder GenerateStoreAttribute(string matching, VFXContext context)
+        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context)
         {
             var r = new StringBuilder();
 
@@ -118,15 +112,14 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXExpressionMapper gpuMapper, ref bool computeShader)
+        static public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXExpressionMapper gpuMapper, string templateName)
         {
-            computeShader = m_computeShader;
-            var fallbackTemplate = string.Format("Assets/VFXShaders/{0}.template", m_templateName);
+            var fallbackTemplate = string.Format("Assets/VFXShaders/{0}.template", templateName);
             var processedFile = new Dictionary<string, StringBuilder>();
             for (int i = 0; i < modes.Length; ++i)
             {
                 var mode = modes[i];
-                var currentTemplate = string.Format("Assets/VFXShaders/{0}_{1}.template", m_templateName, mode.ToString().ToLower());
+                var currentTemplate = string.Format("Assets/VFXShaders/{0}_{1}.template", templateName, mode.ToString().ToLower());
                 if (!System.IO.File.Exists(currentTemplate))
                 {
                     currentTemplate = fallbackTemplate;
@@ -144,7 +137,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper)
+        static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper)
         {
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
@@ -271,8 +264,5 @@ namespace UnityEditor.VFX
 
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }
-
-        private string m_templateName;
-        private bool m_computeShader;
     }
 }

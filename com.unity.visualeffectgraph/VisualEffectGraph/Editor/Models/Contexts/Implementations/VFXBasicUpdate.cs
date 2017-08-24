@@ -22,14 +22,8 @@ namespace UnityEditor.VFX
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
-
-        public override VFXCodeGenerator codeGenerator
-        {
-            get
-            {
-                return new VFXCodeGenerator("VFXUpdate");
-            }
-        }
+        public override string codeGeneratorTemplate { get { return "VFXUpdate"; } }
+        public override bool codeGeneratorCompute { get { return true; } }
 
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {

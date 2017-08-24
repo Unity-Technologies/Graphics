@@ -496,20 +496,19 @@ namespace UnityEditor.VFX
                     var generatedList = new List<GeneratedCodeData>();
                     foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                     {
-                        var codeGenerator = context.codeGenerator;
-                        if (codeGenerator != null)
+                        var codeGeneratorTemplate = context.codeGeneratorTemplate;
+                        if (codeGeneratorTemplate != null)
                         {
                             var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
                             var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
-                            bool computeShader = false;
-                            codeGenerator.Build(context, compilMode, generatedContent, gpuMapper, ref computeShader);
+                            VFXCodeGenerator.Build(context, compilMode, generatedContent, gpuMapper, codeGeneratorTemplate);
 
                             for (int i = 0; i < compilMode.Length; ++i)
                             {
                                 generatedList.Add(new GeneratedCodeData()
                                 {
                                     context = context,
-                                    computeShader = computeShader,
+                                    computeShader = context.codeGeneratorCompute,
                                     compilMode = compilMode[i],
                                     content = generatedContent[i]
                                 });

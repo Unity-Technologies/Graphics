@@ -8,14 +8,8 @@ namespace UnityEditor.VFX
     {
         public VFXBasicOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
         public override string name { get { return "Output"; } }
-
-        public override VFXCodeGenerator codeGenerator
-        {
-            get
-            {
-                return new VFXCodeGenerator("VFXOutput", false);
-            }
-        }
+        public override string codeGeneratorTemplate { get { return "VFXOutput"; } }
+        public override bool codeGeneratorCompute { get { return false; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

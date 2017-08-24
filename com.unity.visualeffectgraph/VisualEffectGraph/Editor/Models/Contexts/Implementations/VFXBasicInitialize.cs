@@ -5,13 +5,7 @@ namespace UnityEditor.VFX
     {
         public VFXBasicInitialize() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
         public override string name { get { return "Initialize"; } }
-
-        public override VFXCodeGenerator codeGenerator
-        {
-            get
-            {
-                return new VFXCodeGenerator("VFXInit");
-            }
-        }
+        public override string codeGeneratorTemplate { get { return "VFXInit"; } }
+        public override bool codeGeneratorCompute { get { return true; } }
     }
 }
