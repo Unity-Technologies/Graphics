@@ -112,6 +112,20 @@ namespace UnityEditor.MaterialGraph.Drawing
                 if (e.commandName == "Delete" || e.commandName == "SoftDelete")
                     presenter.Delete();
             }
+
+            if (e.type == EventType.KeyDown)
+            {
+                if (e.keyCode == KeyCode.A)
+                    m_GraphEditorView.graphView.FrameAll();
+                if (e.keyCode == KeyCode.F)
+                    m_GraphEditorView.graphView.FrameSelection();
+                if (e.keyCode == KeyCode.O)
+                    m_GraphEditorView.graphView.FrameOrigin();
+                if (e.keyCode == KeyCode.Tab)
+                    m_GraphEditorView.graphView.FrameNext();
+                if (e.keyCode == KeyCode.Tab && e.modifiers == EventModifiers.Shift)
+                    m_GraphEditorView.graphView.FramePrev();
+            }
         }
 
         public void PingAsset()
