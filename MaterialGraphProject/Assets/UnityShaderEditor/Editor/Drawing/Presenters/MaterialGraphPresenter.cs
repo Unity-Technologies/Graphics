@@ -241,7 +241,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             // Let the node set contain all the nodes that are directly time-dependent.
             m_TimeDependentPresenters.Clear();
-            foreach (var presenter in m_Elements.OfType<MaterialNodePresenter>().Where(x => (x.node is IMayRequireTime) && ((IMayRequireTime)x.node).RequiresTime()))
+            foreach (var presenter in m_Elements.OfType<MaterialNodePresenter>().Where(x => x.node.RequiresTime()))
                 m_TimeDependentPresenters.Add(presenter.node.guid, presenter);
 
             // The wavefront contains time-dependent nodes from which we wish to propagate time-dependency into the
