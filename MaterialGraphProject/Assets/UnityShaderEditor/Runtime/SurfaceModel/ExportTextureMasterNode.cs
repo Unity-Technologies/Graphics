@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,7 +48,6 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetFullShader(GenerationMode generationMode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
-
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
@@ -148,11 +147,10 @@ namespace UnityEngine.MaterialGraph
             template = template.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(4));
 
             //In preview mode we use a different vertex shader, as the custom texture shaders are customized and not preview compatible.
-            template = template.Replace("${ShaderIsUsingPreview}", generationMode == GenerationMode.Preview?"_Preview":"");
+            template = template.Replace("${ShaderIsUsingPreview}", generationMode == GenerationMode.Preview ? "_Preview" : "");
 
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
     }
 }
-

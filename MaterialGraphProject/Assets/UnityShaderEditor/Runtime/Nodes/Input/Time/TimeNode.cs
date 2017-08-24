@@ -35,7 +35,7 @@ namespace UnityEngine.MaterialGraph
 
         protected int[] validSlots
         {
-			get { return new[] {OutputSlotId, OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotIdW}; }
+            get { return new[] {OutputSlotId, OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotIdW}; }
         }
 
         public override string GetVariableNameForSlot(int slotId)

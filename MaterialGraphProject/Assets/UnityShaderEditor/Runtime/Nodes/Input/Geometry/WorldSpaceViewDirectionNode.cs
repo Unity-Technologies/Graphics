@@ -28,12 +28,12 @@ namespace UnityEngine.MaterialGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(
-                kOutputSlotId,
-                ShaderGeneratorNames.WorldSpaceViewDirection, 
-                ShaderGeneratorNames.WorldSpaceViewDirection, 
-                SlotType.Output, 
-                SlotValueType.Vector3, 
-                Vector4.zero));
+                    kOutputSlotId,
+                    ShaderGeneratorNames.WorldSpaceViewDirection,
+                    ShaderGeneratorNames.WorldSpaceViewDirection,
+                    SlotType.Output,
+                    SlotValueType.Vector3,
+                    Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 

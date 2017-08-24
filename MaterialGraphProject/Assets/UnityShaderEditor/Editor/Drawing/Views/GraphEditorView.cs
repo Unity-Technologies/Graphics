@@ -63,7 +63,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected override Object[] toWatch
         {
-            get { return new Object[]{m_Presenter}; }
+            get { return new Object[] {m_Presenter}; }
         }
     }
 }

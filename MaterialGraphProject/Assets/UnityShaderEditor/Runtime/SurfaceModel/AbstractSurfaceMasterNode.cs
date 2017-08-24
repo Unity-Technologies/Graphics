@@ -38,7 +38,6 @@ namespace UnityEngine.MaterialGraph
         public abstract string GetLightFunction();
 
 
-
         void GenerateNodeFunctionsAndPropertyUsages(
             ShaderGenerator shaderBody,
             ShaderGenerator propertyUsages,
@@ -48,7 +47,7 @@ namespace UnityEngine.MaterialGraph
         {
             var activeNodeList = new List<INode>();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
-               new List<int>(validNodeIds));
+                new List<int>(validNodeIds));
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
@@ -72,12 +71,11 @@ namespace UnityEngine.MaterialGraph
 
         void GenerateVertexShaderInternal(
             ShaderGenerator propertyUsages,
-           ShaderGenerator shaderBody,
-           ShaderGenerator nodeFunction,
-           ShaderGenerator vertexShaderBlock,
-           GenerationMode mode)
+            ShaderGenerator shaderBody,
+            ShaderGenerator nodeFunction,
+            ShaderGenerator vertexShaderBlock,
+            GenerationMode mode)
         {
-
             GenerateNodeFunctionsAndPropertyUsages(vertexShaderBlock, propertyUsages, nodeFunction, mode, vertexInputs);
 
             var slot = FindInputSlot<MaterialSlot>(VertexOffsetId);
@@ -94,7 +92,6 @@ namespace UnityEngine.MaterialGraph
 
                 vertexShaderBlock.AddShaderChunk("v.vertex.xyz = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
             }
-
         }
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
@@ -154,7 +151,7 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${LOD}", ""+m_MaterialOptions.lod);
+            resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${VertexShaderDecl}", "vertex:vert");
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
@@ -182,7 +179,6 @@ namespace UnityEngine.MaterialGraph
             return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
-
         protected abstract int[] surfaceInputs
         {
             get;
@@ -194,22 +190,22 @@ namespace UnityEngine.MaterialGraph
         }
 
         private void GenerateSurfaceShaderInternal(
-           ShaderGenerator propertyUsages,
-           ShaderGenerator shaderBody,
-           ShaderGenerator nodeFunction,
-           ShaderGenerator shaderInputVisitor,
-           ShaderGenerator vertexShaderBlock,
-           GenerationMode mode)
+            ShaderGenerator propertyUsages,
+            ShaderGenerator shaderBody,
+            ShaderGenerator nodeFunction,
+            ShaderGenerator shaderInputVisitor,
+            ShaderGenerator vertexShaderBlock,
+            GenerationMode mode)
         {
             var activeNodeList = new List<INode>();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
-               new List<int>(surfaceInputs));
+                new List<int>(surfaceInputs));
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (node is IGeneratesFunction)
                 {
-                    ((IGeneratesFunction) node).GenerateNodeFunction(nodeFunction, mode);
+                    ((IGeneratesFunction)node).GenerateNodeFunction(nodeFunction, mode);
                 }
 
                 node.GeneratePropertyUsages(propertyUsages, mode);
@@ -290,18 +286,18 @@ namespace UnityEngine.MaterialGraph
 
                 shaderBody.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".x = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceTangent + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceTangent + ");", true);
 
                 shaderBody.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".y = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
 
                 shaderBody.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".z = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceNormal + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceNormal + ");", true);
             }
 
 

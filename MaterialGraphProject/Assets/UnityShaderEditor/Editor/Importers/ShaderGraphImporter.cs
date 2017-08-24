@@ -1,4 +1,4 @@
-﻿using UnityEngine.MaterialGraph;
+using UnityEngine.MaterialGraph;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,6 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
         }
         return false;
     }
-
 
     public void OpenAsset(string path)
     {

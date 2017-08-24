@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -6,39 +6,39 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
- /*   [Serializable]
-    class RemapMasterControlPresenter : GraphControlPresenter
-    {
-        public override void OnGUIHandler()
-        {
-            base.OnGUIHandler();
+    /*   [Serializable]
+       class RemapMasterControlPresenter : GraphControlPresenter
+       {
+           public override void OnGUIHandler()
+           {
+               base.OnGUIHandler();
 
-            var remapNode = node as RemapMasterNode;
-            if (remapNode == null)
-                return;
+               var remapNode = node as RemapMasterNode;
+               if (remapNode == null)
+                   return;
 
-            remapNode.remapAsset = (MaterialRemapAsset)EditorGUILayout.MiniThumbnailObjectField(
-                new GUIContent("Remap Asset"),
-                remapNode.remapAsset,
-                typeof(MaterialRemapAsset), null);
-        }
+               remapNode.remapAsset = (MaterialRemapAsset)EditorGUILayout.MiniThumbnailObjectField(
+                   new GUIContent("Remap Asset"),
+                   remapNode.remapAsset,
+                   typeof(MaterialRemapAsset), null);
+           }
 
-        public override float GetHeight()
-        {
-            return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
-        }
-    }
+           public override float GetHeight()
+           {
+               return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
+           }
+       }
 
-    [Serializable]
-    public class RemapMasterNodePresenter : MasterNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<RemapMasterControlPresenter>();
-            instance.Initialize(node);
-            var controls = new List<GraphControlPresenter>(base.GetControlData());
-            controls.Add(instance);
-            return controls;
-        }
-    }*/
+       [Serializable]
+       public class RemapMasterNodePresenter : MasterNodePresenter
+       {
+           protected override IEnumerable<GraphControlPresenter> GetControlData()
+           {
+               var instance = CreateInstance<RemapMasterControlPresenter>();
+               instance.Initialize(node);
+               var controls = new List<GraphControlPresenter>(base.GetControlData());
+               controls.Add(instance);
+               return controls;
+           }
+       }*/
 }

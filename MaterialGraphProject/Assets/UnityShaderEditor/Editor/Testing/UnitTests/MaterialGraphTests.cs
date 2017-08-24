@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var graph = new UnityEngine.MaterialGraph.MaterialGraph();
 
             Assert.IsNotNull(graph);
-            
+
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
     }

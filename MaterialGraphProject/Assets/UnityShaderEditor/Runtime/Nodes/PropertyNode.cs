@@ -39,7 +39,7 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-				return  string.IsNullOrEmpty(m_Description) ? name : m_Description;
+                return string.IsNullOrEmpty(m_Description) ? name : m_Description;
             }
             set { m_Description = value; }
         }
@@ -48,7 +48,7 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                    return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode());
+                return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode());
             }
         }
 

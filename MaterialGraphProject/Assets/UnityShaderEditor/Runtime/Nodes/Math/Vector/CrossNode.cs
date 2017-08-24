@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -20,7 +20,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector second,
             [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
-           return
+            return
                 @"
 {
     result = cross(first, second);

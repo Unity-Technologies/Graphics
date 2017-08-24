@@ -24,12 +24,12 @@ namespace UnityEngine.MaterialGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-			RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-			return "UNITY_MATRIX_IT_MV [2].xyz";
+            return "UNITY_MATRIX_IT_MV [2].xyz";
         }
     }
 }

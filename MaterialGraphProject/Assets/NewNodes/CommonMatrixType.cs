@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.MaterialGraph
+namespace UnityEngine.MaterialGraph
 {
     public enum CommonMatrixType
     {
@@ -12,11 +12,11 @@
         WorldToObject
     };
 
-	public enum SimpleMatrixType
-	{
-		World,
-		Local,
-		Tangent,
-		View
-	};
+    public enum SimpleMatrixType
+    {
+        World,
+        Local,
+        Tangent,
+        View
+    };
 }

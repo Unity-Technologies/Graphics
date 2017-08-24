@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
 
         static string Unity_VoronoiNoise(
             [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None, 2.0f, 0,0,0)] Vector1 angleOffset,
+            [Slot(1, Binding.None, 2.0f, 0, 0, 0)] Vector1 angleOffset,
             [Slot(2, Binding.None)] out Vector1 n1,
             [Slot(2, Binding.None)] out Vector1 n2,
             [Slot(2, Binding.None)] out Vector1 n3)

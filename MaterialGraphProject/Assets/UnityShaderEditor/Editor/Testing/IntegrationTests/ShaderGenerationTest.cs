@@ -158,7 +158,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             {
                 var rendered =
                     generator.DoRenderPreview(m_PreviewMaterial, PreviewMode.Preview3D, new Rect(0, 0, res, res), 10) as
-                        RenderTexture;
+                    RenderTexture;
 
                 Assert.IsNotNull(rendered, "Render failed");
 

@@ -7,8 +7,8 @@ namespace UnityEngine.MaterialGraph
 
         public SubGraph subGraph
         {
-			get { return m_MaterialSubGraph; }
-			set { m_MaterialSubGraph = value; }
+            get { return m_MaterialSubGraph; }
+            set { m_MaterialSubGraph = value; }
         }
     }
 }

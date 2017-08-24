@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.MaterialGraph;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -8,7 +8,6 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     class ConstantsContolPresenter : GraphControlPresenter
     {
-
         private string[] m_ConstantTypeNames;
         private string[] constantTypeNames
         {

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text;
 using UnityEngine.Graphing;
 
@@ -31,7 +31,7 @@ namespace UnityEngine.MaterialGraph
                 onModified(this, ModificationScope.Graph);
             }
 
-           // Debug.Log("UPDATED GRAPH");
+            // Debug.Log("UPDATED GRAPH");
         }
 
         public GradientNode()
@@ -43,7 +43,6 @@ namespace UnityEngine.MaterialGraph
         {
             return GetType().GetMethod("Unity_Gradient", BindingFlags.NonPublic | BindingFlags.Instance);
         }
-
 
         string Unity_Gradient(
             [Slot(0, Binding.None)] Vector1 value,
@@ -77,8 +76,8 @@ namespace UnityEngine.MaterialGraph
             for (int i = 0; i < colorkeys.Length - 1; i++)
             {
                 int j = i + 1;
-                outputString.AppendLine(string.Format("\t{{precision}} colorLerpPosition{0}=smoothstep(colorp{0},colorp{1},value);",i,j));
-                outputString.AppendLine(string.Format("\tgradcolor = lerp(gradcolor,color{0},colorLerpPosition{1});",j, i));
+                outputString.AppendLine(string.Format("\t{{precision}} colorLerpPosition{0}=smoothstep(colorp{0},colorp{1},value);", i, j));
+                outputString.AppendLine(string.Format("\tgradcolor = lerp(gradcolor,color{0},colorLerpPosition{1});", j, i));
             }
 
             //Alpha
@@ -98,7 +97,7 @@ namespace UnityEngine.MaterialGraph
             {
                 int j = i + 1;
                 outputString.AppendLine(string.Format("\t{{precision}} alphaLerpPosition{0}=smoothstep(alphap{0},alphap{1},value);", i, j));
-                outputString.AppendLine(string.Format("\tgradalpha = lerp(gradalpha,alpha{0},alphaLerpPosition{1});",j, i));
+                outputString.AppendLine(string.Format("\tgradalpha = lerp(gradalpha,alpha{0},alphaLerpPosition{1});", j, i));
             }
 
             //Result

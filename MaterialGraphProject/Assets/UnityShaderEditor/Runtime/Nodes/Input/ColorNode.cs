@@ -5,30 +5,30 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Color")]
     public class ColorNode : PropertyNode, IGeneratesBodyCode
     {
-		[SerializeField]
-		private bool m_HDR;
+        [SerializeField]
+        private bool m_HDR;
 
-		[SerializeField]
+        [SerializeField]
         private Color m_Color;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Color";
 
-		public bool HDR
-		{
-			get { return m_HDR; }
-			set
-			{
-				if (m_HDR == value)
-					return;
+        public bool HDR
+        {
+            get { return m_HDR; }
+            set
+            {
+                if (m_HDR == value)
+                    return;
 
-				m_HDR = value;
-				if (onModified != null)
-				{
-					onModified(this, ModificationScope.Node);
-				}
-			}
-		}
+                m_HDR = value;
+                if (onModified != null)
+                {
+                    onModified(this, ModificationScope.Node);
+                }
+            }
+        }
 
         public ColorNode()
         {
@@ -71,7 +71,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed)
-				visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, color, m_HDR ? ColorPropertyChunk.ColorType.HDR : ColorPropertyChunk.ColorType.Default , PropertyChunk.HideState.Visible));
+                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, color, m_HDR ? ColorPropertyChunk.ColorType.HDR : ColorPropertyChunk.ColorType.Default , PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -92,11 +92,11 @@ namespace UnityEngine.MaterialGraph
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-                   {
-                       m_Name = propertyName,
-                       m_PropType = PropertyType.Color,
-                       m_Color = color
-                   };
+            {
+                m_Name = propertyName,
+                m_PropType = PropertyType.Color,
+                m_Color = color
+            };
         }
     }
 }

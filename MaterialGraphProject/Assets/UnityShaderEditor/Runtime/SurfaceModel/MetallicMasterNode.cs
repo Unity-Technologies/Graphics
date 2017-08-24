@@ -33,17 +33,17 @@ namespace UnityEngine.MaterialGraph
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
-                                       new[]
-                                       {
-                                           AlbedoSlotId,
-                                           NormalSlotId,
-                                           EmissionSlotId,
-                                           MetallicSlotId,
-                                           SmoothnessSlotId,
-                                           OcclusionSlotId,
-                                           AlphaSlotId,
-                                           VertexOffsetId
-                                       });
+                new[]
+            {
+                AlbedoSlotId,
+                NormalSlotId,
+                EmissionSlotId,
+                MetallicSlotId,
+                SmoothnessSlotId,
+                OcclusionSlotId,
+                AlphaSlotId,
+                VertexOffsetId
+            });
         }
 
         protected override int[] surfaceInputs
@@ -51,15 +51,15 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 return new[]
-                                       {
+                {
                     AlbedoSlotId,
-                                           NormalSlotId,
-                                           EmissionSlotId,
-                                           MetallicSlotId,
-                                           SmoothnessSlotId,
-                                           OcclusionSlotId,
-                                           AlphaSlotId,
-                                       };
+                    NormalSlotId,
+                    EmissionSlotId,
+                    MetallicSlotId,
+                    SmoothnessSlotId,
+                    OcclusionSlotId,
+                    AlphaSlotId,
+                };
             }
         }
 
@@ -69,9 +69,9 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 return new[]
-                                       {
+                {
                     VertexOffsetId
-                                       };
+                };
             }
         }
 

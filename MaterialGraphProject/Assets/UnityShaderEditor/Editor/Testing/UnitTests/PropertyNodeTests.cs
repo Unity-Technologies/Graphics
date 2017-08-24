@@ -22,9 +22,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
             public override PreviewProperty GetPreviewProperty()
             {
                 return new PreviewProperty()
-                       {
-                           m_Name = TestPropertyName
-                       };
+                {
+                    m_Name = TestPropertyName
+                };
             }
         }
 
@@ -67,80 +67,80 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.AddNode(m_PropertyNode);
         }
 
-      /*  [Test]
-        public void TestExposedPropertyReturnsRawName()
-        {
-            m_PropertyNode.exposedState = PropertyNode.ExposedState.Exposed;
-            m_PropertyNode.propertyName = kPropertyName;
-            Assert.AreEqual(kPropertyName + "_Uniform", m_PropertyNode.propertyName);
-        }
+        /*  [Test]
+          public void TestExposedPropertyReturnsRawName()
+          {
+              m_PropertyNode.exposedState = PropertyNode.ExposedState.Exposed;
+              m_PropertyNode.propertyName = kPropertyName;
+              Assert.AreEqual(kPropertyName + "_Uniform", m_PropertyNode.propertyName);
+          }
 
-        [Test]
-        public void TestNonExposedPropertyReturnsGeneratedName()
-        {
-            var expected = string.Format("{0}_{1}_Uniform", m_PropertyNode.name, m_PropertyNode.guid.ToString().Replace("-", "_"));
-            m_PropertyNode.exposedState = PropertyNode.ExposedState.NotExposed;
-            m_PropertyNode.propertyName = kPropertyName;
+          [Test]
+          public void TestNonExposedPropertyReturnsGeneratedName()
+          {
+              var expected = string.Format("{0}_{1}_Uniform", m_PropertyNode.name, m_PropertyNode.guid.ToString().Replace("-", "_"));
+              m_PropertyNode.exposedState = PropertyNode.ExposedState.NotExposed;
+              m_PropertyNode.propertyName = kPropertyName;
 
-            Assert.AreEqual(expected, m_PropertyNode.propertyName);
-        }
+              Assert.AreEqual(expected, m_PropertyNode.propertyName);
+          }
 
-        [Test]
-        public void TestPropertyNodeDescriptionWorks()
-        {
-            m_PropertyNode.propertyName = kPropertyName;
-            m_PropertyNode.description = kDescription;
-            Assert.AreEqual(kDescription, m_PropertyNode.description);
-        }
+          [Test]
+          public void TestPropertyNodeDescriptionWorks()
+          {
+              m_PropertyNode.propertyName = kPropertyName;
+              m_PropertyNode.description = kDescription;
+              Assert.AreEqual(kDescription, m_PropertyNode.description);
+          }
 
-        [Test]
-        public void TestPropertyNodeDescriptionReturnsPropertyNameWhenNoDescriptionSet()
-        {
-            m_PropertyNode.propertyName = kPropertyName;
-            m_PropertyNode.description = string.Empty;
-            Assert.AreEqual(kPropertyName, m_PropertyNode.description);
-        }
+          [Test]
+          public void TestPropertyNodeDescriptionReturnsPropertyNameWhenNoDescriptionSet()
+          {
+              m_PropertyNode.propertyName = kPropertyName;
+              m_PropertyNode.description = string.Empty;
+              Assert.AreEqual(kPropertyName, m_PropertyNode.description);
+          }
 
-        [Test]
-        public void TestPropertyNodeReturnsPreviewProperty()
-        {
-            var props = new List<PreviewProperty>();
-            m_PropertyNode.CollectPreviewMaterialProperties(props);
-            Assert.AreEqual(props.Count, 1);
-            Assert.AreEqual(TestPropertyNode.TestPropertyName, props[0].m_Name);
-        }
+          [Test]
+          public void TestPropertyNodeReturnsPreviewProperty()
+          {
+              var props = new List<PreviewProperty>();
+              m_PropertyNode.CollectPreviewMaterialProperties(props);
+              Assert.AreEqual(props.Count, 1);
+              Assert.AreEqual(TestPropertyNode.TestPropertyName, props[0].m_Name);
+          }
 
-        [Test]
-        public void TestDuplicatedPropertyNameGeneratesErrorWhenExposed()
-        {
-            const string failName = "SameName";
+          [Test]
+          public void TestDuplicatedPropertyNameGeneratesErrorWhenExposed()
+          {
+              const string failName = "SameName";
 
-            m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector1Node.propertyName = failName;
-            m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector2Node.propertyName = failName;
+              m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
+              m_Vector1Node.propertyName = failName;
+              m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
+              m_Vector2Node.propertyName = failName;
 
-            m_Vector1Node.ValidateNode();
-            m_Vector2Node.ValidateNode();
-            Assert.IsTrue(m_Vector1Node.hasError);
-            Assert.IsTrue(m_Vector2Node.hasError);
-        }
+              m_Vector1Node.ValidateNode();
+              m_Vector2Node.ValidateNode();
+              Assert.IsTrue(m_Vector1Node.hasError);
+              Assert.IsTrue(m_Vector2Node.hasError);
+          }
 
-        [Test]
-        public void TestDuplicatedPropertyNameGeneratesNoErrorWhenNotExposed()
-        {
-            const string failName = "SameName";
+          [Test]
+          public void TestDuplicatedPropertyNameGeneratesNoErrorWhenNotExposed()
+          {
+              const string failName = "SameName";
 
-            m_Vector1Node.exposedState = PropertyNode.ExposedState.NotExposed;
-            m_Vector1Node.propertyName = failName;
-            m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector2Node.propertyName = failName;
+              m_Vector1Node.exposedState = PropertyNode.ExposedState.NotExposed;
+              m_Vector1Node.propertyName = failName;
+              m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
+              m_Vector2Node.propertyName = failName;
 
-            m_Vector1Node.ValidateNode();
-            m_Vector2Node.ValidateNode();
-            Assert.IsFalse(m_Vector1Node.hasError);
-            Assert.IsFalse(m_Vector2Node.hasError);
-        }*/
+              m_Vector1Node.ValidateNode();
+              m_Vector2Node.ValidateNode();
+              Assert.IsFalse(m_Vector1Node.hasError);
+              Assert.IsFalse(m_Vector2Node.hasError);
+          }*/
 
         [Test]
         public void TestPropertyExposedOnSubgraphReturnsFalse()

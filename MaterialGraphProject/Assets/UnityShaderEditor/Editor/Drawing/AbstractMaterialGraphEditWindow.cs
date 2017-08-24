@@ -24,9 +24,9 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>
-    { }
+    {}
     public class SubGraphEditWindow : AbstractMaterialGraphEditWindow<SubGraph>
-    { }
+    {}
 
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : EditorWindow, IMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
@@ -90,11 +90,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             var e = Event.current;
 
             if (e.type == EventType.ValidateCommand && (
-                e.commandName == "Copy" && presenter.canCopy
-                || e.commandName == "Paste" && presenter.canPaste
-                || e.commandName == "Duplicate" && presenter.canDuplicate
-                || e.commandName == "Cut" && presenter.canCut
-                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
+                    e.commandName == "Copy" && presenter.canCopy
+                    || e.commandName == "Paste" && presenter.canPaste
+                    || e.commandName == "Duplicate" && presenter.canDuplicate
+                    || e.commandName == "Cut" && presenter.canCut
+                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
             {
                 e.Use();
             }
@@ -285,7 +285,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var textureNames = new List<string>();
             var textures = new List<Texture>();
             foreach (var textureInfo in configuredTextures.Where(
-                x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+                         x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
@@ -298,7 +298,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             textureNames.Clear();
             textures.Clear();
             foreach (var textureInfo in configuredTextures.Where(
-                x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+                         x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)

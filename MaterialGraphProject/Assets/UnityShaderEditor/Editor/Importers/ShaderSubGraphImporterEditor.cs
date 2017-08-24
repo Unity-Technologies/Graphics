@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
@@ -15,8 +15,8 @@ public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
             Debug.Assert(importer != null, "importer != null");
             ShowGraphEditWindow(importer.assetPath);
         }
-
     }
+
     private static void ShowGraphEditWindow(string path)
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
@@ -39,4 +39,3 @@ public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
         }
     }
 }
-

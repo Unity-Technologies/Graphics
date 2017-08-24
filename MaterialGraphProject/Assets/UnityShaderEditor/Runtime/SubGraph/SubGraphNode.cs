@@ -50,7 +50,7 @@ namespace UnityEngine.MaterialGraph
             {
                 if (subGraphAsset == value)
                     return;
-                    
+
                 var helper = new SubGraphHelper();
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
@@ -60,7 +60,7 @@ namespace UnityEngine.MaterialGraph
                     onModified(this, ModificationScope.Topological);
             }
         }
-        
+
         /*
        // SAVED FOR LATER
         if (serializedVersion<kCurrentSerializedVersion)

@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
 
     public enum ConcreteSlotValueType
     {
-		SamplerState,
+        SamplerState,
         Matrix4,
         Matrix3,
         Matrix2,
@@ -59,5 +59,4 @@ namespace UnityEngine.MaterialGraph
             }
         }
     }
-
 }

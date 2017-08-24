@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace UnityEditor.Graphing.Util
 {
-	public class TypeMapper<TFrom, TTo, TFallback>
+    public class TypeMapper<TFrom, TTo, TFallback>
         where TFallback : TTo
     {
         private readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();

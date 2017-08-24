@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.MaterialGraph
+namespace UnityEngine.MaterialGraph
 {
     public enum ConstantType
     {

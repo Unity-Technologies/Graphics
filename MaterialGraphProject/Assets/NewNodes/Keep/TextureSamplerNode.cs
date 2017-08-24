@@ -1,14 +1,12 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-
     [Title("Texture/Sample 2D")]
     public class Sample2DTexture : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
-
         public const int OutputSlotId = 0;
         public const int TextureInputId = 1;
         public const int UVInput = 2;
@@ -69,19 +67,19 @@ namespace UnityEngine.MaterialGraph
 #else
 {0}4 {1} = UNITY_SAMPLE_TEX2D({2}, {4});
 #endif"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , GetSlotValue(TextureInputId, generationMode)
-                    , GetSlotValue(SamplerInput, generationMode)
-                    , uvName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , GetSlotValue(TextureInputId, generationMode)
+                        , GetSlotValue(SamplerInput, generationMode)
+                        , uvName);
             }
             else
             {
                 result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , GetSlotValue(TextureInputId, generationMode)
-                    , uvName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , GetSlotValue(TextureInputId, generationMode)
+                        , uvName);
             }
             visitor.AddShaderChunk(result, true);
         }

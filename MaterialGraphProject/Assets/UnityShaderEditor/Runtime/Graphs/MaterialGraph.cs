@@ -48,6 +48,7 @@ namespace UnityEngine.MaterialGraph
 
             m_ActiveMasterNodeGUIDSerialized = m_ActiveMasterNodeGUID.ToString();
         }
+
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();

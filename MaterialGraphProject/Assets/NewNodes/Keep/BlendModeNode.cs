@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -300,4 +300,3 @@ namespace UnityEngine.MaterialGraph
         }
     }
 }
-

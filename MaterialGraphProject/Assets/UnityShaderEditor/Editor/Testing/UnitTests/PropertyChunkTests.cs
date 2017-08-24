@@ -48,7 +48,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestColorChunkReturnsValidValues()
         {
             var expectedPropertyString = "ThePropertyName(\"ThePropertyDescription\", Color) = (1,0,0,1)";
-			var chunk = new ColorPropertyChunk(kPropertyName, kPropertyDescription, Color.red, ColorPropertyChunk.ColorType.Default, PropertyChunk.HideState.Visible);
+            var chunk = new ColorPropertyChunk(kPropertyName, kPropertyDescription, Color.red, ColorPropertyChunk.ColorType.Default, PropertyChunk.HideState.Visible);
             Assert.AreEqual(kPropertyName, chunk.propertyName);
             Assert.AreEqual(kPropertyDescription, chunk.propertyDescription);
             Assert.AreEqual(expectedPropertyString, chunk.GetPropertyString());

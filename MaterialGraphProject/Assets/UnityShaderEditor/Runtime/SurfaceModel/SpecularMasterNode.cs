@@ -24,15 +24,15 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 return new[]
-                                       {
-                                        AlbedoSlotId,
-                                           NormalSlotId,
-                                           EmissionSlotId,
-                                           SmoothnessSlotId,
-                                           OcclusionSlotId,
-                                           AlphaSlotId,
-                                           SpecularSlotId
-                                       };
+                {
+                    AlbedoSlotId,
+                    NormalSlotId,
+                    EmissionSlotId,
+                    SmoothnessSlotId,
+                    OcclusionSlotId,
+                    AlphaSlotId,
+                    SpecularSlotId
+                };
             }
         }
 
@@ -42,9 +42,9 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 return new[]
-                                       {
+                {
                     VertexOffsetId
-                                       };
+                };
             }
         }
 
@@ -62,16 +62,16 @@ namespace UnityEngine.MaterialGraph
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
-                                       new[]
-                                       {
-                                           AlbedoSlotId,
-                                           NormalSlotId,
-                                           EmissionSlotId,
-                                           SpecularSlotId,
-                                           SmoothnessSlotId,
-                                           OcclusionSlotId,
-                                           AlphaSlotId
-                                       });
+                new[]
+            {
+                AlbedoSlotId,
+                NormalSlotId,
+                EmissionSlotId,
+                SpecularSlotId,
+                SmoothnessSlotId,
+                OcclusionSlotId,
+                AlphaSlotId
+            });
         }
 
         public override string GetSurfaceOutputName()

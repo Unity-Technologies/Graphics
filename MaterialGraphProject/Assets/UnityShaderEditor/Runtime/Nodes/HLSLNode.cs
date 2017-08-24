@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -132,12 +132,12 @@ namespace UnityEngine.MaterialGraph
         protected static MethodInfo GetMethodInfo(LambdaExpression expression)
         {
             MethodCallExpression outermostExpression = expression.Body as MethodCallExpression;
- 
+             
             if (outermostExpression == null)
             {
                 throw new ArgumentException("Invalid Expression. Expression should consist of a Method call only.");
             }
- 
+             
             return outermostExpression.Method;
         }
 
@@ -199,7 +199,7 @@ namespace UnityEngine.MaterialGraph
             if (slotAtributes.Any(x => x == null))
                 throw new ArgumentException("Missing SlotAttribute on " + method.Name);
 
-            if(slotAtributes.GroupBy(x=>x.slotId).Any(x => x.Count() > 1))
+            if (slotAtributes.GroupBy(x => x.slotId).Any(x => x.Count() > 1))
                 throw new ArgumentException("Duplicate SlotAttribute on " + method.Name);
 
             List<MaterialSlot> slots = new List<MaterialSlot>();
@@ -242,7 +242,6 @@ namespace UnityEngine.MaterialGraph
                     var inEdges = owner.GetEdges(arg.slotReference);
                     if (!inEdges.Any())
                     {
-
                         var info = m_Slots.FirstOrDefault(x => x.slotId == arg.id);
                         if (info != null)
                         {
@@ -340,7 +339,7 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        private bool SlotRequiresBinding(Binding channel, [NotNull]MaterialSlot slot)
+        private bool SlotRequiresBinding(Binding channel, [NotNull] MaterialSlot slot)
         {
             if (slot.isOutputSlot)
                 return false;
@@ -356,7 +355,7 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        private static SlotAttribute GetSlotAttribute([NotNull]ParameterInfo info)
+        private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)
         {
             var attrs = info.GetCustomAttributes(typeof(SlotAttribute), false).OfType<SlotAttribute>().ToList();
             return attrs.FirstOrDefault();
@@ -396,7 +395,6 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresViewDirectionTangentSpace()
         {
-
             return NodeRequiresBinding(Binding.ViewDirectionTangentSpace);
         }
 
@@ -417,7 +415,6 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresVertexColor()
         {
-
             return NodeRequiresBinding(Binding.VertexColor);
         }
     }

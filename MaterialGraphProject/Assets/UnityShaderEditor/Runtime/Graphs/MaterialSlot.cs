@@ -101,7 +101,7 @@ namespace UnityEngine.MaterialGraph
                     case SlotValueType.Matrix4:
                         concreteValueType = ConcreteSlotValueType.Matrix4;
                         break;
-					case SlotValueType.Texture2D:
+                    case SlotValueType.Texture2D:
                         concreteValueType = ConcreteSlotValueType.Texture2D;
                         break;
                     case SlotValueType.SamplerState:
@@ -149,10 +149,10 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(matOwner.precision, concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
 
-		public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
-		{
-			return (inputType == SlotValueType.Dynamic || valueType == SlotValueType.Vector1 || valueType <= inputType);
-		}
+        public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
+        {
+            return (inputType == SlotValueType.Dynamic || valueType == SlotValueType.Vector1 || valueType <= inputType);
+        }
 
         public string GetDefaultValue(GenerationMode generationMode)
         {
@@ -174,7 +174,7 @@ namespace UnityEngine.MaterialGraph
                 case ConcreteSlotValueType.Vector4:
                     return matOwner.precision + "4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
                 case ConcreteSlotValueType.Matrix2:
-                    return matOwner.precision + "2x2 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", "+ m_CurrentValue.y + ")";
+                    return matOwner.precision + "2x2 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ")";
                 case ConcreteSlotValueType.Matrix3:
                     return matOwner.precision + "3x3 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ")";
                 case ConcreteSlotValueType.Matrix4:

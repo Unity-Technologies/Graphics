@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEngine.Graphing;
 
@@ -60,7 +60,6 @@ namespace UnityEngine.MaterialGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
 
         const string functionTemplate = @"
@@ -80,7 +79,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a == b");
         }
@@ -90,7 +89,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a != b");
         }
@@ -100,7 +99,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a > b");
         }
@@ -110,7 +109,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a >= b");
         }
@@ -120,7 +119,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a < b");
         }
@@ -130,7 +129,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector b,
             [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
             [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
-            [Slot(4, Binding.None)] DynamicDimensionVector result )
+            [Slot(4, Binding.None)] DynamicDimensionVector result)
         {
             return functionTemplate.Replace("{comparitor}", "a <= b");
         }

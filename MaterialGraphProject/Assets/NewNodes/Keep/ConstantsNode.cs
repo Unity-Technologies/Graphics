@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Graphing;
 
@@ -7,7 +7,6 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Constants")]
     public class ConstantsNode : PropertyNode, IGeneratesBodyCode
     {
-
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
             {ConstantType.PI, 3.1415926f },

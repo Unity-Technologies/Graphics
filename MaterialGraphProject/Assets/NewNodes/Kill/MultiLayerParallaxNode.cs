@@ -1,4 +1,4 @@
-﻿using UnityEngine.Graphing;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -80,10 +80,12 @@ namespace UnityEngine.MaterialGraph
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
+
         protected virtual string GetInputSlot1Name()
         {
             return kInputDepthShaderName;
         }
+
         protected virtual string GetInputSlot2Name()
         {
             return kInputFadeRateShaderName;
@@ -98,6 +100,7 @@ namespace UnityEngine.MaterialGraph
         {
             return kTextureSlotShaderName;
         }
+
         protected virtual string GetOutputSlotName()
         {
             return kOutputSlotShaderName;
@@ -143,7 +146,7 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(
                 precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) +
-                    " = " + GetFunctionCallBody(depthValue, fadeRateValue, layerCountValue, textureValue) + ";", true);
+                " = " + GetFunctionCallBody(depthValue, fadeRateValue, layerCountValue, textureValue) + ";", true);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -193,10 +196,10 @@ namespace UnityEngine.MaterialGraph
         {
             return channel == UVChannel.uv0;
         }
+
         public bool RequiresViewDirectionTangentSpace()
         {
             return true;
         }
     }
 }
-

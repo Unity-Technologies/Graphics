@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
@@ -51,7 +51,7 @@ namespace UnityEngine.MaterialGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotRGBId, OutputSlotRGId });
             string inputValue = GetSlotValue(InputSlotId, generationMode);
-            visitor.AddShaderChunk(precision +"4 "+ GetVariableNameForNode() + " = " + GetNodeBody(inputValue) + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + GetNodeBody(inputValue) + ";", true);
         }
 
         protected string GetNodeBody(string inputValue)
@@ -88,7 +88,6 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-
             string slotOutput;
             switch (slotId)
             {

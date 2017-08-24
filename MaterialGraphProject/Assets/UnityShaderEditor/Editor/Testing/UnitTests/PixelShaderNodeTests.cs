@@ -37,28 +37,27 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.NormalSlotId));
 
-           // m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
+            // m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
             //m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
         }
 
+        /*  [Test]
+          public void TestNodeGeneratesCorrectNodeCode()
+          {
+              string expected = string.Format("half {0} = 0.2;" + Environment.NewLine
+                      + "half {1} = abs ({0});" + Environment.NewLine
+                      + "o.Albedo = {1};" + Environment.NewLine
+                      + "o.Normal = {0};" + Environment.NewLine
+                      , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                      , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
 
-      /*  [Test]
-        public void TestNodeGeneratesCorrectNodeCode()
-        {
-            string expected = string.Format("half {0} = 0.2;" + Environment.NewLine
-                    + "half {1} = abs ({0});" + Environment.NewLine
-                    + "o.Albedo = {1};" + Environment.NewLine
-                    + "o.Normal = {0};" + Environment.NewLine
-                    , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                    , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
+              var generator = new ShaderGenerator();
+              m_PixelNode.GenerateNodeCode(generator, GenerationMode.ForReals);
 
-            var generator = new ShaderGenerator();
-            m_PixelNode.GenerateNodeCode(generator, GenerationMode.ForReals);
+              Console.WriteLine(generator.GetShaderString(0));
 
-            Console.WriteLine(generator.GetShaderString(0));
-
-            Assert.AreEqual(expected, generator.GetShaderString(0));
-            Assert.AreEqual(string.Empty, generator.GetPragmaString());
-        }*/
+              Assert.AreEqual(expected, generator.GetShaderString(0));
+              Assert.AreEqual(string.Empty, generator.GetPragmaString());
+          }*/
     }
 }

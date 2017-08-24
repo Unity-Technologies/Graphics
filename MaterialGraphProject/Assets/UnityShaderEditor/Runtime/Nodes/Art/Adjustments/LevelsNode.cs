@@ -23,7 +23,6 @@ namespace UnityEngine.MaterialGraph
             name = "Levels";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Levels", BindingFlags.Static | BindingFlags.NonPublic);

@@ -1,11 +1,10 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Fractal")]
     public class FractalNode : CodeFunctionNode
     {
-
         public FractalNode()
         {
             name = "Fractal";

@@ -1,4 +1,4 @@
-﻿using UnityEngine.Graphing;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -33,13 +33,13 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(OutputSlotIdY, kOutputSlotNameY, kOutputSlotNameY, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotIdZ, kOutputSlotNameZ, kOutputSlotNameZ, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotIdW, kOutputSlotNameW, kOutputSlotNameW, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            
+
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] { OutputSlotId, OutputSlotIdXYZ ,OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotIdW }; }
+            get { return new[] { OutputSlotId, OutputSlotIdXYZ , OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotIdW }; }
         }
 
         public override string GetVariableNameForSlot(int slotId)

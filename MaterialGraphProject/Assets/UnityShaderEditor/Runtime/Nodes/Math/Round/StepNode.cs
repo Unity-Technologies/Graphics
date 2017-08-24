@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
@@ -30,5 +30,3 @@ namespace UnityEngine.MaterialGraph
         }
     }
 }
-
-

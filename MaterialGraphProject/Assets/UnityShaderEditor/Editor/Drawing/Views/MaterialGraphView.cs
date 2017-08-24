@@ -16,7 +16,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
-
         [SerializeField]
         private GraphDrawingData m_DrawingData = new GraphDrawingData();
 
@@ -28,14 +27,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         public MaterialGraphView(EditorWindow editorWindow)
         {
             var shortcutHandler = new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    {Event.KeyboardEvent("a"), FrameAll},
-                    {Event.KeyboardEvent("f"), FrameSelection},
-                    {Event.KeyboardEvent("o"), FrameOrigin},
-                    {Event.KeyboardEvent("#tab"), FramePrev},
-                    {Event.KeyboardEvent("tab"), FrameNext}
-                });
+                    new Dictionary<Event, ShortcutDelegate>
+            {
+                {Event.KeyboardEvent("a"), FrameAll},
+                {Event.KeyboardEvent("f"), FrameSelection},
+                {Event.KeyboardEvent("o"), FrameOrigin},
+                {Event.KeyboardEvent("#tab"), FramePrev},
+                {Event.KeyboardEvent("tab"), FrameNext}
+            });
 
             onEnter += () => editorWindow.rootVisualContainer.parent.AddManipulator(shortcutHandler);
             onLeave += () => editorWindow.rootVisualContainer.parent.RemoveManipulator(shortcutHandler);
@@ -78,7 +77,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         }
                     }
                 }
-                
+
                 gm.ShowAsContext();
             }
             evt.StopPropagation();
@@ -132,13 +131,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             var graphDataSource = GetPresenter<MaterialGraphPresenter>();
             if (graphDataSource == null)
                 return;
-            
-            if (drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
+
+            if (drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter)d.presenter).node.guid))) return;
 
             var selectedDrawers = drawingData.selection
                 .Select(guid => contentViewContainer
-                            .OfType<MaterialNodeView>()
-                            .FirstOrDefault(drawer => ((MaterialNodePresenter) drawer.presenter).node.guid == guid))
+                    .OfType<MaterialNodeView>()
+                    .FirstOrDefault(drawer => ((MaterialNodePresenter)drawer.presenter).node.guid == guid))
                 .ToList();
 
             ClearSelection();
@@ -152,7 +151,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphDataSource == null)
                 return;
 
-            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter) x.presenter);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter)x.presenter);
             graphDataSource.UpdateSelection(selectedNodes);
         }
 
