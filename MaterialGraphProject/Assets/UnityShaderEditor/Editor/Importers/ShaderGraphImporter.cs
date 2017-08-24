@@ -80,7 +80,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
             if (w.selected == asset)
             {
                 foundWindow = true;
-                w.Focus();  
+                w.Focus();
             }
         }
 
@@ -88,7 +88,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
         {
             var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelction(asset);
+            window.ChangeSelection(asset);
         }
     }
 }
