@@ -189,7 +189,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var methodName = block.GetType().Name;
+                var methodName = block.functionName;
                 if (!blockDeclared.Contains(methodName))
                 {
                     blockDeclared.Add(methodName);

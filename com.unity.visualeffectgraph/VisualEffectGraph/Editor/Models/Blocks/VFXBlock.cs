@@ -26,5 +26,6 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); }}
         public virtual string source { get { return null; } }
+        public virtual string functionName { get { return GetType().Name; } }
     }
 }
