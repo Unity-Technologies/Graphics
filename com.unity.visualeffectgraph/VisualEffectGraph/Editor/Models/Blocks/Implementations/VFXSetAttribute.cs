@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
         }
 
         public override string name { get { return "SetAttribute"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdate; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {

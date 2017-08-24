@@ -5,14 +5,21 @@ Shader "Example/Mito"
 		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		Pass
 		{
-			Blend SrcAlpha OneMinusSrcAlpha
 			ZTest LEqual
-			ZWrite Off
-			Cull Back
+			ZWrite On
+			Cull Off
 				
 			CGPROGRAM
 				#pragma target 4.5
+				#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
+				#define VFX_LOCAL_SPACE 1
+				#endif
+				
 				${VFXGlobalInclude}
+				${VFXGlobalDeclaration}
+				${VFXGeneratedBlockFunction}
+				
+				ByteAddressBuffer attributeBuffer;
 				
 				#pragma vertex vert
 				#pragma fragment frag
@@ -20,7 +27,9 @@ Shader "Example/Mito"
 				struct ps_input
 				{
 					float4 pos : SV_POSITION;
-					float4 color : TEXCOORD0;
+#if VFX_USE_COLOR_CURRENT
+					nointerpolation float3 color : COLOR0;
+#endif
 				};
 				
 				struct ps_output
@@ -30,14 +39,35 @@ Shader "Example/Mito"
 				
 				ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 				{
+					uint index = instanceID;
+					${VFXLoadAttributes}
+					${VFXProcessBlocks}
+					
 					ps_input o = (ps_input)0;
-					o.pos = -1.0f;
+					
+					float2 halfSize = size * 0.5f;
+					float2 offsets = (float2)0;
+					offsets.x = 2.0 * float(id & 1) - 1.0;
+					offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+					
+					position.xy += offsets * halfSize;
+					o.pos = mul (VFXModelView(), float4(position,1.0f));
+
+#if VFX_USE_COLOR_CURRENT
+					o.color = color;
+#endif
+					
 					return o;
 				}
 				
 				ps_output frag(ps_input i)
 				{
 					ps_output o = (ps_output)0;
+					
+					o.color = 1.0f;
+#if VFX_USE_COLOR_CURRENT
+					o.color.rgb *= i.color.rgb;
+#endif				
 					return o;
 				}
 			ENDCG
