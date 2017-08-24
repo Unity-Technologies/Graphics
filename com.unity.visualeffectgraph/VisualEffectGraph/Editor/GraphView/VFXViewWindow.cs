@@ -34,7 +34,7 @@ namespace  UnityEditor.VFX.UI
             });
         }
 
-        [MenuItem("Window/VFXEditor")]
+        [MenuItem("VFX Editor/Window")]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();

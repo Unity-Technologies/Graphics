@@ -1,3 +1,4 @@
+//#define USE_SHADER_AS_SUBASSET
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -10,6 +11,34 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+#if !USE_SHADER_AS_SUBASSET
+    public class VFXCacheManager : EditorWindow
+    {
+        [MenuItem("VFX Editor/Rebuild VFXCache")]
+        public static void Rebuild()
+        {
+            FileUtil.DeleteFileOrDirectory(VFXGraph.baseCacheFolder);
+            var vfxAssets = new List<VFXAsset>();
+            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VFXAsset");
+            foreach (var guid in vfxAssetsGuid)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(assetPath);
+                if (vfxAsset != null)
+                {
+                    vfxAssets.Add(vfxAsset);
+                }
+            }
+
+            foreach (var vfxAsset in vfxAssets)
+            {
+                vfxAsset.GetOrCreateGraph().OnSaved();
+            }
+            AssetDatabase.SaveAssets();
+        }
+    }
+#endif
+
     public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
@@ -65,6 +94,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        static public string baseCacheFolder
+        {
+            get
+            {
+                return "Assets/VFXCache";
+            }
+        }
+
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
@@ -74,14 +111,13 @@ namespace UnityEditor.VFX
         {
             try
             {
-                bool autoClearCache = false;
-
                 EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
                 m_ExpressionGraphDirty = true;
                 RecompileIfNeeded();
-
-                float stepCount = (m_GeneratedComputeShader.Count + m_GeneratedShader.Count) * (autoClearCache ? 2 : 1) + 1;
                 float currentStep = 0;
+
+#if USE_SHADER_AS_SUBASSET
+                float stepCount = m_GeneratedComputeShader.Count + m_GeneratedShader.Count + 1;
 
                 var oldComputeShader = m_GeneratedComputeShader.ToArray();
                 var oldShader = m_GeneratedShader.ToArray();
@@ -107,17 +143,9 @@ namespace UnityEditor.VFX
                     DestroyImmediate(shader, true);
                     m_GeneratedShader.Add(shaderCopy);
                 }
-
-                if (autoClearCache)
-                {
-                    for (int i = 0; i < oldPath.Length; ++i)
-                    {
-                        var path = oldPath[i];
-                        EditorUtility.DisplayProgressBar("Saving...", string.Format("Clear cache {0}/{1}", i, oldPath.Length), (++currentStep) / stepCount);
-                        AssetDatabase.DeleteAsset(path);
-                    }
-                }
-
+#else
+                float stepCount = 1;
+#endif
                 EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
                 UpdateSubAssets();
                 m_saved = true;
@@ -143,6 +171,8 @@ namespace UnityEditor.VFX
 
                     var currentObjects = new HashSet<Object>();
                     CollectDependencies(currentObjects);
+
+#if USE_SHADER_AS_SUBASSET
                     if (m_GeneratedComputeShader != null)
                     {
                         foreach (var compute in m_GeneratedComputeShader)
@@ -158,6 +188,7 @@ namespace UnityEditor.VFX
                             currentObjects.Add(shader);
                         }
                     }
+#endif
 
                     // Add sub assets that are not already present
                     foreach (var obj in currentObjects)
@@ -493,8 +524,6 @@ namespace UnityEditor.VFX
                         if (m_GeneratedShader == null)
                             m_GeneratedShader = new List<Shader>();
 
-                        var baseCacheFolder = "Assets/VFXCache";
-
                         var oldGeneratedFile = new Dictionary<string, Object>();
                         foreach (var shader in m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()))
                         {
@@ -508,19 +537,20 @@ namespace UnityEditor.VFX
                         m_GeneratedComputeShader.Clear();
                         m_GeneratedShader.Clear();
 
+                        var currentCacheFolder = baseCacheFolder;
                         if (vfxAsset != null)
                         {
                             var path = AssetDatabase.GetAssetPath(vfxAsset);
                             path = path.Replace("Assets", "");
                             path = path.Replace(".asset", "");
-                            baseCacheFolder += path;
+                            currentCacheFolder += path;
                         }
 
-                        System.IO.Directory.CreateDirectory(baseCacheFolder);
+                        System.IO.Directory.CreateDirectory(currentCacheFolder);
                         for (int i = 0; i < generatedList.Count; ++i)
                         {
                             var generated = generatedList[i];
-                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", baseCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
                             string oldContent = "";
                             if (System.IO.File.Exists(path))
