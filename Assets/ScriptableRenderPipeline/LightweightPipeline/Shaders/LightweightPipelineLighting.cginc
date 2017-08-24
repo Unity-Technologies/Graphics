@@ -1,6 +1,27 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
+UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 reflectVec, half occlusion, half roughness)
+{
+    UnityIndirect o = (UnityIndirect)0;
+#ifdef LIGHTMAP_ON
+    o.diffuse = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)));
+#endif
+
+#if defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
+    o.diffuse += ambientColor;
+#endif
+    o.diffuse *= occlusion;
+
+    // perceptualRoughness
+    Unity_GlossyEnvironmentData g;
+    g.roughness = roughness;
+    g.reflUVW = reflectVec;
+    o.specular = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, g) * occlusion;
+
+    return o;
+}
+
 inline half3 EvaluateDirectionalLight(half3 diffuseColor, half4 specularGloss, half3 normal, half3 lightDir, half3 viewDir)
 {
     half NdotL = saturate(dot(normal, lightDir));
