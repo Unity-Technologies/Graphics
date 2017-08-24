@@ -22,6 +22,7 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireWorldPosition
         , IMayRequireVertexColor
         , IMayRequireViewDirectionTangentSpace
+        , IMayRequireTime
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -335,6 +336,14 @@ namespace UnityEngine.MaterialGraph
                 return false;
 
             return subGraph.activeNodes.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
+        }
+
+        public bool RequiresTime()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
         }
 
         public bool RequiresBitangent()

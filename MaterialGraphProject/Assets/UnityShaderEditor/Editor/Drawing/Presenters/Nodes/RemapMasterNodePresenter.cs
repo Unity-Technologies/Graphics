@@ -6,7 +6,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [Serializable]
+ /*   [Serializable]
     class RemapMasterControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
@@ -40,5 +40,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             controls.Add(instance);
             return controls;
         }
-    }
+    }*/
 }

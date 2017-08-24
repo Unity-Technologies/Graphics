@@ -1,27 +1,14 @@
-using System.Linq;
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 {
-    public class MaterialSubGraphAsset : AbstractMaterialGraphAsset
+    public class MaterialSubGraphAsset : ScriptableObject
     {
         [SerializeField]
         private SubGraph m_MaterialSubGraph = new SubGraph();
-
-        public override IGraph graph
-        {
-            get { return m_MaterialSubGraph; }
-        }
 
         public SubGraph subGraph
         {
 			get { return m_MaterialSubGraph; }
 			set { m_MaterialSubGraph = value; }
-        }
-
-        public void PostCreate()
-        {
-            m_MaterialSubGraph.PostCreate();
         }
     }
 }
