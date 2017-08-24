@@ -201,9 +201,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 litSettings.sorting.flags = SortFlags.CommonTransparent;
                 litSettings.inputFilter.SetQueuesTransparent();
 
-                RenderStateBlock renderStateBlock = new RenderStateBlock();
-                context.DrawRenderers(ref litSettings, renderStateBlock);
-
                 context.DrawRenderers(ref litSettings);
                 context.DrawRenderers(ref unlitSettings);
 
@@ -211,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     RenderPostProcess(ref context, postProcessLayer);
 
                 EndForwardRendering(ref context, stereoEnabled, postProcessEnabled);
-                
+
                 // Release temporary RT
                 var discardRT = CommandBufferPool.Get();
                 discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);

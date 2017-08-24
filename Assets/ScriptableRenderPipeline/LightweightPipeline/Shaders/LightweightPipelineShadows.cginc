@@ -54,7 +54,7 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(v2f i, half3 shadowDir)
+inline half ComputeShadowAttenuation(LightweightVertexOutputSimple i, half3 shadowDir)
 {
 #if _NORMALMAP
     half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
