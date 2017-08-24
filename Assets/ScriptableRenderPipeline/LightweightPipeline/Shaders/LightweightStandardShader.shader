@@ -73,6 +73,13 @@
             #pragma shader_feature _PARALLAXMAP
 
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
+            #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ _LIGHT_PROBES_ON
+            #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
+            #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
@@ -93,6 +100,7 @@
                 float4 posWorld = mul(unity_ObjectToWorld, v.vertex);
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
+
 #ifdef LIGHTMAP_ON
                 o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unityLightmapST.wz;
 #endif
@@ -110,11 +118,12 @@
                 o.tangentSpaceEyeVec = tangentSpaceEyeVec;
 #endif
 #endif
-
                 // TODO:
                 //TRANSFER_SHADOW(o);
 
-                o.fogCoord.yzw = max(half3(0, 0, 0), ShadeSH9(half4(normalWorld, 1)));
+#ifdef _LIGHT_PROBES_ON
+                o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normalWorld, 1)));
+#endif
 
                 o.normalWorld.w = Pow4(1 - saturate(dot(normalWorld, eyeVec))); // fresnel term
 #if !GLOSSMAP
@@ -160,18 +169,11 @@
                 half3 reflectVec = reflect(-i.eyeVec, i.normalWorld.xyz);
     #endif
 
-                // perceptualRoughness
-                Unity_GlossyEnvironmentData g;
-                g.roughness = 1 - smoothness;
-                g.reflUVW = reflectVec;
-
                 // TODO: shader keyword for occlusion
                 // TODO: Reflection Probe blend support.
                 // GI
-                UnityIndirect indirectLight;
                 half occlusion = Occlusion(uv);
-                indirectLight.diffuse = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)) + i.fogCoord.yzw) * occlusion;
-                indirectLight.specular = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, g) * occlusion;
+                UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, 1.0h - smoothness);
 
                 // PBS
     #if GLOSSMAP

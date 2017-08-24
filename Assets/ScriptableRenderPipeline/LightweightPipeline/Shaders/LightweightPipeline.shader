@@ -72,7 +72,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
-	        #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+            #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
@@ -80,6 +80,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
             #include "UnityStandardInput.cginc"
