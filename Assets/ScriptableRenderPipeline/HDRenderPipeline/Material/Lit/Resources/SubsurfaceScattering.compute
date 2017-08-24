@@ -1,4 +1,4 @@
-// ===================== Performs integration of the Disney BSSRDF over a disk =====================
+// =============== Convolves transmitted radiance with the Disney diffusion profile ================
 
 //--------------------------------------------------------------------------------------------------
 // Definitions
