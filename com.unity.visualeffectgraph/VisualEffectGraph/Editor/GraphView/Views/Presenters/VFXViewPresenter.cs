@@ -33,6 +33,8 @@ namespace UnityEditor.VFX.UI
         }
         private PresenterFactory m_PresenterFactory = new PresenterFactory();
 
+        public Preview3DPresenter presenter { get; set; }
+
         public VFXViewPresenter()
         {
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
@@ -311,6 +313,10 @@ namespace UnityEditor.VFX.UI
                         slot.UnlinkAll();
                     }
                 }
+            }
+            else if (element is Preview3DPresenter)
+            {
+                //TODO
             }
             else
             {
@@ -594,6 +600,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool HasVFXAsset()
+        {
+            return m_VFXAsset != null;
+        }
+
         public void SetVFXAsset(VFXAsset vfx, bool force)
         {
             if (m_VFXAsset != vfx || force)
@@ -623,6 +634,11 @@ namespace UnityEditor.VFX.UI
 
                 // Doesn't work for some reason
                 //View.FrameAll();
+
+                if (presenter != null)
+                    RemoveElement(presenter);
+                presenter = CreateInstance<Preview3DPresenter>();
+                AddElement(presenter);
             }
             SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }
