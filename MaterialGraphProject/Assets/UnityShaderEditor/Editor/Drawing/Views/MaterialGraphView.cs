@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -15,6 +16,15 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
+
+        [SerializeField]
+        private GraphDrawingData m_DrawingData = new GraphDrawingData();
+
+        public GraphDrawingData drawingData
+        {
+            get { return m_DrawingData; }
+        }
+
         public MaterialGraphView(EditorWindow editorWindow)
         {
             var shortcutHandler = new ShortcutHandler(
@@ -68,9 +78,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         }
                     }
                 }
-
-                //gm.AddSeparator("");
-                // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
+                
                 gm.ShowAsContext();
             }
             evt.StopPropagation();
@@ -124,11 +132,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             var graphDataSource = GetPresenter<MaterialGraphPresenter>();
             if (graphDataSource == null)
                 return;
+            
+            if (drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
 
-            var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter) d.presenter).node.guid))) return;
-
-            var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
+            var selectedDrawers = drawingData.selection
                 .Select(guid => contentViewContainer
                             .OfType<MaterialNodeView>()
                             .FirstOrDefault(drawer => ((MaterialNodePresenter) drawer.presenter).node.guid == guid))

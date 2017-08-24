@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         bool IsValidSlotConnection(int id);
     }
 
-    [Serializable]
+ /*   [Serializable]
     public class MasterRemapGraph : AbstractMaterialGraph
     {
         [NonSerialized]
@@ -96,5 +96,5 @@ namespace UnityEngine.MaterialGraph
                 node.CollectPreviewMaterialProperties(properties);
         }
 
-    }
+    }*/
 }

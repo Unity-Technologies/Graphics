@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Time/Time")]
-    public class TimeNode : AbstractMaterialNode, IRequiresTime
+    public class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";
         private const string kOutputSlotNameX = "Time/20";
@@ -53,6 +53,11 @@ namespace UnityEngine.MaterialGraph
                 default:
                     return "_Time";
             }
+        }
+
+        public bool RequiresTime()
+        {
+            return true;
         }
     }
 }
