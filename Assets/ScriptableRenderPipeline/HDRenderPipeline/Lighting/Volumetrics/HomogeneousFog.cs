@@ -4,6 +4,15 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [GenerateHLSL]
+    public struct VolumeProperties
+    {
+        public Vector3 scattering;
+        public float   anisotropy;
+        public Vector3 extinction;
+        public float   unused;
+    }
+
     [Serializable]
     public class VolumeParameters
     {
@@ -22,20 +31,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsVolumeUnbounded()
         {
-            return bounds.size == Vector3.positiveInfinity;
+            return bounds.size.x == float.PositiveInfinity &&
+                   bounds.size.y == float.PositiveInfinity &&
+                   bounds.size.z == float.PositiveInfinity;
         }
 
-        public Vector3 AbsorptionCoefficient()
+        public Vector3 GetAbsorptionCoefficient()
         {
-            return Vector3.Max(ExtinctionCoefficient() - ScatteringCoefficient(), Vector3.zero);
+            return Vector3.Max(GetExtinctionCoefficient() - GetScatteringCoefficient(), Vector3.zero);
         }
 
-        public Vector3 ScatteringCoefficient()
+        public Vector3 GetScatteringCoefficient()
         {
             return new Vector3(albedo.x / meanFreePath.x, albedo.y / meanFreePath.y, albedo.z / meanFreePath.z);
         }
 
-        public Vector3 ExtinctionCoefficient()
+        public Vector3 GetExtinctionCoefficient()
         {
             return new Vector3(1.0f / meanFreePath.x, 1.0f / meanFreePath.y, 1.0f / meanFreePath.z);
         }
@@ -50,10 +61,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             meanFreePath = new Vector3(1.0f / extinction.x, 1.0f / extinction.y, 1.0f / extinction.z);
             albedo       = new Vector3(scattering.x * meanFreePath.x, scattering.y * meanFreePath.y, scattering.z * meanFreePath.z);
 
-            ConstrainParameters();
+            Constrain();
         }
 
-        public void ConstrainParameters()
+        public void Constrain()
         {
             bounds.size = Vector3.Max(bounds.size, Vector3.zero);
 
@@ -67,6 +78,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
         }
+
+        public VolumeProperties GetProperties()
+        {
+            VolumeProperties properties = new VolumeProperties();
+
+            properties.scattering = GetScatteringCoefficient();
+            properties.anisotropy = anisotropy;
+            properties.extinction = GetExtinctionCoefficient();
+
+            return properties;
+        }
     }
 
     [ExecuteInEditMode]
@@ -75,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public VolumeParameters volumeParameters;
 
-        void Awake()
+        private void Awake()
         {
             if (volumeParameters == null)
             {
@@ -87,12 +109,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
         }
 
-        void Update()
+        private void Update()
         {
+        }
+
+        private void OnValidate()
+        {
+            volumeParameters.Constrain();
         }
 
         void OnDrawGizmos()

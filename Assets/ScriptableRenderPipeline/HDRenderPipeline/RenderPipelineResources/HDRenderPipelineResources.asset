@@ -24,6 +24,8 @@ MonoBehaviour:
     type: 3}
   subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
     type: 3}
+  volumetricLightingCS: {fileID: 7200000, guid: 799166e2ee6a4b041bba9e74f6942097,
+    type: 3}
   clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
     type: 3}
   buildDispatchIndirectShader: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14,

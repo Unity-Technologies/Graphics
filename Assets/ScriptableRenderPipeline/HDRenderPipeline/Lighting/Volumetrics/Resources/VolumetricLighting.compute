@@ -1,0 +1,53 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
+// #pragma enable_d3d11_debug_symbols
+
+#define GROUP_SIZE_1D 16
+#define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
+
+//--------------------------------------------------------------------------------------------------
+// Included headers
+//--------------------------------------------------------------------------------------------------
+
+#include "../HomogeneousFog.cs.hlsl"
+#include "../../../../Core/ShaderLibrary/Common.hlsl"
+#include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "../../../ShaderVariables.hlsl"
+
+//--------------------------------------------------------------------------------------------------
+// Inputs & outputs
+//--------------------------------------------------------------------------------------------------
+
+TEXTURE2D(_DepthTexture);               // Z-buffer
+RW_TEXTURE2D(float4, _LightingTexture); // Updated texture
+
+// Unity does not support structures inside constant buffers,
+// so we are forced to use a structured buffer instead.
+StructuredBuffer<VolumeProperties> _UnboundedVolume;
+
+//--------------------------------------------------------------------------------------------------
+// Implementation
+//--------------------------------------------------------------------------------------------------
+
+#pragma kernel VolumetricLighting
+
+[numthreads(GROUP_SIZE_2D, 1, 1)]
+void VolumetricLighting(uint2 groupId       : SV_GroupID,
+                        uint  groupThreadId : SV_GroupThreadID)
+{
+    // Note: any factor of 64 is a suitable wave size for our algorithm.
+    uint waveIndex = groupThreadId / 64;
+    uint laneIndex = groupThreadId % 64;
+    uint quadIndex = laneIndex / 4;
+
+    // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
+    uint  mortonCode = groupThreadId;
+    uint2 localCoord = DecodeMorton2D(mortonCode);
+    uint2 tileAnchor = groupId * GROUP_SIZE_1D;
+    uint2 pixelCoord = tileAnchor + localCoord;
+
+    // In-place UAV updates do not work on Intel GPUs.
+    _LightingTexture[pixelCoord] += float4(0.25, 0.25, 0.25, 0);
+}
