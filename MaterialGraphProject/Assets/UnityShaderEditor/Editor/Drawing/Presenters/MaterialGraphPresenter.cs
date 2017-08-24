@@ -13,7 +13,9 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
-        HashSet<INode> m_TimeDependentNodes = new HashSet<INode>();
+        Dictionary<Guid, MaterialNodePresenter> m_TimeDependentPresenters = new Dictionary<Guid, MaterialNodePresenter>();
+
+        public bool hasTimeDependentNodes { get { return m_TimeDependentPresenters.Any(); }}
 
         protected GraphTypeMapper typeMapper { get; set; }
 
@@ -239,37 +241,42 @@ namespace UnityEditor.MaterialGraph.Drawing
             // Calculate which nodes require updates each frame (i.e. are time-dependent).
 
             // Let the node set contain all the nodes that are directly time-dependent.
-            m_TimeDependentNodes.Clear();
-            foreach (var node in graphAsset.graph.GetNodes<INode>().Where(x => x is IRequiresTime))
-                m_TimeDependentNodes.Add(node);
+            m_TimeDependentPresenters.Clear();
+            foreach (var presenter in m_Elements.OfType<MaterialNodePresenter>().Where(x => x.node is IRequiresTime))
+                m_TimeDependentPresenters.Add(presenter.node.guid, presenter);
 
             // The wavefront contains time-dependent nodes from which we wish to propagate time-dependency into the
             // nodes that it feeds into.
-            var wavefront = new Stack<INode>(m_TimeDependentNodes);
+            var wavefront = new Stack<MaterialNodePresenter>(m_TimeDependentPresenters.Values);
             while (wavefront.Count > 0)
             {
-                var node = wavefront.Pop();
+                var presenter = wavefront.Pop();
                 // Loop through all nodes that the node feeds into.
-                foreach (var slot in node.GetOutputSlots<ISlot>())
+                foreach (var slot in presenter.node.GetOutputSlots<ISlot>())
                 {
-                    foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                    foreach (var edge in graphAsset.graph.GetEdges(slot.slotReference))
                     {
-                        var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                        if (!m_TimeDependentNodes.Contains(inputNode))
-                        {
-                            // If the node is not in the set of time-dependent nodes, add it.
-                            m_TimeDependentNodes.Add(inputNode);
+                        // We look at each node we feed into.
+                        var inputNodeGuid = edge.inputSlot.nodeGuid;
 
-                            // Also add it to the wavefront, such that we can process the nodes that it feeds into.
-                            wavefront.Push(inputNode);
+                        // If the input node is already in the set of time-dependent nodes, we don't need to process it.
+                        if (m_TimeDependentPresenters.ContainsKey(inputNodeGuid))
+                            continue;
+
+                        // Find the matching presenter.
+                        var inputPresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == inputNodeGuid);
+                        if (inputPresenter == null)
+                        {
+                            Debug.LogErrorFormat("A presenter could not be found for the node with guid `{0}`", inputNodeGuid);
+                            continue;
                         }
+
+                        // Add the node to the set of time-dependent nodes, and to the wavefront such that we can process the nodes that it feeds into.
+                        m_TimeDependentPresenters.Add(inputPresenter.node.guid, inputPresenter);
+                        wavefront.Push(inputPresenter);
                     }
                 }
             }
-
-            // Update presenters `requiresTime` based on the hash set values.
-            foreach (var nodePresenter in m_Elements.OfType<MaterialNodePresenter>())
-                nodePresenter.requiresTime = m_TimeDependentNodes.Contains(nodePresenter.node);
         }
 
         public virtual void Initialize(IGraphAsset graphAsset, MaterialGraphEditWindow container)
@@ -472,6 +479,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void RemoveElement(GraphElementPresenter element)
         {
             throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
+        }
+
+        public void UpdateTimeDependentNodes()
+        {
+            foreach (var nodePresenter in m_TimeDependentPresenters.Values)
+            {
+                nodePresenter.OnModified(ModificationScope.Node);
+            }
         }
     }
 }

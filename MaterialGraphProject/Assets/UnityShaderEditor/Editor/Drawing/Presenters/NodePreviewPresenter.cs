@@ -16,42 +16,47 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected NodePreviewPresenter()
         {}
 
-        private MaterialGraphPreviewGenerator m_PreviewGenerator;
+        MaterialGraphPreviewGenerator m_PreviewGenerator;
 
         [NonSerialized]
-        private int m_LastShaderVersion = -1;
+        int m_LastShaderVersion = -1;
 
         [NonSerialized]
-        private Material m_PreviewMaterial;
+        Material m_PreviewMaterial;
 
         [NonSerialized]
-        private Shader m_PreviewShader;
+        Shader m_PreviewShader;
 
-        private AbstractMaterialNode m_Node;
+        AbstractMaterialNode m_Node;
 
         [SerializeField]
-        private ModificationScope m_modificationScope;
+        ModificationScope m_ModificationScope;
 
         // Null means no modification is currently in progress.
         public ModificationScope modificationScope
         {
             get
             {
-                return m_modificationScope;
+                return m_ModificationScope;
             }
             set
             {
                 // External changes can only set the modification scope higher, to prevent missing out on a previously set shader regeneration.
-                if (m_modificationScope >= value)
+                if (m_ModificationScope >= value)
                     return;
-                m_modificationScope = value;
+                m_ModificationScope = value;
             }
         }
 
         [NonSerialized]
-        private Texture m_texture;
+        Texture m_Texture;
 
-        private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
+        public Texture texture
+        {
+            get { return m_Texture; }
+        }
+
+        PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         public Material previewMaterial
         {
@@ -66,7 +71,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private MaterialGraphPreviewGenerator previewGenerator
+        MaterialGraphPreviewGenerator previewGenerator
         {
             get
             {
@@ -81,43 +86,46 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Initialize(AbstractMaterialNode node)
         {
             m_Node = node;
-            m_modificationScope = ModificationScope.Graph;
+            m_ModificationScope = ModificationScope.Graph;
         }
 
-        public Texture Render(Vector2 dimension)
+        public void UpdateTexture()
         {
             if (m_Node == null)
-                return null;
+            {
+                m_Texture = null;
+                return;
+            }
 
             if (m_Node.hasPreview == false)
-                return null;
+            {
+                m_Texture = null;
+                return;
+            }
 
-            var scope = m_modificationScope;
-            m_modificationScope = ModificationScope.Nothing;
+            var scope = m_ModificationScope;
+            m_ModificationScope = ModificationScope.Nothing;
 
             if (scope != ModificationScope.Nothing)
             {
-                bool status = false;
                 if (scope >= ModificationScope.Graph)
                 {
                     // TODO: Handle shader regeneration error
-                    status = UpdatePreviewShader();
+                    var status = UpdatePreviewShader();
                 }
-                m_texture = RenderPreview(dimension);
+                m_Texture = RenderPreview(new Vector2(256, 256));
             }
-            else if (m_texture == null)
+            else if (texture == null)
             {
-                m_texture = RenderPreview(dimension);
+                m_Texture = RenderPreview(new Vector2(256, 256));
             }
-
-            return m_texture;
         }
+
         void OnDisable()
         {
             if (m_PreviewGenerator != null)
                 m_PreviewGenerator.Dispose();
         }
-
 
         protected virtual string GetPreviewShaderString()
         {
@@ -141,7 +149,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             return ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
         }
 
-        private bool UpdatePreviewShader()
+        bool UpdatePreviewShader()
         {
             if (m_Node == null || m_Node.hasError)
                 return false;
@@ -181,14 +189,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         ///     RenderPreview gets called in OnPreviewGUI. Nodes can override
         ///     RenderPreview and do their own rendering to the render texture
         /// </summary>
-        private Texture RenderPreview(Vector2 targetSize)
+        Texture RenderPreview(Vector2 targetSize)
         {
             previewMaterial.shader = m_PreviewShader;
             UpdateMaterialProperties(m_Node, previewMaterial);
             return previewGenerator.DoRenderPreview(previewMaterial, m_GeneratedShaderMode, new Rect(0, 0, targetSize.x, targetSize.y));
         }
 
-        private static void SetPreviewMaterialProperty(PreviewProperty previewProperty, Material mat)
+        static void SetPreviewMaterialProperty(PreviewProperty previewProperty, Material mat)
         {
             switch (previewProperty.m_PropType)
             {
