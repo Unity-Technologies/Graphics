@@ -14,7 +14,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualElement m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControls;
         Image m_PreviewImage;
-        NodePreviewPresenter m_CurrentPreview;
         bool m_IsScheduled;
 
         public MaterialNodeView()
@@ -22,9 +21,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             CreateContainers();
 
             AddToClassList("MaterialNode");
-
-            onEnter += SchedulePolling;
-            onLeave += UnschedulePolling;
         }
 
         void CreateContainers()
@@ -46,45 +42,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             leftContainer.Add(m_PreviewImage);
         }
 
-        void SchedulePolling()
-        {
-            if (panel != null)
-            {
-                if (!m_IsScheduled)
-                {
-                    this.Schedule(InvalidateUIIfNeedsTime).StartingIn(0).Every(16);
-                    m_IsScheduled = true;
-                }
-            }
-            else
-            {
-                m_IsScheduled = false;
-            }
-        }
-
-        void UnschedulePolling()
-        {
-            if (m_IsScheduled && panel != null)
-            {
-                this.Unschedule(InvalidateUIIfNeedsTime);
-            }
-            m_IsScheduled = false;
-        }
-
-        void InvalidateUIIfNeedsTime(TimerState timerState)
-        {
-            var nodePresenter = GetPresenter<MaterialNodePresenter>();
-            if (nodePresenter.requiresTime)
-            {
-                nodePresenter.OnModified(ModificationScope.Node);
-                UpdatePreviewTexture(m_CurrentPreview);
-            }
-        }
-
         void UpdatePreviewTexture(NodePreviewPresenter preview)
         {
-            var texture = preview != null ? preview.Render(new Vector2(256, 256)) : null;
-            if (texture == null)
+            if (preview != null)
+                preview.UpdateTexture();
+            if (preview == null || preview.texture == null)
             {
                 m_PreviewImage.AddToClassList("inactive");
                 m_PreviewImage.image = Texture2D.whiteTexture;
@@ -92,7 +54,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             else
             {
                 m_PreviewImage.RemoveFromClassList("inactive");
-                m_PreviewImage.image = texture;
+                m_PreviewImage.image = preview.texture;
             }
             Dirty(ChangeType.Repaint);
         }
@@ -130,15 +92,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_ControlsContainer.Clear();
                 m_CurrentControls.Clear();
                 m_PreviewImage.AddToClassList("inactive");
-                m_CurrentPreview = null;
-                UpdatePreviewTexture(m_CurrentPreview);
+                UpdatePreviewTexture(null);
                 return;
             }
 
             UpdateControls(node);
-
-            m_CurrentPreview = node.preview;
-            UpdatePreviewTexture(m_CurrentPreview);
+            UpdatePreviewTexture(node.preview);
 
             if (node.expanded)
                 m_PreviewImage.RemoveFromClassList("hidden");

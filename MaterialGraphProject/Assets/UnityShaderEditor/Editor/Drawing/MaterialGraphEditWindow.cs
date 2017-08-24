@@ -17,7 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         bool shouldRepaint
         {
-            get { return allowAlwaysRepaint && inMemoryAsset != null && inMemoryAsset.shouldRepaint; }
+            get { return m_GraphEditorView != null && m_GraphEditorView.presenter.hasTimeDependentNodes; }
         }
 
         [SerializeField]
@@ -66,6 +66,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Update()
         {
+            m_GraphEditorView.presenter.UpdateTimeDependentNodes();
             if (shouldRepaint)
                 Repaint();
         }
