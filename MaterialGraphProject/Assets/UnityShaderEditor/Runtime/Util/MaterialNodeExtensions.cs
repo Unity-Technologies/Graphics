@@ -2,7 +2,7 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    public static class NodeExtensions
+    public static class MaterialNodeExtensions
     {
         public static bool RequiresTime(this INode node)
         {
