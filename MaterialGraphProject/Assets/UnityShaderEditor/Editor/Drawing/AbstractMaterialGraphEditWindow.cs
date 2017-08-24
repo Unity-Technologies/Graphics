@@ -317,7 +317,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             allowAlwaysRepaint = !allowAlwaysRepaint;
         }
 
-        public void ChangeSelction(Object newSelection)
+        public void ChangeSelection(Object newSelection)
         {
             if (!EditorUtility.IsPersistent(newSelection))
                 return;
@@ -345,13 +345,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             source.Initialize(inMemoryAsset, this);
             m_GraphEditorView.presenter = source;
 
-            //m_GraphView.StretchToParentSize();
+            titleContent = new GUIContent(selected.name);
+
             Repaint();
-            /*if (refocus)
-            {
-                focused = false;
-                m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
-            }*/
         }
     }
 }

@@ -35,7 +35,7 @@ public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
         {
             var window = CreateInstance<SubGraphEditWindow>();
             window.Show();
-            window.ChangeSelction(asset);
+            window.ChangeSelection(asset);
         }
     }
 }
