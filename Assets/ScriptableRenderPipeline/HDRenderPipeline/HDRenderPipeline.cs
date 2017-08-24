@@ -296,6 +296,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_SssHorizontalFilterAndCombinePass;
         // <<< Old SSS Model
 
+        ComputeShader m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
+        int m_VolumetricLightingKernel;
+        static ComputeBuffer s_UnboundedVolumeData = null;
+
         Material m_CameraMotionVectorsMaterial;
 
         Material m_DebugViewMaterialGBuffer;
@@ -482,6 +486,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
+
+            m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLighting");
+            s_UnboundedVolumeData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
         }
 
         void InitializeDebugMaterials()
@@ -531,6 +538,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Cleanup();
 
             m_SsaoEffect.Cleanup();
+
+            Utilities.SafeRelease(s_UnboundedVolumeData);
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -888,6 +897,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, true); // Render deferred or forward opaque
                 RenderForwardOnlyOpaque(m_CullResults, camera, renderContext, cmd);
 
+                VolumetricLightingPass(hdCamera, cmd);
+
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_DebugDisplaySettings);
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
@@ -1103,7 +1114,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                     // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
-                    //
                     cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
 
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBufferRT);  // Cannot set a RT on a material
@@ -1172,6 +1182,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passName, Utilities.kRendererConfigurationBakedLighting);
                 }
             }
+        }
+
+        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+
+            HomogeneousFog unboundedFogComponent = null;
+
+            foreach (HomogeneousFog fogComponent in fogComponents)
+            {
+                if (fogComponent.volumeParameters.IsVolumeUnbounded())
+                {
+                    unboundedFogComponent = fogComponent;
+                    break;
+                }
+            }
+
+            if (unboundedFogComponent == null) { return; }
+
+            List<VolumeProperties> unboundedVolumeProperties = new List<VolumeProperties>();
+            unboundedVolumeProperties.Add(unboundedFogComponent.volumeParameters.GetProperties());
+
+            // TODO: probably unnecessary to update the buffer every frame.
+            s_UnboundedVolumeData.SetData<VolumeProperties>(unboundedVolumeProperties);
+
+            hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
+
+            // TODO: replace strings with nameIDs.
+            cmd.SetComputeBufferParam( m_VolumetricLightingCS, m_VolumetricLightingKernel, "_UnboundedVolume",        s_UnboundedVolumeData);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, "_LightingTexture",        m_CameraColorBufferRT);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+
+            // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
+            cmd.DispatchCompute(m_VolumetricLightingCS, m_VolumetricLightingKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
         }
 
         // Render material that are forward opaque only (like eye), this include unlit material
