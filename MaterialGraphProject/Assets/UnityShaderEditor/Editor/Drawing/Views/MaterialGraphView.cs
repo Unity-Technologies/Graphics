@@ -26,19 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public MaterialGraphView(EditorWindow editorWindow)
         {
-            var shortcutHandler = new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-            {
-                {Event.KeyboardEvent("a"), FrameAll},
-                {Event.KeyboardEvent("f"), FrameSelection},
-                {Event.KeyboardEvent("o"), FrameOrigin},
-                {Event.KeyboardEvent("#tab"), FramePrev},
-                {Event.KeyboardEvent("tab"), FrameNext}
-            });
-
-            onEnter += () => editorWindow.rootVisualContainer.parent.AddManipulator(shortcutHandler);
-            onLeave += () => editorWindow.rootVisualContainer.parent.RemoveManipulator(shortcutHandler);
-
             this.AddManipulator(new ContentZoomer());
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new RectangleSelector());
