@@ -15,10 +15,10 @@ namespace UnityEditor.MaterialGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-			var graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
             graph.AddNode(new MetallicMasterNode());
-			File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
-			AssetDatabase.Refresh ();
+            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            AssetDatabase.Refresh();
         }
     }
 }

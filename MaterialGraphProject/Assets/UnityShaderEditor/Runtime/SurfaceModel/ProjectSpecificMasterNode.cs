@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
     {
         public override string GetSubShader(GenerationMode mode)
         {
-           
+
         }
 
         public override string GetFullShader(
@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
                 shaderPropertiesVisitor,
                 shaderPropertyUsagesVisitor,
                 mode);
-            
+
             var tagsVisitor = new ShaderGenerator();
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();

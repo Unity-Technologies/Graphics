@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
             return
-            @"
+                @"
 {
     result = pow(first, second);
 }

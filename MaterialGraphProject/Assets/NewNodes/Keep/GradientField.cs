@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 
 using System.Reflection;
@@ -7,7 +7,6 @@ using Type = System.Type;
 
 public static class GUIGradientField
 {
-
     #region Initial Setup
 
     private static MethodInfo s_miGradientField1;
@@ -42,5 +41,4 @@ public static class GUIGradientField
 
         return gradient;
     }
-
 }

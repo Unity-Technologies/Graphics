@@ -39,7 +39,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Dispose() {
 
         }
-        
+
     }*/
 
     /*internal class SavedRenderTargetState
@@ -249,13 +249,13 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 m_Camera.targetTexture = m_RenderTexture;
             }
-            
+
             Unsupported.SetOverrideRenderSettings(m_Scene);
-            
+
             m_CheckerboardMaterial.SetFloat("_X", 32);
             m_CheckerboardMaterial.SetFloat("_Y", 32);
             Graphics.Blit(Texture2D.whiteTexture, m_RenderTexture, m_CheckerboardMaterial);
-            
+
             if (mode == PreviewMode.Preview3D)
             {
                 m_Camera.transform.position = -Vector3.forward * 5;
@@ -301,25 +301,25 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_RenderTexture = null;
             }
 
-            if (Light0 == null) 
+            if (Light0 == null)
             {
                 UnityEngine.Object.DestroyImmediate(Light0.gameObject);
                 Light0 = null;
             }
 
-            if (Light1 == null) 
+            if (Light1 == null)
             {
                 UnityEngine.Object.DestroyImmediate(Light1.gameObject);
                 Light1 = null;
             }
 
-            if (m_Camera == null) 
+            if (m_Camera == null)
             {
                 UnityEngine.Object.DestroyImmediate(m_Camera.gameObject);
                 m_Camera = null;
             }
 
-            if (m_CheckerboardMaterial == null) 
+            if (m_CheckerboardMaterial == null)
             {
                 UnityEngine.Object.DestroyImmediate(m_CheckerboardMaterial);
                 m_CheckerboardMaterial = null;

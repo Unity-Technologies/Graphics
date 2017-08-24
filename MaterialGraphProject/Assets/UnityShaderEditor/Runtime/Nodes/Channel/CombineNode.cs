@@ -94,7 +94,7 @@ namespace UnityEngine.MaterialGraph
                     outputString += ", ";
             }
             outputString += ")";
-            
+
             return outputString;
         }
     }

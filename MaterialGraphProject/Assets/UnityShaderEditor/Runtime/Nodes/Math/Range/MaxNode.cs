@@ -10,7 +10,6 @@ namespace UnityEngine.MaterialGraph
             name = "Maximum";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Max", BindingFlags.Static | BindingFlags.NonPublic);

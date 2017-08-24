@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         Active
     }
 
-	// TODO JOCE: This is to mimic the behavior of a button. Remove and replace with actual button in TitleBar.
+    // TODO JOCE: This is to mimic the behavior of a button. Remove and replace with actual button in TitleBar.
     public class Clicker : MouseManipulator
     {
         public delegate void StateChangeCallback(ClickerState newState);
@@ -24,10 +24,10 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualElement initialTarget;
         ClickerState state;
 
-		public Clicker()
-		{
-			activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
-		}
+        public Clicker()
+        {
+            activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
+        }
 
         protected override void RegisterCallbacksOnTarget()
         {

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -9,6 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "CartesianToPolar";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_CartesianToPolar", BindingFlags.Static | BindingFlags.NonPublic);

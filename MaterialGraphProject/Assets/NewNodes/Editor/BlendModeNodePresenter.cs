@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.MaterialGraph;
@@ -19,11 +19,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             cNode.blendMode = (BlendModesEnum)EditorGUILayout.EnumPopup("", cNode.blendMode);
         }
 
- /*       public override float GetHeight()
-        {
-            return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
-        }
- */
+        /*       public override float GetHeight()
+               {
+                   return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
+               }
+        */
         public override float GetHeight()
         {
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.standardVerticalSpacing;

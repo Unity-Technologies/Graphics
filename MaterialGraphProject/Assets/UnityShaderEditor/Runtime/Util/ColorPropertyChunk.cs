@@ -4,19 +4,19 @@ namespace UnityEngine.MaterialGraph
 {
     public class ColorPropertyChunk : PropertyChunk
     {
-		public enum ColorType
-		{
-			Default,
-			HDR
-		}
+        public enum ColorType
+        {
+            Default,
+            HDR
+        }
 
         private Color m_DefaultColor;
-		private ColorType m_colorType;
+        private ColorType m_colorType;
 
-		public ColorPropertyChunk(string propertyName, string propertyDescription, Color defaultColor, ColorType colorType, HideState hideState)
+        public ColorPropertyChunk(string propertyName, string propertyDescription, Color defaultColor, ColorType colorType, HideState hideState)
             : base(propertyName, propertyDescription, hideState)
         {
-			m_colorType = colorType;
+            m_colorType = colorType;
             m_DefaultColor = defaultColor;
         }
 
@@ -28,8 +28,8 @@ namespace UnityEngine.MaterialGraph
         public override string GetPropertyString()
         {
             var result = new StringBuilder();
-			if(m_colorType == ColorType.HDR)
-				result.Append ("[HDR]");
+            if (m_colorType == ColorType.HDR)
+                result.Append("[HDR]");
             result.Append(propertyName);
             result.Append("(\"");
             result.Append(propertyDescription);

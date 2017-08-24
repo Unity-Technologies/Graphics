@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 #if UNITY_EDITOR
@@ -143,7 +143,6 @@ namespace UnityEngine.MaterialGraph
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
                 lodName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector1, true);
             }
-
             //if no input is specified, default to mipmap 0
             else
                 lodName = "0";
@@ -193,8 +192,8 @@ namespace UnityEngine.MaterialGraph
                     defaultTexture, m_TextureType,
                     PropertyChunk.HideState.Visible,
                     exposedState == ExposedState.Exposed ?
-                        TexturePropertyChunk.ModifiableState.Modifiable
-                        : TexturePropertyChunk.ModifiableState.NonModifiable));
+                    TexturePropertyChunk.ModifiableState.Modifiable
+                    : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

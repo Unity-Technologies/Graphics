@@ -11,10 +11,10 @@ namespace UnityEngine.MaterialGraph
             NonModifiable
         }
 
-		private readonly Cubemap m_DefaultCube;
+        private readonly Cubemap m_DefaultCube;
         private readonly ModifiableState m_Modifiable;
 
-		public CubemapPropertyChunk(string propertyName, string propertyDescription, Cubemap defaultTexture, HideState hidden, ModifiableState modifiableState)
+        public CubemapPropertyChunk(string propertyName, string propertyDescription, Cubemap defaultTexture, HideState hidden, ModifiableState modifiableState)
             : base(propertyName, propertyDescription, hidden)
         {
             m_DefaultCube = defaultTexture;

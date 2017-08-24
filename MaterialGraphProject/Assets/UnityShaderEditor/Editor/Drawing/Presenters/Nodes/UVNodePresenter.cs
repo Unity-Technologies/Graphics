@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (cNode == null)
                 return;
 
-            cNode.uvChannel = (UVChannel) EditorGUILayout.EnumPopup("Channel", cNode.uvChannel);
+            cNode.uvChannel = (UVChannel)EditorGUILayout.EnumPopup("Channel", cNode.uvChannel);
         }
 
         public override float GetHeight()

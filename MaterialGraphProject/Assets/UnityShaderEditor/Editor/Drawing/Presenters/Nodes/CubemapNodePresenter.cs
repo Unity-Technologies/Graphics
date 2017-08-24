@@ -10,25 +10,25 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         //private string[] m_TextureTypeNames;
         //private string[] textureTypeNames
-       /* {
-            get
-            {
-				if (m_TextureTypeNames == null)
-					m_TextureTypeNames = Enum.GetNames(typeof(TextureType));
-				return m_TextureTypeNames;
-            }
-        }*/
+        /* {
+             get
+             {
+                 if (m_TextureTypeNames == null)
+                     m_TextureTypeNames = Enum.GetNames(typeof(TextureType));
+                 return m_TextureTypeNames;
+             }
+         }*/
 
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-			var tNode = node as UnityEngine.MaterialGraph.CubemapNode;
+            var tNode = node as UnityEngine.MaterialGraph.CubemapNode;
             if (tNode == null)
                 return;
 
             tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
-			tNode.defaultCube = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Cubemap"), tNode.defaultCube, typeof(Cubemap), null) as Cubemap;
+            tNode.defaultCube = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Cubemap"), tNode.defaultCube, typeof(Cubemap), null) as Cubemap;
             //tNode.textureType = (TextureType)EditorGUILayout.Popup((int)tNode.textureType, textureTypeNames, EditorStyles.popup);
         }
 

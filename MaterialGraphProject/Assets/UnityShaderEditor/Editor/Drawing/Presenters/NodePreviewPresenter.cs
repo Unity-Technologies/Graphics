@@ -137,7 +137,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return string.Empty;
 
                 List<PropertyGenerator.TextureInfo> defaultTextures;
-                var resultShader =  ((IMasterNode) m_Node).GetFullShader(GenerationMode.Preview, m_Node.guid + "_preview", out defaultTextures);
+                var resultShader =  ((IMasterNode)m_Node).GetFullShader(GenerationMode.Preview, m_Node.guid + "_preview", out defaultTextures);
 
                 if (((IMasterNode)m_Node).has3DPreview())
                 {
@@ -157,7 +157,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var resultShader = GetPreviewShaderString();
             Debug.Log("RecreateShaderAndMaterial : " + m_Node.GetVariableNameForNode() + Environment.NewLine + resultShader);
             string shaderOuputString = resultShader.Replace("UnityEngine.MaterialGraph", "Generated");
-            System.IO.File.WriteAllText(Application.dataPath+"/GeneratedShader.shader", shaderOuputString);
+            System.IO.File.WriteAllText(Application.dataPath + "/GeneratedShader.shader", shaderOuputString);
 
             if (string.IsNullOrEmpty(resultShader))
                 return false;
@@ -203,9 +203,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 case PropertyType.Texture:
                     mat.SetTexture(previewProperty.m_Name, previewProperty.m_Texture);
                     break;
-				case PropertyType.Cubemap:
-					mat.SetTexture(previewProperty.m_Name, previewProperty.m_Cubemap);
-					break;
+                case PropertyType.Cubemap:
+                    mat.SetTexture(previewProperty.m_Name, previewProperty.m_Cubemap);
+                    break;
                 case PropertyType.Color:
                     mat.SetColor(previewProperty.m_Name, previewProperty.m_Color);
                     break;

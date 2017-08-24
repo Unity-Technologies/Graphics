@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Graphing;
 
@@ -7,7 +7,6 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Texture/Sampler State")]
     public class SamplerStateNode : AbstractMaterialNode
     {
-
         public enum FilterMode
         {
             Linear,

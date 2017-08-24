@@ -2,26 +2,26 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Art/Conversion/RGBtoHSV")]
-	public class RGBtoHSVNode : CodeFunctionNode
-	{
-		public RGBtoHSVNode ()
-		{
-			name = "RGBtoHSV";
-		}
+    [Title("Art/Conversion/RGBtoHSV")]
+    public class RGBtoHSVNode : CodeFunctionNode
+    {
+        public RGBtoHSVNode()
+        {
+            name = "RGBtoHSV";
+        }
 
-	    protected override MethodInfo GetFunctionToConvert()
-	    {
-	        return GetType().GetMethod("Unity_RGBtoHSV", BindingFlags.Static | BindingFlags.NonPublic);
-	    }
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_RGBtoHSV", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-	    static string Unity_RGBtoHSV(
-	        [Slot(0, Binding.None)] Vector3 rgb,
-	        [Slot(1, Binding.None)] out Vector3 hsv)
-	    {
-	        hsv = Vector3.zero;
-	        return
-	            @"
+        static string Unity_RGBtoHSV(
+            [Slot(0, Binding.None)] Vector3 rgb,
+            [Slot(1, Binding.None)] out Vector3 hsv)
+        {
+            hsv = Vector3.zero;
+            return
+                @"
 {
     //Reference code from:http://www.chilliant.com/rgb2hsv.html
     {precision}4 K = {precision}4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -32,6 +32,6 @@ namespace UnityEngine.MaterialGraph
     hsv = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 }
 ";
-	    }
-	}
+        }
+    }
 }

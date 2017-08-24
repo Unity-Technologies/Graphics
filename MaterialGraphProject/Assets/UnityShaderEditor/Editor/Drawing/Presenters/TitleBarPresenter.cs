@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         List<TitleBarButtonPresenter> m_leftItems;
         List<TitleBarButtonPresenter> m_rightItems;
-		IMaterialGraphEditWindow m_Owner;
+        IMaterialGraphEditWindow m_Owner;
 
         public IEnumerable<TitleBarButtonPresenter> leftItems
         {
@@ -28,14 +28,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected TitleBarPresenter()
         {}
 
-		public void Initialize(IMaterialGraphEditWindow graphWindow)
+        public void Initialize(IMaterialGraphEditWindow graphWindow)
         {
-			m_Owner = graphWindow;
+            m_Owner = graphWindow;
             m_leftItems = new List<TitleBarButtonPresenter>();
             m_rightItems = new List<TitleBarButtonPresenter>();
 
             var currentGraphItem = CreateInstance<TitleBarButtonPresenter>();
-			currentGraphItem.text = "Put name here";
+            currentGraphItem.text = "Put name here";
             m_leftItems.Add(currentGraphItem);
 
             var updateAsset = CreateInstance<TitleBarButtonPresenter>();
@@ -49,25 +49,25 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_leftItems.Add(toSubGraph);
 
             var showInProjectItem = CreateInstance<TitleBarButtonPresenter>();
-			showInProjectItem.text = "Show in project";
-			showInProjectItem.onClick += OnShowInProjectClick;
-			m_leftItems.Add(showInProjectItem);
+            showInProjectItem.text = "Show in project";
+            showInProjectItem.onClick += OnShowInProjectClick;
+            m_leftItems.Add(showInProjectItem);
 
             var optionsItem = CreateInstance<TitleBarButtonPresenter>();
-			optionsItem.text = "Time";
-			optionsItem.onClick += ToggleTime;
+            optionsItem.text = "Time";
+            optionsItem.onClick += ToggleTime;
             m_rightItems.Add(optionsItem);
         }
 
-		void OnShowInProjectClick()
-		{
-			if (m_Owner != null)
-				m_Owner.PingAsset ();
-		}
+        void OnShowInProjectClick()
+        {
+            if (m_Owner != null)
+                m_Owner.PingAsset();
+        }
 
         void UpdateAsset()
         {
-			m_Owner.UpdateAsset ();
+            m_Owner.UpdateAsset();
         }
 
         void ToSubGraph()
@@ -75,9 +75,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Owner.ToSubGraph();
         }
 
-		void ToggleTime()
-		{
-			m_Owner.ToggleRequiresTime();
-		}
+        void ToggleTime()
+        {
+            m_Owner.ToggleRequiresTime();
+        }
     }
 }

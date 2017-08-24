@@ -8,7 +8,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     class TransformControlPresenter : GraphControlPresenter
     {
-
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
@@ -17,15 +16,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (tNode == null)
                 return;
 
-			//EditorGUILayout.BeginHorizontal ();
-			tNode.spaceFrom = (SimpleMatrixType)EditorGUILayout.EnumPopup ("From", tNode.spaceFrom);
-			tNode.spaceTo = (SimpleMatrixType)EditorGUILayout.EnumPopup ("To", tNode.spaceTo);
-			//EditorGUILayout.BeginHorizontal ();
+            //EditorGUILayout.BeginHorizontal ();
+            tNode.spaceFrom = (SimpleMatrixType)EditorGUILayout.EnumPopup("From", tNode.spaceFrom);
+            tNode.spaceTo = (SimpleMatrixType)EditorGUILayout.EnumPopup("To", tNode.spaceTo);
+            //EditorGUILayout.BeginHorizontal ();
         }
 
         public override float GetHeight()
         {
-			return (EditorGUIUtility.singleLineHeight + 6 * EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+            return (EditorGUIUtility.singleLineHeight + 6 * EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 

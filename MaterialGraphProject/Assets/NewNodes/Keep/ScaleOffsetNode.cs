@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -26,6 +26,5 @@ namespace UnityEngine.MaterialGraph
 }
 ";
         }
-
     }
 }

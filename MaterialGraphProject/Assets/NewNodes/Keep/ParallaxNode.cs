@@ -1,4 +1,4 @@
-﻿using UnityEngine.Graphing;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -61,18 +61,21 @@ namespace UnityEngine.MaterialGraph
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector2, Vector4.zero);
         }
+
         protected virtual string GetInputSlot1Name()
         {
             return kInputSlot1ShaderName;
         }
+
         protected virtual string GetOutputSlotName()
         {
             return kOutputSlotShaderName;
         }
+
         protected virtual string GetFunctionPrototype(string arg1Name, string arg2Name, string arg3Name)
         {
             return "inline " + precision + "2 " + GetFunctionName() + " (" +
-                precision + " " + arg1Name + ", " + 
+                precision + " " + arg1Name + ", " +
                 precision + "2 " + arg2Name + ", " +
                 precision + "3 " + arg3Name + ")";
         }
@@ -102,7 +105,7 @@ namespace UnityEngine.MaterialGraph
         protected virtual string GetFunctionCallBody(string inputValue1)
         {
             var channel = UVChannel.uv0;
-            
+
             return GetFunctionName() + " (" +
                 inputValue1 + ", " +
                 channel.GetUVName() + ", " +
@@ -113,10 +116,10 @@ namespace UnityEngine.MaterialGraph
         {
             return channel == UVChannel.uv0;
         }
+
         public bool RequiresViewDirectionTangentSpace()
         {
             return true;
         }
     }
 }
-

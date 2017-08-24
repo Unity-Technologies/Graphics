@@ -8,7 +8,7 @@ namespace UnityEngine.MaterialGraph
     }
 
     [Title("Input/Geometry/UV")]
-	public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "UV";
@@ -32,7 +32,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         public override bool hasPreview { get { return true; } }
-        
+
         public UVNode()
         {
             name = "UV";

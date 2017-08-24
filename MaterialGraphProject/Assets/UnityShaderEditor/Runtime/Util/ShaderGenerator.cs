@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
 
         public static string GetUVName(this UVChannel channel)
         {
-            return UV[(int) channel];
+            return UV[(int)channel];
         }
     }
 
@@ -283,7 +283,7 @@ namespace UnityEngine.MaterialGraph
 
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
             {
-                var channel = (UVChannel) uvIndex;
+                var channel = (UVChannel)uvIndex;
                 if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
                 {
                     shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, (uvIndex + 5)), true);
@@ -328,18 +328,18 @@ namespace UnityEngine.MaterialGraph
 
                 shaderBodyVisitor.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".x = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceTangent + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceTangent + ");", true);
 
                 shaderBodyVisitor.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".y = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
 
                 shaderBodyVisitor.AddShaderChunk(
                     ShaderGeneratorNames.TangentSpaceViewDirection + ".z = dot(" +
-                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                        ShaderGeneratorNames.WorldSpaceNormal + ");", true);
+                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                    ShaderGeneratorNames.WorldSpaceNormal + ");", true);
             }
 
             if (requiresVertexColor)

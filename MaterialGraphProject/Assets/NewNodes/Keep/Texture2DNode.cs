@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 #if UNITY_EDITOR
@@ -109,10 +109,9 @@ namespace UnityEngine.MaterialGraph
                     defaultTexture, m_TextureType,
                     PropertyChunk.HideState.Visible,
                     exposedState == ExposedState.Exposed ?
-                        TexturePropertyChunk.ModifiableState.Modifiable
-                        : TexturePropertyChunk.ModifiableState.NonModifiable));
+                    TexturePropertyChunk.ModifiableState.Modifiable
+                    : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
-
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -122,7 +121,6 @@ namespace UnityEngine.MaterialGraph
                 visitor.AddShaderChunk("UNITY_DECLARE_TEX2D(" + propertyName + ");", true);
             }
         }
-
 
         public override PreviewProperty GetPreviewProperty()
         {
@@ -135,6 +133,5 @@ namespace UnityEngine.MaterialGraph
         }
 
         public override PropertyType propertyType { get { return PropertyType.Texture; } }
-
     }
 }

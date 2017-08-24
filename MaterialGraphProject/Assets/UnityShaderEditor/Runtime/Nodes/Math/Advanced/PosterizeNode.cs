@@ -20,7 +20,6 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] DynamicDimensionVector stepsize,
             [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
-
             return
                 @"
 {

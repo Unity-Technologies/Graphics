@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
     {
         [SerializeField]
         //private float m_Float;
-		private bool m_ToggleState;
+        private bool m_ToggleState;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Ouput";
@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
 
         public override PropertyType propertyType
         {
-			get { return PropertyType.Float; }
+            get { return PropertyType.Float; }
         }
 
         public bool value
@@ -34,10 +34,10 @@ namespace UnityEngine.MaterialGraph
             get { return m_ToggleState; }
             set
             {
-				if (m_ToggleState == value)
+                if (m_ToggleState == value)
                     return;
 
-				m_ToggleState = value;
+                m_ToggleState = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -48,7 +48,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed)
-				visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, 0f, FloatPropertyChunk.FloatType.Toggle, PropertyChunk.HideState.Visible));
+                visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, 0f, FloatPropertyChunk.FloatType.Toggle, PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -62,17 +62,17 @@ namespace UnityEngine.MaterialGraph
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
-			visitor.AddShaderChunk(value.ToString (), true);
+            visitor.AddShaderChunk(value.ToString(), true);
         }
 
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-                   {
-						m_Name = propertyName,
-						m_PropType = PropertyType.Float,
-						m_Float = value ? 1f : 0f
-                   };
+            {
+                m_Name = propertyName,
+                m_PropType = PropertyType.Float,
+                m_Float = value ? 1f : 0f
+            };
         }
     }
 }

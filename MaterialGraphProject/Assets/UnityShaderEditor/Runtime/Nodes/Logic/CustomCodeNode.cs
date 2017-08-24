@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Graphing;
 using System.Collections;
 using System.Collections.Generic;

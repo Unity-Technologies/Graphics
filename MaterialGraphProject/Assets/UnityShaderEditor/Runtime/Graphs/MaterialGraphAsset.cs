@@ -14,6 +14,5 @@ namespace UnityEngine.MaterialGraph
             var result = hasErrorsCall.Invoke(null, new object[] { shader });
             return (int)result != 0;
         }
-
     }
 }

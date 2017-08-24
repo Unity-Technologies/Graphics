@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (cNode == null)
                 return;
 
-            if(gradientobj == null || prevnode != cNode)
+            if (gradientobj == null || prevnode != cNode)
             {
                 prevnode = cNode;
                 gradientobj = new GradientObject();
@@ -61,7 +61,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             return EditorGUIUtility.singleLineHeight + 10 * EditorGUIUtility.standardVerticalSpacing;
         }
-
     }
 
     [Serializable]

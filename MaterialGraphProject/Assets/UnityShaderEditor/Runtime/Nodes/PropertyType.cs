@@ -4,7 +4,7 @@ namespace UnityEngine.MaterialGraph
     {
         Color,
         Texture,
-		Cubemap,
+        Cubemap,
         Float,
         Vector2,
         Vector3,
@@ -12,6 +12,6 @@ namespace UnityEngine.MaterialGraph
         Matrix2,
         Matrix3,
         Matrix4,
-		SamplerState
+        SamplerState
     }
 }

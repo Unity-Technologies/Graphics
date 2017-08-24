@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -13,19 +13,19 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-			var cNode = node as ToggleNode;
+            var cNode = node as ToggleNode;
             if (cNode == null)
                 return;
 
-			cNode.value = EditorGUILayout.Toggle(cNode.value);
-			cNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), cNode.exposedState);
+            cNode.value = EditorGUILayout.Toggle(cNode.value);
+            cNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), cNode.exposedState);
         }
 
- /*       public override float GetHeight()
-        {
-            return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
-        }
- */
+        /*       public override float GetHeight()
+               {
+                   return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
+               }
+        */
         public override float GetHeight()
         {
             return 2 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
