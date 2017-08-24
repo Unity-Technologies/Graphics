@@ -72,7 +72,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
-	    #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+	        #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
@@ -80,23 +80,23 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
-            #pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
 
             #include "UnityCG.cginc"
-            #include "UnityStandardBRDF.cginc"
             #include "UnityStandardInput.cginc"
-            #include "UnityStandardUtils.cginc"
             #include "LightweightPipelineCore.cginc"
+            #include "LightweightPipelineLighting.cginc"
 
-            v2f vert(LightweightVertexInput v)
+            LightweightVertexOutputSimple vert(LightweightVertexInput v)
             {
-                v2f o = (v2f)0;
+                LightweightVertexOutputSimple o = (LightweightVertexOutputSimple)0;
 
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
+#ifdef LIGHTMAP_ON
                 o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+#endif
                 o.hpos = UnityObjectToClipPos(v.vertex);
 
                 o.posWS = mul(unity_ObjectToWorld, v.vertex).xyz;
@@ -141,7 +141,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 return o;
             }
 
-            half4 frag(v2f i) : SV_Target
+            half4 frag(LightweightVertexOutputSimple i) : SV_Target
             {
                 half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
                 half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
