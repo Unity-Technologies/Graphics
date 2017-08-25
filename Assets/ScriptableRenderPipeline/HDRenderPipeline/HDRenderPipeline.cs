@@ -487,7 +487,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
-            m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLighting");
+            if (asset.tileSettings.enableClustered)
+            {
+                Debug.Assert(asset.tileSettings.enableTileAndCluster);
+                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLightingClustered");
+            }
+            else
+            {
+                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLightingAllLights");
+            }
             s_UnboundedVolumeData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
         }
 
@@ -897,8 +905,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, true); // Render deferred or forward opaque
                 RenderForwardOnlyOpaque(m_CullResults, camera, renderContext, cmd);
 
-                VolumetricLightingPass(hdCamera, cmd);
-
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_DebugDisplaySettings);
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
@@ -912,6 +918,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, false);
+
+                // Render fog.
+                VolumetricLightingPass(hdCamera, cmd);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
