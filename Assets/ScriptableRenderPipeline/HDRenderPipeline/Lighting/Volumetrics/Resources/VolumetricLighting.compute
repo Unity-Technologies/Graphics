@@ -2,7 +2,10 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-// #pragma enable_d3d11_debug_symbols
+#pragma kernel VolumetricLightingAllLights VolumetricLighting=VolumetricLightingAllLights LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingClustered VolumetricLighting=VolumetricLightingClustered LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+
+#pragma enable_d3d11_debug_symbols
 
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
@@ -11,11 +14,14 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../HomogeneousFog.cs.hlsl"
 #include "../../../../Core/ShaderLibrary/Common.hlsl"
 #include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+
+#include "../HomogeneousFog.cs.hlsl"
+#define UNITY_MATERIAL_LIT // Need to be defined before including Material.hlsl
 #include "../../../ShaderVariables.hlsl"
+#include "../../../Lighting/Lighting.hlsl" // This includes Material.hlsl
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -32,7 +38,15 @@ StructuredBuffer<VolumeProperties> _UnboundedVolume;
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
-#pragma kernel VolumetricLighting
+struct Ray
+{
+    float3 originWS;
+    float3 directionWS; // Not normalized
+    float  maxLength;
+};
+
+// Integrates the volume along the ray to
+float3 IntegrateVolume() {return 0;}
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
 void VolumetricLighting(uint2 groupId       : SV_GroupID,
@@ -50,11 +64,17 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint2 pixelCoord = tileAnchor + localCoord;
 
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
+    UpdatePositionInput(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
-    float z = LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r;
-    float t = length(ComputeViewSpacePosition(posInput.positionSS, z, _InvProjMatrix));
+    Ray ray;
 
-    float3 transmittance = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, t));
+    // Note: the camera ray does not start on the the near (image) plane.
+    // While this is not correct (strictly speaking), the introduced error is small.
+    ray.originWS    = GetCurrentViewPosition();
+    ray.directionWS = posInput.positionWS - ray.originWS;
+    ray.maxLength   = length(ray.directionWS);
+
+    float3 transmittance = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, ray.maxLength));
 
     // In-place UAV updates do not work on Intel GPUs.
     _LightingTexture[pixelCoord] = float4(transmittance * _LightingTexture[pixelCoord].rgb, _LightingTexture[pixelCoord].a);
