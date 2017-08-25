@@ -29,9 +29,9 @@ int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
     //const float dist = max(0, z - g_fNearPlane);
     //return (int)clamp(log2(dist * userscale * (suggestedBase - 1.0f) + 1) / log2(suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
 
-	const float C = (float)(1 << g_iLog2NumClusters);
+	const int C = 1 << g_iLog2NumClusters;
 	const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
-    return (int)clamp( LogBase( lerp(1.0, PositivePow(suggestedBase, C), rangeFittedDistance), suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
+    return (int)clamp( LogBase( lerp(1.0, PositivePow(suggestedBase, (float) C), rangeFittedDistance), suggestedBase), 0.0, (float)(C - 1));
 }
 
 int SnapToClusterIdx(float z_in, float suggestedBase)
@@ -83,8 +83,8 @@ float ClusterIdxToZ(int k, float suggestedBase)
 float SuggestLogBase50(float tileFarPlane)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    float normDist = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
-    float suggested_base = pow((1.0 + sqrt(max(0.0, 1.0 - 4.0 * normDist * (1.0 - normDist)))) / (2.0 * normDist), 2.0 / C);      //
+    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
+    float suggested_base = pow((1.0 + sqrt(max(0.0, 1.0 - 4.0 * rangeFittedDistance * (1.0 - rangeFittedDistance)))) / (2.0 * rangeFittedDistance), 2.0 / C);      //
     return max(g_fClustBase, suggested_base);
 }
 
@@ -92,8 +92,8 @@ float SuggestLogBase50(float tileFarPlane)
 float SuggestLogBase25(float tileFarPlane)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    float normDist = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
-    float suggested_base = pow((1 / 2.3) * max(0.0, (0.8 / normDist) - 1), 4.0 / (C * 2));     // approximate inverse of d*x^4 + (-x) + (1-d) = 0       - d is normalized distance
+    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
+    float suggested_base = pow((1 / 2.3) * max(0.0, (0.8 / rangeFittedDistance) - 1), 4.0 / (C * 2));     // approximate inverse of d*x^4 + (-x) + (1-d) = 0       - d is normalized distance
     return max(g_fClustBase, suggested_base);
 }
 

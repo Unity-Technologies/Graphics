@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
 

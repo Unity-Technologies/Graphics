@@ -1,4 +1,5 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
+// Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
 Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
@@ -73,6 +74,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
+	    #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
@@ -143,8 +145,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             half4 frag(v2f i) : SV_Target
             {
-                half4 diffuseAlpha = Tex2DLinearRGBA(_MainTex, i.uv01.xy);
-                half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
+                half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
+                half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
                 half alpha = diffuseAlpha.a * _Color.a;
 
                 // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
@@ -187,7 +189,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
 #endif // SINGLE_DIRECTIONAL_LIGHT
 
-                Emission(i.uv01.xy, color);
+#ifdef _EMISSION
+                color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;
+#else
+                color += _EmissionColor;
+#endif
 
 #if defined(LIGHTMAP_ON)
                 color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
@@ -277,7 +283,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 SpecularGloss(i.uv.xy, 1.0, specularColor);
                 o.SpecularColor = specularColor;
 
-                Emission(i.uv.xy, o.Emission);
+#ifdef _EMISSION
+                o.Emission += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv).rgb) * _EmissionColor;
+#else
+                o.Emission += _EmissionColor;
+#endif
 
                 return UnityMetaFragment(o);
             }

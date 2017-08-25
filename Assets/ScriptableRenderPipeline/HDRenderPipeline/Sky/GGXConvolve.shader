@@ -18,30 +18,9 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../ShaderLibrary/Common.hlsl"
-            #include "../../ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "SkyManager.cs.hlsl"
-
-            struct Attributes
-            {
-                float3 positionCS : POSITION;
-                float3 eyeVector : NORMAL;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                float3 eyeVector : TEXCOORD0;
-            };
-
-            Varyings Vert(Attributes input)
-            {
-                Varyings output;
-                // Unity renders upside down, so the clip space coordinates have to be flipped.
-                output.positionCS = float4(input.positionCS.x, -input.positionCS.y, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
-                output.eyeVector = input.eyeVector;
-                return output;
-            }
 
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
@@ -56,11 +35,31 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             float _Level;
             float _LastLevel;
             float _InvOmegaP;
+            float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
+
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                return output;
+            }
 
             float4 Frag(Varyings input) : SV_Target
             {
-                // Vector interpolation is not magnitude-preserving.
-                float3 N = normalize(input.eyeVector);
+                // Points towards the camera
+                float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
+                // Reverse it to point into the scene
+                float3 N = -viewDirWS;
                 // Remove view-dependency from GGX, effectively making the BSDF isotropic.
                 float3 V = N;
 

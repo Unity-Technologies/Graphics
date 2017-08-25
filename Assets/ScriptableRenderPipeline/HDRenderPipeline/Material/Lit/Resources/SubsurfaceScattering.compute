@@ -1,4 +1,4 @@
-// ===================== Performs integration of the Disney BSSRDF over a disk =====================
+// =============== Convolves transmitted radiance with the Disney diffusion profile ================
 
 //--------------------------------------------------------------------------------------------------
 // Definitions
@@ -29,8 +29,8 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../../../../ShaderLibrary/Packing.hlsl"
-#include "../../../../ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "../../../../Core/ShaderLibrary/Packing.hlsl"
+#include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #define UNITY_MATERIAL_LIT
 #include "../../../Material/Material.hlsl"
