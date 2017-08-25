@@ -553,6 +553,13 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
     return positionVS.xyz / positionVS.w;
 }
 
+float3 ComputeWorldSpacePosition(float2 positionSS, float depthRaw, float4x4 invViewProjMatrix)
+{
+    float4 positionCS  = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    return hpositionWS.xyz / hpositionWS.w;
+}
+
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
@@ -560,9 +567,7 @@ void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 vi
 {
     posInput.depthRaw = depthRaw;
 
-    float4 positionCS   = ComputeClipSpacePosition(posInput.positionSS, depthRaw);
-    float4 hpositionWS  = mul(invViewProjMatrix, positionCS);
-    posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
+    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionSS, depthRaw, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
