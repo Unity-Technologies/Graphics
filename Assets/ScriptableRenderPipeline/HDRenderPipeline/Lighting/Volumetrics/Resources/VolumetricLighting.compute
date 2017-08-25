@@ -14,6 +14,7 @@
 #include "../HomogeneousFog.cs.hlsl"
 #include "../../../../Core/ShaderLibrary/Common.hlsl"
 #include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 #include "../../../ShaderVariables.hlsl"
 
 //--------------------------------------------------------------------------------------------------
@@ -48,6 +49,13 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint2 tileAnchor = groupId * GROUP_SIZE_1D;
     uint2 pixelCoord = tileAnchor + localCoord;
 
+    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
+
+    float z = LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r;
+    float t = length(ComputeViewSpacePosition(posInput.positionSS, z, _InvProjMatrix));
+
+    float3 transmittance = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, t));
+
     // In-place UAV updates do not work on Intel GPUs.
-    _LightingTexture[pixelCoord] += float4(0.25, 0.25, 0.25, 0);
+    _LightingTexture[pixelCoord] = float4(transmittance * _LightingTexture[pixelCoord].rgb, _LightingTexture[pixelCoord].a);
 }
