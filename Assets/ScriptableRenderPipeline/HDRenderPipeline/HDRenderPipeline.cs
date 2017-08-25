@@ -1278,7 +1278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
-            if(debugMode == m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode)
+            if(debugMode == m_DebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
@@ -1298,11 +1298,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
 
                 // First render full screen debug texture
-                if(m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
+                if(m_DebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
                 {
                     m_FullScreenDebugPushed = false;
                     cmd.SetGlobalTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempRT);
-                    m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
+                    m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_DebugDisplaySettings.fullScreenDebugMode);
                     Utilities.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
 

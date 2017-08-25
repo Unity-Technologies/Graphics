@@ -14,8 +14,7 @@
 #define _SHADOW_CASCADES
 #endif
 
-
-#if (defined(UNITY_COLORSPACE_GAMMA) || SHADER_TARGET < 30) && defined(LIGHTWEIGHT_FORCE_LINEAR)
+#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
 // Ideally we want an approximation of gamma curve 2.0 to save ALU on GPU but as off now it won't match the GammaToLinear conversion of props in engine
 //#define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
 //#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
@@ -86,17 +85,6 @@ half4 _ReflectColor;
 #include "LightweightPipelineShadows.cginc"
 #endif
 
-inline half3 Tex2DLinearRGB(sampler2D s, half2 uv)
-{
-    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(s, uv).rgb);
-}
-
-inline half4 Tex2DLinearRGBA(sampler2D s, half2 uv)
-{
-    half4 color = tex2D(s, uv);
-    return half4(LIGHTWEIGHT_GAMMA_TO_LINEAR(color.rgb), color.a);
-}
-
 inline void NormalMap(v2f i, out half3 normal)
 {
 #if _NORMALMAP
@@ -114,21 +102,15 @@ inline void NormalMap(v2f i, out half3 normal)
 inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 {
 #ifdef _SPECGLOSSMAP
-    specularGloss = Tex2DLinearRGBA(_SpecGlossMap, uv) * _SpecColor;
+    specularGloss = tex2D(_SpecGlossMap, uv);
+    #if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
+        specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
+    #endif
 #elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss = Tex2DLinearRGBA(_SpecGlossMap, uv) * _SpecColor;
+    specularGloss = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, uv).rgb) * _SpecColor.rgb;
     specularGloss.a = alpha;
 #else
     specularGloss = _SpecColor;
-#endif
-}
-
-inline void Emission(half2 uv, inout half3 color)
-{
-#ifdef _EMISSION
-    color += Tex2DLinearRGB(_EmissionMap, uv) * _EmissionColor;
-#else
-    color += _EmissionColor;
 #endif
 }
 
@@ -146,7 +128,7 @@ inline half3 EvaluateDirectionalLight(half3 diffuseColor, half4 specularGloss, h
     half NdotL = saturate(dot(normal, lightDir));
     half3 diffuse = diffuseColor * NdotL;
 
-#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR) 
+#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     half3 halfVec = normalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
     half3 specular = specularGloss.rgb * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
