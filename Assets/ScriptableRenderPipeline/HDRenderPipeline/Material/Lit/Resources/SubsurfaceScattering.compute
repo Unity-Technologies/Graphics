@@ -1,4 +1,4 @@
-// ===================== Performs integration of the Disney BSSRDF over a disk =====================
+// =============== Convolves transmitted radiance with the Disney diffusion profile ================
 
 //--------------------------------------------------------------------------------------------------
 // Definitions
@@ -17,7 +17,8 @@
 #define SSS_DEBUG_NORMAL_VS   0
 
 // Do not modify these.
-#define SSS_PASS              1
+#include "../../../ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
 #define MILLIMETERS_PER_METER 1000
 #define CENTIMETERS_PER_METER 100
 #define GROUP_SIZE_1D         16

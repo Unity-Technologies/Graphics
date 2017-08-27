@@ -8,7 +8,7 @@
 #	ifdef SHADOW_TILEPASS
 #		include "HDRenderPipeline/Lighting/TilePass/ShadowContext.hlsl"
 #	elif defined( SHADOW_FPTL )
-#		include "fptl/ShadowContext.hlsl"
+#		include "../../TestbedPipelines/fptl/ShadowContext.hlsl"
 #	else
 #		error "No valid path to the shadow context has been given."
 #	endif
@@ -18,7 +18,7 @@
 #	ifdef SHADOW_TILEPASS
 #		include "HDRenderPipeline/Lighting/TilePass/ShadowDispatch.hlsl"
 #	elif defined( SHADOW_FPTL )
-#		include "fptl/ShadowDispatch.hlsl"
+#		include "../../TestbedPipelines/fptl/ShadowDispatch.hlsl"
 #	else
 		// It's ok not to have a dispatcher include as it only acts as an override
 #	endif
