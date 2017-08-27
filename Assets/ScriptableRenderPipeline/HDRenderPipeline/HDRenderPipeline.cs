@@ -950,13 +950,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
+            var drawSettings = new DrawRendererSettings(camera, new ShaderPassName(passName))
             {
                 rendererConfiguration = rendererConfiguration,
                 sorting = { flags = SortFlags.CommonOpaque }
             };
-            settings.inputFilter.SetQueuesOpaque();
-            renderContext.DrawRenderers(ref settings);
+            var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
+            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
         }
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -968,13 +968,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
+            var drawSettings = new DrawRendererSettings(camera, new ShaderPassName(passName))
             {
                 rendererConfiguration = rendererConfiguration,
                 sorting = { flags = SortFlags.CommonTransparent }
             };
-            settings.inputFilter.SetQueuesTransparent();
-            renderContext.DrawRenderers(ref settings);
+            var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
+            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
