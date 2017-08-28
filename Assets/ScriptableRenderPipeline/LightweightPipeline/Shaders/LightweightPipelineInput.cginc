@@ -17,6 +17,8 @@ struct LightInput
     half4 spotDir;
 };
 
+sampler2D _AttenuationTexture;
+
 // Per object light list data
 #ifndef _SINGLE_DIRECTIONAL_LIGHT
 half4 unity_LightIndicesOffsetAndCount;

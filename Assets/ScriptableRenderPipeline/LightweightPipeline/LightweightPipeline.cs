@@ -347,6 +347,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
+            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -542,6 +543,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.EnableShaderKeyword("_SINGLE_DIRECTIONAL_LIGHT");
             else
                 cmd.DisableShaderKeyword("_SINGLE_DIRECTIONAL_LIGHT");
+
+            if (m_Asset.AttenuationTexture != null)
+                cmd.EnableShaderKeyword("_ATTENUATION_TEXTURE");
+            else
+                cmd.DisableShaderKeyword("_ATTENUATION_TEXTURE");
 
             string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
             for (int i = 0; i < shadowKeywords.Length; ++i)
