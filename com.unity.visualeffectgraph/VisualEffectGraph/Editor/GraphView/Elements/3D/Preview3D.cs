@@ -44,6 +44,9 @@ namespace UnityEditor.VFX.UI
 
 
             style.width = style.height = 300;
+
+
+            m_Element.AddManipulator(new Rotate3DManipulator(m_Element));
         }
 
         public override void OnDataChanged()

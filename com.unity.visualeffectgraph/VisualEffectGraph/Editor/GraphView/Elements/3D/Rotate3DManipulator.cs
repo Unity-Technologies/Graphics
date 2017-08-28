@@ -6,13 +6,16 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor;
 
-namespace Assets.VFXEditor.Editor.GraphView.Elements._3D
+namespace UnityEditor.VFX.UI
 {
     class Rotate3DManipulator : Manipulator
     {
-        public Rotate3DManipulator(Element3D target)
+        public Rotate3DManipulator(Element3D element3D)
         {
+            m_Element3D = element3D;
         }
+
+        Element3D m_Element3D;
 
         protected override void RegisterCallbacksOnTarget()
         {
@@ -33,7 +36,8 @@ namespace Assets.VFXEditor.Editor.GraphView.Elements._3D
             if (m_Dragging)
             {
                 m_Dragging = false;
-                target.ReleaseCapture();
+                if (target.HasCapture())
+                    target.ReleaseCapture();
                 EditorGUIUtility.SetWantsMouseJumping(0);
 
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -45,21 +49,34 @@ namespace Assets.VFXEditor.Editor.GraphView.Elements._3D
         void OnMouseDown(MouseDownEvent e)
         {
             m_Dragging = true;
-            EditorGUIUtility.SetWantsMouseJumping(0);
+            EditorGUIUtility.SetWantsMouseJumping(1);
             target.TakeCapture();
             target.RegisterCallback<MouseMoveEvent>(OnMouseMove, Capture.Capture);
+            m_Dragging = true;
+            e.StopPropagation();
         }
 
         void OnMouseUp(MouseUpEvent e)
         {
             Release();
+            e.StopPropagation();
         }
 
         void OnMouseMove(MouseMoveEvent e)
         {
             if (m_Dragging)
             {
-                e.mouseDelta;
+                if (!target.HasCapture())
+                {
+                    Release();
+                    return;
+                }
+                Quaternion rotation = m_Element3D.rotation;
+                rotation = Quaternion.AngleAxis(e.mouseDelta.y * .003f * Mathf.Rad2Deg, rotation * Vector3.right) * rotation;
+                rotation = Quaternion.AngleAxis(e.mouseDelta.x * .003f * Mathf.Rad2Deg, Vector3.up) * rotation;
+
+                m_Element3D.rotation = rotation;
+                e.StopPropagation();
             }
         }
     }

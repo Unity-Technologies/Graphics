@@ -9,8 +9,10 @@ namespace UnityEngine.Experimental.UIElements
 
         Material m_Material;
 
+        Material m_LineMaterial;
+
         public Vector3 position { get; set; }
-        public Vector3 eulerAngles { get; set; }
+        public Quaternion rotation { get; set; }
 
         public Element3D()
         {
@@ -24,7 +26,10 @@ namespace UnityEngine.Experimental.UIElements
             GameObject.DestroyImmediate(go);
 
             position = new Vector3(0, 0, -5);
-            eulerAngles = Vector3.zero;
+            rotation = Quaternion.identity;
+
+            m_LineMaterial = new Material(Shader.Find("Unlit/Element3DGridShader"));
+            m_LineMaterial.color = Color.gray;
         }
 
         public override void DoRepaint()
@@ -41,7 +46,29 @@ namespace UnityEngine.Experimental.UIElements
             GL.Clear(true, true, Color.red);
 
             GL.LoadProjectionMatrix(Matrix4x4.Perspective(60, viewPort.width / viewPort.height, 0.01f, 100));
-            GL.modelview = Matrix4x4.Translate(position) * Matrix4x4.Rotate(Quaternion.Euler(eulerAngles));
+            GL.modelview = Matrix4x4.Translate(position) * Matrix4x4.Rotate(rotation);
+
+
+            m_LineMaterial.SetPass(0);
+
+
+            float count = 20;
+
+            GL.Begin(GL.LINES);
+            for (float x = -count; x <= count; x++)
+            {
+                GL.Vertex3(x, 0, -count);
+                GL.Vertex3(x, 0, count);
+            }
+            GL.End();
+
+            GL.Begin(GL.LINES);
+            for (float x = -count; x <= count; x++)
+            {
+                GL.Vertex3(-count, 0, x);
+                GL.Vertex3(count, 0, x);
+            }
+            GL.End();
 
             m_Material.SetPass(0);
             /*
