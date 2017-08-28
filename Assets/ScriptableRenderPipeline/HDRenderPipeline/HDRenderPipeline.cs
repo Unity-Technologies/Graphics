@@ -801,6 +801,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
+          
+            // emit scene view UI
+            if (camera.cameraType == CameraType.SceneView)
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 
             CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
 
@@ -941,6 +945,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.Submit();
         }
 
+        private static Material m_ErrorMaterial;
+        private static Material errorMaterial
+        {
+            get
+            {
+                if (m_ErrorMaterial == null)
+                    m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
+                return m_ErrorMaterial;
+            }
+        }
+
         void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, string passName, RendererConfiguration rendererConfiguration = 0)
         {
             if (!m_DebugDisplaySettings.renderingDebugSettings.displayOpaqueObjects)
@@ -955,8 +970,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererConfiguration = rendererConfiguration,
                 sorting = { flags = SortFlags.CommonOpaque }
             };
+            drawSettings.SetShaderPassName(1, new ShaderPassName("SRPDefaultUnlit"));
             var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
             renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+
+#if UNITY_EDITOR
+            // in editor draw invalid things with error material
+            ConfigureErrorDraw(ref drawSettings);
+            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+#endif
         }
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -975,6 +997,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
             var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
             renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+
+#if UNITY_EDITOR
+            // in editor draw invalid things with error material
+            ConfigureErrorDraw(ref drawSettings);
+            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+#endif
+        }
+
+        private static void ConfigureErrorDraw(ref DrawRendererSettings drawSettings)
+        {
+            drawSettings.SetShaderPassName(0, new ShaderPassName("Always"));
+            drawSettings.SetShaderPassName(1, new ShaderPassName("ForwardBase"));
+            drawSettings.SetShaderPassName(2, new ShaderPassName("Deferred"));
+            drawSettings.SetShaderPassName(3, new ShaderPassName("PrepassBase"));
+            drawSettings.SetShaderPassName(4, new ShaderPassName("Vertex"));
+            drawSettings.SetShaderPassName(5, new ShaderPassName("VertexLMRGBM"));
+            drawSettings.SetShaderPassName(6, new ShaderPassName("VertexLM"));
+            drawSettings.SetOverrideMaterial(errorMaterial, 0);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
