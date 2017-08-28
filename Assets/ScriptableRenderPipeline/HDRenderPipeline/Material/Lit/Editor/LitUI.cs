@@ -27,15 +27,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
-            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
-            public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units (distance between minimum and maximum value in the texture).");
+            public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
-            public static string textureControlText = "Input textures control";
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
 
@@ -80,8 +79,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum UVBaseMapping
         {
             UV0,
-            Planar = 4,
-            Triplanar = 5
+            UV1,
+            UV2,
+            UV3,
+            Planar,
+            Triplanar
         }
 
         public enum NormalMapSpace
@@ -352,7 +354,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
+            // indentation around base color is a workaround for a bug in material properties UI where the color picker is not indented properly and gets cropped (and unusable in layered shader UI)
+            // Remove when bug is fixed.
+            EditorGUI.indentLevel--;
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
+            EditorGUI.indentLevel++;
 
             if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
                 (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
@@ -427,11 +433,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
+
+            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
+
             // UVSet0 is always set, planar and triplanar will override it.
-            UVMappingMask[layerIndex].colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
-            if (((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar))
+            float X, Y, Z, W;
+            X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is shared by both here, need to force X to 1.0 in all case
+            if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
@@ -446,21 +460,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
 
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-            if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.UV0)
+            if (uvBaseMapping == UVBaseMapping.UV0)
             {
                 m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
             }
-            else if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Planar)
+            else if (uvBaseMapping == UVBaseMapping.Planar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
             }
-            else if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar)
+            else if (uvBaseMapping == UVBaseMapping.Triplanar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
             }
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
-            float X, Y, Z, W;
             X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
             Y = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
             Z = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
