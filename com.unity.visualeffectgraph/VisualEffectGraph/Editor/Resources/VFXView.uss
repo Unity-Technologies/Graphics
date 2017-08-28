@@ -475,7 +475,7 @@ VFXOutputDataAnchor #type
 /* Data edges */
 
 /*Default*/
-VFXDataEdge
+VFXDataEdge.edge
 {
 	border-color : #787878;
 	edge-width:1;
