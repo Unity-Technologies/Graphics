@@ -180,8 +180,8 @@ namespace UnityEditor.VFX.UI
                 BuildProperty();
                 m_EditedType = presenter.anchorType;
             }
-            if (m_Container != null)
-                m_Container.executionContext = presenter.GetInstanceID();
+            /*if (m_Container != null)
+                m_Container.executionContext = presenter.GetInstanceID();*/
 
             OnRecompile();
 
