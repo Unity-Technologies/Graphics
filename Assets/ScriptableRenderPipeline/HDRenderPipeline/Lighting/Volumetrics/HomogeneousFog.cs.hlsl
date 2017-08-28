@@ -9,7 +9,7 @@
 struct VolumeProperties
 {
     float3 scattering;
-    float anisotropy;
+    float asymmetry;
     float3 extinction;
     float unused;
 };
@@ -21,9 +21,9 @@ float3 GetScattering(VolumeProperties value)
 {
 	return value.scattering;
 }
-float GetAnisotropy(VolumeProperties value)
+float GetAsymmetry(VolumeProperties value)
 {
-	return value.anisotropy;
+	return value.asymmetry;
 }
 float3 GetExtinction(VolumeProperties value)
 {

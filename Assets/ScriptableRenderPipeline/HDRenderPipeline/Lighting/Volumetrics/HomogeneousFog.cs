@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct VolumeProperties
     {
         public Vector3 scattering;
-        public float   anisotropy;
+        public float   asymmetry;
         public Vector3 extinction;
         public float   unused;
     }
@@ -19,14 +19,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Bounds  bounds;       // Position and dimensions in meters
         public Vector3 albedo;       // Single scattering albedo [0, 1]
         public Vector3 meanFreePath; // In meters [0.01, inf]
-        public float   anisotropy;   // [-1, 1]
+        public float   asymmetry;    // [-1, 1]; 0 = isotropic
 
         public VolumeParameters()
         {
             bounds       = new Bounds(Vector3.zero, Vector3.positiveInfinity);
             albedo       = new Vector3(0.5f, 0.5f, 0.5f);
             meanFreePath = new Vector3(100.0f, 100.0f, 100.0f);
-            anisotropy   = 0.0f;
+            asymmetry   = 0.0f;
         }
 
         public bool IsVolumeUnbounded()
@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             meanFreePath.y = Mathf.Max(meanFreePath.y, 0.01f);
             meanFreePath.z = Mathf.Max(meanFreePath.z, 0.01f);
 
-            anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
+            asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
         }
 
         public VolumeProperties GetProperties()
@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VolumeProperties properties = new VolumeProperties();
 
             properties.scattering = GetScatteringCoefficient();
-            properties.anisotropy = anisotropy;
+            properties.asymmetry = asymmetry;
             properties.extinction = GetExtinctionCoefficient();
 
             return properties;

@@ -487,15 +487,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
-            if (asset.tileSettings.enableClustered)
-            {
-                Debug.Assert(asset.tileSettings.enableTileAndCluster);
-                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLightingClustered");
-            }
-            else
-            {
-                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel("VolumetricLightingAllLights");
-            }
             s_UnboundedVolumeData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
         }
 
@@ -1201,7 +1192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (HomogeneousFog fogComponent in fogComponents)
             {
-                if (fogComponent.volumeParameters.IsVolumeUnbounded())
+                if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
                 {
                     unboundedFogComponent = fogComponent;
                     break;
@@ -1210,21 +1201,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (unboundedFogComponent == null) { return; }
 
-            List<VolumeProperties> unboundedVolumeProperties = new List<VolumeProperties>();
-            unboundedVolumeProperties.Add(unboundedFogComponent.volumeParameters.GetProperties());
+            using (new Utilities.ProfilingSample("VolumetricLighting", cmd))
+            {
+                bool enableClustered = m_Asset.tileSettings.enableClustered && m_Asset.tileSettings.enableTileAndCluster;
 
-            // TODO: probably unnecessary to update the buffer every frame.
-            s_UnboundedVolumeData.SetData<VolumeProperties>(unboundedVolumeProperties);
+                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
+                                                                                               : "VolumetricLightingAllLights");
+                List<VolumeProperties> unboundedVolumeProperties = new List<VolumeProperties>();
+                unboundedVolumeProperties.Add(unboundedFogComponent.volumeParameters.GetProperties());
 
-            hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
+                // TODO: probably unnecessary to update the buffer every frame.
+                s_UnboundedVolumeData.SetData(unboundedVolumeProperties);
 
-            // TODO: replace strings with nameIDs.
-            cmd.SetComputeBufferParam( m_VolumetricLightingCS, m_VolumetricLightingKernel, "_UnboundedVolume",        s_UnboundedVolumeData);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, "_LightingTexture",        m_CameraColorBufferRT);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
-            // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
-            cmd.DispatchCompute(m_VolumetricLightingCS, m_VolumetricLightingKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
+                // TODO: replace strings with nameIDs.
+                cmd.SetComputeBufferParam( m_VolumetricLightingCS, m_VolumetricLightingKernel, "_UnboundedVolume",        s_UnboundedVolumeData);
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, "_LightingTexture",        m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+
+                // Pass clustered light data (if present) into the compute shader.
+                m_LightLoop.PushGlobalParams(hdCamera.camera, cmd, m_VolumetricLightingCS, m_VolumetricLightingKernel, true);
+                cmd.SetComputeIntParam(m_VolumetricLightingCS, HDShaderIDs._UseTileLightList, 0);
+
+                cmd.DispatchCompute(m_VolumetricLightingCS, m_VolumetricLightingKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
+            }
         }
 
         // Render material that are forward opaque only (like eye), this include unlit material
