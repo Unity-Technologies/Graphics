@@ -79,8 +79,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum UVBaseMapping
         {
             UV0,
-            Planar = 4,
-            Triplanar = 5
+            UV1,
+            UV2,
+            UV3,
+            Planar,
+            Triplanar
         }
 
         public enum NormalMapSpace
@@ -431,9 +434,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
+
+            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
+
             // UVSet0 is always set, planar and triplanar will override it.
-            UVMappingMask[layerIndex].colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
-            if (((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar))
+            float X, Y, Z, W;
+            X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is shared by both here, need to force X to 1.0 in all case
+            if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
@@ -448,21 +460,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
 
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-            if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.UV0)
+            if (uvBaseMapping == UVBaseMapping.UV0)
             {
                 m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
             }
-            else if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Planar)
+            else if (uvBaseMapping == UVBaseMapping.Planar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
             }
-            else if ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar)
+            else if (uvBaseMapping == UVBaseMapping.Triplanar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
             }
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
-            float X, Y, Z, W;
             X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
             Y = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
             Z = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
