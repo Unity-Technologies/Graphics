@@ -27,15 +27,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
-            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
-            public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units (distance between minimum and maximum value in the texture).");
+            public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
-            public static string textureControlText = "Input textures control";
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
 
@@ -352,7 +351,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
+            // indentation around base color is a workaround for a bug in material properties UI where the color picker is not indented properly and gets cropped (and unusable in layered shader UI)
+            // Remove when bug is fixed.
+            EditorGUI.indentLevel--;
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
+            EditorGUI.indentLevel++;
 
             if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
                 (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
@@ -427,7 +430,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
             // UVSet0 is always set, planar and triplanar will override it.
             UVMappingMask[layerIndex].colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
