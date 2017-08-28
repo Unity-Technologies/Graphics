@@ -44,8 +44,6 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 
     float distanceSqr = max(dot(posToLight, posToLight), 0.001);
 
-    float dist = sqrt(distanceSqr);
-
     // TODO: compute light attenuation from texture to save ALU. Builtin _LightTexture0 not set from SRP but we can create one.
     // light attenuation with falloff.
     // lightInput.atten.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
