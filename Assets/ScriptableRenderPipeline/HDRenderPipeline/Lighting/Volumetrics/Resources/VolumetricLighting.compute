@@ -7,6 +7,8 @@
 
 #pragma enable_d3d11_debug_symbols
 
+#include "../../../ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
 
@@ -41,12 +43,90 @@ StructuredBuffer<VolumeProperties> _UnboundedVolume;
 struct Ray
 {
     float3 originWS;
-    float3 directionWS; // Not normalized
-    float  maxLength;
+    float3 directionWS; // Normalized
+    float  maxLength;   // In meters
 };
 
-// Integrates the volume along the ray to
-float3 IntegrateVolume() {return 0;}
+// Computes the in-scattered radiance along the ray.
+float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
+{
+    float3 scattering = _UnboundedVolume[0].scattering;
+    float3 extinction = _UnboundedVolume[0].extinction;
+    float  asymmetry  = _UnboundedVolume[0].asymmetry;
+
+    LightLoopContext context;
+    // ZERO_INITIALIZE(LightLoopContext, context);
+    context.shadowContext = InitShadowContext();
+
+    float maxDepthVS = posInput.depthVS;
+
+    float du = rcp(numSteps);           // Compile-time constant
+    float u0 = 0.5 * du;                // Compile-time constant
+    float dt = du * ray.maxLength;
+
+    float3 radiance = 0;
+
+    for (uint i = 0; i < numSteps; i++)
+    {
+        float u = u0 + i * du;          // [0, 1]
+        float t = u * ray.maxLength;    // [0, ray.maxLength]
+
+        float3 samplePositionWS = ray.originWS + t * ray.directionWS;
+
+        // if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
+        {
+            uint punctualLightCount;
+
+        #ifdef LIGHTLOOP_TILE_PASS
+            uint punctualLightStart;
+
+            posInput.depthVS = u * maxDepthVS;
+            GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
+        #else
+            punctualLightCount = _PunctualLightCount;
+        #endif
+
+            for (uint j = 0; j < punctualLightCount; ++j)
+            {
+            #ifdef LIGHTLOOP_TILE_PASS
+                uint punctualLightIndex = FetchIndex(punctualLightStart, j);
+            #else
+                uint punctualLightIndex = j;
+            #endif
+
+                // Fetch the light.
+                LightData lightData = _LightDatas[punctualLightIndex];
+
+                float3 L = lightData.positionWS - samplePositionWS;
+
+                // Compute the distance to the light, and the associated transmittance values.
+                float  dist2   = dot(L, L);
+                float  dist    = sqrt(dist2);
+                float  rcpDist = rsqrt(dist2);
+                float  LdotD   = dot(L, ray.directionWS) * rcpDist;
+                float  phase   = HenyeyGreensteinPhaseFunction(asymmetry, LdotD);
+                float3 lightT  = Transmittance(OpticalDepthHomogeneous(extinction, dist));
+                float3 sampleT = Transmittance(OpticalDepthHomogeneous(extinction, t));
+                float  shadow = 1;
+
+                [branch] if (lightData.shadowIndex >= 0)
+                {
+                    // TODO: make projector lights cast shadows.
+                    float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+                    float4 L_dist = { L * rcpDist, dist };
+
+                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0, lightData.shadowIndex, L_dist, posInput.unPositionSS);
+                    shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+                }
+
+                // Compute the amount of in-scattered radiance.
+                radiance += (dt * scattering * phase * shadow * rcpDist * rcpDist) * (lightT * sampleT) * lightData.color;
+            }
+        }
+    }
+
+    return radiance;
+}
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
 void VolumetricLighting(uint2 groupId       : SV_GroupID,
@@ -62,20 +142,34 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint2 localCoord = DecodeMorton2D(mortonCode);
     uint2 tileAnchor = groupId * GROUP_SIZE_1D;
     uint2 pixelCoord = tileAnchor + localCoord;
+    uint2 tileCoord  = pixelCoord / GetTileSize();
 
-    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
-    UpdatePositionInput(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+    if (pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y) { return; }
 
-    Ray ray;
+    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw, tileCoord);
+    UpdatePositionInput(max(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, 0.02), _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
-    // Note: the camera ray does not start on the the near (image) plane.
+    Ray cameraRay;
+
+    // Note: the camera ray does not start on the the near (camera sensor) plane.
     // While this is not correct (strictly speaking), the introduced error is small.
-    ray.originWS    = GetCurrentViewPosition();
-    ray.directionWS = posInput.positionWS - ray.originWS;
-    ray.maxLength   = length(ray.directionWS);
+    cameraRay.originWS     = GetCurrentViewPosition();
+    cameraRay.directionWS  = posInput.positionWS - cameraRay.originWS;
+    cameraRay.maxLength    =  sqrt(dot(cameraRay.directionWS, cameraRay.directionWS));
+    cameraRay.directionWS *= rsqrt(dot(cameraRay.directionWS, cameraRay.directionWS)); //Normalize
 
-    float3 transmittance = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, ray.maxLength));
+    float3 rayT = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, cameraRay.maxLength));
+
+    // TODO: make this a parameter controllable from C#.
+    const float maxSamplingDistance = 64.0f; // In meters
+
+    float distanceScale = max(1, maxSamplingDistance / cameraRay.maxLength);
+
+    cameraRay.maxLength *= distanceScale;
+    posInput.depthVS    *= distanceScale;
+
+    float3 inL = PerformIntegration(posInput, cameraRay, 64);
 
     // In-place UAV updates do not work on Intel GPUs.
-    _LightingTexture[pixelCoord] = float4(transmittance * _LightingTexture[pixelCoord].rgb, _LightingTexture[pixelCoord].a);
+    _LightingTexture[pixelCoord] = float4(rayT * _LightingTexture[pixelCoord].rgb + inL, _LightingTexture[pixelCoord].a);
 }
