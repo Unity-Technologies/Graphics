@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.UI
     {
         protected VFXBlockDataAnchor()
         {
+            clipChildren = false;
         }
 
         public static new VFXBlockDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
@@ -53,7 +54,8 @@ namespace UnityEditor.VFX.UI
                         realWidth = 1.5f / view.scale;
                     }
 
-                    VFXFlowEdge.RenderLine(from, to, edge.style.borderColor, realWidth);
+                    Color edgeColor = edge.style.borderColor;
+                    VFXEdgeUtils.RenderLine(from, to, edgeColor, realWidth);
                 }
             }
         }

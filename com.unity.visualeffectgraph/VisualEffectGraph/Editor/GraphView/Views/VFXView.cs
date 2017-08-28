@@ -223,6 +223,7 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXView");
@@ -231,6 +232,7 @@ namespace UnityEditor.VFX.UI
 
             AddLayer(-1);
             AddLayer(1);
+            AddLayer(2);
 
             focusIndex = 0;
         }

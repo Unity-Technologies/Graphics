@@ -6,63 +6,13 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    internal class VFXFlowEdge : Edge
+    internal static class VFXEdgeUtils
     {
-        public override int layer
-        {
-            get
-            {
-                return 1;
-            }
-        }
-
-
-        public VFXFlowEdge()
-        {
-        }
-
-        protected override void DrawEdge()
-        {
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-
-            Vector2 from = Vector2.zero;
-            Vector2 to = Vector2.zero;
-            GetFromToPoints(ref from, ref to);
-
-
-            float arrowHeight = 12;
-            to -= Vector2.up * arrowHeight;
-
-            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
-
-            Orientation orientation = outputPresenter != null ? outputPresenter.orientation : inputPresenter.orientation;
-
-            Vector3[] points, tangents;
-            GetTangents(orientation, from, to, out points, out tangents);
-
-            RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgeWidth);
-            RenderDisc(points[1], 4, edgeColor);
-
-            VCircleMat.SetPass(0);
-            GL.Begin(GL.TRIANGLES);
-            GL.Color(edgeColor);
-            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x, to.y + arrowHeight, 0);
-            GL.End();
-        }
-
         static Material VLineMat;
         static Material VCircleMat;
 
 
-        void RenderDisc(Vector2 center, float radius, Color color)
+        public static void RenderDisc(Vector2 center, float radius, Color color)
         {
             if (VCircleMat == null)
             {
@@ -91,6 +41,21 @@ namespace UnityEditor.VFX.UI
 
             GL.Vertex3(center.x + radius, center.y, 0);
 
+            GL.End();
+        }
+
+        public static void RenderTriangle(Vector2 to, float arrowHeight, Color color)
+        {
+            if (VCircleMat == null)
+            {
+                VCircleMat = new Material(Shader.Find("Unlit/VColor"));
+            }
+            VCircleMat.SetPass(0);
+            GL.Begin(GL.TRIANGLES);
+            GL.Color(color);
+            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x, to.y + arrowHeight, 0);
             GL.End();
         }
 
@@ -186,6 +151,105 @@ namespace UnityEditor.VFX.UI
 
             GL.End();
         }
+    }
+
+    internal class VFXFlowEdgeControl : EdgeControl
+    {
+        protected override void DrawEdge()
+        {
+            Vector3[] points = controlPoints;
+
+            VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
+
+
+            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
+
+            VFXEdgeUtils.RenderBezier(points[0], points[3], points[1], points[2], edgeColor, edgeWidth);
+        }
+
+        protected override void DrawEndpoint(Vector2 pos, bool start)
+        {
+            VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
+
+
+            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
+
+            if (start)
+            {
+                VFXEdgeUtils.RenderDisc(pos, 4, edgeColor);
+            }
+            else
+            {
+                VFXEdgeUtils.RenderTriangle(pos, 12, edgeColor);
+            }
+        }
+    }
+
+
+    internal class VFXFlowEdge : Edge
+    {
+        public override int layer
+        {
+            get
+            {
+                return 1;
+            }
+        }
+
+
+        public VFXFlowEdge()
+        {
+        }
+
+        protected override EdgeControl CreateEdgeControl()
+        {
+            return new VFXFlowEdgeControl
+            {
+                capRadius = 4,
+                interceptWidth = 3
+            };
+        }
+
+#if false
+        protected override void DrawEdge()
+        {
+            var edgePresenter = GetPresenter<EdgePresenter>();
+
+            NodeAnchorPresenter outputPresenter = edgePresenter.output;
+            NodeAnchorPresenter inputPresenter = edgePresenter.input;
+
+            if (outputPresenter == null && inputPresenter == null)
+                return;
+
+            Vector2 from = Vector2.zero;
+            Vector2 to = Vector2.zero;
+            GetFromToPoints(ref from, ref to);
+
+
+            float arrowHeight = 12;
+            to -= Vector2.up * arrowHeight;
+
+            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
+
+            Orientation orientation = outputPresenter != null ? outputPresenter.orientation : inputPresenter.orientation;
+
+            Vector3[] points, tangents;
+            GetTangents(orientation, from, to, out points, out tangents);
+
+            RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgeWidth);
+            RenderDisc(points[1], 4, edgeColor);
+
+            VCircleMat.SetPass(0);
+            GL.Begin(GL.TRIANGLES);
+            GL.Color(edgeColor);
+            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x, to.y + arrowHeight, 0);
+            GL.End();
+        }
+
+#endif
+
 
         /*
         protected override void DrawEdge(IStylePainter painter)

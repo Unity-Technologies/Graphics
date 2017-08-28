@@ -7,6 +7,39 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
+    internal class VFXDataEdgeControl : EdgeControl
+    {
+        protected override void DrawEdge()
+        {
+            Vector3[] points = controlPoints;
+
+            VFXDataEdge edge = this.GetFirstAncestorOfType<VFXDataEdge>();
+            VFXDataEdgePresenter edgePresenter = edge.GetPresenter<VFXDataEdgePresenter>();
+            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
+            Color edgeColor = edge.style.borderColor;
+
+
+            Vector3 trueEnd = points[3];
+            if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
+            {
+                trueEnd = trueEnd + new Vector3(-10, 0, 0);
+            }
+
+            GraphView view = this.GetFirstAncestorOfType<GraphView>();
+
+            float realWidth = edgePresenter.selected ? edgeWidth * 2 : edgeWidth;
+            if (realWidth * view.scale < 1.5f)
+            {
+                realWidth = 1.5f / view.scale;
+            }
+
+            VFXEdgeUtils.RenderBezier(points[0], trueEnd, points[1], points[2], edgeColor, realWidth);
+        }
+
+        protected override void DrawEndpoint(Vector2 pos, bool start)
+        {
+        }
+    }
     internal class VFXDataEdge : Edge
     {
         public VFXDataEdge()
@@ -49,6 +82,16 @@ namespace UnityEditor.VFX.UI
             AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
         }
 
+        protected override EdgeControl CreateEdgeControl()
+        {
+            return new VFXDataEdgeControl
+            {
+                capRadius = 4,
+                interceptWidth = 3
+            };
+        }
+
+#if false
         protected override void DrawEdge()
         {
             var edgePresenter = GetPresenter<EdgePresenter>();
@@ -90,5 +133,7 @@ namespace UnityEditor.VFX.UI
             }
             Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);*/
         }
+
+#endif
     }
 }
