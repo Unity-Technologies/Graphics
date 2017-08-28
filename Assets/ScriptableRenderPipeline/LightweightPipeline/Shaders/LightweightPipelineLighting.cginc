@@ -44,15 +44,17 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 
     float distanceSqr = max(dot(posToLight, posToLight), 0.001);
 
-    // TODO: compute light attenuation from texture to save ALU. Builtin _LightTexture0 not set from SRP but we can create one.
-    // light attenuation with falloff.
-    // lightInput.atten.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    // lightInput.atten.w = lightRange * lightRange
-    // TODO: we can precompute 1.0 / (lightInput.atten.w * 0.64 - lightInput.atten.w)
-    // falloff is computed from 80% light range squared
+#ifdef _ATTENUATION_TEXTURE
+    half lightAtten = tex2D(_AttenuationTexture, float2(distanceSqr / lightInput.atten.w, 0.0)).a;
+#else
+    //// lightInput.atten.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
+    //// lightInput.atten.w = lightRange * lightRange
+    //// TODO: we can precompute 1.0 / (lightInput.atten.w * 0.64 - lightInput.atten.w)
+    //// falloff is computed from 80% light range squared
     float lightAtten = 1.0 / (1.0 + distanceSqr * lightInput.atten.z);
     float falloff = saturate((distanceSqr - lightInput.atten.w) / (lightInput.atten.w * 0.64 - lightInput.atten.w));
     lightAtten *= falloff;
+#endif
 
     float3 lightDir = posToLight * rsqrt(distanceSqr);
     half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDir));
