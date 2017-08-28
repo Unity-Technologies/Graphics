@@ -15,6 +15,7 @@ Shader "Example/Mito"
 				#define VFX_LOCAL_SPACE 1
 				#endif
 				
+				#include "UnityCG.cginc"
 				${VFXGlobalInclude}
 				${VFXGlobalDeclaration}
 				${VFXGeneratedBlockFunction}
@@ -24,11 +25,19 @@ Shader "Example/Mito"
 				#pragma vertex vert
 				#pragma fragment frag
 				
+#if USE_SOFT_PARTICLE
+				sampler2D_float _CameraDepthTexture;
+#endif
+				
 				struct ps_input
 				{
 					float4 pos : SV_POSITION;
 #if VFX_USE_COLOR_CURRENT
 					nointerpolation float3 color : COLOR0;
+#endif
+#if USE_SOFT_PARTICLE
+					float4 projPos : PROJ_POSITION;
+					nointerpolation float invSoftParticlesFadeDistance : INV_FADE_DISTANCE;
 #endif
 				};
 				
@@ -56,6 +65,12 @@ Shader "Example/Mito"
 #if VFX_USE_COLOR_CURRENT
 					o.color = color;
 #endif
+
+#if USE_SOFT_PARTICLE
+					o.projPos = ComputeScreenPos(o.pos);		
+					${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+					o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
+#endif
 					
 					return o;
 				}
@@ -67,7 +82,14 @@ Shader "Example/Mito"
 					o.color = 1.0f;
 #if VFX_USE_COLOR_CURRENT
 					o.color.rgb *= i.color.rgb;
-#endif				
+#endif
+
+#if USE_SOFT_PARTICLE
+					float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
+					float fade = saturate(i.invSoftParticlesFadeDistance * (sceneZ - i.projPos.w));
+					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
+					o.color.a *= fade;
+#endif
 					return o;
 				}
 			ENDCG

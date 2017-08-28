@@ -89,15 +89,18 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static VFXExpressionMapper FromContext(VFXContext context)
+        public static VFXExpressionMapper FromBlocks(IEnumerable<VFXBlock> blocks)
         {
             var mapper = new VFXExpressionMapper();
+            foreach (var block in blocks.Select((value, index) => new { index, value }))
+                mapper.AddExpressions(block.value.parameters, block.index);
+            return mapper;
+        }
 
+        public static VFXExpressionMapper FromContext(VFXContext context)
+        {
+            var mapper = FromBlocks(context.childrenWithImplicit);
             mapper.AddExpressionFromSlotContainer(context, -1);
-            int i = 0;
-            foreach (var block in context.childrenWithImplicit)
-                mapper.AddExpressions(block.parameters, i++);
-
             return mapper;
         }
 
@@ -131,6 +134,20 @@ namespace UnityEditor.VFX
                 }
             }
             return null;
+        }
+
+        public IEnumerable<VFXNamedExpression> CollectExpression(int id)
+        {
+            foreach (var expressionData in m_ExpressionsData)
+            {
+                foreach (var data in expressionData.Value)
+                {
+                    if (data.id == id)
+                    {
+                        yield return new VFXNamedExpression(expressionData.Key, data.fullName);
+                    }
+                }
+            }
         }
 
         public void AddExpression(VFXExpression exp, string name, int id)
