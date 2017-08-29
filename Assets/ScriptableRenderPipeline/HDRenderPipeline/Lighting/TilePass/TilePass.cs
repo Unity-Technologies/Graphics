@@ -2079,6 +2079,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
+                                HDRenderPipeline.SetGlobalVolumeProperties(cmd, deferredComputeShader);
+
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
                                 if (enableFeatureVariants)

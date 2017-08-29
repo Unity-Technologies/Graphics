@@ -6,6 +6,15 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringProfile.cs.hlsl"
 
+// Enables attenuation of light source contributions by participating media (fog).
+#define VOLUMETRIC_SHADOWING_ENABLED
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    // Apparently, not all shaders include "ShaderVariables.hlsl".
+    #include "../../ShaderVariables.hlsl"
+    #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+#endif
+
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
@@ -677,6 +686,10 @@ struct PreLightData
     float3x3 ltcXformClearCoat;                // TODO: make sure the compiler not wasting VGPRs on constants
     float    ltcClearCoatFresnelTerm;
     float3x3 ltcCoatT;
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    float3   globalFogExtinction;
+#endif
 };
 
 // This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
@@ -830,6 +843,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
     }
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    preLightData.globalFogExtinction = _GlobalFog_Extinction;
+#endif
 
     return preLightData;
 }
@@ -1086,13 +1103,15 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     // For point light and directional GetAngleAttenuation() return 1
 
     float3 lightToSurface = positionWS - lightData.positionWS;
-    float3 unL   = -lightToSurface;
-    float3 L     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
-    float  NdotL = dot(bsdfData.normalWS, L);
+    float3 unL    = -lightToSurface;
+    float  distSq = dot(unL, unL);
+    float  dist   = sqrt(distSq);
+    float3 L      = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? unL * rsqrt(distSq) : -lightData.forward;
+    float  NdotL  = dot(bsdfData.normalWS, L);
     float  illuminance = saturate(NdotL);
 
     // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
+    float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius) : 1;
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
 
@@ -1108,12 +1127,16 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = { normalize( L.xyz ), length( unL ) };
+        float4 L_dist = { L, dist };
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
-
-        illuminance *= shadow;
     }
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    shadow *= Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+#endif
+
+    illuminance *= shadow;
 
     // Projector lights always have a cookie.
     [branch] if (lightData.cookieIndex >= 0)

@@ -8,30 +8,30 @@
 // PackingRules = Exact
 struct VolumeProperties
 {
-    float3 scattering;
-    float asymmetry;
     float3 extinction;
-    float unused;
+    float asymmetry;
+    float3 scattering;
+    float align16;
 };
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.VolumeProperties
 //
-float3 GetScattering(VolumeProperties value)
+float3 GetExtinction(VolumeProperties value)
 {
-	return value.scattering;
+	return value.extinction;
 }
 float GetAsymmetry(VolumeProperties value)
 {
 	return value.asymmetry;
 }
-float3 GetExtinction(VolumeProperties value)
+float3 GetScattering(VolumeProperties value)
 {
-	return value.extinction;
+	return value.scattering;
 }
-float GetUnused(VolumeProperties value)
+float GetAlign16(VolumeProperties value)
 {
-	return value.unused;
+	return value.align16;
 }
 
 

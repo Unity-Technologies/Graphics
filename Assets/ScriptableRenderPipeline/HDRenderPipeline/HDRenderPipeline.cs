@@ -298,7 +298,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ComputeShader m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
         int m_VolumetricLightingKernel;
-        static ComputeBuffer s_UnboundedVolumeData = null;
 
         Material m_CameraMotionVectorsMaterial;
 
@@ -486,8 +485,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
-
-            s_UnboundedVolumeData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
         }
 
         void InitializeDebugMaterials()
@@ -537,8 +534,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Cleanup();
 
             m_SsaoEffect.Cleanup();
-
-            Utilities.SafeRelease(s_UnboundedVolumeData);
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -662,6 +657,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
                 cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
                 cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
+
+                SetGlobalVolumeProperties(cmd);
             }
         }
 
@@ -1184,22 +1181,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd)
+        // Returns 'true' if the global fog is enabled, 'false' otherwise.
+        public static bool SetGlobalVolumeProperties(CommandBuffer cmd, ComputeShader cs = null)
         {
             HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
 
-            HomogeneousFog unboundedFogComponent = null;
+            HomogeneousFog globalFogComponent = null;
 
             foreach (HomogeneousFog fogComponent in fogComponents)
             {
                 if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
                 {
-                    unboundedFogComponent = fogComponent;
+                    globalFogComponent = fogComponent;
                     break;
                 }
             }
 
-            if (unboundedFogComponent == null) { return; }
+            // TODO: may want to cache these results somewhere.
+            VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+                                                                                : VolumeProperties.GetNeutralVolumeProperties();
+            if (cs)
+            {
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+            }
+            else
+            {
+                cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
+                cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+            }
+
+            return (globalFogComponent != null);
+        }
+
+        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            if (!SetGlobalVolumeProperties(cmd, m_VolumetricLightingCS)) { return; }
 
             using (new Utilities.ProfilingSample("VolumetricLighting", cmd))
             {
@@ -1207,18 +1226,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
                                                                                                : "VolumetricLightingAllLights");
-                List<VolumeProperties> unboundedVolumeProperties = new List<VolumeProperties>();
-                unboundedVolumeProperties.Add(unboundedFogComponent.volumeParameters.GetProperties());
-
-                // TODO: probably unnecessary to update the buffer every frame.
-                s_UnboundedVolumeData.SetData(unboundedVolumeProperties);
-
                 hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
                 // TODO: replace strings with nameIDs.
-                cmd.SetComputeBufferParam( m_VolumetricLightingCS, m_VolumetricLightingKernel, "_UnboundedVolume",        s_UnboundedVolumeData);
-                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, "_LightingTexture",        m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture,       GetDepthTexture());
 
                 // Pass clustered light data (if present) into the compute shader.
                 m_LightLoop.PushGlobalParams(hdCamera.camera, cmd, m_VolumetricLightingCS, m_VolumetricLightingKernel, true);

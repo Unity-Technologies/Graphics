@@ -30,11 +30,7 @@
 //--------------------------------------------------------------------------------------------------
 
 TEXTURE2D(_DepthTexture);               // Z-buffer
-RW_TEXTURE2D(float4, _LightingTexture); // Updated texture
-
-// Unity does not support structures inside constant buffers,
-// so we are forced to use a structured buffer instead.
-StructuredBuffer<VolumeProperties> _UnboundedVolume;
+RW_TEXTURE2D(float4, _CameraColorTexture); // Updated texture
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -50,9 +46,9 @@ struct Ray
 // Computes the in-scattered radiance along the ray.
 float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 {
-    float3 scattering = _UnboundedVolume[0].scattering;
-    float3 extinction = _UnboundedVolume[0].extinction;
-    float  asymmetry  = _UnboundedVolume[0].asymmetry;
+    float3 extinction = _GlobalFog_Extinction;
+    float  asymmetry  = _GlobalFog_Asymmetry;
+    float3 scattering = _GlobalFog_Scattering;
 
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
@@ -97,30 +93,35 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 // Fetch the light.
                 LightData lightData = _LightDatas[punctualLightIndex];
 
-                float3 L = lightData.positionWS - samplePositionWS;
+                float3 sampleToLight = lightData.positionWS - samplePositionWS;
 
                 // Compute the distance to the light, and the associated transmittance values.
-                float  dist2   = dot(L, L);
-                float  dist    = sqrt(dist2);
-                float  rcpDist = rsqrt(dist2);
-                float  LdotD   = dot(L, ray.directionWS) * rcpDist;
+                float  distSq  = dot(sampleToLight, sampleToLight);
+                float  dist    = sqrt(distSq);
+                float3 L       = sampleToLight * rsqrt(distSq);
+                float  LdotD   = dot(L, ray.directionWS);
                 float  phase   = HenyeyGreensteinPhaseFunction(asymmetry, LdotD);
                 float3 lightT  = Transmittance(OpticalDepthHomogeneous(extinction, dist));
                 float3 sampleT = Transmittance(OpticalDepthHomogeneous(extinction, t));
-                float  shadow = 1;
+
+                // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
+                float attenuation = (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius) : 1;
+                // Reminder: lights are oriented backward (-Z)
+                attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+
+                float shadow = 1;
 
                 [branch] if (lightData.shadowIndex >= 0)
                 {
                     // TODO: make projector lights cast shadows.
-                    float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-                    float4 L_dist = { L * rcpDist, dist };
+                    float3 offset = 0; // GetShadowPosOffset(nDotL, normal);
 
-                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0, lightData.shadowIndex, L_dist, posInput.unPositionSS);
+                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0, lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
                     shadow = lerp(1.0, shadow, lightData.shadowDimmer);
                 }
 
                 // Compute the amount of in-scattered radiance.
-                radiance += (dt * scattering * phase * shadow * rcpDist * rcpDist) * (lightT * sampleT) * lightData.color;
+                radiance += (dt * scattering * phase * attenuation * shadow) * (lightT * sampleT) * lightData.color;
             }
         }
     }
@@ -146,8 +147,14 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     if (pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y) { return; }
 
+#ifdef UNITY_REVERSED_Z
+    float z = max(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, 0 + 0.001);
+#else
+    float z = min(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, 1 - 0.001);
+#endif
+
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw, tileCoord);
-    UpdatePositionInput(max(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, 0.02), _InvViewProjMatrix, _ViewProjMatrix, posInput);
+    UpdatePositionInput(z, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
     Ray cameraRay;
 
@@ -158,18 +165,11 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     cameraRay.maxLength    =  sqrt(dot(cameraRay.directionWS, cameraRay.directionWS));
     cameraRay.directionWS *= rsqrt(dot(cameraRay.directionWS, cameraRay.directionWS)); //Normalize
 
-    float3 rayT = Transmittance(OpticalDepthHomogeneous(_UnboundedVolume[0].extinction, cameraRay.maxLength));
+    float3 rayT = Transmittance(OpticalDepthHomogeneous(_GlobalFog_Extinction, cameraRay.maxLength));
 
-    // TODO: make this a parameter controllable from C#.
-    const float maxSamplingDistance = 64.0f; // In meters
-
-    float distanceScale = max(1, maxSamplingDistance / cameraRay.maxLength);
-
-    cameraRay.maxLength *= distanceScale;
-    posInput.depthVS    *= distanceScale;
-
-    float3 inL = PerformIntegration(posInput, cameraRay, 64);
+    const int numSamples = 64;
+    float3 inL = PerformIntegration(posInput, cameraRay, numSamples);
 
     // In-place UAV updates do not work on Intel GPUs.
-    _LightingTexture[pixelCoord] = float4(rayT * _LightingTexture[pixelCoord].rgb + inL, _LightingTexture[pixelCoord].a);
+    _CameraColorTexture[pixelCoord] = float4(rayT * _CameraColorTexture[pixelCoord].rgb + inL, _CameraColorTexture[pixelCoord].a);
 }
