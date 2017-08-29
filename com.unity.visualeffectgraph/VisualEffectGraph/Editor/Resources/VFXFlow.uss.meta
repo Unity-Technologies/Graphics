@@ -2,7 +2,8 @@ fileFormatVersion: 2
 guid: 40d10cb03906c5c4c99c8c26aa65162b
 timeCreated: 1492679812
 licenseType: Pro
-StyleSheetImporter:
+ScriptedImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+  script: {fileID: 12385, guid: 0000000000000000e000000000000000, type: 0}

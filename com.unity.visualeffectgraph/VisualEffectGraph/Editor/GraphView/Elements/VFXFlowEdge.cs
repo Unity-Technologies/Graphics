@@ -6,6 +6,177 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
+    internal static class VFXEdgeUtils
+    {
+        static Material s_LineMat;
+        static Material s_CircleMat;
+
+        public static Material lineMat
+        {
+            get
+            {
+                if (s_LineMat == null)
+                    s_LineMat = new Material(Shader.Find("Unlit/AALine"));
+                return s_LineMat;
+            }
+        }
+        public static Material shapesMat
+        {
+            get
+            {
+                if (s_CircleMat == null)
+                    s_CircleMat = new Material(Shader.Find("Unlit/VColor"));
+                return s_CircleMat;
+            }
+        }
+
+
+        public static void RenderDisc(Vector2 center, float radius, Color color)
+        {
+            shapesMat.SetPass(0);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(color);
+
+            float prec = 5;
+
+
+            GL.Vertex3(center.x - radius, center.y, 0);
+
+            for (float f = -prec + 1; f < prec; f += 1)
+            {
+                float phi = f * Mathf.PI / (2.0f * prec);
+
+                float x = center.x + Mathf.Sin(phi) * radius;
+                float y = Mathf.Cos(phi) * radius;
+
+                //GL.TexCoord3(f,)
+                GL.Vertex3(x, center.y - y, 0);
+                GL.Vertex3(x, center.y + y, 0);
+            }
+
+            GL.Vertex3(center.x + radius, center.y, 0);
+
+            GL.End();
+        }
+
+        public static void RenderTriangle(Vector2 to, float arrowHeight, Color color)
+        {
+            shapesMat.SetPass(0);
+            GL.Begin(GL.TRIANGLES);
+            GL.Color(color);
+            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
+            GL.Vertex3(to.x, to.y + arrowHeight, 0);
+            GL.End();
+        }
+
+        public static void RenderLine(Vector2 start, Vector2 end, Color color, float edgeWidth)
+        {
+            lineMat.SetPass(0);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(color);
+
+            Vector2 dir = (end - start).normalized;
+            Vector2 norm = new Vector2(dir.y, -dir.x);
+
+            float halfWidth = edgeWidth * 0.5f + 0.5f;
+
+            float vertexHalfWidth = halfWidth + 2;
+            Vector2 edge = norm * vertexHalfWidth;
+
+            GL.TexCoord3(-vertexHalfWidth, halfWidth, 0);
+            GL.Vertex(start - edge);
+            GL.TexCoord3(vertexHalfWidth, halfWidth, 0);
+            GL.Vertex(start + edge);
+
+            GL.TexCoord3(-vertexHalfWidth, halfWidth, 1);
+            GL.Vertex(end - edge);
+            GL.TexCoord3(vertexHalfWidth, halfWidth, 1);
+            GL.Vertex(end + edge);
+
+            GL.End();
+        }
+
+        public static void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
+        {
+            lineMat.SetPass(0);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(color);
+
+            Vector2 prevPos = start;
+            Vector2 edge = Vector2.zero;
+            Vector2 dir = (tStart - start).normalized;
+            Vector2 norm = new Vector2(dir.y, -dir.x);
+            //tStart = start + tStart;
+            //tEnd +=  end + tEnd;
+
+            //GL.Vertex(start);
+
+            float cpt = (start - end).magnitude / 5;
+            if (cpt < 3)
+                cpt = 3;
+
+
+            float halfWidth = edgeWidth * 0.5f + 0.5f;
+
+            float vertexHalfWidth = halfWidth + 2;
+
+            for (float t = 1 / cpt; t < 1; t += 1 / cpt)
+            {
+                float minT = 1 - t;
+
+                Vector2 pos = t * t * t * end +
+                    3 * minT * t * t * tEnd +
+                    3 * minT * minT * t * tStart +
+                    minT * minT * minT * start;
+
+                edge = norm * vertexHalfWidth;
+
+                GL.TexCoord3(-vertexHalfWidth, halfWidth, t);
+                GL.Vertex(prevPos - edge);
+                GL.TexCoord3(vertexHalfWidth, halfWidth, t);
+                GL.Vertex(prevPos + edge);
+
+                dir = (pos - prevPos).normalized;
+                norm = new Vector2(dir.y, -dir.x);
+
+                prevPos = pos;
+            }
+
+            dir = (end - prevPos).normalized;
+            norm = new Vector2(dir.y, -dir.x);
+            edge = norm * vertexHalfWidth;
+
+            GL.TexCoord3(-vertexHalfWidth, halfWidth, 1);
+            GL.Vertex(end - edge);
+            GL.TexCoord3(vertexHalfWidth, halfWidth, 1);
+            GL.Vertex(end + edge);
+
+            GL.End();
+        }
+    }
+
+    internal class VFXFlowEdgeControl : VFXEdgeControl
+    {
+        protected override void DrawEndpoint(Vector2 pos, bool start)
+        {
+            VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
+
+
+            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
+
+            if (start)
+            {
+                VFXEdgeUtils.RenderDisc(pos, 4, edgeColor);
+            }
+            else
+            {
+                VFXEdgeUtils.RenderTriangle(pos, 12, edgeColor);
+            }
+        }
+    }
+
+
     internal class VFXFlowEdge : Edge
     {
         public override int layer
@@ -21,6 +192,16 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        protected override EdgeControl CreateEdgeControl()
+        {
+            return new VFXFlowEdgeControl
+            {
+                capRadius = 4,
+                interceptWidth = 3
+            };
+        }
+
+#if false
         protected override void DrawEdge()
         {
             var edgePresenter = GetPresenter<EdgePresenter>();
@@ -58,134 +239,8 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
-        static Material VLineMat;
-        static Material VCircleMat;
+#endif
 
-
-        void RenderDisc(Vector2 center, float radius, Color color)
-        {
-            if (VCircleMat == null)
-            {
-                VCircleMat = new Material(Shader.Find("Unlit/VColor"));
-            }
-            VCircleMat.SetPass(0);
-            GL.Begin(GL.TRIANGLE_STRIP);
-            GL.Color(color);
-
-            float prec = 5;
-
-
-            GL.Vertex3(center.x - radius, center.y, 0);
-
-            for (float f = -prec + 1; f < prec; f += 1)
-            {
-                float phi = f * Mathf.PI / (2.0f * prec);
-
-                float x = center.x + Mathf.Sin(phi) * radius;
-                float y = Mathf.Cos(phi) * radius;
-
-                //GL.TexCoord3(f,)
-                GL.Vertex3(x, center.y - y, 0);
-                GL.Vertex3(x, center.y + y, 0);
-            }
-
-            GL.Vertex3(center.x + radius, center.y, 0);
-
-            GL.End();
-        }
-
-        public static void RenderLine(Vector2 start, Vector2 end, Color color, float edgeWidth)
-        {
-            if (VLineMat == null)
-            {
-                VLineMat = new Material(Shader.Find("Unlit/AALine"));
-            }
-            VLineMat.SetPass(0);
-            GL.Begin(GL.TRIANGLE_STRIP);
-            GL.Color(color);
-
-            Vector2 dir = (end - start).normalized;
-            Vector2 norm = new Vector2(dir.y, -dir.x);
-
-            float halfWidth = edgeWidth * 0.5f + 0.5f;
-
-            float vertexHalfWidth = halfWidth + 2;
-            Vector2 edge = norm * vertexHalfWidth;
-
-            GL.TexCoord3(0, -vertexHalfWidth, halfWidth);
-            GL.Vertex(start - edge);
-            GL.TexCoord3(0, vertexHalfWidth, halfWidth);
-            GL.Vertex(start + edge);
-
-            GL.TexCoord3(1, -vertexHalfWidth, halfWidth);
-            GL.Vertex(end - edge);
-            GL.TexCoord3(1, vertexHalfWidth, halfWidth);
-            GL.Vertex(end + edge);
-
-            GL.End();
-        }
-
-        public static void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
-        {
-            if (VLineMat == null)
-            {
-                VLineMat = new Material(Shader.Find("Unlit/AALine"));
-            }
-            VLineMat.SetPass(0);
-            GL.Begin(GL.TRIANGLE_STRIP);
-            GL.Color(color);
-
-            Vector2 prevPos = start;
-            Vector2 edge = Vector2.zero;
-            Vector2 dir = (tStart - start).normalized;
-            Vector2 norm = new Vector2(dir.y, -dir.x);
-            //tStart = start + tStart;
-            //tEnd +=  end + tEnd;
-
-            //GL.Vertex(start);
-
-            float cpt = (start - end).magnitude / 5;
-            if (cpt < 3)
-                cpt = 3;
-
-
-            float halfWidth = edgeWidth * 0.5f + 0.5f;
-
-            float vertexHalfWidth = halfWidth + 2;
-
-            for (float t = 1 / cpt; t < 1; t += 1 / cpt)
-            {
-                float minT = 1 - t;
-
-                Vector2 pos = t * t * t * end +
-                    3 * minT * t * t * tEnd +
-                    3 * minT * minT * t * tStart +
-                    minT * minT * minT * start;
-
-                edge = norm * vertexHalfWidth;
-
-                GL.TexCoord3(t, -vertexHalfWidth, halfWidth);
-                GL.Vertex(prevPos - edge);
-                GL.TexCoord3(t, vertexHalfWidth, halfWidth);
-                GL.Vertex(prevPos + edge);
-
-                dir = (pos - prevPos).normalized;
-                norm = new Vector2(dir.y, -dir.x);
-
-                prevPos = pos;
-            }
-
-            dir = (end - prevPos).normalized;
-            norm = new Vector2(dir.y, -dir.x);
-            edge = norm * vertexHalfWidth;
-
-            GL.TexCoord3(1, -vertexHalfWidth, halfWidth);
-            GL.Vertex(end - edge);
-            GL.TexCoord3(1, vertexHalfWidth, halfWidth);
-            GL.Vertex(end + edge);
-
-            GL.End();
-        }
 
         /*
         protected override void DrawEdge(IStylePainter painter)

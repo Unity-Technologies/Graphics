@@ -112,7 +112,10 @@ namespace UnityEditor.VFX.UIElements
             if (m_Dragging)
             {
                 m_Dragging = false;
-                UIElementsUtility.eventDispatcher.ReleaseCapture(target);
+                if (target.HasCapture())
+                {
+                    UIElementsUtility.eventDispatcher.ReleaseCapture(target);
+                }
                 EditorGUIUtility.SetWantsMouseJumping(0);
 
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
@@ -145,6 +148,11 @@ namespace UnityEditor.VFX.UIElements
         {
             if (m_Dragging)
             {
+                if (!target.HasCapture())
+                {
+                    Release();
+                    return;
+                }
                 if (evt.button == 0 && m_Dragging)
                 {
                     ApplyDelta(HandleUtility.niceMouseDelta);
