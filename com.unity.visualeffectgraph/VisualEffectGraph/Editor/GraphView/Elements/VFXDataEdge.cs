@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
                 Vector3[] vertices = m_Mesh.vertices;
                 Vector2[] uvs = m_Mesh.uv;
                 bool newIndices = false;
-                int wantedLength = (cpt + 1) * 2;
+                int wantedLength = (cpt) * 2;
                 if (vertices == null || vertices.Length != wantedLength)
                 {
                     vertices = new Vector3[wantedLength];
@@ -107,6 +107,7 @@ namespace UnityEditor.VFX.UI
                 float halfWidth = realWidth * 0.5f + 0.5f;
 
                 float vertexHalfWidth = halfWidth + 2;
+                int index;
 
                 for (int i = 1; i < cpt; ++i)
                 {
@@ -121,12 +122,12 @@ namespace UnityEditor.VFX.UI
 
                     border = norm * vertexHalfWidth;
 
-                    int index = i - 1;
-                    uvs[i * 2] = new Vector2(-vertexHalfWidth, halfWidth);
-                    vertices[i * 2] = prevPos - border;
+                    index = i - 1;
+                    uvs[index * 2] = new Vector2(-vertexHalfWidth, halfWidth);
+                    vertices[index * 2] = prevPos - border;
 
-                    uvs[i * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
-                    vertices[i * 2 + 1] = prevPos + border;
+                    uvs[index * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
+                    vertices[index * 2 + 1] = prevPos + border;
 
                     dir = (pos - prevPos).normalized;
                     norm = new Vector3(dir.y, -dir.x, 0);
@@ -138,12 +139,12 @@ namespace UnityEditor.VFX.UI
                 norm = new Vector2(dir.y, -dir.x);
                 border = norm * vertexHalfWidth;
 
+                index = cpt - 1;
+                uvs[index * 2] = new Vector2(-vertexHalfWidth, halfWidth);
+                vertices[index * 2] = prevPos - border;
 
-                uvs[cpt * 2] = new Vector2(-vertexHalfWidth, halfWidth);
-                vertices[cpt * 2] = prevPos - border;
-
-                uvs[cpt * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
-                vertices[cpt * 2 + 1] = prevPos + border;
+                uvs[index * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
+                vertices[index * 2 + 1] = prevPos + border;
 
                 m_Mesh.vertices = vertices;
                 m_Mesh.uv = uvs;
@@ -186,10 +187,6 @@ namespace UnityEditor.VFX.UI
                 }
 
                 m_Mesh.RecalculateBounds();
-
-                Bounds bounds = m_Mesh.bounds;
-
-                Debug.Log(bounds);
             }
 
 
