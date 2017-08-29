@@ -24,23 +24,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         IMaterialGraphEditWindow m_Container;
 
-        [SerializeField]
-        TitleBarPresenter m_TitleBar;
-
-        public TitleBarPresenter titleBar
-        {
-            get { return m_TitleBar; }
-        }
-
-        public GraphInspectorPresenter graphInspectorPresenter
-        {
-            get { return m_GraphInspectorPresenter; }
-            set { m_GraphInspectorPresenter = value; }
-        }
-
-        [SerializeField]
-        GraphInspectorPresenter m_GraphInspectorPresenter;
-
         protected MaterialGraphPresenter()
         {
             typeMapper = new GraphTypeMapper(typeof(MaterialNodePresenter));
@@ -113,10 +96,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (scope == ModificationScope.Topological)
                 UpdateData();
-
-
-            if (m_Container != null)
-                m_Container.Repaint();
         }
 
         void UpdateData()
@@ -282,12 +261,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             this.graph = graph;
             m_Container = container;
-
-            m_TitleBar = CreateInstance<TitleBarPresenter>();
-            m_TitleBar.Initialize(container);
-
-            m_GraphInspectorPresenter = CreateInstance<GraphInspectorPresenter>();
-            m_GraphInspectorPresenter.Initialize();
 
             if (graph == null)
                 return;
@@ -460,14 +433,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
         }
 
+        public delegate void OnSelectionChanged(IEnumerable<INode> presenters);
+
+        public OnSelectionChanged onSelectionChanged;
+
         public void UpdateSelection(IEnumerable<MaterialNodePresenter> presenters)
         {
             if (graph == null)
                 return;
-
-            //TODO: Fix this
-            //drawingData.selection = presenters.Select(x => x.node.guid);
-            m_GraphInspectorPresenter.UpdateSelection(presenters.Select(x => x.node));
+            if (onSelectionChanged != null)
+                onSelectionChanged(presenters.Select(x => x.node));
         }
 
         public override void AddElement(GraphElementPresenter element)

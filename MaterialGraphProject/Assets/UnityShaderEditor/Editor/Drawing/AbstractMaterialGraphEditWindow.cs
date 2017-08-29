@@ -52,31 +52,21 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_Selected = value; }
         }
 
-        public MaterialGraphPresenter CreateDataSource()
-        {
-            return CreateInstance<MaterialGraphPresenter>();
-        }
-
-        public GraphView CreateGraphView()
-        {
-            return new MaterialGraphView(this);
-        }
-
         void Update()
         {
             if (m_GraphEditorView != null)
             {
-                m_GraphEditorView.presenter.UpdateTimeDependentNodes();
+                m_GraphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
             }
         }
 
         void OnEnable()
         {
-            m_GraphEditorView = new GraphEditorView(CreateGraphView());
+            m_GraphEditorView = new GraphEditorView();
             rootVisualContainer.Add(m_GraphEditorView);
-            var source = CreateDataSource();
-            source.Initialize(inMemoryAsset, this);
-            m_GraphEditorView.presenter = source;
+            var presenter = CreateInstance<GraphEditorPresenter>();
+            presenter.Initialize(inMemoryAsset, this, selected.name);
+            m_GraphEditorView.presenter = presenter;
         }
 
         void OnDisable()
@@ -90,11 +80,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             var e = Event.current;
 
             if (e.type == EventType.ValidateCommand && (
-                    e.commandName == "Copy" && presenter.canCopy
-                    || e.commandName == "Paste" && presenter.canPaste
-                    || e.commandName == "Duplicate" && presenter.canDuplicate
-                    || e.commandName == "Cut" && presenter.canCut
-                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
+                    e.commandName == "Copy" && presenter.graphPresenter.canCopy
+                    || e.commandName == "Paste" && presenter.graphPresenter.canPaste
+                    || e.commandName == "Duplicate" && presenter.graphPresenter.canDuplicate
+                    || e.commandName == "Cut" && presenter.graphPresenter.canCut
+                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.graphPresenter.canDelete))
             {
                 e.Use();
             }
@@ -102,15 +92,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (e.type == EventType.ExecuteCommand)
             {
                 if (e.commandName == "Copy")
-                    presenter.Copy();
+                    presenter.graphPresenter.Copy();
                 if (e.commandName == "Paste")
-                    presenter.Paste();
+                    presenter.graphPresenter.Paste();
                 if (e.commandName == "Duplicate")
-                    presenter.Duplicate();
+                    presenter.graphPresenter.Duplicate();
                 if (e.commandName == "Cut")
-                    presenter.Cut();
+                    presenter.graphPresenter.Cut();
                 if (e.commandName == "Delete" || e.commandName == "SoftDelete")
-                    presenter.Delete();
+                    presenter.graphPresenter.Delete();
             }
 
             if (e.type == EventType.KeyDown)
@@ -159,8 +149,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (path.Length == 0)
                 return;
 
-            var graphDataSource = m_GraphEditorView.presenter;
-            var selected = graphDataSource.elements.Where(e => e.selected).ToArray();
+            var graphPresenter = m_GraphEditorView.presenter.graphPresenter;
+            var selected = graphPresenter.elements.Where(e => e.selected).ToArray();
             var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(selected)));
 
             if (deserialized == null)
@@ -252,21 +242,21 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var subGraphNode = new SubGraphNode();
-            graphDataSource.AddNode(subGraphNode);
+            graphPresenter.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
             foreach (var edgeMap in inputsNeedingConnection)
             {
-                graphDataSource.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
+                graphPresenter.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
             }
 
             foreach (var edgeMap in outputsNeedingConnection)
             {
-                graphDataSource.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
+                graphPresenter.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
-            var toDelete = graphDataSource.elements.Where(e => e.selected).OfType<MaterialNodePresenter>();
-            graphDataSource.RemoveElements(toDelete, new List<GraphEdgePresenter>());
+            var toDelete = graphPresenter.elements.Where(e => e.selected).OfType<MaterialNodePresenter>();
+            graphPresenter.RemoveElements(toDelete, new List<GraphEdgePresenter>());
         }
 
         private void UpdateShaderSubGraphOnDisk(string path)
@@ -355,9 +345,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             inMemoryAsset.OnEnable();
             inMemoryAsset.ValidateGraph();
 
-            var source = CreateDataSource();
-            source.Initialize(inMemoryAsset, this);
-            m_GraphEditorView.presenter = source;
+            var presenter = CreateInstance<GraphEditorPresenter>();
+            presenter.Initialize(inMemoryAsset, this, selected.name);
+            m_GraphEditorView.presenter = presenter;
 
             titleContent = new GUIContent(selected.name);
 

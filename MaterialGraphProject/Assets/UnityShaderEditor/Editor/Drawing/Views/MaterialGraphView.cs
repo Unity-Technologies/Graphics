@@ -17,14 +17,14 @@ namespace UnityEditor.MaterialGraph.Drawing
     public sealed class MaterialGraphView : GraphView
     {
         [SerializeField]
-        private GraphDrawingData m_DrawingData = new GraphDrawingData();
+        GraphDrawingData m_DrawingData = new GraphDrawingData();
 
         public GraphDrawingData drawingData
         {
             get { return m_DrawingData; }
         }
 
-        public MaterialGraphView(EditorWindow editorWindow)
+        public MaterialGraphView()
         {
             this.AddManipulator(new ContentZoomer());
             this.AddManipulator(new ContentDragger());
@@ -134,12 +134,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void PropagateSelection()
         {
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (graphDataSource == null)
+            var graphPresenter = GetPresenter<MaterialGraphPresenter>();
+            if (graphPresenter == null)
                 return;
 
             var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter)x.presenter);
-            graphDataSource.UpdateSelection(selectedNodes);
+            graphPresenter.UpdateSelection(selectedNodes);
         }
 
         public override void AddToSelection(ISelectable selectable)

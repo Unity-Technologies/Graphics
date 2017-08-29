@@ -38,11 +38,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector> m_InspectorFactory;
 
-        public void Initialize()
+        public void Initialize(string graphName)
         {
             inspectors = new List<AbstractNodeInspector>();
             m_Editors = new List<AbstractNodeEditorPresenter>();
-            m_Title = "Name of graph";
+            m_Title = graphName;
             m_InspectorFactory = new ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector>(new[]
             {
                 new TypeMapping(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector)),
