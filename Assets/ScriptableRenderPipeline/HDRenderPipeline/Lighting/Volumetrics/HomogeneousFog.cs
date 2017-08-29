@@ -7,10 +7,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct VolumeProperties
     {
-        public Vector3 scattering;
-        public float   asymmetry;
         public Vector3 extinction;
-        public float   unused;
+        public float   asymmetry;
+        public Vector3 scattering;
+        public float   align16;
+
+        public static VolumeProperties GetNeutralVolumeProperties()
+        {
+            VolumeProperties properties = new VolumeProperties();
+
+            properties.extinction = Vector3.zero;
+            properties.asymmetry  = 0;
+            properties.scattering = Vector3.zero;
+
+            return properties;
+        }
     }
 
     [Serializable]
