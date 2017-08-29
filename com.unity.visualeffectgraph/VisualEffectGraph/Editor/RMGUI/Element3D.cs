@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.UIElements
 {
@@ -32,19 +33,49 @@ namespace UnityEngine.Experimental.UIElements
             m_LineMaterial.color = Color.gray;
         }
 
+        RenderTexture m_RenderTexture;
+        Texture2D m_BlitTexture;
+
         public override void DoRepaint()
         {
             Rect panelRect = this.panel.visualTree.layout;
 
-            Rect viewPort = this.parent.ChangeCoordinatesTo(this.panel.visualTree, layout);
-            float height = viewPort.height;
-            viewPort.yMin = panelRect.height - viewPort.yMin - height;
-            viewPort.height = height;
+            Rect viewPort = this.parent.ChangeCoordinatesTo(this, layout);
+
+            if (m_RenderTexture == null)
+            {
+                m_RenderTexture = new RenderTexture(Mathf.CeilToInt(viewPort.width), Mathf.CeilToInt(viewPort.height), 32, RenderTextureFormat.Default);
+            }
+            if (m_RenderTexture.width != Mathf.CeilToInt(viewPort.width))
+            {
+                m_RenderTexture.Release();
+                m_RenderTexture.width = Mathf.CeilToInt(viewPort.width);
+            }
+            if (m_RenderTexture.height != Mathf.CeilToInt(viewPort.height))
+            {
+                m_RenderTexture.Release();
+
+                m_RenderTexture.height = Mathf.CeilToInt(viewPort.height);
+            }
+
+            if (m_BlitTexture == null || m_BlitTexture.height != m_RenderTexture.height || m_BlitTexture.width != m_RenderTexture.width)
+            {
+                if (m_BlitTexture != null)
+                    m_BlitTexture.Resize(m_RenderTexture.width, m_BlitTexture.height);
+                else
+                {
+                    m_BlitTexture = new Texture2D(m_RenderTexture.width, m_RenderTexture.height, TextureFormat.ARGB32, false);
+                    style.backgroundImage = m_BlitTexture;
+                }
+            }
+
+            //EditorGUIUtility.SetRenderTextureNoViewport(m_RenderTexture);
+            RenderTexture.active = m_RenderTexture;
 
             GL.PushMatrix();
-            GL.Viewport(viewPort);
+            //GL.Viewport(viewPort);
             GL.Clear(true, true, Color.red);
-
+#if true
             GL.LoadProjectionMatrix(Matrix4x4.Perspective(60, viewPort.width / viewPort.height, 0.01f, 100));
             GL.modelview = Matrix4x4.Translate(position) * Matrix4x4.Rotate(rotation);
 
@@ -69,18 +100,20 @@ namespace UnityEngine.Experimental.UIElements
                 GL.Vertex3(count, 0, x);
             }
             GL.End();
-
+            GL.invertCulling = true;
             m_Material.SetPass(0);
-            /*
-            GL.Begin(GL.TRIANGLES);
-            GL.Vertex3(-1, 1, 0);
-            GL.Vertex3(1, 1, 0);
-            GL.Vertex3(0, -1, 0);
-            GL.End();
-            */
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
 
+            //Graphics.DrawMesh(m_Mesh, Matrix4x4.identity, m_Material, 1);
+
+#endif
             GL.PopMatrix();
+            m_BlitTexture.ReadPixels(viewPort, 0, 0);
+
+            RenderTexture.active = null;
+            m_BlitTexture.Apply();
+
+            base.DoRepaint();
         }
     }
 }

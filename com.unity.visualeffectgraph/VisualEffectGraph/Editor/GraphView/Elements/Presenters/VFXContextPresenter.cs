@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         {
             UnregisterAnchors();
 
-            m_SlotPresenter = new VFXContextSlotContainerPresenter();
+            m_SlotPresenter = CreateInstance<VFXContextSlotContainerPresenter>();
             inputAnchors.Clear();
             outputAnchors.Clear();
 

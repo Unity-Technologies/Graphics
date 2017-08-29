@@ -8,15 +8,15 @@ Shader "Unlit/Element3DGridShader"
     {
         Tags { "RenderType"="Opaque" }
         LOD 100
-        Blend SrcAlpha OneMinusSrcAlpha
+        //Blend SrcAlpha OneMinusSrcAlpha
+        //ZWrite On
+        ZTest LEqual
 
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
 
@@ -27,7 +27,6 @@ Shader "Unlit/Element3DGridShader"
 
             struct v2f
             {
-                UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
             };
 
@@ -36,7 +35,6 @@ Shader "Unlit/Element3DGridShader"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
 
@@ -46,9 +44,7 @@ Shader "Unlit/Element3DGridShader"
             {
                 fixed4 col = _Color;
 
-            col.a = i.fogCoord;
-                // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
+                col.r = i.vertex.z;
                 return col;
             }
             ENDCG
