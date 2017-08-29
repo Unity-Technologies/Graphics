@@ -1228,9 +1228,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                                                : "VolumetricLightingAllLights");
                 hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
-                // TODO: replace strings with nameIDs.
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture,       GetDepthTexture());
+                cmd.SetComputeVectorParam( m_VolumetricLightingCS, HDShaderIDs._Time,          Shader.GetGlobalVector(HDShaderIDs._Time));
 
                 // Pass clustered light data (if present) into the compute shader.
                 m_LightLoop.PushGlobalParams(hdCamera.camera, cmd, m_VolumetricLightingCS, m_VolumetricLightingKernel, true);
