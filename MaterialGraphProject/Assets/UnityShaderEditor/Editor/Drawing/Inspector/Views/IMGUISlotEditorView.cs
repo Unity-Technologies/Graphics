@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             else
                 return;
 
-            Add(new IMGUIContainer(onGUIHandler) { executionContext = presenter.GetInstanceID() });
+            Add(new IMGUIContainer(onGUIHandler));
         }
 
         void Vector4OnGUIHandler()

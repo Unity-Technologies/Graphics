@@ -17,6 +17,7 @@ public class ShaderSubGraphImporter : ScriptedImporter
 
         var graphAsset = ScriptableObject.CreateInstance<MaterialSubGraphAsset>();
         graphAsset.subGraph = graph;
-        ctx.SetMainAsset("MainAsset", graphAsset);
+        ctx.AddObjectToAsset("MainAsset", graphAsset);
+        ctx.SetMainObject(graphAsset);
     }
 }

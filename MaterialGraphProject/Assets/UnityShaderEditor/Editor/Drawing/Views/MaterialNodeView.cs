@@ -74,8 +74,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 m_ControlsContainer.Add(new IMGUIContainer(controlData.OnGUIHandler)
                 {
-                    name = "element",
-                    executionContext = controlData.GetInstanceID(),
+                    name = "element"
                 });
                 m_CurrentControls.Add(controlData);
             }
