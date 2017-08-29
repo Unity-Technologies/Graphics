@@ -29,7 +29,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_TitleBarView = new TitleBarView();
             m_TitleBarView.name = "TitleBar";
 
-            m_GraphInspectorView = new GraphInspectorView();
+            m_GraphInspectorView = new GraphInspectorView() { name = "inspector" };
 
             Add(m_TitleBarView);
             var contentContainer = new VisualElement() { m_GraphView, m_GraphInspectorView };
