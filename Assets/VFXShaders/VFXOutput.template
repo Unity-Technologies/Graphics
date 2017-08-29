@@ -5,8 +5,7 @@ Shader "Example/Mito"
 		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		Pass
 		{
-			ZTest LEqual
-			ZWrite On
+			${VFXOutputRenderState}
 			Cull Off
 				
 			CGPROGRAM

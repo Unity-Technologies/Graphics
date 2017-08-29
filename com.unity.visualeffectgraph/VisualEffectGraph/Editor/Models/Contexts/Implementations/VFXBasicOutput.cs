@@ -11,9 +11,19 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXOutput"; } }
         public override bool codeGeneratorCompute { get { return false; } }
+
+        public enum BlendMode
+        {
+            Additive,
+            Alpha,
+            Masked,
+            Dithered
+        }
+
         public class Settings
         {
             public bool useSoftParticle = false;
+            public BlendMode blendMode = BlendMode.Alpha;
         }
 
         public class InputProperties
@@ -44,6 +54,27 @@ namespace UnityEditor.VFX
                 {
                     yield return "USE_SOFT_PARTICLE";
                 }
+            }
+        }
+
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
+        {
+            get
+            {
+                var setting = GetSettings<Settings>();
+                var renderState = new VFXShaderWriter();
+
+                if (setting.blendMode == BlendMode.Additive)
+                    renderState.WriteLine("Blend SrcAlpha One");
+                else if (setting.blendMode == BlendMode.Alpha)
+                    renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+                renderState.WriteLine("ZTest LEqual");
+                if (setting.blendMode == BlendMode.Masked || setting.blendMode == BlendMode.Dithered)
+                    renderState.WriteLine("ZWrite On");
+                else
+                    renderState.WriteLine("ZWrite Off");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
             }
         }
 

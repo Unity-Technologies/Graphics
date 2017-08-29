@@ -303,6 +303,11 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, match, storeAttribute);
             }
 
+            foreach (var addionnalReplacement in context.additionnalReplacements)
+            {
+                ReplaceMultiline(stringBuilder, addionnalReplacement.Key, addionnalReplacement.Value.builder);
+            }
+
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }
     }
