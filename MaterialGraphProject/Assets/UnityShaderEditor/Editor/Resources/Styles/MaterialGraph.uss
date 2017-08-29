@@ -17,16 +17,8 @@ GraphEditorView #content #GraphView {
     flex: 1;
 }
 
-GraphEditorView #content GraphInspectorView {
-    width: 300;
-    padding-left: 10;
-    padding-right: 10;
-    padding-top: 10;
-    padding-bottom: 10;
-}
-
-GraphEditorView #content GraphInspectorView IMGUIContainer {
-    flex: 1;
+GraphEditorView #content #inspector {
+    width: 400;
 }
 
 .MaterialNode #preview {
@@ -49,5 +41,71 @@ GridBackground {
 }
 
 GraphInspectorView {
+    background-color: rgb(56, 56, 56);
+}
 
+GraphInspectorView > #header {
+    background-color: rgb(64, 64, 64);
+    border-color: rgb(79, 79, 79);
+    border-bottom-width: 1;
+}
+
+GraphInspectorView > #header > #title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-left: 16;
+    padding-right: 16;
+    padding-top: 10;
+    padding-bottom: 10;
+}
+
+.nodeEditor {
+    border-color: rgb(79, 79, 79);
+    border-bottom-width: 1;
+    padding-top: 10;
+}
+
+.nodeEditor > .header {
+    padding-left: 16;
+    padding-right: 16;
+    padding-bottom: 10;
+    flex-direction: row;
+}
+
+.nodeEditor > .header > .type {
+    text-color: rgb(180, 180, 180);
+    margin-left: 10;
+}
+
+.nodeEditor > .header > .title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+}
+
+.nodeEditor > .section {
+    padding-bottom: 10;
+}
+
+.nodeEditor > .section.hidden {
+    height: 0;
+    padding-bottom: 0;
+}
+
+.nodeEditor > .section > .title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-left: 16;
+    padding-right: 16;
+    padding-bottom: 2;
+}
+
+.nodeEditor > .section > #slots {
+    flex-direction: column;
+    padding-left: 15;
+    padding-right: 15;
+}
+
+IMGUISlotEditorView {
+    flex-direction: column;
+    padding-bottom: 2;
 }

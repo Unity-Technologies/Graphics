@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
@@ -11,12 +12,19 @@ namespace UnityEditor.MaterialGraph.Drawing.Views
         [SerializeField]
         GraphInspectorPresenter m_Presenter;
 
-        IMGUIContainer m_ImguiContainer;
+        int m_EditorHash;
+
+        VisualElement m_EditorContainer;
+        VisualElement m_Title;
 
         public GraphInspectorView()
         {
             AddStyleSheetPath("Styles/MaterialGraph");
-            Add(m_ImguiContainer = new IMGUIContainer(OnGUIHandler));
+            var headerContainer = new VisualElement() { name = "header" };
+            m_Title = new VisualElement() { name = "title" };
+            headerContainer.Add(m_Title);
+            Add(headerContainer);
+            Add(m_EditorContainer = new VisualElement {name = "editorContainer"});
         }
 
         void OnGUIHandler()
@@ -33,7 +41,30 @@ namespace UnityEditor.MaterialGraph.Drawing.Views
         public override void OnDataChanged()
         {
             if (presenter == null)
+            {
+                m_EditorContainer.Clear();
+                m_EditorHash = 0;
                 return;
+            }
+
+            m_Title.text = presenter.title;
+
+            var editorHash = 17;
+            unchecked
+            {
+                foreach (var editorPresenter in presenter.editors)
+                    editorHash = editorHash * 31 + editorPresenter.GetHashCode();
+            }
+
+            if (editorHash != m_EditorHash)
+            {
+                m_EditorHash = editorHash;
+                m_EditorContainer.Clear();
+                foreach (var editorPresenter in presenter.editors)
+                    // TODO: Use abstract base class to allow custom node editors
+                    m_EditorContainer.Add(new StandardNodeEditorView {presenter = editorPresenter as StandardNodeEditorPresenter});
+            }
+
             Dirty(ChangeType.Repaint);
         }
 
@@ -46,7 +77,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Views
                     return;
                 RemoveWatch();
                 m_Presenter = value;
-//                m_ImguiContainer.executionContext = presenter.GetInstanceID();
                 OnDataChanged();
                 AddWatch();
             }
