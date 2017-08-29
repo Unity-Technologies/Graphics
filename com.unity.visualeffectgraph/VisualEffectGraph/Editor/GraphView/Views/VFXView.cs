@@ -135,6 +135,12 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
+        public EventPropagation ToggleLogEvent()
+        {
+            EventDispatcher.logEvents = !EventDispatcher.logEvents;
+            return EventPropagation.Stop;
+        }
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -145,21 +151,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new ClickSelector());
-            this.AddManipulator(new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-            {
-                {Event.KeyboardEvent("a"), FrameAll},
-                {Event.KeyboardEvent("f"), FrameSelection},
-                {Event.KeyboardEvent("o"), FrameOrigin},
-                {Event.KeyboardEvent("delete"), DeleteSelection},
-//                  {Event.KeyboardEvent("#tab"), FramePrev},
-//                  {Event.KeyboardEvent("tab"), FrameNext},
-                {Event.KeyboardEvent("c"), CloneModels},     // TEST
-                {Event.KeyboardEvent("#r"), Resync},
-                {Event.KeyboardEvent("#d"), OutputToDot},
-                {Event.KeyboardEvent("^#d"), OutputToDotReduced},
-                {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
-            }));
 
             this.AddManipulator(new ParameterDropper());
 
