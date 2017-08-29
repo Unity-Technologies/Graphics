@@ -9,35 +9,11 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerPresenter : NodePresenter
+    class VFXSlotContainerPresenter : VFXNodePresenter
     {
-        public VFXModel model { get { return m_Model; } }
-        public VFXViewPresenter viewPresenter { get { return m_ViewPresenter; } }
-
-        public override Rect position
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            get
-            {
-                return base.position;
-            }
-
-            set
-            {
-                base.position = value;
-                model.position = position.position;
-            }
-        }
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, m_Model };
-        }
-
-        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
-        {
-            m_Model = model;
-            m_ViewPresenter = viewPresenter;
-
-            base.position = new Rect(model.position, Vector2.one);
+            base.Init(model, viewPresenter);
 
             object settings = slotContainer.settings;
             if (settings != null)
@@ -52,8 +28,8 @@ namespace UnityEditor.VFX.UI
                     m_Settings[cpt++] = settingPresenter;
                 }
             }
-            OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
-            viewPresenter.AddInvalidateDelegate(m_Model, OnInvalidate);
+            OnInvalidate(model, VFXModel.InvalidationCause.kStructureChanged);
+            viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -72,8 +48,6 @@ namespace UnityEditor.VFX.UI
                 m_InputAnchors = newAnchors;
                 newAnchors = new List<NodeAnchorPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
-
-                int debugInfo = GetInstanceID();
 
                 foreach (var anchor in outputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
                 {
@@ -138,7 +112,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public IVFXSlotContainer slotContainer { get { return m_Model as IVFXSlotContainer; } }
+        public IVFXSlotContainer slotContainer { get { return model as IVFXSlotContainer; } }
 
         public IEnumerable<VFXSettingPresenter> settings
         {
@@ -150,7 +124,7 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public bool expanded
+        public new bool  expanded
         {
             get
             {
@@ -166,12 +140,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        [SerializeField]
-        protected VFXModel         m_Model;
 
         [SerializeField]
         private VFXSettingPresenter[] m_Settings;
-
-        protected VFXViewPresenter m_ViewPresenter;
     }
 }

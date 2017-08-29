@@ -551,9 +551,9 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
 
 
-            m_OwnData.presenter = presenter;
+            m_OwnData.presenter = presenter.slotPresenter;
 
-            bool slotsVisible = presenter.inputAnchors.Count() > 0 || presenter.settings != null;
+            bool slotsVisible = presenter.slotPresenter.inputAnchors.Count() > 0 || presenter.slotPresenter.settings != null;
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.Add(m_OwnData);

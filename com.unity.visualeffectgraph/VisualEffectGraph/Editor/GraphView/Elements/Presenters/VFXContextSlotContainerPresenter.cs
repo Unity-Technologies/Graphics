@@ -27,6 +27,8 @@ namespace UnityEditor.VFX.UI
         {
             m_ContextPresenter = contextPresenter;
             base.Init(model, contextPresenter.viewPresenter);
+
+            capabilities &= ~Capabilities.Selectable;
         }
 
         public VFXContextPresenter contextPresenter
