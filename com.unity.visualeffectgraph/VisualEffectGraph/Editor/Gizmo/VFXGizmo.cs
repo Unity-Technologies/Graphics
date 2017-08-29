@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
             VFXViewPresenter presenter = VFXViewWindow.viewPresenter;
             if (presenter.HasVFXAsset())
             {
-                var allBlocks = presenter.allChildren.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>());
+                //var allBlocks = presenter.allChildren.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>());
 
                 //Debug.Log("Blocks:"+allBlocks.Count());
             }

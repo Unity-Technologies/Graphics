@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine;
 
 
 static class VisualElementExtensions

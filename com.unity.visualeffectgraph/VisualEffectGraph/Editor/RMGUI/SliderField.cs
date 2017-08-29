@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateSlider(Vector2 range)
         {
-            m_Slider = new Slider(range.x, range.y, OnValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(range.x, range.y, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
         }
 
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_Slider);
         }
 
-        void OnValueChanged(float newValue)
+        void ValueChanged(float newValue)
         {
             SetValue(newValue);
         }
