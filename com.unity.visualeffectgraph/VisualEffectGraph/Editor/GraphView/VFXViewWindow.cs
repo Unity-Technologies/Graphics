@@ -34,7 +34,7 @@ namespace  UnityEditor.VFX.UI
             });
         }
 
-        [MenuItem("Window/VFXEditor")]
+        [MenuItem("VFX Editor/Window")]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -72,9 +72,11 @@ namespace  UnityEditor.VFX.UI
                 viewPresenter.SetVFXAsset(asset, true);
             }
             else
+            {
                 viewPresenter.SetVFXAsset(viewPresenter.GetVFXAsset(), true);
-            graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+                graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+                graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            }
         }
 
         protected new void OnDisable()
@@ -111,7 +113,15 @@ namespace  UnityEditor.VFX.UI
         {
             var graph = viewPresenter.GetGraph();
             if (graph != null)
+            {
+                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                if (!graph.saved)
+                {
+                    filename += "*";
+                }
+                titleContent.text = filename;
                 graph.RecompileIfNeeded();
+            }
             viewPresenter.RecompileExpressionGraphIfNeeded();
         }
 

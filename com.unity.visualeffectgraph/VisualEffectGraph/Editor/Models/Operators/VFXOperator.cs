@@ -25,24 +25,6 @@ namespace UnityEditor.VFX
             return inputSlots.Select(o => o.GetExpression()).Where(e => e != null);
         }
 
-        private static void CopyLink(VFXSlot from, VFXSlot to)
-        {
-            var linkedSlots = from.LinkedSlots.ToArray();
-            for (int iLink = 0; iLink < linkedSlots.Length; ++iLink)
-            {
-                to.Link(linkedSlots[iLink]);
-            }
-
-            var fromChild = from.children.ToArray();
-            var toChild = to.children.ToArray();
-            fromChild = fromChild.Take(toChild.Length).ToArray();
-            toChild = toChild.Take(fromChild.Length).ToArray();
-            for (int iChild = 0; iChild < toChild.Length; ++iChild)
-            {
-                CopyLink(fromChild[iChild], toChild[iChild]);
-            }
-        }
-
         private Queue<VFXExpression[]> outputExpressionQueue = new Queue<VFXExpression[]>();
 
         private void DequeueOutputSlotFromExpression()
@@ -72,7 +54,6 @@ namespace UnityEditor.VFX
             if (bOuputputLayoutChanged)
             {
                 var slotToRemove = outputSlots.ToArray();
-
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
                     var expression = outputExpressionArray[iSlot];

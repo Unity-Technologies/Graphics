@@ -19,6 +19,7 @@ namespace UnityEditor.VFX
         kOutput = 1 << 3,
 
         kInitAndUpdate = kInit | kUpdate,
+        kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
         kAll = kInit | kUpdate | kOutput | kSpawner,
     };
 
@@ -66,12 +67,16 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
         }
 
+        public virtual string codeGeneratorTemplate                     { get { return null; } }
+        public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
         public virtual VFXDataType inputType                            { get { return m_InputType; } }
         public virtual VFXDataType outputType                           { get { return m_OutputType; } }
         public virtual VFXDataType ownedType                            { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
         public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXAttributeInfo> optionalAttributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
         public override void CollectDependencies(HashSet<Object> objs)
         {
@@ -89,7 +94,8 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
-                cause == InvalidationCause.kExpressionInvalidated)
+                cause == InvalidationCause.kExpressionInvalidated ||
+                cause == InvalidationCause.kSettingChanged)
             {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
@@ -274,6 +280,30 @@ namespace UnityEditor.VFX
         public VFXData GetData()
         {
             return m_Data;
+        }
+
+        protected virtual IEnumerable<VFXBlock> implicitPreBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        protected virtual IEnumerable<VFXBlock> implicitPostBlock
+        {
+            get
+            {
+                return Enumerable.Empty<VFXBlock>();
+            }
+        }
+
+        public IEnumerable<VFXBlock> childrenWithImplicit
+        {
+            get
+            {
+                return implicitPreBlock.Concat(children).Concat(implicitPostBlock);
+            }
         }
 
         // Not serialized nor exposed

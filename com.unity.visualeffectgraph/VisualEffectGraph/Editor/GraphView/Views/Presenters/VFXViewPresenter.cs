@@ -635,10 +635,12 @@ namespace UnityEditor.VFX.UI
                 // Doesn't work for some reason
                 //View.FrameAll();
 
+#if ENABLE_VIEW_3D_PRESENTER
                 if (presenter != null)
                     RemoveElement(presenter);
                 presenter = CreateInstance<Preview3DPresenter>();
                 AddElement(presenter);
+#endif
             }
             SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }

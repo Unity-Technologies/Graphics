@@ -41,7 +41,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType)); }
+            set
+            {
+                m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType));
+            }
         }
 
 

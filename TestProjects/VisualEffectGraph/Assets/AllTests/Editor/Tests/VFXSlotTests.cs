@@ -132,19 +132,19 @@ namespace UnityEditor.VFX.Test
             VFXSlot sphereSlot = VFXSlot.Create(new VFXProperty(typeof(Sphere), "sphere"), VFXSlot.Direction.kInput);
             VFXSlot floatSlot = VFXSlot.Create(new VFXProperty(typeof(float), "float"), VFXSlot.Direction.kOutput);
 
-            sphereSlot.GetChild(0).GetChild(0).Link(floatSlot);
-            sphereSlot.GetChild(1).Link(floatSlot);
+            sphereSlot[0][0].Link(floatSlot);
+            sphereSlot[1].Link(floatSlot);
 
-            var expr = sphereSlot.GetChild(0).GetChild(0).GetExpression();
+            var expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
-            Assert.AreEqual(floatSlot.GetExpression(), sphereSlot.GetChild(1).GetExpression());
+            Assert.AreEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
 
             floatSlot.UnlinkAll();
-            expr = sphereSlot.GetChild(0).GetChild(0).GetExpression();
+            expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreNotEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
-            Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot.GetChild(1).GetExpression());
+            Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
         }
     }
 }

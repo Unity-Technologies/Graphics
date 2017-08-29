@@ -112,9 +112,9 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, graph[4].GetNbChildren());
             Assert.AreEqual(0, graph[5].GetNbChildren());
 
-            Assert.IsNotNull((graph[0]).GetChild(0));
-            Assert.IsNotNull((graph[1]).GetChild(0));
-            Assert.IsNotNull((graph[2]).GetChild(0));
+            Assert.IsNotNull((graph[0])[0]);
+            Assert.IsNotNull((graph[1])[0]);
+            Assert.IsNotNull((graph[2])[0]);
 
             Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[0])).contextType);
             Assert.AreEqual(VFXContextType.kUpdate, ((VFXContext)(graph[1])).contextType);

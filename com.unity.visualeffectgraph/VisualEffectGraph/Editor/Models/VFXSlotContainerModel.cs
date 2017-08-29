@@ -39,7 +39,6 @@ namespace UnityEditor.VFX
         public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 
-
         public object settings { get { return m_Settings != null ? m_Settings.Get() : null; } }
 
         public bool expanded { get; set; }
@@ -93,6 +92,24 @@ namespace UnityEditor.VFX
                 slot.SetOwner(null);
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
+            }
+        }
+
+        protected static void CopyLink(VFXSlot from, VFXSlot to)
+        {
+            var linkedSlots = from.LinkedSlots.ToArray();
+            for (int iLink = 0; iLink < linkedSlots.Length; ++iLink)
+            {
+                to.Link(linkedSlots[iLink]);
+            }
+
+            var fromChild = from.children.ToArray();
+            var toChild = to.children.ToArray();
+            fromChild = fromChild.Take(toChild.Length).ToArray();
+            toChild = toChild.Take(fromChild.Length).ToArray();
+            for (int iChild = 0; iChild < toChild.Length; ++iChild)
+            {
+                CopyLink(fromChild[iChild], toChild[iChild]);
             }
         }
 
