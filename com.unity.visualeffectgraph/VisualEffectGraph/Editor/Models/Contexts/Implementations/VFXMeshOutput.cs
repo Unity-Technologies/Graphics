@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.VFX
 {
@@ -30,9 +31,7 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.GPU:
                 {
-                    var mapper = new VFXExpressionMapper();
-                    for (int i = 0; i < GetNbChildren(); ++i)
-                        mapper.AddExpressions(this[i].parameters, i);
+                    var mapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
                     return mapper;
                 }
 
