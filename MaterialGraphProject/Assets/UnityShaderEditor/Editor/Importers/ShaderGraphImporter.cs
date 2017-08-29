@@ -57,18 +57,6 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
         ShowGraphEditWindow(path);
     }
 
-    public void OnInspectorGUI(string path, [NotNull] UnityAction defaultOnInspectorGUI)
-    {
-        if (defaultOnInspectorGUI == null)
-            throw new ArgumentNullException("defaultOnInspectorGUI");
-        defaultOnInspectorGUI();
-
-        if (GUILayout.Button("Open Shader Editor"))
-        {
-            ShowGraphEditWindow(path);
-        }
-    }
-
     private static void ShowGraphEditWindow(string path)
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
