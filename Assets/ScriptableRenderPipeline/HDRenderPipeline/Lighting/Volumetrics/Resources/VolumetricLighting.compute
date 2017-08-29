@@ -95,20 +95,21 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
                 // Fetch the light.
                 LightData lightData = _LightDatas[punctualLightIndex];
+                int       lightType = lightData.lightType;
 
-                float3 sampleToLight = lightData.positionWS - samplePositionWS;
+                float3 lightToSample = samplePositionWS - lightData.positionWS;
 
                 // Compute the distance to the light, and the associated transmittance values.
-                float  distSq  = dot(sampleToLight, sampleToLight);
+                float  distSq  = dot(lightToSample, lightToSample);
                 float  dist    = sqrt(distSq);
-                float3 L       = sampleToLight * rsqrt(distSq);
+                float3 L       = lightToSample * -rsqrt(distSq);
                 float  LdotD   = dot(L, ray.directionWS);
                 float  phase   = HenyeyGreensteinPhaseFunction(asymmetry, LdotD);
                 float3 lightT  = Transmittance(OpticalDepthHomogeneous(extinction, dist));
                 float3 sampleT = Transmittance(OpticalDepthHomogeneous(extinction, t));
 
                 // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-                float attenuation = (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius) : 1;
+                float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
                 // Reminder: lights are oriented backward (-Z)
                 attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
 
@@ -119,8 +120,43 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                     // TODO: make projector lights cast shadows.
                     float3 offset = 0; // GetShadowPosOffset(nDotL, normal);
 
-                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0, lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
+                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0,
+                                                          lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
                     shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+                }
+
+                [branch] if (lightData.cookieIndex >= 0)
+                {
+                    // Translate and rotate 'positionWS' into the light space.
+                    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+                    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+                    float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
+
+                    float4 cookie;
+
+                    [branch] if (lightType == GPULIGHTTYPE_POINT)
+                    {
+                        cookie = SampleCookieCube(context, positionLS, lightData.cookieIndex);
+                    }
+                    else
+                    {
+                        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
+                        // Box projector lights require no perspective division.
+                        float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+                        float2 positionNDC  = positionLS.xy / perspectiveZ;
+                        bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+
+                        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+                        float2 coord = positionNDC * 0.5 + 0.5;
+
+                        // We let the sampler handle clamping to border.
+                        cookie   = SampleCookie2D(context, coord, lightData.cookieIndex);
+                        cookie.a = isInBounds ? cookie.a : 0;
+                    }
+
+                    // Premultiply.
+                    lightData.color *= cookie.rgb;
+                    attenuation     *= cookie.a;
                 }
 
                 // Compute the amount of in-scattered radiance.
@@ -150,6 +186,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     if (pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y) { return; }
 
+    // Idea: zenith angle based distance limiting to simulate aerial perspective?
 #ifdef UNITY_REVERSED_Z
     float z = max(LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r, 0 + 0.001);
 #else

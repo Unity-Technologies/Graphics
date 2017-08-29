@@ -1034,7 +1034,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
     	float2   positionNDC    = positionLS.xy;
 
-        float clipFactor;
+        bool isInBounds;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
@@ -1043,20 +1043,20 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         {
             // Tile the texture if the 'repeat' wrap mode is enabled.
             coord = frac(coord);
-            clipFactor = 1;
+            isInBounds = true;
         }
         else
         {
-			bool isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-        	clipFactor = isInBounds ? 1 : 0;
+			isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
         }
 
         // We let the sampler handle tiling or clamping to border.
         // Note: tiling (the repeat mode) is not currently supported.
         float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
+        cookie.a = isInBounds ? cookie.a : 0;
+
         // Premultiply.
-        cookie.a                *= clipFactor;
         lightData.color         *= cookie.rgb;
         lightData.diffuseScale  *= cookie.a;
         lightData.specularScale *= cookie.a;
@@ -1111,7 +1111,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float  illuminance = saturate(NdotL);
 
     // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius) : 1;
+    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
     // Reminder: lights are oriented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
 
@@ -1130,13 +1130,15 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         float4 L_dist = { L, dist };
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+        illuminance *= shadow;
     }
 
 #ifdef VOLUMETRIC_SHADOWING_ENABLED
-    shadow *= Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+    float3 volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+    // Premultiply.
+    lightData.color *= volumetricShadow;
 #endif
 
-    illuminance *= shadow;
 
     // Projector lights always have a cookie.
     [branch] if (lightData.cookieIndex >= 0)
@@ -1159,15 +1161,13 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
             float2 positionNDC  = positionLS.xy / perspectiveZ;
             bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-            float  clipFactor   = isInBounds ? 1 : 0;
 
             // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
             float2 coord = positionNDC * 0.5 + 0.5;
 
             // We let the sampler handle clamping to border.
-            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
-
-            cookie.a *= clipFactor;
+            cookie   = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+            cookie.a = isInBounds ? cookie.a : 0;
         }
 
         // Premultiply.
