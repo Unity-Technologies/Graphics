@@ -56,8 +56,11 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
     float maxDepthVS = posInput.depthVS;
 
-    float du = rcp(numSteps);           // Compile-time constant
-    float u0 = 0.5 * du;                // Compile-time constant
+    // Note: we are already using 'unPositionSS' for randomization of LODDitheringTransition().
+    float zeta = GenerateHashedRandomFloat(posInput.unPositionSS.yx);
+
+    float du = rcp(numSteps);
+    float u0 = 0.25 * du + 0.5 * du * zeta;
     float dt = du * ray.maxLength;
 
     float3 radiance = 0;
