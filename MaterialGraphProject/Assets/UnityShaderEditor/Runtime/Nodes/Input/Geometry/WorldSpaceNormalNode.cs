@@ -2,11 +2,6 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IMayRequireNormal
-    {
-        bool RequiresNormal();
-    }
-
     [Title("Input/Geometry/World Normal")]
     public class WorldSpaceNormalNode : AbstractMaterialNode, IMayRequireNormal
     {
