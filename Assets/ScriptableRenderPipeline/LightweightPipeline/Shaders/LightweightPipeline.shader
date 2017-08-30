@@ -88,9 +88,9 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             #include "LightweightPipelineCore.cginc"
             #include "LightweightPipelineLighting.cginc"
 
-            LightweightVertexOutputSimple vert(LightweightVertexInput v)
+            LightweightVertexOutput vert(LightweightVertexInput v)
             {
-                LightweightVertexOutputSimple o = (LightweightVertexOutputSimple)0;
+                LightweightVertexOutput o = (LightweightVertexOutput)0;
 
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
@@ -102,9 +102,9 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 o.hpos = UnityObjectToClipPos(v.vertex);
 
                 float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.posWS = worldPos;
+                o.posWS.xyz = worldPos;
 
-                o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS);
+                o.viewDir.xyz = normalize(_WorldSpaceCameraPos - worldPos);
                 half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
 
 #if _NORMALMAP
@@ -148,7 +148,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 return o;
             }
 
-            half4 frag(LightweightVertexOutputSimple i) : SV_Target
+            half4 frag(LightweightVertexOutput i) : SV_Target
             {
                 half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
                 half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
@@ -167,13 +167,14 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 SpecularGloss(i.uv01.xy, alpha, specularGloss);
 
                 half3 viewDir = i.viewDir.xyz;
+                float3 worldPos = i.posWS.xyz;
 
                 half3 lightDirection;
                 
 #ifndef _MULTIPLE_LIGHTS
                 LightInput lightInput;
                 INITIALIZE_MAIN_LIGHT(lightInput);
-                half lightAtten = ComputeLightAttenuation(lightInput, normal, i.posWS, lightDirection);
+                half lightAtten = ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #ifdef _SHADOWS
                 lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
@@ -196,7 +197,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                     LightInput lightData;
                     int lightIndex = unity_4LightIndices0[lightIter];
                     INITIALIZE_LIGHT(lightData, lightIndex);
-                    half lightAtten = ComputeLightAttenuation(lightData, normal, i.posWS, lightDirection);
+                    half lightAtten = ComputeLightAttenuation(lightData, normal, worldPos, lightDirection);
 #ifdef _SHADOWS
                     lightAtten *= max(shadowAttenuation, half(lightIter != _ShadowData.x));
 #endif

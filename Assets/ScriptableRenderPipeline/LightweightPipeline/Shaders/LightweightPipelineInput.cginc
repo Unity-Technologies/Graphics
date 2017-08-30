@@ -65,10 +65,10 @@ struct LightweightVertexInput
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct LightweightVertexOutputSimple
+struct LightweightVertexOutput
 {
     float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-    float3 posWS : TEXCOORD1;
+    float4 posWS : TEXCOORD1;
 #if _NORMALMAP
     half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix
     half3 tangentToWorld1 : TEXCOORD3; // tangentToWorld matrix
@@ -82,28 +82,7 @@ struct LightweightVertexOutputSimple
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-struct LightweightVertexOutput
-{
-    UNITY_POSITION(pos);
-    float4 uv01                         : TEXCOORD0;
-    half4 eyeVec                        : TEXCOORD1; // w: grazingTerm
-
-                                                     //SHADOW_COORDS(2)
-    half4 fogCoord                      : TEXCOORD3;
-
-    half4 normalWorld                   : TEXCOORD4;
-
-#ifdef _NORMALMAP
-    half3 tangentSpaceLightDir          : TEXCOORD5;
-#if SPECULAR_HIGHLIGHTS
-    half3 tangentSpaceEyeVec            : TEXCOORD6;
-#endif
-#endif
-
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
-inline void NormalMap(LightweightVertexOutputSimple i, out half3 normal)
+inline void NormalMap(LightweightVertexOutput i, out half3 normal)
 {
 #if _NORMALMAP
     half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
