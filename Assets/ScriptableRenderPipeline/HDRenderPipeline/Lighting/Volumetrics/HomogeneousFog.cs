@@ -28,16 +28,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class VolumeParameters
     {
         public Bounds  bounds;       // Position and dimensions in meters
-        public Vector3 albedo;       // Single scattering albedo [0, 1]
+        public Color   albedo;       // Single scattering albedo [0, 1]
         public Vector3 meanFreePath; // In meters [0.01, inf]
         public float   asymmetry;    // [-1, 1]; 0 = isotropic
 
         public VolumeParameters()
         {
             bounds       = new Bounds(Vector3.zero, Vector3.positiveInfinity);
-            albedo       = new Vector3(0.5f, 0.5f, 0.5f);
+            albedo       = new Color(0.5f, 0.5f, 0.5f);
             meanFreePath = new Vector3(100.0f, 100.0f, 100.0f);
-            asymmetry   = 0.0f;
+            asymmetry    = 0.0f;
         }
 
         public bool IsVolumeUnbounded()
@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3 GetScatteringCoefficient()
         {
-            return new Vector3(albedo.x / meanFreePath.x, albedo.y / meanFreePath.y, albedo.z / meanFreePath.z);
+            return new Vector3(albedo.r / meanFreePath.x, albedo.g / meanFreePath.y, albedo.b / meanFreePath.z);
         }
 
         public Vector3 GetExtinctionCoefficient()
@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 extinction = absorption + scattering;
 
             meanFreePath = new Vector3(1.0f / extinction.x, 1.0f / extinction.y, 1.0f / extinction.z);
-            albedo       = new Vector3(scattering.x * meanFreePath.x, scattering.y * meanFreePath.y, scattering.z * meanFreePath.z);
+            albedo       = new Color(scattering.x * meanFreePath.x, scattering.y * meanFreePath.y, scattering.z * meanFreePath.z);
 
             Constrain();
         }
@@ -79,9 +79,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             bounds.size = Vector3.Max(bounds.size, Vector3.zero);
 
-            albedo.x = Mathf.Clamp01(albedo.x);
-            albedo.y = Mathf.Clamp01(albedo.y);
-            albedo.z = Mathf.Clamp01(albedo.z);
+            albedo.r = Mathf.Clamp01(albedo.r);
+            albedo.g = Mathf.Clamp01(albedo.g);
+            albedo.b = Mathf.Clamp01(albedo.b);
 
             meanFreePath.x = Mathf.Max(meanFreePath.x, 0.01f);
             meanFreePath.y = Mathf.Max(meanFreePath.y, 0.01f);
