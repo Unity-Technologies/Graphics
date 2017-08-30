@@ -6,6 +6,15 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringProfile.cs.hlsl"
 
+// Enables attenuation of light source contributions by participating media (fog).
+#define VOLUMETRIC_SHADOWING_ENABLED
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    // Apparently, not all shaders include "ShaderVariables.hlsl".
+    #include "../../ShaderVariables.hlsl"
+    #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+#endif
+
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
@@ -677,6 +686,10 @@ struct PreLightData
     float3x3 ltcXformClearCoat;                // TODO: make sure the compiler not wasting VGPRs on constants
     float    ltcClearCoatFresnelTerm;
     float3x3 ltcCoatT;
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    float    globalFogExtinction;
+#endif
 };
 
 // This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
@@ -830,6 +843,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
     }
+
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    preLightData.globalFogExtinction = _GlobalFog_Extinction;
+#endif
 
     return preLightData;
 }
@@ -986,6 +1003,40 @@ float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
 // EvaluateBSDF_Directional (supports directional and box projector lights)
 //-----------------------------------------------------------------------------
 
+float4 EvaluateCookie_Directional(LightLoopContext context, DirectionalLightData lightData,
+                                  float3 lighToSample)
+{
+    // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
+    float2   positionNDC  = positionLS.xy;
+
+    bool isInBounds;
+
+    // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+    float2 coord = positionNDC * 0.5 + 0.5;
+
+    if (lightData.tileCookie)
+    {
+        // Tile the texture if the 'repeat' wrap mode is enabled.
+        coord = frac(coord);
+        isInBounds = true;
+    }
+    else
+    {
+        isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+    }
+
+    // We let the sampler handle tiling or clamping to border.
+    // Note: tiling (the repeat mode) is not currently supported.
+    float4 cookie = SampleCookie2D(context, coord, lightData.cookieIndex);
+
+    cookie.a = isInBounds ? cookie.a : 0;
+
+    return cookie;
+}
+
 void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                               float3 V, PositionInputs posInput, PreLightData preLightData,
                               DirectionalLightData lightData, BSDFData bsdfData,
@@ -1010,36 +1061,10 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0)
     {
-    	// Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
-    	// 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    	float3   lightToSurface = positionWS - lightData.positionWS;
-    	float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
-    	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
-    	float2   positionNDC    = positionLS.xy;
-
-        float clipFactor;
-
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        float2 coord = positionNDC * 0.5 + 0.5;
-
-        if (lightData.tileCookie)
-        {
-            // Tile the texture if the 'repeat' wrap mode is enabled.
-            coord = frac(coord);
-            clipFactor = 1;
-        }
-        else
-        {
-			bool isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-        	clipFactor = isInBounds ? 1 : 0;
-        }
-
-        // We let the sampler handle tiling or clamping to border.
-        // Note: tiling (the repeat mode) is not currently supported.
-        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+        float3 lightToSurface = positionWS - lightData.positionWS;
+        float4 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSurface);
 
         // Premultiply.
-        cookie.a                *= clipFactor;
         lightData.color         *= cookie.rgb;
         lightData.diffuseScale  *= cookie.a;
         lightData.specularScale *= cookie.a;
@@ -1072,6 +1097,49 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
+float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
+                               float3 lighToSample)
+{
+    int lightType = lightData.lightType;
+
+    // Translate and rotate 'positionWS' into the light space.
+    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
+
+    float4 cookie;
+
+    [branch] if (lightType == GPULIGHTTYPE_POINT)
+    {
+        cookie = SampleCookieCube(context, positionLS, lightData.cookieIndex);
+    }
+    else
+    {
+        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
+        // Box projector lights require no perspective division.
+        float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+        float2 positionNDC  = positionLS.xy / perspectiveZ;
+        bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+
+        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+        float2 coord = positionNDC * 0.5 + 0.5;
+
+        // We let the sampler handle clamping to border.
+        cookie   = SampleCookie2D(context, coord, lightData.cookieIndex);
+        cookie.a = isInBounds ? cookie.a : 0;
+    }
+
+    return cookie;
+}
+
+float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
+{
+    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
+    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
+    // Reminder: lights are oriented backward (-Z)
+    return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+}
+
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
                             float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                             out float3 diffuseLighting,
@@ -1086,15 +1154,14 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     // For point light and directional GetAngleAttenuation() return 1
 
     float3 lightToSurface = positionWS - lightData.positionWS;
-    float3 unL   = -lightToSurface;
-    float3 L     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? normalize(unL) : -lightData.forward;
-    float  NdotL = dot(bsdfData.normalWS, L);
+    float3 unL    = -lightToSurface;
+    float  distSq = dot(unL, unL);
+    float  dist   = sqrt(distSq);
+    float3 L      = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? unL * rsqrt(distSq) : -lightData.forward;
+    float  NdotL  = dot(bsdfData.normalWS, L);
     float  illuminance = saturate(NdotL);
 
-    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius) : 1;
-    // Reminder: lights are oriented backward (-Z)
-    attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+    float attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
 
     // Premultiply.
     lightData.diffuseScale  *= attenuation;
@@ -1108,44 +1175,24 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = { normalize( L.xyz ), length( unL ) };
+        float4 L_dist = { L, dist };
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
-
         illuminance *= shadow;
     }
 
-    // Projector lights always have a cookie.
+#ifdef VOLUMETRIC_SHADOWING_ENABLED
+    float volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+
+    // Premultiply.
+    lightData.diffuseScale  *= volumetricShadow;
+    lightData.specularScale *= volumetricShadow;
+#endif
+
+    // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
-        // Translate and rotate 'positionWS' into the light space.
-        // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float3   positionLS   = mul(lightToSurface, transpose(lightToWorld));
-
-        float4 cookie;
-
-        [branch] if (lightType == GPULIGHTTYPE_POINT)
-        {
-            cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
-        }
-        else
-        {
-            // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
-            // Box projector lights require no perspective division.
-            float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
-            float2 positionNDC  = positionLS.xy / perspectiveZ;
-            bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-            float  clipFactor   = isInBounds ? 1 : 0;
-
-            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-            float2 coord = positionNDC * 0.5 + 0.5;
-
-            // We let the sampler handle clamping to border.
-            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
-
-            cookie.a *= clipFactor;
-        }
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSurface);
 
         // Premultiply.
         lightData.color         *= cookie.rgb;

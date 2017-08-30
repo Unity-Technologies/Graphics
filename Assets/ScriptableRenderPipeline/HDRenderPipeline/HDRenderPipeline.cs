@@ -296,6 +296,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_SssHorizontalFilterAndCombinePass;
         // <<< Old SSS Model
 
+        ComputeShader m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
+        int m_VolumetricLightingKernel;
+
         Material m_CameraMotionVectorsMaterial;
 
         Material m_DebugViewMaterialGBuffer;
@@ -654,6 +657,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
                 cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
                 cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
+
+                SetGlobalVolumeProperties(cmd);
             }
         }
 
@@ -906,6 +911,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, false);
 
+                // Render fog.
+                VolumetricLightingPass(hdCamera, cmd);
+
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
                 // Planar and real time cubemap doesn't need post process and render in FP16
@@ -1143,7 +1151,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                     // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
-                    //
                     cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
 
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBufferRT);  // Cannot set a RT on a material
@@ -1211,6 +1218,65 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passName, Utilities.kRendererConfigurationBakedLighting);
                 }
+            }
+        }
+
+        // Returns 'true' if the global fog is enabled, 'false' otherwise.
+        public static bool SetGlobalVolumeProperties(CommandBuffer cmd, ComputeShader cs = null)
+        {
+            HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+
+            HomogeneousFog globalFogComponent = null;
+
+            foreach (HomogeneousFog fogComponent in fogComponents)
+            {
+                if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
+                {
+                    globalFogComponent = fogComponent;
+                    break;
+                }
+            }
+
+            // TODO: may want to cache these results somewhere.
+            VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+                                                                                : VolumeProperties.GetNeutralVolumeProperties();
+            if (cs)
+            {
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
+            }
+            else
+            {
+                cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
+            }
+
+            return (globalFogComponent != null);
+        }
+
+        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            if (!SetGlobalVolumeProperties(cmd, m_VolumetricLightingCS)) { return; }
+
+            using (new Utilities.ProfilingSample("VolumetricLighting", cmd))
+            {
+                bool enableClustered = m_Asset.tileSettings.enableClustered && m_Asset.tileSettings.enableTileAndCluster;
+
+                m_VolumetricLightingKernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
+                                                                                               : "VolumetricLightingAllLights");
+                hdCamera.SetupComputeShader(m_VolumetricLightingCS, cmd);
+
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(m_VolumetricLightingCS, m_VolumetricLightingKernel, HDShaderIDs._DepthTexture,       GetDepthTexture());
+                cmd.SetComputeVectorParam( m_VolumetricLightingCS, HDShaderIDs._Time,          Shader.GetGlobalVector(HDShaderIDs._Time));
+
+                // Pass clustered light data (if present) into the compute shader.
+                m_LightLoop.PushGlobalParams(hdCamera.camera, cmd, m_VolumetricLightingCS, m_VolumetricLightingKernel, true);
+                cmd.SetComputeIntParam(m_VolumetricLightingCS, HDShaderIDs._UseTileLightList, 0);
+
+                cmd.DispatchCompute(m_VolumetricLightingCS, m_VolumetricLightingKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
             }
         }
 

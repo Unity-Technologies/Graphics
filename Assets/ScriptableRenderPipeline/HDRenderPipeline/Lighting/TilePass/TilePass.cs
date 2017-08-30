@@ -1755,11 +1755,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, Camera camera)
+            private void BindGlobalParams(CommandBuffer cmd, Camera camera, bool forceClustered)
             {
                 m_ShadowMgr.BindResources(cmd, activeComputeShader, activeComputeKernel);
 
-                SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, !usingFptl ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
+                SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, (forceClustered || !usingFptl) ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
                 SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                 SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
@@ -1802,7 +1802,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            private void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex)
+            public void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, bool forceClustered = false)
             {
                 using (new Utilities.ProfilingSample("Push Global Parameters", cmd))
                 {
@@ -1810,7 +1810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ShadowMgr.SyncData();
 
                     SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
-                    BindGlobalParams(cmd, camera);
+                    BindGlobalParams(cmd, camera, forceClustered);
                     SetGlobalPropertyRedirect(null, 0, null);
                 }
             }
@@ -2078,6 +2078,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
+
+                                HDRenderPipeline.SetGlobalVolumeProperties(cmd, deferredComputeShader);
 
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
