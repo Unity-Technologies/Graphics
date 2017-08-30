@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int pixelLightsCount;
         public int vertexLightsCount;
         public int shadowLightIndex;
-        public bool isSingleDirectionalLight;
+        public bool isSingleLight;
         public bool shadowsRendered;
     }
 
@@ -71,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLights];
 
         private Camera m_CurrCamera = null;
+        private LightType m_SingleLightType = LightType.Directional;
 
         private int m_LightIndicesCount = 0;
         private ComputeBuffer m_LightIndexListBuffer;
@@ -172,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_Asset.EnableAmbientProbe)
                     configuration |= RendererConfiguration.PerObjectLightProbe;
 
-                if (!lightData.isSingleDirectionalLight)
+                if (!lightData.isSingleLight)
                     configuration |= RendererConfiguration.PerObjectLightIndices8;
 
 
@@ -247,23 +248,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void InitializeLightData(VisibleLight[] lights, out LightData lightData)
         {
-            for (int i = 0; i < kMaxVisibleLights; ++i)
-            {
-                m_LightPositions[i] = Vector4.zero;
-                m_LightColors[i] = Vector4.zero;
-                m_LightAttenuations[i] = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-                m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-            }
-
             int lightsCount = lights.Length;
             int maxPerPixelLights = Math.Min(m_Asset.MaxSupportedPixelLights, kMaxPerObjectLights);
             lightData.pixelLightsCount = Math.Min(lightsCount, maxPerPixelLights);
             lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Math.Min(lightsCount - lightData.pixelLightsCount, kMaxPerObjectLights) : 0;
-            lightData.isSingleDirectionalLight = lightData.pixelLightsCount == 1 && lightData.vertexLightsCount == 0 && lights[0].lightType == LightType.Directional;
 
-            // Directional light path can handle unlit.
-            if (lightsCount == 0)
-                lightData.isSingleDirectionalLight = true;
+            // TODO: Handle Vertex lights in this case
+            lightData.isSingleLight = lightData.pixelLightsCount <= 1;
+            if (lightData.isSingleLight)
+                m_SingleLightType = (lightData.pixelLightsCount == 1) ? lights[0].lightType : LightType.Directional;
 
             lightData.shadowsRendered = false;
 
@@ -272,22 +265,72 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
         {
-            if (lights.Length == 0)
-                return;
-
-            if (lightData.isSingleDirectionalLight)
-                SetupShaderSingleDirectionalLightConstants(ref lights [0], ref context);
+            if (lightData.isSingleLight)
+                SetupShaderSingleLightConstants(lights, (lightData.pixelLightsCount > 0) ? 0 : -1, ref context);
             else
                 SetupShaderLightListConstants(lights, ref lightData, ref context);
         }
 
-        private void SetupShaderSingleDirectionalLightConstants(ref VisibleLight light, ref ScriptableRenderContext context)
+        private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightSpotDir,
+            out Vector4 lightAttenuationParams)
         {
-            Vector4 lightDir = -light.localToWorld.GetColumn(2);
+            lightPos = Vector4.zero;
+            lightColor = Color.black;
+            lightAttenuationParams = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+            lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 
-            CommandBuffer cmd = new CommandBuffer() { name = "SetupLightConstants" };
-            cmd.SetGlobalVector("_LightPosition0", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
-            cmd.SetGlobalColor("_LightColor0", light.finalColor);
+            // When no lights are available in the pipeline or maxPixelLights is set to 0
+            // In this case we want to initialize the lightData to default values and return
+            if (lightIndex < 0)
+                return;
+
+            VisibleLight light = lights[lightIndex];
+            if (light.lightType == LightType.Directional)
+            {
+                Vector4 dir = -light.localToWorld.GetColumn(2);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
+            }
+            else
+            {
+                Vector4 pos = light.localToWorld.GetColumn(3);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+            }
+
+            lightColor = light.finalColor;
+
+            float rangeSq = light.range * light.range;
+            float quadAtten = (light.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
+
+            if (light.lightType == LightType.Spot)
+            {
+                Vector4 dir = light.localToWorld.GetColumn(2);
+                lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+
+                float spotAngle = Mathf.Deg2Rad * light.spotAngle;
+                float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
+                float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
+                float angleRange = cosInneAngle - cosOuterAngle;
+                lightAttenuationParams = new Vector4(cosOuterAngle,
+                    Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+            }
+            else
+            {
+                lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+                lightAttenuationParams = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+            }
+        }
+
+        private void SetupShaderSingleLightConstants(VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
+        {
+            Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
+            InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
+
+            CommandBuffer cmd = new CommandBuffer() { name = "SetupSingleLightConstants" };
+            cmd.SetGlobalVector("_LightPosition", lightPos);
+            cmd.SetGlobalColor("_LightColor", lightColor);
+            cmd.SetGlobalVector("_LightSpotDir", lightSpotDir);
+            cmd.SetGlobalVector("_LightAttenuationParams", lightAttenuationParams);
+            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -297,42 +340,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
 
             for (int i = 0; i < maxLights; ++i)
-            {
-                VisibleLight currLight = lights [i];
-                if (currLight.lightType == LightType.Directional)
-                {
-                    Vector4 dir = -currLight.localToWorld.GetColumn (2);
-                    m_LightPositions [i] = new Vector4 (dir.x, dir.y, dir.z, 0.0f);
-                }
-                else
-                {
-                    Vector4 pos = currLight.localToWorld.GetColumn (3);
-                    m_LightPositions [i] = new Vector4 (pos.x, pos.y, pos.z, 1.0f);
-                }
-
-                m_LightColors[i] = currLight.finalColor;
-
-                float rangeSq = currLight.range * currLight.range;
-                float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
-
-                if (currLight.lightType == LightType.Spot)
-                {
-                    Vector4 dir = currLight.localToWorld.GetColumn (2);
-                    m_LightSpotDirections [i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0.0f);
-
-                    float spotAngle = Mathf.Deg2Rad * currLight.spotAngle;
-                    float cosOuterAngle = Mathf.Cos (spotAngle * 0.5f);
-                    float cosInneAngle = Mathf.Cos (spotAngle * 0.25f);
-                    float angleRange = cosInneAngle - cosOuterAngle;
-                    m_LightAttenuations [i] = new Vector4 (cosOuterAngle,
-                        Mathf.Approximately (angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
-                }
-                else
-                {
-                    m_LightSpotDirections [i] = new Vector4 (0.0f, 0.0f, 1.0f, 0.0f);
-                    m_LightAttenuations [i] = new Vector4 (-1.0f, 1.0f, quadAtten, rangeSq);
-                }
-            }
+                InitializeLightConstants(lights, i, out m_LightPositions[i], out m_LightColors[i], out m_LightSpotDirections[i], out m_LightAttenuations[i]);
 
             // Lightweight pipeline only upload kMaxVisibleLights to shader cbuffer.
             // We tell the pipe to disable remaining lights by setting it to -1.
@@ -341,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightIndexMap[i] = -1;
             m_CullResults.SetLightIndexMap(lightIndexMap);
 
-            CommandBuffer cmd = CommandBufferPool.Get("SetupShadowShaderConstants");
+            CommandBuffer cmd = CommandBufferPool.Get("SetupLightShaderConstants");
             cmd.SetGlobalVector("globalLightCount", new Vector4 (lightData.pixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
             cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
@@ -355,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetShaderKeywords(ref LightData lightData, ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = new CommandBuffer() { name = "SetShaderKeywords" };
-            SetShaderKeywords(cmd, lightData.shadowsRendered, lightData.isSingleDirectionalLight, lightData.vertexLightsCount > 0);
+            SetShaderKeywords(cmd, lightData.shadowsRendered, lightData.isSingleLight, lightData.vertexLightsCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -527,27 +535,51 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(setupShadow);
         }
 
-        private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleDirecitonal, bool vertexLightSupport)
+        private void SetKeyword(CommandBuffer cmd, string keyword, bool enable)
         {
-            if (m_Asset.ForceLinearRendering)
-                cmd.EnableShaderKeyword("LIGHTWEIGHT_LINEAR");
+            if (enable)
+                cmd.EnableShaderKeyword(keyword);
             else
-                cmd.DisableShaderKeyword("LIGHTWEIGHT_LINEAR");
+                cmd.DisableShaderKeyword(keyword);
+        }
 
-            if (vertexLightSupport)
-                cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
-            else
-                cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
+        private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleLight, bool vertexLightSupport)
+        {
+            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
+            SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
+            SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
+            SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
+            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
 
-            if (singleDirecitonal)
-                cmd.EnableShaderKeyword("_SINGLE_DIRECTIONAL_LIGHT");
+            if (!singleLight)
+            {
+                SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+            }
             else
-                cmd.DisableShaderKeyword("_SINGLE_DIRECTIONAL_LIGHT");
+            {
+                switch (m_SingleLightType)
+                {
+                        case LightType.Directional:
+                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
+                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        break;
 
-            if (m_Asset.AttenuationTexture != null)
-                cmd.EnableShaderKeyword("_ATTENUATION_TEXTURE");
-            else
-                cmd.DisableShaderKeyword("_ATTENUATION_TEXTURE");
+                        case LightType.Spot:
+                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
+                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        break;
+
+                        case LightType.Point:
+                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
+                        break;
+                }
+            }
 
             string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
             for (int i = 0; i < shadowKeywords.Length; ++i)
@@ -560,11 +592,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     keywordIndex += 2;
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
-
-            if (m_Asset.EnableAmbientProbe)
-                cmd.EnableShaderKeyword("_LIGHT_PROBES_ON");
-            else
-                cmd.DisableShaderKeyword("_LIGHT_PROBES_ON");
         }
 
         private void InitializeMainShadowLightIndex(VisibleLight[] lights, out int shadowIndex)

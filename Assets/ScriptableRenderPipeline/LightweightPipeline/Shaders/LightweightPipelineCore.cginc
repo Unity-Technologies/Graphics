@@ -26,6 +26,10 @@
 #include "LightweightPipelineShadows.cginc"
 #endif
 
+#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+#define LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#endif
+
 //  Does not support: _PARALLAXMAP, DIRLIGHTMAP_COMBINED
 #define GLOSSMAP (defined(_SPECGLOSSMAP) || defined(_METALLICGLOSSMAP))
 
@@ -40,11 +44,6 @@ half4 OutputColor(half3 color, half alpha)
 #else
     return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);
 #endif
-}
-
-half MetallicSetup_Reflectivity()
-{
-    return 1.0h - OneMinusReflectivityFromMetallic(_Metallic);
 }
 
 #ifdef _NORMALMAP

@@ -5,11 +5,7 @@ float _PCFKernel[8];
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half4 _ShadowData;
-
-// In case of single directional light, shadow light dir is the same of light dir
-#ifndef _SINGLE_DIRECTIONAL_LIGHT
 half4 _ShadowLightDirection;
-#endif
 
 inline half ShadowAttenuation(float3 shadowCoord)
 {

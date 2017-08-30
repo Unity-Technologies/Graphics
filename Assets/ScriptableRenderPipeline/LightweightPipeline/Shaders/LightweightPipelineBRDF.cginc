@@ -1,6 +1,11 @@
 #ifndef LIGHTWEIGHT_BRDF_INCLUDED
 #define LIGHTWEIGHT_BRDF_INCLUDED
 
+half MetallicSetup_Reflectivity()
+{
+    return 1.0h - OneMinusReflectivityFromMetallic(_Metallic);
+}
+
 //sampler2D unity_NHxRoughness;
 half3 LightweightBRDFDirect(half3 diffColor, half3 specColor, half smoothness, half RdotL)
 {
