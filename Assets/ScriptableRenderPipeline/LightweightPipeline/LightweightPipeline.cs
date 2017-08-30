@@ -505,7 +505,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
 
-            float bias = shadowLight.light.shadowBias;
+            float bias = shadowLight.light.shadowBias * 0.1f;
             float normalBias = shadowLight.light.shadowNormalBias;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
