@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -84,6 +85,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kMesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
                         case VFXValueType.kTexture2D: return m_texture2D_A;
                         case VFXValueType.kTexture3D: return m_texture3D_A;
+                        case VFXValueType.kBool: return false;
                     }
                     Assert.Fail();
                     return null;
@@ -104,6 +106,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kMesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
                         case VFXValueType.kTexture2D: return m_texture2D_B;
                         case VFXValueType.kTexture3D: return m_texture3D_B;
+                        case VFXValueType.kBool: return true;
                     }
                     Assert.Fail();
                     return null;
@@ -270,6 +273,12 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
                     vfxComponent.SetTexture3D(currentName, newValue as Texture3D);
                 }
+                else if (type == VFXValueType.kBool)
+                {
+                    Assert.IsTrue(vfxComponent.HasBool(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetBool(currentName));
+                    vfxComponent.SetBool(currentName, (bool)newValue);
+                }
                 else
                 {
                     Assert.Fail();
@@ -338,6 +347,11 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(vfxComponent.HasTexture3D(currentName));
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
+                }
+                else if (type == VFXValueType.kBool)
+                {
+                    Assert.IsTrue(vfxComponent.HasBool(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetBool(currentName));
                 }
                 else
                 {

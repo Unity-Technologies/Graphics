@@ -16,10 +16,7 @@ namespace UnityEditor.VFX.UI
         public BoolPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             m_Toggle =  new Toggle(OnValueChanged);
-            AddChild(m_Toggle);
-
-
-            m_Toggle.enabled = enabled;
+            Add(m_Toggle);
         }
 
         void OnValueChanged()
@@ -33,17 +30,8 @@ namespace UnityEditor.VFX.UI
             m_Toggle.on = m_Value;
         }
 
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-
-                if (m_Toggle != null)
-                    m_Toggle.enabled = value;
-            }
-        }
-
         Toggle m_Toggle;
+
+        public override bool showsEverything { get { return true; } }
     }
 }

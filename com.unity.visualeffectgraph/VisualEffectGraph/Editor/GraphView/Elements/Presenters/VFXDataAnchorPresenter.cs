@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
@@ -111,6 +111,14 @@ namespace UnityEditor.VFX.UI
         public string path
         {
             get { return model.path; }
+        }
+
+        public object[] customAttributes
+        {
+            get
+            {
+                return new object[] {};
+            }
         }
 
         public VFXPropertyAttribute[] attributes

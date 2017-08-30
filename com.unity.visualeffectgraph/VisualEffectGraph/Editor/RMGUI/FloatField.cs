@@ -5,7 +5,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    abstract class ValueControl<T> : VisualContainer
+    abstract class ValueControl<T> : VisualElement
     {
         protected VisualElement m_Label;
 
@@ -21,9 +21,9 @@ namespace UnityEditor.VFX.UIElements
                 m_Label = new VisualElement() { text = label };
                 m_Label.AddToClassList("label");
 
-                AddChild(m_Label);
+                Add(m_Label);
             }
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
         }
 
         public T GetValue()
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateFields();
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
-            AddChild(m_TextField);
+            Add(m_TextField);
         }
 
         void OnTextChanged(string str)
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.UIElements
         public FloatField(VisualElement existingLabel) : base(existingLabel)
         {
             CreateFields();
-            AddChild(m_TextField);
+            Add(m_TextField);
 
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
         }
@@ -105,16 +105,6 @@ namespace UnityEditor.VFX.UIElements
         protected override void ValueToGUI()
         {
             m_TextField.text = m_Value.ToString("0.###");
-        }
-
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_TextField != null)
-                    m_TextField.enabled = value;
-            }
         }
     }
 }

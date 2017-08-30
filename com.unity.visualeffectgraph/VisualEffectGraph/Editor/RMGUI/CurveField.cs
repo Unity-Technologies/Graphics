@@ -14,7 +14,8 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateCurve()
         {
-            m_Curve = new VisualElement() { minWidth = 4, minHeight = 4 };
+            m_Curve = new VisualElement();
+            m_Curve.style.minWidth = 4; m_Curve.style.minHeight = 4;
             m_Curve.AddToClassList("curve");
 
             m_Curve.AddManipulator(new Clickable(OnCurveClick));
@@ -22,7 +23,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnCurveClick()
         {
-            if (!enabled)
+            if (!enabledInHierarchy)
                 return;
             /*
             CurveEditorSettings settings = new CurveEditorSettings();
@@ -59,18 +60,19 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateCurve();
 
-            flexDirection = FlexDirection.Row;
-            AddChild(m_Curve);
+            style.flexDirection = FlexDirection.Row;
+            Add(m_Curve);
         }
 
         public CurveField(VisualElement existingLabel) : base(existingLabel)
         {
             CreateCurve();
-            AddChild(m_Curve);
+            Add(m_Curve);
         }
 
-        protected internal override void OnPostLayout(bool hasNewLayout)
+        public override void OnPersistentDataReady()
         {
+            base.OnPersistentDataReady();
             ValueToGUI();
         }
 
@@ -82,7 +84,7 @@ namespace UnityEditor.VFX.UIElements
             if (previewHeight > 0 && previewWidth > 0)
             {
                 Rect range = new Rect(0, 0, 1, 1);
-                m_Curve.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
+                m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
                         previewHeight,
                         m_Value,
                         Color.green,

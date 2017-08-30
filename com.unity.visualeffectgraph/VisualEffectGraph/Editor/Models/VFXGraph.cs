@@ -1,13 +1,61 @@
+//#define USE_SHADER_AS_SUBASSET
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+#if !USE_SHADER_AS_SUBASSET
+    public class VFXCacheManager : EditorWindow
+    {
+        [MenuItem("VFX Editor/Rebuild VFXCache")]
+        public static void Rebuild()
+        {
+            FileUtil.DeleteFileOrDirectory(VFXGraph.baseCacheFolder);
+            var vfxAssets = new List<VFXAsset>();
+            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VFXAsset");
+            foreach (var guid in vfxAssetsGuid)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(assetPath);
+                if (vfxAsset != null)
+                {
+                    vfxAssets.Add(vfxAsset);
+                }
+            }
+
+            foreach (var vfxAsset in vfxAssets)
+            {
+                vfxAsset.GetOrCreateGraph().OnSaved();
+            }
+            AssetDatabase.SaveAssets();
+        }
+    }
+#endif
+
+    public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        static string[] OnWillSaveAssets(string[] paths)
+        {
+            foreach (string path in paths)
+            {
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                if (vfxAsset != null)
+                {
+                    var graph = vfxAsset.GetOrCreateGraph();
+                    graph.OnSaved();
+                }
+            }
+            return paths;
+        }
+    }
+
     static class VFXAssetExtensions
     {
         public static VFXGraph GetOrCreateGraph(this VFXAsset asset)
@@ -46,9 +94,67 @@ namespace UnityEditor.VFX
             }
         }
 
+        static public string baseCacheFolder
+        {
+            get
+            {
+                return "Assets/VFXCache";
+            }
+        }
+
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
+        }
+
+        public void OnSaved()
+        {
+            try
+            {
+                EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
+                m_ExpressionGraphDirty = true;
+                RecompileIfNeeded();
+                float currentStep = 0;
+
+#if USE_SHADER_AS_SUBASSET
+                float stepCount = m_GeneratedComputeShader.Count + m_GeneratedShader.Count + 1;
+
+                var oldComputeShader = m_GeneratedComputeShader.ToArray();
+                var oldShader = m_GeneratedShader.ToArray();
+                var oldPath = oldComputeShader.Select(o => AssetDatabase.GetAssetPath(o)).Concat(oldShader.Select(o => AssetDatabase.GetAssetPath(o))).ToArray();
+
+                m_GeneratedComputeShader.Clear();
+                m_GeneratedShader.Clear();
+
+                for (int i = 0; i < oldComputeShader.Length; ++i)
+                {
+                    var compute = oldComputeShader[i];
+                    EditorUtility.DisplayProgressBar("Saving...", string.Format("ComputeShader embedding {0}/{1}", i, oldComputeShader.Length), (++currentStep) / stepCount);
+                    var computeShaderCopy = Instantiate<ComputeShader>(compute);
+                    DestroyImmediate(compute, true);
+                    m_GeneratedComputeShader.Add(computeShaderCopy);
+                }
+
+                for (int i = 0; i < oldShader.Length; ++i)
+                {
+                    var shader = oldShader[i];
+                    EditorUtility.DisplayProgressBar("Saving...", string.Format("Shader embedding {0}/{1}", i, oldShader.Length), (++currentStep) / stepCount);
+                    var shaderCopy = Instantiate<Shader>(shader);
+                    DestroyImmediate(shader, true);
+                    m_GeneratedShader.Add(shaderCopy);
+                }
+#else
+                float stepCount = 1;
+#endif
+                EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
+                UpdateSubAssets();
+                m_saved = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogErrorFormat("Save failed : {0}", e);
+            }
+            EditorUtility.ClearProgressBar();
         }
 
         public bool UpdateSubAssets()
@@ -60,11 +166,29 @@ namespace UnityEditor.VFX
 
                 try
                 {
-                    HashSet<Object> persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel));
+                    var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader));
                     persistentObjects.Remove(this);
 
-                    HashSet<Object> currentObjects = new HashSet<Object>();
+                    var currentObjects = new HashSet<Object>();
                     CollectDependencies(currentObjects);
+
+#if USE_SHADER_AS_SUBASSET
+                    if (m_GeneratedComputeShader != null)
+                    {
+                        foreach (var compute in m_GeneratedComputeShader)
+                        {
+                            currentObjects.Add(compute);
+                        }
+                    }
+
+                    if (m_GeneratedShader != null)
+                    {
+                        foreach (var shader in m_GeneratedShader)
+                        {
+                            currentObjects.Add(shader);
+                        }
+                    }
+#endif
 
                     // Add sub assets that are not already present
                     foreach (var obj in currentObjects)
@@ -99,6 +223,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            m_saved = false;
             base.OnInvalidate(model, cause);
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
@@ -169,6 +294,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kCurve:           SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient:   SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.kMesh:            SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.kBool:            SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }
@@ -199,12 +325,26 @@ namespace UnityEditor.VFX
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
 
+        private struct GeneratedCodeData
+        {
+            public VFXContext context;
+            public bool computeShader;
+            public System.Text.StringBuilder content;
+            public VFXCodeGenerator.CompilationMode compilMode;
+        }
+
         public void RecompileIfNeeded()
         {
             if (m_ExpressionGraphDirty)
             {
                 try
                 {
+                    var models = new HashSet<Object>();
+                    CollectDependencies(models);
+
+                    foreach (var data in models.OfType<VFXData>())
+                        data.CollectAttributes();
+
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionGraph.CompileExpressions(this, VFXExpressionContextOption.Reduction);
 
@@ -239,6 +379,7 @@ namespace UnityEditor.VFX
                                 case VFXValueType.kCurve:           value = CreateValueDesc<AnimationCurve>(exp, i); break;
                                 case VFXValueType.kColorGradient:   value = CreateValueDesc<Gradient>(exp, i); break;
                                 case VFXValueType.kMesh:            value = CreateValueDesc<Mesh>(exp, i); break;
+                                case VFXValueType.kBool:            value = CreateValueDesc<bool>(exp, i); break;
                                 default: throw new InvalidOperationException("Invalid type");
                             }
                             value.expressionIndex = (uint)i;
@@ -248,10 +389,6 @@ namespace UnityEditor.VFX
                         expressionDescs[i].op = exp.Operation;
                         expressionDescs[i].data = data;
                     }
-
-                    // Generate uniforms
-                    var models = new HashSet<Object>();
-                    CollectDependencies(models);
 
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
@@ -274,20 +411,6 @@ namespace UnityEditor.VFX
                                 expressionSemantics.Add(desc);
                             }
                         }
-
-                        var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
-                        if (gpuMapper.expressions.Count() > 0)
-                            Debug.Log("GPU EXPRESSIONS FOR " + contextId);
-
-                        // TMP output uniform buffer
-                        {
-                            var uniformMapper = new VFXUniformMapper(gpuMapper);
-                            Debug.Log(VFXShaderWriter.WriteCBuffer(uniformMapper));
-
-                            foreach (var exp in gpuMapper.expressions)
-                                if (!exp.Is(VFXValue.Flags.InvalidOnGPU)) // Tmp this should be notified and throw
-                                    Debug.Log(VFXShaderWriter.WriteParameter(exp, uniformMapper));
-                        }
                     }
 
                     var parameterExposed = new List<VFXExposedDesc>();
@@ -307,26 +430,42 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    var eventAttributes = new List<VFXEventAttributeDesc>();
+                    foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
+                    {
+                        foreach (var linked in context.outputContexts)
+                        {
+                            foreach (var attribute in linked.GetData().GetAttributes())
+                            {
+                                if (attribute.attrib.location == VFXAttributeLocation.Source)
+                                {
+                                    eventAttributes.Add(new VFXEventAttributeDesc()
+                                    {
+                                        name = attribute.attrib.name,
+                                        type = attribute.attrib.type
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var data in models.OfType<VFXData>())
+                        data.GenerateAttributeLayout();
+
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = m_ExpressionValues.ToArray();
                     expressionSheet.semantics = expressionSemantics.ToArray();
                     expressionSheet.exposed = parameterExposed.ToArray();
+                    expressionSheet.eventAttributes = eventAttributes.ToArray();
 
                     vfxAsset.ClearSpawnerData();
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
 
-                    foreach (var data in models.OfType<VFXData>())
-                        data.CollectAttributes(m_ExpressionGraph);
-
-                    // TMP Debug log
-                    foreach (var data in models.OfType<VFXDataParticle>())
-                        data.DebugBuildAttributeBuffers();
-
                     foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
                     {
-                        var spawnDescs = spawnerContext.children.Select(b =>
+                        var spawnDescs = spawnerContext.childrenWithImplicit.Select(b =>
                             {
                                 var spawner = b as VFXAbstractSpawner;
                                 if (spawner == null)
@@ -353,6 +492,109 @@ namespace UnityEditor.VFX
                         vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
                     }
 
+                    var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
+                    var generatedList = new List<GeneratedCodeData>();
+                    foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
+                    {
+                        var codeGeneratorTemplate = context.codeGeneratorTemplate;
+                        if (codeGeneratorTemplate != null)
+                        {
+                            var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
+                            var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
+                            VFXCodeGenerator.Build(context, compilMode, generatedContent, gpuMapper, codeGeneratorTemplate);
+
+                            for (int i = 0; i < compilMode.Length; ++i)
+                            {
+                                generatedList.Add(new GeneratedCodeData()
+                                {
+                                    context = context,
+                                    computeShader = context.codeGeneratorCompute,
+                                    compilMode = compilMode[i],
+                                    content = generatedContent[i]
+                                });
+                            }
+                        }
+                    }
+
+                    {
+                        if (m_GeneratedComputeShader == null)
+                            m_GeneratedComputeShader = new List<ComputeShader>();
+
+                        if (m_GeneratedShader == null)
+                            m_GeneratedShader = new List<Shader>();
+
+                        var oldGeneratedFile = new Dictionary<string, Object>();
+                        foreach (var shader in m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()))
+                        {
+                            var path = AssetDatabase.GetAssetPath(shader);
+                            if (!string.IsNullOrEmpty(path) && path.StartsWith(baseCacheFolder))
+                            {
+                                oldGeneratedFile.Add(path, shader);
+                            }
+                        }
+
+                        m_GeneratedComputeShader.Clear();
+                        m_GeneratedShader.Clear();
+
+                        var currentCacheFolder = baseCacheFolder;
+                        if (vfxAsset != null)
+                        {
+                            var path = AssetDatabase.GetAssetPath(vfxAsset);
+                            path = path.Replace("Assets", "");
+                            path = path.Replace(".asset", "");
+                            currentCacheFolder += path;
+                        }
+
+                        System.IO.Directory.CreateDirectory(currentCacheFolder);
+                        for (int i = 0; i < generatedList.Count; ++i)
+                        {
+                            var generated = generatedList[i];
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+
+                            string oldContent = "";
+                            if (System.IO.File.Exists(path))
+                            {
+                                oldContent = System.IO.File.ReadAllText(path);
+                            }
+                            var newContent = generated.content.ToString();
+                            if (oldContent != newContent)
+                            {
+                                System.IO.File.WriteAllText(path, generated.content.ToString());
+                            }
+                            else
+                            {
+                                if (oldGeneratedFile.ContainsKey(path))
+                                {
+                                    if (generated.computeShader)
+                                    {
+                                        m_GeneratedComputeShader.Add(oldGeneratedFile[path] as ComputeShader);
+                                    }
+                                    else
+                                    {
+                                        m_GeneratedShader.Add(oldGeneratedFile[path] as Shader);
+                                    }
+                                    continue;
+                                }
+                            }
+
+                            //Generated file as been modified or not yet imported
+                            AssetDatabase.ImportAsset(path);
+                            if (generated.computeShader)
+                            {
+                                var imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                                EditorUtility.SetDirty(imported);
+                                m_GeneratedComputeShader.Add(imported);
+                            }
+                            else
+                            {
+                                var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
+                                var imported = importer.GetShader();
+                                EditorUtility.SetDirty(imported);
+                                m_GeneratedShader.Add(imported);
+                            }
+                        }
+                    }
+
                     foreach (var component in VFXComponent.GetAllActive())
                     {
                         if (component.vfxAsset == vfxAsset)
@@ -374,6 +616,8 @@ namespace UnityEditor.VFX
 
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                    m_GeneratedComputeShader = new List<ComputeShader>();
+                    m_GeneratedShader = new List<Shader>();
                 }
 
                 m_ExpressionGraphDirty = false;
@@ -392,11 +636,21 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_ExpressionValuesDirty = true;
 
-
         [NonSerialized]
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
         private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
+
+        [NonSerialized]
+        protected List<ComputeShader> m_GeneratedComputeShader;
+
+        [NonSerialized]
+        protected List<Shader> m_GeneratedShader;
+
+        [SerializeField]
+        protected bool m_saved = false;
+
+        public bool saved { get { return m_saved; } }
 
         private VFXAsset m_Owner;
     }

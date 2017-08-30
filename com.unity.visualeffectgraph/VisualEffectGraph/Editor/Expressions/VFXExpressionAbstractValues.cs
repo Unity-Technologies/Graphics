@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -15,7 +16,7 @@ namespace UnityEditor.VFX
         }
 
         // Syntactic sugar method to create a constant value
-        static public VFXValue<T> Constant<T>(T value)
+        static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
         }
@@ -49,7 +50,7 @@ namespace UnityEditor.VFX
             if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
                 throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", ValueType));
 
-            return GetContent().ToString();
+            return VFXShaderWriter.GetValueString(ValueType, GetContent());
         }
 
         public override void FillOperands(int[] data, VFXExpressionGraph graph)
@@ -184,6 +185,7 @@ namespace UnityEditor.VFX
             if (t == typeof(Gradient)) return VFXValueType.kColorGradient;
             if (t == typeof(Mesh)) return VFXValueType.kMesh;
             if (t == typeof(System.Collections.Generic.List<Vector3>)) return VFXValueType.kSpline;
+            if (t == typeof(bool)) return VFXValueType.kBool;
             throw new ArgumentException("Invalid type");
         }
 

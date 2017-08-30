@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.VFX;
 
 
 namespace UnityEditor.VFX
@@ -55,7 +56,7 @@ namespace UnityEditor.VFX
 
         sealed public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}({1});", TypeToCode(ValueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
+            return string.Format("{0}({1})", TypeToCode(ValueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
         }
 
         public override void FillOperands(int[] data, VFXExpressionGraph graph)

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
@@ -41,7 +41,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType)); }
+            set
+            {
+                m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType));
+            }
         }
 
 
@@ -82,7 +85,19 @@ namespace UnityEditor.VFX.UI
 
         public VFXPropertyAttribute[] attributes
         {
-            get { return null; }
+            get
+            {
+                return VFXPropertyAttribute.Create(customAttributes);
+            }
+        }
+
+        public object[] customAttributes
+        {
+            get
+            {
+                var customAttributes = owner.settings.GetType().GetField(path).GetCustomAttributes(true);
+                return customAttributes;
+            }
         }
 
         public void ExpandPath()

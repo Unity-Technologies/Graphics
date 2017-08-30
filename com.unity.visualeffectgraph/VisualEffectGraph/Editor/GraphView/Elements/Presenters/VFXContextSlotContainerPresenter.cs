@@ -1,5 +1,5 @@
 using System;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
@@ -27,6 +27,8 @@ namespace UnityEditor.VFX.UI
         {
             m_ContextPresenter = contextPresenter;
             base.Init(model, contextPresenter.viewPresenter);
+
+            capabilities &= ~Capabilities.Selectable;
         }
 
         public VFXContextPresenter contextPresenter

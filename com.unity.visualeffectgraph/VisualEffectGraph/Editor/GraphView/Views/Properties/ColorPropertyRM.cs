@@ -15,15 +15,15 @@ namespace UnityEditor.VFX.UI
     {
         public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            VisualContainer mainContainer = new VisualContainer();
+            VisualElement mainContainer = new VisualElement();
 
             m_ColorField = new ColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
 
-            mainContainer.AddChild(m_ColorField);
+            mainContainer.Add(m_ColorField);
             mainContainer.AddToClassList("maincontainer");
 
-            VisualContainer fieldContainer = new VisualContainer();
+            VisualElement fieldContainer = new VisualElement();
             fieldContainer.AddToClassList("fieldContainer");
 
             m_RFloatField = new FloatField("R");
@@ -38,16 +38,16 @@ namespace UnityEditor.VFX.UI
             m_AFloatField = new FloatField("A");
             m_AFloatField.OnValueChanged = OnValueChanged;
 
-            fieldContainer.AddChild(m_RFloatField);
-            fieldContainer.AddChild(m_GFloatField);
-            fieldContainer.AddChild(m_BFloatField);
-            fieldContainer.AddChild(m_AFloatField);
+            fieldContainer.Add(m_RFloatField);
+            fieldContainer.Add(m_GFloatField);
+            fieldContainer.Add(m_BFloatField);
+            fieldContainer.Add(m_AFloatField);
 
-            mainContainer.AddChild(fieldContainer);
+            mainContainer.Add(fieldContainer);
 
-            mainContainer.flexDirection = FlexDirection.Column;
-            mainContainer.alignItems = Align.Stretch;
-            AddChild(mainContainer);
+            mainContainer.style.flexDirection = FlexDirection.Column;
+            mainContainer.style.alignItems = Align.Stretch;
+            Add(mainContainer);
         }
 
         public void OnValueChanged()
@@ -84,22 +84,6 @@ namespace UnityEditor.VFX.UI
             m_AFloatField.SetValue(m_Value.a);
         }
 
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_RFloatField != null)
-                    m_RFloatField.enabled = value;
-                if (m_GFloatField != null)
-                    m_GFloatField.enabled = value;
-                if (m_BFloatField != null)
-                    m_BFloatField.enabled = value;
-                if (m_AFloatField != null)
-                    m_AFloatField.enabled = value;
-                if (m_ColorField != null)
-                    m_ColorField.enabled = value;
-            }
-        }
+        public override bool showsEverything { get { return true; } }
     }
 }

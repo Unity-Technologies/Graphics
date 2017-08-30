@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+
 
 namespace UnityEditor.VFX.UI
 {
@@ -102,12 +103,22 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            var descriptorAttributeParameter = VFXLibrary.GetAttributeParameters().Select(o =>
+            var descriptorSourceAttributeParameter = VFXLibrary.GetSourceAttributeParameters().Select(o =>
                 {
                     return new Descriptor()
                     {
                         modelDescriptor = o,
-                        category = "Attribute/",
+                        category = "SourceAttribute/",
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
+
+            var descriptorCurrentAttributeParameter = VFXLibrary.GetCurrentAttributeParameters().Select(o =>
+                {
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "CurrentAttribute/",
                         name = o.name
                     };
                 }).OrderBy(o => o.category + o.name);
@@ -115,7 +126,8 @@ namespace UnityEditor.VFX.UI
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
                 .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorAttributeParameter)
+                .Concat(descriptorSourceAttributeParameter)
+                .Concat(descriptorCurrentAttributeParameter)
                 .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
@@ -123,38 +135,29 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
+        public EventPropagation ToggleLogEvent()
+        {
+            EventDispatcher.logEvents = !EventDispatcher.logEvents;
+            return EventPropagation.Stop;
+        }
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
-            AddManipulator(new SelectionSetter(this));
-            AddManipulator(new ContentDragger());
-            AddManipulator(new RectangleSelector());
-            AddManipulator(new SelectionDragger());
-            AddManipulator(new ClickSelector());
-            AddManipulator(new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-            {
-                {Event.KeyboardEvent("a"), FrameAll},
-                {Event.KeyboardEvent("f"), FrameSelection},
-                {Event.KeyboardEvent("o"), FrameOrigin},
-                {Event.KeyboardEvent("delete"), DeleteSelection},
-//                  {Event.KeyboardEvent("#tab"), FramePrev},
-//                  {Event.KeyboardEvent("tab"), FrameNext},
-                {Event.KeyboardEvent("c"), CloneModels},     // TEST
-                {Event.KeyboardEvent("#r"), Resync},
-                {Event.KeyboardEvent("#d"), OutputToDot},
-                {Event.KeyboardEvent("^#d"), OutputToDotReduced},
-                {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
-            }));
+            this.AddManipulator(new SelectionSetter(this));
+            this.AddManipulator(new ContentDragger());
+            this.AddManipulator(new RectangleSelector());
+            this.AddManipulator(new SelectionDragger());
+            this.AddManipulator(new ClickSelector());
 
-            AddManipulator(new ParameterDropper());
+            this.AddManipulator(new ParameterDropper());
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            InsertChild(0, bg);
+            Insert(0, bg);
 
-            AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
+            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
                 {
                     Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
                     if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
@@ -173,9 +176,13 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
                     }
-                    else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
+                    else if (d.modelDescriptor is VFXModelDescriptorCurrentAttributeParameters)
                     {
-                        AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                        AddVFXCurrentAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorCurrentAttributeParameters);
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptorSourceAttributeParameters)
+                    {
+                        AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
                     }
                     else if (d.modelDescriptor == null)
                     {
@@ -207,11 +214,18 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);
+
+            AddLayer(-1);
+            AddLayer(1);
+            AddLayer(2);
+
+            focusIndex = 0;
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
@@ -234,9 +248,14 @@ namespace UnityEditor.VFX.UI
             GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
         }
 
-        void AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
         {
-            GetPresenter<VFXViewPresenter>().AddVFXAttributeParameter(pos, desc);
+            GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
+        }
+
+        void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that

@@ -42,18 +42,18 @@ namespace UnityEditor.VFX.UIElements
         {
             CreateTextField();
 
-            flexDirection = FlexDirection.Row;
+            style.flexDirection = FlexDirection.Row;
             m_Label = new VisualElement { text = label };
-            AddChild(m_Label);
-            AddChild(m_X);
-            AddChild(m_Y);
+            Add(m_Label);
+            Add(m_X);
+            Add(m_Y);
         }
 
         public Vector2Field(VisualElement existingLabel) : base(existingLabel)
         {
             CreateTextField();
-            AddChild(m_X);
-            AddChild(m_Y);
+            Add(m_X);
+            Add(m_Y);
 
             m_Label = existingLabel;
         }
@@ -62,19 +62,6 @@ namespace UnityEditor.VFX.UIElements
         {
             m_X.SetValue(m_Value.x);
             m_Y.SetValue(m_Value.y);
-        }
-
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_X != null)
-                {
-                    m_X.enabled = value;
-                    m_Y.enabled = value;
-                }
-            }
         }
     }
 }

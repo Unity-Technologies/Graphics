@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
-    partial class VFXViewPresenter : GraphViewPresenter
+    internal partial class VFXViewPresenter : GraphViewPresenter
     {
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
@@ -21,7 +22,7 @@ namespace UnityEditor.VFX.UI
         public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
         // Model / Presenters synchronization
-        private Dictionary<VFXModel, VFXSlotContainerPresenter> m_SyncedModels = new Dictionary<VFXModel, VFXSlotContainerPresenter>();
+        private Dictionary<VFXModel, VFXNodePresenter> m_SyncedModels = new Dictionary<VFXModel, VFXNodePresenter>();
 
         private class PresenterFactory : BaseTypeFactory<VFXModel, GraphElementPresenter>
         {
@@ -31,6 +32,8 @@ namespace UnityEditor.VFX.UI
             }
         }
         private PresenterFactory m_PresenterFactory = new PresenterFactory();
+
+        public Preview3DPresenter presenter { get; set; }
 
         public VFXViewPresenter()
         {
@@ -311,6 +314,10 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+            else if (element is Preview3DPresenter)
+            {
+                //TODO
+            }
             else
             {
                 Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
@@ -352,8 +359,6 @@ namespace UnityEditor.VFX.UI
             {
                 result.Remove(presenter);
             }
-
-            //DestroyImmediate(presenter);
         }
 
         private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)
@@ -508,7 +513,21 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        public VFXCurrentAttributeParameter AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
+        {
+            var model = desc.CreateInstance();
+            AddVFXModel(pos, model);
+            return model;
+        }
+
+        public VFXSourceAttributeParameter AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
+        {
+            var model = desc.CreateInstance();
+            AddVFXModel(pos, model);
+            return model;
+        }
+
+        public VFXSourceAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);
@@ -579,6 +598,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool HasVFXAsset()
+        {
+            return m_VFXAsset != null;
+        }
+
         public void SetVFXAsset(VFXAsset vfx, bool force)
         {
             if (m_VFXAsset != vfx || force)
@@ -608,6 +632,13 @@ namespace UnityEditor.VFX.UI
 
                 // Doesn't work for some reason
                 //View.FrameAll();
+
+#if ENABLE_VIEW_3D_PRESENTER
+                if (presenter != null)
+                    RemoveElement(presenter);
+                presenter = CreateInstance<Preview3DPresenter>();
+                AddElement(presenter);
+#endif
             }
             SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }
@@ -618,7 +649,7 @@ namespace UnityEditor.VFX.UI
             {
                 case VFXModel.InvalidationCause.kStructureChanged:
                 {
-                    Dictionary<VFXModel, VFXSlotContainerPresenter> syncedModels = null;
+                    Dictionary<VFXModel, VFXNodePresenter> syncedModels = null;
                     if (model is VFXGraph)
                         syncedModels = m_SyncedModels;
 
@@ -646,9 +677,9 @@ namespace UnityEditor.VFX.UI
             //Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
         }
 
-        private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXSlotContainerPresenter> syncedModels)
+        private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodePresenter> syncedModels)
         {
-            VFXSlotContainerPresenter newPresenter = m_PresenterFactory.Create(model) as VFXSlotContainerPresenter;
+            VFXNodePresenter newPresenter = m_PresenterFactory.Create(model) as VFXNodePresenter;
 
             syncedModels[model] = newPresenter;
             if (newPresenter != null)
@@ -661,13 +692,13 @@ namespace UnityEditor.VFX.UI
             RecreateFlowEdges();
         }
 
-        private void RemovePresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXSlotContainerPresenter> syncedModels)
+        private void RemovePresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodePresenter> syncedModels)
         {
             var presenter = syncedModels[model];
             syncedModels.Remove(model);
 
             if (presenter != null)
-                m_Elements.RemoveAll(x => x as VFXSlotContainerPresenter == presenter); // We don't call RemoveElement as it modifies the model...
+                m_Elements.RemoveAll(x => x as VFXNodePresenter == presenter); // We don't call RemoveElement as it modifies the model...
         }
 
         [SerializeField]

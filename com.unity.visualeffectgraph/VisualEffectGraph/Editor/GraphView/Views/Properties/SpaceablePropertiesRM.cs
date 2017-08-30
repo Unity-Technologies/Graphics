@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Button = new VisualElement() {name = "spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
-            AddChild(m_Button);
+            Add(m_Button);
             AddToClassList("spaceablepropertyrm");
         }
 
@@ -41,24 +41,23 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_Button;
-
-        public override bool enabled
+        /*
+        public override void SetEnabled(bool value)
         {
-            set
-            {
-                base.enabled = value;
-                if (m_Button != null)
-                    m_Button.enabled = value;
-            }
-        }
+            base.SetEnabled(value);
+            if (m_Button != null)
+                m_Button.SetEnabled(value);
+        }*/
 
         public override float effectiveLabelWidth
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.width : 16);
+                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
             }
         }
+
+        public override bool showsEverything { get { return false; } }
     }
 
     abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
@@ -69,22 +68,14 @@ namespace UnityEditor.VFX.UI
             m_VectorField.OnValueChanged = OnValueChanged;
             m_VectorField.AddToClassList("fieldContainer");
 
-            AddChild(m_VectorField);
+            Add(m_VectorField);
         }
 
         public abstract void OnValueChanged();
 
         protected Vector3Field m_VectorField;
 
-        public override bool enabled
-        {
-            set
-            {
-                base.enabled = value;
-                if (m_VectorField != null)
-                    m_VectorField.enabled = value;
-            }
-        }
+        public override bool showsEverything { get { return true; } }
     }
 
     class VectorPropertyRM : Vector3SpaceablePropertyRM<Vector>
@@ -130,6 +121,29 @@ namespace UnityEditor.VFX.UI
         {
             base.UpdateGUI();
             m_VectorField.SetValue(m_Value.position);
+        }
+    }
+
+    class DirectionPropertyRM : Vector3SpaceablePropertyRM<DirectionType>
+    {
+        public DirectionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override void OnValueChanged()
+        {
+            Vector3 newValue = m_VectorField.GetValue();
+            if (newValue != m_Value.direction)
+            {
+                m_Value.direction = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        public override void UpdateGUI()
+        {
+            base.UpdateGUI();
+            m_VectorField.SetValue(m_Value.direction);
         }
     }
 }

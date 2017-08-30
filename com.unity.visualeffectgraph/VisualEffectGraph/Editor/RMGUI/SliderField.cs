@@ -11,23 +11,23 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateSlider(Vector2 range)
         {
-            m_Slider = new Slider(range.x, range.y, OnValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(range.x, range.y, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
         }
 
         public SliderField(string label, Vector2 range) : base(label)
         {
             CreateSlider(range);
-            AddChild(m_Slider);
+            Add(m_Slider);
         }
 
         public SliderField(VisualElement existingLabel, Vector2 range) : base(existingLabel)
         {
             CreateSlider(range);
-            AddChild(m_Slider);
+            Add(m_Slider);
         }
 
-        void OnValueChanged(float newValue)
+        void ValueChanged(float newValue)
         {
             SetValue(newValue);
         }

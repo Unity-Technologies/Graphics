@@ -54,11 +54,13 @@ float3 VFXCameraPos()                   { return _WorldSpaceCameraPos.xyz; }
 float3 VFXCameraLook()                  { return -unity_WorldToCamera[2].xyz; }
 float4x4 VFXCameraMatrix()              { return unity_WorldToCamera; }
 float VFXNearPlaneDist(float3 position) { return mul(unity_WorldToCamera,float4(position,1.0f)).z; }
+float4x4 VFXModelView()                 { return UNITY_MATRIX_VP; }
 #elif defined(VFX_LOCAL_SPACE) // Local space
 float3 VFXCameraPos()                   { return mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; }
 float3 VFXCameraLook()                  { return UNITY_MATRIX_MV[2].xyz; }
 float4x4 VFXCameraMatrix()              { return UNITY_MATRIX_MV; }
 float VFXNearPlaneDist(float3 position) { return -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z; }
+float4x4 VFXModelView()                 { return UNITY_MATRIX_MVP; }
 #endif
 
 // Macros to use Sphere semantic type directly

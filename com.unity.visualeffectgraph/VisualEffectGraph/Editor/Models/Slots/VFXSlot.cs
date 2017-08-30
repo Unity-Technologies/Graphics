@@ -469,7 +469,7 @@ namespace UnityEditor.VFX
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
-                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).GetExpression(); // Not sure about that
+                            s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression(); // Not sure about that
                     });
             }
 
@@ -482,7 +482,7 @@ namespace UnityEditor.VFX
             masterSlot.PropagateToChildren(s => {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s.GetChild(i).SetOutExpression(exp != null ? exp[i] : s.GetChild(i).m_InExpression, toInvalidate);
+                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate);
                 });
 
             foreach (var slot in toInvalidate)
@@ -575,10 +575,7 @@ namespace UnityEditor.VFX
 
         protected virtual bool CanConvertFrom(Type type)
         {
-            return type == null ||
-                property.type == type ||
-                (property.type == typeof(Vector4) && type == typeof(Color)) ||
-                (type == typeof(Vector4) && property.type == typeof(Color));
+            return type == null || property.type == type;
         }
 
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)

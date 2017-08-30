@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
@@ -10,8 +10,7 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-
-            title = attributeParameter.attributeName;
+            title = attributeParameter.location == VFXAttributeLocation.Current ? "Current" : "Source";
         }
     }
 }

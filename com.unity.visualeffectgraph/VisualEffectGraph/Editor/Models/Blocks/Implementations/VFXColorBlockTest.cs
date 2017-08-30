@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -10,9 +11,25 @@ namespace UnityEditor.VFX
         public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
+            }
+        }
+
         public class InputProperties
         {
-            public Color color = Color.red;
+            public Color Color = Color.red;
+        }
+
+        public override string source
+        {
+            get
+            {
+                return "color.rgb = Color.rgb;";
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.VFX
 {
@@ -14,6 +15,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
             }
         }
 
@@ -28,9 +31,7 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.GPU:
                 {
-                    var mapper = new VFXExpressionMapper();
-                    for (int i = 0; i < GetNbChildren(); ++i)
-                        mapper.AddExpressions(GetChild(i).parameters, i);
+                    var mapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
                     return mapper;
                 }
 

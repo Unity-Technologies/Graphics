@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 
 using Object = UnityEngine.Object;
@@ -15,6 +15,8 @@ namespace UnityEditor.VFX.UI
             if (!ExpressionGraphDirty)
                 return;
 
+            ExpressionGraphDirty = false;
+
             CreateExpressionContext(true /*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
             m_ExpressionContext.Recompile();
 
@@ -22,8 +24,6 @@ namespace UnityEditor.VFX.UI
             {
                 onRecompileEvent();
             }
-
-            ExpressionGraphDirty = false;
         }
 
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)

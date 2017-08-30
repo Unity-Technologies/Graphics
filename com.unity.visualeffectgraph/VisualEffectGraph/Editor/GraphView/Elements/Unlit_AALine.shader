@@ -44,7 +44,8 @@ Shader "Unlit/AALine"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float distance = (i.uv.z - abs(i.uv.y));
+
+                float distance = (i.uv.y - abs(i.uv.x));
 
                 return fixed4(i.color.rgb, i.color.a * distance );
             }

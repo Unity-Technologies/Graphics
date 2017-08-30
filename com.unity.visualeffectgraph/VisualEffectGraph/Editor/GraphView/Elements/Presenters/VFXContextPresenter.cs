@@ -1,12 +1,13 @@
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
 
+
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextPresenter : VFXContextSlotContainerPresenter
+    class VFXContextPresenter : VFXNodePresenter
     {
         public VFXContext context       { get { return model as VFXContext; } }
 
@@ -31,6 +32,13 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowOutputAnchors; }
         }
 
+        VFXContextSlotContainerPresenter m_SlotPresenter;
+        public VFXContextSlotContainerPresenter slotPresenter
+        {
+            get { return m_SlotPresenter; }
+        }
+
+
         protected new void OnEnable()
         {
             base.OnEnable();
@@ -39,8 +47,11 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDisable()
         {
-            UnregisterAnchors();
-            viewPresenter.RemoveInvalidateDelegate(model, OnModelInvalidate);
+            if (viewPresenter != null)
+            {
+                UnregisterAnchors();
+                viewPresenter.RemoveInvalidateDelegate(model, OnModelInvalidate);
+            }
         }
 
         private void UnregisterAnchors()
@@ -54,11 +65,14 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             UnregisterAnchors();
+
+            m_SlotPresenter = CreateInstance<VFXContextSlotContainerPresenter>();
             inputAnchors.Clear();
             outputAnchors.Clear();
 
-            m_ContextPresenter = this;
             base.Init(model, viewPresenter);
+
+            m_SlotPresenter.Init(model, this);
 
             if (context.inputType != VFXDataType.kNone)
             {
@@ -99,7 +113,6 @@ namespace UnityEditor.VFX.UI
                 --index;
             }
 
-
             context.AddChild(block, index);
         }
 
@@ -130,7 +143,7 @@ namespace UnityEditor.VFX.UI
         private void SyncPresenters()
         {
             var m_NewPresenters = new List<VFXBlockPresenter>();
-            foreach (var block in context.GetChildren())
+            foreach (var block in context.children)
             {
                 var presenter = m_BlockPresenters.Find(p => p.model == block);
                 if (presenter == null) // If the presenter does not exist for this model, create it

@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -132,6 +133,50 @@ namespace UnityEditor.VFX.Test
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
             Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifeTime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);
+        }
+
+        [UnityTest]
+        [Timeout(1000 * 10)]
+        public IEnumerator CreateCustomSpawnerLinkedWithSourceAttribute()
+        {
+            EditorApplication.ExecuteMenuItem("Window/Game");
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            graph.AddChild(spawnerContext);
+
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(initContext);
+
+            spawnerContext.LinkTo(initContext);
+
+            var initBlock = ScriptableObject.CreateInstance<VFXAllType>();
+            initContext.AddChild(initBlock);
+
+            var attributeVelocity = VFXLibrary.GetSourceAttributeParameters().FirstOrDefault(o => o.name == "velocity").CreateInstance();
+            graph.AddChild(attributeVelocity);
+
+            var targetSlot = initBlock.inputSlots.FirstOrDefault(o => o.property.type == attributeVelocity.outputSlots[0].property.type);
+            attributeVelocity.outputSlots[0].Link(targetSlot);
+
+            graph.vfxAsset = new VFXAsset();
+            graph.RecompileIfNeeded();
+            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+
+            var gameObj = new GameObject("CreateCustomSpawnerLinkedWithSourceAttribute");
+            var vfxComponent = gameObj.AddComponent<VFXComponent>();
+            vfxComponent.vfxAsset = graph.vfxAsset;
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null; //wait for exactly one more update if visible
+
+            var vfxEventAttribute = vfxComponent.CreateVFXEventAttribute();
+            Assert.IsTrue(vfxEventAttribute.HasVector3("velocity"));
         }
     }
 }

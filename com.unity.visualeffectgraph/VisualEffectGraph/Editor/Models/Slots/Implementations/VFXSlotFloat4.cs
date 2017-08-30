@@ -1,17 +1,55 @@
 using System;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Vector4))]
     class VFXSlotFloat4 : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        sealed protected override bool CanConvertFrom(Type type)
+        {
+            return base.CanConvertFrom(type)
+                || type == typeof(float)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(Color);
+        }
+
+        sealed protected override bool CanConvertFrom(VFXExpression expr)
+        {
+            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.ValueType));
+        }
+
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        {
+            if (expression.ValueType == VFXValueType.kFloat4)
+                return expression;
+
+            if (expression.ValueType == VFXValueType.kFloat)
+                return new VFXExpressionCombine(expression, expression, expression, expression);
+
+            if (expression.ValueType == VFXValueType.kUint)
+            {
+                var floatExpression = new VFXExpressionCastUintToFloat(expression);
+                return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);
+            }
+
+            if (expression.ValueType == VFXValueType.kInt)
+            {
+                var floatExpression = new VFXExpressionCastIntToFloat(expression);
+                return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);
+            }
+
+            throw new Exception("Unexpected type of expression " + expression);
+        }
+
+        sealed protected override VFXValue DefaultExpression()
         {
             return new VFXValue<Vector4>(Vector4.zero, VFXValue.Mode.FoldableVariable);
         }
 
-        protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
+        sealed protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return new VFXExpressionCombine(
                 expr[0],
@@ -20,7 +58,7 @@ namespace UnityEditor.VFX
                 expr[3]);
         }
 
-        protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
+        sealed protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
             return new VFXExpression[4]
             {

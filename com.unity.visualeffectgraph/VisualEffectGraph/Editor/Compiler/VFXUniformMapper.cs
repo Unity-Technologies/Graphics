@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -11,35 +12,6 @@ namespace UnityEditor.VFX
         public VFXUniformMapper(VFXExpressionMapper mapper)
         {
             Init(mapper);
-        }
-
-        private static bool IsTexture(VFXExpression exp)
-        {
-            switch (exp.ValueType)
-            {
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture3D:
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsUniform(VFXExpression exp)
-        {
-            switch (exp.ValueType)
-            {
-                case VFXValueType.kFloat:
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kTransform:
-                    return true;
-            }
-
-            return false;
         }
 
         private void CollectAndAddUniforms(VFXExpression exp, string name)
@@ -52,23 +24,34 @@ namespace UnityEditor.VFX
                 string prefix;
                 Dictionary<VFXExpression, string> expressions;
 
-                if (IsUniform(exp))
+                if (VFXExpression.IsUniform(exp.ValueType))
                 {
-                    prefix = "uniform_" + (exp.Is(VFXExpression.Flags.Constant) ? "CONSTANT_" : "");
-                    expressions = m_UniformToName;
+                    if (!exp.Is(VFXExpression.Flags.Constant)) // Filter out constant uniform that should be patched directly in shader
+                    {
+                        prefix = "uniform_";
+                        expressions = m_UniformToName;
+                    }
+                    else
+                        return;
                 }
-                else if (IsTexture(exp))
+                else if (VFXExpression.IsTexture(exp.ValueType))
                 {
                     prefix = "texture_";
                     expressions = m_TextureToName;
                 }
                 else
+                {
+                    if (VFXExpression.IsTypeValidOnGPU(exp.ValueType))
+                    {
+                        throw new InvalidOperationException(string.Format("Missing handling for type: {0}", exp.ValueType));
+                    }
                     return;
+                }
 
                 if (expressions.ContainsKey(exp)) // Only need one name
                     return;
 
-                name = prefix + (name != null ? name : expressions.Count().ToString());
+                name = prefix + (name != null ? name : VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count()));
                 expressions[exp] = name;
             }
             else
@@ -88,11 +71,15 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
 
-        public int numUniforms { get { return m_UniformToName.Count(); } }
-        public int numTextures { get { return m_TextureToName.Count(); } }
+        public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
 
-        public string GetName(VFXExpression exp)    { return IsTexture(exp) ? m_TextureToName[exp] : m_UniformToName[exp]; }
-        public bool Contains(VFXExpression exp)     { return IsTexture(exp) ? m_TextureToName.ContainsKey(exp) : m_UniformToName.ContainsKey(exp); }
+        public Dictionary<VFXExpression, string> expressionToName
+        {
+            get
+            {
+                return m_UniformToName.Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
+            }
+        }
 
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;

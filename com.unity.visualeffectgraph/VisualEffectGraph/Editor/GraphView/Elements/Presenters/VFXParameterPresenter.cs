@@ -1,6 +1,7 @@
 using System;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -20,8 +21,84 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
     }
+
+    class VFXSubParameterPresenter : IPropertyRMProvider
+    {
+        VFXParameterPresenter m_Parameter;
+        int m_Field;
+        FieldInfo m_FieldInfo;
+
+
+        public  VFXSubParameterPresenter(VFXParameterPresenter parameter, int field)
+        {
+            m_Parameter = parameter;
+            m_Field = field;
+
+            System.Type type = m_Parameter.anchorType;
+            m_FieldInfo = type.GetFields()[field];
+        }
+
+        bool IPropertyRMProvider.expanded
+        {
+            get
+            {
+                return false;
+            }
+        }
+        bool IPropertyRMProvider.editable
+        {
+            get { return true; }
+        }
+
+        bool IPropertyRMProvider.expandable { get { return false; } }
+
+        string IPropertyRMProvider.name
+        {
+            get { return m_FieldInfo.Name; }
+        }
+
+        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+
+        int IPropertyRMProvider.depth { get { return 1; } }
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Type anchorType
+        {
+            get
+            {
+                return m_FieldInfo.FieldType;
+            }
+        }
+
+        public object value
+        {
+            get
+            {
+                return m_FieldInfo.GetValue(m_Parameter.value);
+            }
+            set
+            {
+                object val = m_Parameter.value;
+                m_FieldInfo.SetValue(val, value);
+
+                m_Parameter.value = val;
+            }
+        }
+    }
     class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
     {
+        VFXSubParameterPresenter[] m_SubPresenters;
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
@@ -29,6 +106,44 @@ namespace UnityEditor.VFX.UI
 
             exposed = parameter.exposed;
             exposedName = parameter.exposedName;
+
+            m_CachedValue = parameter.value;
+            m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
+            m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+        }
+
+        public int CreateSubPresenters()
+        {
+            if (m_SubPresenters == null)
+            {
+                System.Type type = anchorType;
+
+                FieldInfo[] fields = type.GetFields();
+
+                int count = fields.Length;
+
+                bool spaceable = typeof(Spaceable).IsAssignableFrom(type);
+                if (spaceable)
+                {
+                    --count;
+                }
+
+                m_SubPresenters = new VFXSubParameterPresenter[count];
+
+                int startIndex = spaceable ? 1 : 0;
+
+                for (int i = startIndex; i < count + startIndex; ++i)
+                {
+                    m_SubPresenters[i - startIndex] = new VFXSubParameterPresenter(this, i);
+                }
+            }
+
+            return m_SubPresenters.Length;
+        }
+
+        public VFXSubParameterPresenter GetSubPresenter(int i)
+        {
+            return m_SubPresenters[i];
         }
 
         public string exposedName
@@ -86,10 +201,11 @@ namespace UnityEditor.VFX.UI
 
         public object minValue
         {
-            get { return parameter.m_Min == null ? null : parameter.m_Min.Get(); }
+            get { return m_CachedMinValue; }
             set
             {
                 Undo.RecordObject(parameter, "Parameter Min");
+                m_CachedMinValue = value;
                 if (value != null)
                 {
                     if (parameter.m_Min == null)
@@ -103,10 +219,11 @@ namespace UnityEditor.VFX.UI
         }
         public object maxValue
         {
-            get { return parameter.m_Max == null ? null : parameter.m_Max.Get(); }
+            get { return m_CachedMaxValue; }
             set
             {
                 Undo.RecordObject(parameter, "Parameter Max");
+                m_CachedMaxValue = value;
                 if (value != null)
                 {
                     if (parameter.m_Max == null)
@@ -119,18 +236,27 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the presenter (or, in the case of serialization, before the presenter is created)
+        object m_CachedValue;
+        object m_CachedMinValue;
+        object m_CachedMaxValue;
+
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
         public object value
         {
             get
             {
-                return parameter.GetOutputSlot(0).value;
+                return m_CachedValue;
             }
             set
             {
-                if (parameter.GetOutputSlot(0).value != value)
+                object b = value;
+
+
+                if (!object.Equals(m_CachedValue, b))
                 {
+                    m_CachedValue = value;
                     Undo.RecordObject(parameter, "Change Value");
                     parameter.GetOutputSlot(0).value = value;
                 }
@@ -138,7 +264,10 @@ namespace UnityEditor.VFX.UI
         }
 
         string IPropertyRMProvider.name { get { return "Value"; } }
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return null; } }
+
+        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; }}
 
         public Type anchorType
         {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSlotContainerUI : VFXNodeUI
     {
-        public VisualContainer m_SettingsContainer;
+        public VisualElement m_SettingsContainer;
 
         public override void OnDataChanged()
         {
@@ -25,9 +25,9 @@ namespace UnityEditor.VFX.UI
             {
                 object settings = presenter.settings;
 
-                m_SettingsContainer = new VisualContainer { name = "settings" };
+                m_SettingsContainer = new VisualElement { name = "settings" };
 
-                leftContainer.InsertChild(1, m_SettingsContainer); //between title and input
+                leftContainer.Insert(1, m_SettingsContainer); //between title and input
 
                 foreach (var setting in presenter.settings)
                 {
@@ -36,18 +36,44 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                for (int i = 0; i < m_SettingsContainer.childrenCount; ++i)
+                for (int i = 0; i < m_SettingsContainer.childCount; ++i)
                 {
-                    PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
+                    PropertyRM prop = m_SettingsContainer.ElementAt(i) as PropertyRM;
                     if (prop != null)
                         prop.Update();
+                }
+            }
+
+            GraphView graphView = this.GetFirstAncestorOfType<GraphView>();
+            if (graphView != null)
+            {
+                var allEdges = graphView.Query<Edge>().ToList();
+
+                foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
+                {
+                    foreach (var edge in allEdges.Where(t =>
+                        {
+                            var pres = t.GetPresenter<EdgePresenter>();
+                            return pres.output == anchor.presenter || pres.input == anchor.presenter;
+                        }))
+                    {
+                        edge.OnDataChanged();
+                    }
                 }
             }
         }
 
         protected void AddSetting(VFXSettingPresenter setting)
         {
-            m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
+            var rm = PropertyRM.Create(setting, 100);
+            if (rm != null)
+            {
+                m_SettingsContainer.Add(rm);
+            }
+            else
+            {
+                Debug.LogErrorFormat("Cannot create presenter for {0}", setting.name);
+            }
         }
     }
 

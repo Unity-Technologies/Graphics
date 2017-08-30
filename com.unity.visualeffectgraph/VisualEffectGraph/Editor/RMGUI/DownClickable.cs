@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.UIElements
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
         }
 
-        protected void OnMouseDown(MouseEventBase evt)
+        protected void OnMouseDown(MouseDownEvent evt)
         {
             if (clicked != null)
             {
