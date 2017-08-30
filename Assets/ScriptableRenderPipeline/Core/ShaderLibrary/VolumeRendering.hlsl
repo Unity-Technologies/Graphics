@@ -1,6 +1,16 @@
 #ifndef UNITY_VOLUME_RENDERING_INCLUDED
 #define UNITY_VOLUME_RENDERING_INCLUDED
 
+float OpticalDepthHomogeneous(float extinction, float intervalLength)
+{
+    return extinction * intervalLength;
+}
+
+float Transmittance(float opticalDepth)
+{
+    return exp(-opticalDepth);
+}
+
 float3 OpticalDepthHomogeneous(float3 extinction, float intervalLength)
 {
     return extinction * intervalLength;
