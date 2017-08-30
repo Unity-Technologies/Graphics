@@ -29,7 +29,7 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-TEXTURE2D(_DepthTexture);               // Z-buffer
+TEXTURE2D(_DepthTexture);                  // Z-buffer
 RW_TEXTURE2D(float4, _CameraColorTexture); // Updated texture
 
 //--------------------------------------------------------------------------------------------------
