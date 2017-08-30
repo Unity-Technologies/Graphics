@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
 
             points.Add(start);
 
-            AddBezierRecurse(points, start, end, tStart, tEnd, 0);
+            AddBezierRecurse(points, start, tStart, tEnd, end, 0);
 
             points.Add(end);
         }
@@ -23,14 +23,14 @@ namespace UnityEditor.VFX.UI
         const float curve_collinearity_epsilon = 1e-5f;
         const float curve_angle_tolerance_epsilon = 1e-5f;
 
-        const float distance_tolerance = 5f;
+        const float distance_tolerance = 2.0f;
         const float distance_tolerance_square = distance_tolerance * distance_tolerance;
         const float angle_tolerance = 0.01f;
         const float cusp_limit = 0.00f;
 
-        static void AddBezierRecurse(List<Vector2> points, Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, int level)
+        static void AddBezierRecurse(List<Vector2> points, Vector2 start, Vector2 tStart, Vector2 tEnd, Vector2 end, int level)
         {
-            if (level > 100)
+            if (level > 20)
             {
                 return;
             }
@@ -68,141 +68,11 @@ namespace UnityEditor.VFX.UI
                 float d2 = Mathf.Abs(((x2 - x4) * dy - (y2 - y4) * dx));
                 float d3 = Mathf.Abs(((x3 - x4) * dy - (y3 - y4) * dx));
 
-                float da1, da2;
-
-                //if (d2 > curve_collinearity_epsilon && d3 > curve_collinearity_epsilon)
+                if ((d2 + d3) * (d2 + d3) <= distance_tolerance * (dx * dx + dy * dy))
                 {
-                    // Regular care
-                    //-----------------
-                    if ((d2 + d3) * (d2 + d3) <= distance_tolerance * (dx * dx + dy * dy))
-                    {
-                        points.Add(new Vector2(x1234, y1234));
-                        // If the curvature doesn't exceed the distance_tolerance value
-                        // we tend to finish subdivisions.
-                        //----------------------
-                        /*if (angle_tolerance < curve_angle_tolerance_epsilon)
-                        {
-                            points.Add(new Vector2(x1234, y1234));
-                            return;
-                        }
-
-                        // Angle & Cusp Condition
-                        //----------------------
-                        float a23 = Mathf.Atan2(y3 - y2, x3 - x2);
-                        da1 = Mathf.Abs(a23 - Mathf.Atan2(y2 - y1, x2 - x1));
-                        da2 = Mathf.Abs(Mathf.Atan2(y4 - y3, x4 - x3) - a23);
-                        if (da1 >= Mathf.PI) da1 = 2 * Mathf.PI - da1;
-                        if (da2 >= Mathf.PI) da2 = 2 * Mathf.PI - da2;
-
-                        if (da1 + da2 < angle_tolerance)
-                        {
-                            // Finally we can stop the recursion
-                            //----------------------
-                            points.Add(new Vector2(x1234, y1234));
-                            return;
-                        }
-
-                        if (cusp_limit != 0.0)
-                        {
-                            if (da1 > cusp_limit)
-                            {
-                                points.Add(new Vector2(x2, y2));
-                                return;
-                            }
-
-                            if (da2 > cusp_limit)
-                            {
-                                points.Add(new Vector2(x3, y3));
-                                return;
-                            }
-                        }*/
-                    }
+                    points.Add(new Vector2(x1234, y1234));
+                    return;
                 }
-#if false
-                else
-                {
-                    if (d2 > curve_collinearity_epsilon)
-                    {
-                        // p1,p3,p4 are collinear, p2 is considerable
-                        //----------------------
-                        if (d2 * d2 <= distance_tolerance * (dx * dx + dy * dy))
-                        {
-                            if (angle_tolerance < curve_angle_tolerance_epsilon)
-                            {
-                                points.Add(new Vector2(x1234, y1234));
-                                return;
-                            }
-
-                            // Angle Condition
-                            //----------------------
-                            da1 = Mathf.Abs(Mathf.Atan2(y3 - y2, x3 - x2) - Mathf.Atan2(y2 - y1, x2 - x1));
-                            if (da1 >= Mathf.PI) da1 = 2 * Mathf.PI - da1;
-
-                            if (da1 < angle_tolerance)
-                            {
-                                points.Add(new Vector2(x2, y2));
-                                points.Add(new Vector2(x3, y3));
-                                return;
-                            }
-
-                            if (cusp_limit != 0.0)
-                            {
-                                if (da1 > cusp_limit)
-                                {
-                                    points.Add(new Vector2(x2, y2));
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    else if (d3 > curve_collinearity_epsilon)
-                    {
-                        // p1,p2,p4 are collinear, p3 is considerable
-                        //----------------------
-                        if (d3 * d3 <= distance_tolerance * (dx * dx + dy * dy))
-                        {
-                            if (angle_tolerance < curve_angle_tolerance_epsilon)
-                            {
-                                points.Add(new Vector2(x1234, y1234));
-                                return;
-                            }
-
-                            // Angle Condition
-                            //----------------------
-                            da1 = Mathf.Abs(Mathf.Atan2(y4 - y3, x4 - x3) - Mathf.Atan2(y3 - y2, x3 - x2));
-                            if (da1 >= Mathf.PI) da1 = 2 * Mathf.PI - da1;
-
-                            if (da1 < angle_tolerance)
-                            {
-                                points.Add(new Vector2(x2, y2));
-                                points.Add(new Vector2(x3, y3));
-                                return;
-                            }
-
-                            if (cusp_limit != 0.0)
-                            {
-                                if (da1 > cusp_limit)
-                                {
-                                    points.Add(new Vector2(x3, y3));
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Collinear case
-                        //-----------------
-                        dx = x1234 - (x1 + x4) / 2;
-                        dy = y1234 - (y1 + y4) / 2;
-                        if (dx * dx + dy * dy <= distance_tolerance)
-                        {
-                            points.Add(new Vector2(x1234, y1234));
-                            return;
-                        }
-                    }
-                }
-#endif
             }
 
             // Continue subdivision
@@ -315,12 +185,12 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < cpt; ++i)
                 {
                     Vector2 dir;
-                    /*if( i > 0 && i < cpt -1)
+                    if (i > 0 && i < cpt - 1)
                     {
                         dir = (pointResult[i] - pointResult[i - 1]).normalized + (pointResult[i + 1] - pointResult[i]).normalized;
                         dir.Normalize();
                     }
-                    else */if (i > 0)
+                    else if (i > 0)
                     {
                         dir = (pointResult[i] - pointResult[i - 1]).normalized;
                     }
