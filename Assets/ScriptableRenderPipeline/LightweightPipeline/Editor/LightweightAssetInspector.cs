@@ -59,6 +59,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "Shader to use when creating materials");
 
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
+
+            public static GUIContent attenuationTextureLabel = new GUIContent("Attenuation Texture", "Light attenuation falloff texture");
         }
 
         private SerializedProperty m_LinearRenderingProperty;
@@ -80,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_DefaultUIMaterial;
         private SerializedProperty m_DefaultShader;
         private SerializedProperty m_MSAA;
+        private SerializedProperty m_AttenuationTexture;
 
         void OnEnable()
         {
@@ -102,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DefaultUIMaterial = serializedObject.FindProperty("m_DefaultUIMaterial");
             m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
+            m_AttenuationTexture = serializedObject.FindProperty("m_AttenuationTexture");
         }
 
         public override void OnInspectorGUI()
@@ -120,6 +124,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_EnableLightmapsProp, Styles.enableLightmap);
             EditorGUILayout.PropertyField(m_EnableAmbientProbeProp, Styles.enableAmbientProbe);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
+            EditorGUILayout.PropertyField(m_AttenuationTexture, Styles.attenuationTextureLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
