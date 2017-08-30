@@ -62,6 +62,8 @@ namespace  UnityEditor.VFX.UI
         {
             base.OnEnable();
             var objs = Selection.objects;
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
                 viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
@@ -75,9 +77,10 @@ namespace  UnityEditor.VFX.UI
             else
             {
                 viewPresenter.SetVFXAsset(viewPresenter.GetVFXAsset(), true);
-                graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
-                graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             }
+
+            graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
         }
 
         protected new void OnDisable()

@@ -34,7 +34,10 @@ namespace UnityEngine.Experimental.UIElements
         }
 
         RenderTexture m_RenderTexture;
+
+#if ELEMENT3D_USE_BLIT_TEXTURE
         Texture2D m_BlitTexture;
+#endif
 
         public override void DoRepaint()
         {
@@ -58,6 +61,7 @@ namespace UnityEngine.Experimental.UIElements
                 m_RenderTexture.height = Mathf.CeilToInt(viewPort.height);
             }
 
+#if ELEMENT3D_USE_BLIT_TEXTURE
             if (m_BlitTexture == null || m_BlitTexture.height != m_RenderTexture.height || m_BlitTexture.width != m_RenderTexture.width)
             {
                 if (m_BlitTexture != null)
@@ -68,13 +72,14 @@ namespace UnityEngine.Experimental.UIElements
                     style.backgroundImage = m_BlitTexture;
                 }
             }
+#endif
 
             //EditorGUIUtility.SetRenderTextureNoViewport(m_RenderTexture);
             RenderTexture.active = m_RenderTexture;
 
             GL.PushMatrix();
             //GL.Viewport(viewPort);
-            GL.Clear(true, true, Color.red);
+            GL.Clear(true, true, new Color(0.8f, 0.8f, 0.8f, 1));
 #if true
             GL.LoadProjectionMatrix(Matrix4x4.Perspective(60, viewPort.width / viewPort.height, 0.01f, 100));
             GL.modelview = Matrix4x4.Translate(position) * Matrix4x4.Rotate(rotation);
@@ -108,12 +113,26 @@ namespace UnityEngine.Experimental.UIElements
 
 #endif
             GL.PopMatrix();
+
+#if ELEMENT3D_USE_BLIT_TEXTURE
             m_BlitTexture.ReadPixels(viewPort, 0, 0);
 
             RenderTexture.active = null;
             m_BlitTexture.Apply();
 
             base.DoRepaint();
+#else
+
+            RenderTexture.active = null;
+
+            var painter = elementPanel.stylePainter;
+
+            var painterParams = painter.GetDefaultTextureParameters(this);
+
+            painterParams.texture = m_RenderTexture;
+
+            painter.DrawTexture(painterParams);
+#endif
         }
     }
 }
