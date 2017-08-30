@@ -189,8 +189,8 @@
                 // TODO: SPOT & POINT keywords
     #ifdef _SINGLE_DIRECTIONAL_LIGHT
                 UnityLight mainLight;
-                mainLight.color = _LightColor0.rgb;
-                mainLight.dir = _LightPosition0.xyz;
+                mainLight.color = _LightColor.rgb;
+                mainLight.dir = _LightPosition.xyz;
 
     #if defined(_NORMALMAP)
                 half NdotL = saturate(dot(s.tangentSpaceNormal, i.tangentSpaceLightDir));
