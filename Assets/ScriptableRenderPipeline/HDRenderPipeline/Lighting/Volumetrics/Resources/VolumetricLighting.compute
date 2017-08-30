@@ -75,6 +75,42 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
         float3 sampleRadiance = 0;
 
+        if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+        {
+            for (uint i = 0; i < _DirectionalLightCount; ++i)
+            {
+                // Fetch the light.
+                DirectionalLightData lightData = _DirectionalLightDatas[i];
+
+                float3 L         = -lightData.forward; // Lights point backwards in Unity
+                float  intensity = 1;
+                float3 color     = lightData.color;
+
+                // Note: we apply the scattering coefficient and the constant part of the phase function later.
+                intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
+
+                [branch] if (lightData.shadowIndex >= 0)
+                {
+                    float shadow = GetDirectionalShadowAttenuation(context.shadowContext, positionWS,
+                                   0, lightData.shadowIndex, L, posInput.unPositionSS);
+
+                    intensity *= shadow;
+                }
+
+                [branch] if (lightData.cookieIndex >= 0)
+                {
+                    float3 lightToSample = positionWS - lightData.positionWS;
+                    float4 cookie = EvaluateCookie_Directional(context, lightData, lightToSample);
+
+                    color     *= cookie.rgb;
+                    intensity *= cookie.a;
+                }
+
+                // Compute the amount of in-scattered radiance.
+                sampleRadiance += color * intensity;
+            }
+        }
+
         if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
         {
             uint punctualLightCount;
@@ -117,8 +153,8 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                     // TODO: make projector lights cast shadows.
                     float3 offset = 0; // GetShadowPosOffset(nDotL, normal);
 
-                    float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS + offset, 0,
-                                                                lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
+                    float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS + offset,
+                                   0, lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
 
                     intensity *= lerp(1, shadow, lightData.shadowDimmer);
                 }
@@ -133,14 +169,14 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 }
 
                 // Compute the amount of in-scattered radiance.
-                sampleRadiance += color * (intensity * dt);
+                sampleRadiance += color * intensity;
             }
         }
 
-        radiance += sampleRadiance * Transmittance(OpticalDepthHomogeneous(extinction, t));
+        radiance += sampleRadiance * Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt;
     }
 
-    float phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
+    float3 phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
     return radiance * phaseConstant;
 }
 
@@ -179,7 +215,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     cameraRay.originWS     = GetCurrentViewPosition();
     cameraRay.directionWS  = posInput.positionWS - cameraRay.originWS;
     cameraRay.maxLength    =  sqrt(dot(cameraRay.directionWS, cameraRay.directionWS));
-    cameraRay.directionWS *= rsqrt(dot(cameraRay.directionWS, cameraRay.directionWS)); //Normalize
+    cameraRay.directionWS *= rsqrt(dot(cameraRay.directionWS, cameraRay.directionWS)); // Normalize
 
     float3 rayT = Transmittance(OpticalDepthHomogeneous(_GlobalFog_Extinction, cameraRay.maxLength));
 
