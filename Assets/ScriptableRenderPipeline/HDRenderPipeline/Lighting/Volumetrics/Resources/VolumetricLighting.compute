@@ -53,6 +53,7 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
     context.shadowContext = InitShadowContext();
+    uint featureFlags = 0xFFFFFFFF; // TODO
 
     float maxDepthVS = posInput.depthVS;
 
@@ -65,14 +66,14 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
     float3 radiance = 0;
 
-    for (uint i = 0; i < numSteps; i++)
+    for (uint s = 0; s < numSteps; s++)
     {
-        float u = u0 + i * du;          // [0, 1]
+        float u = u0 + s * du;          // [0, 1]
         float t = u * ray.maxLength;    // [0, ray.maxLength]
 
-        float3 samplePositionWS = ray.originWS + t * ray.directionWS;
+        float3 positionWS = ray.originWS + t * ray.directionWS;
 
-        // if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
+        if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
         {
             uint punctualLightCount;
 
@@ -85,19 +86,19 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
             punctualLightCount = _PunctualLightCount;
         #endif
 
-            for (uint j = 0; j < punctualLightCount; ++j)
+            for (uint i = 0; i < punctualLightCount; ++i)
             {
             #ifdef LIGHTLOOP_TILE_PASS
-                uint punctualLightIndex = FetchIndex(punctualLightStart, j);
+                uint punctualLightIndex = FetchIndex(punctualLightStart, i);
             #else
-                uint punctualLightIndex = j;
+                uint punctualLightIndex = i;
             #endif
 
                 // Fetch the light.
                 LightData lightData = _LightDatas[punctualLightIndex];
                 int       lightType = lightData.lightType;
 
-                float3 lightToSample = samplePositionWS - lightData.positionWS;
+                float3 lightToSample = positionWS - lightData.positionWS;
 
                 // Compute the distance to the light, and the associated transmittance values.
                 float  distSq  = dot(lightToSample, lightToSample);
@@ -120,39 +121,15 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                     // TODO: make projector lights cast shadows.
                     float3 offset = 0; // GetShadowPosOffset(nDotL, normal);
 
-                    shadow = GetPunctualShadowAttenuation(context.shadowContext, samplePositionWS + offset, 0,
+                    shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS + offset, 0,
                                                           lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
                     shadow = lerp(1.0, shadow, lightData.shadowDimmer);
                 }
 
+                // Projector lights always have a cookies, so we can perform clipping inside the if().
                 [branch] if (lightData.cookieIndex >= 0)
                 {
-                    // Translate and rotate 'positionWS' into the light space.
-                    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-                    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-                    float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
-
-                    float4 cookie;
-
-                    [branch] if (lightType == GPULIGHTTYPE_POINT)
-                    {
-                        cookie = SampleCookieCube(context, positionLS, lightData.cookieIndex);
-                    }
-                    else
-                    {
-                        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
-                        // Box projector lights require no perspective division.
-                        float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
-                        float2 positionNDC  = positionLS.xy / perspectiveZ;
-                        bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-
-                        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-                        float2 coord = positionNDC * 0.5 + 0.5;
-
-                        // We let the sampler handle clamping to border.
-                        cookie   = SampleCookie2D(context, coord, lightData.cookieIndex);
-                        cookie.a = isInBounds ? cookie.a : 0;
-                    }
+                    float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);
 
                     // Premultiply.
                     lightData.color *= cookie.rgb;

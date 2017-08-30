@@ -1003,6 +1003,40 @@ float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
 // EvaluateBSDF_Directional (supports directional and box projector lights)
 //-----------------------------------------------------------------------------
 
+float4 EvaluateCookie_Directional(LightLoopContext context, DirectionalLightData lightData,
+                                  float3 lighToSample)
+{
+    // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
+    float2   positionNDC  = positionLS.xy;
+
+    bool isInBounds;
+
+    // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+    float2 coord = positionNDC * 0.5 + 0.5;
+
+    if (lightData.tileCookie)
+    {
+        // Tile the texture if the 'repeat' wrap mode is enabled.
+        coord = frac(coord);
+        isInBounds = true;
+    }
+    else
+    {
+        isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+    }
+
+    // We let the sampler handle tiling or clamping to border.
+    // Note: tiling (the repeat mode) is not currently supported.
+    float4 cookie = SampleCookie2D(context, coord, lightData.cookieIndex);
+
+    cookie.a = isInBounds ? cookie.a : 0;
+
+    return cookie;
+}
+
 void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                               float3 V, PositionInputs posInput, PreLightData preLightData,
                               DirectionalLightData lightData, BSDFData bsdfData,
@@ -1027,34 +1061,8 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0)
     {
-    	// Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
-    	// 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    	float3   lightToSurface = positionWS - lightData.positionWS;
-    	float3x3 lightToWorld   = float3x3(lightData.right, lightData.up, lightData.forward);
-    	float3   positionLS     = mul(lightToSurface, transpose(lightToWorld));
-    	float2   positionNDC    = positionLS.xy;
-
-        bool isInBounds;
-
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        float2 coord = positionNDC * 0.5 + 0.5;
-
-        if (lightData.tileCookie)
-        {
-            // Tile the texture if the 'repeat' wrap mode is enabled.
-            coord = frac(coord);
-            isInBounds = true;
-        }
-        else
-        {
-			isInBounds = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-        }
-
-        // We let the sampler handle tiling or clamping to border.
-        // Note: tiling (the repeat mode) is not currently supported.
-        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
-
-        cookie.a = isInBounds ? cookie.a : 0;
+        float3 lightToSurface = positionWS - lightData.positionWS;
+        float4 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSurface);
 
         // Premultiply.
         lightData.color         *= cookie.rgb;
@@ -1088,6 +1096,41 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
+
+float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
+                               float3 lighToSample)
+{
+    int lightType = lightData.lightType;
+
+    // Translate and rotate 'positionWS' into the light space.
+    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
+
+    float4 cookie;
+
+    [branch] if (lightType == GPULIGHTTYPE_POINT)
+    {
+        cookie = SampleCookieCube(context, positionLS, lightData.cookieIndex);
+    }
+    else
+    {
+        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
+        // Box projector lights require no perspective division.
+        float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
+        float2 positionNDC  = positionLS.xy / perspectiveZ;
+        bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
+
+        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+        float2 coord = positionNDC * 0.5 + 0.5;
+
+        // We let the sampler handle clamping to border.
+        cookie   = SampleCookie2D(context, coord, lightData.cookieIndex);
+        cookie.a = isInBounds ? cookie.a : 0;
+    }
+
+    return cookie;
+}
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
                             float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
@@ -1139,36 +1182,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     lightData.color *= volumetricShadow;
 #endif
 
-
-    // Projector lights always have a cookie.
+    // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
-        // Translate and rotate 'positionWS' into the light space.
-        // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float3   positionLS   = mul(lightToSurface, transpose(lightToWorld));
-
-        float4 cookie;
-
-        [branch] if (lightType == GPULIGHTTYPE_POINT)
-        {
-            cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
-        }
-        else
-        {
-            // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
-            // Box projector lights require no perspective division.
-            float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1;
-            float2 positionNDC  = positionLS.xy / perspectiveZ;
-            bool   isInBounds   = Max3(abs(positionNDC.x), abs(positionNDC.y), 1 - positionLS.z) <= 1;
-
-            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-            float2 coord = positionNDC * 0.5 + 0.5;
-
-            // We let the sampler handle clamping to border.
-            cookie   = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
-            cookie.a = isInBounds ? cookie.a : 0;
-        }
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSurface);
 
         // Premultiply.
         lightData.color         *= cookie.rgb;
