@@ -72,7 +72,7 @@
             #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _PARALLAXMAP
 
-            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
+            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
             #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
@@ -93,44 +93,48 @@
 
             LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
             {
-                UNITY_SETUP_INSTANCE_ID(v);
                 LightweightVertexOutput o = (LightweightVertexOutput)0;
+
+                UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-                float4 posWorld = mul(unity_ObjectToWorld, v.vertex);
-                o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
-
 #ifdef LIGHTMAP_ON
-                o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unityLightmapST.wz;
+                o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+#endif
+                o.hpos = UnityObjectToClipPos(v.vertex);
+
+                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.posWS.xyz = worldPos;
+                
+                half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
+                o.viewDir.xyz = viewDir;
+#ifndef _METALLICGLOSSMAP
+                o.viewDir.w = saturate(_Glossiness + MetallicSetup_Reflectivity()); // grazing term
 #endif
 
-                half3 eyeVec = normalize(_WorldSpaceCameraPos - posWorld.xyz);
-                half3 normalWorld = UnityObjectToWorldNormal(v.normal);
+                half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
 
-                o.normalWorld.xyz = normalWorld;
-                o.eyeVec.xyz = eyeVec;
+#if _NORMALMAP
+                half sign = v.tangent.w * unity_WorldTransformParams.w;
+                half3 tangent = normalize(UnityObjectToWorldDir(v.tangent));
+                half3 binormal = cross(normal, tangent) * v.tangent.w;
 
-#ifdef _NORMALMAP
-                half3 tangentSpaceEyeVec;
-                TangentSpaceLightingInput(normalWorld, v.tangent, _WorldSpaceLightPos0.xyz, eyeVec, o.tangentSpaceLightDir, tangentSpaceEyeVec);
-#if SPECULAR_HIGHLIGHTS
-                o.tangentSpaceEyeVec = tangentSpaceEyeVec;
+                // Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
+                o.tangentToWorld0 = half3(tangent.x, binormal.x, normal.x);
+                o.tangentToWorld1 = half3(tangent.y, binormal.y, normal.y);
+                o.tangentToWorld2 = half3(tangent.z, binormal.z, normal.z);
+#else
+                o.normal = normal;
 #endif
-#endif
-                // TODO:
-                //TRANSFER_SHADOW(o);
+
+                o.posWS.w = Pow4(1 - saturate(dot(normal, viewDir))); // fresnel term
 
 #ifdef _LIGHT_PROBES_ON
-                o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normalWorld, 1)));
+                o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 
-                o.normalWorld.w = Pow4(1 - saturate(dot(normalWorld, eyeVec))); // fresnel term
-#if !GLOSSMAP
-                o.eyeVec.w = saturate(_Glossiness + MetallicSetup_Reflectivity()); // grazing term
-#endif
-
-                UNITY_TRANSFER_FOG(o, o.pos);
+                UNITY_TRANSFER_FOG(o, o.hpos);
                 return o;
             }
 
@@ -160,54 +164,65 @@
                 half oneMinusReflectivity;
                 half3 specColor;
 
-                half3 diffColor = DiffuseAndSpecularFromMetallic(albedo, metallicGloss.x, /*out*/ specColor, /*out*/ oneMinusReflectivity);
-
-    #if defined(_NORMALMAP)
-                half3 tangentSpaceNormal = NormalInTangentSpace(i.uv01.xy);
-                half3 reflectVec = reflect(-i.tangentSpaceEyeVec, tangentSpaceNormal);
-    #else
-                half3 reflectVec = reflect(-i.eyeVec, i.normalWorld.xyz);
-    #endif
+                half3 diffColor = DiffuseAndSpecularFromMetallic(albedo, metallicGloss.x, specColor, oneMinusReflectivity);
+                
+                half3 normal;
+                NormalMap(i, normal);
 
                 // TODO: shader keyword for occlusion
                 // TODO: Reflection Probe blend support.
                 // GI
+                half3 reflectVec = reflect(-i.viewDir.xyz, normal);
                 half occlusion = Occlusion(uv);
                 UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, 1.0h - smoothness);
 
                 // PBS
-    #if GLOSSMAP
+#ifdef _METALLICGLOSSMAP
                 half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
-    #else
-                half grazingTerm = i.eyeVec.w;
-    #endif
+#else
+                half grazingTerm = i.viewDir.w;
+#endif
 
-                half perVertexFresnelTerm = i.normalWorld.w;
-
+                half perVertexFresnelTerm = i.posWS.w;
                 half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, grazingTerm, perVertexFresnelTerm);
+                half3 lightDirection;
 
-                // TODO: SPOT & POINT keywords
-    #ifdef _SINGLE_DIRECTIONAL_LIGHT
-                UnityLight mainLight;
-                mainLight.color = _LightColor.rgb;
-                mainLight.dir = _LightPosition.xyz;
+#ifndef _MULTIPLE_LIGHTS
+                LightInput light;
+                INITIALIZE_MAIN_LIGHT(light);
+                half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
-    #if defined(_NORMALMAP)
-                half NdotL = saturate(dot(s.tangentSpaceNormal, i.tangentSpaceLightDir));
-    #else
-                half NdotL = saturate(dot(i.normalWorld.xyz, mainLight.dir));
-    #endif
+#ifdef _SHADOWS
+                lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+#endif
 
-                // TODO: Atten/Shadow
-                half atten = 1;
-                half RdotL = dot(reflectVec, mainLight.dir);
-                half3 attenuatedLightColor = mainLight.color * NdotL;
+                half NdotL = saturate(dot(normal, lightDirection));
+                half RdotL = saturate(dot(reflectVec, lightDirection));
+                half3 attenuatedLightColor = light.color * (NdotL * lightAtten);
 
                 color += LightweightBRDFDirect(diffColor, specColor, smoothness, RdotL) * attenuatedLightColor;
-    #else
-                // TODO: LIGHTLOOP
-                color = half3(0, 1, 0);
-    #endif
+#else
+
+#ifdef _SHADOWS
+                half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+#endif
+                int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+                for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
+                {
+                    LightInput light;
+                    int lightIndex = unity_4LightIndices0[lightIter];
+                    INITIALIZE_LIGHT(light, lightIndex);
+                    half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
+#ifdef _SHADOWS
+                    lightAtten *= max(shadowAttenuation, half(lightIter != _ShadowData.x));
+#endif
+                    half NdotL = saturate(dot(normal, lightDirection));
+                    half RdotL = saturate(dot(reflectVec, lightDirection));
+                    half3 attenuatedLightColor = light.color * (NdotL * lightAtten);
+
+                    color += LightweightBRDFDirect(diffColor, specColor, smoothness, RdotL) * attenuatedLightColor;
+                }
+#endif
 
                 color += Emission(uv);
                 UNITY_APPLY_FOG(i.fogCoord, color);
