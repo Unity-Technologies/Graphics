@@ -7,18 +7,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct VolumeProperties
     {
-        public Vector3 extinction;
-        public float   asymmetry;
-        public Vector3 scattering;
-        public float   align16;
+        public Vector3 scattering; // [0, 1], prefer sRGB
+        public float   extinction; // [0, 1], prefer sRGB
+        public float   asymmetry;  // Global (scene) property
+        public float   align16_0;
+        public float   align16_1;
+        public float   align16_2;
 
         public static VolumeProperties GetNeutralVolumeProperties()
         {
             VolumeProperties properties = new VolumeProperties();
 
-            properties.extinction = Vector3.zero;
-            properties.asymmetry  = 0;
             properties.scattering = Vector3.zero;
+            properties.extinction = 0;
+            properties.asymmetry  = 0;
 
             return properties;
         }
@@ -27,17 +29,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class VolumeParameters
     {
-        public Bounds  bounds;       // Position and dimensions in meters
-        public Color   albedo;       // Single scattering albedo [0, 1]
-        public Vector3 meanFreePath; // In meters [0.01, inf]
-        public float   asymmetry;    // [-1, 1]; 0 = isotropic
+        public Bounds bounds;       // Position and dimensions in meters
+        public Color  albedo;       // Single scattering albedo [0, 1]
+        public float  meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
+        public float  anisotropy;   // [-1, 1]; 0 = isotropic
 
         public VolumeParameters()
         {
             bounds       = new Bounds(Vector3.zero, Vector3.positiveInfinity);
             albedo       = new Color(0.5f, 0.5f, 0.5f);
-            meanFreePath = new Vector3(100.0f, 100.0f, 100.0f);
-            asymmetry    = 0.0f;
+            meanFreePath = 10.0f;
+            anisotropy   = 0.0f;
         }
 
         public bool IsVolumeUnbounded()
@@ -49,30 +51,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3 GetAbsorptionCoefficient()
         {
-            return Vector3.Max(GetExtinctionCoefficient() - GetScatteringCoefficient(), Vector3.zero);
+            float   extinction = GetExtinctionCoefficient();
+            Vector3 scattering = GetScatteringCoefficient();
+
+            return Vector3.Max(new Vector3(extinction, extinction, extinction) - scattering, Vector3.zero);
         }
 
         public Vector3 GetScatteringCoefficient()
         {
-            return new Vector3(albedo.r / meanFreePath.x, albedo.g / meanFreePath.y, albedo.b / meanFreePath.z);
+            float extinction = GetExtinctionCoefficient();
+
+            return new Vector3(albedo.r * extinction, albedo.g * extinction, albedo.b * extinction);
         }
 
-        public Vector3 GetExtinctionCoefficient()
+        public float GetExtinctionCoefficient()
         {
-            return new Vector3(1.0f / meanFreePath.x, 1.0f / meanFreePath.y, 1.0f / meanFreePath.z);
-        }
-
-        public void SetAbsorptionAndScatteringCoefficients(Vector3 absorption, Vector3 scattering)
-        {
-            Debug.Assert(Mathf.Min(absorption.x, absorption.y, absorption.z) >= 0, "The absorption coefficient must be non-negative.");
-            Debug.Assert(Mathf.Min(scattering.x, scattering.y, scattering.z) >= 0, "The scattering coefficient must be non-negative.");
-
-            Vector3 extinction = absorption + scattering;
-
-            meanFreePath = new Vector3(1.0f / extinction.x, 1.0f / extinction.y, 1.0f / extinction.z);
-            albedo       = new Color(scattering.x * meanFreePath.x, scattering.y * meanFreePath.y, scattering.z * meanFreePath.z);
-
-            Constrain();
+            return 1.0f / meanFreePath;
         }
 
         public void Constrain()
@@ -83,11 +77,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             albedo.g = Mathf.Clamp01(albedo.g);
             albedo.b = Mathf.Clamp01(albedo.b);
 
-            meanFreePath.x = Mathf.Max(meanFreePath.x, 0.01f);
-            meanFreePath.y = Mathf.Max(meanFreePath.y, 0.01f);
-            meanFreePath.z = Mathf.Max(meanFreePath.z, 0.01f);
+            meanFreePath = Mathf.Max(meanFreePath, 1.0f);
 
-            asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
+            anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
         }
 
         public VolumeProperties GetProperties()
@@ -95,8 +87,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VolumeProperties properties = new VolumeProperties();
 
             properties.scattering = GetScatteringCoefficient();
-            properties.asymmetry = asymmetry;
             properties.extinction = GetExtinctionCoefficient();
+            properties.asymmetry  = anisotropy;
 
             return properties;
         }

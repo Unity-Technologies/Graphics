@@ -688,7 +688,7 @@ struct PreLightData
     float3x3 ltcCoatT;
 
 #ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float3   globalFogExtinction;
+    float    globalFogExtinction;
 #endif
 };
 
@@ -1182,9 +1182,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     }
 
 #ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float3 volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+    float volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
+
     // Premultiply.
-    lightData.color *= volumetricShadow;
+    lightData.diffuseScale  *= volumetricShadow;
+    lightData.specularScale *= volumetricShadow;
 #endif
 
     // Projector lights always have a cookies, so we can perform clipping inside the if().

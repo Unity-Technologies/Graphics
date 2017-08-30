@@ -46,9 +46,9 @@ struct Ray
 // Computes the in-scattered radiance along the ray.
 float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 {
-    float3 extinction = _GlobalFog_Extinction;
-    float  asymmetry  = _GlobalFog_Asymmetry;
     float3 scattering = _GlobalFog_Scattering;
+    float  extinction = _GlobalFog_Extinction;
+    float  asymmetry  = _GlobalFog_Asymmetry;
 
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
@@ -145,8 +145,7 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
                 // Note: we apply the scattering coefficient and the constant part of the phase function later.
                 intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
-
-                color *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
+                intensity *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
 
                 [branch] if (lightData.shadowIndex >= 0)
                 {
@@ -173,7 +172,7 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
             }
         }
 
-        radiance += sampleRadiance * Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt;
+        radiance += sampleRadiance * (Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt);
     }
 
     float3 phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
@@ -217,7 +216,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     cameraRay.maxLength    =  sqrt(dot(cameraRay.directionWS, cameraRay.directionWS));
     cameraRay.directionWS *= rsqrt(dot(cameraRay.directionWS, cameraRay.directionWS)); // Normalize
 
-    float3 rayT = Transmittance(OpticalDepthHomogeneous(_GlobalFog_Extinction, cameraRay.maxLength));
+    float rayT = Transmittance(OpticalDepthHomogeneous(_GlobalFog_Extinction, cameraRay.maxLength));
 
     const int numSamples = 64;
     float3 inL = PerformIntegration(posInput, cameraRay, numSamples);

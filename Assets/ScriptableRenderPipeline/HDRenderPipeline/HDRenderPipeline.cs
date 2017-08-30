@@ -1202,15 +1202,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                                 : VolumeProperties.GetNeutralVolumeProperties();
             if (cs)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
             }
             else
             {
-                cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
                 cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogProperties.asymmetry);
             }
 
             return (globalFogComponent != null);
