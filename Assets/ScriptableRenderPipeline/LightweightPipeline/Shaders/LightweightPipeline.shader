@@ -74,7 +74,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
             #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
+            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
@@ -101,7 +101,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 #endif
                 o.hpos = UnityObjectToClipPos(v.vertex);
 
-                o.posWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.posWS = worldPos;
 
                 o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS);
                 half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
@@ -119,8 +120,9 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 o.normal = normal;
 #endif
 
-#if defined(_VERTEX_LIGHTS) && !defined(_SINGLE_DIRECTIONAL_LIGHT)
-                half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
+                // TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
+#if defined(_VERTEX_LIGHTS) && defined(_MULTIPLE_LIGHTS)
+                half3 diffuse = half3(1.0, 1.0, 1.0);
                 // pixel lights shaded = min(pixelLights, perObjectLights)
                 // vertex lights shaded = min(vertexLights, perObjectLights) - pixel lights shaded
                 // Therefore vertexStartIndex = pixelLightCount;  vertexEndIndex = min(vertexLights, perObjectLights)
@@ -131,7 +133,10 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                     int lightIndex = unity_4LightIndices0[lightIter];
                     LightInput lightInput;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
-                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
+
+                    half3 lightDirection;
+                    half atten = ComputeLightAttenuationVertex(lightInput, normal, worldPos, lightDirection);
+                    o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
                 }
 #endif
 
@@ -163,13 +168,25 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
                 half3 viewDir = i.viewDir.xyz;
 
-#ifdef _SINGLE_DIRECTIONAL_LIGHT
-                half3 color = EvaluateDirectionalLight(diffuse, specularGloss, normal, _LightPosition0, viewDir) * _LightColor0;
-    #ifdef _SHADOWS
-                color *= ComputeShadowAttenuation(i, _LightPosition0.xyz);
-    #endif
+                half3 lightDirection;
+                
+#ifndef _MULTIPLE_LIGHTS
+                LightInput lightInput;
+                INITIALIZE_MAIN_LIGHT(lightInput);
+                half lightAtten = ComputeLightAttenuation(lightInput, normal, i.posWS, lightDirection);
+#ifdef _SHADOWS
+                lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+#endif
+
+#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+                half3 color = LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
+#else
+                half3 color = LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
+#endif
+    
 #else
                 half3 color = half3(0, 0, 0);
+
 #ifdef _SHADOWS
                 half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
@@ -179,15 +196,19 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                     LightInput lightData;
                     int lightIndex = unity_4LightIndices0[lightIter];
                     INITIALIZE_LIGHT(lightData, lightIndex);
+                    half lightAtten = ComputeLightAttenuation(lightData, normal, i.posWS, lightDirection);
 #ifdef _SHADOWS
-                    half currLightAttenuation = max(shadowAttenuation, half(lightIter != _ShadowData.x));
-                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir) * currLightAttenuation;
+                    lightAtten *= max(shadowAttenuation, half(lightIter != _ShadowData.x));
+#endif
+
+#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+                    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
 #else
-                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir);
+                    color += LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightData.color;
 #endif
                 }
 
-#endif // SINGLE_DIRECTIONAL_LIGHT
+#endif // _MULTIPLE_LIGHTS
 
 #ifdef _EMISSION
                 color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;

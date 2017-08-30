@@ -3,24 +3,36 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
+// Main light initialized without indexing
+#define INITIALIZE_MAIN_LIGHT(light) \
+    light.pos = _LightPosition; \
+    light.color = _LightColor; \
+    light.atten = _LightAttenuationParams; \
+    light.spotDir = _LightSpotDir;
+
+// Indexing might have a performance hit for old mobile hardware
 #define INITIALIZE_LIGHT(light, lightIndex) \
                             light.pos = globalLightPos[lightIndex]; \
                             light.color = globalLightColor[lightIndex]; \
                             light.atten = globalLightAtten[lightIndex]; \
                             light.spotDir = globalLightSpotDir[lightIndex]
 
+#if !(defined(_SINGLE_DIRECTIONAL_LIGHT) || defined(_SINGLE_SPOT_LIGHT) || defined(_SINGLE_POINT_LIGHT))
+#define _MULTIPLE_LIGHTS
+#endif
+
 struct LightInput
 {
-    half4 pos;
+    float4 pos;
     half4 color;
-    half4 atten;
+    float4 atten;
     half4 spotDir;
 };
 
 sampler2D _AttenuationTexture;
 
 // Per object light list data
-#ifndef _SINGLE_DIRECTIONAL_LIGHT
+#ifdef _MULTIPLE_LIGHTS
 half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
 
@@ -31,15 +43,17 @@ half4 globalLightCount;
 half4 globalLightColor[MAX_VISIBLE_LIGHTS];
 float4 globalLightPos[MAX_VISIBLE_LIGHTS];
 half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
-half4 globalLightAtten[MAX_VISIBLE_LIGHTS];
+float4 globalLightAtten[MAX_VISIBLE_LIGHTS];
 #else
-float4 _LightPosition0;
+float4 _LightPosition;
+half4 _LightColor;
+float4 _LightAttenuationParams;
+half4 _LightSpotDir;
 #endif
 
 half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
-
 
 struct LightweightVertexInput
 {
