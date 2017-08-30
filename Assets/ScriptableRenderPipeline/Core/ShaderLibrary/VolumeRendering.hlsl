@@ -16,12 +16,24 @@ float IsotropicPhaseFunction()
     return INV_FOUR_PI;
 }
 
-float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
+float HenyeyGreensteinPhasePartConstant(float asymmetry)
 {
     float g = asymmetry;
 
-    // Note: the factor before pow() is a constant, and could therefore be factored out.
-    return (INV_FOUR_PI * (1 - g * g)) * pow(abs(1 + g * g - 2 * g * LdotD), -1.5);
+    return INV_FOUR_PI * (1 - g * g);
+}
+
+float HenyeyGreensteinPhasePartVarying(float asymmetry, float LdotD)
+{
+    float g = asymmetry;
+
+    return pow(abs(1 + g * g - 2 * g * LdotD), -1.5);
+}
+
+float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
+{
+    return HenyeyGreensteinPhasePartConstant(asymmetry) *
+           HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED

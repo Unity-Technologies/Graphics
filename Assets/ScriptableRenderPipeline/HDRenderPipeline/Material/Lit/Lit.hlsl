@@ -1132,6 +1132,14 @@ float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
     return cookie;
 }
 
+float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
+{
+    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
+    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
+    // Reminder: lights are oriented backward (-Z)
+    return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+}
+
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
                             float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                             out float3 diffuseLighting,
@@ -1153,10 +1161,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float  NdotL  = dot(bsdfData.normalWS, L);
     float  illuminance = saturate(NdotL);
 
-    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
-    // Reminder: lights are oriented backward (-Z)
-    attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+    float attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
 
     // Premultiply.
     lightData.diffuseScale  *= attenuation;

@@ -73,6 +73,8 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
         float3 positionWS = ray.originWS + t * ray.directionWS;
 
+        float3 sampleRadiance = 0;
+
         if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
         {
             uint punctualLightCount;
@@ -95,35 +97,30 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
             #endif
 
                 // Fetch the light.
-                LightData lightData = _LightDatas[punctualLightIndex];
-                int       lightType = lightData.lightType;
+                LightData lightData  = _LightDatas[punctualLightIndex];
+                int       lightType  = lightData.lightType;
 
                 float3 lightToSample = positionWS - lightData.positionWS;
+                float  distSq        = dot(lightToSample, lightToSample);
+                float  dist          = sqrt(distSq);
+                float3 L             = lightToSample * -rsqrt(distSq);
+                float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
+                float3 color         = lightData.color;
 
-                // Compute the distance to the light, and the associated transmittance values.
-                float  distSq  = dot(lightToSample, lightToSample);
-                float  dist    = sqrt(distSq);
-                float3 L       = lightToSample * -rsqrt(distSq);
-                float  LdotD   = dot(L, ray.directionWS);
-                float  phase   = HenyeyGreensteinPhaseFunction(asymmetry, LdotD);
-                float3 lightT  = Transmittance(OpticalDepthHomogeneous(extinction, dist));
-                float3 sampleT = Transmittance(OpticalDepthHomogeneous(extinction, t));
+                // Note: we apply the scattering coefficient and the constant part of the phase function later.
+                intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
 
-                // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-                float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
-                // Reminder: lights are oriented backward (-Z)
-                attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-
-                float shadow = 1;
+                color *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
 
                 [branch] if (lightData.shadowIndex >= 0)
                 {
                     // TODO: make projector lights cast shadows.
                     float3 offset = 0; // GetShadowPosOffset(nDotL, normal);
 
-                    shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS + offset, 0,
-                                                          lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
-                    shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+                    float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS + offset, 0,
+                                                                lightData.shadowIndex, float4(L, dist), posInput.unPositionSS);
+
+                    intensity *= lerp(1, shadow, lightData.shadowDimmer);
                 }
 
                 // Projector lights always have a cookies, so we can perform clipping inside the if().
@@ -131,18 +128,20 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 {
                     float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);
 
-                    // Premultiply.
-                    lightData.color *= cookie.rgb;
-                    attenuation     *= cookie.a;
+                    color     *= cookie.rgb;
+                    intensity *= cookie.a;
                 }
 
                 // Compute the amount of in-scattered radiance.
-                radiance += (dt * scattering * phase * attenuation * shadow) * (lightT * sampleT) * lightData.color;
+                sampleRadiance += color * (intensity * dt);
             }
         }
+
+        radiance += sampleRadiance * Transmittance(OpticalDepthHomogeneous(extinction, t));
     }
 
-    return radiance;
+    float phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
+    return radiance * phaseConstant;
 }
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
