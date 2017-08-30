@@ -46,37 +46,4 @@ half4 OutputColor(half3 color, half alpha)
 #endif
 }
 
-#ifdef _NORMALMAP
-
-half3 TransformToTangentSpace(half3 tangent, half3 binormal, half3 normal, half3 v)
-{
-    // Mali400 shader compiler prefers explicit dot product over using a half3x3 matrix
-    return half3(dot(tangent, v), dot(binormal, v), dot(normal, v));
-}
-
-void TangentSpaceLightingInput(half3 normalWorld, half4 vTangent, half3 lightDirWorld, half3 eyeVecWorld, out half3 tangentSpaceLightDir, out half3 tangentSpaceEyeVec)
-{
-    half3 tangentWorld = UnityObjectToWorldDir(vTangent.xyz);
-    half sign = half(vTangent.w) * half(unity_WorldTransformParams.w);
-    half3 binormalWorld = cross(normalWorld, tangentWorld) * sign;
-    tangentSpaceLightDir = TransformToTangentSpace(tangentWorld, binormalWorld, normalWorld, lightDirWorld);
-#if SPECULAR_HIGHLIGHTS
-    tangentSpaceEyeVec = normalize(TransformToTangentSpace(tangentWorld, binormalWorld, normalWorld, eyeVecWorld));
-#else
-    tangentSpaceEyeVec = 0;
-#endif
-}
-
-#endif // _NORMALMAP
-
-half3 LightDirForSpecular(LightweightVertexOutput i, UnityLight mainLight)
-{
-#if SPECULAR_HIGHLIGHTS && defined(_NORMALMAP)
-    return i.tangentSpaceLightDir;
-#else
-    return mainLight.dir;
-#endif
-}
-
-
 #endif
