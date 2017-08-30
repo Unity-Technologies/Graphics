@@ -125,6 +125,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        List<Vector2> m_CurvePoints = new List<Vector2>();
 
         protected override void DrawEdge()
         {
@@ -155,11 +156,9 @@ namespace UnityEditor.VFX.UI
                 Vector3 end = points[3];
                 Vector3 tEnd = points[2];
 
+                BezierSubdiv.GetBezierSubDiv(m_CurvePoints, start, end, tStart, tEnd);
 
-                List<Vector2> pointResult = new List<Vector2>();
-                BezierSubdiv.GetBezierSubDiv(pointResult, start, end, tStart, tEnd);
-
-                int cpt = pointResult.Count;
+                int cpt = m_CurvePoints.Count;
 
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
@@ -187,16 +186,16 @@ namespace UnityEditor.VFX.UI
                     Vector2 dir;
                     if (i > 0 && i < cpt - 1)
                     {
-                        dir = (pointResult[i] - pointResult[i - 1]).normalized + (pointResult[i + 1] - pointResult[i]).normalized;
+                        dir = (m_CurvePoints[i] - m_CurvePoints[i - 1]).normalized + (m_CurvePoints[i + 1] - m_CurvePoints[i]).normalized;
                         dir.Normalize();
                     }
                     else if (i > 0)
                     {
-                        dir = (pointResult[i] - pointResult[i - 1]).normalized;
+                        dir = (m_CurvePoints[i] - m_CurvePoints[i - 1]).normalized;
                     }
                     else
                     {
-                        dir = (pointResult[i + 1] - pointResult[i]).normalized;
+                        dir = (m_CurvePoints[i + 1] - m_CurvePoints[i]).normalized;
                     }
 
 
@@ -206,10 +205,10 @@ namespace UnityEditor.VFX.UI
                     Vector2 border = -norm * vertexHalfWidth;
 
                     uvs[i * 2] = new Vector2(-vertexHalfWidth, halfWidth);
-                    vertices[i * 2] = pointResult[i] - border;
+                    vertices[i * 2] = m_CurvePoints[i] - border;
 
                     uvs[i * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
-                    vertices[i * 2 + 1] = pointResult[i] + border;
+                    vertices[i * 2 + 1] = m_CurvePoints[i] + border;
                 }
 
                 m_Mesh.vertices = vertices;
@@ -254,16 +253,6 @@ namespace UnityEditor.VFX.UI
 
                 m_Mesh.RecalculateBounds();
             }
-
-
-            /*
-            Vector3 trueEnd = points[3];
-            if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
-            {
-                trueEnd = trueEnd + new Vector3(-10, 0, 0);
-            }*/
-
-            //VFXEdgeUtils.RenderBezier(points[0], trueEnd, points[1], points[2], edgeColor, realWidth);
 
             VFXEdgeUtils.lineMat.SetPass(0);
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
