@@ -6,7 +6,7 @@
 
 #ifdef SHADOW_CONTEXT_INCLUDE
 #	ifdef SHADOW_TILEPASS
-#		include "HDRenderPipeline/Lighting/TilePass/ShadowContext.hlsl"
+#		include "../HDRenderPipeline/Lighting/TilePass/ShadowContext.hlsl"
 #	elif defined( SHADOW_FPTL )
 #		include "../../TestbedPipelines/fptl/ShadowContext.hlsl"
 #	else
@@ -16,7 +16,7 @@
 
 #ifdef SHADOW_DISPATCH_INCLUDE
 #	ifdef SHADOW_TILEPASS
-#		include "HDRenderPipeline/Lighting/TilePass/ShadowDispatch.hlsl"
+#		include "../HDRenderPipeline/Lighting/TilePass/ShadowDispatch.hlsl"
 #	elif defined( SHADOW_FPTL )
 #		include "../../TestbedPipelines/fptl/ShadowDispatch.hlsl"
 #	else
