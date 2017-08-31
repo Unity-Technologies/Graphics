@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Test")]
     class VFXOperatorExplodeFloatN : VFXOperator
     {
         public class InputProperties

@@ -42,37 +42,36 @@ namespace UnityEditor.VFX.UI
             tree.Add(new VFXFilterWindow.GroupElement(0, "Node"));
             var descriptors = GetDescriptors();
 
-            var categories = new HashSet<string>();
+            string prevCategory = "";
+            int depth = 0;
+
             foreach (var desc in descriptors)
             {
-                int depth = 0;
                 var category = GetCategory(desc);
                 if (category == null)
                     category = "";
-                //if (!string.IsNullOrEmpty(category))
+
+                if (category != prevCategory)
                 {
+                    depth = 0;
+
                     var split = category.Split('/').Where(o => o != "").ToArray();
-                    if (!categories.Contains(category))
+                    var prevSplit = prevCategory.Split('/').Where(o => o != "").ToArray();
+
+                    while ((depth < split.Length) && (depth < prevSplit.Length) && (split[depth] == prevSplit[depth]))
+                        depth++;
+
+                    while (depth < split.Length)
                     {
-                        var current = "";
-                        while (depth < split.Length)
-                        {
-                            current += split[depth];
-                            if (!categories.Contains(current))
-                                tree.Add(new VFXFilterWindow.GroupElement(depth + 1, split[depth]));
-                            depth++;
-                            current += "/";
-                        }
-                        categories.Add(category);
+                        tree.Add(new VFXFilterWindow.GroupElement(depth + 1, split[depth]));
+                        depth++;
                     }
-                    else
-                    {
-                        depth = split.Length;
-                    }
+
                     depth++;
                 }
 
                 tree.Add(new VFXBlockElement(depth, desc, category, GetName(desc)));
+                prevCategory = category;
             }
         }
 

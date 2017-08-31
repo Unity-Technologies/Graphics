@@ -38,8 +38,8 @@ namespace UnityEditor.VFX
 
         public CoordinateSpace space;
         public Vector3 center;
-        public Vector2 angles;
-        public Vector2 size;
+        public Vector3 angles;
+        public Vector3 size;
     }
 
     [VFXType]
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
 
         public CoordinateSpace space;
         public Vector3 center;
-        public Vector2 size;
+        public Vector3 size;
     }
 
     [VFXType]

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Misc")]
     class VFXOperatorAppendVector : VFXOperator
     {
         override public string name { get { return "AppendVector"; } }

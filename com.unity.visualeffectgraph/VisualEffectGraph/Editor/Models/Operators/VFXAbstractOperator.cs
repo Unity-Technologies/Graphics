@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorFloatUnified : VFXOperator
     {
-        private float m_FallbackValue = 0.0f;
+        protected float m_FallbackValue = 0.0f;
 
         protected VFXOperatorFloatUnified()
         {
@@ -146,7 +146,8 @@ namespace UnityEditor.VFX
     {
         public class InputProperties
         {
-            public FloatN input = new FloatN(new[] { 0.0f });
+            [Tooltip("The operand.")]
+            public FloatN x = new FloatN(0.0f);
         }
     }
 
@@ -166,7 +167,7 @@ namespace UnityEditor.VFX
             {
                 if (uselessSlots.Count == 0)
                 {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), ((char)((int)'a' + currentSlots.Count)).ToString()), VFXSlot.Direction.kInput, new FloatN(m_FallbackValue)));
                 }
                 else
                 {
@@ -204,8 +205,10 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             static public float FallbackValue = 1.0f;
-            public FloatN right = FallbackValue;
-            public FloatN left = FallbackValue;
+            [Tooltip("The first operand.")]
+            public FloatN a = FallbackValue;
+            [Tooltip("The second operand.")]
+            public FloatN b = FallbackValue;
         }
     }
 
@@ -214,8 +217,10 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             static public float FallbackValue = 0.0f;
-            public FloatN right = FallbackValue;
-            public FloatN left = FallbackValue;
+            [Tooltip("The first operand.")]
+            public FloatN a = FallbackValue;
+            [Tooltip("The second operand.")]
+            public FloatN b = FallbackValue;
         }
     }
 }

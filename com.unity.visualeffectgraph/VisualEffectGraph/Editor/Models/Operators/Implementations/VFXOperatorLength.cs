@@ -3,12 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Vector")]
     class VFXOperatorLength : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-            public FloatN input = Vector3.one;
+            [Tooltip("The vector to be used in the length calculation.")]
+            public FloatN x = Vector3.one;
         }
 
         override public string name { get { return "Length"; } }

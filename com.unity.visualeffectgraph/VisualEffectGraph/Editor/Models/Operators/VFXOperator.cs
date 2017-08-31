@@ -22,7 +22,24 @@ namespace UnityEditor.VFX
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            return inputSlots.Select(o => o.GetExpression()).Where(e => e != null);
+            List<VFXExpression> results = new List<VFXExpression>();
+            GetInputExpressionsRecursive(results, inputSlots);
+            return results;
+        }
+
+        private static void GetInputExpressionsRecursive(List<VFXExpression> results, IEnumerable<VFXSlot> slots)
+        {
+            foreach (var s in slots)
+            {
+                if (s.GetExpression() != null)
+                {
+                    results.Add(s.GetExpression());
+                }
+                else
+                {
+                    GetInputExpressionsRecursive(results, s.children);
+                }
+            }
         }
 
         private Queue<VFXExpression[]> outputExpressionQueue = new Queue<VFXExpression[]>();

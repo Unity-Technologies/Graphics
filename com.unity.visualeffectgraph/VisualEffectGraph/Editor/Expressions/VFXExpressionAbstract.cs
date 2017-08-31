@@ -91,6 +91,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kUint: return typeof(uint);
                 case VFXValueType.kTexture2D: return typeof(Texture2D);
                 case VFXValueType.kTexture3D: return typeof(Texture3D);
+                case VFXValueType.kTransform: return typeof(Matrix4x4);
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
                 case VFXValueType.kColorGradient: return typeof(Gradient);

@@ -44,6 +44,82 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionTan : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionTan() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXTanOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("tan({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Tan(input);
+        }
+    }
+
+    class VFXExpressionACos : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionACos() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionACos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXACosOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("acos({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Acos(input);
+        }
+    }
+
+    class VFXExpressionASin : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionASin() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionASin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXASinOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("asin({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Asin(input);
+        }
+    }
+
+    class VFXExpressionATan : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionATan() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionATan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXATanOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("atan({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Atan(input);
+        }
+    }
+
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
@@ -60,6 +136,25 @@ namespace UnityEditor.VFX
         sealed protected override float ProcessUnaryOperation(float input)
         {
             return Mathf.Abs(input);
+        }
+    }
+
+    class VFXExpressionSign : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionSign() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSignOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("sign({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Sign(input);
         }
     }
 
@@ -226,6 +321,27 @@ namespace UnityEditor.VFX
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("pow({0}, {1})", left, right);
+        }
+    }
+
+    class VFXExpressionATan2 : VFXExpressionBinaryFloatOperation
+    {
+        public VFXExpressionATan2() : this(VFXValue<float>.Default, VFXValue<float>.Default)
+        {
+        }
+
+        public VFXExpressionATan2(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXATan2Op)
+        {
+        }
+
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return Mathf.Atan2(left, right);
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("atan2({0}, {1})", left, right);
         }
     }
 

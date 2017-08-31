@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Math")]
     class VFXOperatorCeil : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Ceil"; } }

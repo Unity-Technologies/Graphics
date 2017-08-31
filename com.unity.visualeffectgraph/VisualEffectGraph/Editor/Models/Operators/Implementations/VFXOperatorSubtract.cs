@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Math")]
     class VFXOperatorSubtract : VFXOperatorBinaryFloatOperationZero
     {
         override public string name { get { return "Subtract"; } }
