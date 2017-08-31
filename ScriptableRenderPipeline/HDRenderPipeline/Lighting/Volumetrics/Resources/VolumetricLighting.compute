@@ -66,13 +66,19 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
     float du = rcp(numSteps);
     float u0 = 0.25 * du + 0.5 * du * zeta;
     float dt = du * ray.maxLength;
+    float t0 = 0;
 
     float3 radiance = 0;
 
     for (uint s = 0; s < numSteps; s++)
     {
-        float u = u0 + s * du;          // [0, 1]
-        float t = u * ray.maxLength;    // [0, ray.maxLength]
+        float u  = u0 + s * du;          // [0, 1]
+        float t  = u * ray.maxLength;    // [0, ray.maxLength]
+        float t1 = t + 0.5 * dt;
+
+        float T = TransmittanceIntegralOverHomogeneousInterval(extinction, t0, t1);
+
+        [branch] if (T < 0.0001) break;
 
         float3 positionWS = ray.originWS + t * ray.directionWS;
 
@@ -179,7 +185,8 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
             }
         }
 
-        radiance += sampleRadiance * (Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt);
+        radiance += sampleRadiance * T;
+        t0 = t1;
     }
 #ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
     float3 phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
