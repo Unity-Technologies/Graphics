@@ -13,6 +13,8 @@ namespace UnityEditor.Experimental.Rendering
 {
     public class GraphicsTests
     {
+        static readonly string s_RootPath = Directory.GetParent(Directory.GetFiles(Application.dataPath, "SRPMARKER", SearchOption.AllDirectories).First()).ToString();
+
 		// path where the tests live
         private static readonly string[] s_Path =
         {
@@ -50,7 +52,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 get
                 {
-                    var absoluteScenesPath = s_Path.Aggregate(Application.dataPath, Path.Combine);
+                    var absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
 
                     foreach (var pipelinePath in s_PipelinePath)
                     {
@@ -94,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering
         [UnityTest]
         public IEnumerator TestScene([ValueSource(typeof(CollectScenes), "scenes")]TestInfo testInfo)
         {
-			var prjRelativeGraphsPath = s_Path.Aggregate("Assets", Path.Combine);
+			var prjRelativeGraphsPath = s_Path.Aggregate(s_RootPath, Path.Combine);
 			var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
 
 			// open the scene
@@ -137,8 +139,7 @@ namespace UnityEditor.Experimental.Rendering
 			captured.ReadPixels(new Rect(0, 0, testSetup.width, testSetup.height), 0, 0);
 			RenderTexture.active = oldActive;
 
-            var rootPath = Directory.GetParent(Application.dataPath).ToString();
-            var templatePath = Path.Combine(rootPath.ToString(), "ImageTemplates");
+            var templatePath = Path.Combine(s_RootPath, "ImageTemplates");
 
             // find the reference image
 			var dumpFileLocation = Path.Combine(templatePath, string.Format("{0}.{1}", testInfo.relativePath, "png"));
@@ -161,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering
 
             if (!areEqual)
             {
-                var failedPath = Path.Combine(rootPath.ToString(), "Failed");
+                var failedPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "SRP_Failed");
                 Directory.CreateDirectory(failedPath);
 				var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", testInfo.name, "png"));
 				var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
