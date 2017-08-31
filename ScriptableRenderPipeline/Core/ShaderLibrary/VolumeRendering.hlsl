@@ -11,6 +11,11 @@ float Transmittance(float opticalDepth)
     return exp(-opticalDepth);
 }
 
+float TransmittanceIntegralOverHomogeneousInterval(float extinction, float start, float end)
+{
+    return (exp(-extinction * start) - exp(-extinction * end)) / extinction;
+}
+
 float3 OpticalDepthHomogeneous(float3 extinction, float intervalLength)
 {
     return extinction * intervalLength;
@@ -19,6 +24,11 @@ float3 OpticalDepthHomogeneous(float3 extinction, float intervalLength)
 float3 Transmittance(float3 opticalDepth)
 {
     return exp(-opticalDepth);
+}
+
+float3 TransmittanceIntegralOverHomogeneousInterval(float3 extinction, float start, float end)
+{
+    return (exp(-extinction * start) - exp(-extinction * end)) / extinction;
 }
 
 float IsotropicPhaseFunction()
