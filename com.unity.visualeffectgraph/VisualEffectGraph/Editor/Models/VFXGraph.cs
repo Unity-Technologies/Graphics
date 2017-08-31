@@ -517,25 +517,7 @@ namespace UnityEditor.VFX
                     }
 
                     {
-                        if (m_GeneratedComputeShader == null)
-                            m_GeneratedComputeShader = new List<ComputeShader>();
-
-                        if (m_GeneratedShader == null)
-                            m_GeneratedShader = new List<Shader>();
-
-                        var oldGeneratedFile = new Dictionary<string, Object>();
-                        foreach (var shader in m_GeneratedShader.Cast<Object>().Concat(m_GeneratedComputeShader.Cast<Object>()))
-                        {
-                            var path = AssetDatabase.GetAssetPath(shader);
-                            if (!string.IsNullOrEmpty(path) && path.StartsWith(baseCacheFolder))
-                            {
-                                oldGeneratedFile.Add(path, shader);
-                            }
-                        }
-
-                        m_GeneratedComputeShader.Clear();
-                        m_GeneratedShader.Clear();
-
+                        var generatedShader = new List<Object>();
                         var currentCacheFolder = baseCacheFolder;
                         if (vfxAsset != null)
                         {
@@ -557,41 +539,28 @@ namespace UnityEditor.VFX
                                 oldContent = System.IO.File.ReadAllText(path);
                             }
                             var newContent = generated.content.ToString();
-                            if (oldContent != newContent)
+                            bool hasChanged = oldContent != newContent;
+                            if (hasChanged)
                             {
-                                System.IO.File.WriteAllText(path, generated.content.ToString());
-                            }
-                            else
-                            {
-                                if (oldGeneratedFile.ContainsKey(path))
-                                {
-                                    if (generated.computeShader)
-                                    {
-                                        m_GeneratedComputeShader.Add(oldGeneratedFile[path] as ComputeShader);
-                                    }
-                                    else
-                                    {
-                                        m_GeneratedShader.Add(oldGeneratedFile[path] as Shader);
-                                    }
-                                    continue;
-                                }
+                                System.IO.File.WriteAllText(path, newContent);
                             }
 
-                            //Generated file as been modified or not yet imported
                             AssetDatabase.ImportAsset(path);
+                            Object imported = null;
                             if (generated.computeShader)
                             {
-                                var imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
-                                EditorUtility.SetDirty(imported);
-                                m_GeneratedComputeShader.Add(imported);
+                                imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
                             }
                             else
                             {
                                 var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
-                                var imported = importer.GetShader();
-                                EditorUtility.SetDirty(imported);
-                                m_GeneratedShader.Add(imported);
+                                imported = importer.GetShader();
                             }
+                            if (hasChanged)
+                            {
+                                EditorUtility.SetDirty(imported);
+                            }
+                            generatedShader.Add(imported);
                         }
                     }
 
@@ -616,8 +585,6 @@ namespace UnityEditor.VFX
 
                     m_ExpressionGraph = new VFXExpressionGraph();
                     m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
-                    m_GeneratedComputeShader = new List<ComputeShader>();
-                    m_GeneratedShader = new List<Shader>();
                 }
 
                 m_ExpressionGraphDirty = false;
@@ -640,12 +607,6 @@ namespace UnityEditor.VFX
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
         private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
-
-        [NonSerialized]
-        protected List<ComputeShader> m_GeneratedComputeShader;
-
-        [NonSerialized]
-        protected List<Shader> m_GeneratedShader;
 
         [SerializeField]
         protected bool m_saved = false;
