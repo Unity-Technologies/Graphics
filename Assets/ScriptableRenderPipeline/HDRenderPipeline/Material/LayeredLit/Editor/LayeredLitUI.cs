@@ -8,16 +8,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     internal class LayeredLitGUI : LitGUI
     {
-        public enum LayerUVBaseMapping
-        {
-            UV0,
-            UV1,
-            UV2,
-            UV3,
-            Planar,
-            Triplanar,
-        }
-
         public enum VertexColorMode
         {
             None,
@@ -385,8 +375,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
 
-            if (((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Planar) ||
-                ((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Triplanar))
+            if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
+                ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
             }
@@ -472,9 +462,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
 
             // Blend mask
-            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
-            SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == LayerUVBaseMapping.Planar);
-            SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == LayerUVBaseMapping.Triplanar);
+            UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
+            SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
+            SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
             int numLayer = (int)material.GetFloat(kLayerCount);
 
@@ -505,23 +495,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (int i = 0; i < numLayer; ++i)
             {
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
-                LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
+                UVBaseMapping layerUVBaseMapping = (UVBaseMapping)material.GetFloat(layerUVBaseParam);
                 string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
-                SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == LayerUVBaseMapping.Planar);
+                SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == UVBaseMapping.Planar);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
-                SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
+                SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == UVBaseMapping.Triplanar);
 
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
 
                 if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                    ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2))
+                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
                 {
                     needUV2 = true;
                 }
 
                 if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                    ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3))
+                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
                 {
                     needUV3 = true;
                     break; // If we find it UV3 let's early out

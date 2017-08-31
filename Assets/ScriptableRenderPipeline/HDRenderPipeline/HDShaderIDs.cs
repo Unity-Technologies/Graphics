@@ -177,5 +177,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
         internal static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
         internal static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
+
+        internal static readonly int _GlobalFog_Extinction = Shader.PropertyToID("_GlobalFog_Extinction");
+        internal static readonly int _GlobalFog_Asymmetry  = Shader.PropertyToID("_GlobalFog_Asymmetry");
+        internal static readonly int _GlobalFog_Scattering = Shader.PropertyToID("_GlobalFog_Scattering");
     }
 }

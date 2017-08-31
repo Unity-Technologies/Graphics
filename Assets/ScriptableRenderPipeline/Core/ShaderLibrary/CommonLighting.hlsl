@@ -78,14 +78,18 @@ float SmoothDistanceAttenuation(float squaredDistance, float invSqrAttenuationRa
 
 #define PUNCTUAL_LIGHT_THRESHOLD 0.01 // 1cm (in Unity 1 is 1m)
 
-float GetDistanceAttenuation(float3 unL, float invSqrAttenuationRadius)
+float GetDistanceAttenuation(float sqrDist, float invSqrAttenuationRadius)
 {
-    float sqrDist = dot(unL, unL);
     float attenuation = 1.0 / (max(PUNCTUAL_LIGHT_THRESHOLD * PUNCTUAL_LIGHT_THRESHOLD, sqrDist));
     // Non physically based hack to limit light influence to attenuationRadius.
     attenuation *= SmoothDistanceAttenuation(sqrDist, invSqrAttenuationRadius);
-
     return attenuation;
+}
+
+float GetDistanceAttenuation(float3 unL, float invSqrAttenuationRadius)
+{
+    float sqrDist = dot(unL, unL);
+    return GetDistanceAttenuation(sqrDist, invSqrAttenuationRadius);
 }
 
 float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, float lightAngleOffset)

@@ -75,7 +75,7 @@
 #endif
 #include "API/Validate.hlsl"
 
-#include "Noise.hlsl"
+#include "Random.hlsl"
 
 // Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
 // This is the purpose of this macro
