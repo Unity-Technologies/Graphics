@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.UIElements
 
             if (m_RenderTexture == null)
             {
-                m_RenderTexture = new RenderTexture(Mathf.CeilToInt(viewPort.width), Mathf.CeilToInt(viewPort.height), 32, RenderTextureFormat.Default);
+                m_RenderTexture = new RenderTexture(Mathf.CeilToInt(viewPort.width), Mathf.CeilToInt(viewPort.height), 32, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
             }
             if (m_RenderTexture.width != Mathf.CeilToInt(viewPort.width))
             {
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.UIElements
             GL.invertCulling = true;
             m_Material.SetPass(0);
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
-
+            GL.invertCulling = false;
             //Graphics.DrawMesh(m_Mesh, Matrix4x4.identity, m_Material, 1);
 
 #endif
