@@ -1,4 +1,0 @@
-[submodule "Assets/ScriptableRenderPipeline/PostProcessing"]
-	path = Assets/PostProcessing
-	url = https://github.com/Unity-Technologies/PostProcessing
-	branch = v2
