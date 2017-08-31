@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-            title = parameter.outputSlots[0].property.type.UserFriendlyName() + " " + model.m_OnEnabledCount;
+            title = parameter.outputSlots[0].property.type.UserFriendlyName();
 
             exposed = parameter.exposed;
             exposedName = parameter.exposedName;

@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-            title = Operator.name + " " + Operator.m_OnEnabledCount;
+            title = Operator.name;
         }
 
         public VFXOperator Operator
