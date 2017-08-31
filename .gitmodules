@@ -1,0 +1,4 @@
+[submodule "PostProcessing"]
+	path = PostProcessing
+	url = https://github.com/Unity-Technologies/PostProcessing
+	branch = v2
