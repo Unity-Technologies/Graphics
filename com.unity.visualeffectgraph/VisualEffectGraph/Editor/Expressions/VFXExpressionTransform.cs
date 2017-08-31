@@ -2,12 +2,14 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     class VFXExpressionTRSToMatrix : VFXExpression
     {
-        public VFXExpressionTRSToMatrix() : this(new VFXExpression[] { VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<Vector3>.Default })
+        public VFXExpressionTRSToMatrix() : this(new VFXExpression[] { VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<Vector3>.Default }
+                                                 )
         {
         }
 
@@ -34,10 +36,10 @@ namespace UnityEditor.VFX
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var posReduce = constParents[0];
-			var rotReduce = constParents[1];
-			var scaleReduce = constParents[2];
-			
-			var pos = posReduce.Get<Vector3>();
+            var rotReduce = constParents[1];
+            var scaleReduce = constParents[2];
+
+            var pos = posReduce.Get<Vector3>();
             var rot = rotReduce.Get<Vector3>();
             var scale = scaleReduce.Get<Vector3>();
 

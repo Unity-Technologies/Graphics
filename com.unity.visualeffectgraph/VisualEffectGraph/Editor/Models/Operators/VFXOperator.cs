@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    GetInputExpressionsRecursive(results, s.GetChildren());
+                    GetInputExpressionsRecursive(results, s.children);
                 }
             }
         }
