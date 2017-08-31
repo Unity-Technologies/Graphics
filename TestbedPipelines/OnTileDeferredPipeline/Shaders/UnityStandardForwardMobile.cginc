@@ -23,19 +23,19 @@
 
 #define SHADOW_FPTL
 #	if defined(SHADER_API_D3D11)
-#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
+#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11.hlsl"
 #	elif defined(SHADER_API_PSSL)
-#		include "../../Core/ShaderLibrary/API/PSSL.hlsl"
+#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/PSSL.hlsl"
 #	elif defined(SHADER_API_XBOXONE)
-#		include "../../Core/ShaderLibrary/API/D3D11.hlsl"
-#		include "../../Core/ShaderLibrary/API/D3D11_1.hlsl"
+#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11.hlsl"
+#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11_1.hlsl"
 #	elif defined(SHADER_API_METAL)
-#		include "../../Core/ShaderLibrary/API/Metal.hlsl"
+#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/Metal.hlsl"
 #	else
 #		error unsupported shader api
 #	endif
-#	include "../../Core/ShaderLibrary/API/Validate.hlsl"
-#	include "../../Core/ShaderLibrary/Shadow/Shadow.hlsl"
+#	include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/Validate.hlsl"
+#	include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/Shadow/Shadow.hlsl"
 #undef SHADOW_FPTL
 
 struct VertexOutputForwardNew
