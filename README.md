@@ -11,11 +11,28 @@ There's a more detailed overview document here: [ScriptableRenderLoop google doc
 
 Did we mention it's a very WIP, no promises, may or might not ship feature, anything and everything in it can change? It totally is.
 
+## How to use the latest version
+The repository no longer consists of a complete Unity project, but rather
+assumes to be put inside a sub-folder of the `Assets\` folder of an existing
+Unity project. Make sure that your project uses linear color space
+(_Edit > Project Settings > Player_).
+
+Perform the following instructions to get a working copy of SRP:
+```
+> cd <Path to your Unity project>/Assets
+> git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
+> cd ScriptableRenderLoop
+> git submodule update --init --recursive --remote
+```
+
 ## For Unity 2017.1 beta users
 SRP depends on PostProcessing submodule. Perform the following instructions to get a working copy of SRP:
-* git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
-* git checkout unity-2017.1b5 (or the latest tag)
-* git submodule update --init --recursive --remote
+```
+> git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
+> cd ScriptableRenderLoop
+> git checkout unity-2017.1b5 (or the latest tag)
+> git submodule update --init --recursive --remote
+```
 
 ## For Unity 5.6 beta users
 
