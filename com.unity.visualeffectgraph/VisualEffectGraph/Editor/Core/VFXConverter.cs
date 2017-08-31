@@ -158,12 +158,17 @@ namespace UnityEditor.VFX.UI
             else if (value is Position)
             {
                 Position val = (Position)value;
-                return new Vector3(val.position.x, val.position.y, val.position.z);
+                return val.position;
             }
             else if (value is Vector)
             {
                 Vector val = (Vector)value;
-                return new Vector3(val.vector.x, val.vector.y, val.vector.z);
+                return val.vector;
+            }
+            else if (value is DirectionType)
+            {
+                DirectionType val = (DirectionType)value;
+                return val.direction;
             }
             else if (value is FloatN)
             {

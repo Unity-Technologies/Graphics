@@ -137,4 +137,47 @@ namespace UnityEditor.VFX
             return string.Format("mul((float3x3){0}, {1})", parents[0], parents[1]);
         }
     }
+
+    class VFXExpressionTransformDirection : VFXExpression
+    {
+        public VFXExpressionTransformDirection() : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector3>.Default)
+        {
+        }
+
+        public VFXExpressionTransformDirection(VFXExpression matrix, VFXExpression vector) : base(VFXExpression.Flags.None, new VFXExpression[] { matrix, vector })
+        {
+        }
+
+        public override VFXExpressionOp Operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXTransformDirOp;
+            }
+        }
+
+        public override VFXValueType ValueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var positionReduce = constParents[1];
+
+            var matrix = matrixReduce.Get<Matrix4x4>();
+            var vector = positionReduce.Get<Vector3>();
+
+            return VFXOperatorUtility.Normalize(VFXValue.Constant(matrix.MultiplyVector(vector)));
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("normalize(mul((float3x3){0}, {1}))", parents[0], parents[1]);
+        }
+    }
 }
