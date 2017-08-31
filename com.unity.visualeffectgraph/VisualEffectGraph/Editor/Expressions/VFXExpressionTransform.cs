@@ -52,6 +52,111 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionExtractPositionFromMatrix : VFXExpression
+    {
+        public VFXExpressionExtractPositionFromMatrix() : this(VFXValue<Matrix4x4>.Default)
+        {
+        }
+
+        public VFXExpressionExtractPositionFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        {
+        }
+
+        public override VFXExpressionOp Operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXExtractPositionFromMatrixOp;
+            }
+        }
+
+        public override VFXValueType ValueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var matrix = matrixReduce.Get<Matrix4x4>();
+
+            return VFXValue.Constant(matrix.GetColumn(3));
+        }
+    }
+
+    class VFXExpressionExtractAnglesFromMatrix : VFXExpression
+    {
+        public VFXExpressionExtractAnglesFromMatrix() : this(VFXValue<Matrix4x4>.Default)
+        {
+        }
+
+        public VFXExpressionExtractAnglesFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        {
+        }
+
+        public override VFXExpressionOp Operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXExtractAnglesFromMatrixOp;
+            }
+        }
+
+        public override VFXValueType ValueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var matrix = matrixReduce.Get<Matrix4x4>();
+
+            return VFXValue.Constant(matrix.rotation.eulerAngles);
+        }
+    }
+
+    class VFXExpressionExtractScaleFromMatrix : VFXExpression
+    {
+        public VFXExpressionExtractScaleFromMatrix() : this(VFXValue<Matrix4x4>.Default)
+        {
+        }
+
+        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        {
+        }
+
+        public override VFXExpressionOp Operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXExtractScaleFromMatrixOp;
+            }
+        }
+
+        public override VFXValueType ValueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var matrix = matrixReduce.Get<Matrix4x4>();
+
+            return VFXValue.Constant(matrix.lossyScale);
+        }
+    }
+
     class VFXExpressionTransformPosition : VFXExpression
     {
         public VFXExpressionTransformPosition() : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector3>.Default)
