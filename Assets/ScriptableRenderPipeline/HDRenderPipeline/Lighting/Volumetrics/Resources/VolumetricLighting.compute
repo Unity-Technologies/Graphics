@@ -11,6 +11,7 @@
 #define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
+// #define USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -48,7 +49,9 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 {
     float3 scattering = _GlobalFog_Scattering;
     float  extinction = _GlobalFog_Extinction;
+#ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
     float  asymmetry  = _GlobalFog_Asymmetry;
+#endif
 
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
@@ -86,8 +89,10 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 float  intensity = 1;
                 float3 color     = lightData.color;
 
+            #ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
                 // Note: we apply the scattering coefficient and the constant part of the phase function later.
                 intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
+            #endif
 
                 [branch] if (lightData.shadowIndex >= 0)
                 {
@@ -143,8 +148,10 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
                 float3 color         = lightData.color;
 
+            #ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
                 // Note: we apply the scattering coefficient and the constant part of the phase function later.
                 intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
+            #endif
                 intensity *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
 
                 [branch] if (lightData.shadowIndex >= 0)
@@ -174,8 +181,11 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 
         radiance += sampleRadiance * (Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt);
     }
-
+#ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
     float3 phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
+#else
+    float3 phaseConstant = scattering * IsotropicPhaseFunction();
+#endif
     return radiance * phaseConstant;
 }
 
