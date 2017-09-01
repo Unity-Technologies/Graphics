@@ -16,14 +16,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
-        [SerializeField]
-        GraphDrawingData m_DrawingData = new GraphDrawingData();
-
-        public GraphDrawingData drawingData
-        {
-            get { return m_DrawingData; }
-        }
-
         public MaterialGraphView()
         {
             this.AddManipulator(new ContentZoomer());
@@ -109,27 +101,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var graphDataSource = GetPresenter<MaterialGraphPresenter>();
             graphDataSource.AddNode(node);
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            if (graphDataSource == null)
-                return;
-
-            if (drawingData.selection.SequenceEqual(selection.OfType<MaterialNodeView>().Select(d => ((MaterialNodePresenter)d.presenter).node.guid))) return;
-
-            var selectedDrawers = drawingData.selection
-                .Select(guid => contentViewContainer
-                    .OfType<MaterialNodeView>()
-                    .FirstOrDefault(drawer => ((MaterialNodePresenter)drawer.presenter).node.guid == guid))
-                .ToList();
-
-            ClearSelection();
-            foreach (var drawer in selectedDrawers)
-                AddToSelection(drawer);
         }
 
         void PropagateSelection()
