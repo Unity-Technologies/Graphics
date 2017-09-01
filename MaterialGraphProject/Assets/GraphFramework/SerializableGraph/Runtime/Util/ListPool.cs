@@ -5,7 +5,7 @@ namespace UnityEngine.Graphing
     public static class ListPool<T>
     {
         // Object pool to avoid allocations.
-        private static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(null, l => l.Clear());
+        static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(null, l => l.Clear());
 
         public static List<T> Get()
         {

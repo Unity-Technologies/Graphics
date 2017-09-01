@@ -221,8 +221,8 @@ namespace UnityEngine.MaterialGraph
                 }
             }
 
-            var dynamicInputSlotsToCompare = new Dictionary<MaterialSlot, ConcreteSlotValueType>();
-            var skippedDynamicSlots = new List<MaterialSlot>();
+            var dynamicInputSlotsToCompare = DictionaryPool<MaterialSlot, ConcreteSlotValueType>.Get();
+            var skippedDynamicSlots = ListPool<MaterialSlot>.Get();
 
             // iterate the input slots
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
@@ -304,6 +304,10 @@ namespace UnityEngine.MaterialGraph
             {
                 ++version;
             }
+
+            ListPool<MaterialSlot>.Release(skippedDynamicSlots);
+            DictionaryPool<MaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+
         }
 
         public int version { get; private set; }
