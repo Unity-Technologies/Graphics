@@ -7,6 +7,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -56,6 +57,12 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             if (m_GraphEditorView != null)
             {
+                if (m_GraphEditorView.presenter == null)
+                {
+                    var presenter = CreateInstance<GraphEditorPresenter>();
+                    presenter.Initialize(inMemoryAsset, this, selected.name);
+                    m_GraphEditorView.presenter = presenter;
+                }
                 m_GraphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
             }
         }
