@@ -81,6 +81,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             rootVisualContainer.Clear();
         }
 
+        void OnDestroy()
+        {
+            if (EditorUtility.DisplayDialog("Shader Graph Might Have Been Modified", "Do you want to save the changes you made in the shader graph?", "Save", "Don't Save"))
+            {
+                UpdateAsset();
+            }
+        }
+
         void OnGUI()
         {
             var presenter = m_GraphEditorView.presenter;
@@ -335,14 +343,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (selected == newSelection)
                 return;
-
-            if (selected != null)
-            {
-                if (EditorUtility.DisplayDialog("Save Old Graph?", "Save Old Graph?", "yes!", "no"))
-                {
-                    UpdateAsset();
-                }
-            }
 
             selected = newSelection;
 
