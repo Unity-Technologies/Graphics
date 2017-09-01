@@ -17,7 +17,8 @@ namespace UnityEditor.VFX.UI
             var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
             anchor.Init(slot, this);
             anchor.anchorType = slot.property.type;
-            anchor.name = slot.property.type.UserFriendlyName();
+            if (slot.IsMasterSlot())
+                anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
         }
     }

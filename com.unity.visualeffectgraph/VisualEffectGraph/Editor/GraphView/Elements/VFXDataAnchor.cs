@@ -121,6 +121,7 @@ namespace UnityEditor.VFX.UI
             {
                 visible = false;
 
+                AddToClassList("hidden");
                 AddToClassList("invisible");
             }
             else if (!visible)
