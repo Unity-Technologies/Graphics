@@ -1900,14 +1900,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            public struct LightingPassOptions
+            {
+                public bool outputSplitLighting;
+                public bool volumetricLightingEnabled;
+            }
+
             public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd,
                                                 DebugDisplaySettings debugDisplaySettings,
                                                 RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
-                                                bool outputSplitLighting)
+                                                LightingPassOptions options)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
-                if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && outputSplitLighting)
+                if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && options.outputSplitLighting)
                 {
                     // The CS is always in the MRT mode. Do not execute the same shader twice.
                     return;
@@ -1920,8 +1926,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
                 using (new Utilities.ProfilingSample(m_TileSettings.enableTileAndCluster ?
-                                                            (outputSplitLighting ? tilePassMRTName : tilePassName) :
-                                                            (outputSplitLighting ? SinglePassMRTName : singlePassName), cmd))
+                                                            (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
+                                                            (options.outputSplitLighting ? SinglePassMRTName : singlePassName), cmd))
                 {
                     var camera = hdCamera.camera;
 
@@ -1932,7 +1938,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PushGlobalParams(camera, cmd, null, 0);
 
                         // This is a debug brute force renderer to debug tile/cluster which render all the lights
-                        if (outputSplitLighting)
+                        if (options.outputSplitLighting)
                         {
                             Utilities.DrawFullScreen(cmd, m_SingleDeferredMaterialMRT, colorBuffers, depthStencilBuffer);
                         }
@@ -2079,7 +2085,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
-                                HDRenderPipeline.SetGlobalVolumeProperties(cmd, deferredComputeShader);
+                                HDRenderPipeline.SetGlobalVolumeProperties(options.volumetricLightingEnabled, cmd, deferredComputeShader);
 
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
@@ -2100,7 +2106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Pixel shader evaluation
                             PushGlobalParams(camera, cmd, null, 0);
 
-                            if (outputSplitLighting)
+                            if (options.outputSplitLighting)
                             {
                                 Utilities.SelectKeyword(m_DeferredAllMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                 Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialMRT, colorBuffers, depthStencilBuffer);
