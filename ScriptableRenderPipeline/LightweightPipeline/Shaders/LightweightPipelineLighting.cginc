@@ -57,8 +57,10 @@ inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
+    // TODO: Test separating dir lights into diff loop by sorting on the pipe and setting -1 on LightIndexMap.
 #ifdef _ATTENUATION_TEXTURE
-    float lightAtten = tex2D(_AttenuationTexture, float2(distanceSqr / attenuationParams.w, 0.0)).a;
+    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
+    float lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
 #else
     //// attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
     //// attenuationParams.w = lightRange * lightRange

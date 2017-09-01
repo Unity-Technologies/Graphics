@@ -299,7 +299,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightColor = light.finalColor;
 
             float rangeSq = light.range * light.range;
-            float quadAtten = (light.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
+            float quadAtten = 0.0f;
+            if (light.lightType != LightType.Directional)
+                quadAtten = (m_Asset.AttenuationTexture != null) ? 1.0f : 25.0f / rangeSq;
 
             if (light.lightType == LightType.Spot)
             {
