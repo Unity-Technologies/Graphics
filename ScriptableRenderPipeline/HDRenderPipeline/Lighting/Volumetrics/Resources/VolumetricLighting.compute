@@ -11,6 +11,7 @@
 #define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
+// #define USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -20,7 +21,7 @@
 #include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 
-#include "../HomogeneousFog.cs.hlsl"
+#include "../VolumetricLighting.cs.hlsl"
 #define UNITY_MATERIAL_LIT // Need to be defined before including Material.hlsl
 #include "../../../ShaderVariables.hlsl"
 #include "../../../Lighting/Lighting.hlsl" // This includes Material.hlsl
@@ -48,7 +49,9 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
 {
     float3 scattering = _GlobalFog_Scattering;
     float  extinction = _GlobalFog_Extinction;
+#ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
     float  asymmetry  = _GlobalFog_Asymmetry;
+#endif
 
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
@@ -63,13 +66,19 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
     float du = rcp(numSteps);
     float u0 = 0.25 * du + 0.5 * du * zeta;
     float dt = du * ray.maxLength;
+    float t0 = 0;
 
     float3 radiance = 0;
 
     for (uint s = 0; s < numSteps; s++)
     {
-        float u = u0 + s * du;          // [0, 1]
-        float t = u * ray.maxLength;    // [0, ray.maxLength]
+        float u  = u0 + s * du;          // [0, 1]
+        float t  = u * ray.maxLength;    // [0, ray.maxLength]
+        float t1 = t + 0.5 * dt;
+
+        float T = TransmittanceIntegralOverHomogeneousInterval(extinction, t0, t1);
+
+        [branch] if (T < 0.0001) break;
 
         float3 positionWS = ray.originWS + t * ray.directionWS;
 
@@ -86,8 +95,10 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 float  intensity = 1;
                 float3 color     = lightData.color;
 
+            #ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
                 // Note: we apply the scattering coefficient and the constant part of the phase function later.
                 intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
+            #endif
 
                 [branch] if (lightData.shadowIndex >= 0)
                 {
@@ -143,8 +154,10 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
                 float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
                 float3 color         = lightData.color;
 
+            #ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
                 // Note: we apply the scattering coefficient and the constant part of the phase function later.
                 intensity *= HenyeyGreensteinPhasePartVarying(asymmetry, dot(L, ray.directionWS));
+            #endif
                 intensity *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
 
                 [branch] if (lightData.shadowIndex >= 0)
@@ -172,10 +185,14 @@ float3 PerformIntegration(PositionInputs posInput, Ray ray, uint numSteps)
             }
         }
 
-        radiance += sampleRadiance * (Transmittance(OpticalDepthHomogeneous(extinction, t)) * dt);
+        radiance += sampleRadiance * T;
+        t0 = t1;
     }
-
+#ifdef USE_HENYEY_GREENSTEIN_PHASE_FUNCTION
     float3 phaseConstant = scattering * HenyeyGreensteinPhasePartConstant(asymmetry);
+#else
+    float3 phaseConstant = scattering * IsotropicPhaseFunction();
+#endif
     return radiance * phaseConstant;
 }
 

@@ -1,9 +1,9 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Volumetrics/HomogeneousFog.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/SRP/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Volumetrics/VolumetricLighting.cs.  Please don't edit by hand.
 //
 
-#ifndef HOMOGENEOUSFOG_CS_HLSL
-#define HOMOGENEOUSFOG_CS_HLSL
+#ifndef VOLUMETRICLIGHTING_CS_HLSL
+#define VOLUMETRICLIGHTING_CS_HLSL
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.VolumeProperties
 // PackingRules = Exact
 struct VolumeProperties
