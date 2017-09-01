@@ -231,6 +231,37 @@
 
             ENDCG
         }
+
+        Pass
+        {
+            Tags{"Lightmode" = "ShadowCaster"}
+
+            ZWrite On ZTest LEqual
+
+            CGPROGRAM
+            #pragma target 2.0
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "UnityCG.cginc"
+
+            float4 vert(float4 pos : POSITION) : SV_POSITION
+            {
+                float4 clipPos = UnityObjectToClipPos(pos);
+#if defined(UNITY_REVERSED_Z)
+                clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
+#else
+                clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
+#endif
+                return clipPos;
+            }
+
+            half4 frag() : SV_TARGET
+            {
+                return 0;
+            }
+            ENDCG
+        }
     }
     FallBack "VertexLit"
     CustomEditor "StandardShaderGUI"
