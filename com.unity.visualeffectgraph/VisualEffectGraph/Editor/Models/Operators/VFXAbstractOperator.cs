@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
                 throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));
             }
 
-            var propertyType = GetType().GetNestedType(GetInputPropertiesTypeName());
+            var propertyType = GetType().GetRecursiveNestedType(GetInputPropertiesTypeName());
             if (propertyType != null)
             {
                 var fields = propertyType.GetFields().Where(o => o.IsStatic && o.Name == "FallbackValue");

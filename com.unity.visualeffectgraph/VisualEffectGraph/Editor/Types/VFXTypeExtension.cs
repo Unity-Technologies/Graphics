@@ -38,5 +38,20 @@ namespace UnityEditor.VFX
             }
             return type.Name;
         }
+
+        // needed only for .NET 4.6 which make the GetNestedType non recursive
+        public static Type GetRecursiveNestedType(this Type type, string typeName)
+        {
+            do
+            {
+                Type nestedType = type.GetNestedType(typeName);
+                if (nestedType != null)
+                    return nestedType;
+                type = type.BaseType;
+            }
+            while (type != null);
+
+            return null;
+        }
     }
 }
