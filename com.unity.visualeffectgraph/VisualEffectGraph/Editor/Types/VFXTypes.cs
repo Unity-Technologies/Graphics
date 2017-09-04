@@ -16,9 +16,22 @@ namespace UnityEditor.VFX
         Camera,
         SpaceCount
     }
+
     interface Spaceable
     {
         CoordinateSpace space { get; set; }
+    }
+
+    [VFXType]
+    struct Circle : Spaceable
+    {
+        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the circle.")]
+        public Vector3 center;
+        [Tooltip("The radius of the circle.")]
+        public float radius;
     }
 
     [VFXType]
@@ -27,7 +40,9 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The centre of the sphere.")]
         public Vector3 center;
+        [Tooltip("The radius of the sphere.")]
         public float radius;
     }
 
@@ -37,8 +52,11 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The centre of the box.")]
         public Vector3 center;
+        [Tooltip("The oritentation of the box.")]
         public Vector3 angles;
+        [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
     }
 
@@ -48,7 +66,9 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The centre of the box.")]
         public Vector3 center;
+        [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
     }
 
@@ -58,7 +78,9 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The position of the plane.")]
         public Vector3 position;
+        [Tooltip("The direction of the plane.")]
         public Vector3 normal;
     }
 
@@ -68,10 +90,26 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
-        public Vector3  position;
-        public Vector3  direction;
-        public float    radius;
-        public float    height;
+        [Tooltip("The position of the cylinder.")]
+        public Vector3 position;
+        [Tooltip("The radius of the cylinder.")]
+        public float radius;
+        [Tooltip("The height of the cylinder.")]
+        public float height;
+    }
+
+    [VFXType]
+    struct Torus : Spaceable
+    {
+        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the torus.")]
+        public Vector3 center;
+        [Tooltip("The radius of the torus ring.")]
+        public float majorRadius;
+        [Tooltip("The thickness of the torus ring.")]
+        public float minorRadius;
     }
 
     [VFXType]
@@ -80,8 +118,11 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The transform position.")]
         public Vector3 position;
+        [Tooltip("The eulter angles of the transform.")]
         public Vector3 angles;
+        [Tooltip("The scale of the transform along each axis.")]
         public Vector3 scale;
     }
 
@@ -91,6 +132,7 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The position.")]
         public Vector3 position;
     }
 
@@ -100,6 +142,7 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The normalized direction.")]
         public Vector3 direction;
     }
 
@@ -109,6 +152,7 @@ namespace UnityEditor.VFX
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
+        [Tooltip("The vector.")]
         public Vector3 vector;
     }
 

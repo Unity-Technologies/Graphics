@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.CylinderVolume(inputExpression[2], inputExpression[3]) };
+            return new VFXExpression[] { VFXOperatorUtility.CylinderVolume(inputExpression[1], inputExpression[2]) };
         }
     }
 }

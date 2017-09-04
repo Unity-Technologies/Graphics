@@ -228,6 +228,21 @@ namespace UnityEditor.VFX
             return new VFXExpression[] { theta, phi, distance };
         }
 
+        static public VFXExpression CircleArea(VFXExpression radius)
+        {
+            //pi * r * r
+            var pi = VFXValue.Constant<float>(Mathf.PI);
+            return new VFXExpressionMul(pi, new VFXExpressionMul(radius, radius));
+        }
+
+        static public VFXExpression CircleCircumference(VFXExpression radius)
+        {
+            //2 * pi * r
+            var two = VFXValue.Constant<float>(2.0f);
+            var pi = VFXValue.Constant<float>(Mathf.PI);
+            return new VFXExpressionMul(two, new VFXExpressionMul(pi, radius));
+        }
+
         static public VFXExpression BoxVolume(VFXExpression dimensions)
         {
             //x * y * z
@@ -247,6 +262,12 @@ namespace UnityEditor.VFX
             //pi * r * r * h
             var pi = VFXValue.Constant<float>(Mathf.PI);
             return new VFXExpressionMul(pi, new VFXExpressionMul(new VFXExpressionMul(radius, radius), height));
+        }
+
+        static public VFXExpression TorusVolume(VFXExpression majorRadius, VFXExpression minorRadius)
+        {
+            //(pi * r * r) * (2 * pi * R)
+            return new VFXExpressionMul(CircleArea(minorRadius), CircleCircumference(majorRadius));
         }
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
