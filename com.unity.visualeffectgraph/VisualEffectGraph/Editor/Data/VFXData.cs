@@ -165,8 +165,6 @@ namespace UnityEditor.VFX
             if (nbOwners > 16)
                 throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
 
-            var keyToAttributes = new Dictionary<int, List<VFXAttribute>>();
-
             foreach (var kvp in m_AttributesToContexts)
             {
                 bool local = false;

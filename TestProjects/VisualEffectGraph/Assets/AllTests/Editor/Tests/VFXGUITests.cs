@@ -31,7 +31,6 @@ namespace UnityEditor.VFX.Test
 
         VFXViewPresenter m_ViewPresenter;
         VFXViewWindow m_Window;
-        VFXView m_View;
 
         const string testAssetName = "Assets/TmpTests/{0}.asset";
 
@@ -122,7 +121,7 @@ namespace UnityEditor.VFX.Test
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
             m_ViewPresenter = window.GetPresenter<VFXViewPresenter>();
-            m_View = m_ViewPresenter.View;
+            //m_View = m_ViewPresenter.View;
         }
 
         void DestroyTestAsset(string name)
