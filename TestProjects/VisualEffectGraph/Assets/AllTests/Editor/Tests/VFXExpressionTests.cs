@@ -206,9 +206,10 @@ namespace UnityEditor.VFX.Test
             var c = 0.8f;
             var d = 0.1f;
 
-            var refResultA = new Vector3(a.x + b.x, a.y + b.y, b.z);
-            var refResultB = new Vector3(Mathf.Sin(refResultA.x), Mathf.Sin(refResultA.y), Mathf.Sin(refResultA.z));
-            var refResultC = refResultB * c;
+            // TODO Paul: Never used ?
+            //var refResultA = new Vector3(a.x + b.x, a.y + b.y, b.z);
+            //var refResultB = new Vector3(Mathf.Sin(refResultA.x), Mathf.Sin(refResultA.y), Mathf.Sin(refResultA.z));
+            //var refResultC = refResultB * c;
             //var refResultD = new Vector3(d, d, d) - refResultC;
 
             //Using expression system

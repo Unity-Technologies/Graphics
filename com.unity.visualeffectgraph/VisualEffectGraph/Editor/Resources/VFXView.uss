@@ -135,6 +135,10 @@ VFXDataAnchor.Output #type
 	-background-color:rgba(255,0,0,255);
 }
 
+VFXOutputDataAnchor 
+{
+width : 90;
+}
 VFXOutputDataAnchor #icon
 {
 	width:16;
@@ -145,6 +149,7 @@ VFXOutputDataAnchor #type
 {
 	flex:1;
 	text-color:#c4c4c4;
+	margin-right:12;
 }
 
 /*Default*/

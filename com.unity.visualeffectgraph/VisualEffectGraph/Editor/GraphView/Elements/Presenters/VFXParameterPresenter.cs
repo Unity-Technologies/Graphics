@@ -17,7 +17,8 @@ namespace UnityEditor.VFX.UI
             var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
             anchor.Init(slot, this);
             anchor.anchorType = slot.property.type;
-            anchor.name = slot.property.type.UserFriendlyName();
+            if (slot.IsMasterSlot())
+                anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
         }
     }
@@ -25,14 +26,14 @@ namespace UnityEditor.VFX.UI
     class VFXSubParameterPresenter : IPropertyRMProvider
     {
         VFXParameterPresenter m_Parameter;
-        int m_Field;
+        //int m_Field;
         FieldInfo m_FieldInfo;
 
 
         public  VFXSubParameterPresenter(VFXParameterPresenter parameter, int field)
         {
             m_Parameter = parameter;
-            m_Field = field;
+            //m_Field = field;
 
             System.Type type = m_Parameter.anchorType;
             m_FieldInfo = type.GetFields()[field];

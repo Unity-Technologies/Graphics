@@ -2,6 +2,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
 
@@ -94,6 +95,13 @@ namespace UnityEditor.VFX.UI
 
             if (presenter.expandable)
                 m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+
+
+            string text = "";
+            string tooltip = null;
+            VFXPropertyAttribute.ApplyToGUI(presenter.attributes, ref text, ref tooltip);
+
+            TooltipExtension.AddTooltip(this, tooltip);
         }
 
         public override bool ContainsPoint(Vector2 localPoint)

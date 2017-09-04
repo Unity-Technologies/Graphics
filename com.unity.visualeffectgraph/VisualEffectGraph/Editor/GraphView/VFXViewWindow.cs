@@ -62,7 +62,6 @@ namespace  UnityEditor.VFX.UI
         {
             base.OnEnable();
             var objs = Selection.objects;
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
 
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {

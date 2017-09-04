@@ -21,6 +21,7 @@ namespace UnityEditor.VFX.UI
         public void Init(VFXBlock model, VFXContextPresenter contextPresenter)
         {
             base.Init(model, contextPresenter);
+            capabilities |= Capabilities.Selectable;
         }
 
         public VFXBlock block

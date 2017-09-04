@@ -42,6 +42,11 @@ namespace UnityEditor.VFX
             attributes = VFXPropertyAttribute.Create(info.GetCustomAttributes(true));
         }
 
+        public override int GetHashCode()
+        {
+            return 13 * name.GetHashCode() + m_serializedType.GetHashCode();
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is VFXProperty))

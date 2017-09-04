@@ -267,7 +267,7 @@ namespace UnityEditor.VFX
 
         private void InitSlotsFromProperties(string className, VFXSlot.Direction direction)
         {
-            var type = GetType().GetNestedType(className);
+            var type = GetType().GetRecursiveNestedType(className);
             var slots = GenerateSlotFromField(type, direction);
             foreach (var slot in slots)
             {
@@ -277,7 +277,7 @@ namespace UnityEditor.VFX
 
         private void InitSettings()
         {
-            var type = GetType().GetNestedType(GetSettingsTypeName());
+            var type = GetType().GetRecursiveNestedType(GetSettingsTypeName());
             if (type != null)
             {
                 if (!type.IsClass)

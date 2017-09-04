@@ -14,10 +14,15 @@ namespace UnityEditor.VFX.UI
     {
         public Preview3DPresenter()
         {
-            capabilities |= Capabilities.Movable | Capabilities.Resizable;
             title = "3D Preview";
 
             position = new Rect(100, 100, 300, 300);
+        }
+
+        public void OnEnable()
+        {
+            base.OnEnable();
+            capabilities |= Capabilities.Movable | Capabilities.Resizable;
         }
     }
     class Preview3D : GraphElement
