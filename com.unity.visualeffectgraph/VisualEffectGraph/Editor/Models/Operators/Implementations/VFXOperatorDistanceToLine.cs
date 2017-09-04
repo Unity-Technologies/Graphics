@@ -15,6 +15,14 @@ namespace UnityEditor.VFX
             public Position position = new Position();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The closest point on the line to the supplied position.")]
+            public Vector3 closestPosition;
+            [Tooltip("The distance from the line.")]
+            public float distance;
+        }
+
         override public string name { get { return "Distance (Line)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
