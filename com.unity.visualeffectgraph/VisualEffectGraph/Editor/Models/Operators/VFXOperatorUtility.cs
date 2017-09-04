@@ -163,6 +163,19 @@ namespace UnityEditor.VFX
             return Lerp(newRangeMin, newRangeMax, percent);
         }
 
+        static public VFXExpression Smoothstep(VFXExpression x, VFXExpression y, VFXExpression s)
+        {
+            VFXExpression t = new VFXExpressionDivide(new VFXExpressionSubtract(s, x), new VFXExpressionSubtract(y, x));
+            t = Clamp(t, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+
+            VFXExpression result = new VFXExpressionSubtract(VFXValue.Constant(3.0f), new VFXExpressionMul(VFXValue.Constant(2.0f), t));
+
+            result = new VFXExpressionMul(result, t);
+            result = new VFXExpressionMul(result, t);
+
+            return result;
+        }
+
         static public VFXExpression ColorLuma(VFXExpression color)
         {
             //(0.299*R + 0.587*G + 0.114*B)
