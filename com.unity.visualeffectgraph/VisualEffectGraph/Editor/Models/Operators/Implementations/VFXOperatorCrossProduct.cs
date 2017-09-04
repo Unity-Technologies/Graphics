@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Vector")]
-	class VFXOperatorCrossProduct : VFXOperator
+    [VFXInfo(category = "Vector")]
+    class VFXOperatorCrossProduct : VFXOperator
     {
         public class InputProperties
         {
-			[Tooltip("The first operand.")]
-			public Vector3 a = Vector3.right;
-			[Tooltip("The second operand.")]
-			public Vector3 b = Vector3.up;
+            [Tooltip("The first operand.")]
+            public Vector3 a = Vector3.right;
+            [Tooltip("The second operand.")]
+            public Vector3 b = Vector3.up;
         }
 
         override public string name { get { return "Cross Product"; } }

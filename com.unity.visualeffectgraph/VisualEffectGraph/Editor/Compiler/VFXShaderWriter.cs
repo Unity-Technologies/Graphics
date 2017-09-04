@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -43,7 +44,23 @@ namespace UnityEditor.VFX
                     break;
                 default: throw new Exception("GetValueString missing type: " + type);
             }
-            return string.Format(format, VFXExpression.TypeToCode(type), value.ToString().ToLower());
+            // special cases of ToString
+            switch (type)
+            {
+                case VFXValueType.kBool:
+                    value = value.ToString().ToLower();
+                    break;
+                case VFXValueType.kFloat2:
+                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1})", ((Vector2)value).x, ((Vector2)value).y);
+                    break;
+                case VFXValueType.kFloat3:
+                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2})", ((Vector3)value).x, ((Vector3)value).y, ((Vector3)value).z);
+                    break;
+                case VFXValueType.kFloat4:
+                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2},{3})", ((Vector4)value).x, ((Vector4)value).y, ((Vector4)value).z, ((Vector4)value).w);
+                    break;
+            }
+            return string.Format(CultureInfo.InvariantCulture, format, VFXExpression.TypeToCode(type), value);
         }
 
         public static string GetMultilineWithPrefix(string str, string linePrefix)

@@ -3,15 +3,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Vector")]
-	class VFXOperatorDistance : VFXOperatorFloatUnified
+    [VFXInfo(category = "Vector")]
+    class VFXOperatorDistance : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-			[Tooltip("The first operand.")]
-			public FloatN a = Vector3.zero;
-			[Tooltip("The second operand.")]
-			public FloatN b = Vector3.zero;
+            [Tooltip("The first operand.")]
+            public FloatN a = Vector3.zero;
+            [Tooltip("The second operand.")]
+            public FloatN b = Vector3.zero;
         }
 
         override public string name { get { return "Distance"; } }

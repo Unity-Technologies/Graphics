@@ -1,10 +1,10 @@
 using System;
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorReciprocal : VFXOperatorUnaryFloatOperation
+    [VFXInfo(category = "Math")]
+    class VFXOperatorReciprocal : VFXOperatorUnaryFloatOperation
     {
-		override public string name { get { return "Reciprocal (1/x)"; } }
+        override public string name { get { return "Reciprocal (1/x)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

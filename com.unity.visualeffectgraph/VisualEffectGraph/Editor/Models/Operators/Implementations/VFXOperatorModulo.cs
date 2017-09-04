@@ -3,15 +3,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorModulo : VFXOperatorFloatUnified
+    [VFXInfo(category = "Math")]
+    class VFXOperatorModulo : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-			[Tooltip("The numerator operand.")]
-			public FloatN a = new FloatN(1.0f);
-			[Tooltip("The denominator operand.")]
-			public FloatN b = new FloatN(1.0f);
+            [Tooltip("The numerator operand.")]
+            public FloatN a = new FloatN(1.0f);
+            [Tooltip("The denominator operand.")]
+            public FloatN b = new FloatN(1.0f);
         }
 
         override public string name { get { return "Modulo"; } }

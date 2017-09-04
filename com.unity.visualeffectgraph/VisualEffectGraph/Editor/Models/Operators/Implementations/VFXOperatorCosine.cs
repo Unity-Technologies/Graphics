@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorCosine : VFXOperatorUnaryFloatOperation
+    [VFXInfo(category = "Math")]
+    class VFXOperatorCosine : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Cosine"; } }
 

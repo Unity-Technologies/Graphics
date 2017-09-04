@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorPower : VFXOperatorBinaryFloatOperationOne
+    [VFXInfo(category = "Math")]
+    class VFXOperatorPower : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Power"; } }
 

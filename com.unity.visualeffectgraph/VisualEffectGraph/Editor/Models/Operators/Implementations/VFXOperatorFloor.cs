@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorFloor : VFXOperatorUnaryFloatOperation
+    [VFXInfo(category = "Math")]
+    class VFXOperatorFloor : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Floor"; } }
 

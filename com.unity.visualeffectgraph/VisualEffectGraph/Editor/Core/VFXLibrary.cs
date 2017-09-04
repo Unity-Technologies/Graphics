@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptorCustomSpawnerBlock : VFXModelDescriptor<VFXBlock>
     {
-        public VFXModelDescriptorCustomSpawnerBlock(Type customType) : base(new VFXSpawnerCustomWrapper())
+        public VFXModelDescriptorCustomSpawnerBlock(Type customType) : base(ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>())
         {
             (m_Template as VFXSpawnerCustomWrapper).Init(customType);
         }

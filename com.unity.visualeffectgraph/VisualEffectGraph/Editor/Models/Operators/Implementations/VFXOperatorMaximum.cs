@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorMaximum : VFXOperatorBinaryFloatOperationOne
+    [VFXInfo(category = "Math")]
+    class VFXOperatorMaximum : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Maximum"; } }
 

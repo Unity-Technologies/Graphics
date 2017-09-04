@@ -10,8 +10,7 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-
-            title = builtInParameter.expressionOp.ToString() + " " + model.m_OnEnabledCount;
+            title = builtInParameter.expressionOp.ToString();
         }
     }
 }

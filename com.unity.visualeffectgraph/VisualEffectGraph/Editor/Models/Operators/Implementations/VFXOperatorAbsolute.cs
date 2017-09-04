@@ -1,8 +1,8 @@
 using System;
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorAbsolute : VFXOperatorUnaryFloatOperation
+    [VFXInfo(category = "Math")]
+    class VFXOperatorAbsolute : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Absolute"; } }
 

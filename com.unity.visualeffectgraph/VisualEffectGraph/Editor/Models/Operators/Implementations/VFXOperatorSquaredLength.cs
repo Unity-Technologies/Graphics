@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Vector")]
-	class VFXOperatorSquaredLength : VFXOperatorFloatUnified
+    [VFXInfo(category = "Vector")]
+    class VFXOperatorSquaredLength : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
-			[Tooltip("The vector used to calculate the squared length.")]
-			public FloatN x = Vector3.one;
+            [Tooltip("The vector used to calculate the squared length.")]
+            public FloatN x = Vector3.one;
         }
 
         override public string name { get { return "Squared Length"; } }

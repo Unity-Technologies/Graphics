@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEditor.VFX
 {
-	[VFXInfo(category = "Math")]
-	class VFXOperatorFractionalPart : VFXOperatorUnaryFloatOperation
+    [VFXInfo(category = "Math")]
+    class VFXOperatorFractionalPart : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Fractional Part"; } }
 

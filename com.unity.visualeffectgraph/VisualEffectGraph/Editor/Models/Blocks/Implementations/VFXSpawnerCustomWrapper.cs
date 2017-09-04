@@ -13,7 +13,8 @@ namespace UnityEditor.VFX
         public void Init(Type customType)
         {
             m_customType = customType;
-            var inputPropertiesType = customType.GetNestedType("InputProperties");
+            var inputPropertiesType = customType.GetRecursiveNestedType("InputProperties");
+
             var slots = GenerateSlotFromField(inputPropertiesType, VFXSlot.Direction.kInput);
             foreach (var slot in slots)
             {

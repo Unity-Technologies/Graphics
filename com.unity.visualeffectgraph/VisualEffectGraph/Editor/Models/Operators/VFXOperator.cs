@@ -74,11 +74,10 @@ namespace UnityEditor.VFX
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
                     var expression = outputExpressionArray[iSlot];
-                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "o"), VFXSlot.Direction.kOutput));
+                    var name = (iSlot < slotToRemove.Length) ? slotToRemove[iSlot].name : "o";
+                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), name), VFXSlot.Direction.kOutput));
                     if (iSlot < slotToRemove.Length)
-                    {
                         CopyLink(slotToRemove[iSlot], outputSlots.Last());
-                    }
                 }
 
                 foreach (var slot in slotToRemove)

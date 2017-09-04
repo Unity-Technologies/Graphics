@@ -87,7 +87,6 @@ namespace UnityEditor.VFX.UI
     {
         Vector3[] m_PrevControlPoints;
         float m_PrevRealWidth = Mathf.Infinity;
-        Color32 m_PrevColor;
 
         Mesh m_Mesh;
 
@@ -135,7 +134,7 @@ namespace UnityEditor.VFX.UI
 
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
-            float realWidth = selected ? edgeWidth * 2 : edgeWidth;
+            float realWidth = edgeWidth;
             if (realWidth * view.scale < 1.5f)
             {
                 realWidth = 1.5f / view.scale;
@@ -176,10 +175,9 @@ namespace UnityEditor.VFX.UI
                     m_Mesh.triangles = new int[] {};
                 }
 
-                float halfWidth = realWidth * 0.5f + 0.5f;
+                float halfWidth = realWidth * 0.5f;
 
                 float vertexHalfWidth = halfWidth + 2;
-                int index;
 
                 for (int i = 0; i < cpt; ++i)
                 {
@@ -214,18 +212,6 @@ namespace UnityEditor.VFX.UI
                 m_Mesh.vertices = vertices;
                 m_Mesh.uv = uvs;
 
-                Color32 color32 = edgeColor;
-                if (newIndices || !m_PrevColor.Equals(color32))
-                {
-                    m_PrevColor = color32;
-                    Color32[] colors = new Color32[wantedLength];
-                    for (int i = 0; i < wantedLength; ++i)
-                    {
-                        colors[i] = color32;
-                    }
-                    m_Mesh.colors32 = colors;
-                }
-
                 if (newIndices)
                 {
                     //fill triangle indices as it is a triangle strip
@@ -254,8 +240,15 @@ namespace UnityEditor.VFX.UI
                 m_Mesh.RecalculateBounds();
             }
 
+            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+
+            VFXEdgeUtils.lineMat.SetFloat("_ZoomFactor", view.scale);
+            VFXEdgeUtils.lineMat.SetColor("_Color", edgeColor);
             VFXEdgeUtils.lineMat.SetPass(0);
+
+
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
+            GL.sRGBWrite = false;
         }
 
         protected override void DrawEndpoint(Vector2 pos, bool start)

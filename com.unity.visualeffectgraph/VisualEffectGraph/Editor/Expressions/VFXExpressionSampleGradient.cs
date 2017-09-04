@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
 
             var gradient = gradientReduce.Get<Gradient>();
             var time = timeReduce.Get<float>();
-            return VFXValue<Vector4>.Constant(gradient.Evaluate(time));
+            return VFXValue.Constant((Vector4)gradient.Evaluate(time));
         }
 
         public sealed override string GetCodeString(string[] parents)

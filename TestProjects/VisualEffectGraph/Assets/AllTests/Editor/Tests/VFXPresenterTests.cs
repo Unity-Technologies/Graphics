@@ -223,7 +223,7 @@ namespace UnityEditor.VFX.Test
             var addDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Add");
             var add = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), addDesc);
 
-            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             var abs = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), absDesc);
 
             var absPresenter = fnFindPresenter(abs);
@@ -269,10 +269,10 @@ namespace UnityEditor.VFX.Test
                     return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
-            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             var abs = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), absDesc); fnResync();
 
-            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cos");
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
             var cos = m_ViewPresenter.AddVFXOperator(new Vector2(200, 100), cosDesc); fnResync();
 
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
