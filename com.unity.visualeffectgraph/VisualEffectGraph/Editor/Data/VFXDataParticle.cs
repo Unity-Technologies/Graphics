@@ -34,6 +34,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public uint bufferSize
+        {
+            get
+            {
+                return (uint)m_BucketOffsets.LastOrDefault() + m_Capacity * (uint)m_BucketSizes.LastOrDefault();
+            }
+        }
+
         public Bounds bbox
         {
             get { return m_Bounds; }

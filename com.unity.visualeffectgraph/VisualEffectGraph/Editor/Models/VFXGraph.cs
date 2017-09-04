@@ -564,6 +564,23 @@ namespace UnityEditor.VFX
                         }
                     }
 
+                    var listDesc = new List<VFXBufferDesc>();
+                    foreach (var data in models.OfType<VFXDataParticle>())
+                    {
+                        if (data.bufferSize > 0)
+                        {
+                            listDesc.Add(new VFXBufferDesc()
+                            {
+                                capacity = data.bufferSize,
+                                stride = 1,
+                                type = ComputeBufferType.Default,
+                            });
+                        }
+                    }
+                    var taskDesc = new VFXTasksDesc();
+                    taskDesc.buffers = listDesc.ToArray();
+                    vfxAsset.SetTasks(taskDesc);
+
                     foreach (var component in VFXComponent.GetAllActive())
                     {
                         if (component.vfxAsset == vfxAsset)
