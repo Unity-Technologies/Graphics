@@ -166,18 +166,18 @@ namespace UnityEditor.VFX
         static public VFXExpression ColorLuma(VFXExpression color)
         {
             //(0.299*R + 0.587*G + 0.114*B)
-            var coefficients = VFXValue.Constant<Vector4>(new Vector4(0.299f, 0.587f, 0.114f, 0.0f));
+            var coefficients = VFXValue.Constant(new Vector4(0.299f, 0.587f, 0.114f, 0.0f));
             return Dot(color, coefficients);
         }
 
         static public VFXExpression DegToRad(VFXExpression degrees)
         {
-            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>(Mathf.PI / 180.0f), degrees.ValueType));
+            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant(Mathf.PI / 180.0f), degrees.ValueType));
         }
 
         static public VFXExpression RadToDeg(VFXExpression radians)
         {
-            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / Mathf.PI), radians.ValueType));
+            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant(180.0f / Mathf.PI), radians.ValueType));
         }
 
         static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression radius)
@@ -231,15 +231,15 @@ namespace UnityEditor.VFX
         static public VFXExpression CircleArea(VFXExpression radius)
         {
             //pi * r * r
-            var pi = VFXValue.Constant<float>(Mathf.PI);
+            var pi = VFXValue.Constant(Mathf.PI);
             return new VFXExpressionMul(pi, new VFXExpressionMul(radius, radius));
         }
 
         static public VFXExpression CircleCircumference(VFXExpression radius)
         {
             //2 * pi * r
-            var two = VFXValue.Constant<float>(2.0f);
-            var pi = VFXValue.Constant<float>(Mathf.PI);
+            var two = VFXValue.Constant(2.0f);
+            var pi = VFXValue.Constant(Mathf.PI);
             return new VFXExpressionMul(two, new VFXExpressionMul(pi, radius));
         }
 
@@ -253,14 +253,14 @@ namespace UnityEditor.VFX
         static public VFXExpression SphereVolume(VFXExpression radius)
         {
             //(4 / 3) * pi * r * r * r
-            var multiplier = VFXValue.Constant<float>((4.0f / 3.0f) * Mathf.PI);
+            var multiplier = VFXValue.Constant((4.0f / 3.0f) * Mathf.PI);
             return new VFXExpressionMul(multiplier, new VFXExpressionMul(new VFXExpressionMul(radius, radius), radius));
         }
 
         static public VFXExpression CylinderVolume(VFXExpression radius, VFXExpression height)
         {
             //pi * r * r * h
-            var pi = VFXValue.Constant<float>(Mathf.PI);
+            var pi = VFXValue.Constant(Mathf.PI);
             return new VFXExpressionMul(pi, new VFXExpressionMul(new VFXExpressionMul(radius, radius), height));
         }
 
@@ -268,6 +268,12 @@ namespace UnityEditor.VFX
         {
             //(pi * r * r) * (2 * pi * R)
             return new VFXExpressionMul(CircleArea(minorRadius), CircleCircumference(majorRadius));
+        }
+
+        static public VFXExpression SignedDistanceToPlane(VFXExpression planePosition, VFXExpression planeNormal, VFXExpression position)
+        {
+            VFXExpression d = Dot(planePosition, planeNormal);
+            return new VFXExpressionSubtract(Dot(position, planeNormal), d);
         }
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)

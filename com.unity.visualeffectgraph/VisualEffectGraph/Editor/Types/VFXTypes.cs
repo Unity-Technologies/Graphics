@@ -113,6 +113,18 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct Line : Spaceable
+    {
+        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The start position of the line.")]
+        public Vector3 start;
+        [Tooltip("The end position of the line.")]
+        public Vector3 end;
+    }
+
+    [VFXType]
     struct Transform : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
