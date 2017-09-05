@@ -140,7 +140,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 }
 #endif
 
-#ifdef _LIGHT_PROBES_ON
+#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 

@@ -140,7 +140,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
-            Debug.Log(GraphicsSettings.lightsUseLinearIntensity);
 
             foreach (Camera camera in cameras)
             {
@@ -180,7 +179,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (!lightData.isSingleLight)
                     configuration |= RendererConfiguration.PerObjectLightIndices8;
-
 
                 PostProcessLayer postProcessLayer = GetCurrCameraPostProcessLayer();
                 bool postProcessEnabled = postProcessLayer != null && postProcessLayer.enabled;
