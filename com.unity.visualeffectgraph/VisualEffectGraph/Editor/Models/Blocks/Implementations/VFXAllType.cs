@@ -44,11 +44,9 @@ namespace UnityEditor.VFX
             Euler
         }
 
-        [System.Serializable]
-        public class Settings
-        {
-            public RotateMode mode;
-            public bool rotateTwice;
-        }
+        [VFXSetting]
+        public RotateMode mode;
+        [VFXSetting]
+        public bool rotateTwice;
     }
 }

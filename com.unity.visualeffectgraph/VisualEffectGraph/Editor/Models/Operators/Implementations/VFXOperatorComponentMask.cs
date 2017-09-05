@@ -18,19 +18,18 @@ namespace UnityEditor.VFX
             None = -1,
         }
 
-        public class Settings
-        {
-            public Component x = Component.X;
-            public Component y = Component.Y;
-            public Component z = Component.Z;
-            public Component w = Component.W;
-        }
+        [VFXSetting]
+        public Component x = Component.X;
+        [VFXSetting]
+        public Component y = Component.Y;
+        [VFXSetting]
+        public Component z = Component.Z;
+        [VFXSetting]
+        public Component w = Component.W;
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var settings = GetSettings<Settings>();
-
-            var mask = new Component[4] { settings.x, settings.y, settings.z, settings.w };
+            var mask = new Component[4] { x, y, z, w };
             // var mask = new Component[4] { Component.X, Component.Y, Component.Z, Component.W };
             int maskSize = 4;
             while (maskSize > 1 && mask[maskSize - 1] == Component.None) --maskSize;

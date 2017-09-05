@@ -14,11 +14,8 @@ namespace UnityEditor.VFX
             None
         }
 
-        [Serializable]
-        public class Settings
-        {
-            public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
-        }
+        [VFXSetting]
+        public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
@@ -29,10 +26,9 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var settings = GetSettings<Settings>();
                 var data = GetData();
 
-                if (settings.integration != VFXIntegrationMode.None && data.AttributeExists(VFXAttribute.Velocity))
+                if (integration != VFXIntegrationMode.None && data.AttributeExists(VFXAttribute.Velocity))
                     yield return CreateInstance<VFXEulerIntegration>();
 
                 if (GetData().AttributeExists(VFXAttribute.Lifetime))

@@ -20,11 +20,10 @@ namespace UnityEditor.VFX
             Dithered
         }
 
-        public class Settings
-        {
-            public bool useSoftParticle = false;
-            public BlendMode blendMode = BlendMode.Alpha;
-        }
+        [VFXSetting]
+        bool useSoftParticle = false;
+        [VFXSetting]
+        BlendMode blendMode = BlendMode.Alpha;
 
         public class InputProperties
         {
@@ -33,9 +32,8 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var settings = GetSettings<Settings>();
             var gpuMapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
-            if (target == VFXDeviceTarget.GPU && settings.useSoftParticle)
+            if (target == VFXDeviceTarget.GPU && useSoftParticle)
             {
                 var softParticleFade = GetExpressionsFromSlots(this).First(o => o.name == "softParticlesFadeDistance");
                 var invSoftParticleFade = new VFXExpressionDivide(VFXValue.Constant(1.0f), softParticleFade.exp);
@@ -49,8 +47,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var settings = GetSettings<Settings>();
-                if (settings.useSoftParticle)
+                if (useSoftParticle)
                 {
                     yield return "USE_SOFT_PARTICLE";
                 }
@@ -61,15 +58,14 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var setting = GetSettings<Settings>();
                 var renderState = new VFXShaderWriter();
 
-                if (setting.blendMode == BlendMode.Additive)
+                if (blendMode == BlendMode.Additive)
                     renderState.WriteLine("Blend SrcAlpha One");
-                else if (setting.blendMode == BlendMode.Alpha)
+                else if (blendMode == BlendMode.Alpha)
                     renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
                 renderState.WriteLine("ZTest LEqual");
-                if (setting.blendMode == BlendMode.Masked || setting.blendMode == BlendMode.Dithered)
+                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Dithered)
                     renderState.WriteLine("ZWrite On");
                 else
                     renderState.WriteLine("ZWrite Off");
