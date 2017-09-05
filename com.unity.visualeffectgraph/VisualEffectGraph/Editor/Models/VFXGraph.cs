@@ -577,9 +577,7 @@ namespace UnityEditor.VFX
                             });
                         }
                     }
-                    var taskDesc = new VFXTasksDesc();
-                    taskDesc.buffers = listDesc.ToArray();
-                    vfxAsset.SetTasks(taskDesc);
+                    vfxAsset.SetSystem(new VFXSystemDesc[] {}, listDesc.ToArray());
 
                     foreach (var component in VFXComponent.GetAllActive())
                     {
