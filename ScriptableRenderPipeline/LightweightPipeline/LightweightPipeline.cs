@@ -115,10 +115,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 QualitySettings.antiAliasing = m_Asset.MSAASampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
-
-            // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
-            // instead this should be forced when using SRP, since all SRP use linear lighting.
-            GraphicsSettings.lightsUseLinearIntensity = true;
         }
 
         public override void Dispose()
@@ -140,6 +136,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             base.Render(context, cameras);
 
             bool stereoEnabled = XRSettings.isDeviceActive;
+
+            // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
+            // instead this should be forced when using SRP, since all SRP use linear lighting.
+            GraphicsSettings.lightsUseLinearIntensity = true;
+            Debug.Log(GraphicsSettings.lightsUseLinearIntensity);
 
             foreach (Camera camera in cameras)
             {
@@ -670,8 +671,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_CurrCamera.clearFlags != CameraClearFlags.Nothing)
             {
                 bool clearDepth = (m_CurrCamera.clearFlags != CameraClearFlags.Nothing);
-                bool clearColor = (m_CurrCamera.clearFlags == CameraClearFlags.Color);
-                cmd.ClearRenderTarget(clearDepth, clearColor, m_CurrCamera.backgroundColor);
+                bool clearColor = (m_CurrCamera.clearFlags == CameraClearFlags.Color || m_CurrCamera.clearFlags == CameraClearFlags.Skybox);
+                cmd.ClearRenderTarget(clearDepth, clearColor, m_CurrCamera.backgroundColor.linear);
             }
 
             context.ExecuteCommandBuffer(cmd);
