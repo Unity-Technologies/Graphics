@@ -666,6 +666,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CurrentActive);
             }
 
+            if (!stereoEnabled)
+            {
+                Rect viewport = m_CurrCamera.rect;
+                viewport.x *= Screen.width;
+                viewport.y *= Screen.height;
+                viewport.width *= Screen.width;
+                viewport.height *= Screen.height;
+                cmd.SetViewport(viewport);
+            }
+
             // Clear RenderTarget to avoid tile initialization on mobile GPUs
             // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
             if (m_CurrCamera.clearFlags != CameraClearFlags.Nothing)
