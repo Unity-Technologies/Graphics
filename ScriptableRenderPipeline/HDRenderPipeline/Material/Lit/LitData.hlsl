@@ -1133,8 +1133,8 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
     // The epsilon here also has to be bigger than the epsilon in the next computation.
     float transition = max(_HeightTransition, 1e-5);
 
-    // The goal here is to have all but the heighest layer at negative heights, then we add the transition so that if the next heighest layer is near transition it will have a positive value.
-    // Then we clamp this to zero and normalize everything so that heighest layer has a value of 1.
+    // The goal here is to have all but the highest layer at negative heights, then we add the transition so that if the next highest layer is near transition it will have a positive value.
+    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
     maskedHeights = maskedHeights - maxHeight.xxxx;
     // We need to add an epsilon here for active layers (hence the blendMask again) so that at least a layer shows up if everything's too low.
     maskedHeights = (max(0, maskedHeights + transition) + 1e-6) * blendMask.argb;
@@ -1216,7 +1216,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 
 #if defined(_DENSITY_MODE)
     // Note: blendMasks.argb because a is main layer
-    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0);
+    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
     float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
     blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
 #endif
