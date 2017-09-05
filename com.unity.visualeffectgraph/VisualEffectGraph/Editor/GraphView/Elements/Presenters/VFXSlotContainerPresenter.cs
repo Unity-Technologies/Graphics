@@ -15,18 +15,15 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(model, viewPresenter);
 
-            object settings = slotContainer.settings;
-            if (settings != null)
+            var settings = VFXSettingAttribute.Collect(model);
+            m_Settings = new VFXSettingPresenter[settings.Count()];
+            int cpt = 0;
+            foreach (var setting in settings)
             {
-                m_Settings = new VFXSettingPresenter[settings.GetType().GetFields().Length];
-                int cpt = 0;
-                foreach (var member in settings.GetType().GetFields())
-                {
-                    VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
+                VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
 
-                    settingPresenter.Init(this.slotContainer, member.Name, member.FieldType);
-                    m_Settings[cpt++] = settingPresenter;
-                }
+                settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
+                m_Settings[cpt++] = settingPresenter;
             }
             OnInvalidate(model, VFXModel.InvalidationCause.kStructureChanged);
             viewPresenter.AddInvalidateDelegate(model, OnInvalidate);

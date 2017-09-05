@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (anchorType != null)
                 {
-                    return VFXConverter.ConvertTo(owner.settings.GetType().GetField(name).GetValue(owner.settings), anchorType);
+                    return VFXConverter.ConvertTo(owner.GetType().GetField(name).GetValue(owner), anchorType);
                 }
                 else
                 {
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var customAttributes = owner.settings.GetType().GetField(path).GetCustomAttributes(true);
+                var customAttributes = owner.GetType().GetField(path).GetCustomAttributes(true);
                 return customAttributes;
             }
         }
