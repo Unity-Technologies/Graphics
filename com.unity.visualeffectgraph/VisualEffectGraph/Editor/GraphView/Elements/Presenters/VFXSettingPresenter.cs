@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
 
@@ -33,7 +34,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (anchorType != null)
                 {
-                    return VFXConverter.ConvertTo(owner.GetType().GetField(name).GetValue(owner), anchorType);
+                    return VFXConverter.ConvertTo(owner.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(owner), anchorType);
                 }
                 else
                 {
@@ -95,7 +96,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var customAttributes = owner.GetType().GetField(path).GetCustomAttributes(true);
+                var customAttributes = owner.GetType().GetField(path, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetCustomAttributes(true);
                 return customAttributes;
             }
         }
