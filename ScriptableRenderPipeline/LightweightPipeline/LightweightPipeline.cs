@@ -631,7 +631,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var cmd = CommandBufferPool.Get("SetCameraRenderTarget");
             if (m_RenderToIntermediateTarget)
             {
-                if (m_CurrCamera.activeTexture == null)
+                if (m_CurrCamera.targetTexture == null)
                 {
                     m_IntermediateTextureArray = false;
                     if (stereoEnabled)
@@ -669,10 +669,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (!stereoEnabled)
             {
                 Rect viewport = m_CurrCamera.rect;
-                viewport.x *= Screen.width;
-                viewport.y *= Screen.height;
-                viewport.width *= Screen.width;
-                viewport.height *= Screen.height;
+                if (m_CurrCamera.targetTexture == null)
+                {
+                    viewport.x *= Screen.width;
+                    viewport.y *= Screen.height;
+                    viewport.width *= Screen.width;
+                    viewport.height *= Screen.height;
+                }
+                else
+                {
+                    viewport = new Rect(0.0f, 0.0f, m_CurrCamera.targetTexture.width, m_CurrCamera.targetTexture.height);
+                }
+
                 cmd.SetViewport(viewport);
             }
 
@@ -735,7 +743,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool GetRenderToIntermediateTarget()
         {
             bool allowMSAA = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && !PlatformSupportsMSAABackBuffer();
-            if (m_CurrCamera.cameraType == CameraType.SceneView || allowMSAA || m_CurrCamera.activeTexture != null)
+            if (m_CurrCamera.cameraType == CameraType.SceneView || allowMSAA || m_CurrCamera.targetTexture != null)
                 return true;
 
             return false;
