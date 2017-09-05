@@ -199,7 +199,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                     INITIALIZE_LIGHT(lightData, lightIndex);
                     half lightAtten = ComputeLightAttenuation(lightData, normal, worldPos, lightDirection);
 #ifdef _SHADOWS
-                    lightAtten *= max(shadowAttenuation, half(lightIter != _ShadowData.x));
+                    lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
 #endif
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS

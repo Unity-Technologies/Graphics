@@ -214,7 +214,7 @@
                     INITIALIZE_LIGHT(light, lightIndex);
                     half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 #ifdef _SHADOWS
-                    lightAtten *= max(shadowAttenuation, half(lightIter != _ShadowData.x));
+                    lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
 #endif
                     half NdotL = saturate(dot(normal, lightDirection));
                     half RdotL = saturate(dot(reflectVec, lightDirection));
