@@ -106,7 +106,7 @@
 
                 float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 o.posWS.xyz = worldPos;
-                
+
                 half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
                 o.viewDir.xyz = viewDir;
 #ifndef _METALLICGLOSSMAP
@@ -130,7 +130,7 @@
 
                 o.posWS.w = Pow4(1 - saturate(dot(normal, viewDir))); // fresnel term
 
-#ifdef _LIGHT_PROBES_ON
+#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 
@@ -165,7 +165,7 @@
                 half3 specColor;
 
                 half3 diffColor = DiffuseAndSpecularFromMetallic(albedo, metallicGloss.x, specColor, oneMinusReflectivity);
-                
+
                 half3 normal;
                 NormalMap(i, normal);
 
