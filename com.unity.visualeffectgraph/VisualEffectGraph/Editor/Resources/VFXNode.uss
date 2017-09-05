@@ -20,9 +20,9 @@
 	text-color: #c4c4c4;
 }
 
-.VFXNodeUI.node.horizontal #pane > #left
+.VFXNodeUI.node.horizontal .mainContainer > #left
 {
-	width:250;
+	width:280;
 }
 
 .VFXNodeUI.node.horizontal #pane > #right
