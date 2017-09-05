@@ -12,9 +12,5 @@ MonoBehaviour:
   m_Name: CommonSettings_Cascaded
   m_EditorClassIdentifier: 
   m_Settings:
-    m_ShadowMaxDistance: 800
-    m_ShadowCascadeCount: 4
-    m_ShadowCascadeSplit0: 0.05
-    m_ShadowCascadeSplit1: 0.2
-    m_ShadowCascadeSplit2: 0.3
+    m_ShadowMaxDistance: 500
     m_ShadowNearPlaneOffset: 10

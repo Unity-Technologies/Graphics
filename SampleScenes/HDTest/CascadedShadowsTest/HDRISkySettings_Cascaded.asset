@@ -17,4 +17,5 @@ MonoBehaviour:
   resolution: 256
   updateMode: 0
   updatePeriod: 0
-  skyHDRI: {fileID: 0}
+  lightingOverride: {fileID: 0}
+  skyHDRI: {fileID: 8900000, guid: a615f6de0224d55408b4e74da3b0bac0, type: 3}
