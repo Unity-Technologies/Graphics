@@ -252,10 +252,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             Unsupported.SetOverrideRenderSettings(m_Scene);
 
+            RenderTexture.active = m_RenderTexture;
+            GL.Clear(true, true, Color.black);
             m_CheckerboardMaterial.SetFloat("_X", 32);
             m_CheckerboardMaterial.SetFloat("_Y", 32);
             Graphics.Blit(Texture2D.whiteTexture, m_RenderTexture, m_CheckerboardMaterial);
-
             if (mode == PreviewMode.Preview3D)
             {
                 m_Camera.transform.position = -Vector3.forward * 5;
@@ -269,6 +270,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographicSize = 1;
                 m_Camera.orthographic = true;
             }
+
+            m_Camera.targetTexture = m_RenderTexture;
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_Camera, time);
             Light0.enabled = true;
