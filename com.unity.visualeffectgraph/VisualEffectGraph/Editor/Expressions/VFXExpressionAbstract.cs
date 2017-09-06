@@ -47,18 +47,7 @@ namespace UnityEditor.VFX
 
         public static int TypeToSize(VFXValueType type)
         {
-            switch (type)
-            {
-                case VFXValueType.kFloat: return 1;
-                case VFXValueType.kFloat2: return 2;
-                case VFXValueType.kFloat3: return 3;
-                case VFXValueType.kFloat4: return 4;
-                case VFXValueType.kInt: return 1;
-                case VFXValueType.kUint: return 1;
-                case VFXValueType.kBool: return 1;
-                case VFXValueType.kTransform: return 16;
-            }
-            throw new NotImplementedException(type.ToString());
+            return VFXExpressionHelper.GetSizeOfType(type);
         }
 
         public static string TypeToCode(VFXValueType type)
@@ -146,7 +135,6 @@ namespace UnityEditor.VFX
                 case VFXValueType.kBool:
                     return true;
             }
-
             return false;
         }
 
@@ -207,9 +195,7 @@ namespace UnityEditor.VFX
         public int[] GetOperands(VFXExpressionGraph graph)
         {
             var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
-            var additionnalParameter = additionnalOperands;
-
-            if (parentsIndex.Length + additionnalParameter.Length > 4)
+            if (parentsIndex.Length + additionnalOperands.Length > 4)
                 throw new Exception("Too much parameter for expression : " + this);
 
             var data = new int[] { -1, -1, -1, -1};
@@ -218,9 +204,9 @@ namespace UnityEditor.VFX
                 data[i] = parentsIndex[i];
             }
 
-            for (int i = 0; i < additionnalParameter.Length; ++i)
+            for (int i = 0; i < additionnalOperands.Length; ++i)
             {
-                data[data.Length - additionnalParameter.Length + i] = additionnalParameter[i];
+                data[data.Length - additionnalOperands.Length + i] = additionnalOperands[i];
             }
             return data;
         }
