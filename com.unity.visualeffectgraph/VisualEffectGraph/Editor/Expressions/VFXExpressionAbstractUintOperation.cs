@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
+        sealed public override VFXExpressionOp operation { get { return m_Operation; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
         {
-            if (!IsUIntValueType(parent.ValueType))
+            if (!IsUIntValueType(parent.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
             }
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation) : base(new VFXExpression[2] { parentLeft, parentRight })
         {
-            if (!IsUIntValueType(parentLeft.ValueType) || !IsUIntValueType(parentRight.ValueType))
+            if (!IsUIntValueType(parentLeft.valueType) || !IsUIntValueType(parentRight.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation (not uint type)");
             }

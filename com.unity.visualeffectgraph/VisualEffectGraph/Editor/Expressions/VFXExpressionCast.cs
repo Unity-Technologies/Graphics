@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {

@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
                 if (attributesCurrent.Any(o => o.attrib.name == attribute.name))
                 {
                     var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Current));
-                    r.WriteVariable(reference.ValueType, name, reference.GetCodeString(null));
+                    r.WriteVariable(reference.valueType, name, reference.GetCodeString(null));
                 }
                 else
                 {
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
             var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name)).ToArray();
             foreach (var namedExpression in filteredNamedExpressions)
             {
-                r.WriteVariable(namedExpression.exp.ValueType, namedExpression.name, "0");
+                r.WriteVariable(namedExpression.exp.valueType, namedExpression.name, "0");
                 r.WriteLine();
             }
 
@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
                     r.WriteVariable(namedExpression.exp, expressionToNameLocal);
                     r.WriteLine();
                 }
-                r.WriteAssignement(namedExpression.exp.ValueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
+                r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
                 r.WriteLine();
             }
             r.ExitScope();

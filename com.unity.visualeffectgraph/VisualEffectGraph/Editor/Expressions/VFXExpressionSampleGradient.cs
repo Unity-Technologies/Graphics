@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             : base(Flags.None, new VFXExpression[2] { gradient, time })
         {}
 
-        sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleGradient; } }
+        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXSampleGradient; } }
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var timeReduce = constParents[1];

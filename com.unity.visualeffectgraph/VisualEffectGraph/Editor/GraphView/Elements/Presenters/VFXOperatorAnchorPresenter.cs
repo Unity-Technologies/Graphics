@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             if (model.GetExpression() != null)
             {
-                var newAnchorType = VFXExpression.TypeToType(model.GetExpression().ValueType);//model.property.type;
+                var newAnchorType = VFXExpression.TypeToType(model.GetExpression().valueType);//model.property.type;
                 if (newAnchorType != anchorType)
                 {
                     this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);

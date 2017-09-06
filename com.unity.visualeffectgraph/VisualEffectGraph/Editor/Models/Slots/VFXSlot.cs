@@ -570,7 +570,7 @@ namespace UnityEditor.VFX
 
         protected virtual bool CanConvertFrom(VFXExpression expr)
         {
-            return expr == null || DefaultExpr.ValueType == expr.ValueType;
+            return expr == null || DefaultExpr.valueType == expr.valueType;
         }
 
         protected virtual bool CanConvertFrom(Type type)

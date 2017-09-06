@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {

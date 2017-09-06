@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         protected VFXExpressionFloatOperation(VFXExpression[] parents)
             : base(Flags.None, parents)
         {
-            m_AdditionalParameters = new int[] {};
+            m_additionnalOperands = new int[] {};
         }
 
         static private float[] ToFloatArray(float input) { return new float[] { input }; }
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         static private float[] ToFloatArray(Vector4 input) { return new float[] { input.x, input.y, input.z, input.w }; }
         static protected float[] ToFloatArray(VFXExpression input)
         {
-            switch (input.ValueType)
+            switch (input.valueType)
             {
                 case VFXValueType.kFloat: return ToFloatArray(input.Get<float>());
                 case VFXValueType.kFloat2: return ToFloatArray(input.Get<Vector2>());
@@ -42,18 +42,18 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
-        sealed protected override int[] AdditionalParameters { get { return m_AdditionalParameters; } }
+        sealed public override VFXExpressionOp operation { get { return m_Operation; } }
+        sealed protected override int[] additionnalOperands { get { return m_additionnalOperands; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)base.Reduce(reducedParents);
-            newExpression.m_AdditionalParameters = m_AdditionalParameters.Select(o => o).ToArray();
+            newExpression.m_additionnalOperands = m_additionnalOperands.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
             return newExpression;
         }
 
-        protected int[] m_AdditionalParameters;
+        protected int[] m_additionnalOperands;
         protected VFXExpressionOp m_Operation;
     }
 
@@ -61,12 +61,12 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
         {
-            if (!IsFloatValueType(parent.ValueType))
+            if (!IsFloatValueType(parent.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
             }
 
-            m_AdditionalParameters = new int[] { TypeToSize(parent.ValueType) };
+            m_additionnalOperands = new int[] { TypeToSize(parent.valueType) };
             m_Operation = operation;
         }
 
@@ -96,17 +96,17 @@ namespace UnityEditor.VFX
         protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation)
             : base(new VFXExpression[2] { parentLeft, parentRight })
         {
-            if (!IsFloatValueType(parentLeft.ValueType) || !IsFloatValueType(parentRight.ValueType))
+            if (!IsFloatValueType(parentLeft.valueType) || !IsFloatValueType(parentRight.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (not float type)");
             }
 
-            if (parentRight.ValueType != parentLeft.ValueType)
+            if (parentRight.valueType != parentLeft.valueType)
             {
                 throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible float type)");
             }
 
-            m_AdditionalParameters = new int[] { TypeToSize(parentLeft.ValueType) };
+            m_additionnalOperands = new int[] { TypeToSize(parentLeft.valueType) };
             m_Operation = operation;
         }
 
@@ -141,19 +141,19 @@ namespace UnityEditor.VFX
         protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation)
             : base(new VFXExpression[3] { a, b, c })
         {
-            if (!IsFloatValueType(a.ValueType)
-                || !IsFloatValueType(b.ValueType)
-                || !IsFloatValueType(c.ValueType))
+            if (!IsFloatValueType(a.valueType)
+                || !IsFloatValueType(b.valueType)
+                || !IsFloatValueType(c.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (not float type)");
             }
 
-            if (a.ValueType != b.ValueType || b.ValueType != c.ValueType)
+            if (a.valueType != b.valueType || b.valueType != c.valueType)
             {
                 throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (incompatible float type)");
             }
 
-            m_AdditionalParameters = new int[] { TypeToSize(a.ValueType) };
+            m_additionnalOperands = new int[] { TypeToSize(a.valueType) };
             m_Operation = operation;
         }
 

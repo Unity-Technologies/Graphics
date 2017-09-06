@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
         {
             var attribute = currentAttribute;
             var expression = new VFXAttributeExpression(attribute);
-            AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), GenerateLocalAttributeName(attribute.name)), VFXSlot.Direction.kInput));
+            AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.valueType), GenerateLocalAttributeName(attribute.name)), VFXSlot.Direction.kInput));
             if (inputSlots.Count == 2)
             {
                 CopyLink(inputSlots[0], inputSlots[1]);

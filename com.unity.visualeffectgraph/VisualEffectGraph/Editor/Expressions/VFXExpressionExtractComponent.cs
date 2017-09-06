@@ -10,16 +10,16 @@ namespace UnityEditor.VFX
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
             : base(new VFXExpression[1] { parent })
         {
-            if (parent.ValueType == VFXValueType.kFloat || !IsFloatValueType(parent.ValueType))
+            if (parent.valueType == VFXValueType.kFloat || !IsFloatValueType(parent.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionExtractComponent");
             }
 
             m_Operation = VFXExpressionOp.kVFXExtractComponentOp;
-            m_AdditionalParameters = new int[] { iChannel, TypeToSize(parent.ValueType) };
+            m_additionnalOperands = new int[] { iChannel, TypeToSize(parent.valueType) };
         }
 
-        private int channel { get { return m_AdditionalParameters[0]; } }
+        private int channel { get { return m_additionnalOperands[0]; } }
 
         static private float GetChannel(Vector2 input, int iChannel)
         {
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         {
             float readValue = 0.0f;
             var parent = reducedParents[0];
-            switch (reducedParents[0].ValueType)
+            switch (reducedParents[0].valueType)
             {
                 case VFXValueType.kFloat: readValue = parent.Get<float>(); break;
                 case VFXValueType.kFloat2: readValue = GetChannel(parent.Get<Vector2>(), channel); break;
@@ -75,8 +75,8 @@ namespace UnityEditor.VFX
         {
             var parent = reducedParents[0];
             if (parent is VFXExpressionCombine)
-                return parent.Parents[channel];
-            else if (parent.ValueType == VFXValueType.kFloat && channel == 0)
+                return parent.parents[channel];
+            else if (parent.valueType == VFXValueType.kFloat && channel == 0)
                 return parent;
             else
                 return base.Reduce(reducedParents);
