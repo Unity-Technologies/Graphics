@@ -20,16 +20,16 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Combine(
-            [Slot(0, Binding.None)] Vector1 first,
-            [Slot(1, Binding.None)] Vector1 second,
-            [Slot(2, Binding.None)] Vector1 third,
-            [Slot(3, Binding.None)] Vector1 fourth,
-            [Slot(4, Binding.None)] out Vector4 result)
+            [Slot(0, Binding.None)] Vector1 R,
+            [Slot(1, Binding.None)] Vector1 G,
+            [Slot(2, Binding.None)] Vector1 B,
+            [Slot(3, Binding.None)] Vector1 A,
+            [Slot(4, Binding.None)] out Vector4 RGBA)
         {
-            result = Vector4.zero;
+            RGBA = Vector4.zero;
             return @"
 {
-    result = float4(first, second, third, fourth);
+    RGBA = float4(R, G, B, A);
 }
 ";
         }
