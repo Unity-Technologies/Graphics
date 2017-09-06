@@ -7,15 +7,23 @@ namespace UnityEngine.MaterialGraph
     [Title("Texture/Sample 2D")]
     public class Sample2DTexture : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
-        public const int OutputSlotId = 0;
+        public const int OutputSlotRGBAId = 0;
+        public const int OutputSlotRId = 4;
+        public const int OutputSlotGId = 5;
+        public const int OutputSlotBId = 6;
+        public const int OutputSlotAId = 7;
         public const int TextureInputId = 1;
         public const int UVInput = 2;
         public const int SamplerInput = 3;
 
-        private const string kOutputSlotName = "rgba";
-        private const string kTextureInputName = "Tex";
-        private const string kUVInputName = "UV";
-        private const string kSamplerInputName = "Sampler";
+        const string kOutputSlotRGBAName = "RGBA";
+        const string kOutputSlotRName = "R";
+        const string kOutputSlotGName = "G";
+        const string kOutputSlotBName = "B";
+        const string kOutputSlotAName = "A";
+        const string kTextureInputName = "Tex";
+        const string kUVInputName = "UV";
+        const string kSamplerInputName = "Sampler";
 
         public override bool hasPreview { get { return true; } }
 
@@ -27,11 +35,15 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(TextureInputId, kTextureInputName, kTextureInputName, SlotType.Input, SlotValueType.Texture2D, Vector4.zero));
             AddSlot(new MaterialSlot(UVInput, kUVInputName, kUVInputName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
             AddSlot(new MaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input, SlotValueType.SamplerState, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, UVInput, SamplerInput });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput });
         }
 
         // Node generations
@@ -43,7 +55,7 @@ namespace UnityEngine.MaterialGraph
             // if no texture connected return nothing
             if (!edgesTexture.Any())
             {
-                visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + precision + "4(0,0,0,0);", true);
+                visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotRGBAId) + " = " + precision + "4(0,0,0,0);", true);
                 return;
             }
 
@@ -68,7 +80,7 @@ namespace UnityEngine.MaterialGraph
 {0}4 {1} = UNITY_SAMPLE_TEX2D({2}, {4});
 #endif"
                         , precision
-                        , GetVariableNameForSlot(OutputSlotId)
+                        , GetVariableNameForSlot(OutputSlotRGBAId)
                         , GetSlotValue(TextureInputId, generationMode)
                         , GetSlotValue(SamplerInput, generationMode)
                         , uvName);
@@ -77,11 +89,16 @@ namespace UnityEngine.MaterialGraph
             {
                 result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
                         , precision
-                        , GetVariableNameForSlot(OutputSlotId)
+                        , GetVariableNameForSlot(OutputSlotRGBAId)
                         , GetSlotValue(TextureInputId, generationMode)
                         , uvName);
             }
+
             visitor.AddShaderChunk(result, true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2}.g;", precision, GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2}.b;", precision, GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2}.a;", precision, GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel)
