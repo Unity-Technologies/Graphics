@@ -2,6 +2,9 @@
 {
     Properties
     {
+        // Specular vs Metallic workflow
+        [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
+
         _Color("Color", Color) = (1,1,1,1)
         _MainTex("Albedo", 2D) = "white" {}
 
@@ -9,10 +12,11 @@
 
         _Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
         _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
-        [Enum(Metallic Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
+        _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         [Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
-        _MetallicGlossMap("Metallic", 2D) = "white" {}
+        _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
+        _MetallicSpecGlossMap("MetallicSpecGlossMap", 2D) = "white" {} // SpecGloss map when _SPECULAR_SETUP, MetallicGloss otherwise
 
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
@@ -62,10 +66,11 @@
             #pragma target 3.0
 
             // -------------------------------------
+            #pragma shader_feature _METALLIC_SETUP _SPECULAR_SETUP
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICGLOSSMAP
+            #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature ___ _DETAIL_MULX2
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
@@ -148,7 +153,7 @@
 
 #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
                 half alpha = _Color.a;
-                half glossiness = albedorTex.a;
+                half glossiness = albedoTex.a;
 #else
                 half alpha = albedoTex.a * _Color.a;
                 half glossiness = _Glossiness;
@@ -264,6 +269,6 @@
         }
     }
     FallBack "VertexLit"
-    CustomEditor "StandardShaderGUI"
+    CustomEditor "LightweightStandardShaderGUI"
 }
 

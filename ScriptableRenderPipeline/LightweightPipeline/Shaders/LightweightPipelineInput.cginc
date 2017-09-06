@@ -63,6 +63,8 @@ float4 _LightAttenuationParams;
 half4 _LightSpotDir;
 #endif
 
+sampler2D _MetallicSpecGlossMap;
+
 half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
@@ -127,16 +129,16 @@ half2 MetallicGloss(float2 uv, half glossiness)
 {
     half2 mg;
 
-#ifdef _METALLICGLOSSMAP
+#ifdef _METALLICSPECGLOSSMAP
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    mg.r = tex2D(_MetallicGlossMap, uv).r;
+    mg.r = tex2D(_MetallicSpecGlossMap, uv).r;
     mg.g = glossiness;
 #else
-    mg = tex2D(_MetallicGlossMap, uv).ra;
+    mg = tex2D(_MetallicSpecGlossMap, uv).ra;
 #endif
     mg.g *= _GlossMapScale;
 
-#else // _METALLICGLOSSMAP
+#else // _METALLICSPECGLOSSMAP
 
     mg.r = _Metallic;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
