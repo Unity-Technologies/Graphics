@@ -7,11 +7,9 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Attribute")]
     class VFXSetAttribute : VFXBlock
     {
-        public class Settings
-        {
-            [StringProvider(typeof(AttributeProvider))]
-            public string attribute = VFXAttribute.All.First();
-        }
+        [VFXSetting]
+        [StringProvider(typeof(AttributeProvider))]
+        public string attribute = VFXAttribute.All.First();
 
         public override string name { get { return "SetAttribute"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
@@ -65,7 +63,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXAttribute.Find(GetSettings<Settings>().attribute, VFXAttributeLocation.Current);
+                return VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
             }
         }
 
