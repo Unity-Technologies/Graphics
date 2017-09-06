@@ -33,11 +33,6 @@ Shader "HDRenderPipeline/LayeredLit"
         _MaskMap2("MaskMap2", 2D) = "white" {}
         _MaskMap3("MaskMap3", 2D) = "white" {}
 
-        _SpecularOcclusionMap0("SpecularOcclusion0", 2D) = "white" {}
-        _SpecularOcclusionMap1("SpecularOcclusion1", 2D) = "white" {}
-        _SpecularOcclusionMap2("SpecularOcclusion2", 2D) = "white" {}
-        _SpecularOcclusionMap3("SpecularOcclusion3", 2D) = "white" {}
-
         _NormalMap0("NormalMap0", 2D) = "bump" {}
         _NormalMap1("NormalMap1", 2D) = "bump" {}
         _NormalMap2("NormalMap2", 2D) = "bump" {}
@@ -52,6 +47,16 @@ Shader "HDRenderPipeline/LayeredLit"
         _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
         _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
         _NormalScale3("_NormalScale3", Range(0.0, 2.0)) = 1
+
+        _BentNormalMap0("BentNormalMap0", 2D) = "bump" {}
+        _BentNormalMap1("BentNormalMap1", 2D) = "bump" {}
+        _BentNormalMap2("BentNormalMap2", 2D) = "bump" {}
+        _BentNormalMap3("BentNormalMap3", 2D) = "bump" {}
+
+        _BentNormalMapOS0("BentNormalMapOS0", 2D) = "white" {}
+        _BentNormalMapOS1("BentNormalMapOS1", 2D) = "white" {}
+        _BentNormalMapOS2("BentNormalMapOS2", 2D) = "white" {}
+        _BentNormalMapOS3("BentNormalMapOS3", 2D) = "white" {}
 
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
@@ -261,10 +266,10 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _MASKMAP1
     #pragma shader_feature _MASKMAP2
     #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _SPECULAROCCLUSIONMAP0
-    #pragma shader_feature _SPECULAROCCLUSIONMAP1
-    #pragma shader_feature _SPECULAROCCLUSIONMAP2
-    #pragma shader_feature _SPECULAROCCLUSIONMAP3
+    #pragma shader_feature _BENTNORMALMAP0
+    #pragma shader_feature _BENTNORMALMAP1
+    #pragma shader_feature _BENTNORMALMAP2
+    #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1

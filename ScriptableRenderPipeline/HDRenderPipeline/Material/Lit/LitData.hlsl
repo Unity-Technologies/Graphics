@@ -134,10 +134,15 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS
 #endif
 
+#ifdef _NORMALMAP_TANGENT_SPACE
+#define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMap
+#else
+#define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMapOS
+#endif
+
 #define SAMPLER_DETAILMASK_IDX sampler_DetailMask
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
-#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
 // include LitDataInternal to define GetSurfaceData
@@ -156,8 +161,8 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #ifdef _MASKMAP
 #define _MASKMAP_IDX
 #endif
-#ifdef _SPECULAROCCLUSIONMAP
-#define _SPECULAROCCLUSIONMAP_IDX
+#ifdef _BENTNORMALMAP
+#define _BENTNORMALMAP_IDX
 #endif
 #include "LitDataInternal.hlsl"
 
@@ -367,7 +372,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
 
-
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
@@ -379,8 +383,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
-    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
-    GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
+    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
+    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    // This is use with anisotropic material
+    Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, interpolatedVertexNormal, _HorizonFade);
 
@@ -419,6 +425,32 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #endif
 #endif
 
+#if defined(_BENTNORMALMAP0)
+    #if defined(_NORMALMAP_TANGENT_SPACE0)
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMap0
+    #else
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMapOS0
+    #endif
+#elif defined(_BENTNORMALMAP1)
+    #if defined(_NORMALMAP_TANGENT_SPACE1)
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMap1
+    #else
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMapOS1
+    #endif
+#elif defined(_BENTNORMALMAP2)
+    #if defined(_NORMALMAP_TANGENT_SPACE2)
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMap2
+    #else
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMapOS2
+    #endif
+#else
+    #if defined(_NORMALMAP_TANGENT_SPACE3)
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMap3
+    #else
+    #define SAMPLER_BENTNORMALMAP_IDX sampler_BentNormalMapOS3
+    #endif
+#endif
+
 #if defined(_DETAIL_MAP0)
 #define SAMPLER_DETAILMASK_IDX sampler_DetailMask0
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
@@ -441,16 +473,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap2
 #else
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap3
-#endif
-
-#if defined(_SPECULAROCCLUSIONMAP0)
-#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap0
-#elif defined(_SPECULAROCCLUSIONMAP1)
-#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap1
-#elif defined(_SPECULAROCCLUSIONMAP2)
-#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap2
-#else
-#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap3
 #endif
 
 #if defined(_HEIGHTMAP0)
@@ -483,8 +505,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MASKMAP0
 #define _MASKMAP_IDX
 #endif
-#ifdef _SPECULAROCCLUSIONMAP0
-#define _SPECULAROCCLUSIONMAP_IDX
+#ifdef _BENTNORMALMAP0
+#define _BENTNORMALMAP_IDX
 #endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
@@ -493,7 +515,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
-#undef _SPECULAROCCLUSIONMAP_IDX
+#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
@@ -509,8 +531,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MASKMAP1
 #define _MASKMAP_IDX
 #endif
-#ifdef _SPECULAROCCLUSIONMAP1
-#define _SPECULAROCCLUSIONMAP_IDX
+#ifdef _BENTNORMALMAP1
+#define _BENTNORMALMAP_IDX
 #endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
@@ -519,7 +541,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
-#undef _SPECULAROCCLUSIONMAP_IDX
+#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
@@ -535,8 +557,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MASKMAP2
 #define _MASKMAP_IDX
 #endif
-#ifdef _SPECULAROCCLUSIONMAP2
-#define _SPECULAROCCLUSIONMAP_IDX
+#ifdef _BENTNORMALMAP2
+#define _BENTNORMALMAP_IDX
 #endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
@@ -545,7 +567,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
-#undef _SPECULAROCCLUSIONMAP_IDX
+#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
@@ -561,8 +583,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MASKMAP3
 #define _MASKMAP_IDX
 #endif
-#ifdef _SPECULAROCCLUSIONMAP3
-#define _SPECULAROCCLUSIONMAP_IDX
+#ifdef _BENTNORMALMAP3
+#define _BENTNORMALMAP_IDX
 #endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
@@ -571,7 +593,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
-#undef _SPECULAROCCLUSIONMAP_IDX
+#undef _BENTNORMALMAP_IDX
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -1339,7 +1361,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatCoverage = 0.0f;
     surfaceData.coatIOR = 0.5;
 
-    GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
+    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
