@@ -77,38 +77,17 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     #endif
 }
 
-float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)
+float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
 {
     float3 normalTS;
 
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
-    if (useBias)
-    {
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP_BIAS(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias);
-    }
-    else
-    {
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
-    }
     #else // Object space
-    // We forbid scale in case of object space as it make no sense
-    // To be able to combine object space normal with detail map then later we will re-transform it to world space.
-    // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
-    if (useBias)
-    {
-        #ifdef SURFACE_GRADIENT
-        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
-        float3 normalOS = SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
-        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
-        #else
-        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
-        normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
-        #endif
-    }
-    else
-    {
+        // We forbid scale in case of object space as it make no sense
+        // To be able to combine object space normal with detail map then later we will re-transform it to world space.
+        // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
@@ -118,7 +97,6 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         #endif
-    }
     #endif
 
     #ifdef _DETAIL_MAP_IDX
@@ -175,7 +153,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
 
-    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask, false, 0.0);
+    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask);
 
 #if defined(_MASKMAP_IDX)
     surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
