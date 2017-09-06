@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 3782c62dd61732042aed83e579a22e5f
+timeCreated: 1504702334
+licenseType: Pro
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures:
+  - Texture2D_Texture2D_FCC444C7_Uniform: {fileID: 2800000, guid: 9c50a18d04437449b86568cfcbb668a7,
+      type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
