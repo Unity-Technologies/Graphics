@@ -72,7 +72,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_GraphEditorView = new GraphEditorView();
             rootVisualContainer.Add(m_GraphEditorView);
             var presenter = CreateInstance<GraphEditorPresenter>();
-            presenter.Initialize(inMemoryAsset, this, selected.name);
+            presenter.Initialize(inMemoryAsset, this, selected != null ? selected.name : "");
             m_GraphEditorView.presenter = presenter;
         }
 
