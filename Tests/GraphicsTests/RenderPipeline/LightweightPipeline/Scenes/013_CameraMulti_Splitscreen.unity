@@ -269,12 +269,12 @@ Prefab:
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 2}
       propertyPath: m_LocalPosition.x
-      value: 137.5
+      value: -256
       objectReference: {fileID: 0}
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 2}
       propertyPath: m_LocalPosition.y
-      value: 162.5
+      value: -192
       objectReference: {fileID: 0}
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 2}
@@ -1017,8 +1017,8 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 595920361}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 645.5, y: 363, z: 0}
-  m_LocalScale: {x: 1.0084635, y: 1.0084635, z: 1.0084635}
+  m_LocalPosition: {x: 639, y: 359.5, z: 0}
+  m_LocalScale: {x: 0.9985243, y: 0.9985243, z: 0.9985243}
   m_Children:
   - {fileID: 1451376291}
   - {fileID: 400951159}
@@ -1943,7 +1943,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 639.58685, y: 359.95352}
+  m_CellSize: {x: 639.94434, y: 359.53055}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2

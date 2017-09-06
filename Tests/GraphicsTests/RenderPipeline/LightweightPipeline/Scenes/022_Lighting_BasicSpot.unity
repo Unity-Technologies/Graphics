@@ -88,7 +88,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
-  m_LightingDataAsset: {fileID: 112000002, guid: 1dcc2e57ed04f431db0930f8b5467829,
+  m_LightingDataAsset: {fileID: 112000002, guid: 3c78aee0dc26a49ad8014fc8090bf4a0,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -206,9 +206,9 @@ GameObject:
   m_Component:
   - component: {fileID: 889296557}
   - component: {fileID: 889296556}
-  - component: {fileID: 889296555}
   - component: {fileID: 889296554}
   - component: {fileID: 889296553}
+  - component: {fileID: 889296555}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -231,13 +231,22 @@ Behaviour:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 889296552}
   m_Enabled: 1
---- !u!92 &889296555
-Behaviour:
+--- !u!114 &889296555
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 889296552}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c20dfc007a9a74ad8a2bfd0d59abe398, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
+  cameraToUse: {fileID: 889296556}
+  hdr: 1
+  width: 1280
+  height: 720
 --- !u!20 &889296556
 Camera:
   m_ObjectHideFlags: 0
