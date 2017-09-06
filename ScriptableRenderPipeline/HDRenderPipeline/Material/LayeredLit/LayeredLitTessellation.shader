@@ -137,10 +137,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        _OpacityAsDensity0("_OpacityAsDensity0", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
-        _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
+        [ToggleOff] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
+        [ToggleOff] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
+        [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
+        [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
         _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
 
