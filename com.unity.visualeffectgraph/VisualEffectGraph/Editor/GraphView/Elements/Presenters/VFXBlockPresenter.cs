@@ -36,7 +36,15 @@ namespace UnityEditor.VFX.UI
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
+        }
+
+        public void DrawGizmos(VFXComponent component)
+        {
+            foreach (VFXDataAnchorPresenter presenter in inputAnchors.Cast<VFXDataAnchorPresenter>())
+            {
+                presenter.DrawGizmo(component);
+            }
         }
     }
 }

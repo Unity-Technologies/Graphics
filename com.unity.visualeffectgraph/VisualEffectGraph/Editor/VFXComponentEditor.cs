@@ -10,6 +10,7 @@ using UnityEngine.VFX;
 
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
+using UnityEditor.Experimental.UIElements.GraphView;
 
 
 static class VFXComponentUtility
@@ -465,6 +466,11 @@ public class VFXComponentEditor : Editor
 
         if (m_Styles == null)
             m_Styles = new Styles();
+    }
+
+    protected virtual void OnSceneGUI()
+    {
+        VFXGizmo.OnDrawComponentGizmo(target as VFXComponent);
     }
 
     /*
