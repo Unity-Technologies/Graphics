@@ -20,7 +20,9 @@ Shader "HDRenderPipeline/Lit"
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units. This will be computed in the UI.
+        _HeightMin("Heightmap Min", Float) = -1
+        _HeightMax("Heightmap Max", Float) = 1
         _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}

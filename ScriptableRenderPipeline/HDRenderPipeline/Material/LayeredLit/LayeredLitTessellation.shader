@@ -58,15 +58,25 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _HeightMap2("HeightMap2", 2D) = "black" {}
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
-        _HeightAmplitude0("Height Scale0", Float) = 1
-        _HeightAmplitude1("Height Scale1", Float) = 1
-        _HeightAmplitude2("Height Scale2", Float) = 1
-        _HeightAmplitude3("Height Scale3", Float) = 1
+        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 1
+        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 1
+        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 1
+        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 1
 
         _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
         _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
         _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
         _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
+
+        _HeightMin0("Height Min0", Float) = -1
+        _HeightMin1("Height Min1", Float) = -1
+        _HeightMin2("Height Min2", Float) = -1
+        _HeightMin3("Height Min3", Float) = -1
+
+        _HeightMax0("Height Max0", Float) = 1
+        _HeightMax1("Height Max1", Float) = 1
+        _HeightMax2("Height Max2", Float) = 1
+        _HeightMax3("Height Max3", Float) = 1
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
