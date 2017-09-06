@@ -22,6 +22,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void ToggleRequiresTime();
         void ToSubGraph();
+
+        void Show();
+        void Focus();
+        Object selected { get; }
+        void ChangeSelection(Object newSelection);
     }
 
     public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>

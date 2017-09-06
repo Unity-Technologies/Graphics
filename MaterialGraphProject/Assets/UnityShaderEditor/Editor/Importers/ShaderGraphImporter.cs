@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -60,9 +61,17 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
     private static void ShowGraphEditWindow(string path)
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
-        var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+        var extension = Path.GetExtension(path);
+        Type windowType;
+        if (extension == ".ShaderGraph")
+            windowType = typeof(MaterialGraphEditWindow);
+        else if (extension == ".ShaderSubGraph")
+            windowType = typeof(SubGraphEditWindow);
+        else
+            return;
+        var windows = Resources.FindObjectsOfTypeAll(windowType);
         bool foundWindow = false;
-        foreach (var w in windows)
+        foreach (var w in windows.OfType<IMaterialGraphEditWindow>())
         {
             if (w.selected == asset)
             {
@@ -73,7 +82,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
 
         if (!foundWindow)
         {
-            var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
+            var window = ScriptableObject.CreateInstance(windowType) as IMaterialGraphEditWindow;
             window.Show();
             window.ChangeSelection(asset);
         }
