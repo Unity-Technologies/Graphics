@@ -208,9 +208,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         public bool enableReflectionProbeDebug = false;
-        public bool enableComputeLightEvaluation = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
-        const bool k_UseAsyncCompute = true;        // should not use on mobile
+        const bool k_UseAsyncCompute = true;// should not use on mobile
 
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
@@ -536,99 +535,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             //cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
             //cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
 
-            if (enableComputeLightEvaluation)  //TODO: temporary workaround for "All kernels must use same constant buffer layouts"
-            {
-                var w = camera.pixelWidth;
-                var h = camera.pixelHeight;
-                var numTilesX = (w + 7) / 8;
-                var numTilesY = (h + 7) / 8;
-
-                string kernelName = "ShadeDeferred" + (bUseClusteredForDeferred ? "_Clustered" : "_Fptl") + (enableDrawTileDebug ? "_Debug" : "");
-                int kernel = deferredComputeShader.FindKernel(kernelName);
-
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraDepthTexture", new RenderTargetIdentifier(s_CameraDepthTexture));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture0", new RenderTargetIdentifier(s_GBufferAlbedo));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture1", new RenderTargetIdentifier(s_GBufferSpecRough));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture2", new RenderTargetIdentifier(s_GBufferNormal));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture3", new RenderTargetIdentifier(s_GBufferEmission));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_spotCookieTextures", m_CookieTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflRootCubeTexture", ReflectionProbe.defaultTexture);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "g_tShadowBuffer", new RenderTargetIdentifier(m_shadowBufferID));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "unity_NHxRoughness", m_NHxRoughnessTexture);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
-
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightData", s_LightDataBuffer);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
-
-                var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
-                cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeMult", defdecode.x);
-                cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeExp", defdecode.y);
-
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fClustScale", m_ClustScale);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fClustBase", k_ClustLogBase);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fNearPlane", camera.nearClipPlane);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fFarPlane", camera.farClipPlane);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_iLog2NumClusters", k_Log2NumClusters);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_isOpaquesOnlyEnabled", 0);
-
-
-                //
-                var proj = camera.projectionMatrix;
-                var temp = new Matrix4x4();
-                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                var projh = temp * proj;
-                var invProjh = projh.inverse;
-
-                temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
-                temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                var projscr = temp * proj;
-                var invProjscr = projscr.inverse;
-
-                cmd.SetComputeIntParam(deferredComputeShader, "g_iNrVisibLights", numLights);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mScrProjection", projscr);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mInvScrProjection", invProjscr);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mViewToWorld", camera.cameraToWorldMatrix);
-
-
-                if (bUseClusteredForDeferred)
-                {
-                    cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLayeredOffsetsBuffer", s_PerVoxelOffset);
-                    if (k_UseDepthBuffer)
-                    {
-                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
-                    }
-                }
-
-                cmd.SetComputeIntParam(deferredComputeShader, "g_widthRT", w);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_heightRT", h);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_nNumDirLights", numDirLights);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "uavOutput", new RenderTargetIdentifier(s_CameraTarget));
-
-                cmd.SetComputeMatrixArrayParam(deferredComputeShader, "g_matWorldToShadow", m_MatWorldToShadow);
-                cmd.SetComputeVectorArrayParam(deferredComputeShader, "g_vDirShadowSplitSpheres", m_DirShadowSplitSpheres);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms0", m_Shadow3X3PCFTerms[0]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms1", m_Shadow3X3PCFTerms[1]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms2", m_Shadow3X3PCFTerms[2]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
-
-                cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, 1);
-            }
-            else
-            {
-                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredMaterial, 0);
-                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredReflectionMaterial, 0);
-            }
-
+            cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredMaterial, 0);
+            cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredReflectionMaterial, 0);
 
             // Set the intermediate target for compositing (skybox, etc)
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraTarget), new RenderTargetIdentifier(s_CameraDepthTexture));
@@ -718,7 +626,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 for (int i = 0; i < lcnt; ++i)
                 {
                     VisibleLight vl = inputs.visibleLights[i];
-                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
+
+					AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+
+					if (vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f)
                         m_ShadowRequests.Add(i);
                 }
                 // pass this list to a routine that assigns shadows based on some heuristic
@@ -1090,10 +1001,17 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var projscr = temp * proj;
             var invProjscr = projscr.inverse;
 
-
             // build per tile light lists
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
-            BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+
+			CommandBuffer cmdPreShadows = CommandBufferPool.Get();
+			GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
+			loop.ExecuteCommandBuffer(cmdPreShadows);
+			CommandBufferPool.Release(cmdPreShadows);
+
+			GPUFence postLightListFence = BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
+
+            //BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
             m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
@@ -1104,7 +1022,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
-            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+			PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
@@ -1285,7 +1203,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
 
-        void BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+		GPUFence BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1295,6 +1213,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var numBigTilesY = (h + 63) / 64;
 
             var cmd = CommandBufferPool.Get("Build light list" );
+
+			cmd.WaitOnGPUFence(startFence);
 
             bool isOrthographic = camera.orthographic;
 
@@ -1350,13 +1270,27 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
             }
 
-            loop.ExecuteCommandBuffer(cmd);
+			GPUFence completeFence = cmd.CreateGPUFence();
+
+			if (k_UseAsyncCompute)
+			{
+				loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
+			}
+			else
+			{
+				loop.ExecuteCommandBuffer(cmd);
+			}
+
             CommandBufferPool.Release(cmd);
+
+			return completeFence;
         }
 
-        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
+		void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
+
+			cmd.WaitOnGPUFence(startFence);
                   
             bool isOrthographic = camera.orthographic;
             cmd.SetGlobalFloat("g_isOrthographic", (float) (isOrthographic ? 1 : 0));
