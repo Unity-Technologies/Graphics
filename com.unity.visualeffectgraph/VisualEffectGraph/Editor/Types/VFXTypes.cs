@@ -99,6 +99,22 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct Cone : Spaceable
+    {
+        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The position of the cone.")]
+        public Vector3 position;
+        [Tooltip("The first radius of the cone.")]
+        public float radius0;
+        [Tooltip("The second radius of the cone.")]
+        public float radius1;
+        [Tooltip("The height of the cone.")]
+        public float height;
+    }
+
+    [VFXType]
     struct Torus : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }

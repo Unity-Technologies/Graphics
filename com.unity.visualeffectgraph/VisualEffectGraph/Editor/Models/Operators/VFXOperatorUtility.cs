@@ -277,6 +277,17 @@ namespace UnityEditor.VFX
             return new VFXExpressionMul(pi, new VFXExpressionMul(new VFXExpressionMul(radius, radius), height));
         }
 
+        static public VFXExpression ConeVolume(VFXExpression radius0, VFXExpression radius1, VFXExpression height)
+        {
+            //pi/3 * (r0 * r0 + r0 * r1 + r1 * r1) * h
+            var piOver3 = VFXValue.Constant(Mathf.PI / 3.0f);
+            VFXExpression r0r0 = new VFXExpressionMul(radius0, radius0);
+            VFXExpression r0r1 = new VFXExpressionMul(radius0, radius1);
+            VFXExpression r1r1 = new VFXExpressionMul(radius1, radius1);
+            VFXExpression result = new VFXExpressionAdd(r0r0, new VFXExpressionAdd(r0r1, r1r1));
+            return new VFXExpressionMul(piOver3, new VFXExpressionMul(result, height));
+        }
+
         static public VFXExpression TorusVolume(VFXExpression majorRadius, VFXExpression minorRadius)
         {
             //(pi * r * r) * (2 * pi * R)
