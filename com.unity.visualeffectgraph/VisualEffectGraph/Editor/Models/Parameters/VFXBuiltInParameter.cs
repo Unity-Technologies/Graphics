@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
             var exp = VFXBuiltInExpression.Find(m_expressionOp);
             if (outputSlots.Count == 0)
             {
-                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.ValueType), "o"), VFXSlot.Direction.kOutput));
+                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.valueType), "o"), VFXSlot.Direction.kOutput));
             }
             outputSlots[0].SetExpression(exp);
         }

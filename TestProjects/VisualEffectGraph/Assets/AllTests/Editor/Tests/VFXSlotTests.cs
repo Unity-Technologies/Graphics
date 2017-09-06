@@ -137,13 +137,13 @@ namespace UnityEditor.VFX.Test
 
             var expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
-            Assert.AreEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
+            Assert.AreEqual(floatSlot.GetExpression(), expr.parents[0].parents[0]);
             Assert.AreEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
 
             floatSlot.UnlinkAll();
             expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
-            Assert.AreNotEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
+            Assert.AreNotEqual(floatSlot.GetExpression(), expr.parents[0].parents[0]);
             Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
         }
     }

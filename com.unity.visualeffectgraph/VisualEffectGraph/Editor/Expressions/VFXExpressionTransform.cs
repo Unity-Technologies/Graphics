@@ -17,19 +17,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXTRSToMatrixOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kTransform;
             }
         }
 
@@ -62,19 +54,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXTransformPosOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 
@@ -105,19 +89,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXTransformPosOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 

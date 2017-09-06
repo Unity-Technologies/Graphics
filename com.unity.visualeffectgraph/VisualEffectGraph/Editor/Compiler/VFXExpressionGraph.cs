@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
                 data.index = -1; // Will be overridden later on
                 data.depth = depth;
                 dst[exp] = data;
-                foreach (var parent in exp.Parents)
+                foreach (var parent in exp.parents)
                     AddExpressionDataRecursively(dst, parent, depth + 1);
             }
         }

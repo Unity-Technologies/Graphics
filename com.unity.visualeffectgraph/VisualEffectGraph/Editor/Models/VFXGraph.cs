@@ -280,7 +280,7 @@ namespace UnityEditor.VFX
                     if (desc.expressionIndex != i)
                         throw new InvalidOperationException();
 
-                    switch (exp.ValueType)
+                    switch (exp.valueType)
                     {
                         case VFXValueType.kFloat:           SetValueDesc<float>(desc, exp); break;
                         case VFXValueType.kFloat2:          SetValueDesc<Vector2>(desc, exp); break;
@@ -357,15 +357,13 @@ namespace UnityEditor.VFX
                     for (int i = 0; i < numFlattenedExpressions; ++i)
                     {
                         var exp = flatGraph[i];
-
-                        int[] data = new int[4];
-                        exp.FillOperands(data, m_ExpressionGraph);
+                        var data = exp.GetOperands(m_ExpressionGraph);
 
                         // Must match data in C++ expression
                         if (exp.Is(VFXExpression.Flags.Value))
                         {
                             VFXExpressionValueContainerDescAbstract value;
-                            switch (exp.ValueType)
+                            switch (exp.valueType)
                             {
                                 case VFXValueType.kFloat:           value = CreateValueDesc<float>(exp, i); break;
                                 case VFXValueType.kFloat2:          value = CreateValueDesc<Vector2>(exp, i); break;
@@ -386,7 +384,7 @@ namespace UnityEditor.VFX
                             m_ExpressionValues.Add(value);
                         }
 
-                        expressionDescs[i].op = exp.Operation;
+                        expressionDescs[i].op = exp.operation;
                         expressionDescs[i].data = data;
                     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
@@ -294,7 +295,7 @@ namespace UnityEditor.VFX
         // TODO This could be directly in VFXModel and remove from the IVFXSlotContainer interface
         public void SetSettingValue(string name, object value)
         {
-            GetType().GetField(name).SetValue(this, value);
+            GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
             Invalidate(InvalidationCause.kSettingChanged);
         }
     }

@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.Test
                 {
                     var currentSlot = allType.GetInputSlot(i);
                     var expression = currentSlot.GetExpression();
-                    if (expression != null && expression.ValueType == type)
+                    if (expression != null && expression.valueType == type)
                     {
                         slot = currentSlot;
                         break;
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.Test
                         if (o.GetNbOutputSlots() > 0)
                         {
                             var expression = o.outputSlots[0].GetExpression();
-                            if (expression != null && expression.ValueType == type)
+                            if (expression != null && expression.valueType == type)
                             {
                                 return true;
                             }
