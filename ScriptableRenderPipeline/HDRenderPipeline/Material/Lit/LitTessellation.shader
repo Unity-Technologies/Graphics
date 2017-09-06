@@ -26,7 +26,6 @@ Shader "HDRenderPipeline/LitTessellation"
         _HeightMax("Heightmap Max", Float) = 1
 
         _DetailMap("DetailMap", 2D) = "black" {}
-        _DetailMask("DetailMask", 2D) = "white" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
@@ -64,6 +63,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
@@ -149,7 +149,6 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP

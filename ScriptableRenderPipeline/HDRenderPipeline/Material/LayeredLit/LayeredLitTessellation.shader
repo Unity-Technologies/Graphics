@@ -83,11 +83,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _DetailMap2("DetailMap2", 2D) = "black" {}
         _DetailMap3("DetailMap3", 2D) = "black" {}
 
-        _DetailMask0("DetailMask0", 2D) = "white" {}
-        _DetailMask1("DetailMask1", 2D) = "white" {}
-        _DetailMask2("DetailMask2", 2D) = "white" {}
-        _DetailMask3("DetailMask3", 2D) = "white" {}
-
         _DetailAlbedoScale0("_DetailAlbedoScale0", Range(-2.0, 2.0)) = 1
         _DetailAlbedoScale1("_DetailAlbedoScale1", Range(-2.0, 2.0)) = 1
         _DetailAlbedoScale2("_DetailAlbedoScale2", Range(-2.0, 2.0)) = 1
@@ -167,6 +162,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
@@ -277,7 +273,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP0
     #pragma shader_feature _NORMALMAP1

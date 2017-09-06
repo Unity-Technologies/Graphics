@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
-            public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
         }
 
         protected MaterialProperty color = null;
