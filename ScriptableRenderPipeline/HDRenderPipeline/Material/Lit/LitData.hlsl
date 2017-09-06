@@ -30,18 +30,9 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
 
-    // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
-#ifdef _EMISSIVE_COLOR
+    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(1.0, surfaceData.baseColor, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor * builtinData.emissiveIntensity;
-#else
-    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity;
-#endif
-// If we have a MaskMap, use emissive slot as a mask on baseColor
-#elif defined(_MASKMAP) && !defined(LAYERED_LIT_SHADER) // With layered lit we have no emissive mask option
-    builtinData.emissiveColor = surfaceData.baseColor * (SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).b * builtinData.emissiveIntensity).xxx;
-#else
-    builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
+    builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb;
 #endif
 
     builtinData.velocity = float2(0.0, 0.0);
@@ -134,7 +125,6 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS
 #endif
 
-#define SAMPLER_DETAILMASK_IDX sampler_DetailMask
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
 #define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap
@@ -420,16 +410,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #if defined(_DETAIL_MAP0)
-#define SAMPLER_DETAILMASK_IDX sampler_DetailMask0
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
 #elif defined(_DETAIL_MAP1)
-#define SAMPLER_DETAILMASK_IDX sampler_DetailMask1
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap1
 #elif defined(_DETAIL_MAP2)
-#define SAMPLER_DETAILMASK_IDX sampler_DetailMask2
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap2
 #else
-#define SAMPLER_DETAILMASK_IDX sampler_DetailMask3
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap3
 #endif
 
