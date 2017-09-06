@@ -26,9 +26,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
-            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
-            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units (distance between minimum and maximum value in the texture).");
+            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
+            public static GUIContent heightMapMinText = new GUIContent("Height Min", "Minimum value in the heightmap (in world units)");
+            public static GUIContent heightMapMaxText = new GUIContent("Height Max", "Maximum value in the heightmap (in world units)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
@@ -145,6 +146,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kHeightAmplitude = "_HeightAmplitude";
         protected MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightCenter = "_HeightCenter";
+        protected MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightMin = "_HeightMin";
+        protected MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightMax = "_HeightMax";
 
         protected MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
         protected const string kUVDetail = "_UVDetail";
@@ -222,6 +227,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 normalMapSpace[i] = FindProperty(string.Format("{0}{1}", kNormalMapSpace, m_PropertySuffixes[i]), props);
                 heightMap[i] = FindProperty(string.Format("{0}{1}", kHeightMap, m_PropertySuffixes[i]), props);
                 heightAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightAmplitude, m_PropertySuffixes[i]), props);
+                heightMin[i] = FindProperty(string.Format("{0}{1}", kHeightMin, m_PropertySuffixes[i]), props);
+                heightMax[i] = FindProperty(string.Format("{0}{1}", kHeightMax, m_PropertySuffixes[i]), props);
                 heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
 
                 // Details
@@ -400,8 +407,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightAmplitude[layerIndex], Styles.heightMapAmplitudeText);
-                heightAmplitude[layerIndex].floatValue = Math.Max(0.0f, heightAmplitude[layerIndex].floatValue); // Must be positive
+                m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
+                m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
+                heightAmplitude[layerIndex].floatValue = heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue;
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
