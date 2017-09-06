@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
                 var dotNode = new DotNode();
 
                 string name = exp.GetType().Name;
-                name += " " + exp.ValueType.ToString();
+                name += " " + exp.valueType.ToString();
                 string valueStr = GetExpressionValue(exp);
                 if (!string.IsNullOrEmpty(valueStr))
                     name += string.Format(" ({0})", valueStr);
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
 
             foreach (var exp in expressionsToDot)
             {
-                var parents = exp.Key.Parents;
+                var parents = exp.Key.parents;
                 for (int i = 0; i < parents.Length; ++i)
                 {
                     var dotEdge = new DotEdge(expressionsToDot[parents[i]], exp.Value);
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX
                 var content = exp.GetContent();
                 return content == null ? "null" : content.ToString();
             }
-            if (exp is VFXBuiltInExpression) return ((VFXBuiltInExpression)exp).Operation.ToString();
+            if (exp is VFXBuiltInExpression) return ((VFXBuiltInExpression)exp).operation.ToString();
             if (exp is VFXAttributeExpression) return ((VFXAttributeExpression)exp).attributeName;
 
             return string.Empty;

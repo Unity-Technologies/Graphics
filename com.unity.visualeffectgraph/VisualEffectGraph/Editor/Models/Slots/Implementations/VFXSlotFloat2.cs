@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 
         sealed protected override bool CanConvertFrom(VFXExpression expr)
         {
-            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.ValueType));
+            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.valueType));
         }
 
         sealed protected override VFXValue DefaultExpression()
@@ -30,25 +30,25 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.ValueType == VFXValueType.kFloat2)
+            if (expression.valueType == VFXValueType.kFloat2)
                 return expression;
 
-            if (expression.ValueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.kFloat)
                 return new VFXExpressionCombine(expression, expression);
 
-            if (expression.ValueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.kUint)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression);
             }
 
-            if (expression.ValueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.kInt)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression);
             }
 
-            if (expression.ValueType == VFXValueType.kFloat3 || expression.ValueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.kFloat3 || expression.valueType == VFXValueType.kFloat4)
             {
                 var x = new VFXExpressionExtractComponent(expression, 0);
                 var y = new VFXExpressionExtractComponent(expression, 1);

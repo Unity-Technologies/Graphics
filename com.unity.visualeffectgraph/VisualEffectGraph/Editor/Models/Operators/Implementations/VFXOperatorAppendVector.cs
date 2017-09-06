@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
                 RemoveSlot(slot);
             }
 
-            var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().ValueType));
+            var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().valueType));
             if (inputSlots.All(s => s.HasLink()) && size < 4)
             {
                 AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));

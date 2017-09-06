@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             anchor.Init(slot, this);
 
             var expression = slot.GetExpression();
-            anchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
+            anchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.valueType);
             if (expression == null)
             {
                 anchor.name = "Empty";

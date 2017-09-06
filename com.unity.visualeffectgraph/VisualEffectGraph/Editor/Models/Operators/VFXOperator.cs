@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
                 {
                     var slot = GetOutputSlot(iSlot);
                     var expression = outputExpressionArray[iSlot];
-                    if (slot.property.type != VFXExpression.TypeToType(expression.ValueType))
+                    if (slot.property.type != VFXExpression.TypeToType(expression.valueType))
                     {
                         bOuputputLayoutChanged = true;
                         break;
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
                 {
                     var expression = outputExpressionArray[iSlot];
                     var name = (iSlot < slotToRemove.Length) ? slotToRemove[iSlot].name : "o";
-                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), name), VFXSlot.Direction.kOutput));
+                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.valueType), name), VFXSlot.Direction.kOutput));
                     if (iSlot < slotToRemove.Length)
                         CopyLink(slotToRemove[iSlot], outputSlots.Last());
                 }

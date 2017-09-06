@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
 
             private VFXExpression InsertGPUTransformation(VFXExpression exp)
             {
-                switch (exp.ValueType)
+                switch (exp.valueType)
                 {
                     case VFXValueType.kColorGradient:
                         return new VFXExpressionBakeGradient(exp);
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
-                    var parents = expression.Parents.Select(e =>
+                    var parents = expression.parents.Select(e =>
                         {
                             var parent = Compile(e);
 
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
                     {
                         reduced = expression.Evaluate(parents);
                     }
-                    else if (HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding) || !parents.SequenceEqual(expression.Parents))
+                    else if (HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding) || !parents.SequenceEqual(expression.parents))
                     {
                         reduced = expression.Reduce(parents);
                     }
@@ -154,7 +154,7 @@ namespace UnityEditor.VFX
                 if (!dst.Contains(exp))
                 {
                     dst.Add(exp);
-                    foreach (var parent in exp.Parents)
+                    foreach (var parent in exp.parents)
                         AddReducedGraph(dst, parent);
                 }
             }

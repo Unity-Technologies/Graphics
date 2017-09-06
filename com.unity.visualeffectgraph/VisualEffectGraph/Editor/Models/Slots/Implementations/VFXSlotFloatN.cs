@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         protected override bool CanConvertFrom(VFXExpression expression)
         {
-            return base.CanConvertFrom(expression) || VFXExpression.IsFloatValueType(expression.ValueType);
+            return base.CanConvertFrom(expression) || VFXExpression.IsFloatValueType(expression.valueType);
         }
 
         protected override bool CanConvertFrom(Type type)
@@ -25,13 +25,13 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.ValueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.kUint)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;
             }
 
-            if (expression.ValueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.kInt)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return floatExpression;

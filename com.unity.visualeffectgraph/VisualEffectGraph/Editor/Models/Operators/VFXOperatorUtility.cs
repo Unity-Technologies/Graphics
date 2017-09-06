@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Negate(VFXExpression input)
         {
-            var minusOne = VFXOperatorUtility.MinusOneExpression[VFXExpression.TypeToSize(input.ValueType)];
+            var minusOne = VFXOperatorUtility.MinusOneExpression[VFXExpression.TypeToSize(input.valueType)];
             return new VFXExpressionMul(minusOne, input);
         }
 
@@ -78,16 +78,16 @@ namespace UnityEditor.VFX
         static public VFXExpression Sqrt(VFXExpression input)
         {
             //pow(x, 0.5f)
-            return new VFXExpressionPow(input, HalfExpression[VFXExpression.TypeToSize(input.ValueType)]);
+            return new VFXExpressionPow(input, HalfExpression[VFXExpression.TypeToSize(input.valueType)]);
         }
 
         static public VFXExpression Dot(VFXExpression a, VFXExpression b)
         {
             //a.x*b.x + a.y*b.y + ...
-            var size = VFXExpression.TypeToSize(a.ValueType);
-            if (a.ValueType != b.ValueType)
+            var size = VFXExpression.TypeToSize(a.valueType);
+            if (a.valueType != b.valueType)
             {
-                throw new ArgumentException(string.Format("Invalid Dot type input : {0} and {1}", a.ValueType, b.ValueType));
+                throw new ArgumentException(string.Format("Invalid Dot type input : {0} and {1}", a.valueType, b.valueType));
             }
 
             var mul = new VFXExpressionMul(a, b);
@@ -144,7 +144,7 @@ namespace UnityEditor.VFX
         static public VFXExpression Normalize(VFXExpression v)
         {
             var invLength = new VFXExpressionDivide(VFXOperatorUtility.OneExpression[1], VFXOperatorUtility.Length(v));
-            var invLengthVector = VFXOperatorUtility.CastFloat(invLength, v.ValueType);
+            var invLengthVector = VFXOperatorUtility.CastFloat(invLength, v.valueType);
             return new VFXExpressionMul(v, invLengthVector);
         }
 
@@ -172,12 +172,12 @@ namespace UnityEditor.VFX
 
         static public VFXExpression DegToRad(VFXExpression degrees)
         {
-            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>(Mathf.PI / 180.0f), degrees.ValueType));
+            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant<float>(Mathf.PI / 180.0f), degrees.valueType));
         }
 
         static public VFXExpression RadToDeg(VFXExpression radians)
         {
-            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / Mathf.PI), radians.ValueType));
+            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant<float>(180.0f / Mathf.PI), radians.valueType));
         }
 
         static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression radius)
@@ -251,13 +251,13 @@ namespace UnityEditor.VFX
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
-            if (expression.ValueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.kFloat)
             {
                 return new[] { expression };
             }
 
             var components = new List<VFXExpression>();
-            for (int i = 0; i < VFXExpression.TypeToSize(expression.ValueType); ++i)
+            for (int i = 0; i < VFXExpression.TypeToSize(expression.valueType); ++i)
             {
                 components.Add(new VFXExpressionExtractComponent(expression, i));
             }
@@ -271,24 +271,24 @@ namespace UnityEditor.VFX
                 return inputExpression;
             }
 
-            var maxValueType = inputExpression.Select(o => o.ValueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
+            var maxValueType = inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
             var newVFXExpression = inputExpression.Select(o => CastFloat(o, maxValueType, defaultValue));
             return newVFXExpression.ToArray();
         }
 
         static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defaultValue = 0.0f)
         {
-            if (!VFXExpressionFloatOperation.IsFloatValueType(from.ValueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
+            if (!VFXExpressionFloatOperation.IsFloatValueType(from.valueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
             {
                 throw new ArgumentException(string.Format("Invalid CastFloat : {0} to {1}", from, toValueType));
             }
 
-            if (from.ValueType == toValueType)
+            if (from.valueType == toValueType)
             {
                 return from;
             }
 
-            var fromValueType = from.ValueType;
+            var fromValueType = from.valueType;
             var fromValueTypeSize = VFXExpression.TypeToSize(fromValueType);
             var toValueTypeSize = VFXExpression.TypeToSize(toValueType);
 

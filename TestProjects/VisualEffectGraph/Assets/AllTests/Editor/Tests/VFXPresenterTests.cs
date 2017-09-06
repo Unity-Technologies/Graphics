@@ -233,7 +233,7 @@ namespace UnityEditor.VFX.Test
             edgePresenter.input = addPresenter.outputAnchors[0];
             edgePresenter.output = absPresenter.inputAnchors[0];
             m_ViewPresenter.AddElement(edgePresenter);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
 
             var vector2Presenter = fnFindPresenter(vector2);
             for (int i = 0; i < 4; ++i)
@@ -244,11 +244,11 @@ namespace UnityEditor.VFX.Test
                 m_ViewPresenter.AddElement(edgePresenter);
             }
 
-            Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
-            Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().valueType);
 
             m_ViewPresenter.RemoveElement(addPresenter);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
 
             DestroyTestAsset();
         }

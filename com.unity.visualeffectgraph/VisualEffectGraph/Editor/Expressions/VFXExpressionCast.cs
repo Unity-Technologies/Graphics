@@ -16,19 +16,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastUintToFloat;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
             }
         }
 
@@ -53,19 +45,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastIntToFloat;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
             }
         }
 
@@ -90,22 +74,13 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastFloatToUint;
             }
         }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kUint;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             return VFXValue.Constant((uint)reducedParents[0].Get<float>());
@@ -127,19 +102,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastIntToUint;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kUint;
             }
         }
 
@@ -164,19 +131,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastFloatToInt;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kInt;
             }
         }
 
@@ -201,19 +160,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp Operation
+        sealed public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXCastUintToInt;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kInt;
             }
         }
 

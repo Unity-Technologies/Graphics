@@ -12,11 +12,11 @@ namespace UnityEditor.VFX
         public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.kVFXSystemSeedOp, VFXValueType.kUint);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
-        public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.Operation).ToArray();
+        public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.operation).ToArray();
 
         public static VFXExpression Find(VFXExpressionOp op)
         {
-            var expression = AllExpressions.FirstOrDefault(e => e.Operation == op);
+            var expression = AllExpressions.FirstOrDefault(e => e.operation == op);
             if (expression == null)
             {
                 Debug.LogErrorFormat("Unable to find BuiltIn Parameter from op : {0}", op);
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
             m_ValueType = valueType;
         }
 
-        public sealed override VFXExpressionOp Operation
+        public sealed override VFXExpressionOp operation
         {
             get
             {
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override VFXValueType ValueType
+        public sealed override VFXValueType valueType
         {
             get
             {
@@ -56,12 +56,12 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXBuiltInExpression)obj;
-            return ValueType == other.ValueType && Operation == other.Operation;
+            return valueType == other.valueType && operation == other.operation;
         }
 
         public override int GetHashCode()
         {
-            return Operation.GetHashCode();
+            return operation.GetHashCode();
         }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)

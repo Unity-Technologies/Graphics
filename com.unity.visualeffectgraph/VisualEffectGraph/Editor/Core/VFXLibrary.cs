@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
         public override VFXBuiltInParameter CreateInstance()
         {
             var instance = base.CreateInstance();
-            instance.Init(m_Template.outputSlots[0].GetExpression().Operation);
+            instance.Init(m_Template.outputSlots[0].GetExpression().operation);
             return instance;
         }
     }
