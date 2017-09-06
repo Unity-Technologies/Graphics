@@ -280,7 +280,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
 
-            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset));
+            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             AssetDatabase.ImportAsset(path);
         }
 
@@ -326,7 +326,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 textures.Add(texture);
             }
             shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
-            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset));
+            File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
         }
