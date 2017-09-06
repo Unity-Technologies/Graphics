@@ -24,14 +24,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             return VFXValue.Constant((float)reducedParents[0].Get<uint>());
@@ -58,14 +50,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXCastIntToFloat;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
             }
         }
 
@@ -97,15 +81,6 @@ namespace UnityEditor.VFX
                 return VFXExpressionOp.kVFXCastFloatToUint;
             }
         }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kUint;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             return VFXValue.Constant((uint)reducedParents[0].Get<float>());
@@ -132,14 +107,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXCastIntToUint;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kUint;
             }
         }
 
@@ -172,14 +139,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kInt;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             return VFXValue.Constant((int)reducedParents[0].Get<float>());
@@ -206,14 +165,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXCastUintToInt;
-            }
-        }
-
-        sealed public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kInt;
             }
         }
 

@@ -53,11 +53,6 @@ namespace UnityEditor.VFX
             return VFXShaderWriter.GetValueString(ValueType, GetContent());
         }
 
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            data[0] = (int)ValueType;
-        }
-
         abstract public VFXValue CopyExpression(Mode mode);
 
         public override bool Equals(object obj)
@@ -190,11 +185,11 @@ namespace UnityEditor.VFX
         }
 
         static private readonly VFXValueType s_ValueType = ToValueType();
-        sealed public override VFXValueType ValueType
+        protected override int[] AdditionalParameters
         {
             get
             {
-                return s_ValueType;
+                return new int[] { (int)s_ValueType };
             }
         }
     }

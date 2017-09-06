@@ -13,7 +13,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXValueType ValueType { get { return m_ValueType; } }
         sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -21,17 +20,10 @@ namespace UnityEditor.VFX
             var newExpression = (VFXExpressionUIntOperation)CreateNewInstance();
             newExpression.Initialize(Flags.None, reducedParents);
             newExpression.m_Operation = m_Operation;
-            newExpression.m_ValueType = m_ValueType;
             return newExpression;
         }
 
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            FillOperandsWithParentsAndValueSize(data, this, graph);
-        }
-
         protected VFXExpressionOp m_Operation;
-        protected VFXValueType m_ValueType;
     }
 
     abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUIntOperation
@@ -43,7 +35,6 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
             }
 
-            m_ValueType = parent.ValueType;
             m_Operation = operation;
         }
 
@@ -70,7 +61,6 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation (not uint type)");
             }
 
-            m_ValueType = parentLeft.ValueType;
             m_Operation = operation;
         }
 

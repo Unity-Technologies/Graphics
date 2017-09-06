@@ -42,27 +42,19 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        sealed public override VFXValueType ValueType { get { return m_ValueType; } }
         sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
-        sealed public override int[] AdditionalParameters { get { return m_AdditionalParameters; } }
+        sealed protected override int[] AdditionalParameters { get { return m_AdditionalParameters; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)base.Reduce(reducedParents);
             newExpression.m_AdditionalParameters = m_AdditionalParameters.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
-            newExpression.m_ValueType = m_ValueType;
             return newExpression;
-        }
-
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            FillOperandsWithParentsAndValueSize(data, this, graph);
         }
 
         protected int[] m_AdditionalParameters;
         protected VFXExpressionOp m_Operation;
-        protected VFXValueType m_ValueType;
     }
 
     abstract class VFXExpressionUnaryFloatOperation : VFXExpressionFloatOperation
@@ -74,8 +66,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
             }
 
-            m_ValueType = parent.ValueType;
-            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(parent.ValueType) };
             m_Operation = operation;
         }
 
@@ -115,8 +106,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible float type)");
             }
 
-            m_ValueType = parentLeft.ValueType;
-            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(parentLeft.ValueType) };
             m_Operation = operation;
         }
 
@@ -163,8 +153,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (incompatible float type)");
             }
 
-            m_ValueType = a.ValueType;
-            m_AdditionalParameters = new int[] { TypeToSize(m_ValueType) };
+            m_AdditionalParameters = new int[] { TypeToSize(a.ValueType) };
             m_Operation = operation;
         }
 

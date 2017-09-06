@@ -150,21 +150,6 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        protected static void FillOperandsWithParents(int[] data, VFXExpression exp, VFXExpressionGraph graph)
-        {
-            var parents = exp.Parents;
-            for (int i = 0; i < parents.Length; ++i)
-                data[i] = graph.GetFlattenedIndex(parents[i]);
-        }
-
-        protected static void FillOperandsWithParentsAndValueSize(int[] data, VFXExpression exp, VFXExpressionGraph graph)
-        {
-            if (exp.Parents.Length > 3)
-                throw new Exception("parents length cannot be more than 3 for operation of variable size");
-            FillOperandsWithParents(data, exp, graph);
-            data[3] = VFXExpression.TypeToSize(exp.ValueType);
-        }
-
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
             m_Parents = parents;
@@ -219,9 +204,25 @@ namespace UnityEditor.VFX
         }
 
         // Get the operands for the runtime evaluation
-        public virtual void FillOperands(int[] data, VFXExpressionGraph graph)
+        public int[] GetOperands(VFXExpressionGraph graph)
         {
-            FillOperandsWithParents(data, this, graph);
+            var parents = Parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
+            var additionnalParameter = AdditionalParameters;
+
+            if (parents.Length + additionnalParameter.Length > 4)
+                throw new Exception("Too much parameter for expression : " + this);
+
+            var data = new int[] { -1, -1, -1, -1};
+            for (int i = 0; i < parents.Length; ++i)
+            {
+                data[i] = parents[i];
+            }
+
+            for (int i = 0; i < additionnalParameter.Length; ++i)
+            {
+                data[data.Length - additionnalParameter.Length + i] = additionnalParameter[i];
+            }
+            return data;
         }
 
         public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()
@@ -232,7 +233,14 @@ namespace UnityEditor.VFX
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
 
-        public abstract VFXValueType ValueType { get; }
+        public virtual VFXValueType ValueType
+        {
+            get
+            {
+                var data = GetOperands(null);
+                return VFXExpressionHelper.GetTypeOfOperation(Operation, data[0], data[1], data[2], data[3]);
+            }
+        }
         public abstract VFXExpressionOp Operation { get; }
 
         public VFXExpression[] Parents { get { return m_Parents; } }
@@ -302,7 +310,7 @@ namespace UnityEditor.VFX
             return hash;
         }
 
-        public virtual int[] AdditionalParameters { get { return new int[] {}; } }
+        protected virtual int[] AdditionalParameters { get { return Enumerable.Empty<int>().ToArray(); } }
         public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);

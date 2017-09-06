@@ -17,8 +17,6 @@ namespace UnityEditor.VFX
         {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleGradient; } }
-        sealed public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
-
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var timeReduce = constParents[1];

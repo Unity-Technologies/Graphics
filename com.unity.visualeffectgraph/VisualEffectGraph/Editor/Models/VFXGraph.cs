@@ -357,9 +357,7 @@ namespace UnityEditor.VFX
                     for (int i = 0; i < numFlattenedExpressions; ++i)
                     {
                         var exp = flatGraph[i];
-
-                        int[] data = new int[4];
-                        exp.FillOperands(data, m_ExpressionGraph);
+                        var data = exp.GetOperands(m_ExpressionGraph);
 
                         // Must match data in C++ expression
                         if (exp.Is(VFXExpression.Flags.Value))

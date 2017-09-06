@@ -25,14 +25,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kTransform;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var posReduce = constParents[0];
@@ -70,14 +62,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -110,14 +94,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXTransformPosOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 

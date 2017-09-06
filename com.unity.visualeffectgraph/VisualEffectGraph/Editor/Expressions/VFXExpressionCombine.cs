@@ -24,15 +24,12 @@ namespace UnityEditor.VFX
             {
                 case 2:
                     m_Operation = VFXExpressionOp.kVFXCombine2fOp;
-                    m_ValueType = VFXValueType.kFloat2;
                     break;
                 case 3:
                     m_Operation = VFXExpressionOp.kVFXCombine3fOp;
-                    m_ValueType = VFXValueType.kFloat3;
                     break;
                 case 4:
                     m_Operation = VFXExpressionOp.kVFXCombine4fOp;
-                    m_ValueType = VFXValueType.kFloat4;
                     break;
             }
         }
@@ -57,11 +54,6 @@ namespace UnityEditor.VFX
         sealed public override string GetCodeString(string[] parents)
         {
             return string.Format("{0}({1})", TypeToCode(ValueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
-        }
-
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            FillOperandsWithParents(data, this, graph);
         }
     }
 }

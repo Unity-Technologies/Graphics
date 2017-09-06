@@ -24,14 +24,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var rgbReduce = constParents[0];
@@ -65,14 +57,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXHSVtoRGBOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 

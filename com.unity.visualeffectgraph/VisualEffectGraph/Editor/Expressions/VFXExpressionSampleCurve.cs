@@ -17,7 +17,6 @@ namespace UnityEditor.VFX
         {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleCurve; } }
-        sealed public override VFXValueType ValueType { get { return VFXValueType.kFloat; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
