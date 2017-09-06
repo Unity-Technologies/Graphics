@@ -16,6 +16,7 @@ namespace UnityEditor.VFX.UI
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
             s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
+            s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
         }
 
         static internal void Draw(VFXDataAnchorPresenter anchor, VFXComponent component)
@@ -106,33 +107,55 @@ namespace UnityEditor.VFX.UI
         {
             AABox box = (AABox)anchor.value;
 
-            Vector3 center = box.center;
-
-            if (box.space == CoordinateSpace.Local)
+            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, Vector3.zero))
             {
-                center = component.transform.localToWorldMatrix.MultiplyPoint(center);
+                anchor.value = box;
+            }
+        }
+
+        static void OnDrawOrientedBoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        {
+            OrientedBox box = (OrientedBox)anchor.value;
+
+            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, box.angles))
+            {
+                anchor.value = box;
+            }
+        }
+
+        static bool OnDrawBoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
+        {
+            Vector3 worldCenter = center;
+            if (space == CoordinateSpace.Local)
+            {
+                worldCenter = component.transform.localToWorldMatrix.MultiplyPoint(center);
             }
             Vector3[] points = new Vector3[8];
 
-            points[0] = box.center + new Vector3(box.size.x * 0.5f, box.size.y * 0.5f, box.size.z * 0.5f);
-            points[1] = box.center + new Vector3(box.size.x * 0.5f, -box.size.y * 0.5f, box.size.z * 0.5f);
+            points[0] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[1] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
 
-            points[2] = box.center + new Vector3(-box.size.x * 0.5f, box.size.y * 0.5f, box.size.z * 0.5f);
-            points[3] = box.center + new Vector3(-box.size.x * 0.5f, -box.size.y * 0.5f, box.size.z * 0.5f);
+            points[2] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[3] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
 
-            points[4] = box.center + new Vector3(box.size.x * 0.5f, box.size.y * 0.5f, -box.size.z * 0.5f);
-            points[5] = box.center + new Vector3(box.size.x * 0.5f, -box.size.y * 0.5f, -box.size.z * 0.5f);
+            points[4] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[5] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
 
-            points[6] = box.center + new Vector3(-box.size.x * 0.5f, box.size.y * 0.5f, -box.size.z * 0.5f);
-            points[7] = box.center + new Vector3(-box.size.x * 0.5f, -box.size.y * 0.5f, -box.size.z * 0.5f);
+            points[6] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[7] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
 
 
-            if (box.space == CoordinateSpace.Local)
+            Matrix4x4 mat = Matrix4x4.identity;
+
+            if (space == CoordinateSpace.Local)
             {
-                for (int i = 0; i < points.Length; ++i)
-                {
-                    points[i] = component.transform.localToWorldMatrix.MultiplyPoint(points[i]);
-                }
+                mat = component.transform.localToWorldMatrix;
+            }
+            mat *= Matrix4x4.Rotate(Quaternion.Euler(additionnalRotation));
+
+            for (int i = 0; i < points.Length; ++i)
+            {
+                points[i] = mat.MultiplyPoint(points[i]);
             }
 
             Handles.DrawLine(points[0], points[1]);
@@ -150,6 +173,7 @@ namespace UnityEditor.VFX.UI
             Handles.DrawLine(points[4], points[6]);
             Handles.DrawLine(points[5], points[7]);
 
+            bool changed = false;
 
             EditorGUI.BeginChangeCheck();
 
@@ -160,8 +184,8 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.z = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.z = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
@@ -173,8 +197,8 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.z = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.z = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
@@ -186,8 +210,8 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.x = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.x = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
@@ -199,8 +223,8 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.x = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.x = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
@@ -212,8 +236,8 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.y = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.y = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
@@ -225,17 +249,19 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    box.size.y = (middleResult - center).magnitude * 2;
-                    anchor.value = box;
+                    size.y = (middleResult - worldCenter).magnitude * 2;
+                    changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
 
 
-            if (PositionGizmo(component, box.space, ref box.center))
+            if (PositionGizmo(component, space, ref center))
             {
-                anchor.value = box;
+                changed = true;
             }
+
+            return changed;
         }
     }
 }
