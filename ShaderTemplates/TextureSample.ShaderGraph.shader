@@ -53,8 +53,12 @@ SubShader
 	void surf (Input IN, inout SurfaceOutputStandard o) 
 	{
 			half4 uv0 = IN.meshUV0;
-			float4 Sample2DTexture_1EF145E2_rgba = UNITY_SAMPLE_TEX2D(Texture2D_Texture2D_ED131035_Uniform,uv0.xy);
-			o.Emission = Sample2DTexture_1EF145E2_rgba;
+			float4 Sample2DTexture_1EF145E2_RGBA = UNITY_SAMPLE_TEX2D(Texture2D_Texture2D_ED131035_Uniform,uv0.xy);
+			float Sample2DTexture_1EF145E2_R = Sample2DTexture_1EF145E2_RGBA.r;
+			float Sample2DTexture_1EF145E2_G = Sample2DTexture_1EF145E2_RGBA.g;
+			float Sample2DTexture_1EF145E2_B = Sample2DTexture_1EF145E2_RGBA.b;
+			float Sample2DTexture_1EF145E2_A = Sample2DTexture_1EF145E2_RGBA.a;
+			o.Emission = Sample2DTexture_1EF145E2_RGBA;
 
 	}
 	ENDCG
