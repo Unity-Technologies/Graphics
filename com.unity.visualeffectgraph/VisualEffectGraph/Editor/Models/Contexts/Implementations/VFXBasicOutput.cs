@@ -21,9 +21,11 @@ namespace UnityEditor.VFX
         }
 
         [VFXSetting]
-        bool useSoftParticle = false;
+        [SerializeField]
+        private bool useSoftParticle = false;
         [VFXSetting]
-        BlendMode blendMode = BlendMode.Alpha;
+        [SerializeField]
+        private BlendMode blendMode = BlendMode.Alpha;
 
         public class InputProperties
         {

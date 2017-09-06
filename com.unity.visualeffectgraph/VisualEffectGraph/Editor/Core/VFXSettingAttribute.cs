@@ -20,10 +20,9 @@ namespace UnityEditor.VFX
             if (owner == null)
                 return Enumerable.Empty<FieldInfo>();
 
-            return owner.GetType().GetFields().Where(f =>
+            return owner.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
                 {
-                    return !f.IsStatic &&
-                    f.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 1 &&
+                    return f.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 1 &&
                     IsTypeSupported(f.FieldType);
                 });
         }
