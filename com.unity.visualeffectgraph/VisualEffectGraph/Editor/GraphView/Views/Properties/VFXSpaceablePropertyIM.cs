@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
             Label(presenter, presenter.name);
 
             Rect spaceRect = GUILayoutUtility.GetRect(24, 0, GUILayout.ExpandHeight(true));
-            SpaceButton(spaceRect, (Spaceable)presenter.value);
+            SpaceButton(spaceRect, (ISpaceable)presenter.value);
 
             object result = DoOnParameterGUI(presenter);
             GUILayout.EndHorizontal();
@@ -30,13 +30,13 @@ namespace UnityEditor.VFX.UI
             Rect spaceRect = rect;
             spaceRect.xMin += m_LabelWidth - 24;
             spaceRect.width = 24;
-            SpaceButton(spaceRect, (Spaceable)value);
+            SpaceButton(spaceRect, (ISpaceable)value);
 
             object result = DoOnParameterGUI(rect, value, label);
             return result;
         }
 
-        void SpaceButton(Rect rect, Spaceable value)
+        void SpaceButton(Rect rect, ISpaceable value)
         {
             if (GUI.Button(rect, new GUIContent(Resources.Load<Texture2D>(string.Format("vfx/space{0}", value.space.ToString()))), GUIStyle.none))
             {

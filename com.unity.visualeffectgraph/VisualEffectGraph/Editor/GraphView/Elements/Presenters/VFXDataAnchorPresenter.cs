@@ -199,7 +199,7 @@ namespace UnityEditor.VFX.UI
         public void ExpandPath()
         {
             model.expanded = true;
-            if (typeof(Spaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
             {
                 model.children.First().expanded = model.expanded;
             }
@@ -210,11 +210,16 @@ namespace UnityEditor.VFX.UI
         {
             Undo.RecordObject(model, "Retract path");
             model.expanded = false;
-            if (typeof(Spaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
             {
                 model.children.First().expanded = model.expanded;
             }
             model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
+        }
+
+        public void DrawGizmo(VFXComponent component)
+        {
+            VFXDataAnchorGizmo.Draw(this, component);
         }
     }
 }

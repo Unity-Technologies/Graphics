@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.UI
                     newAnchors.Add(propPresenter);
                     viewPresenter.RegisterDataAnchorPresenter(propPresenter);
 
-                    if (!typeof(Spaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
+                    if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
                     {
                         UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
                     }

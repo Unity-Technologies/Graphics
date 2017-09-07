@@ -20,14 +20,17 @@
 	text-color: #c4c4c4;
 }
 
-.VFXNodeUI.node.horizontal #pane > #left
+.VFXNodeUI.node.horizontal .mainContainer > #left
 {
 	width:250;
+}
+VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
+{
+	width:280;
 }
 
 .VFXNodeUI.node.horizontal #pane > #right
 {
-	width:85;
 	padding-left:2;
 	padding-right:2;
 }
@@ -57,6 +60,73 @@ VFXParameterUI #exposedNameContainer
 	flex-direction:row;
 }
 
+
+.VFXNodeUI.collapsed
+{
+height:30;
+}
+
+.VFXNodeUI.collapsed #title
+{
+	position-type:Absolute;
+	position-left:14;
+	position-right:0;
+	position-top:0;
+	position-bottom:0;
+}
+
+.VFXNodeUI.collapsed #input
+{
+	position-type:Absolute;
+	position-left:0;
+	position-right:0;
+	position-top:0;
+	position-bottom:0;
+}
+
+.VFXNodeUI.collapsed #type
+{
+	max-width:0;
+}
+
+.VFXNodeUI.node.horizontal > .mainContainer #right
+{
+	-width:100;
+	padding-right:0;
+}
+
+.VFXNodeUI.collapsed.node.horizontal > .mainContainer #right
+{
+	padding-left:0;
+	padding-right:0;
+	width:16;
+}
+.VFXNodeUI.collapsed #icon
+{
+	max-width:0;
+}
+.VFXNodeUI.collapsed #IMGUI
+{
+	max-width:0;
+}
+
+.VFXNodeUI.collapsed .propertyrm
+{
+	max-width:0;
+}
+.VFXNodeUI.collapsed.node.horizontal .mainContainer #left
+{
+	width:120;
+}
+.VFXNodeUI.collapsed.node.horizontal .VFXDataAnchor
+{
+	position-type:Absolute;
+	position-left:0;
+	-position-right:0;
+	width:20;
+	position-top:0;
+	position-bottom:0;
+}
 
 VFXParameterUI .value
 {

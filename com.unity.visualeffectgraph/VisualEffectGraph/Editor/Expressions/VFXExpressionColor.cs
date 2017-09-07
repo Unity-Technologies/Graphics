@@ -16,19 +16,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXRGBtoHSVOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 
@@ -60,19 +52,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
                 return VFXExpressionOp.kVFXHSVtoRGBOp;
-            }
-        }
-
-        public override VFXValueType ValueType
-        {
-            get
-            {
-                return VFXValueType.kFloat3;
             }
         }
 

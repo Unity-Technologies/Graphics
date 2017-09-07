@@ -143,6 +143,7 @@ namespace UnityEditor.VFX.UI
 
         void OnGUI()
         {
+            if (m_Container.style.maxWidth.specificity > 0) return;
             // update the GUISTyle from the element style defined in USS
 
 

@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return value.ValueType;
+                return value.valueType;
             }
         }
     }
@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
             m_Attribute = attribute;
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public override VFXValueType valueType
         {
             get
             {
@@ -159,7 +159,7 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXAttributeExpression)obj;
-            return ValueType == other.ValueType && attributeName == other.attributeName && attributeLocation == other.attributeLocation;
+            return valueType == other.valueType && attributeName == other.attributeName && attributeLocation == other.attributeLocation;
         }
 
         public override int GetHashCode()

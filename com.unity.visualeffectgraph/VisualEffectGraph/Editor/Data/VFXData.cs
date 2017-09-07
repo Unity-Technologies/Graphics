@@ -303,7 +303,7 @@ namespace UnityEditor.VFX
                 foreach (var info in exp.GetNeededAttributes())
                     yield return info;
 
-                foreach (var parent in exp.Parents)
+                foreach (var parent in exp.parents)
                 {
                     foreach (var info in CollectInputAttributes(parent))
                         yield return info;

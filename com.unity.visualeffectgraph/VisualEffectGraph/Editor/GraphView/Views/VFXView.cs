@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
-            this.AddManipulator(new SelectionSetter(this));
+            //this.AddManipulator(new SelectionSetter(this));
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new SelectionDragger());

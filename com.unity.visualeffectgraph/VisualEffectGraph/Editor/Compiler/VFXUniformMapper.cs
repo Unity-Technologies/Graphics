@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
                 string prefix;
                 Dictionary<VFXExpression, string> expressions;
 
-                if (VFXExpression.IsUniform(exp.ValueType))
+                if (VFXExpression.IsUniform(exp.valueType))
                 {
                     if (!exp.Is(VFXExpression.Flags.Constant)) // Filter out constant uniform that should be patched directly in shader
                     {
@@ -34,16 +34,16 @@ namespace UnityEditor.VFX
                     else
                         return;
                 }
-                else if (VFXExpression.IsTexture(exp.ValueType))
+                else if (VFXExpression.IsTexture(exp.valueType))
                 {
                     prefix = "texture_";
                     expressions = m_TextureToName;
                 }
                 else
                 {
-                    if (VFXExpression.IsTypeValidOnGPU(exp.ValueType))
+                    if (VFXExpression.IsTypeValidOnGPU(exp.valueType))
                     {
-                        throw new InvalidOperationException(string.Format("Missing handling for type: {0}", exp.ValueType));
+                        throw new InvalidOperationException(string.Format("Missing handling for type: {0}", exp.valueType));
                     }
                     return;
                 }
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
                 expressions[exp] = name;
             }
             else
-                foreach (var parent in exp.Parents)
+                foreach (var parent in exp.parents)
                     CollectAndAddUniforms(parent, null);
         }
 
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
 
-        public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.ValueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
 
         public Dictionary<VFXExpression, string> expressionToName
         {
