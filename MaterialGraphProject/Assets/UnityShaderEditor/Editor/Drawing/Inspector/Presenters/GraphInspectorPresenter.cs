@@ -33,7 +33,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         {
             m_Editors = new List<AbstractNodeEditorPresenter>();
             m_Title = graphName;
-            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorPresenter), typeof(StandardNodeEditorPresenter));
+            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorPresenter), typeof(StandardNodeEditorPresenter))
+            {
+                {typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorPresenter)}
+            };
 //            m_InspectorMapper = new TypeMapper<INode, AbstractNodeInspector>(typeof(BasicNodeInspector))
 //            {
 //                {typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector)},

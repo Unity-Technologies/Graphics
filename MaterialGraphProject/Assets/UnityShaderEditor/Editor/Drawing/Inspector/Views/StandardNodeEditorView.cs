@@ -5,11 +5,16 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class StandardNodeEditorView : DataWatchContainer
+    public class StandardNodeEditorView : AbstractNodeEditorView
     {
         VisualElement m_EditorTitle;
         VisualElement m_SlotsContainer;
         VisualElement m_DefaultSlotValuesSection;
+
+        new StandardNodeEditorPresenter presenter
+        {
+            get { return (StandardNodeEditorPresenter) base.presenter; }
+        }
 
         public StandardNodeEditorView()
         {
@@ -41,23 +46,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             Add(m_DefaultSlotValuesSection);
         }
 
-        [SerializeField]
-        StandardNodeEditorPresenter m_Presenter;
-
-        public StandardNodeEditorPresenter presenter
-        {
-            get { return m_Presenter; }
-            set
-            {
-                if (value == m_Presenter)
-                    return;
-                RemoveWatch();
-                m_Presenter = value;
-                OnDataChanged();
-                AddWatch();
-            }
-        }
-
         public override void OnDataChanged()
         {
             if (presenter == null)
@@ -75,11 +63,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 m_DefaultSlotValuesSection.RemoveFromClassList("hidden");
             else
                 m_DefaultSlotValuesSection.AddToClassList("hidden");
-        }
-
-        protected override Object[] toWatch
-        {
-            get { return new Object[] { presenter }; }
         }
     }
 }
