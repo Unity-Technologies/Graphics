@@ -33,8 +33,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIStyle(EditorStyles.foldout)
             };
 
-            public readonly GUIContent materialLayerText = new GUIContent("Material");
-            public readonly GUIContent syncButtonText = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
+            public readonly GUIContent syncAllButtonText = new GUIContent("Re-Synchronize", "Re-synchronize all layers material properties with the referenced Materials");
+            public readonly GUIContent syncAllButUVButtonText = new GUIContent("Re-Synchronize Without UV Mapping", "Re-synchronize all but UV Mapping properties with the referenced Materials");
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
@@ -59,6 +59,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the base color from the base layer.");
             public readonly GUIContent heightOffset = new GUIContent("Height Offset", "Offset applied to the height before layering.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
+
+            public readonly GUIContent materialReferencesText = new GUIContent("Material References");
 
             public StylesLayer()
             {
@@ -196,25 +198,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 for (int i = 0; i < layerCount; ++i)
                 {
-                    SynchronizeLayerProperties(material, layers, i);
+                    SynchronizeLayerProperties(material, layers, i, true);
                 }
             }
         }
 
-        void SynchronizeAllLayersProperties()
+        void SynchronizeAllLayersProperties(bool excludeUVMappingProperties)
         {
             for (int i = 0; i < numLayer; ++i)
             {
-                SynchronizeLayerProperties(m_MaterialEditor.target as Material, m_MaterialLayers, i);
+                SynchronizeLayerProperties(m_MaterialEditor.target as Material, m_MaterialLayers, i, excludeUVMappingProperties);
             }
         }
 
         // This function will look for all referenced lit material, and assign value from Lit to layered lit layers.
         // This is based on the naming of the variables, i.E BaseColor will match BaseColor0, if a properties shouldn't be override
         // put the name in the exclusionList below
-        static void SynchronizeLayerProperties(Material material, Material[] layers, int layerIndex)
+        static void SynchronizeLayerProperties(Material material, Material[] layers, int layerIndex, bool excludeUVMappingProperties)
         {
             Material layerMaterial = layers[layerIndex];
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
 
             if (layerMaterial != null)
             {
@@ -224,34 +227,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
-
-                    if (material.HasProperty(layerPropertyName))
+                    
+                    if (!exclusionList.Contains(propertyName) || !excludeUVMappingProperties)
                     {
-                        ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-                        switch (type)
+                        if (material.HasProperty(layerPropertyName))
                         {
-                            case ShaderUtil.ShaderPropertyType.Color:
+                            ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                            switch (type)
                             {
-                                material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Float:
-                            case ShaderUtil.ShaderPropertyType.Range:
-                            {
-                                material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Vector:
-                            {
-                                material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.TexEnv:
-                            {
-                                material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-                                material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
-                                material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
-                                break;
+                                case ShaderUtil.ShaderPropertyType.Color:
+                                {
+                                    material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Float:
+                                case ShaderUtil.ShaderPropertyType.Range:
+                                {
+                                    material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Vector:
+                                {
+                                    material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.TexEnv:
+                                {
+                                    material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+                                    if(!excludeUVMappingProperties)
+                                    {
+                                        material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
+                                        material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
+                                    }
+                                    break;
+                                }
                             }
                         }
                     }
@@ -304,18 +313,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             bool heightBasedBlend = useHeightBasedBlend.floatValue > 0.0f;
 
-            EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
+            // Main layer does not have any options but height base blend.
+            if(layerIndex > 0 || heightBasedBlend )
             {
+                EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-
-                EditorGUI.BeginChangeCheck();
-                m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayerText, m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex);
-                    result = true;
-                }
 
                 // influence
                 if (layerIndex > 0)
@@ -334,7 +336,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if(heightBasedBlend)
+                if (heightBasedBlend)
                 {
                     m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
                 }
@@ -342,7 +344,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
-
 
             DoLayerGUI(material, layerIndex);
 
@@ -352,14 +353,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        bool DoLayersGUI(AssetImporter materialImporter)
+
+        void DoLayeringInputGUI()
         {
-            Material material = m_MaterialEditor.target as Material;
-
-            bool layerChanged = false;
-
-            GUI.changed = false;
-
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
@@ -368,9 +364,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
             if (EditorGUI.EndChangeCheck())
             {
+                Material material = m_MaterialEditor.target as Material;
                 Undo.RecordObject(material, "Change layer count");
                 layerCount.floatValue = (float)newLayerCount;
-                layerChanged = true;
             }
 
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
@@ -430,6 +426,58 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);
+            EditorGUI.indentLevel--;
+        }
+
+        bool DoMaterialReferencesGUI(AssetImporter materialImporter)
+        {            
+            EditorGUILayout.LabelField(styles.materialReferencesText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+
+            bool layersChanged = false;
+            Material material = m_MaterialEditor.target as Material;
+
+            for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
+            {
+                EditorGUI.BeginChangeCheck();
+                m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(materialImporter, "Change layer material");
+                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
+                    layersChanged = true;
+                }
+            }
+
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(styles.syncAllButUVButtonText))
+                {
+                    SynchronizeAllLayersProperties(true);
+                    layersChanged = true;
+                }
+                if (GUILayout.Button(styles.syncAllButtonText))
+                {
+                    SynchronizeAllLayersProperties(false);
+                    layersChanged = true;
+                }
+            }
+            GUILayout.EndHorizontal();
+            EditorGUI.indentLevel--;
+
+            return layersChanged;
+        }
+
+        bool DoLayersGUI(AssetImporter materialImporter)
+        {
+            Material material = m_MaterialEditor.target as Material;
+
+            bool layerChanged = false;
+
+            GUI.changed = false;
+
+            DoLayeringInputGUI();
 
             EditorGUILayout.Space();
 
@@ -439,18 +487,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(styles.syncButtonText))
-                {
-                    SynchronizeAllLayersProperties();
-                    layerChanged = true;
-                }
-            }
-            GUILayout.EndHorizontal();
 
-            EditorGUI.indentLevel--;
+            layerChanged |= DoMaterialReferencesGUI(materialImporter);
 
             layerChanged |= GUI.changed;
             GUI.changed = false;
