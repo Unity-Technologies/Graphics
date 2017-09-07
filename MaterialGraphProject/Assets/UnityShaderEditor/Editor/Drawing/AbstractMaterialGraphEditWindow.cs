@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.SceneManagement;
@@ -360,10 +361,17 @@ namespace UnityEditor.MaterialGraph.Drawing
             var presenter = CreateInstance<GraphEditorPresenter>();
             presenter.Initialize(inMemoryAsset, this, selected.name);
             m_GraphEditorView.presenter = presenter;
+            m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
 
             titleContent = new GUIContent(selected.name);
 
             Repaint();
+        }
+
+        void OnPostLayout(PostLayoutEvent evt)
+        {
+            m_GraphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+            m_GraphEditorView.graphView.FrameAll();
         }
     }
 }
