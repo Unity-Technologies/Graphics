@@ -87,8 +87,6 @@ CBUFFER_START(_PerMaterial)
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
 
-float _HorizonFade;
-
 float _PPDMaxSamples;
 float _PPDMinSamples;
 float _PPDLodThreshold;

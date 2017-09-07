@@ -24,7 +24,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
-            public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
+            public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Cosine weighted Bent Normal Map (average unoccluded direction) (BC7/BC5/DXT5(nm))");
+            public static GUIContent bentNormalMapOSText = new GUIContent("Bent normal map OS", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Bent Normal Map (BC7/DXT1/RGB)");
 
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
@@ -34,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
-            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (R)", "Anisotropy");
 
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
@@ -127,14 +128,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
         protected MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
         protected const string kMaskMap = "_MaskMap";
-        protected MaterialProperty[] specularOcclusionMap = new MaterialProperty[kMaxLayerCount];
-        protected const string kSpecularOcclusionMap = "_SpecularOcclusionMap";
+        protected MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
+        protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty[] normalMap = new MaterialProperty[kMaxLayerCount];
         protected const string kNormalMap = "_NormalMap";
         protected MaterialProperty[] normalMapOS = new MaterialProperty[kMaxLayerCount];
         protected const string kNormalMapOS = "_NormalMapOS";
-        protected MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
-        protected const string kNormalScale = "_NormalScale";
+        protected MaterialProperty[] bentNormalMap = new MaterialProperty[kMaxLayerCount];
+        protected const string kBentNormalMap = "_BentNormalMap";
+        protected MaterialProperty[] bentNormalMapOS = new MaterialProperty[kMaxLayerCount];
+        protected const string kBentNormalMapOS = "_BentNormalMapOS";
         protected MaterialProperty[] normalMapSpace = new MaterialProperty[kMaxLayerCount];
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
@@ -218,10 +221,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 smoothnessRemapMin[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMin, m_PropertySuffixes[i]), props);
                 smoothnessRemapMax[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMax, m_PropertySuffixes[i]), props);
                 maskMap[i] = FindProperty(string.Format("{0}{1}", kMaskMap, m_PropertySuffixes[i]), props);
-                specularOcclusionMap[i] = FindProperty(string.Format("{0}{1}", kSpecularOcclusionMap, m_PropertySuffixes[i]), props);
                 normalMap[i] = FindProperty(string.Format("{0}{1}", kNormalMap, m_PropertySuffixes[i]), props);
                 normalMapOS[i] = FindProperty(string.Format("{0}{1}", kNormalMapOS, m_PropertySuffixes[i]), props);
                 normalScale[i] = FindProperty(string.Format("{0}{1}", kNormalScale, m_PropertySuffixes[i]), props);
+                bentNormalMap[i] = FindProperty(string.Format("{0}{1}", kBentNormalMap, m_PropertySuffixes[i]), props);
+                bentNormalMapOS[i] = FindProperty(string.Format("{0}{1}", kBentNormalMapOS, m_PropertySuffixes[i]), props);
                 normalMapSpace[i] = FindProperty(string.Format("{0}{1}", kNormalMapSpace, m_PropertySuffixes[i]), props);
                 heightMap[i] = FindProperty(string.Format("{0}{1}", kHeightMap, m_PropertySuffixes[i]), props);
                 heightAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightAmplitude, m_PropertySuffixes[i]), props);
@@ -387,8 +391,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap[layerIndex]);
-
             m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
             // Triplanar only work with tangent space normal
@@ -403,11 +405,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((NormalMapSpace)normalMapSpace[layerIndex].floatValue == NormalMapSpace.TangentSpace)
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[layerIndex], normalScale[layerIndex]);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[layerIndex]);
             }
             else
             {
                 // No scaling in object space
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS[layerIndex]);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
             }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
@@ -549,15 +553,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
                 SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
                 SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+                SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMap));
             }
             else // Object space
             {
                 // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
                 SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
                 SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
+                SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
             }
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-            SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));

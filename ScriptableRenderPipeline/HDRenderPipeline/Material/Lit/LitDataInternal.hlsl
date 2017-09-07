@@ -77,6 +77,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     #endif
 }
 
+// Caution: Duplicate from GetBentNormalTS - keep in sync!
 float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
 {
     float3 normalTS;
@@ -117,8 +118,46 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     return normalTS;
 }
 
+// Caution: Duplicate from GetNormalTS - keep in sync!
+float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 normalTS, float3 detailNormalTS, float detailMask)
+{
+    float3 bentNormalTS;
+
+#ifdef _BENTNORMALMAP_IDX
+    #ifdef _NORMALMAP_TANGENT_SPACE_IDX
+        bentNormalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_BentNormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+    #else // Object space
+        // We forbid scale in case of object space as it make no sense
+        // To be able to combine object space normal with detail map then later we will re-transform it to world space.
+        // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
+        #ifdef SURFACE_GRADIENT
+        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
+        float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
+        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
+        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldDir(normalOS));
+        #else
+        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
+        bentNormalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
+        #endif
+    #endif
+
+    #ifdef _DETAIL_MAP_IDX
+        #ifdef SURFACE_GRADIENT
+        bentNormalTS += detailNormalTS * detailMask;
+        #else
+        bentNormalTS = lerp(bentNormalTS, BlendNormalRNM(bentNormalTS, detailNormalTS), detailMask);
+        #endif
+    #endif
+#else
+    // If there is no bent normal map provided, fallback on regular normal map
+    bentNormalTS = normalTS;
+#endif
+
+    return bentNormalTS;
+}
+
 // Return opacity
-float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS)
+float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
     float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a * ADD_IDX(_BaseColor).a;
 
@@ -147,16 +186,12 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor *= LerpWhiteTo(2.0 * saturate(detailAlbedo * ADD_IDX(_DetailAlbedoScale)), detailMask);
 #endif
 
-#ifdef _SPECULAROCCLUSIONMAP_IDX
-    // TODO: Do something. For now just take alpha channel
-    surfaceData.specularOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), SAMPLER_SPECULAROCCLUSIONMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
-#else
-    // The specular occlusion will be perform outside the internal loop
-    surfaceData.specularOcclusion = 1.0;
-#endif
+    surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
+
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
 
     normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask);
+    bentNormalTS = ADD_IDX(GetBentNormalTS)(input, layerTexCoord, normalTS, detailNormalTS, detailMask);
 
 #if defined(_MASKMAP_IDX)
     surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
@@ -209,7 +244,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _ANISOTROPYMAP
-    surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).b;
+    surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).r;
 #else
     surfaceData.anisotropy = 1.0;
 #endif
