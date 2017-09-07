@@ -118,6 +118,8 @@ float4 _BaseColorMap_ST;
 
 float _Metallic;
 float _Smoothness;
+float _SmoothnessRemapMin;
+float _SmoothnessRemapMax;
 
 float _NormalScale;
 
@@ -157,6 +159,8 @@ float4 _BaseColorMap3_ST;
 
 PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
+PROP_DECL(float, _SmoothnessRemapMin);
+PROP_DECL(float, _SmoothnessRemapMax);
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
