@@ -359,11 +359,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
-            // indentation around base color is a workaround for a bug in material properties UI where the color picker is not indented properly and gets cropped (and unusable in layered shader UI)
-            // Remove when bug is fixed.
-            EditorGUI.indentLevel--;
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
-            EditorGUI.indentLevel++;
 
             if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
                 (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
@@ -477,17 +473,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
 
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-            if (uvBaseMapping == UVBaseMapping.UV0)
-            {
-                m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-            }
-            else if (uvBaseMapping == UVBaseMapping.Planar)
+            if (uvBaseMapping == UVBaseMapping.Planar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
             }
             else if (uvBaseMapping == UVBaseMapping.Triplanar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
+            }
+            else
+            {
+                m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
             }
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
