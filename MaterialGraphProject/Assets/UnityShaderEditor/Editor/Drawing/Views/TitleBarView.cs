@@ -5,7 +5,6 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    // TODO JOCE: we should not need a title bar drawer. It should just be a visual element in the nodedrawer.
     public class TitleBarView : DataWatchContainer
     {
         TitleBarPresenter m_DataProvider;
@@ -54,7 +53,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdateContainer(m_RightContainer, m_DataProvider.rightItems);
         }
 
-        void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonPresenter> itemDatas)
+        static void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonPresenter> itemDatas)
         {
             container.ClearChildren();
             foreach (var itemPresenter in itemDatas)
