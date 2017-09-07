@@ -65,6 +65,7 @@ half4 _LightSpotDir;
 
 sampler2D _MetallicSpecGlossMap;
 
+half4 _DieletricSpec;
 half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
@@ -125,30 +126,35 @@ inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 #endif
 }
 
-half2 MetallicGloss(float2 uv, half glossiness)
+half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 {
-    half2 mg;
+    half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    mg.r = tex2D(_MetallicSpecGlossMap, uv).r;
-    mg.g = glossiness;
+    specGloss.rgb = tex2D(_MetallicSpecGlossMap, uv).rgb;
+    specGloss.a = albedoAlpha;
 #else
-    mg = tex2D(_MetallicSpecGlossMap, uv).ra;
+    specGloss = tex2D(_MetallicSpecGlossMap, uv).rgba;
 #endif
-    mg.g *= _GlossMapScale;
+    specGloss.a *= _GlossMapScale;
 
 #else // _METALLICSPECGLOSSMAP
 
-    mg.r = _Metallic;
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    mg.g = glossiness * _GlossMapScale;
+#if _METALLIC_SETUP
+    specGloss.r = _Metallic;
 #else
-    mg.g = glossiness;
+    specGloss.rgb = _SpecColor.rgb;
+#endif
+
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    specGloss.a = albedoAlpha * _GlossMapScale;
+#else
+    specGloss.a = _Glossiness;
 #endif
 #endif
 
-    return mg;
+    return specGloss;
 }
 
 #endif
