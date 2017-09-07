@@ -21,11 +21,12 @@ Shader "HDRenderPipeline/Lit"
         _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units. This will be computed in the UI.
+        _HeightMin("Heightmap Min", Float) = -1
+        _HeightMax("Heightmap Max", Float) = 1
         _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}
-        _DetailMask("DetailMask", 2D) = "white" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
@@ -63,6 +64,7 @@ Shader "HDRenderPipeline/Lit"
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
@@ -132,7 +134,6 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP

@@ -341,7 +341,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
 
-            DoLayerGUI(material, false, layerIndex);
+            DoLayerGUI(material, layerIndex);
 
             if (layerIndex == 0)
                 EditorGUILayout.Space();
@@ -627,12 +627,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
-
-            EditorGUILayout.Space();
-            GUILayout.Label(Styles.lightingText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+            DoEmissiveGUI();
             DoEmissionArea(material);
             EditorGUI.indentLevel--;
             m_MaterialEditor.EnableInstancingField();

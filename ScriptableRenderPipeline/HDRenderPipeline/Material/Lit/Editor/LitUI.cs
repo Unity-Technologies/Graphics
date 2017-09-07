@@ -18,17 +18,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
-            public static GUIContent maskMapESText = new GUIContent("Mask Map - M(R), AO(G), E(B), S(A)", "Mask map");
-            public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), S(A)", "Mask map");
+            public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
-            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
-            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units (distance between minimum and maximum value in the texture).");
+            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
+            public static GUIContent heightMapMinText = new GUIContent("Height Min", "Minimum value in the heightmap (in world units)");
+            public static GUIContent heightMapMaxText = new GUIContent("Height Max", "Maximum value in the heightmap (in world units)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
@@ -42,7 +42,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string detailText = "Detail Inputs";
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
-            public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
@@ -65,7 +64,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string lightingText = "Lighting Inputs";
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
-            public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
+            public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
 
             public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
         }
@@ -106,12 +105,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UV3
         }
 
-        public enum EmissiveColorMode
-        {
-            UseEmissiveColor,
-            UseEmissiveMask,
-        }
-
         protected MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
@@ -145,6 +138,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kHeightAmplitude = "_HeightAmplitude";
         protected MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightCenter = "_HeightCenter";
+        protected MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightMin = "_HeightMin";
+        protected MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightMax = "_HeightMax";
 
         protected MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
         protected const string kUVDetail = "_UVDetail";
@@ -152,8 +149,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailMap = "_DetailMap";
-        protected MaterialProperty[] detailMask = new MaterialProperty[kMaxLayerCount];
-        protected const string kDetailMask = "_DetailMask";
         protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
         protected MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
@@ -200,7 +195,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
-
+        protected MaterialProperty albedoAffectEmissive = null;
+        protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {
@@ -222,13 +218,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 normalMapSpace[i] = FindProperty(string.Format("{0}{1}", kNormalMapSpace, m_PropertySuffixes[i]), props);
                 heightMap[i] = FindProperty(string.Format("{0}{1}", kHeightMap, m_PropertySuffixes[i]), props);
                 heightAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightAmplitude, m_PropertySuffixes[i]), props);
+                heightMin[i] = FindProperty(string.Format("{0}{1}", kHeightMin, m_PropertySuffixes[i]), props);
+                heightMax[i] = FindProperty(string.Format("{0}{1}", kHeightMax, m_PropertySuffixes[i]), props);
                 heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
 
                 // Details
                 UVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, m_PropertySuffixes[i]), props);
                 UVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, m_PropertySuffixes[i]), props);
                 detailMap[i] = FindProperty(string.Format("{0}{1}", kDetailMap, m_PropertySuffixes[i]), props);
-                detailMask[i] = FindProperty(string.Format("{0}{1}", kDetailMask, m_PropertySuffixes[i]), props);
                 detailAlbedoScale[i] = FindProperty(string.Format("{0}{1}", kDetailAlbedoScale, m_PropertySuffixes[i]), props);
                 detailNormalScale[i] = FindProperty(string.Format("{0}{1}", kDetailNormalScale, m_PropertySuffixes[i]), props);
                 detailSmoothnessScale[i] = FindProperty(string.Format("{0}{1}", kDetailSmoothnessScale, m_PropertySuffixes[i]), props);
@@ -241,6 +238,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
+            albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
         }
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
@@ -348,7 +346,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
-        protected void DoLayerGUI(Material material, bool useEmissiveMask, int layerIndex)
+        protected void DoLayerGUI(Material material, int layerIndex)
         {
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
@@ -368,10 +366,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
 
-            if (useEmissiveMask)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap[layerIndex]);
-            else
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap[layerIndex]);
 
@@ -400,8 +395,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightAmplitude[layerIndex], Styles.heightMapAmplitudeText);
-                heightAmplitude[layerIndex].floatValue = Math.Max(0.0f, heightAmplitude[layerIndex].floatValue); // Must be positive
+                m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
+                m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
+                heightAmplitude[layerIndex].floatValue = heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue;
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -456,7 +452,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(Styles.detailText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask[layerIndex]);
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
 
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
@@ -488,26 +483,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        protected override void MaterialPropertiesGUI(Material material)
+        protected void DoEmissiveGUI()
         {
-            bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
-
-            DoLayerGUI(material, useEmissiveMask, 0);
-
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
-
-            if (!useEmissiveMask)
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            }
-
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-
+            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
+        }
+
+        protected override void MaterialPropertiesGUI(Material material)
+        {
+            DoLayerGUI(material, 0);
+            DoEmissiveGUI();
             // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
         }
 
@@ -534,7 +525,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
-            SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 
             if (normalMapSpace == NormalMapSpace.TangentSpace)
             {
