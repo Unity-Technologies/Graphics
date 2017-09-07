@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.MaterialGraph.Drawing.Inspector;
+using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.MaterialGraph.Drawing
