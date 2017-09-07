@@ -154,7 +154,8 @@ Shader "HDRenderPipeline/LayeredLit"
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
         [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
-        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // Following are builtin properties
@@ -218,7 +219,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
-        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0

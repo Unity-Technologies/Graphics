@@ -106,6 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
         MaterialProperty UVBlendMask = null;
         const string kUVBlendMask = "_UVBlendMask";
+        MaterialProperty UVMappingMaskBlendMask = null;
+        const string kUVMappingMaskBlendMask = "_UVMappingMaskBlendMask";
         MaterialProperty layerTilingBlendMask = null;
         const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
         MaterialProperty texWorldScaleBlendMask = null;
@@ -148,6 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             vertexColorMode = FindProperty(kVertexColorMode, props);
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
+            UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
             layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
 
@@ -374,6 +377,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
+            UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
+
+            float X, Y, Z, W;
+            X = (uvBlendMask == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvBlendMask == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvBlendMask == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvBlendMask == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMaskBlendMask.colorValue = new Color(X, Y, Z, W);
 
             if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
                 ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))

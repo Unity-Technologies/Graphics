@@ -197,6 +197,7 @@ float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 

@@ -456,14 +456,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
 
-            // UVSet0 is always set, planar and triplanar will override it.
             float X, Y, Z, W;
             X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
             Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
             Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
-            UVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is shared by both here, need to force X to 1.0 in all case
+            UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
