@@ -19,6 +19,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
+            #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../../Core/ShaderLibrary/Color.hlsl"
             #include "../../../../Core/ShaderLibrary/Common.hlsl"
             #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
@@ -62,6 +63,15 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 return output;
             }
 
+            float3 GetAbsolutePositionWS(float3 cameraRelativePositionWS)
+            {
+                float3 pos = cameraRelativePositionWS;
+            #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+                pos += _CameraPosWS;
+            #endif
+                return pos;
+            }
+
             float4 Frag(Varyings input) : SV_Target
             {
                 // Points towards the camera
@@ -100,7 +110,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
-                VolundTransferScatter(posInput.positionWS, c1, c2, c3);
+                VolundTransferScatter(GetAbsolutePositionWS(posInput.positionWS), c1, c2, c3);
 
                 float4 coord1 = float4(c1.rgb + c3.rgb, max(0.f, 1.f - c1.a - c3.a));
                 float3 coord2 = c2.rgb;
