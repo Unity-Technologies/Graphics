@@ -5,10 +5,17 @@ using System.Linq;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper<TFrom, TTo, TFallback> : IEnumerable<TypeMapping>
-        where TFallback : TTo
+    public class TypeMapper<TFrom, TTo> : IEnumerable<TypeMapping>
     {
+        readonly Type m_FallbackType;
         readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
+
+        public TypeMapper(Type fallbackType = null)
+        {
+            if (fallbackType != null && !(fallbackType.IsSubclassOf(typeof(TFrom)) || fallbackType.GetInterfaces().Contains(typeof(TFrom))))
+                throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fallbackType.Name, typeof(TFrom).Name), "fallbackType");
+            m_FallbackType = fallbackType;
+        }
 
         public void Add(TypeMapping mapping)
         {
@@ -40,7 +47,7 @@ namespace UnityEditor.Graphing.Util
                     fromType = fromType.BaseType;
             }
 
-            return toType ?? typeof(TFallback);
+            return toType ?? m_FallbackType;
         }
 
         public IEnumerator<TypeMapping> GetEnumerator()

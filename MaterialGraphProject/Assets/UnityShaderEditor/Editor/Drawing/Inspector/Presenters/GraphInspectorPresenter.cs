@@ -36,20 +36,20 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             set { m_Title = value; }
         }
 
-        ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector> m_InspectorFactory;
+        TypeMapper<INode, AbstractNodeInspector> m_InspectorMapper;
 
         public void Initialize(string graphName)
         {
             inspectors = new List<AbstractNodeInspector>();
             m_Editors = new List<AbstractNodeEditorPresenter>();
             m_Title = graphName;
-            m_InspectorFactory = new ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector>(new[]
+            m_InspectorMapper = new TypeMapper<INode, AbstractNodeInspector>(typeof(BasicNodeInspector))
             {
-                new TypeMapping(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector)),
-                new TypeMapping(typeof(PropertyNode), typeof(PropertyNodeInspector)),
-                new TypeMapping(typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector)),
-                new TypeMapping(typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector))
-            });
+                {typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector)},
+                {typeof(PropertyNode), typeof(PropertyNodeInspector)},
+                {typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector)},
+                {typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector)}
+            };
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
@@ -58,7 +58,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             editors.Clear();
             foreach (var node in nodes.OfType<SerializableNode>())
             {
-                var inspector = m_InspectorFactory.Create(node);
+                var inspector = (AbstractNodeInspector) CreateInstance(m_InspectorMapper.MapType(node.GetType()));
                 inspector.Initialize(node);
                 m_Inspectors.Add(inspector);
 
