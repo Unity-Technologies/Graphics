@@ -68,6 +68,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     var presenter = CreateInstance<GraphEditorPresenter>();
                     presenter.Initialize(inMemoryAsset, this, selected.name);
                     m_GraphEditorView.presenter = presenter;
+                    m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 }
                 m_GraphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
             }
@@ -77,9 +78,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             m_GraphEditorView = new GraphEditorView();
             rootVisualContainer.Add(m_GraphEditorView);
-            var presenter = CreateInstance<GraphEditorPresenter>();
-            presenter.Initialize(inMemoryAsset, this, selected != null ? selected.name : "");
-            m_GraphEditorView.presenter = presenter;
         }
 
         void OnDisable()
@@ -358,11 +356,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             inMemoryAsset.OnEnable();
             inMemoryAsset.ValidateGraph();
 
-            var presenter = CreateInstance<GraphEditorPresenter>();
-            presenter.Initialize(inMemoryAsset, this, selected.name);
-            m_GraphEditorView.presenter = presenter;
-            m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-
+            m_GraphEditorView.presenter = null;
             titleContent = new GUIContent(selected.name);
 
             Repaint();
