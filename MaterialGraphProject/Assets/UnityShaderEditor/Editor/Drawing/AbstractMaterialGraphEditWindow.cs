@@ -64,12 +64,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (m_GraphEditorView != null)
             {
                 if (m_GraphEditorView.presenter == null)
-                {
-                    var presenter = CreateInstance<GraphEditorPresenter>();
-                    presenter.Initialize(inMemoryAsset, this, selected.name);
-                    m_GraphEditorView.presenter = presenter;
-                    m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-                }
+                    CreatePresenter();
                 m_GraphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
             }
         }
@@ -356,10 +351,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             inMemoryAsset.OnEnable();
             inMemoryAsset.ValidateGraph();
 
-            m_GraphEditorView.presenter = null;
+            CreatePresenter();
             titleContent = new GUIContent(selected.name);
 
             Repaint();
+        }
+
+        void CreatePresenter()
+        {
+            var presenter = CreateInstance<GraphEditorPresenter>();
+            presenter.Initialize(inMemoryAsset, this, selected.name);
+            m_GraphEditorView.presenter = presenter;
+            m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
         }
 
         void OnPostLayout(PostLayoutEvent evt)
