@@ -16,15 +16,15 @@ namespace UnityEditor.VFX
         Camera,
         SpaceCount
     }
-    interface Spaceable
+    interface ISpaceable
     {
         CoordinateSpace space { get; set; }
     }
 
     [VFXType]
-    struct Sphere : Spaceable
+    struct Sphere : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 center;
@@ -32,9 +32,9 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct OrientedBox : Spaceable
+    struct OrientedBox : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 center;
@@ -43,9 +43,9 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct AABox : Spaceable
+    struct AABox : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 center;
@@ -53,9 +53,9 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct Plane : Spaceable
+    struct Plane : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 position;
@@ -63,9 +63,9 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct Cylinder : Spaceable
+    struct Cylinder : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3  position;
@@ -75,9 +75,9 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct Transform : Spaceable
+    struct Transform : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 position;
@@ -86,27 +86,27 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
-    struct Position : Spaceable
+    struct Position : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 position;
     }
 
     [VFXType]
-    struct DirectionType : Spaceable
+    struct DirectionType : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 direction;
     }
 
     [VFXType]
-    struct Vector : Spaceable
+    struct Vector : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         public Vector3 vector;

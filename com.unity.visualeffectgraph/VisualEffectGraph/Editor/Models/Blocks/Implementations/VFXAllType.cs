@@ -49,4 +49,28 @@ namespace UnityEditor.VFX
         [VFXSetting]
         public bool rotateTwice;
     }
+    [VFXInfo(category = "Tests")]
+    class VFXAABoxBlock : VFXBlock
+    {
+        public override string name { get { return "AABox"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public AABox box;
+        }
+    }
+    [VFXInfo(category = "Tests")]
+    class VFXOrientedBoxBlock : VFXBlock
+    {
+        public override string name { get { return "Oriented Box"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public OrientedBox box;
+        }
+    }
 }

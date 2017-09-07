@@ -11,7 +11,7 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    class SpaceablePropertyRM<T> : PropertyRM<T> where T : Spaceable
+    class SpaceablePropertyRM<T> : PropertyRM<T> where T : ISpaceable
     {
         public SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return false; } }
     }
 
-    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
+    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : ISpaceable
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
