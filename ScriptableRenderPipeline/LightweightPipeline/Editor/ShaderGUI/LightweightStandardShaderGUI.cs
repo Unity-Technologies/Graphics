@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.Experimental.Rendering.LightweightPipeline;
 using UnityEngine;
 
 namespace UnityEditor
@@ -401,39 +402,33 @@ namespace UnityEditor
         {
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap") || material.GetTexture("_DetailNormalMap"));
+            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap") || material.GetTexture("_DetailNormalMap"));
 
-            SetKeyword(material, "_SPECULAR_SETUP", workflowMode == WorkflowMode.Specular);
-            SetKeyword(material, "_METALLIC_SETUP", workflowMode == WorkflowMode.Metallic);
-            SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
-            SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap") || material.GetTexture("_DetailNormalMap"));
+            LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", workflowMode == WorkflowMode.Specular);
+            LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", workflowMode == WorkflowMode.Metallic);
+            LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicSpecGlossMap") != null);
+            LightweightShaderHelper.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
+            LightweightShaderHelper.SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap") || material.GetTexture("_DetailNormalMap"));
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
             bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
-            SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
+            LightweightShaderHelper.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
-                SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha);
+                LightweightShaderHelper.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha);
             }
         }
 
         static void MaterialChanged(Material material, WorkflowMode workflowMode)
         {
+            material.shaderKeywords = null;
             SetupMaterialWithBlendMode(material, (BlendMode)material.GetFloat("_Mode"));
 
             SetMaterialKeywords(material, workflowMode);
         }
-
-        static void SetKeyword(Material m, string keyword, bool state)
-        {
-            if (state)
-                m.EnableKeyword(keyword);
-            else
-                m.DisableKeyword(keyword);
-        }
     }
-} // namespace UnityEditor
+}
