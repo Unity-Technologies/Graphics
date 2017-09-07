@@ -16,8 +16,8 @@ Shader "Hidden/Checkerboard"
             uniform float _X;
             uniform float _Y;
 
-            static const float4 col1 = float4(0.25, 0.25, 0.25, 1.0);
-            static const float4 col2 = float4(0.75, 0.75, 0.75, 1.0);
+            static const float4 col1 = float4(0.15, 0.15, 0.15, 1.0);
+            static const float4 col2 = float4(0.3, 0.3, 0.3, 1.0);
 
             float4 frag(v2f_img i) : COLOR
             {
