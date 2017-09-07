@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
 
-            return VFXValue.Constant(matrix.GetColumn(3));
+            return VFXValue.Constant<Vector3>(matrix.GetColumn(3));
         }
     }
 
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionExtractAnglesFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        public VFXExpressionExtractAnglesFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
         {
         }
 
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
         {
         }
 

@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip("The closest point on the line to the supplied position.")]
             public Vector3 closestPosition;
-            [Tooltip("The distance from the line.")]
+            [Tooltip("The unsigned distance from the line.")]
             public float distance;
         }
 

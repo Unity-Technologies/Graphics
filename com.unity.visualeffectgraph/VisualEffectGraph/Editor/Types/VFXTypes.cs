@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
         [Tooltip("The position of the plane.")]
         public Vector3 position;
         [Tooltip("The direction of the plane.")]
-        public Vector3 normal;
+        public DirectionType normal;
     }
 
     [VFXType]

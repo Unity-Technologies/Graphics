@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip("The closest point on the sphere to the supplied position.")]
             public Vector3 closestPosition;
-            [Tooltip("The distance from the sphere.")]
+            [Tooltip("The signed distance from the sphere. (Negative values represent points that are inside the sphere).")]
             public float distance;
         }
 
