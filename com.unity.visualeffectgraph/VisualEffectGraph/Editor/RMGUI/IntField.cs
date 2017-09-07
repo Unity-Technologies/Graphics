@@ -8,12 +8,12 @@ namespace UnityEditor.VFX.UIElements
 {
     class IntField : ValueControl<int>, IValueChangeListener<int>
     {
-        EditorTextField m_TextField;
+        TextField m_TextField;
 
 
         void CreateTextField()
         {
-            m_TextField = new EditorTextField(30, false, false, '*');
+            m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.OnTextChanged = OnTextChanged;
         }
