@@ -18,8 +18,8 @@
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
         _MetallicSpecGlossMap("MetallicSpecGlossMap", 2D) = "white" {} // SpecGloss map when _SPECULAR_SETUP, MetallicGloss otherwise
 
-        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
+        [Toggle] _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [Toggle] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -73,14 +73,13 @@
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature ___ _DETAIL_MULX2
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature _ _SPECULARHIGHLIGHTS_ON
+            #pragma shader_feature _ _GLOSSYREFLECTIONS_ON
             #pragma shader_feature _PARALLAXMAP
 
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
             #pragma multi_compile _ LIGHTWEIGHT_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
@@ -123,7 +122,7 @@
 #if _NORMALMAP
                 half sign = v.tangent.w * unity_WorldTransformParams.w;
                 half3 tangent = normalize(UnityObjectToWorldDir(v.tangent));
-                half3 binormal = cross(normal, tangent) * v.tangent.w;
+                half3 binormal = cross(normal, tangent) * sign;
 
                 // Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
                 o.tangentToWorld0 = half3(tangent.x, binormal.x, normal.x);
@@ -149,27 +148,28 @@
                 float2 lightmapUV = i.uv01.zw;
 
                 half4 albedoTex = tex2D(_MainTex, i.uv01.xy);
-                half3 albedo = albedoTex.rgb * _Color.rgb;
+                half3 albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoTex.rgb) * _Color.rgb;
 
 #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
                 half alpha = _Color.a;
-                half glossiness = albedoTex.a;
 #else
                 half alpha = albedoTex.a * _Color.a;
-                half glossiness = _Glossiness;
 #endif
 
 #if defined(_ALPHATEST_ON)
                 clip(alpha - _Cutoff);
 #endif
 
-                half2 metallicGloss = MetallicGloss(uv, glossiness);
-                half metallic = metallicGloss.x;
-                half smoothness = metallicGloss.y;
-                half oneMinusReflectivity;
                 half3 specColor;
-
-                half3 diffColor = DiffuseAndSpecularFromMetallic(albedo, metallicGloss.x, specColor, oneMinusReflectivity);
+                half smoothness;
+                half oneMinusReflectivity;
+#ifdef _METALLIC_SETUP
+                half3 diffColor = MetallicSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
+#else
+                half3 diffColor = SpecularSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
+#endif
+                // Roughness is (1.0 - smoothness)²
+                half perceptualRoughness = 1.0h - smoothness;
 
                 half3 normal;
                 NormalMap(i, normal);
@@ -179,7 +179,7 @@
                 // GI
                 half3 reflectVec = reflect(-i.viewDir.xyz, normal);
                 half occlusion = Occlusion(uv);
-                UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, 1.0h - smoothness);
+                UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, perceptualRoughness);
 
                 // PBS
 #ifdef _METALLICGLOSSMAP
@@ -202,10 +202,8 @@
 #endif
 
                 half NdotL = saturate(dot(normal, lightDirection));
-                half RdotL = saturate(dot(reflectVec, lightDirection));
-                half3 attenuatedLightColor = light.color * (NdotL * lightAtten);
-
-                color += LightweightBRDFDirect(diffColor, specColor, smoothness, RdotL) * attenuatedLightColor;
+                half3 radiance = light.color * (lightAtten * NdotL);
+                color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
 #else
 
 #ifdef _SHADOWS
@@ -222,15 +220,15 @@
                     lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
 #endif
                     half NdotL = saturate(dot(normal, lightDirection));
-                    half RdotL = saturate(dot(reflectVec, lightDirection));
-                    half3 attenuatedLightColor = light.color * (NdotL * lightAtten);
+                    half3 radiance = light.color * (lightAtten * NdotL);
 
-                    color += LightweightBRDFDirect(diffColor, specColor, smoothness, RdotL) * attenuatedLightColor;
+                    color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
                 }
 #endif
 
                 color += Emission(uv);
-                UNITY_APPLY_FOG(i.fogCoord, color);
+                //UNITY_APPLY_FOG(i.fogCoord, color);
+                //color = (normal + 1.0) * 0.5;
                 return OutputColor(color, alpha);
             }
 

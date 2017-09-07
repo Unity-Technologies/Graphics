@@ -112,8 +112,8 @@ namespace UnityEditor
             metallic = FindProperty("_Metallic", props);
             specColor = FindProperty("_SpecColor", props);
             metallicSpecMap = FindProperty("_MetallicSpecGlossMap", props);
-            highlights = FindProperty("_SpecularHighlights", props, false);
-            reflections = FindProperty("_GlossyReflections", props, false);
+            highlights = FindProperty("_SpecularHighlights", props);
+            reflections = FindProperty("_GlossyReflections", props);
 
             bumpScale = FindProperty("_BumpScale", props);
             bumpMap = FindProperty("_BumpMap", props);
@@ -402,10 +402,12 @@ namespace UnityEditor
         {
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap") || material.GetTexture("_DetailNormalMap"));
+            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
 
             LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", workflowMode == WorkflowMode.Specular);
             LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", workflowMode == WorkflowMode.Metallic);
+            LightweightShaderHelper.SetKeyword(material, "_SPECULARHIGHLIGHTS_ON", material.GetFloat("_SpecularHighlights") > 0.0f);
+            LightweightShaderHelper.SetKeyword(material, "_GLOSSYREFLECTIONS_ON", material.GetFloat("_GlossyReflections") > 0.0f);
             LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicSpecGlossMap") != null);
             LightweightShaderHelper.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
             LightweightShaderHelper.SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap") || material.GetTexture("_DetailNormalMap"));

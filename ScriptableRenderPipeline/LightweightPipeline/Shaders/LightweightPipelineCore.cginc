@@ -19,12 +19,43 @@
 #define LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
 #endif
 
-//  Does not support: _PARALLAXMAP, DIRLIGHTMAP_COMBINED
-#define GLOSSMAP (defined(_SPECGLOSSMAP) || defined(_METALLICGLOSSMAP))
-
-#ifndef SPECULAR_HIGHLIGHTS
-#define SPECULAR_HIGHLIGHTS (!defined(_SPECULAR_HIGHLIGHTS_OFF))
+half SpecularReflectivity(half3 specular)
+{
+#if (SHADER_TARGET < 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: simplified SpecularStrength
+    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+#else
+    return max(max(specular.r, specular.g), specular.b);
 #endif
+}
+
+half3 MetallicSetup(float2 uv, half3 albedo, half albedoAlpha, out half3 specular, out half smoothness, out half oneMinusReflectivity)
+{
+    half2 metallicGloss = MetallicSpecGloss(uv, albedoAlpha).ra;
+    half metallic = metallicGloss.r;
+    smoothness = metallicGloss.g;
+
+    // We'll need oneMinusReflectivity, so
+    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
+    // store (1-dielectricSpec) in unity_ColorSpaceDielectricSpec.a, then
+    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
+    //                  = alpha - metallic * alpha
+    half oneMinusDielectricSpec = _DieletricSpec.a;
+    oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+    specular = lerp(_DieletricSpec.rgb, albedo, metallic);
+
+    return albedo * oneMinusReflectivity;
+}
+
+half3 SpecularSetup(float2 uv, half3 albedo, half albedoAlpha, out half3 specular, out half smoothness, out half oneMinusReflectivity)
+{
+    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
+    specular = specGloss.rgb;
+    smoothness = specGloss.a;
+    oneMinusReflectivity = 1.0h - SpecularReflectivity(specular);
+    return albedo * (half3(1, 1, 1) - specular);
+}
 
 half4 OutputColor(half3 color, half alpha)
 {

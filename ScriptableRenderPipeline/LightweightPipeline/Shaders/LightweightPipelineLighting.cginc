@@ -13,11 +13,15 @@ UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 reflect
 #endif
     o.diffuse *= occlusion;
 
+#ifdef _GLOSSYREFLECTIONS_ON
     // perceptualRoughness
     Unity_GlossyEnvironmentData g;
     g.roughness = roughness;
     g.reflUVW = reflectVec;
     o.specular = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, g) * occlusion;
+#else
+    o.specular = half3(0, 0, 0);
+#endif
 
     return o;
 }

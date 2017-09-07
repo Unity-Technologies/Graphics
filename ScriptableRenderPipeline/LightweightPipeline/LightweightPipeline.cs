@@ -99,6 +99,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureFormat m_ColorFormat = RenderTextureFormat.ARGB32;
         private PostProcessRenderContext m_PostProcessRenderContext;
 
+        // Stores the dieletric F0 (rgb) and (1.0 - dieletricSpec) (alpha) for energy conservation
+        private Vector4 kDieletricSpecLinear = new Vector4(0.02f, 0.02f, 0.02f, 0.88f);
+
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
@@ -335,6 +338,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalColor("_LightColor", lightColor);
             cmd.SetGlobalVector("_LightSpotDir", lightSpotDir);
             cmd.SetGlobalVector("_LightAttenuationParams", lightAttenuationParams);
+            cmd.SetGlobalVector("_DieletricSpec", kDieletricSpecLinear);
             if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -360,6 +364,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
+            cmd.SetGlobalVector("_DieletricSpec", kDieletricSpecLinear);
             if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
