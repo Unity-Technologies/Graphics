@@ -55,7 +55,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             options.renderQueue = (SurfaceMaterialOptions.RenderQueue)EditorGUILayout.EnumPopup("Render Queue", options.renderQueue);
             options.renderType = (SurfaceMaterialOptions.RenderType)EditorGUILayout.EnumPopup("Render Type", options.renderType);
             if (EditorGUI.EndChangeCheck())
-                presenter.node.onModified(presenter.node, ModificationScope.Node);
+                presenter.node.onModified(presenter.node, ModificationScope.Graph);
         }
 
         public override void OnDataChanged()
