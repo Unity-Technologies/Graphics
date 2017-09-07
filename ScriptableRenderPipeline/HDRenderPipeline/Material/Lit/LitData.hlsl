@@ -174,8 +174,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
-    _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
-    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3,
+    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, float4(1.0, 0.0, 0.0, 0.0), _UVDetailsMappingMask,
                             positionWS, mappingType, _TexWorldScale, layerTexCoord);
 }
 
@@ -636,12 +635,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer and blend mask so it can optimize code
-    // Note: Blend mask have its dedicated mapping and tiling. And as Main layer it only use UV0
-    _UVMappingMask0 = float4(1.0, 0.0, 0.0, 0.0);
-
+    // Note: Blend mask have its dedicated mapping and tiling. 
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
-    ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
+    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
                             positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
@@ -663,7 +659,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
+    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask0, _UVDetailsMappingMask0,
                             positionWS, mappingType, _TexWorldScale0, layerTexCoord, 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
@@ -676,7 +672,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR1)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3,
+    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask1, _UVDetailsMappingMask1,
                             positionWS, mappingType, _TexWorldScale1, layerTexCoord, tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
@@ -685,7 +681,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR2)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3,
+    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask2, _UVDetailsMappingMask2,
                             positionWS, mappingType, _TexWorldScale2, layerTexCoord, tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
@@ -694,7 +690,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR3)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3,
+    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask3, _UVDetailsMappingMask3,
                             positionWS, mappingType, _TexWorldScale3, layerTexCoord, tileObjectScale);
 }
 

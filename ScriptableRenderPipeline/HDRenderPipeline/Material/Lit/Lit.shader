@@ -12,6 +12,8 @@ Shader "HDRenderPipeline/Lit"
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         _MaskMap("MaskMap", 2D) = "white" {}
+        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
