@@ -160,10 +160,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 #if defined(_MASKMAP_IDX)
     surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness = lerp(ADD_IDX(_SmoothnessRemapMin), ADD_IDX(_SmoothnessRemapMax), surfaceData.perceptualSmoothness);
 #else
-    surfaceData.perceptualSmoothness = 1.0;
+    surfaceData.perceptualSmoothness = ADD_IDX(_Smoothness);
 #endif
-    surfaceData.perceptualSmoothness *= ADD_IDX(_Smoothness);
+
 #ifdef _DETAIL_MAP_IDX
     surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale)), detailMask);
 #endif

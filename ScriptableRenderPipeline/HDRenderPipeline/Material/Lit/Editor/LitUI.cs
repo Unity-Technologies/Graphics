@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
@@ -120,6 +121,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kMetallic = "_Metallic";
         protected MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
         protected const string kSmoothness = "_Smoothness";
+        protected MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
+        protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
+        protected MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
+        protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
         protected MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
         protected const string kMaskMap = "_MaskMap";
         protected MaterialProperty[] specularOcclusionMap = new MaterialProperty[kMaxLayerCount];
@@ -210,6 +215,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 baseColorMap[i] = FindProperty(string.Format("{0}{1}", kBaseColorMap, m_PropertySuffixes[i]), props);
                 metallic[i] = FindProperty(string.Format("{0}{1}", kMetallic, m_PropertySuffixes[i]), props);
                 smoothness[i] = FindProperty(string.Format("{0}{1}", kSmoothness, m_PropertySuffixes[i]), props);
+                smoothnessRemapMin[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMin, m_PropertySuffixes[i]), props);
+                smoothnessRemapMax[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMax, m_PropertySuffixes[i]), props);
                 maskMap[i] = FindProperty(string.Format("{0}{1}", kMaskMap, m_PropertySuffixes[i]), props);
                 specularOcclusionMap[i] = FindProperty(string.Format("{0}{1}", kSpecularOcclusionMap, m_PropertySuffixes[i]), props);
                 normalMap[i] = FindProperty(string.Format("{0}{1}", kNormalMap, m_PropertySuffixes[i]), props);
@@ -364,7 +371,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
 
-            m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
+            if(maskMap[layerIndex].textureValue == null)
+            {
+                m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
+
+            }
+            else
+            {
+                float remapMin = smoothnessRemapMin[layerIndex].floatValue;
+                float remapMax = smoothnessRemapMax[layerIndex].floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    smoothnessRemapMin[layerIndex].floatValue = remapMin;
+                    smoothnessRemapMax[layerIndex].floatValue = remapMax;
+                }
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
 
