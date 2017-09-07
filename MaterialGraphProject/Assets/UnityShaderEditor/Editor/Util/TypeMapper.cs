@@ -2,18 +2,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper<TFrom, TTo> : IEnumerable<TypeMapping>
+    public class TypeMapper : IEnumerable<TypeMapping>
     {
+        readonly Type m_FromBaseType;
+        readonly Type m_ToBaseType;
         readonly Type m_FallbackType;
         readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
 
-        public TypeMapper(Type fallbackType = null)
+        public TypeMapper(Type fromBaseType = null, Type toBaseType = null, Type fallbackType = null)
         {
-            if (fallbackType != null && !(fallbackType.IsSubclassOf(typeof(TFrom)) || fallbackType.GetInterfaces().Contains(typeof(TFrom))))
-                throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fallbackType.Name, typeof(TFrom).Name), "fallbackType");
+            if (fallbackType != null && toBaseType != null && !fallbackType.IsSubclassOf(toBaseType))
+                throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fallbackType.Name, toBaseType.Name), "fallbackType");
+            m_FromBaseType = fromBaseType ?? typeof(object);
+            m_ToBaseType = toBaseType;
             m_FallbackType = fallbackType;
         }
 
@@ -24,14 +29,14 @@ namespace UnityEditor.Graphing.Util
 
         public void Add(Type fromType, Type toType)
         {
-            if (!fromType.IsSubclassOf(typeof(TFrom)) && !fromType.GetInterfaces().Contains(typeof(TFrom)))
+            if (m_FromBaseType != typeof(object) && !fromType.IsSubclassOf(m_FromBaseType) && !fromType.GetInterfaces().Contains(m_FromBaseType))
             {
-                throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fromType.Name, typeof(TFrom).Name), "fromType");
+                throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fromType.Name, m_FromBaseType.Name), "fromType");
             }
 
-            if (!toType.IsSubclassOf(typeof(TTo)))
+            if (m_ToBaseType != null && !toType.IsSubclassOf(m_ToBaseType))
             {
-                throw new ArgumentException(string.Format("{0} does not derive from {1}.", toType.Name, typeof(TTo).Name), "toType");
+                throw new ArgumentException(string.Format("{0} does not derive from {1}.", toType.Name, m_ToBaseType.Name), "toType");
             }
 
             m_Mappings[fromType] = toType;
@@ -41,7 +46,7 @@ namespace UnityEditor.Graphing.Util
         {
             Type toType = null;
 
-            while (toType == null && fromType != null && fromType != typeof(TFrom))
+            while (toType == null && fromType != null && fromType != m_FromBaseType)
             {
                 if (!m_Mappings.TryGetValue(fromType, out toType))
                     fromType = fromType.BaseType;
