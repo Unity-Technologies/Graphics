@@ -15,7 +15,7 @@ namespace UnityEditor.Graphing.Util
 
         public TypeMapper(Type fromBaseType = null, Type toBaseType = null, Type fallbackType = null)
         {
-            if (fallbackType != null && toBaseType != null && !fallbackType.IsSubclassOf(toBaseType))
+            if (fallbackType != null && toBaseType != null && !toBaseType.IsAssignableFrom(fallbackType))
                 throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fallbackType.Name, toBaseType.Name), "fallbackType");
             m_FromBaseType = fromBaseType ?? typeof(object);
             m_ToBaseType = toBaseType;
@@ -29,12 +29,12 @@ namespace UnityEditor.Graphing.Util
 
         public void Add(Type fromType, Type toType)
         {
-            if (m_FromBaseType != typeof(object) && !fromType.IsSubclassOf(m_FromBaseType) && !fromType.GetInterfaces().Contains(m_FromBaseType))
+            if (m_FromBaseType != typeof(object) && !m_FromBaseType.IsAssignableFrom(fromType))
             {
                 throw new ArgumentException(string.Format("{0} does not implement or derive from {1}.", fromType.Name, m_FromBaseType.Name), "fromType");
             }
 
-            if (m_ToBaseType != null && !toType.IsSubclassOf(m_ToBaseType))
+            if (m_ToBaseType != null && !m_ToBaseType.IsAssignableFrom(toType))
             {
                 throw new ArgumentException(string.Format("{0} does not derive from {1}.", toType.Name, m_ToBaseType.Name), "toType");
             }
