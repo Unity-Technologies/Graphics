@@ -1,6 +1,6 @@
 ﻿using System;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing.Inspector;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
@@ -17,6 +17,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         VisualElement m_EditorContainer;
         VisualElement m_Title;
 
+        TypeMapper m_TypeMapper;
+
         public GraphInspectorView()
         {
             AddStyleSheetPath("Styles/MaterialGraph");
@@ -25,17 +27,11 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             headerContainer.Add(m_Title);
             Add(headerContainer);
             Add(m_EditorContainer = new VisualElement {name = "editorContainer"});
-        }
-
-        void OnGUIHandler()
-        {
-            if (m_Presenter == null)
-                return;
-
-            foreach (var inspector in presenter.inspectors)
+            m_TypeMapper = new TypeMapper(typeof(AbstractNodeEditorPresenter), typeof(AbstractNodeEditorView))
             {
-                inspector.OnInspectorGUI();
-            }
+                {typeof(StandardNodeEditorPresenter), typeof(StandardNodeEditorView)},
+                {typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView)}
+            };
         }
 
         public override void OnDataChanged()
@@ -61,8 +57,11 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 m_EditorHash = editorHash;
                 m_EditorContainer.Clear();
                 foreach (var editorPresenter in presenter.editors)
-                    // TODO: Use abstract base class to allow custom node editors
-                    m_EditorContainer.Add(new StandardNodeEditorView {presenter = editorPresenter as StandardNodeEditorPresenter});
+                {
+                    var view = (AbstractNodeEditorView) Activator.CreateInstance(m_TypeMapper.MapType(editorPresenter.GetType()));
+                    view.presenter = editorPresenter;
+                    m_EditorContainer.Add(view);
+                }
             }
 
             Dirty(ChangeType.Repaint);

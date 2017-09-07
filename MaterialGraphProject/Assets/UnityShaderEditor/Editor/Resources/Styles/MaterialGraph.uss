@@ -105,6 +105,11 @@ GraphInspectorView > #header > #title {
     padding-right: 15;
 }
 
+.nodeEditor > .section#surfaceOptions {
+    padding-left: 15;
+    padding-right: 15;
+}
+
 IMGUISlotEditorView {
     flex-direction: column;
     padding-bottom: 2;
