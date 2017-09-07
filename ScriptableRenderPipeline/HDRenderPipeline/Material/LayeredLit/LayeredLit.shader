@@ -178,8 +178,6 @@ Shader "HDRenderPipeline/LayeredLit"
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
-
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
 
@@ -262,7 +260,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    
+
     #pragma shader_feature _NORMALMAP0
     #pragma shader_feature _NORMALMAP1
     #pragma shader_feature _NORMALMAP2

@@ -19,8 +19,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
-            public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
-
             // Per pixel displacement
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "Per pixel displacement work best with flat surfaces. This is an expensive features and should be enable wisely. Typical use case is paved road.");
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
@@ -78,9 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string     kStencilRef = "_StencilRef";
 
-        protected MaterialProperty horizonFade = null;
-        protected const string kHorizonFade = "_HorizonFade";
-
         // Wind
         protected MaterialProperty windEnable = null;
         protected const string kWindEnabled = "_EnableWind";
@@ -134,8 +129,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // MaterialID
             materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
-
-            horizonFade = FindProperty(kHorizonFade, props);
 
             // Per pixel displacement
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
@@ -207,8 +200,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                 EditorGUI.indentLevel--;
             }
-
-            m_MaterialEditor.ShaderProperty(horizonFade, StylesBaseLit.horizonFadeText);
 
             EditorGUI.indentLevel--;
 

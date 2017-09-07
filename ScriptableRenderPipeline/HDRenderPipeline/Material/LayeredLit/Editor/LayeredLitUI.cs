@@ -551,15 +551,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (normalMapSpace == NormalMapSpace.TangentSpace)
                 {
                     SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i) || material.GetTexture(kDetailMap + i));
+                    SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMap + i));
                 }
                 else
                 {
                     SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMapOS + i) || material.GetTexture(kDetailMap + i));
+                    SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMapOS + i));
                 }
 
                 SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
-
-                SetKeyword(material, "_SPECULAROCCLUSIONMAP" + i, material.GetTexture(kSpecularOcclusionMap + i));
 
                 SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
 
