@@ -73,4 +73,16 @@ namespace UnityEditor.VFX
             public OrientedBox box;
         }
     }
+    [VFXInfo(category = "Tests")]
+    class VFXPlaneBlock : VFXBlock
+    {
+        public override string name { get { return "Plane"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public Plane plane;
+        }
+    }
 }
