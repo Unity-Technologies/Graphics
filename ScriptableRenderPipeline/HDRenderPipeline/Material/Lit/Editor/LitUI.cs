@@ -28,8 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
-            public static GUIContent heightMapMinText = new GUIContent("Height Min", "Minimum value in the heightmap (in world units)");
-            public static GUIContent heightMapMaxText = new GUIContent("Height Max", "Maximum value in the heightmap (in world units)");
+            public static GUIContent heightMapMinText = new GUIContent("Height Min (cm)", "Minimum value in the heightmap (in centimeters)");
+            public static GUIContent heightMapMaxText = new GUIContent("Height Max (cm)", "Maximum value in the heightmap (in centimeters)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
@@ -420,7 +420,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue;
+                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
