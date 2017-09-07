@@ -74,8 +74,6 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
-
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
 
