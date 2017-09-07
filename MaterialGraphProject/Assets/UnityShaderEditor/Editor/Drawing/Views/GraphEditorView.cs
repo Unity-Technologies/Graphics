@@ -1,6 +1,6 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
-using UnityEditor.MaterialGraph.Drawing.Views;
+using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 

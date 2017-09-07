@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class GraphInspectorPresenter : ScriptableObject
     {

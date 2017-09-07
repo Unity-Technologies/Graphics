@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing.Views
+namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class GraphInspectorView : DataWatchContainer
     {
