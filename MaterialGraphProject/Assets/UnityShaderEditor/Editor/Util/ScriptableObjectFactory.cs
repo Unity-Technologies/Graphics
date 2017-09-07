@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Util
         public ScriptableObjectFactory(IEnumerable<TypeMapping> typeMappings)
         {
             foreach (var typeMapping in typeMappings)
-                m_TypeMapper.AddMapping(typeMapping);
+                m_TypeMapper.Add(typeMapping);
         }
 
         public TTo Create(TFrom from)
