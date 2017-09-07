@@ -1,20 +1,20 @@
-void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetail,
                                     float3 positionWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
-    float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
-                    ADD_IDX(_UVMappingMask).y * texCoord1 +
-                    ADD_IDX(_UVMappingMask).z * texCoord2 +
-                    ADD_IDX(_UVMappingMask).w * texCoord3;
+    float2 uvBase = uvMappingMask.x * texCoord0 +
+                    uvMappingMask.y * texCoord1 +
+                    uvMappingMask.z * texCoord2 +
+                    uvMappingMask.w * texCoord3;
 
     // Only used with layered, allow to have additional tiling
     uvBase *= additionalTiling.xx;
 
 
-    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * texCoord0 +
-                        ADD_IDX(_UVDetailsMappingMask).y * texCoord1 +
-                        ADD_IDX(_UVDetailsMappingMask).z * texCoord2 +
-                        ADD_IDX(_UVDetailsMappingMask).w * texCoord3;
+    float2 uvDetails =  uvMappingMaskDetail.x * texCoord0 +
+                        uvMappingMaskDetail.y * texCoord1 +
+                        uvMappingMaskDetail.z * texCoord2 +
+                        uvMappingMaskDetail.w * texCoord3;
 
     uvDetails *= additionalTiling.xx;
 
@@ -55,25 +55,25 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
     // Note: This code work only in pixel shader (as we rely on ddx), it should not be use in other context
-    ADD_IDX(layerTexCoord.base).tangentWS = ADD_IDX(_UVMappingMask).x * layerTexCoord.vertexTangentWS0 +
-                                            ADD_IDX(_UVMappingMask).y * layerTexCoord.vertexTangentWS1 +
-                                            ADD_IDX(_UVMappingMask).z * layerTexCoord.vertexTangentWS2 +
-                                            ADD_IDX(_UVMappingMask).w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.base).tangentWS = uvMappingMask.x * layerTexCoord.vertexTangentWS0 +
+                                            uvMappingMask.y * layerTexCoord.vertexTangentWS1 +
+                                            uvMappingMask.z * layerTexCoord.vertexTangentWS2 +
+                                            uvMappingMask.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.base).bitangentWS =   ADD_IDX(_UVMappingMask).x * layerTexCoord.vertexBitangentWS0 +
-                                                ADD_IDX(_UVMappingMask).y * layerTexCoord.vertexBitangentWS1 +
-                                                ADD_IDX(_UVMappingMask).z * layerTexCoord.vertexBitangentWS2 +
-                                                ADD_IDX(_UVMappingMask).w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.base).bitangentWS =   uvMappingMask.x * layerTexCoord.vertexBitangentWS0 +
+                                                uvMappingMask.y * layerTexCoord.vertexBitangentWS1 +
+                                                uvMappingMask.z * layerTexCoord.vertexBitangentWS2 +
+                                                uvMappingMask.w * layerTexCoord.vertexBitangentWS3;
 
-    ADD_IDX(layerTexCoord.details).tangentWS =  ADD_IDX(_UVDetailsMappingMask).x * layerTexCoord.vertexTangentWS0 +
-                                                ADD_IDX(_UVDetailsMappingMask).y * layerTexCoord.vertexTangentWS1 +
-                                                ADD_IDX(_UVDetailsMappingMask).z * layerTexCoord.vertexTangentWS2 +
-                                                ADD_IDX(_UVDetailsMappingMask).w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetail.x * layerTexCoord.vertexTangentWS0 +
+                                                uvMappingMaskDetail.y * layerTexCoord.vertexTangentWS1 +
+                                                uvMappingMaskDetail.z * layerTexCoord.vertexTangentWS2 +
+                                                uvMappingMaskDetail.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.details).bitangentWS =    ADD_IDX(_UVDetailsMappingMask).x * layerTexCoord.vertexBitangentWS0 +
-                                                    ADD_IDX(_UVDetailsMappingMask).y * layerTexCoord.vertexBitangentWS1 +
-                                                    ADD_IDX(_UVDetailsMappingMask).z * layerTexCoord.vertexBitangentWS2 +
-                                                    ADD_IDX(_UVDetailsMappingMask).w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetail.x * layerTexCoord.vertexBitangentWS0 +
+                                                    uvMappingMaskDetail.y * layerTexCoord.vertexBitangentWS1 +
+                                                    uvMappingMaskDetail.z * layerTexCoord.vertexBitangentWS2 +
+                                                    uvMappingMaskDetail.w * layerTexCoord.vertexBitangentWS3;
     #endif
 }
 
@@ -160,10 +160,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 #if defined(_MASKMAP_IDX)
     surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness = lerp(ADD_IDX(_SmoothnessRemapMin), ADD_IDX(_SmoothnessRemapMax), surfaceData.perceptualSmoothness);
 #else
-    surfaceData.perceptualSmoothness = 1.0;
+    surfaceData.perceptualSmoothness = ADD_IDX(_Smoothness);
 #endif
-    surfaceData.perceptualSmoothness *= ADD_IDX(_Smoothness);
+
 #ifdef _DETAIL_MAP_IDX
     surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale)), detailMask);
 #endif

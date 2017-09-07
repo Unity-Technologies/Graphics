@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
@@ -27,8 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
-            public static GUIContent heightMapMinText = new GUIContent("Height Min", "Minimum value in the heightmap (in world units)");
-            public static GUIContent heightMapMaxText = new GUIContent("Height Max", "Maximum value in the heightmap (in world units)");
+            public static GUIContent heightMapMinText = new GUIContent("Height Min (cm)", "Minimum value in the heightmap (in centimeters)");
+            public static GUIContent heightMapMaxText = new GUIContent("Height Max (cm)", "Maximum value in the heightmap (in centimeters)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
@@ -120,6 +121,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kMetallic = "_Metallic";
         protected MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
         protected const string kSmoothness = "_Smoothness";
+        protected MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
+        protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
+        protected MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
+        protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
         protected MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
         protected const string kMaskMap = "_MaskMap";
         protected MaterialProperty[] specularOcclusionMap = new MaterialProperty[kMaxLayerCount];
@@ -210,6 +215,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 baseColorMap[i] = FindProperty(string.Format("{0}{1}", kBaseColorMap, m_PropertySuffixes[i]), props);
                 metallic[i] = FindProperty(string.Format("{0}{1}", kMetallic, m_PropertySuffixes[i]), props);
                 smoothness[i] = FindProperty(string.Format("{0}{1}", kSmoothness, m_PropertySuffixes[i]), props);
+                smoothnessRemapMin[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMin, m_PropertySuffixes[i]), props);
+                smoothnessRemapMax[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMax, m_PropertySuffixes[i]), props);
                 maskMap[i] = FindProperty(string.Format("{0}{1}", kMaskMap, m_PropertySuffixes[i]), props);
                 specularOcclusionMap[i] = FindProperty(string.Format("{0}{1}", kSpecularOcclusionMap, m_PropertySuffixes[i]), props);
                 normalMap[i] = FindProperty(string.Format("{0}{1}", kNormalMap, m_PropertySuffixes[i]), props);
@@ -352,11 +359,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
-            // indentation around base color is a workaround for a bug in material properties UI where the color picker is not indented properly and gets cropped (and unusable in layered shader UI)
-            // Remove when bug is fixed.
-            EditorGUI.indentLevel--;
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
-            EditorGUI.indentLevel++;
 
             if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
                 (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
@@ -364,7 +367,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
 
-            m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
+            if(maskMap[layerIndex].textureValue == null)
+            {
+                m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
+
+            }
+            else
+            {
+                float remapMin = smoothnessRemapMin[layerIndex].floatValue;
+                float remapMax = smoothnessRemapMax[layerIndex].floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    smoothnessRemapMin[layerIndex].floatValue = remapMin;
+                    smoothnessRemapMax[layerIndex].floatValue = remapMax;
+                }
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
 
@@ -397,7 +416,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue;
+                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -433,14 +452,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
 
-            // UVSet0 is always set, planar and triplanar will override it.
             float X, Y, Z, W;
             X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
             Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
             Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
-            UVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is shared by both here, need to force X to 1.0 in all case
+            UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
@@ -455,17 +473,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
 
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-            if (uvBaseMapping == UVBaseMapping.UV0)
-            {
-                m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-            }
-            else if (uvBaseMapping == UVBaseMapping.Planar)
+            if (uvBaseMapping == UVBaseMapping.Planar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
             }
             else if (uvBaseMapping == UVBaseMapping.Triplanar)
             {
                 EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
+            }
+            else
+            {
+                m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
             }
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
