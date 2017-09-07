@@ -1,20 +1,21 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper<TFrom, TTo, TFallback>
+    public class TypeMapper<TFrom, TTo, TFallback> : IEnumerable<TypeMapping>
         where TFallback : TTo
     {
-        private readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
+        readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
 
-        public void AddMapping(TypeMapping mapping)
+        public void Add(TypeMapping mapping)
         {
-            AddMapping(mapping.fromType, mapping.toType);
+            Add(mapping.fromType, mapping.toType);
         }
 
-        public void AddMapping(Type fromType, Type toType)
+        public void Add(Type fromType, Type toType)
         {
             if (!fromType.IsSubclassOf(typeof(TFrom)) && !fromType.GetInterfaces().Contains(typeof(TFrom)))
             {
@@ -40,6 +41,16 @@ namespace UnityEditor.Graphing.Util
             }
 
             return toType ?? typeof(TFallback);
+        }
+
+        public IEnumerator<TypeMapping> GetEnumerator()
+        {
+            return m_Mappings.Select(kvp => new TypeMapping(kvp.Key, kvp.Value)).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
