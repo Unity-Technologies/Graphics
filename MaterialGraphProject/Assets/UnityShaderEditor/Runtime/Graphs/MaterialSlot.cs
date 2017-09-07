@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private string m_ShaderOutputName;
 
-        public MaterialSlot() {}
+        public MaterialSlot() { }
 
         public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool hidden = false)
             : base(slotId, displayName, slotType, hidden)
@@ -151,7 +151,45 @@ namespace UnityEngine.MaterialGraph
 
         public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
         {
-            return (inputType == SlotValueType.Dynamic || valueType == SlotValueType.Vector1 || valueType <= inputType);
+            switch (valueType)
+            {
+                case SlotValueType.SamplerState:
+                    return inputType == SlotValueType.SamplerState;
+                case SlotValueType.Matrix4:
+                    return inputType == SlotValueType.Matrix4
+                        || inputType == SlotValueType.Matrix3
+                        || inputType == SlotValueType.Matrix2;
+                case SlotValueType.Matrix3:
+                    return inputType == SlotValueType.Matrix3
+                        || inputType == SlotValueType.Matrix2;
+                case SlotValueType.Matrix2:
+                    return inputType == SlotValueType.Matrix2;
+                case SlotValueType.Texture2D:
+                    return inputType == SlotValueType.Texture2D;
+                case SlotValueType.Vector4:
+                    return inputType == SlotValueType.Vector4
+                        || inputType == SlotValueType.Vector3
+                        || inputType == SlotValueType.Vector2
+                        || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.Dynamic;
+                case SlotValueType.Vector3:
+                    return inputType == SlotValueType.Vector3
+                        || inputType == SlotValueType.Vector2
+                        || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.Dynamic;
+                case SlotValueType.Vector2:
+                    return inputType == SlotValueType.Vector2
+                        || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.Dynamic;
+                case SlotValueType.Dynamic:
+                case SlotValueType.Vector1:
+                    return inputType == SlotValueType.Vector4
+                        || inputType == SlotValueType.Vector3
+                        || inputType == SlotValueType.Vector2
+                        || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.Dynamic;
+            }
+            return false;
         }
 
         public string GetDefaultValue(GenerationMode generationMode)

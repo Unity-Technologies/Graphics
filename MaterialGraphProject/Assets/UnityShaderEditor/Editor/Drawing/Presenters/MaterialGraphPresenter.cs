@@ -73,12 +73,13 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
         {
             return allChildren.OfType<NodeAnchorPresenter>()
-                .Where(nap => nap.IsConnectable() &&
-                nap.orientation == startAnchor.orientation &&
-                nap.direction != startAnchor.direction &&
-                nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null &&
-                (startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot &&
-                 ((MaterialSlot)((GraphAnchorPresenter)startAnchor).slot).IsCompatibleWithInputSlotType(((MaterialSlot)((GraphAnchorPresenter)nap).slot).valueType)))
+                .Where(nap =>
+                    nap.IsConnectable()
+                    && nap.orientation == startAnchor.orientation
+                    && nap.direction != startAnchor.direction
+                    && nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null && startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot
+                    && ((GraphAnchorPresenter)startAnchor).slot.owner != ((GraphAnchorPresenter)nap).slot.owner
+                    && ((MaterialSlot)((GraphAnchorPresenter)startAnchor).slot).IsCompatibleWithInputSlotType(((MaterialSlot)((GraphAnchorPresenter)nap).slot).valueType))
                 .ToList();
         }
 
