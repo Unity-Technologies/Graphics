@@ -6,7 +6,6 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    // TODO JOCE: Maybe this needs to derive from something we already have?
     public class GraphEditorView : DataWatchContainer
     {
         GraphView m_GraphView;
