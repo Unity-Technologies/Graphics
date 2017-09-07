@@ -28,8 +28,6 @@ SAMPLER2D(sampler_NormalMap);
 TEXTURE2D(_NormalMapOS);
 SAMPLER2D(sampler_NormalMapOS);
 
-TEXTURE2D(_DetailMask);
-SAMPLER2D(sampler_DetailMask);
 TEXTURE2D(_DetailMap);
 SAMPLER2D(sampler_DetailMap);
 
@@ -75,7 +73,6 @@ PROP_DECL_TEX2D(_SpecularOcclusionMap);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_HeightMap);
-PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
@@ -98,6 +95,7 @@ float _PPDLodThreshold;
 
 float3 _EmissiveColor;
 float _EmissiveIntensity;
+float _AlbedoAffectEmissive;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
