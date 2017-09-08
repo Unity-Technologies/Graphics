@@ -184,9 +184,22 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 }
 
 // Ref: Moving Frostbite to PBR - Gotanda siggraph 2011
-float GetSpecularOcclusion(float NdotV, float ambientOcclusion, float roughness)
+// Return specular occlusion based on ambient occlusion (usually get from SSAO) and view/roughness info
+float SpecularOcclusionFromAmbientOcclusion(float NdotV, float ambientOcclusion, float roughness)
 {
 	return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
+}
+
+// ref: Practical Realtime Strategies for Accurate Indirect Occlusion
+// Update ambient occlusion to colored ambient occlusion based on statitics of how light is bouncing in an object and with the albedo of the object
+float3 GTAOMultiBounce(float visibility, float3 albedo)
+{
+    float3 a =  2.0404 * albedo - 0.3324;
+    float3 b = -4.7951 * albedo + 0.6417;
+    float3 c =  2.7552 * albedo + 0.6903;
+
+    float x = visibility;
+    return max(x, ((x * a + b) * x + c) * x);
 }
 
 //-----------------------------------------------------------------------------
