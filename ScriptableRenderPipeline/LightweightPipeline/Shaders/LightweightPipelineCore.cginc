@@ -19,6 +19,8 @@
 #define LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
 #endif
 
+#define _DieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+
 half SpecularReflectivity(half3 specular)
 {
 #if (SHADER_TARGET < 30)

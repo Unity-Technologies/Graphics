@@ -91,7 +91,6 @@ namespace UnityEditor
         private MaterialProperty uvSetSecondary = null;
 
         private MaterialEditor m_MaterialEditor;
-        private WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
         private const float kMaxfp16 = 65536f; // Clamp to a value that fits into fp16.
         private ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, kMaxfp16, 1 / kMaxfp16, 3f);
 
@@ -140,7 +139,7 @@ namespace UnityEditor
             // material to a lightweight shader.
             if (m_FirstTimeApply)
             {
-                MaterialChanged(material, m_WorkflowMode);
+                MaterialChanged(material);
                 m_FirstTimeApply = false;
             }
 
@@ -196,7 +195,7 @@ namespace UnityEditor
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in blendMode.targets)
-                    MaterialChanged((Material)obj, m_WorkflowMode);
+                    MaterialChanged((Material)obj);
             }
 
             EditorGUILayout.Space();
@@ -239,11 +238,11 @@ namespace UnityEditor
 
             // TODO: material.HasKeyword()?
             if (oldShader.name.Equals("Standard (Specular setup)"))
-                m_WorkflowMode = WorkflowMode.Specular;
+                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Specular);
             else
-                m_WorkflowMode = WorkflowMode.Metallic;
+                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Metallic);
 
-            MaterialChanged(material, m_WorkflowMode);
+            MaterialChanged(material);
         }
 
         private void DoPopup(string label, MaterialProperty property, string[] options)
@@ -398,14 +397,15 @@ namespace UnityEditor
                 return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
-        static void SetMaterialKeywords(Material material, WorkflowMode workflowMode)
+        static void SetMaterialKeywords(Material material)
         {
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+            bool isSpecularWorkFlow = (WorkflowMode)material.GetFloat("_WorkflowMode") == WorkflowMode.Specular;
+            LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
+            LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", !isSpecularWorkFlow);
 
-            LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", workflowMode == WorkflowMode.Specular);
-            LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", workflowMode == WorkflowMode.Metallic);
+            LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
             LightweightShaderHelper.SetKeyword(material, "_SPECULARHIGHLIGHTS_ON", material.GetFloat("_SpecularHighlights") > 0.0f);
             LightweightShaderHelper.SetKeyword(material, "_GLOSSYREFLECTIONS_ON", material.GetFloat("_GlossyReflections") > 0.0f);
             LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicSpecGlossMap") != null);
@@ -425,12 +425,11 @@ namespace UnityEditor
             }
         }
 
-        static void MaterialChanged(Material material, WorkflowMode workflowMode)
+        static void MaterialChanged(Material material)
         {
             material.shaderKeywords = null;
             SetupMaterialWithBlendMode(material, (BlendMode)material.GetFloat("_Mode"));
-
-            SetMaterialKeywords(material, workflowMode);
+            SetMaterialKeywords(material);
         }
     }
 }

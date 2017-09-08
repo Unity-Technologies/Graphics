@@ -105,7 +105,7 @@ inline void NormalMap(LightweightVertexOutput i, out half3 normal)
     // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
     // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
     // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    normal = half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2));
+    normal = normalize(half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2)));
 #else
     normal = normalize(i.normal);
 #endif

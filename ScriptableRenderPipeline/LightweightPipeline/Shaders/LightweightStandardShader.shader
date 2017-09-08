@@ -121,7 +121,7 @@
 
 #if _NORMALMAP
                 half sign = v.tangent.w * unity_WorldTransformParams.w;
-                half3 tangent = normalize(UnityObjectToWorldDir(v.tangent));
+                half3 tangent = UnityObjectToWorldDir(v.tangent);
                 half3 binormal = cross(normal, tangent) * sign;
 
                 // Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
@@ -176,20 +176,15 @@
 
                 // TODO: shader keyword for occlusion
                 // TODO: Reflection Probe blend support.
-                // GI
                 half3 reflectVec = reflect(-i.viewDir.xyz, normal);
                 half occlusion = Occlusion(uv);
                 UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, perceptualRoughness);
 
                 // PBS
-#ifdef _METALLICGLOSSMAP
+                // grazingTerm = F90
                 half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
-#else
-                half grazingTerm = i.viewDir.w;
-#endif
-
-                half perVertexFresnelTerm = i.posWS.w;
-                half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, grazingTerm, perVertexFresnelTerm);
+                half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
+                half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, grazingTerm, fresnelTerm);
                 half3 lightDirection;
 
 #ifndef _MULTIPLE_LIGHTS
@@ -227,8 +222,7 @@
 #endif
 
                 color += Emission(uv);
-                //UNITY_APPLY_FOG(i.fogCoord, color);
-                //color = (normal + 1.0) * 0.5;
+                UNITY_APPLY_FOG(i.fogCoord, color);
                 return OutputColor(color, alpha);
             }
 
