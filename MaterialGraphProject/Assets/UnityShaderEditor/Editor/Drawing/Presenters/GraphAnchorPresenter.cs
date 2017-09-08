@@ -3,6 +3,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -32,10 +33,19 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Direction = slot.isInputSlot ? Direction.Input : Direction.Output;
         }
 
-        private Direction m_Direction;
+        Direction m_Direction;
+
         public override Direction direction
         {
             get { return m_Direction; }
+        }
+
+        ShaderStage m_ShaderStage;
+
+        public ShaderStage shaderStage
+        {
+            get { return m_ShaderStage; }
+            set { m_ShaderStage = value; }
         }
     }
 }

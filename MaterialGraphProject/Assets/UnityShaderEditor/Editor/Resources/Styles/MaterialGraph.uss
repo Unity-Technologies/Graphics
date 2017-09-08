@@ -21,7 +21,7 @@ GraphEditorView #content #inspector {
     width: 400;
 }
 
-.MaterialNode #preview {
+.MaterialNode #preview Image {
 	height: 200;
 	width: 200;
 }
@@ -65,19 +65,24 @@ GraphInspectorView > #header > #title {
     padding-top: 10;
 }
 
-.nodeEditor > .header {
+NodeEditorHeaderView {
     padding-left: 16;
     padding-right: 16;
     padding-bottom: 10;
     flex-direction: row;
 }
 
-.nodeEditor > .header > .type {
-    text-color: rgb(180, 180, 180);
+NodeEditorHeaderView > #preType {
     margin-left: 10;
 }
 
-.nodeEditor > .header > .title {
+NodeEditorHeaderView > #preType,
+NodeEditorHeaderView > #postType,
+NodeEditorHeaderView > #type {
+    text-color: rgb(180, 180, 180);
+}
+
+NodeEditorHeaderView > #title {
     text-color: rgb(180, 180, 180);
     font-style: bold;
 }

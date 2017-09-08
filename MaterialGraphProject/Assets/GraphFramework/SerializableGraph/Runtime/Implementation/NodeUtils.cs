@@ -119,5 +119,39 @@ namespace UnityEngine.Graphing
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
         }
+
+        public static ShaderStage FindEffectiveShaderStage(INode initialNode, bool goingBackwards)
+        {
+            var shaderStage = ShaderStage.Dynamic;
+            var nodeStack = new Stack<INode>();
+            nodeStack.Push(initialNode);
+            while (nodeStack.Any() && shaderStage == ShaderStage.Dynamic)
+            {
+                var node = nodeStack.Pop();
+                foreach (var slot in goingBackwards ? node.GetInputSlots<MaterialSlot>() : node.GetOutputSlots<MaterialSlot>())
+                {
+                    if (shaderStage != ShaderStage.Dynamic)
+                        break;
+                    if (slot.shaderStage == ShaderStage.Dynamic)
+                    {
+                        foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                        {
+                            var connectedNode = node.owner.GetNodeFromGuid(goingBackwards ? edge.outputSlot.nodeGuid : edge.inputSlot.nodeGuid);
+                            var connectedSlot = goingBackwards ? connectedNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId) : connectedNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
+                            if (connectedSlot.shaderStage == ShaderStage.Dynamic)
+                                nodeStack.Push(connectedNode);
+                            else
+                            {
+                                shaderStage = connectedSlot.shaderStage;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                        shaderStage = slot.shaderStage;
+                }
+            }
+            return shaderStage;
+        }
     }
 }

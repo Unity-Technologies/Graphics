@@ -7,31 +7,21 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
     {
-        VisualElement m_EditorTitle;
+        NodeEditorHeaderView m_HeaderView;
 
         new SurfaceMasterNodeEditorPresenter presenter
         {
-            get { return (SurfaceMasterNodeEditorPresenter) base.presenter; }
+            get { return (SurfaceMasterNodeEditorPresenter)base.presenter; }
         }
 
         public SurfaceMasterNodeEditorView()
         {
             AddToClassList("nodeEditor");
 
-            var headerContainer = new VisualElement();
-            headerContainer.AddToClassList("header");
-            {
-                m_EditorTitle = new VisualElement() {text = ""};
-                m_EditorTitle.AddToClassList("title");
-                headerContainer.Add(m_EditorTitle);
+            m_HeaderView = new NodeEditorHeaderView { type = "node" };
+            Add(m_HeaderView);
 
-                var headerType = new VisualElement { text = "(node)" };
-                headerType.AddToClassList("type");
-                headerContainer.Add(headerType);
-            }
-            Add(headerContainer);
-
-            var optionsSection = new VisualElement() {name = "surfaceOptions"};
+            var optionsSection = new VisualElement() { name = "surfaceOptions" };
             optionsSection.AddToClassList("section");
             {
                 optionsSection.Add(new IMGUIContainer(OnGUIHandler));
@@ -63,7 +53,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             if (presenter == null)
                 return;
 
-            m_EditorTitle.text = presenter.node.name;
+            m_HeaderView.title = presenter.node.name;
         }
     }
 }

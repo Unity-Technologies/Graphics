@@ -7,7 +7,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class StandardNodeEditorView : AbstractNodeEditorView
     {
-        VisualElement m_EditorTitle;
+        NodeEditorHeaderView m_HeaderView;
         VisualElement m_SlotsContainer;
         VisualElement m_DefaultSlotValuesSection;
 
@@ -20,18 +20,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         {
             AddToClassList("nodeEditor");
 
-            var headerContainer = new VisualElement();
-            headerContainer.AddToClassList("header");
-            {
-                m_EditorTitle = new VisualElement();
-                m_EditorTitle.AddToClassList("title");
-                headerContainer.Add(m_EditorTitle);
-
-                var headerType = new VisualElement { text = "(node)" };
-                headerType.AddToClassList("type");
-                headerContainer.Add(headerType);
-            }
-            Add(headerContainer);
+            m_HeaderView = new NodeEditorHeaderView() { type = "node" };
+            Add(m_HeaderView);
 
             m_DefaultSlotValuesSection = new VisualElement();
             m_DefaultSlotValuesSection.AddToClassList("section");
@@ -51,7 +41,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             if (presenter == null)
                 return;
 
-            m_EditorTitle.text = presenter.node.name;
+            m_HeaderView.title = presenter.node.name;
 
             m_SlotsContainer.Clear();
             foreach (var slotEditorPresenter in presenter.slotEditorPresenters)
