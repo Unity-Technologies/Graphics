@@ -227,7 +227,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
-                    
+
                     if (!exclusionList.Contains(propertyName) || !excludeUVMappingProperties)
                     {
                         if (material.HasProperty(layerPropertyName))
@@ -430,7 +430,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         bool DoMaterialReferencesGUI(AssetImporter materialImporter)
-        {            
+        {
             EditorGUILayout.LabelField(styles.materialReferencesText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
@@ -617,6 +617,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
             SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
@@ -646,6 +647,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
             }
             SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+        }
+        private void DoEmissiveGUI(Material material)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
+            //if (enableSpecularOcclusion.floatValue > 0.0f)
+            {
+                // EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
+            }
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
+            EditorGUI.indentLevel--;
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -677,7 +694,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            DoEmissiveGUI();
+            DoEmissiveGUI(material);
             DoEmissionArea(material);
             EditorGUI.indentLevel--;
             m_MaterialEditor.EnableInstancingField();
