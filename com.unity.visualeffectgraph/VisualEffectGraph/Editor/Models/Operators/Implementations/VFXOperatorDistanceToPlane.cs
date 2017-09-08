@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip("The closest point on the plane to the supplied position.")]
             public Vector3 closestPosition;
-            [Tooltip("The distance from the plane.")]
+            [Tooltip("The signed distance from the plane.")]
             public float distance;
         }
 
