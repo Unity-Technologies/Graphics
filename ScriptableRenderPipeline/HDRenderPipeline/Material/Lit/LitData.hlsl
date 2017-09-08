@@ -10,7 +10,7 @@ float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData 
     // Retrieve cone angle
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
     float cosAv = sqrt(1.0 - surfaceData.ambientOcclusion);
-    float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
+    float roughness = max(PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness), 0.01); // Clamp to 0.01 to avoid edge cases
     float cosAs = exp2(-3.32193 * Sqr(roughness));
     float cosB = dot(bentNormalWS, reflect(-V, surfaceData.normalWS));
 
