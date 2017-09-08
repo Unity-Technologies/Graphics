@@ -263,14 +263,7 @@ namespace UnityEditor
 
         void DoNormalArea()
         {
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, bumpMap.textureValue != null ? bumpScale : null);
-            if (bumpScale.floatValue != 1 && UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(EditorUserBuildSettings.activeBuildTarget))
-                if (m_MaterialEditor.HelpBoxWithButton(
-                        new GUIContent("Bump scale is not supported on mobile platforms"),
-                        new GUIContent("Fix Now")))
-                {
-                    bumpScale.floatValue = 1;
-                }
+            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap);
         }
 
         void DoAlbedoArea(Material material)
