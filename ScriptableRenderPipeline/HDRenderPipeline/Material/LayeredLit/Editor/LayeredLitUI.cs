@@ -648,6 +648,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
         }
+        private void DoEmissiveGUI(Material material)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
+            //if (enableSpecularOcclusion.floatValue > 0.0f)
+            {
+                // EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
+            }
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
+            EditorGUI.indentLevel--;
+        }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -678,7 +694,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            DoEmissiveGUI();
+            DoEmissiveGUI(material);
             DoEmissionArea(material);
             EditorGUI.indentLevel--;
             m_MaterialEditor.EnableInstancingField();
