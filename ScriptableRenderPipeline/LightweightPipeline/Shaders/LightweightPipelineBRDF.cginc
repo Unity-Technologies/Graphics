@@ -65,10 +65,11 @@ half3 LightweightBDRF(half3 diffColor, half3 specColor, half oneMinusReflectivit
 #endif
 }
 
-half3 LightweightBRDFIndirect(half3 diffColor, half3 specColor, UnityIndirect indirect, half grazingTerm, half fresnelTerm)
+half3 LightweightBRDFIndirect(half3 diffColor, half3 specColor, UnityIndirect indirect, float roughness, half grazingTerm, half fresnelTerm)
 {
     half3 c = indirect.diffuse * diffColor;
-    c += indirect.specular * lerp(specColor, grazingTerm, fresnelTerm);
+    float surfaceReduction = 1.0 / (roughness * roughness + 1.0);
+    c += surfaceReduction * indirect.specular * lerp(specColor, grazingTerm, fresnelTerm);
     return c;
 }
 

@@ -113,9 +113,6 @@
 
                 half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
                 o.viewDir.xyz = viewDir;
-#ifndef _METALLICGLOSSMAP
-                o.viewDir.w = saturate(_Glossiness + MetallicSetup_Reflectivity()); // grazing term
-#endif
 
                 half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
 
@@ -131,8 +128,6 @@
 #else
                 o.normal = normal;
 #endif
-
-                o.posWS.w = Pow4(1 - saturate(dot(normal, viewDir))); // fresnel term
 
 #if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
@@ -184,7 +179,7 @@
                 // grazingTerm = F90
                 half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
                 half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
-                half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, grazingTerm, fresnelTerm);
+                half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
                 half3 lightDirection;
 
 #ifndef _MULTIPLE_LIGHTS
