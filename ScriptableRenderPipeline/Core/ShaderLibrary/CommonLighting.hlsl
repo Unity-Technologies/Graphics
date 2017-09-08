@@ -189,6 +189,37 @@ float GetSpecularOcclusion(float NdotV, float ambientOcclusion, float roughness)
 	return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
 }
 
+// Based on Oat and Sander's 2008 technique
+// Area/solidAngle of intersection of two cone
+float SphericalCapIntersectionSolidArea(float cosC1, float cosC2, float cosB)
+{
+    float r1 = FastACos(cosC1);
+    float r2 = FastACos(cosC2);
+    float rd = FastACos(cosB);
+    float area = 0.0;
+
+    if (rd <= max(r1, r2) - min(r1, r2))
+    {
+        // One cap is completely inside the other
+        area = TWO_PI - TWO_PI * max(cosC1, cosC2);
+    }
+    else if (rd >= r1 + r2)
+    {
+        // No intersection exists
+        area = 0.0;
+    }
+    else
+    {
+        float diff = abs(r1 - r2);
+        float den = r1 + r2 - diff;
+        float x = 1.0 - saturate((rd - diff) / den);
+        area = smoothstep(0.0, 1.0, x);
+        area *= TWO_PI - TWO_PI * max(cosC1, cosC2);
+    }
+
+    return area;
+}
+
 //-----------------------------------------------------------------------------
 // Helper functions
 //-----------------------------------------------------------------------------

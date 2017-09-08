@@ -227,7 +227,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
-                    
+
                     if (!exclusionList.Contains(propertyName) || !excludeUVMappingProperties)
                     {
                         if (material.HasProperty(layerPropertyName))
@@ -430,7 +430,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         bool DoMaterialReferencesGUI(AssetImporter materialImporter)
-        {            
+        {
             EditorGUILayout.LabelField(styles.materialReferencesText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
@@ -617,6 +617,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
             SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 

@@ -175,6 +175,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _ShiverDrag("Shiver Drag", float) = 0.2
         _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
+        [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
+
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
@@ -301,6 +303,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _BENTNORMALMAP2
     #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
+    #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2

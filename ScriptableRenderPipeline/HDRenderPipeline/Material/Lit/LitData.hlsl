@@ -4,6 +4,18 @@
 #include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+// TODO: move this function to commonLighting.hlsl once validated it work correctly
+float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
+{
+    // Retrieve cone angle
+    // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
+    float cosAv = sqrt(1.0 - surfaceData.ambientOcclusion);
+    float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
+    float cosAs = exp2(-3.32193 * Sqr(roughness));
+    float cosB = dot(bentNormalWS, reflect(-V, surfaceData.normalWS));
+
+    return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
+}
 
 void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
@@ -381,8 +393,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #ifdef _BENTNORMALMAP
     GetNormalWS(input, V, bentNormalTS, bentNormalWS);
+    #ifdef _ENABLESPECULAROCCLUSION
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    surfaceData.specularOcclusion = 1.0; // TODO
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
+    #endif
 #else
     bentNormalWS = surfaceData.normalWS;
 #endif
@@ -635,7 +649,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    // Note: Blend mask have its dedicated mapping and tiling. 
+    // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
                             positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
@@ -1363,8 +1377,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
     GetNormalWS(input, V, bentNormalTS, bentNormalWS);
+    #ifdef _ENABLESPECULAROCCLUSION
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    surfaceData.specularOcclusion = 1.0; // TODO
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
+    #endif
 #else // if no bent normal are available at all just keep the calculation fully
     bentNormalWS = surfaceData.normalWS;
 #endif
