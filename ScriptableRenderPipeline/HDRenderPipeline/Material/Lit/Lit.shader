@@ -12,12 +12,15 @@ Shader "HDRenderPipeline/Lit"
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         _MaskMap("MaskMap", 2D) = "white" {}
-
-        _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
+        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
+
+        _BentNormalMap("_BentNormalMap", 2D) = "bump" {}
+        _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
 
         _HeightMap("HeightMap", 2D) = "black" {}
         [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units. This will be computed in the UI.
@@ -72,8 +75,6 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
-        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -136,7 +137,7 @@ Shader "HDRenderPipeline/Lit"
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
-    #pragma shader_feature _SPECULAROCCLUSIONMAP
+    #pragma shader_feature _BENTNORMALMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP

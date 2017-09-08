@@ -28,15 +28,20 @@ Shader "HDRenderPipeline/LayeredLit"
         _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
         _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
 
+        _SmoothnessRemapMin0("SmoothnessRemapMin0", Range(0.0, 1.0)) = 0.0
+        _SmoothnessRemapMin1("SmoothnessRemapMin1", Range(0.0, 1.0)) = 0.0
+        _SmoothnessRemapMin2("SmoothnessRemapMin2", Range(0.0, 1.0)) = 0.0
+        _SmoothnessRemapMin3("SmoothnessRemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _SmoothnessRemapMax0("SmoothnessRemapMax0", Range(0.0, 1.0)) = 1.0
+        _SmoothnessRemapMax1("SmoothnessRemapMax1", Range(0.0, 1.0)) = 1.0
+        _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
+        _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _MaskMap0("MaskMap0", 2D) = "white" {}
         _MaskMap1("MaskMap1", 2D) = "white" {}
         _MaskMap2("MaskMap2", 2D) = "white" {}
         _MaskMap3("MaskMap3", 2D) = "white" {}
-
-        _SpecularOcclusionMap0("SpecularOcclusion0", 2D) = "white" {}
-        _SpecularOcclusionMap1("SpecularOcclusion1", 2D) = "white" {}
-        _SpecularOcclusionMap2("SpecularOcclusion2", 2D) = "white" {}
-        _SpecularOcclusionMap3("SpecularOcclusion3", 2D) = "white" {}
 
         _NormalMap0("NormalMap0", 2D) = "bump" {}
         _NormalMap1("NormalMap1", 2D) = "bump" {}
@@ -52,6 +57,16 @@ Shader "HDRenderPipeline/LayeredLit"
         _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
         _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
         _NormalScale3("_NormalScale3", Range(0.0, 2.0)) = 1
+
+        _BentNormalMap0("BentNormalMap0", 2D) = "bump" {}
+        _BentNormalMap1("BentNormalMap1", 2D) = "bump" {}
+        _BentNormalMap2("BentNormalMap2", 2D) = "bump" {}
+        _BentNormalMap3("BentNormalMap3", 2D) = "bump" {}
+
+        _BentNormalMapOS0("BentNormalMapOS0", 2D) = "white" {}
+        _BentNormalMapOS1("BentNormalMapOS1", 2D) = "white" {}
+        _BentNormalMapOS2("BentNormalMapOS2", 2D) = "white" {}
+        _BentNormalMapOS3("BentNormalMapOS3", 2D) = "white" {}
 
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
@@ -144,7 +159,8 @@ Shader "HDRenderPipeline/LayeredLit"
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
         [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
-        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // Following are builtin properties
@@ -172,8 +188,6 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
-        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
@@ -208,7 +222,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
-        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
@@ -257,7 +271,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    
+
     #pragma shader_feature _NORMALMAP0
     #pragma shader_feature _NORMALMAP1
     #pragma shader_feature _NORMALMAP2
@@ -266,10 +280,10 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _MASKMAP1
     #pragma shader_feature _MASKMAP2
     #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _SPECULAROCCLUSIONMAP0
-    #pragma shader_feature _SPECULAROCCLUSIONMAP1
-    #pragma shader_feature _SPECULAROCCLUSIONMAP2
-    #pragma shader_feature _SPECULAROCCLUSIONMAP3
+    #pragma shader_feature _BENTNORMALMAP0
+    #pragma shader_feature _BENTNORMALMAP1
+    #pragma shader_feature _BENTNORMALMAP2
+    #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1

@@ -87,8 +87,6 @@ CBUFFER_START(_PerMaterial)
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
 
-float _HorizonFade;
-
 float _PPDMaxSamples;
 float _PPDMinSamples;
 float _PPDLodThreshold;
@@ -118,6 +116,8 @@ float4 _BaseColorMap_ST;
 
 float _Metallic;
 float _Smoothness;
+float _SmoothnessRemapMin;
+float _SmoothnessRemapMax;
 
 float _NormalScale;
 
@@ -157,6 +157,8 @@ float4 _BaseColorMap3_ST;
 
 PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
+PROP_DECL(float, _SmoothnessRemapMin);
+PROP_DECL(float, _SmoothnessRemapMax);
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
@@ -193,6 +195,7 @@ float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
