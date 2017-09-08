@@ -19,32 +19,22 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
-            #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../../Core/ShaderLibrary/Color.hlsl"
             #include "../../../../Core/ShaderLibrary/Common.hlsl"
             #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
+            #include "../../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
 
-            // x exposure, y multiplier, z rotation
-            float4 _SkyParam;
             float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-
-            // x = width, y = height, z = 1.0/width, w = 1.0/height
-            float4 _ScreenSize;
-
-            float4 _CameraPosWS;
-
-            float4x4 _InvViewProjMatrix;
-
-            float _SkyDepth;
-
-            float _DisableSkyOcclusionTest;
+            // x exposure, y multiplier, z rotation
+            float4   _SkyParam;
+            float    _SkyDepth;
+            float    _DisableSkyOcclusionTest;
 
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
-
 
             struct Attributes
             {
@@ -61,15 +51,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
                 return output;
-            }
-
-            float3 GetAbsolutePositionWS(float3 cameraRelativePositionWS)
-            {
-                float3 pos = cameraRelativePositionWS;
-            #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-                pos += _CameraPosWS;
-            #endif
-                return pos;
             }
 
             float4 Frag(Varyings input) : SV_Target
