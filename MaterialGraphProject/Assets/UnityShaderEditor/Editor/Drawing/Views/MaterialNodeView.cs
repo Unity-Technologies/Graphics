@@ -13,6 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         VisualElement m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControls;
+        VisualElement m_PreviewContainer;
         Image m_PreviewImage;
         bool m_IsScheduled;
 
@@ -32,14 +33,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             leftContainer.Add(m_ControlsContainer);
             m_CurrentControls = new List<GraphControlPresenter>();
 
-            m_PreviewImage = new Image
+            m_PreviewContainer = new VisualElement { name = "preview" };
             {
-                name = "preview",
-                pickingMode = PickingMode.Ignore,
-                image = Texture2D.whiteTexture
-            };
-            m_PreviewImage.AddToClassList("inactive");
-            leftContainer.Add(m_PreviewImage);
+                m_PreviewImage = new Image
+                {
+                    pickingMode = PickingMode.Ignore,
+                    image = Texture2D.whiteTexture
+                };
+            }
+            leftContainer.Add(m_PreviewContainer);
         }
 
         void UpdatePreviewTexture(NodePreviewPresenter preview)
@@ -48,15 +50,17 @@ namespace UnityEditor.MaterialGraph.Drawing
                 preview.UpdateTexture();
             if (preview == null || preview.texture == null)
             {
-                m_PreviewImage.AddToClassList("inactive");
+//                Debug.Log(GetPresenter<MaterialNodePresenter>().node.name);
+                m_PreviewContainer.Clear();
                 m_PreviewImage.image = Texture2D.whiteTexture;
             }
             else
             {
-                m_PreviewImage.RemoveFromClassList("inactive");
+                if (m_PreviewContainer.childCount == 0)
+                    m_PreviewContainer.Add(m_PreviewImage);
                 m_PreviewImage.image = preview.texture;
             }
-            Dirty(ChangeType.Repaint);
+//            Dirty(ChangeType.Layout);
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)
@@ -90,7 +94,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 m_ControlsContainer.Clear();
                 m_CurrentControls.Clear();
-                m_PreviewImage.AddToClassList("inactive");
+                m_PreviewContainer.Clear();
                 UpdatePreviewTexture(null);
                 return;
             }
@@ -99,9 +103,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdatePreviewTexture(node.preview);
 
             if (node.expanded)
-                m_PreviewImage.RemoveFromClassList("hidden");
+            {
+                UpdatePreviewTexture(node.preview);
+            }
             else
-                m_PreviewImage.AddToClassList("hidden");
+                m_PreviewContainer.Clear();
         }
     }
 }

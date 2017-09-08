@@ -110,6 +110,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (scope >= ModificationScope.Graph)
                 {
+                    var stage = NodeUtils.FindEffectiveShaderStage(m_Node, true);
+                    if (!(m_Node is AbstractSurfaceMasterNode) && stage == ShaderStage.Vertex)
+                    {
+//                        Debug.Log(m_Node.name + ":" + stage);
+                        m_Texture = null;
+                        return;
+                    }
                     // TODO: Handle shader regeneration error
                     var status = UpdatePreviewShader();
                 }

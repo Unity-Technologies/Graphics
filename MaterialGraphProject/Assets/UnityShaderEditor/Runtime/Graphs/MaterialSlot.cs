@@ -7,37 +7,41 @@ namespace UnityEngine.MaterialGraph
     public class MaterialSlot : SerializableSlot
     {
         [SerializeField]
-        private SlotValueType m_ValueType;
+        SlotValueType m_ValueType;
 
         [SerializeField]
-        private Vector4 m_DefaultValue;
+        Vector4 m_DefaultValue;
 
         [SerializeField]
-        private Vector4 m_CurrentValue;
+        Vector4 m_CurrentValue;
 
         [SerializeField]
-        private ConcreteSlotValueType m_ConcreteValueType;
+        ConcreteSlotValueType m_ConcreteValueType;
 
         [SerializeField]
-        private string m_ShaderOutputName;
+        string m_ShaderOutputName;
+
+        [SerializeField]
+        ShaderStage m_ShaderStage;
 
         public MaterialSlot() { }
 
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool hidden = false)
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, slotType, hidden)
         {
-            SharedInitialize(shaderOutputName, valueType, defaultValue);
+            SharedInitialize(shaderOutputName, valueType, defaultValue, shaderStage);
         }
 
-        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue)
+        void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue, ShaderStage shaderStage)
         {
             m_ShaderOutputName = inShaderOutputName;
             valueType = inValueType;
             m_DefaultValue = inDefaultValue;
             m_CurrentValue = inDefaultValue;
+            this.shaderStage = shaderStage;
         }
 
-        private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
+        static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
         {
             switch (type)
             {
@@ -133,6 +137,12 @@ namespace UnityEngine.MaterialGraph
             private set { m_ShaderOutputName = value; }
         }
 
+        public ShaderStage shaderStage
+        {
+            get { return m_ShaderStage; }
+            set { m_ShaderStage = value; }
+        }
+
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
@@ -221,56 +231,5 @@ namespace UnityEngine.MaterialGraph
                     return "error";
             }
         }
-
-        /*
-        public override bool OnGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            m_CurrentValue = EditorGUILayout.Vector4Field("Value", m_CurrentValue);
-            return EditorGUI.EndChangeCheck();
-        }
-
-        public bool OnGUI(Rect rect, ConcreteSlotValueType inputSlotType)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            var rectXmax = rect.xMax;
-            switch (inputSlotType)
-            {
-                case ConcreteSlotValueType.Vector1:
-                    rect.x = rectXmax - 50;
-                    rect.width = 50;
-                    EditorGUIUtility.labelWidth = 15;
-                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-                    m_CurrentValue.x = EditorGUI.FloatField(rect, "X", m_CurrentValue.x);
-                    break;
-                case ConcreteSlotValueType.Vector2:
-                    rect.x = rectXmax - 90;
-                    rect.width = 90;
-                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-                    var result2 = new Vector4(m_CurrentValue.x, m_CurrentValue.y);
-                    result2 = EditorGUI.Vector2Field(rect, GUIContent.none, result2);
-                    m_CurrentValue.x = result2.x;
-                    m_CurrentValue.y = result2.y;
-                    break;
-                case ConcreteSlotValueType.Vector3:
-                    rect.x = rectXmax - 140;
-                    rect.width = 140;
-                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-                    var result3 = new Vector3(m_CurrentValue.x, m_CurrentValue.y, m_CurrentValue.z);
-                    result3 = EditorGUI.Vector3Field(rect, GUIContent.none, result3);
-                    m_CurrentValue.x = result3.x;
-                    m_CurrentValue.y = result3.y;
-                    m_CurrentValue.z = result3.z;
-                    break;
-                default:
-                    rect.x = rectXmax - 190;
-                    rect.width = 190;
-                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-                    m_CurrentValue = EditorGUI.Vector4Field(rect, GUIContent.none, m_CurrentValue);
-                    break;
-            }
-            return EditorGUI.EndChangeCheck();
-        }*/
     }
 }

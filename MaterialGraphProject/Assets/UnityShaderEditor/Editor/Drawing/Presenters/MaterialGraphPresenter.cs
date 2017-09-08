@@ -15,7 +15,10 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         Dictionary<Guid, MaterialNodePresenter> m_TimeDependentPresenters = new Dictionary<Guid, MaterialNodePresenter>();
 
-        public bool hasTimeDependentNodes { get { return m_TimeDependentPresenters.Any(); }}
+        public bool hasTimeDependentNodes
+        {
+            get { return m_TimeDependentPresenters.Any(); }
+        }
 
         protected GraphTypeMapper typeMapper { get; set; }
 
@@ -30,6 +33,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
+
             // typeMapper[typeof(ScatterNode)] = typeof(ScatterNodePresenter);
             //typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
             //typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodePresenter);
@@ -51,36 +55,75 @@ namespace UnityEditor.MaterialGraph.Drawing
              typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter*/
             typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
+
             //   typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
             // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
             typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);
             typeMapper[typeof(LevelsNode)] = typeof(LevelsNodePresenter);
             typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodePresenter);
+
             //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
             typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
+
             // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
             typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
+
             //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
             typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
             typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
             typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
             typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
             typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
+
 //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
         {
-            return allChildren.OfType<NodeAnchorPresenter>()
-                .Where(nap =>
-                    nap.IsConnectable()
-                    && nap.orientation == startAnchor.orientation
-                    && nap.direction != startAnchor.direction
-                    && nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null && startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot
-                    && ((GraphAnchorPresenter)startAnchor).slot.owner != ((GraphAnchorPresenter)nap).slot.owner
-                    && ((MaterialSlot)((GraphAnchorPresenter)startAnchor).slot).IsCompatibleWithInputSlotType(((MaterialSlot)((GraphAnchorPresenter)nap).slot).valueType))
-                .ToList();
+            var compatibleAnchors = new List<NodeAnchorPresenter>();
+            var startAnchorPresenter = startAnchor as GraphAnchorPresenter;
+            if (startAnchorPresenter == null)
+                return compatibleAnchors;
+            var startSlot = startAnchorPresenter.slot as MaterialSlot;
+            if (startSlot == null)
+                return compatibleAnchors;
+
+            var goingBackwards = startSlot.isOutputSlot;
+            var startStage = startSlot.shaderStage;
+            if (startStage == ShaderStage.Dynamic)
+                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
+
+            foreach (var candidateAnchorPresenter in allChildren.OfType<GraphAnchorPresenter>())
+            {
+                if (!candidateAnchorPresenter.IsConnectable())
+                    continue;
+                if (candidateAnchorPresenter.orientation != startAnchor.orientation)
+                    continue;
+                if (candidateAnchorPresenter.direction == startAnchor.direction)
+                    continue;
+                if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
+                    continue;
+                var candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
+                if (candidateSlot == null)
+                    continue;
+                if (candidateSlot.owner == startSlot.owner)
+                    continue;
+                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.valueType))
+                    continue;
+
+                if (startStage != ShaderStage.Dynamic)
+                {
+                    var candidateStage = candidateSlot.shaderStage;
+                    if (candidateStage == ShaderStage.Dynamic)
+                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
+                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
+                        continue;
+                }
+
+                compatibleAnchors.Add(candidateAnchorPresenter);
+            }
+            return compatibleAnchors;
         }
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
@@ -125,6 +168,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var toNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
 
                 if (toNodePresenter != null)
+
                     // Make the input node (i.e. right side of the connection) re-render
                     OnNodeChanged(toNodePresenter.node, ModificationScope.Graph);
 
@@ -216,7 +260,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_Elements.AddRange(edgePresenters.OfType<GraphElementPresenter>());
 
-
             // Calculate which nodes require updates each frame (i.e. are time-dependent).
 
             // Let the node set contain all the nodes that are directly time-dependent.
@@ -226,33 +269,36 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             // The wavefront contains time-dependent nodes from which we wish to propagate time-dependency into the
             // nodes that it feeds into.
-            var wavefront = new Stack<MaterialNodePresenter>(m_TimeDependentPresenters.Values);
-            while (wavefront.Count > 0)
             {
-                var presenter = wavefront.Pop();
-                // Loop through all nodes that the node feeds into.
-                foreach (var slot in presenter.node.GetOutputSlots<ISlot>())
+                var wavefront = new Stack<MaterialNodePresenter>(m_TimeDependentPresenters.Values);
+                while (wavefront.Count > 0)
                 {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    var presenter = wavefront.Pop();
+
+                    // Loop through all nodes that the node feeds into.
+                    foreach (var slot in presenter.node.GetOutputSlots<ISlot>())
                     {
-                        // We look at each node we feed into.
-                        var inputNodeGuid = edge.inputSlot.nodeGuid;
-
-                        // If the input node is already in the set of time-dependent nodes, we don't need to process it.
-                        if (m_TimeDependentPresenters.ContainsKey(inputNodeGuid))
-                            continue;
-
-                        // Find the matching presenter.
-                        var inputPresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == inputNodeGuid);
-                        if (inputPresenter == null)
+                        foreach (var edge in graph.GetEdges(slot.slotReference))
                         {
-                            Debug.LogErrorFormat("A presenter could not be found for the node with guid `{0}`", inputNodeGuid);
-                            continue;
-                        }
+                            // We look at each node we feed into.
+                            var inputNodeGuid = edge.inputSlot.nodeGuid;
 
-                        // Add the node to the set of time-dependent nodes, and to the wavefront such that we can process the nodes that it feeds into.
-                        m_TimeDependentPresenters.Add(inputPresenter.node.guid, inputPresenter);
-                        wavefront.Push(inputPresenter);
+                            // If the input node is already in the set of time-dependent nodes, we don't need to process it.
+                            if (m_TimeDependentPresenters.ContainsKey(inputNodeGuid))
+                                continue;
+
+                            // Find the matching presenter.
+                            var inputPresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == inputNodeGuid);
+                            if (inputPresenter == null)
+                            {
+                                Debug.LogErrorFormat("A presenter could not be found for the node with guid `{0}`", inputNodeGuid);
+                                continue;
+                            }
+
+                            // Add the node to the set of time-dependent nodes, and to the wavefront such that we can process the nodes that it feeds into.
+                            m_TimeDependentPresenters.Add(inputPresenter.node.guid, inputPresenter);
+                            wavefront.Push(inputPresenter);
+                        }
                     }
                 }
             }

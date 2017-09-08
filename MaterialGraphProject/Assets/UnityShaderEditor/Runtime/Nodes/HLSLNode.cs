@@ -208,7 +208,7 @@ namespace UnityEngine.MaterialGraph
                 var attribute = GetSlotAttribute(par);
 
                 slots.Add(new MaterialSlot(attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
-                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero, attribute.hidden));
+                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden));
 
 
                 m_Slots.Add(attribute);
