@@ -1003,7 +1003,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
 // EvaluateBSDF_Directional (supports directional and box projector lights)
 //-----------------------------------------------------------------------------
 
-float4 EvaluateCookie_Directional(LightLoopContext context, DirectionalLightData lightData,
+float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
                                   float3 lighToSample)
 {
     // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
@@ -1030,7 +1030,7 @@ float4 EvaluateCookie_Directional(LightLoopContext context, DirectionalLightData
 
     // We let the sampler handle tiling or clamping to border.
     // Note: tiling (the repeat mode) is not currently supported.
-    float4 cookie = SampleCookie2D(context, coord, lightData.cookieIndex);
+    float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
     cookie.a = isInBounds ? cookie.a : 0;
 
@@ -1097,7 +1097,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
-float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
+float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
                                float3 lighToSample)
 {
     int lightType = lightData.lightType;
@@ -1111,7 +1111,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
 
     [branch] if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie = SampleCookieCube(context, positionLS, lightData.cookieIndex);
+        cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
     }
     else
     {
@@ -1125,7 +1125,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext context, LightData lightData,
         float2 coord = positionNDC * 0.5 + 0.5;
 
         // We let the sampler handle clamping to border.
-        cookie   = SampleCookie2D(context, coord, lightData.cookieIndex);
+        cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
         cookie.a = isInBounds ? cookie.a : 0;
     }
 
@@ -1602,17 +1602,34 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         F = Sqr(-F * bsdfData.coatCoverage + 1.0);
     }
 
-    // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
-    // So goal is to split into two category and have an option to say if we parallax correct or not.
-
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
     specularLighting += F * preLD.rgb * preLightData.specularFGD;
 
-    // Apply specular occlusion on it
-    specularLighting *= bsdfData.specularOcclusion * GetSpecularOcclusion(preLightData.NdotV, lightLoopContext.ambientOcclusion, bsdfData.roughness);
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
 #endif
 }
+
+//-----------------------------------------------------------------------------
+// PostEvaluateBSDF
+// ----------------------------------------------------------------------------
+
+void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLightData, BSDFData bsdfData, LightLoopAccumulatedLighting accLighting, float3 bakeDiffuseLighting,
+                        out float3 diffuseLighting, out float3 specularLighting)
+{
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
+    bakeDiffuseLighting *= GTAOMultiBounce(lightLoopContext.indirectAmbientOcclusion, bsdfData.diffuseColor);
+
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
+    // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
+    accLighting.envSpecularLighting *= bsdfData.specularOcclusion * GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+
+    // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
+
+    // envDiffuseLighting is not used in our case
+    diffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(lightLoopContext.directAmbientOcclusion, bsdfData.diffuseColor) + bakeDiffuseLighting;
+    specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
+}
+
 
 #endif // #ifdef HAS_LIGHTLOOP
