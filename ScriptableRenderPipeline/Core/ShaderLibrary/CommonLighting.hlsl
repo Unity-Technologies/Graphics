@@ -185,7 +185,7 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 
 // Ref: Moving Frostbite to PBR - Gotanda siggraph 2011
 // Return specular occlusion based on ambient occlusion (usually get from SSAO) and view/roughness info
-float SpecularOcclusionFromAmbientOcclusion(float NdotV, float ambientOcclusion, float roughness)
+float GetSpecularOcclusionFromAmbientOcclusion(float NdotV, float ambientOcclusion, float roughness)
 {
 	return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
 }

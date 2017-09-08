@@ -20,8 +20,8 @@ SAMPLER2D(sampler_BaseColorMap);
 
 TEXTURE2D(_MaskMap);
 SAMPLER2D(sampler_MaskMap);
-TEXTURE2D(_SpecularOcclusionMap);
-SAMPLER2D(sampler_SpecularOcclusionMap);
+TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
+SAMPLER2D(sampler_BentNormalMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
@@ -69,7 +69,7 @@ SAMPLER2D(sampler_SpecularColorMap);
 
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
-PROP_DECL_TEX2D(_SpecularOcclusionMap);
+PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_HeightMap);

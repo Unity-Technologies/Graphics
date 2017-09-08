@@ -1622,7 +1622,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLight
 
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
-    accLighting.envSpecularLighting *= bsdfData.specularOcclusion * GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+    // Take the min of screenspace specular occlusion and visibility cone specular occlusion
+    accLighting.envSpecularLighting *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
