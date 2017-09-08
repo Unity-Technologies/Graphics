@@ -62,6 +62,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
+        [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
@@ -155,6 +156,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
+    #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP

@@ -62,6 +62,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Specular color
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
 
+            // Specular occlusion
+            public static GUIContent enableSpecularOcclusionText = new GUIContent("Enable Specular Occlusion", "Require cosine weighted bent normal and  cosine weighted ambient occlusion. Specular occlusion for reflection probe");
+
             // Emissive
             public static string lightingText = "Lighting Inputs";
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
@@ -205,6 +208,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
         protected MaterialProperty albedoAffectEmissive = null;
         protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+        protected MaterialProperty enableSpecularOcclusion = null;
+        protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {
@@ -250,6 +255,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
+            enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion, props);
         }
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
@@ -511,6 +517,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
@@ -564,6 +571,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
