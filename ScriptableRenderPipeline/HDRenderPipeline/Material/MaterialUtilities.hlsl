@@ -24,20 +24,9 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     }
     else
     {
-        // TODO: Move all this to C++!
-        float4x4 identity = 0;
-        identity._m00_m11_m22_m33 = 1.0;
-        float4x4 WorldToTexture = (unity_ProbeVolumeParams.y == 1.0) ? unity_ProbeVolumeWorldToObject : identity;
-
-        float4x4 translation = identity;
-        translation._m30_m31_m32 = -unity_ProbeVolumeMin.xyz;
-
-        float4x4 scale = 0;
-        scale._m00_m11_m22_m33 = float4(unity_ProbeVolumeSizeInv.xyz, 1.0);
-
-        WorldToTexture = mul(mul(scale, translation), WorldToTexture);
-
-        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
+        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
+        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), normalWS, unity_ProbeVolumeWorldToObject,
+                                    unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
     }
 
 #else
