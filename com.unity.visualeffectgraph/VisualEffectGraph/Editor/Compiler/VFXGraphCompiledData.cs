@@ -10,6 +10,18 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    struct VFXContextCompiledData
+    {
+        public VFXExpressionMapper gpuMapper;
+        public VFXUniformMapper uniformMapper;
+
+        public VFXContextCompiledData(VFXExpressionMapper gpuMapper, VFXUniformMapper uniformMapper)
+        {
+            this.gpuMapper = gpuMapper;
+            this.uniformMapper = uniformMapper;
+        }
+    }
+
     class VFXGraphCompiledData
     {
         public VFXGraphCompiledData(VFXGraph graph)
@@ -225,14 +237,20 @@ namespace UnityEditor.VFX
 
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
                 var generatedList = new List<GeneratedCodeData>();
+                Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
                 foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                 {
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
                     if (codeGeneratorTemplate != null)
                     {
                         var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
+
                         var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
-                        VFXCodeGenerator.Build(context, compilMode, generatedContent, gpuMapper, codeGeneratorTemplate);
+                        var uniformMapper = new VFXUniformMapper(gpuMapper);
+                        VFXContextCompiledData contextData = new VFXContextCompiledData(gpuMapper, uniformMapper);
+                        contextToCompiledData.Add(context, contextData);
+
+                        VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
 
                         for (int i = 0; i < compilMode.Length; ++i)
                         {
@@ -321,9 +339,14 @@ namespace UnityEditor.VFX
                     }
 
                     var taskDescs = new List<VFXTaskDesc>();
-                    var bufferMapper = new List<VFXBufferMapper>();
+                    var bufferMappings = new List<VFXBufferMapping>();
+                    var uniformMappings = new List<VFXUniformMapping>();
+
                     foreach (var context in data.owners)
                     {
+                        if (!contextToCompiledData.ContainsKey(context))
+                            continue;
+
                         var taskDesc = new VFXTaskDesc();
                         switch (context.contextType)
                         {
@@ -333,17 +356,34 @@ namespace UnityEditor.VFX
                             default: throw new InvalidOperationException(string.Format("Not supposed to have this context types in particle system {0}", context.contextType));
                         }
 
-                        bufferMapper.Clear();
+                        bufferMappings.Clear();
                         if (attributeBufferIndex != -1)
-                            bufferMapper.Add(new VFXBufferMapper(attributeBufferIndex, "attributeBuffer"));
+                            bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
                         if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                            bufferMapper.Add(new VFXBufferMapper(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                            bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
 
-                        taskDesc.buffers = bufferMapper.ToArray();
+                        var contextData = contextToCompiledData[context];
+                        uniformMappings.Clear();
+                        foreach (var uniform in contextData.uniformMapper.uniforms)
+                            uniformMappings.Add(new VFXUniformMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+
+                        taskDesc.buffers = bufferMappings.ToArray();
+                        taskDesc.uniforms = uniformMappings.ToArray();
+
+                        //taskDesc.processorInstanceID =
+
+                        taskDescs.Add(taskDesc);
                     }
+
+                    systemDescs.Add(new VFXSystemDesc()
+                    {
+                        flags = systemFlag,
+                        tasks = taskDescs.ToArray(),
+                        type = VFXSystemType.kVFXParticle,
+                    });
                 }
 
-                m_Graph.vfxAsset.SetSystem(new VFXSystemDesc[] {}, bufferDescs.ToArray());
+                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray());
 
                 foreach (var component in VFXComponent.GetAllActive())
                 {
@@ -413,5 +453,7 @@ namespace UnityEditor.VFX
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
         private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
+        //[NonSerialized]
+        //private Dictionary<VFXContext, VFXContextCompiledData> m_ContextToCompiledData;
     }
 }
