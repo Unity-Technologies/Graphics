@@ -85,4 +85,16 @@ namespace UnityEditor.VFX
             public Plane plane;
         }
     }
+    [VFXInfo(category = "Tests")]
+    class VFXCylinderBlock : VFXBlock
+    {
+        public override string name { get { return "Cylinder"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public Cylinder cylinder;
+        }
+    }
 }

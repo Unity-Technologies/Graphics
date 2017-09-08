@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.UI
             s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
             s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
             s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
+            s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
         }
 
         static internal void Draw(VFXDataAnchorPresenter anchor, VFXComponent component)
@@ -204,25 +205,105 @@ namespace UnityEditor.VFX.UI
 
         static void OnDrawCylinderDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
         {
-            Plane plane = (Plane)anchor.value;
+            Cylinder cylinder = (Cylinder)anchor.value;
 
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
-            Handles.DrawRectangle(0, plane.position, normalQuat, 10);
 
-            Handles.DrawArrow(0, plane.position, normalQuat, 5);
+            Vector3 center = cylinder.position;
+            Vector3 normal = cylinder.direction.normalized;
+            Vector3 topCap = center + cylinder.height * 0.5f * normal;
+            Vector3 bottomCap = center - cylinder.height * 0.5f * normal;
 
-            if (PositionGizmo(component, plane.space, ref plane.position))
+            Vector3[] extremities = new Vector3[8];
+
+            extremities[0] = topCap + Vector3.forward * cylinder.radius;
+            extremities[1] = topCap - Vector3.forward * cylinder.radius;
+
+            extremities[2] = topCap + Vector3.left * cylinder.radius;
+            extremities[3] = topCap - Vector3.left * cylinder.radius;
+
+            extremities[4] = bottomCap + Vector3.forward * cylinder.radius;
+            extremities[5] = bottomCap - Vector3.forward * cylinder.radius;
+
+            extremities[6] = bottomCap + Vector3.left * cylinder.radius;
+            extremities[7] = bottomCap - Vector3.left * cylinder.radius;
+
+            if (cylinder.space == CoordinateSpace.Local)
             {
-                anchor.value = plane;
+                Matrix4x4 mat = component.transform.localToWorldMatrix;
+
+                center = mat.MultiplyPoint(center);
+                topCap = mat.MultiplyPoint(topCap);
+                bottomCap = mat.MultiplyPoint(bottomCap);
+
+                normal = mat.MultiplyVector(normal).normalized;
+
+                for (int i = 0; i < extremities.Length; ++i)
+                {
+                    extremities[i] = mat.MultiplyPoint(extremities[i]);
+                }
             }
 
+            Handles.DrawWireDisc(topCap, normal, cylinder.radius);
+            Handles.DrawWireDisc(bottomCap, normal, cylinder.radius);
+
+            for (int i = 0; i < extremities.Length / 2; ++i)
+            {
+                Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
+            }
+
+            if (PositionGizmo(component, cylinder.space, ref cylinder.position))
+            {
+                anchor.value = cylinder;
+            }
+
+            Vector3 result;
+            for (int i = 0; i < extremities.Length / 2; ++i)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                Vector3 pos = (extremities[i] + extremities[i + +extremities.Length / 2]) * 0.5f;
+                result = Handles.Slider(pos, pos - center, 0.1f, Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    cylinder.radius = (result - center).magnitude;
+                    anchor.value = cylinder;
+                }
+
+                EditorGUI.EndChangeCheck();
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            result = Handles.Slider(topCap, topCap - center, 0.1f, Handles.CubeHandleCap, 0);
+
+            if (GUI.changed)
+            {
+                cylinder.height = (result - center).magnitude * 2;
+                anchor.value = cylinder;
+            }
+
+            EditorGUI.EndChangeCheck();
+
+            EditorGUI.BeginChangeCheck();
+
+            result = Handles.Slider(bottomCap, bottomCap - center, 0.1f, Handles.CubeHandleCap, 0);
+
+            if (GUI.changed)
+            {
+                cylinder.height = (result - center).magnitude * 2;
+                anchor.value = cylinder;
+            }
+
+            EditorGUI.EndChangeCheck();
+
+            /*
             Vector3 normal = plane.normal.normalized;
 
             Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, normal);
 
             EditorGUI.BeginChangeCheck();
             Quaternion result = Handles.RotationHandle(rotation, plane.position);
-
 
             //Quaternion result = UnityEditorInternal.Disc.Do(0, rotation, plane.position, Vector3.left, 3, true, 0, false, true, Color.yellow);
 
@@ -233,6 +314,7 @@ namespace UnityEditor.VFX.UI
                 anchor.value = plane;
             }
             EditorGUI.EndChangeCheck();
+    */
         }
 
         static bool OnDrawBoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
