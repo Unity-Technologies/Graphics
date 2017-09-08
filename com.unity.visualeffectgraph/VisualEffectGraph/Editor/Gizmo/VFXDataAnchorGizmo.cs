@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Reflection;
+using Type = System.Type;
+using Delegate = System.Delegate;
+using Action = System.Action;
 
 namespace UnityEditor.VFX.UI
 {
@@ -19,6 +23,35 @@ namespace UnityEditor.VFX.UI
             s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
             s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
             s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
+
+            foreach (Type type in typeof(VFXDataAnchorGizmo).Assembly.GetTypes())
+            {
+                Type gizmoedType = GetGizmoType(type);
+
+                if (gizmoedType != null)
+                {
+                    MethodInfo info = type.GetMethod("OnDrawGizmo", BindingFlags.Static | BindingFlags.Public);
+
+                    if (info != null)
+                    {
+                        s_DrawFunctions[gizmoedType] = (System.Action<VFXDataAnchorPresenter, VFXComponent>)Delegate.CreateDelegate(typeof(System.Action<VFXDataAnchorPresenter, VFXComponent>), info);
+                    }
+                }
+            }
+        }
+
+        static Type GetGizmoType(Type type)
+        {
+            Type baseType = type.BaseType;
+            while (baseType != null)
+            {
+                if (baseType.IsGenericType && !baseType.IsGenericTypeDefinition && baseType.GetGenericTypeDefinition() == typeof(VFXGizmo<>))
+                {
+                    return baseType.GetGenericArguments()[0];
+                }
+                baseType = baseType.BaseType;
+            }
+            return null;
         }
 
         static internal void Draw(VFXDataAnchorPresenter anchor, VFXComponent component)
@@ -458,6 +491,51 @@ namespace UnityEditor.VFX.UI
 
 
             return changed;
+        }
+    }
+
+    class Gizmo
+    {
+    }
+
+    class VFXGizmo<T> : VFXGizmo
+    {
+        public static bool PositionGizmo(VFXComponent component, CoordinateSpace space, ref Vector3 position)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 worldPosition = position;
+            if (space == CoordinateSpace.Local)
+            {
+                worldPosition = component.transform.localToWorldMatrix.MultiplyPoint(position);
+            }
+
+            Vector3 modifiedPosition = Handles.PositionHandle(worldPosition, space == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
+            if (space == CoordinateSpace.Local)
+            {
+                modifiedPosition = component.transform.worldToLocalMatrix.MultiplyPoint(modifiedPosition);
+            }
+            bool changed = GUI.changed;
+            EditorGUI.EndChangeCheck();
+            if (changed)
+            {
+                position = modifiedPosition;
+                return true;
+            }
+            return false;
+        }
+    }
+
+    class VFXPositionGizmo : VFXGizmo<Position>
+    {
+        public static void OnDrawGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        {
+            Position pos = (Position)anchor.value;
+
+            if (PositionGizmo(component, pos.space, ref pos.position))
+            {
+                anchor.value = pos;
+            }
         }
     }
 }

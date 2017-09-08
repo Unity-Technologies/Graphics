@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public AABox box;
+            public AABox box = new AABox { size = Vector3.one};
         }
     }
     [VFXInfo(category = "Tests")]
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public OrientedBox box;
+            public OrientedBox box = new OrientedBox { size = Vector3.one };
         }
     }
     [VFXInfo(category = "Tests")]
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Plane plane;
+            public Plane plane = new Plane { normal = Vector3.up};
         }
     }
     [VFXInfo(category = "Tests")]
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Cylinder cylinder;
+            public Cylinder cylinder = new Cylinder { radius = 1, height = 1, direction = Vector3.up};
         }
     }
 }
