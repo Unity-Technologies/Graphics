@@ -102,7 +102,6 @@ namespace UnityEditor.VFX.UI
 
         public void AddBlock(int index, VFXBlock block)
         {
-            Undo.RecordObject(model, "Add Block");
             context.AddChild(block, index);
         }
 

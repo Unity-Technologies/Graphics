@@ -28,6 +28,8 @@ namespace UnityEditor.VFX.UI
 
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            PushGraphState();
+
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
                 /*cause != VFXModel.InvalidationCause.kExpressionInvalidated &&*/
@@ -61,8 +63,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-
-            //Debug.Log("")
         }
 
         public bool CanGetEvaluatedContent(VFXSlot slot)

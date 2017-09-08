@@ -58,6 +58,7 @@ namespace UnityEditor.VFX.UI
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
             SetVFXAsset(m_VFXAsset != null ? m_VFXAsset : new VFXAsset(), true);
+            InitializeUndoStack();
         }
 
         public VFXView View
@@ -270,7 +271,6 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXBlockPresenter)
             {
                 var block = element as VFXBlockPresenter;
-
                 block.contextPresenter.RemoveBlock(block.block);
             }
             else if (element is VFXSlotContainerPresenter)

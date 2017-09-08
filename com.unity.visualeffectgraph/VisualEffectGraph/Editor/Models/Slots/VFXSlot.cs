@@ -322,9 +322,58 @@ namespace UnityEditor.VFX
         {
             var clone = base.Clone<T>();
             var cloneSlot = clone as VFXSlot;
-
             cloneSlot.m_LinkedSlots.Clear();
             return clone;
+        }
+
+        static private void RecurseIntoSlots(VFXModel[] fromArray, VFXModel[] toArray, Action<VFXSlot, VFXSlot> fnAction)
+        {
+            if (fromArray.Length != toArray.Length)
+            {
+                throw new Exception("both model aren't equivalent");
+            }
+
+            for (int i = 0; i < fromArray.Length; ++i)
+            {
+                var from = fromArray[i];
+                var to = toArray[i];
+                if (from.GetType() != to.GetType())
+                {
+                    throw new Exception("incoherent type");
+                }
+
+                if (from is VFXSlot)
+                {
+                    fnAction(from as VFXSlot, to as VFXSlot);
+                }
+
+                if (from is IVFXSlotContainer)
+                {
+                    var fromContainer = from as IVFXSlotContainer;
+                    var toContainer = to as IVFXSlotContainer;
+                    RecurseIntoSlots(fromContainer.inputSlots.Concat(fromContainer.outputSlots).ToArray(), toContainer.inputSlots.Concat(toContainer.outputSlots).ToArray(), fnAction);
+                }
+
+                RecurseIntoSlots(from.children.ToArray(), to.children.ToArray(), fnAction);
+            }
+        }
+
+        static public void ReproduceLinkedSlotFromHierachy(VFXModel[] fromArray, VFXModel[] toArray)
+        {
+            var associativeSlot = new List<KeyValuePair<VFXSlot, VFXSlot>>();
+            RecurseIntoSlots(fromArray, toArray, (from, to) =>
+                {
+                    associativeSlot.Add(new KeyValuePair<VFXSlot, VFXSlot>(from, to));
+                });
+
+            RecurseIntoSlots(fromArray, toArray, (from, to) =>
+                {
+                    to.m_LinkedSlots = from.m_LinkedSlots.Select(f =>
+                    {
+                        var refSlot = associativeSlot.FirstOrDefault(a => a.Key == f);
+                        return refSlot.Value;
+                    }).ToList();
+                });
         }
 
         protected override void OnAdded()
