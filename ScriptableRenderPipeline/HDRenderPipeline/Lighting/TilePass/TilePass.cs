@@ -1985,6 +1985,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Texture ltcGGXMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcGGXMatrix);
                             Texture ltcDisneyDiffuseMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcDisneyDiffuseMatrix);
                             Texture ltcMultiGGXFresnelDisneyDiffuse = Shader.GetGlobalTexture(HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse);
+                            Texture gBufferTexture0 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0);
+                            Texture gBufferTexture1 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture1);
+                            Texture gBufferTexture2 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture2);
+                            Texture gBufferTexture3 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture3);
+                            Texture ambientOcclusionTexture = Shader.GetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture);
 
                             Matrix4x4 invScrProjection = Shader.GetGlobalMatrix(HDShaderIDs.g_mInvScrProjection);
                             int useTileLightList = Shader.GetGlobalInt(HDShaderIDs._UseTileLightList);
@@ -1993,11 +1998,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4 sinTime = Shader.GetGlobalVector(HDShaderIDs._SinTime);
                             Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
                             Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
-                            Vector4 worldSpaceCameraPos = Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos);
-                            Vector4 projectionParams = Shader.GetGlobalVector(HDShaderIDs._ProjectionParams);
-                            Vector4 screenParams = Shader.GetGlobalVector(HDShaderIDs._ScreenParams);
-                            Vector4 zbufferParams = Shader.GetGlobalVector(HDShaderIDs._ZBufferParams);
-                            Vector4 unity_OrthoParams = Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams);
                             int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
                             float ambientOcclusionDirectLightStrenght = Shader.GetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght);
 
@@ -2048,11 +2048,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, HDShaderIDs._GBufferTexture0);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, HDShaderIDs._GBufferTexture2);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, HDShaderIDs._GBufferTexture3);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, gBufferTexture0);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, gBufferTexture1);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, gBufferTexture2);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, gBufferTexture3);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, ambientOcclusionTexture);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcData, ltcData);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._PreIntegratedFGD, preIntegratedFGD);

@@ -106,7 +106,7 @@ public partial class HDRenderPipeline : RenderPipeline
     RenderTexture          m_VolumetricLightingBufferCurrentFrame = null;
     RenderTexture          m_VolumetricLightingBufferAccumulated  = null;
     RenderTargetIdentifier m_VolumetricLightingBufferCurrentFrameRT;
-    RenderTargetIdentifier m_VolumetricLightingBufferAccumulatedRT;
+   // RenderTargetIdentifier m_VolumetricLightingBufferAccumulatedRT;
 
     ComputeShader m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
@@ -139,7 +139,7 @@ public partial class HDRenderPipeline : RenderPipeline
         m_VolumetricLightingBufferAccumulated.volumeDepth       = d;
         m_VolumetricLightingBufferAccumulated.enableRandomWrite = true;
         m_VolumetricLightingBufferAccumulated.Create();
-        m_VolumetricLightingBufferAccumulatedRT = new RenderTargetIdentifier(m_VolumetricLightingBufferAccumulated);
+       // m_VolumetricLightingBufferAccumulatedRT = new RenderTargetIdentifier(m_VolumetricLightingBufferAccumulated);
     }
 
     void ClearVolumetricLightingBuffers(CommandBuffer cmd, bool isFirstFrame)
