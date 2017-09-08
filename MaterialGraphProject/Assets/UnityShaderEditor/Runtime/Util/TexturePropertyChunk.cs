@@ -30,6 +30,7 @@ namespace UnityEngine.MaterialGraph
                 result.Append("[HideInInspector] ");
             if (m_Modifiable == ModifiableState.NonModifiable)
                 result.Append("[NonModifiableTextureData] ");
+            result.Append("[NoScaleOffset] ");
 
             result.Append(propertyName);
             result.Append("(\"");
