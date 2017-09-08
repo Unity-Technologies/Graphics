@@ -68,13 +68,30 @@ CBUFFER_END
 
 struct LightLoopContext
 {
-    // Visible from Material
-    float ambientOcclusion;
+    // Visible from Material - these values are expected in any LightLoopContext
+    float indirectAmbientOcclusion; // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+    float directAmbientOcclusion;   // Ambient occlusion use for direct lighting (directional, punctual, area)
 
-    // Not visible from Material (user should not use these properties in Material)
+    // Not visible from Material (user should not use these properties in Material file)
     int sampleShadow;
     int sampleReflection;
     ShadowContext shadowContext;
+};
+
+// Store all the accumulated lighting produce by the light loop
+struct LightLoopAccumulatedLighting
+{
+    float3 dirDiffuseLighting;
+    float3 dirSpecularLighting;
+
+    float3 punctualDiffuseLighting;
+    float3 punctualSpecularLighting;
+
+    float3 areaDiffuseLighting;
+    float3 areaSpecularLighting;
+
+    float3 envDiffuseLighting;
+    float3 envSpecularLighting;
 };
 
 //-----------------------------------------------------------------------------
