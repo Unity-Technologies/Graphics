@@ -81,7 +81,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public string[] GUIDArray;
         }
 
-        const int kMaxLayerCount = 4;
         const int kSyncButtonWidth = 58;
 
         public LayeredLitGUI()
@@ -471,8 +470,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool DoLayersGUI(AssetImporter materialImporter)
         {
-            Material material = m_MaterialEditor.target as Material;
-
             bool layerChanged = false;
 
             GUI.changed = false;
