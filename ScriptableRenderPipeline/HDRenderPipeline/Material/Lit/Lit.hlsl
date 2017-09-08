@@ -1620,7 +1620,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLight
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
     bakeDiffuseLighting *= GTAOMultiBounce(lightLoopContext.indirectAmbientOcclusion, bsdfData.diffuseColor);
 
-    float specularOcclusion = GetSpecularOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     accLighting.envSpecularLighting *= bsdfData.specularOcclusion * GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
 
