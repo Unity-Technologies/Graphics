@@ -55,9 +55,8 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 }
 
 // This sample a 3D volume storing SH
-// Volume is store as 3D texture with 4 R, G, B, X set of 4 coefficient store atlas in same 3D texture. X unused.
-// TODO: the packing here is innefficient as we will fetch values far away from each other and they may not fit into the cache
-// Suggest we pack only RGB not X and continuous
+// Volume is store as 3D texture with 4 R, G, B, X set of 4 coefficient store atlas in same 3D texture. X is use for occlusion.
+// TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack only RGB continuously
 // TODO: The calcul of texcoord could be perform with a single matrix multicplication calcualted on C++ side that will fold probeVolumeMin and probeVolumeSizeInv into it and handle the identity case, no reasons to do it in C++ (ask Ionut about it)
 // It should also handle the camera relative path (if the render pipeline use it)
 float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture, 
