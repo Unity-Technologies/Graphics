@@ -168,7 +168,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         public Shader deferredShader;
         public Shader deferredReflectionShader;
-        public ComputeShader deferredComputeShader;
         public Shader finalPassShader;
         public Shader debugLightBoundsShader;
 
@@ -208,9 +207,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         public bool enableReflectionProbeDebug = false;
-        public bool enableComputeLightEvaluation = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
-        const bool k_UseAsyncCompute = true;        // should not use on mobile
+        const bool k_UseAsyncCompute = true;// should not use on mobile
 
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
@@ -248,18 +246,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         private Material m_BlitMaterial;
         private Material m_DebugLightBoundsMaterial;
 
-        private Texture2D m_NHxRoughnessTexture;
-        private Texture2D m_LightAttentuationTexture;
-        private int m_shadowBufferID;
-
         public void Cleanup()
         {
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
             if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
-            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
-            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
 
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();
@@ -379,14 +371,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_BlitMaterial = new Material(finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
             m_DebugLightBoundsMaterial = new Material(debugLightBoundsShader) { hideFlags = HideFlags.HideAndDontSave };
 
-            m_NHxRoughnessTexture = GenerateRoughnessTexture();
-            m_LightAttentuationTexture = GenerateLightAttenuationTexture();
-
-
             s_LightList = null;
             s_BigTileLightList = null;
-
-            m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
         }
 
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
@@ -407,7 +393,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.GetTemporaryRT(s_GBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
             cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
+			cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default);
+
 
             var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
             cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
@@ -536,99 +523,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             //cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
             //cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
 
-            if (enableComputeLightEvaluation)  //TODO: temporary workaround for "All kernels must use same constant buffer layouts"
-            {
-                var w = camera.pixelWidth;
-                var h = camera.pixelHeight;
-                var numTilesX = (w + 7) / 8;
-                var numTilesY = (h + 7) / 8;
-
-                string kernelName = "ShadeDeferred" + (bUseClusteredForDeferred ? "_Clustered" : "_Fptl") + (enableDrawTileDebug ? "_Debug" : "");
-                int kernel = deferredComputeShader.FindKernel(kernelName);
-
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraDepthTexture", new RenderTargetIdentifier(s_CameraDepthTexture));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture0", new RenderTargetIdentifier(s_GBufferAlbedo));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture1", new RenderTargetIdentifier(s_GBufferSpecRough));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture2", new RenderTargetIdentifier(s_GBufferNormal));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_CameraGBufferTexture3", new RenderTargetIdentifier(s_GBufferEmission));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_spotCookieTextures", m_CookieTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflRootCubeTexture", ReflectionProbe.defaultTexture);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "g_tShadowBuffer", new RenderTargetIdentifier(m_shadowBufferID));
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "unity_NHxRoughness", m_NHxRoughnessTexture);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
-
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightData", s_LightDataBuffer);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
-
-                var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
-                cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeMult", defdecode.x);
-                cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeExp", defdecode.y);
-
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fClustScale", m_ClustScale);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fClustBase", k_ClustLogBase);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fNearPlane", camera.nearClipPlane);
-                cmd.SetComputeFloatParam(deferredComputeShader, "g_fFarPlane", camera.farClipPlane);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_iLog2NumClusters", k_Log2NumClusters);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_isOpaquesOnlyEnabled", 0);
-
-
-                //
-                var proj = camera.projectionMatrix;
-                var temp = new Matrix4x4();
-                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                var projh = temp * proj;
-                var invProjh = projh.inverse;
-
-                temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
-                temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                var projscr = temp * proj;
-                var invProjscr = projscr.inverse;
-
-                cmd.SetComputeIntParam(deferredComputeShader, "g_iNrVisibLights", numLights);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mScrProjection", projscr);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mInvScrProjection", invProjscr);
-                cmd.SetComputeMatrixParam(deferredComputeShader, "g_mViewToWorld", camera.cameraToWorldMatrix);
-
-
-                if (bUseClusteredForDeferred)
-                {
-                    cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLayeredOffsetsBuffer", s_PerVoxelOffset);
-                    if (k_UseDepthBuffer)
-                    {
-                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
-                    }
-                }
-
-                cmd.SetComputeIntParam(deferredComputeShader, "g_widthRT", w);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_heightRT", h);
-                cmd.SetComputeIntParam(deferredComputeShader, "g_nNumDirLights", numDirLights);
-                cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "uavOutput", new RenderTargetIdentifier(s_CameraTarget));
-
-                cmd.SetComputeMatrixArrayParam(deferredComputeShader, "g_matWorldToShadow", m_MatWorldToShadow);
-                cmd.SetComputeVectorArrayParam(deferredComputeShader, "g_vDirShadowSplitSpheres", m_DirShadowSplitSpheres);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms0", m_Shadow3X3PCFTerms[0]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms1", m_Shadow3X3PCFTerms[1]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms2", m_Shadow3X3PCFTerms[2]);
-                cmd.SetComputeVectorParam(deferredComputeShader, "g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
-
-                cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, 1);
-            }
-            else
-            {
-                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredMaterial, 0);
-                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredReflectionMaterial, 0);
-            }
-
+            cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredMaterial, 0);
+            cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredReflectionMaterial, 0);
 
             // Set the intermediate target for compositing (skybox, etc)
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraTarget), new RenderTargetIdentifier(s_CameraDepthTexture));
@@ -718,7 +614,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 for (int i = 0; i < lcnt; ++i)
                 {
                     VisibleLight vl = inputs.visibleLights[i];
-                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
+
+                    AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+
+                    if (vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f)
                         m_ShadowRequests.Add(i);
                 }
                 // pass this list to a routine that assigns shadows based on some heuristic
@@ -1090,10 +989,15 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var projscr = temp * proj;
             var invProjscr = projscr.inverse;
 
-
             // build per tile light lists
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
-            BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+
+            CommandBuffer cmdPreShadows = CommandBufferPool.Get();
+            GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
+            loop.ExecuteCommandBuffer(cmdPreShadows);
+            CommandBufferPool.Release(cmdPreShadows);
+
+            GPUFence postLightListFence = BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
             m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
@@ -1104,7 +1008,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
-            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
@@ -1285,7 +1189,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
 
-        void BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+        GPUFence BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1295,6 +1199,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var numBigTilesY = (h + 63) / 64;
 
             var cmd = CommandBufferPool.Get("Build light list" );
+
+            cmd.WaitOnGPUFence(startFence);
 
             bool isOrthographic = camera.orthographic;
 
@@ -1350,13 +1256,27 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
             }
 
-            loop.ExecuteCommandBuffer(cmd);
+            GPUFence completeFence = cmd.CreateGPUFence();
+
+            if (k_UseAsyncCompute)
+            {
+                loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
+            }
+            else
+            {
+                loop.ExecuteCommandBuffer(cmd);
+            }
+
             CommandBufferPool.Release(cmd);
+
+            return completeFence;
         }
 
-        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
+        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
+
+            cmd.WaitOnGPUFence(startFence);
                   
             bool isOrthographic = camera.orthographic;
             cmd.SetGlobalFloat("g_isOrthographic", (float) (isOrthographic ? 1 : 0));
@@ -1414,155 +1334,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             loop.ExecuteCommandBuffer(cmd);
 
-        }
-
-        private float PerceptualRoughnessToBlinnPhongPower(float perceptualRoughness)
-        {
-#pragma warning disable 162 // warning CS0162: Unreachable code detected
-            // There is two code here, by default the code corresponding for UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 was use for cloud reasons
-            // The other code (not marmoset) is not matching the shader code for cloud reasons.
-            // As none of this solution match BRDF 1 or 2, I let the Marmoset code to avoid to break current test. But ideally, all this should be rewrite to match BRDF1
-            if (true)
-            {
-                // from https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-                float n = 10.0f / Mathf.Log((1.0f - perceptualRoughness) * 0.968f + 0.03f) / Mathf.Log(2.0f);
-
-                return n * n;
-            }
-            else
-            {
-                // NOTE: another approximate approach to match Marmoset gloss curve is to
-                // multiply roughness by 0.7599 in the code below (makes SpecPower range 4..N instead of 1..N)
-                const float UNITY_SPECCUBE_LOD_EXPONENT = 1.5f;
-
-                float m = Mathf.Pow(perceptualRoughness, 2.0f * UNITY_SPECCUBE_LOD_EXPONENT) + 1e-4f;
-                // follow the same curve as unity_SpecCube
-                float n = (2.0f / m) - 2.0f;                                            // https://dl.dropbox.com/u/55891920/papers/mm_brdf.pdf
-                n = Mathf.Max(n, 1.0e-5f);                                              // prevent possible cases of pow(0,0), which could happen when roughness is 1.0 and NdotH is zero
-
-                return n;
-            }
-#pragma warning restore 162
-        }
-
-        private float PerceptualRoughnessToPhongPower(float perceptualRoughness)
-        {
-            return PerceptualRoughnessToBlinnPhongPower(perceptualRoughness) * 0.25f;
-        }
-
-        private float PhongNormalizedTerm(float NdotH, float n)
-        {
-            // Normalization for Phong when used as RDF (outside a micro-facet model)
-            // http://www.thetenthplanet.de/archives/255
-            float normTerm = (n + 2.0f) / (2.0f * Mathf.PI);
-            float specTerm = Mathf.Pow(NdotH, n);
-            return specTerm * normTerm;
-        }
-
-        private float EvalNHxRoughness(int x, int y, int maxX, int maxY)
-        {
-            // both R.L or N.H (cosine) are not linear and approach 1.0 very quickly
-            // since we want more resolution closer to where highlight is (close to 1)
-            // we warp LUT across horizontal axis
-            // NOTE: warp function ^4 or ^5 can be executed in the same instruction as Shlick fresnel approximation (handy for SM2.0 platforms with <=64 instr. limit)
-            const float kHorizontalWarpExp = 4.0f;
-            float rdotl = Mathf.Pow(((float)x) / ((float)maxX - 1.0f), 1.0f / kHorizontalWarpExp);
-            float perceptualRoughness = ((float)y) / ((float)maxY - .5f);
-            float specTerm = PhongNormalizedTerm(rdotl, PerceptualRoughnessToPhongPower(perceptualRoughness));
-
-            // Lookup table values are evaluated in Linear space
-            // but converted and stored as sRGB to support low-end platforms
-
-            float range = Mathf.GammaToLinearSpace(16.0f);
-            float val = Mathf.Clamp01(specTerm / range);    // store in sRGB range of [0..16]
-                                                            // OKish range to 'counteract' multiplication by N.L (as in BRDF*N.L)
-                                                            // while retaining bright specular spot at both grazing and incident angles
-                                                            // and allows some precision in case if AlphaLum16 is not supported
-            val = Mathf.LinearToGammaSpace(val);
-
-            // As there is not enough resolution in LUT for tiny highlights,
-            // fadeout intensity of the highlight when roughness approaches 0 and N.H approaches 1
-            // Prevents from overly big bright highlight on mirror surfaces
-            const float fadeOutPerceptualRoughness = .05f;
-            bool lastHorizontalPixel = (x >= maxX - 1); // highlights are on the right-side of LUT
-            if (perceptualRoughness <= fadeOutPerceptualRoughness && lastHorizontalPixel)
-                val *= perceptualRoughness / fadeOutPerceptualRoughness;
-            return val;
-        }
-
-        private Texture2D GenerateRoughnessTexture()
-        {
-            const int width = 256;
-            const int height = 64;
-
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
-            Color[] pixels = new Color[height * width];
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float value = EvalNHxRoughness(x, y, width, height);
-                    pixels[y * width + x] = new Color(value, value, value, value);    //TODO: set them in one go
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            texture.Apply();
-            return texture;
-        }
-
-        private const float kConstantFac = 1.000f;
-        private const float kQuadraticFac = 25.0f;
-        private const float kToZeroFadeStart = 0.8f * 0.8f;
-
-        private float CalculateLightQuadFac(float range)
-        {
-            return kQuadraticFac / (range * range);
-        }
-
-        private float LightAttenuateNormalized(float distSqr)
-        {
-            // match the vertex lighting falloff
-            float atten = 1 / (kConstantFac + CalculateLightQuadFac(1.0f) * distSqr);
-
-            // ...but vertex one does not falloff to zero at light's range;
-            // So force it to falloff to zero at the edges.
-            if (distSqr >= kToZeroFadeStart)
-            {
-                if (distSqr > 1)
-                    atten = 0;
-                else
-                    atten *= 1 - (distSqr - kToZeroFadeStart) / (1 - kToZeroFadeStart);
-            }
-
-            return atten;
-        }
-
-        private float EvalLightAttenuation(int x, int maxX)
-        {
-            float sqrRange = (float)x / (float)maxX;
-            return LightAttenuateNormalized(sqrRange);
-        }
-
-        private Texture2D GenerateLightAttenuationTexture()
-        {
-            const int width = 1024;
-
-            Texture2D texture = new Texture2D(width, 1, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
-            Color[] pixels = new Color[width];
-
-            for (int x = 0; x < width; x++)
-            {
-                float value = EvalLightAttenuation(x, width);
-                pixels[x] = new Color(value, value, value, value);
-            }
-
-            texture.SetPixels(pixels);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            texture.Apply();
-            return texture;
         }
     }
 }
