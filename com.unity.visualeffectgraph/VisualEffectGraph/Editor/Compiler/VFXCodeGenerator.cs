@@ -167,6 +167,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
+        {
+            var settings = VFXSettingAttribute.Collect(block).ToArray();
+            if (settings.Length > 0)
+            {
+                comment = "";
+                int hash = 0;
+                foreach (var setting in settings)
+                {
+                    var value = setting.GetValue(block);
+                    hash = (hash * 397) ^ value.GetHashCode();
+                    comment += string.Format("{0}:{1} ", setting.Name, value.ToString());
+                }
+                functionName = string.Format("{0}_{1}", block.GetType().Name, hash.ToString("X"));
+            }
+            else
+            {
+                comment = null;
+                functionName = block.GetType().Name;
+            }
+        }
+
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper)
         {
             var dependencies = new HashSet<Object>();
@@ -212,11 +234,12 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var methodName = block.functionName;
+                string methodName, commentMethod;
+                GetFunctionName(block, out methodName, out commentMethod);
                 if (!blockDeclared.Contains(methodName))
                 {
                     blockDeclared.Add(methodName);
-                    blockFunction.WriteBlockFunction(gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter);
+                    blockFunction.WriteBlockFunction(gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter, commentMethod);
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
