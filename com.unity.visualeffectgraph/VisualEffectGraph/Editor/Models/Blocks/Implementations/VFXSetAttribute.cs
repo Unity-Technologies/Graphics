@@ -21,15 +21,6 @@ namespace UnityEditor.VFX
                 return new List<VFXAttributeInfo>() { new VFXAttributeInfo(currentAttribute, VFXAttributeMode.Write) };
             }
         }
-
-        public override string functionName
-        {
-            get
-            {
-                return base.functionName + "_" + currentAttribute.name;
-            }
-        }
-
         static private string GenerateLocalAttributeName(string name)
         {
             return name[0].ToString().ToUpper() + name.Substring(1);
