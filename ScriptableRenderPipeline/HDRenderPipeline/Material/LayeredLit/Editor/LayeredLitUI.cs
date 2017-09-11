@@ -42,8 +42,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
-            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers tiling and object Scale", "Tiling of each layers will be affected by the object scale.");
-            public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock influenced layers tiling and object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
+            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
+            public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
 
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
