@@ -71,6 +71,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        IEnumerable<VFXSlotContainerPresenter> AllSlotContainerPresenters
+        {
+            get
+            {
+                var operatorPresenters = m_Elements.OfType<VFXSlotContainerPresenter>();
+                var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXSlotContainerPresenter>();
+                var contextSlotContainers = m_Elements.OfType<VFXContextPresenter>().Select(t => t.slotPresenter).Where(t => t != null).Cast<VFXSlotContainerPresenter>();
+
+                return operatorPresenters.Concat(blockPresenters).Concat(contextSlotContainers);
+            }
+        }
+
         public void RecreateNodeEdges()
         {
             HashSet<VFXDataEdgePresenter> unusedEdges = new HashSet<VFXDataEdgePresenter>();
@@ -79,10 +91,7 @@ namespace UnityEditor.VFX.UI
                 unusedEdges.Add(e);
             }
 
-            var operatorPresenters = m_Elements.OfType<VFXSlotContainerPresenter>();
-            var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXSlotContainerPresenter>();
-
-            var allLinkables = operatorPresenters.Concat(blockPresenters).ToArray();
+            var allLinkables = AllSlotContainerPresenters.ToArray();
             foreach (var operatorPresenter in allLinkables)
             {
                 var slotContainer = operatorPresenter.slotContainer;
@@ -391,7 +400,7 @@ namespace UnityEditor.VFX.UI
         {
             if (startAnchorPresenter is VFXDataAnchorPresenter)
             {
-                var allOperatorPresenter = elements.OfType<VFXSlotContainerPresenter>();
+                var allSlotContainerPresenters = AllSlotContainerPresenters;
 
 
                 IEnumerable<NodeAnchorPresenter> allCandidates = Enumerable.Empty<NodeAnchorPresenter>();
@@ -404,9 +413,9 @@ namespace UnityEditor.VFX.UI
                         var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
                         var childrenOperators = new HashSet<IVFXSlotContainer>();
                         CollectChildOperator(currentOperator, childrenOperators);
-                        allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.slotContainer));
+                        allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !childrenOperators.Contains(o.slotContainer));
                         var toSlot = startAnchorOperatorPresenter.model;
-                        allCandidates = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
+                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
                             {
                                 var candidate = o as VFXDataAnchorPresenter;
                                 return toSlot.CanLink(candidate.model);
@@ -418,16 +427,12 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    var allBlockPresenter = elements.OfType<VFXContextPresenter>().SelectMany(t => t.blockPresenters);
-
-                    allOperatorPresenter = allOperatorPresenter.Concat(allBlockPresenter.Cast<VFXSlotContainerPresenter>());
-
                     var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
                     var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
                     var parentOperators = new HashSet<IVFXSlotContainer>();
                     CollectParentOperator(currentOperator, parentOperators);
-                    allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.slotContainer));
-                    allCandidates = allOperatorPresenter.SelectMany(o => o.inputAnchors).Where(o =>
+                    allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !parentOperators.Contains(o.slotContainer));
+                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputAnchors).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
