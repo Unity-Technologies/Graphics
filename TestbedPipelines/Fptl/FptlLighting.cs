@@ -168,7 +168,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         public Shader deferredShader;
         public Shader deferredReflectionShader;
-        public ComputeShader deferredComputeShader;
         public Shader finalPassShader;
         public Shader debugLightBoundsShader;
 
@@ -247,18 +246,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         private Material m_BlitMaterial;
         private Material m_DebugLightBoundsMaterial;
 
-        private Texture2D m_NHxRoughnessTexture;
-        private Texture2D m_LightAttentuationTexture;
-        private int m_shadowBufferID;
-
         public void Cleanup()
         {
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
             if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
-            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
-            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
 
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();
@@ -378,14 +371,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_BlitMaterial = new Material(finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
             m_DebugLightBoundsMaterial = new Material(debugLightBoundsShader) { hideFlags = HideFlags.HideAndDontSave };
 
-            m_NHxRoughnessTexture = GenerateRoughnessTexture();
-            m_LightAttentuationTexture = GenerateLightAttenuationTexture();
-
-
             s_LightList = null;
             s_BigTileLightList = null;
-
-            m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
         }
 
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
@@ -406,7 +393,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.GetTemporaryRT(s_GBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
             cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
+			cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default);
+
 
             var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
             cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
@@ -627,9 +615,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 {
                     VisibleLight vl = inputs.visibleLights[i];
 
-					AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+                    AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
 
-					if (vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f)
+                    if (vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f)
                         m_ShadowRequests.Add(i);
                 }
                 // pass this list to a routine that assigns shadows based on some heuristic
@@ -1004,14 +992,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             // build per tile light lists
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
 
-			CommandBuffer cmdPreShadows = CommandBufferPool.Get();
-			GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
-			loop.ExecuteCommandBuffer(cmdPreShadows);
-			CommandBufferPool.Release(cmdPreShadows);
+            CommandBuffer cmdPreShadows = CommandBufferPool.Get();
+            GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
+            loop.ExecuteCommandBuffer(cmdPreShadows);
+            CommandBufferPool.Release(cmdPreShadows);
 
-			GPUFence postLightListFence = BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
-
-            //BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+            GPUFence postLightListFence = BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
             m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
@@ -1022,7 +1008,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
-			PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
+            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
@@ -1203,7 +1189,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
 
-		GPUFence BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
+        GPUFence BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1214,7 +1200,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             var cmd = CommandBufferPool.Get("Build light list" );
 
-			cmd.WaitOnGPUFence(startFence);
+            cmd.WaitOnGPUFence(startFence);
 
             bool isOrthographic = camera.orthographic;
 
@@ -1270,27 +1256,27 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
             }
 
-			GPUFence completeFence = cmd.CreateGPUFence();
+            GPUFence completeFence = cmd.CreateGPUFence();
 
-			if (k_UseAsyncCompute)
-			{
-				loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
-			}
-			else
-			{
-				loop.ExecuteCommandBuffer(cmd);
-			}
+            if (k_UseAsyncCompute)
+            {
+                loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
+            }
+            else
+            {
+                loop.ExecuteCommandBuffer(cmd);
+            }
 
             CommandBufferPool.Release(cmd);
 
-			return completeFence;
+            return completeFence;
         }
 
-		void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
+        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
 
-			cmd.WaitOnGPUFence(startFence);
+            cmd.WaitOnGPUFence(startFence);
                   
             bool isOrthographic = camera.orthographic;
             cmd.SetGlobalFloat("g_isOrthographic", (float) (isOrthographic ? 1 : 0));
@@ -1348,155 +1334,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             loop.ExecuteCommandBuffer(cmd);
 
-        }
-
-        private float PerceptualRoughnessToBlinnPhongPower(float perceptualRoughness)
-        {
-#pragma warning disable 162 // warning CS0162: Unreachable code detected
-            // There is two code here, by default the code corresponding for UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 was use for cloud reasons
-            // The other code (not marmoset) is not matching the shader code for cloud reasons.
-            // As none of this solution match BRDF 1 or 2, I let the Marmoset code to avoid to break current test. But ideally, all this should be rewrite to match BRDF1
-            if (true)
-            {
-                // from https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-                float n = 10.0f / Mathf.Log((1.0f - perceptualRoughness) * 0.968f + 0.03f) / Mathf.Log(2.0f);
-
-                return n * n;
-            }
-            else
-            {
-                // NOTE: another approximate approach to match Marmoset gloss curve is to
-                // multiply roughness by 0.7599 in the code below (makes SpecPower range 4..N instead of 1..N)
-                const float UNITY_SPECCUBE_LOD_EXPONENT = 1.5f;
-
-                float m = Mathf.Pow(perceptualRoughness, 2.0f * UNITY_SPECCUBE_LOD_EXPONENT) + 1e-4f;
-                // follow the same curve as unity_SpecCube
-                float n = (2.0f / m) - 2.0f;                                            // https://dl.dropbox.com/u/55891920/papers/mm_brdf.pdf
-                n = Mathf.Max(n, 1.0e-5f);                                              // prevent possible cases of pow(0,0), which could happen when roughness is 1.0 and NdotH is zero
-
-                return n;
-            }
-#pragma warning restore 162
-        }
-
-        private float PerceptualRoughnessToPhongPower(float perceptualRoughness)
-        {
-            return PerceptualRoughnessToBlinnPhongPower(perceptualRoughness) * 0.25f;
-        }
-
-        private float PhongNormalizedTerm(float NdotH, float n)
-        {
-            // Normalization for Phong when used as RDF (outside a micro-facet model)
-            // http://www.thetenthplanet.de/archives/255
-            float normTerm = (n + 2.0f) / (2.0f * Mathf.PI);
-            float specTerm = Mathf.Pow(NdotH, n);
-            return specTerm * normTerm;
-        }
-
-        private float EvalNHxRoughness(int x, int y, int maxX, int maxY)
-        {
-            // both R.L or N.H (cosine) are not linear and approach 1.0 very quickly
-            // since we want more resolution closer to where highlight is (close to 1)
-            // we warp LUT across horizontal axis
-            // NOTE: warp function ^4 or ^5 can be executed in the same instruction as Shlick fresnel approximation (handy for SM2.0 platforms with <=64 instr. limit)
-            const float kHorizontalWarpExp = 4.0f;
-            float rdotl = Mathf.Pow(((float)x) / ((float)maxX - 1.0f), 1.0f / kHorizontalWarpExp);
-            float perceptualRoughness = ((float)y) / ((float)maxY - .5f);
-            float specTerm = PhongNormalizedTerm(rdotl, PerceptualRoughnessToPhongPower(perceptualRoughness));
-
-            // Lookup table values are evaluated in Linear space
-            // but converted and stored as sRGB to support low-end platforms
-
-            float range = Mathf.GammaToLinearSpace(16.0f);
-            float val = Mathf.Clamp01(specTerm / range);    // store in sRGB range of [0..16]
-                                                            // OKish range to 'counteract' multiplication by N.L (as in BRDF*N.L)
-                                                            // while retaining bright specular spot at both grazing and incident angles
-                                                            // and allows some precision in case if AlphaLum16 is not supported
-            val = Mathf.LinearToGammaSpace(val);
-
-            // As there is not enough resolution in LUT for tiny highlights,
-            // fadeout intensity of the highlight when roughness approaches 0 and N.H approaches 1
-            // Prevents from overly big bright highlight on mirror surfaces
-            const float fadeOutPerceptualRoughness = .05f;
-            bool lastHorizontalPixel = (x >= maxX - 1); // highlights are on the right-side of LUT
-            if (perceptualRoughness <= fadeOutPerceptualRoughness && lastHorizontalPixel)
-                val *= perceptualRoughness / fadeOutPerceptualRoughness;
-            return val;
-        }
-
-        private Texture2D GenerateRoughnessTexture()
-        {
-            const int width = 256;
-            const int height = 64;
-
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
-            Color[] pixels = new Color[height * width];
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float value = EvalNHxRoughness(x, y, width, height);
-                    pixels[y * width + x] = new Color(value, value, value, value);    //TODO: set them in one go
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            texture.Apply();
-            return texture;
-        }
-
-        private const float kConstantFac = 1.000f;
-        private const float kQuadraticFac = 25.0f;
-        private const float kToZeroFadeStart = 0.8f * 0.8f;
-
-        private float CalculateLightQuadFac(float range)
-        {
-            return kQuadraticFac / (range * range);
-        }
-
-        private float LightAttenuateNormalized(float distSqr)
-        {
-            // match the vertex lighting falloff
-            float atten = 1 / (kConstantFac + CalculateLightQuadFac(1.0f) * distSqr);
-
-            // ...but vertex one does not falloff to zero at light's range;
-            // So force it to falloff to zero at the edges.
-            if (distSqr >= kToZeroFadeStart)
-            {
-                if (distSqr > 1)
-                    atten = 0;
-                else
-                    atten *= 1 - (distSqr - kToZeroFadeStart) / (1 - kToZeroFadeStart);
-            }
-
-            return atten;
-        }
-
-        private float EvalLightAttenuation(int x, int maxX)
-        {
-            float sqrRange = (float)x / (float)maxX;
-            return LightAttenuateNormalized(sqrRange);
-        }
-
-        private Texture2D GenerateLightAttenuationTexture()
-        {
-            const int width = 1024;
-
-            Texture2D texture = new Texture2D(width, 1, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
-            Color[] pixels = new Color[width];
-
-            for (int x = 0; x < width; x++)
-            {
-                float value = EvalLightAttenuation(x, width);
-                pixels[x] = new Color(value, value, value, value);
-            }
-
-            texture.SetPixels(pixels);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            texture.Apply();
-            return texture;
         }
     }
 }
