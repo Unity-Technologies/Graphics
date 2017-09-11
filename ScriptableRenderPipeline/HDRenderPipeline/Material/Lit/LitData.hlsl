@@ -41,7 +41,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
 
-    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(1.0, surfaceData.baseColor, _AlbedoAffectEmissive);
+    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb;
 #endif
