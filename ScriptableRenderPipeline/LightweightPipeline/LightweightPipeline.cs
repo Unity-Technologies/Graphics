@@ -99,6 +99,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureFormat m_ColorFormat = RenderTextureFormat.ARGB32;
         private PostProcessRenderContext m_PostProcessRenderContext;
 
+        private CameraComparer m_CameraComparer = new CameraComparer();
+
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
@@ -141,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
 
+            Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
                 m_CurrCamera = camera;
@@ -539,48 +542,40 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(setupShadow);
         }
 
-        private void SetKeyword(CommandBuffer cmd, string keyword, bool enable)
-        {
-            if (enable)
-                cmd.EnableShaderKeyword(keyword);
-            else
-                cmd.DisableShaderKeyword(keyword);
-        }
-
         private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleLight, bool vertexLightSupport)
         {
-            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
-            SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
-            SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
-            SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
-            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
+            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
+            LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
+            LightweightUtils.SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
+            LightweightUtils.SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
+            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
 
             if (!singleLight)
             {
-                SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
             }
             else
             {
                 switch (m_SingleLightType)
                 {
                         case LightType.Directional:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
                         break;
 
                         case LightType.Spot:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
                         break;
 
                         case LightType.Point:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
                         break;
                 }
             }
@@ -740,7 +735,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool GetRenderToIntermediateTarget()
         {
-            bool allowMSAA = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && !PlatformSupportsMSAABackBuffer();
+            bool allowMSAA = m_CurrCamera.allowMSAA &&
+                            m_Asset.MSAASampleCount > 1 &&
+                            !LightweightUtils.PlatformSupportsMSAABackBuffer();
             if (m_CurrCamera.cameraType == CameraType.SceneView || allowMSAA || m_CurrCamera.targetTexture != null)
                 return true;
 
@@ -750,15 +747,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private PostProcessLayer GetCurrCameraPostProcessLayer()
         {
             return m_CurrCamera.GetComponent<PostProcessLayer>();
-        }
-
-        private bool PlatformSupportsMSAABackBuffer()
-        {
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SAMSUNGTV
-            return true;
-#else
-            return false;
-#endif
         }
     }
 }
