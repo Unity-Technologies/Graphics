@@ -51,7 +51,7 @@
 	margin-bottom:3;
 	margin-left:6;
 }
-.propertyrm .textfield
+.propertyrm .textfieldd
 {
     text-color:#BBB;
 
@@ -85,10 +85,6 @@
 .propertyrm .textfield::disabled
 {
     text-color:#666;
-}
-
-.propertyrm .fieldContainer  * .textfield:focus
-{
 }
 
 .propertyrm .fieldContainer * .label
@@ -151,6 +147,11 @@ ColorField
 {
     flex:1;
     flex-direction:row;
+}
+
+FloatField TextField
+{
+	flex:1;
 }
 
 FloatPropertyRM FloatField

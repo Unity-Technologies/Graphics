@@ -53,39 +53,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void Select(GraphView selectionContainer, bool additive)
-        {
-            /*
-            BlockContainer blockContainer = selectionContainer as BlockContainer;
-            if (blockContainer == null || blockContainer != parent || !IsSelectable())
-                return;
-
-            // TODO: Get rid of this hack (parent.parent) to reach contextUI
-            // Make sure we select the container context node
-            var contextUI = blockContainer.parent.parent as VFXContextUI;
-            if (contextUI != null)
-            {
-                var gView = this.GetFirstAncestorOfType<GraphView>();
-                if (gView != null && !gView.selection.Contains(contextUI))
-                {
-                    gView.ClearSelection();
-                    gView.AddToSelection(contextUI);
-                }
-            }
-
-            if (blockContainer.selection.Contains(this))
-            {
-                if (evt.control)
-                {
-                    blockContainer.RemoveFromSelection(this);
-                }
-            }
-
-            if (!evt.control)
-                blockContainer.ClearSelection();
-            blockContainer.AddToSelection(this);*/
-        }
-
         public override void OnDataChanged()
         {
             base.OnDataChanged();

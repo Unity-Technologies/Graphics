@@ -46,12 +46,12 @@ namespace UnityEditor.VFX.UIElements
 
     class FloatField : ValueControl<float>, IValueChangeListener<float>
     {
-        EditorTextField m_TextField;
+        TextField m_TextField;
 
 
         void CreateFields()
         {
-            m_TextField = new EditorTextField(30, false, false, '*');
+            m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.OnTextChanged = OnTextChanged;
         }
