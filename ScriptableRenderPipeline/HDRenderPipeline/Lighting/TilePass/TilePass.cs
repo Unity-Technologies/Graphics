@@ -1985,11 +1985,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Texture ltcGGXMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcGGXMatrix);
                             Texture ltcDisneyDiffuseMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcDisneyDiffuseMatrix);
                             Texture ltcMultiGGXFresnelDisneyDiffuse = Shader.GetGlobalTexture(HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse);
-                            Texture gBufferTexture0 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0);
-                            Texture gBufferTexture1 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture1);
-                            Texture gBufferTexture2 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture2);
-                            Texture gBufferTexture3 = Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture3);
-                            Texture ambientOcclusionTexture = Shader.GetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture);
 
                             Matrix4x4 invScrProjection = Shader.GetGlobalMatrix(HDShaderIDs.g_mInvScrProjection);
                             int useTileLightList = Shader.GetGlobalInt(HDShaderIDs._UseTileLightList);
@@ -2048,11 +2043,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, gBufferTexture0);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, gBufferTexture1);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, gBufferTexture2);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, gBufferTexture3);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, ambientOcclusionTexture);
+
+                                // TODO: Don't know why but If we use Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0) instead of HDShaderIDs._GBufferTexture0 the screen start to flicker in SceneView...
+                                // Need to investigate what is happening. But this may be unnecessary as development of SetGlobalTexture for compute shader have begin
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, HDShaderIDs._GBufferTexture0);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, HDShaderIDs._GBufferTexture2);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, HDShaderIDs._GBufferTexture3);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcData, ltcData);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._PreIntegratedFGD, preIntegratedFGD);
