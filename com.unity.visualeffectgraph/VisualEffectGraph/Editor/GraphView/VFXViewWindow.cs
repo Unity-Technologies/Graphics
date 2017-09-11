@@ -83,6 +83,14 @@ namespace  UnityEditor.VFX.UI
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
+
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            if (rootVisualElement.panel != null)
+            {
+                rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+                Debug.Log("View window was already attached to a panel on OnEnable");
+            }
+
             currentWindow = this;
         }
 
@@ -109,12 +117,16 @@ namespace  UnityEditor.VFX.UI
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+
+            Debug.Log("VFXViewWindow.OnEnterPanel");
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
+
+            Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
         void Update()

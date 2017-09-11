@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public AABox box;
+            public AABox box = new AABox { size = Vector3.one};
         }
     }
     [VFXInfo(category = "Tests")]
@@ -70,7 +70,31 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public OrientedBox box;
+            public OrientedBox box = new OrientedBox { size = Vector3.one };
+        }
+    }
+    [VFXInfo(category = "Tests")]
+    class VFXPlaneBlock : VFXBlock
+    {
+        public override string name { get { return "Plane"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public Plane plane = new Plane { normal = Vector3.up};
+        }
+    }
+    [VFXInfo(category = "Tests")]
+    class VFXCylinderBlock : VFXBlock
+    {
+        public override string name { get { return "Cylinder"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
+
+        public class InputProperties
+        {
+            public Cylinder cylinder = new Cylinder { radius = 1, height = 1, direction = Vector3.up};
         }
     }
 }
