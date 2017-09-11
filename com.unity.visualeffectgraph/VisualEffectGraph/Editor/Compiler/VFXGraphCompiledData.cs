@@ -14,11 +14,13 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public Object processor;
 
         public VFXContextCompiledData(VFXExpressionMapper gpuMapper, VFXUniformMapper uniformMapper)
         {
             this.gpuMapper = gpuMapper;
             this.uniformMapper = uniformMapper;
+            processor = null;
         }
     }
 
@@ -247,7 +249,7 @@ namespace UnityEditor.VFX
 
                         var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
                         var uniformMapper = new VFXUniformMapper(gpuMapper);
-                        VFXContextCompiledData contextData = new VFXContextCompiledData(gpuMapper, uniformMapper);
+                        var contextData = new VFXContextCompiledData(gpuMapper, uniformMapper);
                         contextToCompiledData.Add(context, contextData);
 
                         VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
@@ -310,6 +312,10 @@ namespace UnityEditor.VFX
                             EditorUtility.SetDirty(imported);
                         }
                         generatedShader.Add(imported);
+
+                        var contextData = contextToCompiledData[generated.context];
+                        contextData.processor = imported;
+                        contextToCompiledData[generated.context] = contextData;
                     }
                 }
 
@@ -370,7 +376,7 @@ namespace UnityEditor.VFX
                         taskDesc.buffers = bufferMappings.ToArray();
                         taskDesc.uniforms = uniformMappings.ToArray();
 
-                        //taskDesc.processorInstanceID =
+                        taskDesc.processor = contextToCompiledData[context].processor;
 
                         taskDescs.Add(taskDesc);
                     }
