@@ -17,12 +17,12 @@ namespace UnityEditor.VFX.UI
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback<MouseDownEvent>(OnMouseUp, Capture.Capture);
+            target.RegisterCallback<MouseDownEvent>(OnMouseUp);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            target.UnregisterCallback<MouseDownEvent>(OnMouseUp, Capture.Capture);
+            target.UnregisterCallback<MouseDownEvent>(OnMouseUp);
         }
 
         void OnMouseUp(MouseDownEvent e)
