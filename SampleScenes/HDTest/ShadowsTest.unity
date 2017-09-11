@@ -2010,12 +2010,12 @@ MonoBehaviour:
   - 0.285
   - 0
   - 0
-  shadowAlgorithm: 3
-  shadowVariant: 0
+  shadowAlgorithm: 0
+  shadowVariant: 4
   shadowPrecision: 0
   shadowData:
-    format: 24
-    data: 5839b43d000000000bd7233c02000000
+    format: 4
+    data: 99bb163b0000803f
   shadowDatas:
   - format: 4
     data: 99bb163b0000803f
