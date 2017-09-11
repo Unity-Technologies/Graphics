@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                if (context.GetData().IsAttributeStored(attribute) && context.contextType != VFXContextType.kInit)
+                if (context.GetData().IsAttributeStored(attribute) && context.GetData().IsAttributeRead(attribute, context) && context.contextType != VFXContextType.kInit)
                 {
                     r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute));
                 }
@@ -101,7 +101,11 @@ namespace UnityEditor.VFX
         {
             var r = new StringBuilder();
             var regex = new Regex(matching);
-            var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) && context.GetData().IsAttributeStored(o.attrib)).ToArray();
+
+            var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
+                    context.GetData().IsAttributeStored(o.attrib) &&
+                    context.GetData().IsAttributeWritten(o.attrib, context)).ToArray();
+
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {
                 r.Append(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
@@ -289,8 +293,8 @@ namespace UnityEditor.VFX
             //< Store Attribute
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
-                var loadAttribute = GenerateStoreAttribute(".*", context);
-                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", loadAttribute);
+                var storeAttribute = GenerateStoreAttribute(".*", context);
+                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
             }
 
             var storeAttributeRegex = new Regex("\\${VFXStoreAttributes:{(.*?)}}");

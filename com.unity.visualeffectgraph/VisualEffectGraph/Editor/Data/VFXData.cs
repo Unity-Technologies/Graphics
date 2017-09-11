@@ -48,12 +48,29 @@ namespace UnityEditor.VFX
             m_Owners.Remove(context);
         }
 
-        public bool IsAttributeRead(VFXAttribute attrib)    { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
-        public bool IsAttributeWritten(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
-        public bool AttributeExists(VFXAttribute attrib)    { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+        public bool IsAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
+        public bool IsAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsAttributeLocal(VFXAttribute attrib)   { return m_LocalAttributes.Contains(attrib); }
-        public bool IsAttributeStored(VFXAttribute attrib)  { return m_StoredAttributes.ContainsKey(attrib); }
+        public bool IsAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
+        public bool IsAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
+
+        public bool AttributeExists(VFXAttribute attrib)                        { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+
+        public bool IsAttributeLocal(VFXAttribute attrib)                       { return m_LocalAttributes.Contains(attrib); }
+        public bool IsAttributeStored(VFXAttribute attrib)                      { return m_StoredAttributes.ContainsKey(attrib); }
+
+        public VFXAttributeMode GetAttributeMode(VFXAttribute attrib, VFXContext context)
+        {
+            Dictionary<VFXContext, VFXAttributeMode> contexts;
+            if (m_AttributesToContexts.TryGetValue(attrib, out contexts))
+            {
+                foreach (var c in contexts)
+                    if (c.Key == context)
+                        return c.Value;
+            }
+
+            return VFXAttributeMode.None;
+        }
 
         public VFXAttributeMode GetAttributeMode(VFXAttribute attrib)
         {

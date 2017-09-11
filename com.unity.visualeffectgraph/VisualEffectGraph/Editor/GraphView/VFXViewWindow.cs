@@ -35,6 +35,8 @@ namespace  UnityEditor.VFX.UI
             });
         }
 
+        public static VFXViewWindow currentWindow;
+
         [MenuItem("VFX Editor/Window")]
         public static void ShowWindow()
         {
@@ -80,6 +82,8 @@ namespace  UnityEditor.VFX.UI
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+
+            currentWindow = this;
         }
 
         protected new void OnDisable()
@@ -88,6 +92,7 @@ namespace  UnityEditor.VFX.UI
             graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
+            currentWindow = null;
         }
 
         void OnSelectionChange()

@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
 
                 int count = fields.Length;
 
-                bool spaceable = typeof(Spaceable).IsAssignableFrom(type);
+                bool spaceable = typeof(ISpaceable).IsAssignableFrom(type);
                 if (spaceable)
                 {
                     --count;
