@@ -531,45 +531,84 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
-#if TEST_UNDO_REDO_SETTINGS
         [Test]
         public void UndoRedoOperatorSettings()
         {
             CreateTestAsset();
 
-            Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
+            Func<VFXOperatorPresenter> fnFirstOperatorPresenter = delegate()
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
-                    return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
+                    return m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().FirstOrDefault();
+                };
+
+            Action<VFXOperatorComponentMask, string> fnSetSetting = delegate(VFXOperatorComponentMask target, string mask)
+                {
+                    target.x = target.y = target.z = target.w = VFXOperatorComponentMask.Component.None;
+                    for (int i = 0; i < mask.Length; ++i)
+                    {
+                        var current = (VFXOperatorComponentMask.Component)Enum.Parse(typeof(VFXOperatorComponentMask.Component),  mask[i].ToString().ToUpper());
+                        if (i == 0)
+                        {
+                            target.x = current;
+                        }
+                        else if (i == 1)
+                        {
+                            target.y = current;
+                        }
+                        else if (i == 2)
+                        {
+                            target.z = current;
+                        }
+                        else if (i == 3)
+                        {
+                            target.w = current;
+                        }
+                    }
+                    target.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                };
+
+            Func<VFXOperatorComponentMask, string> fnGetSetting = delegate(VFXOperatorComponentMask target)
+                {
+                    var value = "";
+                    if (target.x != VFXOperatorComponentMask.Component.None)
+                        value += target.x.ToString().ToLower();
+                    if (target.y != VFXOperatorComponentMask.Component.None)
+                        value += target.y.ToString().ToLower();
+                    if (target.z != VFXOperatorComponentMask.Component.None)
+                        value += target.z.ToString().ToLower();
+                    if (target.w != VFXOperatorComponentMask.Component.None)
+                        value += target.w.ToString().ToLower();
+                    return value;
                 };
 
             var componentMaskDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "ComponentMask");
             var componentMask = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), componentMaskDesc);
-            var componentMaskPresenter = fnFindPresenter(componentMask) as VFXOperatorPresenter;
 
             var maskList = new string[] { "xy", "yww", "xw", "z" };
             for (int i = 0; i < maskList.Length; ++i)
             {
+                var componentMaskPresenter = fnFirstOperatorPresenter();
                 Undo.IncrementCurrentGroup();
-                componentMaskPresenter.settings = new VFXOperatorComponentMask.Settings() { mask = maskList[i] };
-                Assert.AreEqual(maskList[i], (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+                fnSetSetting(componentMaskPresenter.model as VFXOperatorComponentMask, maskList[i]);
+                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskPresenter.model as VFXOperatorComponentMask));
             }
 
             for (int i = maskList.Length - 1; i > 0; --i)
             {
                 Undo.PerformUndo();
-                Assert.AreEqual(maskList[i - 1], (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+                var componentMaskPresenter = fnFirstOperatorPresenter();
+                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskPresenter.model as VFXOperatorComponentMask));
             }
 
-            var final = "xyzw";
-            //Can cause infinite loop if value is wrongly tested
-            componentMaskPresenter.settings = new VFXOperatorComponentMask.Settings() { mask = final };
-            Assert.AreEqual(final, (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+            for (int i = 0; i < maskList.Length - 1; ++i)
+            {
+                Undo.PerformRedo();
+                var componentMaskPresenter = fnFirstOperatorPresenter();
+                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskPresenter.model as VFXOperatorComponentMask));
+            }
 
             DestroyTestAsset();
         }
-
-#endif
 
         [Test]
         public void UndoRedoAddBlockContext()

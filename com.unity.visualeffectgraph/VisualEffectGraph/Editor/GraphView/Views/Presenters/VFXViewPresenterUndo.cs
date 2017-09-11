@@ -66,14 +66,15 @@ namespace UnityEditor.VFX.UI
         private void InitializeUndoStack()
         {
             m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
-            Undo.undoRedoPerformed += () =>
-                {
-                    var newAsset = new VFXAsset();
-                    newAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
-                    m_reentrant = true;
-                    SetVFXAsset(newAsset, true);
-                    m_reentrant = false;
-                };
+        }
+
+        private void SynchronizeUndoRedoState()
+        {
+            var newAsset = new VFXAsset();
+            newAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
+            m_reentrant = true;
+            SetVFXAsset(newAsset, true);
+            m_reentrant = false;
         }
 
         private void PushGraphState()

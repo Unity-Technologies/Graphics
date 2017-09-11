@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
         }
 
-        protected new void OnEnable()
+        protected void OnEnable()
         {
             base.OnEnable();
 
@@ -59,6 +59,12 @@ namespace UnityEditor.VFX.UI
 
             SetVFXAsset(m_VFXAsset != null ? m_VFXAsset : new VFXAsset(), true);
             InitializeUndoStack();
+            Undo.undoRedoPerformed += SynchronizeUndoRedoState;
+        }
+
+        protected void OnDisable()
+        {
+            Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
         }
 
         public VFXView View

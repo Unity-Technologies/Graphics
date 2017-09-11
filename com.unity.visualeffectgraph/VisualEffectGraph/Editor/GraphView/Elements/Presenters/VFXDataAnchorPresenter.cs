@@ -208,7 +208,6 @@ namespace UnityEditor.VFX.UI
 
         public void RetractPath()
         {
-            Undo.RecordObject(model, "Retract path");
             model.expanded = false;
             if (typeof(Spaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
             {
