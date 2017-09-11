@@ -678,7 +678,6 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
-#if UNDO_REDO_CONTEXT_LINK
         [Test]
         public void UndoRedoContextLink()
         {
@@ -714,8 +713,8 @@ namespace UnityEditor.VFX.Test
 
             //Creation
             var flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
-            flowEdge.input = fnUpdatePresenter().inputAnchors.FirstOrDefault();
-            flowEdge.output = fnInitializePresenter().outputAnchors.FirstOrDefault();
+            flowEdge.input = fnUpdatePresenter().flowInputAnchors.FirstOrDefault();
+            flowEdge.output = fnInitializePresenter().flowOutputAnchors.FirstOrDefault();
 
             Undo.IncrementCurrentGroup();
             m_ViewPresenter.AddElement(flowEdge);
@@ -726,8 +725,8 @@ namespace UnityEditor.VFX.Test
 
             //Deletion
             flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
-            flowEdge.input = fnUpdatePresenter().outputAnchors.FirstOrDefault();
-            flowEdge.output = fnInitializePresenter().inputAnchors.FirstOrDefault();
+            flowEdge.input = fnUpdatePresenter().flowInputAnchors.FirstOrDefault();
+            flowEdge.output = fnInitializePresenter().flowOutputAnchors.FirstOrDefault();
             m_ViewPresenter.AddElement(flowEdge);
             Assert.AreEqual(1, fnFlowEdgeCount());
 
@@ -740,7 +739,5 @@ namespace UnityEditor.VFX.Test
 
             DestroyTestAsset();
         }
-
-#endif
     }
 }

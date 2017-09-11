@@ -112,6 +112,7 @@ namespace UnityEditor.VFX
             var from = children.ToArray();
             var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
             VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+            VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
 
             var clone = Instantiate(this);
             clone.m_Children = new List<VFXModel>();

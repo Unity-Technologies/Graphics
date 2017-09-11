@@ -67,6 +67,15 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
         }
 
+        public override T Clone<T>()
+        {
+            var clone = base.Clone<T>() as VFXContext;
+            clone.m_Inputs.Clear();
+            clone.m_Outputs.Clear();
+            clone.SetDefaultData(false);
+            return clone as T;
+        }
+
         public virtual string codeGeneratorTemplate                     { get { return null; } }
         public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
@@ -178,7 +187,7 @@ namespace UnityEditor.VFX
             return contextType == VFXContextType.kOutput || contextType == VFXContextType.kInit;
         }
 
-        private static void InnerLink(VFXContext from, VFXContext to)
+        private static void InnerLink(VFXContext from, VFXContext to, bool notify = true)
         {
             if (!CanLink(from, to))
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
@@ -198,9 +207,12 @@ namespace UnityEditor.VFX
             from.m_Outputs.Add(to);
             to.m_Inputs.Add(from);
 
-            // TODO Might need a specific event ?
-            from.Invalidate(InvalidationCause.kStructureChanged);
-            to.Invalidate(InvalidationCause.kStructureChanged);
+            if (notify)
+            {
+                // TODO Might need a specific event ?
+                from.Invalidate(InvalidationCause.kStructureChanged);
+                to.Invalidate(InvalidationCause.kStructureChanged);
+            }
         }
 
         private static void InnerUnlink(VFXContext from, VFXContext to)
@@ -303,6 +315,38 @@ namespace UnityEditor.VFX
             get
             {
                 return implicitPreBlock.Concat(children).Concat(implicitPostBlock);
+            }
+        }
+
+        public static void ReproduceLinkedFlowFromHiearchy(VFXModel[] fromArray, VFXModel[] toArray)
+        {
+            var associativeContext = new List<KeyValuePair<VFXContext, VFXContext>>();
+            for (int i = 0; i < fromArray.Length; ++i)
+            {
+                var from = fromArray[i] as VFXContext;
+                var to = toArray[i] as VFXContext;
+                if (from != null)
+                {
+                    if (to == null)
+                        throw new Exception("ReproduceLinkedFlowFromHiearchy : Inconsistent hierarchy");
+                    associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
+                }
+            }
+
+            for (int i = 0; i < fromArray.Length; ++i)
+            {
+                var from = fromArray[i] as VFXContext;
+                var to = toArray[i] as VFXContext;
+                if (from != null)
+                {
+                    foreach (var input in from.m_Inputs)
+                    {
+                        var refContext = associativeContext.FirstOrDefault(o => o.Key == input);
+                        if (refContext.Value == null)
+                            throw new Exception("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
+                        InnerLink(refContext.Value, to, false);
+                    }
+                }
             }
         }
 
