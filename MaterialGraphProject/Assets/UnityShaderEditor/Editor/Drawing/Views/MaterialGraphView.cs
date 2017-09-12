@@ -18,6 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public MaterialGraphView()
         {
+            RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
             this.AddManipulator(new ContentZoomer());
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new RectangleSelector());
@@ -25,8 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             this.AddManipulator(new ClickSelector());
 
             Insert(0, new GridBackground());
-
-            RegisterCallback<MouseUpEvent>(DoContextMenu);
 
             typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeView);
             typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
