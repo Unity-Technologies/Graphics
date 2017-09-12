@@ -8,10 +8,10 @@ namespace UnityEngine.Graphing
     public class SerializableGraph : IGraph, ISerializationCallbackReceiver
     {
         [NonSerialized]
-        private List<IEdge> m_Edges = new List<IEdge>();
+        List<IEdge> m_Edges = new List<IEdge>();
 
         [NonSerialized]
-        private List<INode> m_Nodes = new List<INode>();
+        Dictionary<Guid, INode> m_Nodes = new Dictionary<Guid, INode>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
@@ -21,7 +21,7 @@ namespace UnityEngine.Graphing
 
         public IEnumerable<T> GetNodes<T>() where T : INode
         {
-            return m_Nodes.OfType<T>();
+            return m_Nodes.Values.OfType<T>();
         }
 
         public IEnumerable<IEdge> edges
@@ -31,7 +31,7 @@ namespace UnityEngine.Graphing
 
         public virtual void AddNode(INode node)
         {
-            m_Nodes.Add(node);
+            m_Nodes.Add(node.guid, node);
             node.owner = this;
             ValidateGraph();
         }
@@ -41,16 +41,16 @@ namespace UnityEngine.Graphing
             if (!node.canDeleteNode)
                 return;
 
-            m_Nodes.Remove(node);
+            m_Nodes.Remove(node.guid);
             ValidateGraph();
         }
 
-        private void RemoveNodeNoValidate(INode node)
+        void RemoveNodeNoValidate(INode node)
         {
             if (!node.canDeleteNode)
                 return;
 
-            m_Nodes.Remove(node);
+            m_Nodes.Remove(node.guid);
         }
 
         public virtual Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
@@ -130,19 +130,29 @@ namespace UnityEngine.Graphing
             ValidateGraph();
         }
 
-        private void RemoveEdgeNoValidate(IEdge e)
+        void RemoveEdgeNoValidate(IEdge e)
         {
             m_Edges.Remove(e);
         }
 
         public INode GetNodeFromGuid(Guid guid)
         {
-            return m_Nodes.FirstOrDefault(x => x.guid == guid);
+            INode node;
+            m_Nodes.TryGetValue(guid, out node);
+            return node;
+        }
+
+        public bool ContainsNodeGuid(Guid guid)
+        {
+            return m_Nodes.ContainsKey(guid);
         }
 
         public T GetNodeFromGuid<T>(Guid guid) where T : INode
         {
-            return m_Nodes.Where(x => x.guid == guid).OfType<T>().FirstOrDefault();
+            var node = GetNodeFromGuid(guid);
+            if (node is T)
+                return (T)node;
+            return default(T);
         }
 
         public IEnumerable<IEdge> GetEdges(SlotReference s)
@@ -157,17 +167,19 @@ namespace UnityEngine.Graphing
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
+            m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes.Values);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
         }
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GetLegacyTypeRemapping());
-            foreach (var node in m_Nodes)
+            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GetLegacyTypeRemapping());
+            m_Nodes = new Dictionary<Guid, INode>(nodes.Count);
+            foreach (var node in nodes)
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                m_Nodes.Add(node.guid, node);
             }
 
             m_SerializableNodes = null;
