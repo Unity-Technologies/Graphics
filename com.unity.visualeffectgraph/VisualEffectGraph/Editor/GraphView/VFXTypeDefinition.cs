@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.UI
         {
             typeof(bool),
             typeof(int),
+            typeof(uint),
             typeof(float),
             typeof(Vector2),
             typeof(Vector3),
