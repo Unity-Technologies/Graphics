@@ -330,10 +330,13 @@ namespace UnityEditor.VFX
                     var attributeBufferIndex = -1;
                     var deadListBufferIndex = -1;
 
+                    var systemBufferMappings = new List<VFXBufferMapping>();
+
                     if (hasState)
                     {
                         attributeBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, data.bufferSize, 1));
+                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, data.bufferSize >> 2, 4));
+                        systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
                     }
 
                     var systemFlag = VFXSystemFlag.kVFXSystemDefault;
@@ -342,6 +345,7 @@ namespace UnityEditor.VFX
                         systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
                         deadListBufferIndex = bufferDescs.Count;
                         bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, data.capacity, 4));
+                        systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
                     }
 
                     var taskDescs = new List<VFXTaskDesc>();
@@ -385,6 +389,8 @@ namespace UnityEditor.VFX
                     {
                         flags = systemFlag,
                         tasks = taskDescs.ToArray(),
+                        capacity = data.capacity,
+                        buffers = systemBufferMappings.ToArray(),
                         type = VFXSystemType.kVFXParticle,
                     });
                 }
