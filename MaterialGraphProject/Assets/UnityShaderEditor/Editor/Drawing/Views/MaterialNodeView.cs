@@ -60,7 +60,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_PreviewContainer.Add(m_PreviewImage);
                 m_PreviewImage.image = preview.texture;
             }
-//            Dirty(ChangeType.Layout);
+            Dirty(ChangeType.Repaint);
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)
@@ -70,6 +70,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_ControlsContainer.Clear();
             m_CurrentControls.Clear();
+            Dirty(ChangeType.Layout);
 
             if (!nodeData.expanded)
                 return;
