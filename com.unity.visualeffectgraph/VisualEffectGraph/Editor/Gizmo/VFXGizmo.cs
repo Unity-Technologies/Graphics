@@ -33,6 +33,23 @@ namespace UnityEditor.VFX.UI
             {
                 selectedBlock.GetPresenter<VFXBlockPresenter>().DrawGizmos(comp);
             }
+            else
+            {
+                VFXOperatorUI selectedOperator = view.selection.OfType<VFXOperatorUI>().FirstOrDefault();
+
+                if (selectedOperator != null)
+                {
+                    selectedOperator.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                }
+                else
+                {
+                    VFXParameterUI selectedParameter = view.selection.OfType<VFXParameterUI>().FirstOrDefault();
+                    if (selectedParameter != null)
+                    {
+                        selectedParameter.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                    }
+                }
+            }
         }
     }
 }

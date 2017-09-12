@@ -155,9 +155,9 @@ namespace UnityEditor.VFX.UI
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
             float realWidth = edgeWidth;
-            if (realWidth * view.scale < 1.5f)
+            if (realWidth * view.scale < 1.0f)
             {
-                realWidth = 1.5f / view.scale;
+                realWidth = 1.0f / view.scale;
             }
 
             if (m_PrevControlPoints == null

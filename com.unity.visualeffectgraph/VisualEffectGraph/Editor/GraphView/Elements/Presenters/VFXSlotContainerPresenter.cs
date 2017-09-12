@@ -137,6 +137,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual void DrawGizmos(VFXComponent component)
+        {
+            foreach (VFXDataAnchorPresenter presenter in inputAnchors.Cast<VFXDataAnchorPresenter>())
+            {
+                presenter.DrawGizmo(component);
+            }
+        }
 
         [SerializeField]
         private VFXSettingPresenter[] m_Settings;

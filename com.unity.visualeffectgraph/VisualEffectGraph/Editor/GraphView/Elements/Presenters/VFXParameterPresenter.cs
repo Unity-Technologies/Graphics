@@ -2,6 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
@@ -23,7 +24,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXSubParameterPresenter : IPropertyRMProvider
+    class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
     {
         VFXParameterPresenter m_Parameter;
         //int m_Field;
@@ -97,7 +98,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
+    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
     {
         VFXSubParameterPresenter[] m_SubPresenters;
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
@@ -295,6 +296,16 @@ namespace UnityEditor.VFX.UI
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             return new UnityEngine.Object[] { this, model, parameter.outputSlots[0] };
+        }
+
+        public override void DrawGizmos(VFXComponent component)
+        {
+            VFXValueGizmo.Draw(this, component);
+
+            foreach (var presenter in m_SubPresenters)
+            {
+                VFXValueGizmo.Draw(presenter, component);
+            }
         }
     }
 }

@@ -38,13 +38,5 @@ namespace UnityEditor.VFX.UI
         {
             return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
-
-        public void DrawGizmos(VFXComponent component)
-        {
-            foreach (VFXDataAnchorPresenter presenter in inputAnchors.Cast<VFXDataAnchorPresenter>())
-            {
-                presenter.DrawGizmo(component);
-            }
-        }
     }
 }
