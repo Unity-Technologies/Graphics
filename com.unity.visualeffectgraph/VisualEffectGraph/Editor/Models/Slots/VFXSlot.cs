@@ -320,10 +320,19 @@ namespace UnityEditor.VFX
 
         public override T Clone<T>()
         {
-            var clone = base.Clone<T>();
-            var cloneSlot = clone as VFXSlot;
-            cloneSlot.m_LinkedSlots.Clear();
-            return clone;
+            var clone = base.Clone<T>() as VFXSlot;
+            clone.m_LinkedSlots.Clear();
+            if (IsMasterSlot())
+            {
+                clone.m_MasterData = new MasterData();
+                clone.m_MasterData.m_Owner = null;
+                clone.m_MasterData.m_Value = new VFXSerializableObject(property.type, value);
+            }
+            else
+            {
+                clone.m_MasterData = null;
+            }
+            return clone as T;
         }
 
         static private void RecurseIntoSlots(VFXModel[] fromArray, VFXModel[] toArray, Action<VFXSlot, VFXSlot> fnAction)
@@ -366,11 +375,16 @@ namespace UnityEditor.VFX
                     associativeSlot.Add(new KeyValuePair<VFXSlot, VFXSlot>(from, to));
                 });
 
+            var associativeSlotDictionnary = associativeSlot.ToDictionary(p => p.Key);
             RecurseIntoSlots(fromArray, toArray, (from, to) =>
                 {
                     to.m_LinkedSlots = from.m_LinkedSlots.Select(f =>
                     {
-                        var refSlot = associativeSlot.FirstOrDefault(a => a.Key == f);
+                        KeyValuePair<VFXSlot, VFXSlot> refSlot;
+                        if (!associativeSlotDictionnary.TryGetValue(f, out refSlot))
+                        {
+                            /*throw new Exception*/ Debug.LogError("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
+                        }
                         return refSlot.Value;
                     }).ToList();
                 });
