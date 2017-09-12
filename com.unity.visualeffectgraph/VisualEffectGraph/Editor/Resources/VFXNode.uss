@@ -110,6 +110,15 @@ height:30;
 	max-width:0;
 }
 
+.VFXNodeUI.collapsed #exposedNameContainer
+{
+	max-width:0;
+}
+.VFXNodeUI.collapsed #exposedContainer
+{
+	max-width:0;
+}
+
 .VFXNodeUI.collapsed .propertyrm
 {
 	max-width:0;
