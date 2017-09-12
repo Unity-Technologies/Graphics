@@ -163,12 +163,8 @@ namespace UnityEditor
                 DoMetallicSpecularArea();
                 DoNormalArea();
 
-                // ATM not supported
-                //m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightMap.textureValue != null ? heigtMapScale : null);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.occlusionText, occlusionMap, occlusionMap.textureValue != null ? occlusionStrength : null);
 
-                // ATM not supported
-                //m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);
                 DoEmissionArea(material);
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.TextureScaleOffsetProperty(albedoMap);
@@ -177,20 +173,8 @@ namespace UnityEditor
 
                 EditorGUILayout.Space();
 
-                // ATM not supported
-                //// Secondary properties
-                //GUILayout.Label(Styles.secondaryMapsText, EditorStyles.boldLabel);
-                //m_MaterialEditor.TexturePropertySingleLine(Styles.detailAlbedoText, detailAlbedoMap);
-                //m_MaterialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, detailNormalMap, detailNormalMapScale);
-                //m_MaterialEditor.TextureScaleOffsetProperty(detailAlbedoMap);
-                //m_MaterialEditor.ShaderProperty(uvSetSecondary, Styles.uvSetLabel.text);
-
-                // Third properties
-                GUILayout.Label(Styles.forwardText, EditorStyles.boldLabel);
-                if (highlights != null)
-                    m_MaterialEditor.ShaderProperty(highlights, Styles.highlightsText);
-                if (reflections != null)
-                    m_MaterialEditor.ShaderProperty(reflections, Styles.reflectionsText);
+                m_MaterialEditor.ShaderProperty(highlights, Styles.highlightsText);
+                m_MaterialEditor.ShaderProperty(reflections, Styles.reflectionsText);
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -290,8 +274,10 @@ namespace UnityEditor
                 if (emissionMap.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                     emissionColorForRendering.colorValue = Color.white;
 
-                // change the GI flag and fix it up with emissive as black if necessary
-                m_MaterialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                // LW does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                if (brightness <= 0f)
+                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
             }
         }
 
