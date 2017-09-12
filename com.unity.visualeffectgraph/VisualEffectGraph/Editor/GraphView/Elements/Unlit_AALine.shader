@@ -32,25 +32,33 @@ Shader "Unlit/AALine"
             {
                 float4 vertex : SV_POSITION;
                 float3 uv : TEXCOORD0;
+                float2 clipUV : TEXCOORD1;
             };
+            uniform float4x4 unity_GUIClipTextureMatrix;
 
             v2f vert (appdata v)
             {
                 v2f o;
+                float3 eyePos = UnityObjectToViewPos(v.vertex);
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
+                o.clipUV = mul(unity_GUIClipTextureMatrix, float4(eyePos.xy, 0, 1.0));
                 return o;
             }
 
             float _ZoomFactor;
             fixed4 _Color;
+            sampler2D _GUIClipTexture;
+
 
             fixed4 frag (v2f i) : SV_Target
             {
 
                 float distance = (i.uv.y * _ZoomFactor - abs(i.uv.x * _ZoomFactor));
 
-                return fixed4(_Color.rgb, _Color.a * distance );
+
+                float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
+                return fixed4(_Color.rgb, _Color.a * distance * clipA);
             }
             ENDCG
         }
