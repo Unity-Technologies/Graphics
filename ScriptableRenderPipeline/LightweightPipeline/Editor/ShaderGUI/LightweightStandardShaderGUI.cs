@@ -220,11 +220,20 @@ namespace UnityEditor
             }
             material.SetFloat("_Mode", (float)blendMode);
 
-            // TODO: material.HasKeyword()?
             if (oldShader.name.Equals("Standard (Specular setup)"))
-                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Specular);
+            {
+                material.SetFloat("_WorkflowMode", (float) WorkflowMode.Specular);
+                Texture texture = material.GetTexture("_SpecGlossMap");
+                if (texture != null)
+                    material.SetTexture("_MetallicSpecGlossMap", texture);
+            }
             else
-                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Metallic);
+            {
+                material.SetFloat("_WorkflowMode", (float) WorkflowMode.Metallic);
+                Texture texture = material.GetTexture("_MetallicGlossMap");
+                if (texture != null)
+                    material.SetTexture("_MetallicSpecGlossMap", texture);
+            }
 
             MaterialChanged(material);
         }
