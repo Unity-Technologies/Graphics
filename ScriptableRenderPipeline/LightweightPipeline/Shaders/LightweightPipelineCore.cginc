@@ -61,7 +61,7 @@ half3 SpecularSetup(float2 uv, half3 albedo, half albedoAlpha, out half3 specula
 
 half4 OutputColor(half3 color, half alpha)
 {
-#ifdef _ALPHABLEND_ON
+#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON)
     return LIGHTWEIGHT_LINEAR_TO_GAMMA(half4(color, alpha));
 #else
     return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);

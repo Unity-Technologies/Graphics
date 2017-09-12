@@ -163,6 +163,9 @@
 #else
                 half3 diffColor = SpecularSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
 #endif
+
+                diffColor = PreMultiplyAlpha(diffColor, alpha, oneMinusReflectivity, /*out*/ alpha);
+
                 // Roughness is (1.0 - smoothness)²
                 half perceptualRoughness = 1.0h - smoothness;
 
