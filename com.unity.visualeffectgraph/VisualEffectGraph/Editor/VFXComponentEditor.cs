@@ -11,6 +11,7 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.UIElements.GraphView;
+using EditMode = UnityEditorInternal.EditMode;
 
 
 static class VFXComponentUtility
@@ -470,7 +471,8 @@ public class VFXComponentEditor : Editor
 
     protected virtual void OnSceneGUI()
     {
-        VFXGizmo.OnDrawComponentGizmo(target as VFXComponent);
+        if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
+            VFXGizmo.OnDrawComponentGizmo(target as VFXComponent);
     }
 
     /*
@@ -613,6 +615,13 @@ public class VFXComponentEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
+
+        EditMode.DoEditModeInspectorModeButton(
+            EditMode.SceneViewEditMode.Collider,
+            "Edit Asset Values",
+            UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle.editModeButton,
+            this
+            );
     }
 
     private void SetPlayRate(object rate)
