@@ -21,6 +21,9 @@ namespace UnityEditor.VFX.UI
     {
         static Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>> s_DrawFunctions;
 
+
+        const float handleSize = 0.1f;
+
         static VFXValueGizmo()
         {
             s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
@@ -170,7 +173,7 @@ namespace UnityEditor.VFX.UI
             {
                 EditorGUI.BeginChangeCheck();
                 Vector3 sliderPos = center + dist * radius;
-                Vector3 result = Handles.Slider(sliderPos, dist, 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -330,7 +333,7 @@ namespace UnityEditor.VFX.UI
                 EditorGUI.BeginChangeCheck();
 
                 Vector3 pos = (extremities[i] + extremities[i + +extremities.Length / 2]) * 0.5f;
-                result = Handles.Slider(pos, pos - center, 0.1f, Handles.CubeHandleCap, 0);
+                result = Handles.Slider(pos, pos - center, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -344,7 +347,7 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.BeginChangeCheck();
 
-            result = Handles.Slider(topCap, topCap - center, 0.1f, Handles.CubeHandleCap, 0);
+            result = Handles.Slider(topCap, topCap - center, handleSize * HandleUtility.GetHandleSize(topCap), Handles.CubeHandleCap, 0);
 
             if (GUI.changed)
             {
@@ -357,7 +360,7 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.BeginChangeCheck();
 
-            result = Handles.Slider(bottomCap, bottomCap - center, 0.1f, Handles.CubeHandleCap, 0);
+            result = Handles.Slider(bottomCap, bottomCap - center, handleSize * HandleUtility.GetHandleSize(bottomCap), Handles.CubeHandleCap, 0);
 
             if (GUI.changed)
             {
@@ -446,7 +449,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +Z
                 Vector3 middle = (points[0] + points[1] + points[2] + points[3]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -459,7 +462,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Z
                 Vector3 middle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -472,7 +475,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +X
                 Vector3 middle = (points[0] + points[1] + points[4] + points[5]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -485,7 +488,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -X
                 Vector3 middle = (points[2] + points[3] + points[6] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -498,7 +501,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +Y
                 Vector3 middle = (points[0] + points[2] + points[4] + points[6]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -511,7 +514,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Y
                 Vector3 middle = (points[1] + points[3] + points[5] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
