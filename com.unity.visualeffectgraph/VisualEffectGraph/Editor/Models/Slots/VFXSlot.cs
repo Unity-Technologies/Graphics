@@ -21,8 +21,6 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        public bool expanded = false;
-
         protected VFXSlot() {}
 
         public object value
@@ -314,7 +312,7 @@ namespace UnityEditor.VFX
             InvalidateChildren(model, cause);
 
             var owner = this.owner;
-            if (owner != null  && direction == Direction.kInput)
+            if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
                 owner.Invalidate(cause);
         }
 
