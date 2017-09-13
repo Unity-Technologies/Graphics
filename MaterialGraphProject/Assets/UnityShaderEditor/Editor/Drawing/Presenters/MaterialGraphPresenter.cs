@@ -147,7 +147,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
             var deletedElementPresenters = m_Elements
                 .OfType<MaterialNodePresenter>()
-                .Where(nd => !graph.GetNodes<INode>().Contains(nd.node))
+                .Where(nd => !graph.ContainsNodeGuid(nd.node.guid))
                 .OfType<GraphElementPresenter>()
                 .ToList();
 
