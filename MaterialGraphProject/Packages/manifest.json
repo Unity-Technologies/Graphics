@@ -1,6 +1,6 @@
 {
     "registry": "https://staging-packages.unity.com",
     "dependencies": {
-    	"com.unity.postprocessing": "0.4.0"
+    	"com.unity.postprocessing": "0.1.0"
     }
 }
