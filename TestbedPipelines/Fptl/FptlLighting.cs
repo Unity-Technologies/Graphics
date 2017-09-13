@@ -992,12 +992,21 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             // build per tile light lists
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
 
-            CommandBuffer cmdPreShadows = CommandBufferPool.Get();
-            GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
-            loop.ExecuteCommandBuffer(cmdPreShadows);
-            CommandBufferPool.Release(cmdPreShadows);
+            GPUFence postLightListFence;
 
-            GPUFence postLightListFence = BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
+            if (k_UseAsyncCompute)
+            {
+                CommandBuffer cmdPreShadows = CommandBufferPool.Get();
+                GPUFence preShadowsFence = cmdPreShadows.CreateGPUFence();
+                loop.ExecuteCommandBuffer(cmdPreShadows);
+                CommandBufferPool.Release(cmdPreShadows);
+
+                postLightListFence = BuildPerTileLightListsAsync(camera, loop, numLights, projscr, invProjscr, preShadowsFence);
+            }
+            else
+            {
+                BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+            }
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
             m_ShadowMgr.RenderShadows( m_FrameId, loop, cmdShadow, cullResults, cullResults.visibleLights );
@@ -1008,7 +1017,15 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
-            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
+
+            if (k_UseAsyncCompute)
+            {
+                PushGlobalParamsWithFence(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights, postLightListFence);
+            }
+            else
+            {
+                PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+            }
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
@@ -1189,7 +1206,35 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
 
-        GPUFence BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
+        void BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+        {
+            var cmd = CommandBufferPool.Get("Build light list");
+
+            BuildPerTileLightListsCommon(camera, loop, numLights, projscr, invProjscr, cmd);
+
+            loop.ExecuteCommandBuffer(cmd);
+
+            CommandBufferPool.Release(cmd);
+        }
+
+        GPUFence BuildPerTileLightListsAsync(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, GPUFence startFence)
+        {
+            var cmd = CommandBufferPool.Get("Build light list");
+
+            cmd.WaitOnGPUFence(startFence);
+
+            BuildPerTileLightListsCommon(camera, loop, numLights, projscr, invProjscr, cmd);
+
+            GPUFence completeFence = cmd.CreateGPUFence();
+
+            loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
+
+            CommandBufferPool.Release(cmd);
+
+            return completeFence;
+        }
+
+        void BuildPerTileLightListsCommon(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr, CommandBuffer cmd)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1197,10 +1242,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var numTilesY = (h + 15) / 16;
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
-
-            var cmd = CommandBufferPool.Get("Build light list" );
-
-            cmd.WaitOnGPUFence(startFence);
 
             bool isOrthographic = camera.orthographic;
 
@@ -1256,30 +1297,32 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
             }
 
-            GPUFence completeFence = cmd.CreateGPUFence();
-
-            if (k_UseAsyncCompute)
-            {
-                loop.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
-            }
-            else
-            {
-                loop.ExecuteCommandBuffer(cmd);
-            }
-
-            CommandBufferPool.Release(cmd);
-
-            return completeFence;
         }
 
-        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
+        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
+        {
+            var cmd = CommandBufferPool.Get("Push Global Parameters");
+
+            PushGlobalParamsCommon(camera, loop, viewToWorld, scrProj, incScrProj, numDirLights, cmd);
+
+            CommandBufferPool.Release(cmd);
+        }
+
+        void PushGlobalParamsWithFence(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, GPUFence startFence)
         {
             var cmd = CommandBufferPool.Get("Push Global Parameters");
 
             cmd.WaitOnGPUFence(startFence);
-                  
+
+            PushGlobalParamsCommon(camera, loop, viewToWorld, scrProj, incScrProj, numDirLights, cmd);
+
+            CommandBufferPool.Release(cmd);
+        }
+
+        void PushGlobalParamsCommon(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights, CommandBuffer cmd)
+        {
             bool isOrthographic = camera.orthographic;
-            cmd.SetGlobalFloat("g_isOrthographic", (float) (isOrthographic ? 1 : 0));
+            cmd.SetGlobalFloat("g_isOrthographic", (float)(isOrthographic ? 1 : 0));
             cmd.SetGlobalFloat("g_widthRT", (float)camera.pixelWidth);
             cmd.SetGlobalFloat("g_heightRT", (float)camera.pixelHeight);
 
@@ -1333,7 +1376,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
 
             loop.ExecuteCommandBuffer(cmd);
-
         }
     }
 }
