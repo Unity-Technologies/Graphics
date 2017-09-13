@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             if (presenter == null)
                 return;
 
-            var options = presenter.node.options;
+            var options = presenter.materialNode.options;
 
             EditorGUI.BeginChangeCheck();
             options.srcBlend = (SurfaceMaterialOptions.BlendMode)EditorGUILayout.EnumPopup("Src Blend", options.srcBlend);

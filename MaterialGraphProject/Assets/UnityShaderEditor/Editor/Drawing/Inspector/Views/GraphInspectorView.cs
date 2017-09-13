@@ -12,25 +12,32 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         [SerializeField]
         GraphInspectorPresenter m_Presenter;
 
-        int m_EditorHash;
+        int m_PresenterHash;
 
-        VisualElement m_EditorContainer;
         VisualElement m_Title;
+        VisualElement m_ContentContainer;
+        VisualElement m_MultipleSelectionsElement;
 
         TypeMapper m_TypeMapper;
 
         public GraphInspectorView()
         {
             AddStyleSheetPath("Styles/MaterialGraph");
-            var headerContainer = new VisualElement() { name = "header" };
-            m_Title = new VisualElement() { name = "title" };
-            headerContainer.Add(m_Title);
+
+            var headerContainer = new VisualElement { name = "header" };
+            {
+                m_Title = new VisualElement() { name = "title" };
+                headerContainer.Add(m_Title);
+            }
             Add(headerContainer);
-            Add(m_EditorContainer = new VisualElement {name = "editorContainer"});
+
+            m_ContentContainer = new VisualElement { name = "contentContainer" };
+            Add(m_ContentContainer);
+
             m_TypeMapper = new TypeMapper(typeof(AbstractNodeEditorPresenter), typeof(AbstractNodeEditorView))
             {
-                {typeof(StandardNodeEditorPresenter), typeof(StandardNodeEditorView)},
-                {typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView)}
+                { typeof(StandardNodeEditorPresenter), typeof(StandardNodeEditorView) },
+                { typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView) }
             };
         }
 
@@ -38,29 +45,34 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         {
             if (presenter == null)
             {
-                m_EditorContainer.Clear();
-                m_EditorHash = 0;
+                m_ContentContainer.Clear();
+                m_PresenterHash = 0;
                 return;
+            }
+
+            var presenterHash = 17;
+            unchecked
+            {
+                presenterHash = presenterHash * 31 + (presenter.editor == null ? 79 : presenter.editor.GetHashCode());
+                presenterHash = presenterHash * 31 + presenter.selectionCount;
             }
 
             m_Title.text = presenter.title;
 
-            var editorHash = 17;
-            unchecked
+            if (presenterHash != m_PresenterHash)
             {
-                foreach (var editorPresenter in presenter.editors)
-                    editorHash = editorHash * 31 + editorPresenter.GetHashCode();
-            }
-
-            if (editorHash != m_EditorHash)
-            {
-                m_EditorHash = editorHash;
-                m_EditorContainer.Clear();
-                foreach (var editorPresenter in presenter.editors)
+                m_PresenterHash = presenterHash;
+                m_ContentContainer.Clear();
+                if (presenter.selectionCount > 1)
                 {
-                    var view = (AbstractNodeEditorView) Activator.CreateInstance(m_TypeMapper.MapType(editorPresenter.GetType()));
-                    view.presenter = editorPresenter;
-                    m_EditorContainer.Add(view);
+                    var element = new VisualElement { name = "selectionCount", text = string.Format("{0} nodes selected.", presenter.selectionCount) };
+                    m_ContentContainer.Add(element);
+                }
+                else if (presenter.editor != null)
+                {
+                    var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(presenter.editor.GetType()));
+                    view.presenter = presenter.editor;
+                    m_ContentContainer.Add(view);
                 }
             }
 
@@ -83,7 +95,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         protected override Object[] toWatch
         {
-            get { return new Object[] {m_Presenter}; }
+            get { return new Object[] { m_Presenter }; }
         }
     }
 }
