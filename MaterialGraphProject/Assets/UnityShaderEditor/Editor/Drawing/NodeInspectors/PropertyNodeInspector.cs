@@ -19,7 +19,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             EditorGUI.BeginChangeCheck();
 
             //propertyNode.name = EditorGUILayout.TextField ("Name", propertyNode.name);
-            propertyNode.description = EditorGUILayout.TextField("Description", propertyNode.description);
+            //propertyNode.description = EditorGUILayout.TextField("Description", propertyNode.description);
 
             if (EditorGUI.EndChangeCheck())
                 node.onModified(node, ModificationScope.Node);

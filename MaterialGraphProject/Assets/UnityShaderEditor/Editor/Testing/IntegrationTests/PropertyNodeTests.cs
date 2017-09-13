@@ -9,7 +9,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.IntegrationTests
 {
-    [TestFixture]
+    /*[TestFixture]
     public class PropertyNodeTests
     {
         private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
@@ -121,5 +121,5 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
-    }
+    }*/
 }

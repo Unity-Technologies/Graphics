@@ -17,6 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         VisualElement m_Title;
         VisualElement m_ContentContainer;
         VisualElement m_MultipleSelectionsElement;
+        VisualElement m_PropertiesContainer;
 
         TypeMapper m_TypeMapper;
 
@@ -30,6 +31,13 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 headerContainer.Add(m_Title);
             }
             Add(headerContainer);
+            
+             m_PropertiesContainer = new VisualElement()
+            {
+                new IMGUIContainer(OnGuiHandler)
+            };
+            m_PropertiesContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Column);
+            Add(m_PropertiesContainer);
 
             m_ContentContainer = new VisualElement { name = "contentContainer" };
             Add(m_ContentContainer);
@@ -41,6 +49,94 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             };
         }
 
+private void OnGuiHandler()
+        {
+            if (m_Presenter == null)
+                return;
+
+            if (GUILayout.Button("Add Property"))
+            {
+                var gm = new GenericMenu();
+                gm.AddItem(new GUIContent("Float"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new FloatShaderProperty());
+                    m_Presenter.Dirty();
+                });
+                gm.AddItem(new GUIContent("Vector2"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new Vector2ShaderProperty());
+                    presenter.Dirty();
+                });
+                gm.AddItem(new GUIContent("Vector3"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new Vector3ShaderProperty());
+                    m_Presenter.Dirty();
+                });
+                gm.AddItem(new GUIContent("Vector4"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty());
+                    m_Presenter.Dirty();
+                });
+                gm.AddItem(new GUIContent("Color"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new ColorShaderProperty());
+                    m_Presenter.Dirty();
+                });
+                gm.AddItem(new GUIContent("Texture"), false, () =>
+                {
+                    m_Presenter.graph.AddShaderProperty(new TextureShaderProperty());
+                    m_Presenter.Dirty();
+                });
+                gm.ShowAsContext();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            foreach (var property in m_Presenter.graph.properties.ToArray())
+            {
+                property.name = EditorGUILayout.DelayedTextField("Name", property.name);
+                property.description = EditorGUILayout.DelayedTextField("Description", property.description);
+
+                if (property is FloatShaderProperty)
+                {
+                    var fProp = property as FloatShaderProperty;
+                    fProp.value = EditorGUILayout.FloatField("Value", fProp.value);
+                }
+                else if (property is Vector2ShaderProperty)
+                {
+                    var fProp = property as Vector2ShaderProperty;
+                    fProp.value = EditorGUILayout.Vector2Field("Value", fProp.value);
+                }
+                else if (property is Vector3ShaderProperty)
+                {
+                    var fProp = property as Vector3ShaderProperty;
+                    fProp.value = EditorGUILayout.Vector3Field("Value", fProp.value);
+                }
+                else if (property is Vector4ShaderProperty)
+                {
+                    var fProp = property as Vector4ShaderProperty;
+                    fProp.value = EditorGUILayout.Vector4Field("Value", fProp.value);
+                }
+                else if (property is ColorShaderProperty)
+                {
+                    var fProp = property as ColorShaderProperty;
+                    fProp.value = EditorGUILayout.ColorField("Value", fProp.value);
+                }
+                else if (property is TextureShaderProperty)
+                {
+                    var fProp = property as TextureShaderProperty;
+                    fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
+                }
+
+                if (GUILayout.Button("Remove"))
+                {
+                    m_Presenter.graph.RemoveShaderProperty(property.guid);
+                }
+                EditorGUILayout.Separator();
+            }
+            if(EditorGUI.EndChangeCheck())
+                m_Presenter.Dirty();
+        }
+        
         public override void OnDataChanged()
         {
             if (presenter == null)

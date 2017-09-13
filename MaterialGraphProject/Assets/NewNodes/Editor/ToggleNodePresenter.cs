@@ -6,7 +6,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [Serializable]
+ /*   [Serializable]
     class ToggleNodeControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
@@ -25,7 +25,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                {
                    return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
                }
-        */
+        *
         public override float GetHeight()
         {
             return 2 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
@@ -41,5 +41,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphControlPresenter> { instance };
         }
-    }
+    }*/
 }

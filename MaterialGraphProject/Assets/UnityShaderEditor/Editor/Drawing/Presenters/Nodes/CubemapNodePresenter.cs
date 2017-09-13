@@ -6,7 +6,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class CubeContolPresenter : GraphControlPresenter
+ /*   class CubeContolPresenter : GraphControlPresenter
     {
         //private string[] m_TextureTypeNames;
         //private string[] textureTypeNames
@@ -17,7 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                      m_TextureTypeNames = Enum.GetNames(typeof(TextureType));
                  return m_TextureTypeNames;
              }
-         }*/
+         }*
 
         public override void OnGUIHandler()
         {
@@ -47,5 +47,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphControlPresenter> { instance };
         }
-    }
+    }*/
 }
