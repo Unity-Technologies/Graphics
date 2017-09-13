@@ -325,12 +325,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_BounceIntensity);
             EditorGUILayout.PropertyField(m_Range);
             EditorGUILayout.PropertyField(m_Lightmapping);
-            EditorGUILayout.PropertyField(m_Cookie);
-            if (m_Cookie.objectReferenceValue != null && m_Type.enumValueIndex == 1)
+            // no cookie with area light (maybe in future textured area light ?)
+            if (!(m_LightShape == LightShape.Rectangle) && !(m_LightShape == LightShape.Line))
             {
-                EditorGUILayout.PropertyField(m_CookieSize);
-                m_ShapeLength.floatValue = m_CookieSize.floatValue;
-                m_ShapeWidth.floatValue = m_CookieSize.floatValue;
+                EditorGUILayout.PropertyField(m_Cookie);
             }
         }
 
