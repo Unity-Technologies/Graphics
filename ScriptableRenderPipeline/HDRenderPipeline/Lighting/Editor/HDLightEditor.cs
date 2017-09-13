@@ -67,14 +67,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This enum below is LightType enum + LightTypeExtent enum
         public enum LightShape
         {
-            Spot = 0,
-            Directional = 1,
-            Point = 2,
-            //Area = 3, <= offline type of Unity not dispay in our case but reuse for GI of our area light
-            Rectangle = 4,
-            Line = 5,
-            // Sphere = 6, 
-            // Disc = 7,
+            Spot,
+            Directional,
+            Point,
+            //Area, <= offline type of Unity not dispay in our case but reuse for GI of our area light
+            Rectangle,
+            Line,
+            // Sphere, 
+            // Disc,
         }
 
         // LightShape is use for displaying UI only. The processing code must use LightTypeExtent and LightType
@@ -290,7 +290,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
 
                 case LightShape.Rectangle:
-                    m_Type.enumValueIndex = (int)LightType.Area;
+                    // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
+                    //m_Type.enumValueIndex = (int)LightType.Area;
+                    m_Type.enumValueIndex = (int)LightType.Point;
                     m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_ShapeLength);
                     EditorGUILayout.PropertyField(m_ShapeWidth);
@@ -300,10 +302,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
 
                 case LightShape.Line:
-                    m_Type.enumValueIndex = (int)LightType.Area;
+                    // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
+                    //m_Type.enumValueIndex = (int)LightType.Area;
+                    m_Type.enumValueIndex = (int)LightType.Point;
                     m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
                     EditorGUILayout.PropertyField(m_ShapeLength);
-                    m_ShapeWidth.floatValue = 0;
                     // Fake line with a small rectangle in vanilla unity for GI
                     m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
                     m_AreaSizeY.floatValue = 0.01f;
