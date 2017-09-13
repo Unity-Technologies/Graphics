@@ -11,3 +11,5 @@ MaterialGraphProject/.idea
 MaterialGraphProject/Assets/Plugins*
 .DS_Store
 MaterialGraphProject/Assets/_MingWai/New Custom Texture.asset.meta
+MaterialGraphProject/Packages/*
+!MaterialGraphProject/Packages/manifest.json
