@@ -18,7 +18,9 @@ namespace UnityEditor.VFX.UI
         public VFXGraphUndoStack(VFXGraph initialState)
         {
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
+            m_refGraphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
             m_graphUndoCursor.index = 0;
+            m_refGraphUndoCursor.index = 0;
             CopyAndPushGraph(initialState);
         }
 
@@ -39,6 +41,17 @@ namespace UnityEditor.VFX.UI
             CopyAndPushGraph(graph);
             Undo.RecordObject(m_graphUndoCursor, "VFXGraph");
             m_graphUndoCursor.index = m_undoStack.Count - 1;
+            m_refGraphUndoCursor.index = m_graphUndoCursor.index;
+        }
+
+        public bool IsDirtyState()
+        {
+            return m_refGraphUndoCursor.index != m_graphUndoCursor.index;
+        }
+
+        public void CleanDirtyState()
+        {
+            m_refGraphUndoCursor.index = m_graphUndoCursor.index;
         }
 
         public VFXGraph GetCopyCurrentGraphState()
@@ -54,6 +67,8 @@ namespace UnityEditor.VFX.UI
         private List<VFXGraph> m_undoStack = new List<VFXGraph>();
         [NonSerialized]
         private VFXGraphUndoCursor m_graphUndoCursor;
+        [NonSerialized]
+        private VFXGraphUndoCursor m_refGraphUndoCursor;
     }
 
     partial class VFXViewPresenter : GraphViewPresenter
@@ -70,11 +85,15 @@ namespace UnityEditor.VFX.UI
 
         private void SynchronizeUndoRedoState()
         {
-            var newAsset = new VFXAsset();
-            newAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
-            m_reentrant = true;
-            SetVFXAsset(newAsset, true);
-            m_reentrant = false;
+            if (m_graphUndoStack.IsDirtyState())
+            {
+                var newAsset = new VFXAsset();
+                newAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
+                m_reentrant = true;
+                SetVFXAsset(newAsset, true);
+                m_reentrant = false;
+                m_graphUndoStack.CleanDirtyState();
+            }
         }
 
         private void PushGraphState()
