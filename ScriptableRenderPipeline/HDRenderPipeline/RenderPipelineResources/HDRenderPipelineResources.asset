@@ -42,6 +42,8 @@ MonoBehaviour:
     type: 3}
   deferredComputeShader: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259,
     type: 3}
+  deferredDirectionalShadowComputeShader: {fileID: 7200000, guid: fbde6fae193b2a94e9fd97c163c204f4,
+    type: 3}
   cameraMotionVectors: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
   blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
   buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,

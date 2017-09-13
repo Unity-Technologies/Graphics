@@ -111,6 +111,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal static readonly int _MainDepthTexture = Shader.PropertyToID("_MainDepthTexture");
 
+        internal static readonly int _DeferredShadowTexture = Shader.PropertyToID("_DeferredShadowTexture");
+        internal static readonly int _DeferredShadowTextureUAV = Shader.PropertyToID("_DeferredShadowTextureUAV");
+        internal static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
+
         internal static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
         internal static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
         internal static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
