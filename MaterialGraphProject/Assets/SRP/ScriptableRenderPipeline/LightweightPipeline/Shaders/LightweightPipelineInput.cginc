@@ -1,6 +1,9 @@
 #ifndef LIGHTWEIGHT_INPUT_INCLUDED
 #define LIGHTWEIGHT_INPUT_INCLUDED
 
+#include "UnityCG.cginc"
+#include "UnityStandardInput.cginc"
+
 #define MAX_VISIBLE_LIGHTS 16
 
 // Main light initialized without indexing
@@ -97,15 +100,23 @@ struct LightweightVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-inline void NormalMap(LightweightVertexOutput i, out half3 normal)
+//TODO - Shouldnt be here
+struct Surface
+{
+	float3 Albedo;      // diffuse color
+	float3 Specular;    // specular color
+	float Metallic;		// metallic
+	float3 Normal;      // tangent space normal, if written
+	half3 Emission;
+	half Smoothness;    // 0=rough, 1=smooth
+	half Occlusion;     // occlusion (default 1)
+	float Alpha;        // alpha for transparencies
+};
+
+inline void CalculateNormal(float3 normalMap, LightweightVertexOutput i, out half3 normal)
 {
 #if _NORMALMAP
-    half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
-
-    // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
-    // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
-    // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    normal = normalize(half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2)));
+	normal = normalize(half3(dot(normalMap, i.tangentToWorld0), dot(normalMap, i.tangentToWorld1), dot(normalMap, i.tangentToWorld2)));
 #else
     normal = normalize(i.normal);
 #endif
