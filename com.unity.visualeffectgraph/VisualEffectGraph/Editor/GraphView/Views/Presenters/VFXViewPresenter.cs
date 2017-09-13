@@ -426,7 +426,7 @@ namespace UnityEditor.VFX.UI
                         allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
                             {
                                 var candidate = o as VFXDataAnchorPresenter;
-                                return toSlot.CanLink(candidate.model);
+                                return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
                             }).ToList();
                     }
                     else
@@ -444,7 +444,7 @@ namespace UnityEditor.VFX.UI
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
-                            return toSlot.CanLink(startAnchorOperatorPresenter.model);
+                            return toSlot.CanLink(startAnchorOperatorPresenter.model) && startAnchorOperatorPresenter.model.CanLink(toSlot);
                         }).ToList();
 
                     // For edge starting with an output, we must add all data anchors from all blocks
