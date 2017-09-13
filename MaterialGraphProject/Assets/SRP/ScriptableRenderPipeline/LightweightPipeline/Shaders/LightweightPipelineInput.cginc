@@ -100,8 +100,7 @@ struct LightweightVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-//TODO - Shouldnt be here
-struct Surface
+struct SurfacePBR
 {
 	float3 Albedo;      // diffuse color
 	float3 Specular;    // specular color
@@ -113,12 +112,40 @@ struct Surface
 	float Alpha;        // alpha for transparencies
 };
 
-inline void CalculateNormal(float3 normalMap, LightweightVertexOutput i, out half3 normal)
+struct SurfaceFastBlinn
+{
+	float3 Diffuse;     // diffuse color
+	float3 Specular;    // specular color
+	float3 Normal;      // tangent space normal, if written
+	half3 Emission;
+	half Glossiness;    // 0=rough, 1=smooth
+	float Alpha;        // alpha for transparencies
+};
+
+inline void CalculateNormal(half3 normalMap, LightweightVertexOutput i, out half3 normal)
 {
 #if _NORMALMAP
 	normal = normalize(half3(dot(normalMap, i.tangentToWorld0), dot(normalMap, i.tangentToWorld1), dot(normalMap, i.tangentToWorld2)));
 #else
     normal = normalize(i.normal);
+#endif
+}
+
+inline half3 CalculateEmission(half2 uv)
+{
+#ifndef _EMISSION
+	return 0;
+#else
+	return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
+}
+
+inline half3 CalculateEmissionFastBlinn(half2 uv)
+{
+#ifndef _EMISSION
+	return _EmissionColor.rgb;
+#else
+	return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
 #endif
 }
 

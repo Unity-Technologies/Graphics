@@ -36,7 +36,7 @@ half SpecularReflectivity(half3 specular)
 #endif
 }
 
-half3 MetallicSetup(float2 uv, Surface s, /*half3 albedo, half albedoAlpha, */out half3 specular, out half smoothness, out half oneMinusReflectivity)
+half3 MetallicSetup(float2 uv, SurfacePBR s, /*half3 albedo, half albedoAlpha, */out half3 specular, out half smoothness, out half oneMinusReflectivity)
 {
     //half2 metallicGloss = MetallicSpecGloss(uv, albedoAlpha).ra;
     //half metallic = metallicGloss.r;
@@ -54,7 +54,7 @@ half3 MetallicSetup(float2 uv, Surface s, /*half3 albedo, half albedoAlpha, */ou
     return s.Albedo * oneMinusReflectivity;
 }
 
-half3 SpecularSetup(float2 uv, Surface s, /*half3 albedo, half albedoAlpha, */out half3 specular, out half smoothness, out half oneMinusReflectivity)
+half3 SpecularSetup(float2 uv, SurfacePBR s, /*half3 albedo, half albedoAlpha, */out half3 specular, out half smoothness, out half oneMinusReflectivity)
 {
 	half4 specGloss = float4(s.Specular, s.Smoothness);// MetallicSpecGloss(uv, albedoAlpha);
 
@@ -137,10 +137,10 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
                 return o;
             }
 
-			Surface InitializeSurface()
+			SurfacePBR InitializeSurfacePBR()
 			{
-				Surface s;
-				s.Albedo = float3(1, 1, 1);
+				SurfacePBR s;
+				s.Albedo = float3(0.5, 0.5, 0.5);
 				s.Specular = float3(0, 0, 0);
 				s.Metallic = 0;
 				s.Normal = float3(.5, .5, 1);
@@ -149,13 +149,26 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
 				s.Occlusion = 1;
 				s.Alpha = 1;
 				return s;
-			}		
+			}
 
-			void DefineSurface(LightweightVertexOutput i, inout Surface s);
+			SurfaceFastBlinn InitializeSurfaceFastBlinn()
+			{
+				SurfaceFastBlinn s;
+				s.Diffuse = float3(0.5, 0.5, 0.5);
+				s.Specular = float3(0, 0, 0);
+				s.Normal = float3(.5, .5, 1);
+				s.Emission = 0;
+				s.Glossiness = 0;
+				s.Alpha = 1;
+				return s;
+			}
+
+			void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s);
+			void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s);
 
             half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
             {
-				Surface s = InitializeSurface();
+				SurfacePBR s = InitializeSurfacePBR();
 				DefineSurface(i, s);
 
                 float2 uv = i.uv01.xy;
@@ -233,28 +246,24 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
 
 			half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
             {
-                half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
-                half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
-                half alpha = diffuseAlpha.a * _Color.a;
+				SurfaceFastBlinn s = InitializeSurfaceFastBlinn();
+				DefineSurface(i, s);
 
                 // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
                 // due overdraw performance impact.
 #ifdef _ALPHATEST_ON
-                clip(alpha - _Cutoff);
+                clip(s.Alpha - _Cutoff);
 #endif
 
                 half3 normal;
-				half3 normalMap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
-                CalculateNormal(normalMap, i, normal);
-
-                half4 specularGloss;
-                SpecularGloss(i.uv01.xy, alpha, specularGloss);
+                CalculateNormal(s.Normal, i, normal);
 
                 half3 viewDir = i.viewDir.xyz;
                 float3 worldPos = i.posWS.xyz;
 
                 half3 lightDirection;
                 
+				half4 specularGloss = half4(s.Specular, s.Glossiness);
 #ifndef _MULTIPLE_LIGHTS
                 LightInput lightInput;
                 INITIALIZE_MAIN_LIGHT(lightInput);
@@ -262,11 +271,11 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
 #ifdef _SHADOWS
                 lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
-
+				
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-                half3 color = LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
+                half3 color = LightingBlinnPhong(s.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
 #else
-                half3 color = LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
+                half3 color = LightingLambert(s.Diffuse, lightDirection, normal, lightAtten) * lightInput.color;
 #endif
     
 #else
@@ -287,39 +296,35 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
 #endif
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-                    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
+                    color += LightingBlinnPhong(s.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
 #else
-                    color += LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightData.color;
+                    color += LightingLambert(s.Diffuse, lightDirection, normal, lightAtten) * lightData.color;
 #endif
                 }
 
 #endif // _MULTIPLE_LIGHTS
 
-#ifdef _EMISSION
-                color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;
-#else
-                color += _EmissionColor;
-#endif
+				color += CalculateEmissionFastBlinn(i.uv01.xy);
 
 #if defined(LIGHTMAP_ON)
-                color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
+                color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * s.Diffuse;
 #elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
-                color += i.fogCoord.yzw * diffuse;
+                color += i.fogCoord.yzw * s.Diffuse;
 #endif
 
 #if _REFLECTION_CUBEMAP
                 // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
                 half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-                color += texCUBE(_Cube, reflectVec).rgb * specularGloss.rgb;
+                color += texCUBE(_Cube, reflectVec).rgb * s.Specular;
 #elif defined(_REFLECTION_PROBE)
                 half3 reflectVec = reflect(-i.viewDir.xyz, normal);
                 half4 reflectionProbe = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectVec);
-                color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * specularGloss.rgb;
+                color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * s.Specular;
 #endif
 
                 UNITY_APPLY_FOG(i.fogCoord, color);
 
-                return OutputColor(color, alpha);
+                return OutputColor(color, s.Alpha);
             };
 
 #endif
