@@ -307,6 +307,54 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UndoRedoCollapseSlot()
+        {
+            CreateTestAsset();
+
+            Undo.IncrementCurrentGroup();
+            var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
+            var cross = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), crossDesc);
+
+            foreach (var slot in cross.inputSlots.Concat(cross.outputSlots))
+            {
+                Undo.IncrementCurrentGroup();
+                Assert.IsTrue(slot.collapsed);
+                slot.collapsed = false;
+            }
+
+            var totalSlotCount = cross.inputSlots.Concat(cross.outputSlots).Count();
+            for (int step = 1; step < totalSlotCount; step++)
+            {
+                Undo.PerformUndo();
+                var vfxOperatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().FirstOrDefault();
+                Assert.IsNotNull(vfxOperatorPresenter);
+
+                var slots = vfxOperatorPresenter.Operator.inputSlots.Concat(vfxOperatorPresenter.Operator.outputSlots).Reverse();
+                for (int i = 0; i < totalSlotCount; ++i)
+                {
+                    var slot = slots.ElementAt(i);
+                    Assert.AreEqual(i < step, slot.collapsed);
+                }
+            }
+
+            for (int step = 1; step < totalSlotCount; step++)
+            {
+                Undo.PerformRedo();
+                var vfxOperatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().FirstOrDefault();
+                Assert.IsNotNull(vfxOperatorPresenter);
+
+                var slots = vfxOperatorPresenter.Operator.inputSlots.Concat(vfxOperatorPresenter.Operator.outputSlots);
+                for (int i = 0; i < totalSlotCount; ++i)
+                {
+                    var slot = slots.ElementAt(i);
+                    Assert.AreEqual(i > step, slot.collapsed);
+                }
+            }
+
+            DestroyTestAsset();
+        }
+
+        [Test]
         public void UndoRedoMoveOperator()
         {
             CreateTestAsset();
