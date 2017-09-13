@@ -224,10 +224,10 @@ namespace UnityEditor.VFX
         protected List<VFXModel> m_Children;
 
         [SerializeField]
-        private Vector2 m_UIPosition;
+        protected Vector2 m_UIPosition;
 
         [SerializeField]
-        private bool m_UICollapsed;
+        protected bool m_UICollapsed;
     }
 
     abstract class VFXModel<ParentType, ChildrenType> : VFXModel

@@ -336,8 +336,8 @@ namespace UnityEditor.VFX
             {
                 clone.m_MasterData = null;
             }
-            clone.collapsed = collapsed;
-            clone.position = position;
+            clone.m_UICollapsed = m_UICollapsed;
+            clone.m_UIPosition = m_UIPosition;
 
             clone.m_Children.Clear();
             foreach (var child in children)
