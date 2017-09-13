@@ -84,6 +84,8 @@
             #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
+            #pragma multi_compile _ _ATTENUATION_TEXTURE
+
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
