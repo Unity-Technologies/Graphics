@@ -81,12 +81,12 @@ namespace UnityEditor.VFX.UI
 
                     if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
                     {
-                        UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
+                        UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
                     }
                     else
                     {
                         VFXSlot firstSlot = slot.children.First();
-                        UpdateSlots(newAnchors, firstSlot.children, expanded && slot.expanded, input);
+                        UpdateSlots(newAnchors, firstSlot.children, expanded && !slot.collapsed, input);
                     }
                 }
             }
@@ -121,18 +121,18 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public new bool  expanded
+        public bool expanded
         {
             get
             {
-                return slotContainer.expanded;
+                return !slotContainer.collapsed;
             }
 
             set
             {
-                if (value != slotContainer.expanded)
+                if (value != !slotContainer.collapsed)
                 {
-                    slotContainer.expanded = value;
+                    slotContainer.collapsed = !value;
                 }
             }
         }

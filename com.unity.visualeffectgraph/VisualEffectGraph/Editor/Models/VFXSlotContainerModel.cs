@@ -27,7 +27,8 @@ namespace UnityEditor.VFX
         void UpdateOutputs();
 
         void SetSettingValue(string name, object value);
-        bool expanded { get; set; }
+
+        bool collapsed { get; set; }
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -36,8 +37,6 @@ namespace UnityEditor.VFX
     {
         public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
-
-        public bool expanded { get; set; }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
         public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
