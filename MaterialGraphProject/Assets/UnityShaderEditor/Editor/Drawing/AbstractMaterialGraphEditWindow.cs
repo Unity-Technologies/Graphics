@@ -294,7 +294,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            masterNode.GetFullShader(GenerationMode.ForReals, "NotNeeded", out configuredTextures);
+            masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)
