@@ -9,14 +9,15 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         [SerializeField]
         AbstractSurfaceMasterNode m_Node;
 
-        public AbstractSurfaceMasterNode node
+        public override INode node
         {
             get { return m_Node; }
+            set { m_Node = (AbstractSurfaceMasterNode)value; }
         }
 
-        public override void Initialize(INode node)
+        public AbstractSurfaceMasterNode materialNode
         {
-            m_Node = (AbstractSurfaceMasterNode) node;
+            get { return m_Node; }
         }
     }
 }
