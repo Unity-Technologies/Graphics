@@ -328,7 +328,7 @@ namespace UnityEditor.VFX
                 if (from != null)
                 {
                     if (to == null)
-                        throw new Exception("ReproduceLinkedFlowFromHiearchy : Inconsistent hierarchy");
+                        throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Inconsistent hierarchy");
                     associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
                 }
             }
@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
                     {
                         var refContext = associativeContext.FirstOrDefault(o => o.Key == input);
                         if (refContext.Value == null)
-                            throw new Exception("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
+                            throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
                         InnerLink(refContext.Value, to, false);
                     }
                 }

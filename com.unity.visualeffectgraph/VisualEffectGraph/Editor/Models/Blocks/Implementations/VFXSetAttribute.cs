@@ -63,15 +63,19 @@ namespace UnityEditor.VFX
             var attribute = currentAttribute;
             var expression = new VFXAttributeExpression(attribute);
             var localAttributeName = GenerateLocalAttributeName(attribute.name);
+
             AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.valueType), localAttributeName), VFXSlot.Direction.kInput));
+
             if (inputSlots.Count > 1)
             {
+                //Remove previous deprecated slot (attribute may have changed) and restore link
                 CopyLink(inputSlots[0], inputSlots[1]);
                 inputSlots[0].UnlinkAll(false);
                 RemoveSlot(inputSlots[0]);
             }
 
-            if (inputSlots.Count >= 2)
+            //Unexpected behavior at this stage (only one input slot should be remained)
+            if (inputSlots.Count > 1)
                 throw new Exception("Unexpected behavior in VFXSetAttribute");
         }
     }

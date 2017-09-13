@@ -292,7 +292,7 @@ namespace UnityEditor.VFX
             SetSettingValue(name, value, true);
         }
 
-        public void SetSettingValue(string name, object value, bool notify)
+        private void SetSettingValue(string name, object value, bool notify)
         {
             GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
             if (notify)
