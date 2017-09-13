@@ -28,10 +28,10 @@ namespace UnityEditor.VFX
             {
                 var data = GetData();
 
-                if (integration != VFXIntegrationMode.None && data.AttributeExists(VFXAttribute.Velocity))
+                if (integration != VFXIntegrationMode.None && data.IsAttributeWritten(VFXAttribute.Velocity))
                     yield return CreateInstance<VFXEulerIntegration>();
 
-                if (GetData().AttributeExists(VFXAttribute.Lifetime))
+                if (GetData().IsAttributeWritten(VFXAttribute.Lifetime))
                     yield return CreateInstance<VFXAgeAndDie>();
             }
         }
