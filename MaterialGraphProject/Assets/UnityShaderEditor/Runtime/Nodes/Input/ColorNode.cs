@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Color")]
-    public class ColorNode : PropertyNode, IGeneratesBodyCode
+    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
         private bool m_HDR;
@@ -47,11 +48,6 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Color; }
-        }
-
         public Color color
         {
             get { return m_Color; }
@@ -68,35 +64,35 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, color, m_HDR ? ColorPropertyChunk.ColorType.HDR : ColorPropertyChunk.ColorType.Default , PropertyChunk.HideState.Visible));
-        }
-
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "4 " + propertyName + ";", true);
+            if (!generationMode.IsPreview())
+                return;
+
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            // we only need to generate node code if we are using a constant... otherwise we can just refer to the property :)
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
+            if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
         }
 
-        public override PreviewProperty GetPreviewProperty()
+        public override string GetVariableNameForSlot(int slotId)
         {
-            return new PreviewProperty
+            return GetVariableNameForNode();
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            properties.Add(new PreviewProperty
             {
-                m_Name = propertyName,
+                m_Name = GetVariableNameForNode(),
                 m_PropType = PropertyType.Color,
                 m_Color = color
-            };
+            });
         }
     }
 }

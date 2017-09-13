@@ -6,7 +6,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class TextureLODContolPresenter : GraphControlPresenter
+   /* class TextureLODContolPresenter : GraphControlPresenter
     {
         private string[] m_TextureTypeNames;
         private string[] textureTypeNames
@@ -47,5 +47,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphControlPresenter> { instance };
         }
-    }
+    }*/
 }

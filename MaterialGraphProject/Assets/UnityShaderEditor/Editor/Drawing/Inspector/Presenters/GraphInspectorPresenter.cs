@@ -20,6 +20,11 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         int m_SelectionCount;
 
         TypeMapper m_TypeMapper;
+       
+        [SerializeField]
+        private int version;
+
+        public AbstractMaterialGraph graph { get; private set; }
 
         public AbstractNodeEditorPresenter editor
         {
@@ -37,9 +42,16 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             get { return m_SelectionCount; }
             set { m_SelectionCount = value; }
         }
-
-        public void Initialize(string graphName)
+        
+        public void Dirty()
         {
+            version++;
+        }
+
+
+         public void Initialize(AbstractMaterialGraph igraph, string graphName)
+        {
+            graph = igraph;
             m_Title = graphName;
             m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorPresenter), typeof(StandardNodeEditorPresenter))
             {

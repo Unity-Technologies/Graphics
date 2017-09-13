@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Vector/Vector 1")]
-    public class Vector1Node : PropertyNode, IGeneratesBodyCode
+    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
         private float m_Value;
@@ -27,11 +28,6 @@ namespace UnityEngine.MaterialGraph
         {
             AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-        }
-
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Float; }
         }
 
         public float value
@@ -79,50 +75,35 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed)
-            {
-                switch (m_floatType)
-                {
-                    case FloatPropertyChunk.FloatType.Float:
-                        visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
-                        break;
-                    case FloatPropertyChunk.FloatType.Toggle:
-                        visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, m_floatType, PropertyChunk.HideState.Visible));
-                        break;
-                    case FloatPropertyChunk.FloatType.Range:
-                        visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, m_floatType, m_rangeValues, PropertyChunk.HideState.Visible));
-                        break;
-                    case FloatPropertyChunk.FloatType.PowerSlider:
-                        visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, m_floatType, m_rangeValues, PropertyChunk.HideState.Visible));
-                        break;
-                }
-            }
-        }
-
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + " " + propertyName + ";", true);
+            if (!generationMode.IsPreview())
+                return;
+
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
+            if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + propertyName + " = " + m_Value + ";", true);
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value + ";", true);
         }
 
-        public override PreviewProperty GetPreviewProperty()
+        public override string GetVariableNameForSlot(int slotId)
         {
-            return new PreviewProperty
+            return GetVariableNameForNode();
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            properties.Add(new PreviewProperty()
             {
-                m_Name = propertyName,
+                m_Name = GetVariableNameForNode(),
                 m_PropType = PropertyType.Float,
                 m_Float = m_Value
-            };
+            });
         }
     }
 }
