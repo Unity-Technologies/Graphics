@@ -1,5 +1,5 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
-Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
+Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
@@ -42,11 +42,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
         [Enum(UV0,0,UV1,1)] _UVSec("UV Set for secondary textures", Float) = 0
 
-            // Blending state
-            [HideInInspector] _Mode("__mode", Float) = 0.0
-            [HideInInspector] _SrcBlend("__src", Float) = 1.0
-            [HideInInspector] _DstBlend("__dst", Float) = 0.0
-            [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        // Blending state
+        [HideInInspector] _Mode("__mode", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
     }
 
     SubShader
@@ -88,7 +88,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
             //#include "LightweightPipelineLighting.cginc"    
 
 			#pragma vertex LightweightVertex
-            #pragma fragment LightweightFragmentLegacy
+            #pragma fragment LightweightFragmentFastBlinn
 
             ENDCG
         }
