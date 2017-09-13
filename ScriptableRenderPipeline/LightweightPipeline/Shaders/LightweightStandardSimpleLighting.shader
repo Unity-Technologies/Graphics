@@ -1,5 +1,5 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
-Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
+Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
@@ -170,7 +170,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
                 float3 worldPos = i.posWS.xyz;
 
                 half3 lightDirection;
-                
+
 #ifndef _MULTIPLE_LIGHTS
                 LightInput lightInput;
                 INITIALIZE_MAIN_LIGHT(lightInput);
@@ -184,7 +184,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 #else
                 half3 color = LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
 #endif
-    
+
 #else
                 half3 color = half3(0, 0, 0);
 
