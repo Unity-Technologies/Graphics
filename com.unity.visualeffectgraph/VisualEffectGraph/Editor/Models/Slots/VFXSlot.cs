@@ -396,10 +396,11 @@ namespace UnityEditor.VFX
                         KeyValuePair<VFXSlot, VFXSlot> refSlot;
                         if (!associativeSlotDictionnary.TryGetValue(f, out refSlot))
                         {
-                            throw new InvalidOperationException("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
+                            Debug.LogError("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
+                            return null;
                         }
                         return refSlot.Value;
-                    }).ToList();
+                    }).Where(o => o != null).ToList();
                 });
         }
 
