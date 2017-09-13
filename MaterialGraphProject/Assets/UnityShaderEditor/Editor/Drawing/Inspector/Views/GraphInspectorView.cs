@@ -50,12 +50,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 return;
             }
 
-            var presenterHash = 17;
-            unchecked
-            {
-                presenterHash = presenterHash * 31 + (presenter.editor == null ? 79 : presenter.editor.GetHashCode());
-                presenterHash = presenterHash * 31 + presenter.selectionCount;
-            }
+            var presenterHash = UIUtilities.GetHashCode(presenter.editor, presenter.selectionCount);
 
             m_Title.text = presenter.title;
 

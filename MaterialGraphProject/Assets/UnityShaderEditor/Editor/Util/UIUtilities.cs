@@ -21,5 +21,15 @@ namespace UnityEditor.Graphing.Util
 
             return true;
         }
+
+        public static int GetHashCode(params object[] objects)
+        {
+            var hashCode = 17;
+            foreach (var @object in objects)
+            {
+                hashCode = hashCode * 31 + (@object == null ? 79 : @object.GetHashCode());
+            }
+            return hashCode;
+        }
     }
 }
