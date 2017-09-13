@@ -147,6 +147,11 @@ uint3 ConvertFloatToSortableUint(float3 f)
     res.z = ConvertFloatToSortableUint(f.z);
     return res;
 }
+
+/////////////////////////////
+// Random number generator //
+/////////////////////////////
+
 uint WangHash(uint seed)
 {
     seed = (seed ^ 61) ^ (seed >> 16);
@@ -189,6 +194,10 @@ float4 FixedRand4(uint baseSeed)
     return r;
 }
 
+///////////////////////////
+// Color transformations //
+///////////////////////////
+
 float3 HUEtoRGB(in float H)
 {
     float R = abs(H * 6 - 3) - 1;
@@ -216,4 +225,37 @@ float3 RGBtoHSV(in float3 RGB)
 float3 HSVtoRGB(in float3 HSV)
 {
     return ((HUEtoRGB(HSV.x) - 1) * HSV.y + 1) * HSV.z;
+}
+
+///////////////////
+// Baked texture //
+///////////////////
+
+Texture2D bakedTexture;
+SamplerState samplerbakedTexture;
+
+float HalfTexelOffset(float f)
+{
+    const uint kTextureWidth = 128;
+    float a = (kTextureWidth - 1.0f) / kTextureWidth;
+    float b = 0.5f / kTextureWidth;
+    return (a * f) + b;
+}
+
+float4 SampleGradient(float v,float u)
+{
+    float uv = float2(HalfTexelOffset(saturate(u)),v);
+    return bakedTexture.SampleLevel(samplerbakedTexture,uv,0);
+}
+
+float SampleCurve(float4 curveData,float u)
+{
+    float uNorm = (u * curveData.x) + curveData.y;
+    switch(asuint(curveData.w) >> 2)
+    {
+        case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f,uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
+        case 2: uNorm = HalfTexelOffset(frac(max(0.0f,uNorm))); break; // clamp start
+        case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
+    }
+    return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }

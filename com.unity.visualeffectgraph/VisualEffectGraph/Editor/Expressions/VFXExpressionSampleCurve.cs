@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("sampleCurve({0},{1})", parents[0], parents[1]);
+            return string.Format("SampleCurve({0},{1})", parents[0], parents[1]);
         }
     }
 }
