@@ -60,11 +60,13 @@ namespace UnityEditor.VFX.UI
             SetVFXAsset(m_VFXAsset != null ? m_VFXAsset : new VFXAsset(), true);
             InitializeUndoStack();
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord += WillFlushUndoRecord;
         }
 
         protected void OnDisable()
         {
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord -= WillFlushUndoRecord;
         }
 
         public VFXView View

@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
         protected override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
-            if (cause == InvalidationCause.kSettingChanged || inputSlots.Count == 0)
+            if (cause == InvalidationCause.kSettingChanged)
             {
                 UpdateInputFromSettings();
             }
@@ -63,16 +63,8 @@ namespace UnityEditor.VFX
             var attribute = currentAttribute;
             var expression = new VFXAttributeExpression(attribute);
             var localAttributeName = GenerateLocalAttributeName(attribute.name);
-            if (inputSlots.Count > 0)
-            {
-                if (inputSlots[0].name == localAttributeName)
-                {
-                    return;
-                }
-            }
-
             AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.valueType), localAttributeName), VFXSlot.Direction.kInput));
-            if (inputSlots.Count == 2)
+            if (inputSlots.Count > 1)
             {
                 CopyLink(inputSlots[0], inputSlots[1]);
                 inputSlots[0].UnlinkAll(false);
