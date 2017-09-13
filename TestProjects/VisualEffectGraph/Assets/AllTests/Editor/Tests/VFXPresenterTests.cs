@@ -437,6 +437,62 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UndoRedoOperatorLinkToBlock()
+        {
+            CreateTestAsset();
+
+            Func<VFXContextPresenter> fnFirstContextPresenter = delegate()
+                {
+                    return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault();
+                };
+
+            Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
+                {
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
+                    return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+                };
+
+            Func<VFXBlockPresenter> fnFirstBlockPresenter = delegate()
+                {
+                    return m_ViewPresenter.allChildren.OfType<VFXBlockPresenter>().FirstOrDefault();
+                };
+
+            Func<VFXDataEdgePresenter> fnFirstEdgePresenter = delegate()
+                {
+                    return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().FirstOrDefault();
+                };
+
+            Undo.IncrementCurrentGroup();
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
+            var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name.Contains("Attribute"));
+
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), cosDesc);
+            var update = m_ViewPresenter.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
+            var blockAttribute = blockAttributeDesc.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", "color");
+            fnFirstContextPresenter().AddBlock(0, blockAttribute);
+
+            var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenter.input = fnFindPresenter(typeof(VFXOperatorCosine)).outputAnchors[0];
+            edgePresenter.output = fnFirstBlockPresenter().inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenter);
+            Undo.IncrementCurrentGroup();
+
+            m_ViewPresenter.RemoveElement(fnFirstEdgePresenter());
+            Assert.IsNull(fnFirstEdgePresenter());
+            Undo.IncrementCurrentGroup();
+
+            Undo.PerformUndo();
+            Assert.IsNotNull(fnFirstEdgePresenter());
+
+            Undo.PerformRedo();
+            Assert.IsNull(fnFirstEdgePresenter());
+
+            DestroyTestAsset();
+        }
+
+        [Test]
         public void UndoRedoOperatorLinkAdvanced()
         {
             Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
@@ -621,9 +677,10 @@ namespace UnityEditor.VFX.Test
             var contextUpdate = m_ViewPresenter.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextPresenter> fnContextPresenter = delegate()
                 {
-                    return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault() as VFXContextPresenter;
+                    var allContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().ToArray();
+                    return allContextPresenter.FirstOrDefault() as VFXContextPresenter;
                 };
-
+            Assert.IsNotNull(fnContextPresenter());
             //Creation
             Undo.IncrementCurrentGroup();
             fnContextPresenter().AddBlock(0, blockDesc.CreateInstance());
@@ -640,6 +697,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, fnContextPresenter().context.children.Count());
 
             Undo.PerformUndo();
+            Assert.IsNotNull(fnContextPresenter());
             Assert.AreEqual(1, fnContextPresenter().context.children.Count());
             Assert.IsInstanceOf(typeof(VFXAllType), fnContextPresenter().context.children.First());
 

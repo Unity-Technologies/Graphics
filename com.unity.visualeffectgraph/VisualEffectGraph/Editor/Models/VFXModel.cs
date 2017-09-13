@@ -56,17 +56,16 @@ namespace UnityEditor.VFX
 
         public virtual T Clone<T>() where T : VFXModel
         {
-            T clone = (T)Instantiate(this);
+            T clone = CreateInstance(GetType()) as T;
 
-            clone.m_Children.Clear();
             foreach (var child in children)
             {
                 var cloneChild = child.Clone<VFXModel>();
-                clone.m_Children.Add(cloneChild);
-                cloneChild.m_Parent = clone;
+                clone.AddChild(cloneChild, -1, false);
             }
 
-            clone.m_Parent = null;
+            clone.m_UICollapsed = m_UICollapsed;
+            clone.m_UIPosition = m_UIPosition;
             return clone;
         }
 
@@ -103,10 +102,7 @@ namespace UnityEditor.VFX
                     throw new ArgumentException("Cannot attach " + model + " to " + this);
 
                 model.Detach(notify && model.m_Parent != this); // Dont notify if the owner is already this to avoid double invalidation
-
                 realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
-
-                //AssetDatabase.AddObjectToAsset(model, this);
 
                 m_Children.Insert(realIndex, model);
                 model.m_Parent = this;

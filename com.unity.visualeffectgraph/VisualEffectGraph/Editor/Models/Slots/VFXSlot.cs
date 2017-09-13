@@ -320,17 +320,30 @@ namespace UnityEditor.VFX
 
         public override T Clone<T>()
         {
-            var clone = base.Clone<T>() as VFXSlot;
+            var clone = CreateInstance(GetType()) as VFXSlot;
+
             clone.m_LinkedSlots.Clear();
+            clone.m_Property = m_Property;
+            clone.m_Direction = m_Direction;
             if (IsMasterSlot())
             {
                 clone.m_MasterData = new MasterData();
                 clone.m_MasterData.m_Owner = null;
                 clone.m_MasterData.m_Value = new VFXSerializableObject(property.type, value);
+                clone.m_MasterSlot = clone;
             }
             else
             {
                 clone.m_MasterData = null;
+            }
+            clone.collapsed = collapsed;
+            clone.position = position;
+
+            clone.m_Children.Clear();
+            foreach (var child in children)
+            {
+                var cloneChild = child.Clone<VFXSlot>();
+                clone.AddChild(cloneChild, -1, false);
             }
             return clone as T;
         }
@@ -383,7 +396,7 @@ namespace UnityEditor.VFX
                         KeyValuePair<VFXSlot, VFXSlot> refSlot;
                         if (!associativeSlotDictionnary.TryGetValue(f, out refSlot))
                         {
-                            /*throw new Exception*/ Debug.LogError("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
+                            throw new InvalidOperationException("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
                         }
                         return refSlot.Value;
                     }).ToList();

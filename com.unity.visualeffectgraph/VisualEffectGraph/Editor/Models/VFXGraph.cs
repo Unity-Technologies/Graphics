@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
             VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
             VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
 
-            var clone = Instantiate(this);
+            var clone = CreateInstance(GetType()) as VFXGraph;
             clone.m_Children = new List<VFXModel>();
             foreach (var model in copy)
             {
