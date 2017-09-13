@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -15,16 +16,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Disc = 6,
     }
 
-    public enum LightArchetype { Punctual, Area };
+    // Deprecated / Obsolete - TODO: Remove once project have done the migration to the new LightEditor
+    public enum LightArchetype { Punctual, Area, Null }; // Null value have been added to detect that we have updated the light correctly.
 
     public enum SpotLightShape { Cone, Pyramid, Box };
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
-    public class HDAdditionalLightData : MonoBehaviour
+    public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [Range(0.0f, 100.0f)]
+        [FormerlySerializedAs("m_innerSpotPercent")]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
         public float GetInnerSpotPercent01()
@@ -32,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Mathf.Clamp(m_InnerSpotPercent, 0.0f, 100.0f) / 100.0f;
         }
 
-        [Range(0.0f, 1.0f)]
+        [Range(0.0f, 1.0f)]        
         public float lightDimmer = 1.0f;
 
         // Not used for directional lights.
@@ -87,9 +90,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Rectangle/projector lights
         [Range(0.0f, 20.0f)]
+        [FormerlySerializedAs("lightLength")]
         public float shapeWidth = 0.5f;
 
         // Only for Sphere/Disc
+        [FormerlySerializedAs("lightWidth")]
         public float shapeRadius = 0.0f;
 
         // Only for Spot/Point - use to cheaply fake specular spherical area light
@@ -102,7 +107,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is specific for the LightEditor GUI and not use at runtime
         public bool useOldInspector = false;
         public bool showAdditionalSettings = true;
-        public bool castShadows = false;
+
+        // Deprecated / Obsolete - TODO: Remove once project have done the migration to the new LightEditor
+        private LightArchetype archetype = LightArchetype.Null;
+
+        // Deprecated / Obsolete - TODO: Remove once project have done the migration to the new LightEditor
+        public void OnBeforeSerialize()
+        {
+
+        }
+
+        // Deprecated / Obsolete - TODO: Remove once project have done the migration to the new LightEditor
+
+        public void OnAfterDeserialize()
+        {
+            if (archetype != LightArchetype.Null)
+            {
+                Light light = gameObject.GetComponent<Light>();
+                
+                if (archetype == LightArchetype.Punctual)
+                {
+                    switch (light.type)
+                    {
+                        case LightType.Spot:
+                            m_LightShape = LightShape.Spot;
+                            break;
+                        case LightType.Directional:
+                            m_LightShape = LightShape.Directional;
+                            break;
+                        case LightType.Point:
+                            m_LightShape = LightShape.Point;
+                            break; 
+                    }
+                }
+                else if (archetype == LightArchetype.Area)
+                {
+                    switch (light.type)
+                    {
+                        case LightType.Spot:
+                            m_LightShape = LightShape.Spot;
+                            break;
+                        case LightType.Directional:
+                            m_LightShape = LightShape.Directional;
+                            break;
+                        case LightType.Point:
+                            m_LightShape = LightShape.Point;
+                            break; 
+                    }
+                }
+
+                UnityEditor.EditorUtility.SetDirty(this);
+                archetype = LightArchetype.Null;
+            }
+
+        }
 
 #if UNITY_EDITOR
 

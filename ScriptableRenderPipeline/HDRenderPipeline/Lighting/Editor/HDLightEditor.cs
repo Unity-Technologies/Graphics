@@ -56,15 +56,83 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Extra data for GUI only
         SerializedProperty m_UseOldInspector;
         SerializedProperty m_ShowAdditionalSettings;        
-        SerializedProperty m_CastShadows;
 
         SerializedProperty m_ShadowDimmer;
         SerializedProperty m_ShadowFadeDistance;
         SerializedProperty m_ShadowCascadeCount;
         SerializedProperty m_ShadowCascadeRatios;
+        SerializedProperty m_ShadowCascadeBorders;
         SerializedProperty m_ShadowResolution;
 
         private Light light { get { return target as Light; } }
+
+        // Note: There is no Lightmapping enum, the code C# side must use int
+        // Light.h file: int m_Lightmapping; ///< enum { Dynamic=4, Stationary=1, Static=2 }
+        // Lighting.h file: 
+        // enum LightmapBakeType (not accessible in C#)
+        //{
+        //    kLightRealtime  = 1 << 2,   // Light is realtime
+        //    kLightBaked     = 1 << 1,   // light will always be fully baked
+        //    kLightMixed     = 1 << 0,   // depends on selected LightmapMixedBakeMode
+        //};
+        // This mean that m_Lightmapping.enumValueIndex is enum { Stationary=0, Static=1, Dynamic=2 }
+        enum LightMappingType
+        {
+            Stationary = 0,
+            Static=1, 
+            Dynamic=2
+        }
+
+        class Styles
+        {
+            /*
+            public readonly GUIContent Type = EditorGUIUtility.TextContent("Type|Specifies the current type of light. Possible types are Directional, Spot, Point, and Area lights.");
+            public readonly GUIContent Range = EditorGUIUtility.TextContent("Range|Controls how far the light is emitted from the center of the object.");
+            public readonly GUIContent SpotAngle = EditorGUIUtility.TextContent("Spot Angle|Controls the angle in degrees at the base of a Spot light's cone.");
+            public readonly GUIContent Color = EditorGUIUtility.TextContent("Color|Controls the color being emitted by the light.");
+            public readonly GUIContent UseColorTemperature = EditorGUIUtility.TextContent("Use color temperature mode|Cho0se between RGB and temperature mode for light's color.");
+            public readonly GUIContent ColorFilter = EditorGUIUtility.TextContent("Filter|A colored gel can be put in front of the light source to tint the light.");
+            public readonly GUIContent ColorTemperature = EditorGUIUtility.TextContent("Temperature|Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
+            public readonly GUIContent Intensity = EditorGUIUtility.TextContent("Intensity|Controls the brightness of the light. Light color is multiplied by this value.");
+            public readonly GUIContent LightmappingMode = EditorGUIUtility.TextContent("Mode|Specifies the light mode used to determine if and how a light will be baked. Possible modes are Baked, Mixed, and Realtime.");
+            public readonly GUIContent LightBounceIntensity = EditorGUIUtility.TextContent("Indirect Multiplier|Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
+            public readonly GUIContent ShadowType = EditorGUIUtility.TextContent("Shadow Type|Specifies whether Hard Shadows, Soft Shadows, or No Shadows will be cast by the light.");
+            //realtime
+            public readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TextContent("Realtime Shadows|Settings for realtime direct shadows.");
+            public readonly GUIContent ShadowStrength = EditorGUIUtility.TextContent("Strength|Controls how dark the shadows cast by the light will be.");
+            public readonly GUIContent ShadowResolution = EditorGUIUtility.TextContent("Resolution|Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
+            public readonly GUIContent ShadowBias = EditorGUIUtility.TextContent("Bias|Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
+            public readonly GUIContent ShadowNormalBias = EditorGUIUtility.TextContent("Normal Bias|Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
+            public readonly GUIContent ShadowNearPlane = EditorGUIUtility.TextContent("Near Plane|Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
+            //baked
+            public readonly GUIContent BakedShadowRadius = EditorGUIUtility.TextContent("Baked Shadow Radius|Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
+            public readonly GUIContent BakedShadowAngle = EditorGUIUtility.TextContent("Baked Shadow Angle|Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
+
+            public readonly GUIContent Cookie = EditorGUIUtility.TextContent("Cookie|Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
+            public readonly GUIContent CookieSize = EditorGUIUtility.TextContent("Cookie Size|Controls the size of the cookie mask currently assigned to the light.");
+            public readonly GUIContent DrawHalo = EditorGUIUtility.TextContent("Draw Halo|When enabled, draws a spherical halo of light with a radius equal to the lights range value.");
+            public readonly GUIContent Flare = EditorGUIUtility.TextContent("Flare|Specifies the flare object to be used by the light to render lens flares in the scene.");
+            public readonly GUIContent RenderMode = EditorGUIUtility.TextContent("Render Mode|Specifies the importance of the light which impacts lighting fidelity and performance. Options are Auto, Important, and Not Important. This only affects Forward Rendering");
+            public readonly GUIContent CullingMask = EditorGUIUtility.TextContent("Culling Mask|Specifies which layers will be affected or excluded from the light's effect on objects in the scene.");
+
+            public readonly GUIContent iconRemove = EditorGUIUtility.IconContent("Toolbar Minus", "Remove command buffer");
+            public readonly GUIStyle invisibleButton = "InvisibleButton";
+
+            public readonly GUIContent AreaWidth = EditorGUIUtility.TextContent("Width|Controls the width in units of the area light.");
+            public readonly GUIContent AreaHeight = EditorGUIUtility.TextContent("Height|Controls the height in units of the area light.");
+
+            public readonly GUIContent BakingWarning = EditorGUIUtility.TextContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
+            public readonly GUIContent IndirectBounceShadowWarning = EditorGUIUtility.TextContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
+            public readonly GUIContent CookieWarning = EditorGUIUtility.TextContent("Cookie textures for spot lights should be set to clamp, not repeat, to avoid artifacts.");
+            public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
+            */
+        }
+
+        static Styles s_Styles;
+
+        // Should match same colors in GizmoDrawers.cpp!
+        static Color kGizmoLight = new Color(254 / 255f, 253 / 255f, 136 / 255f, 128 / 255f);
+        static Color kGizmoDisabledLight = new Color(135 / 255f, 116 / 255f, 50 / 255f, 128 / 255f);
 
         private void OnEnable()
         {
@@ -122,14 +190,162 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Editor only
             m_UseOldInspector = additionalDataSerializedObject.FindProperty("useOldInspector");
             m_ShowAdditionalSettings = additionalDataSerializedObject.FindProperty("showAdditionalSettings");
-            m_CastShadows = additionalDataSerializedObject.FindProperty("castShadows");
 
             // Shadow data
             m_ShadowDimmer = shadowDataSerializedObject.FindProperty("shadowDimmer");
             m_ShadowFadeDistance = shadowDataSerializedObject.FindProperty("shadowFadeDistance");
             m_ShadowCascadeCount = shadowDataSerializedObject.FindProperty("shadowCascadeCount");
             m_ShadowCascadeRatios = shadowDataSerializedObject.FindProperty("shadowCascadeRatios");
+            m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
             m_ShadowResolution = shadowDataSerializedObject.FindProperty("shadowResolution");                        
+        }
+
+        void LigthShapeGUI()
+        {
+            EditorGUILayout.PropertyField(m_LightShape);
+
+            // LightShape is HD specific, it need to drive LightType from the original LightType when it make sense, so the GI is still in sync with the light shape
+            switch ((LightShape)m_LightShape.enumValueIndex)
+            {
+                case LightShape.Directional:
+                    m_Type.enumValueIndex = (int)LightType.Directional;
+                    break;
+
+                case LightShape.Point:
+                    m_Type.enumValueIndex = (int)LightType.Point;
+                    EditorGUILayout.PropertyField(m_MaxSmoothness);
+                    break;
+
+                case LightShape.Spot:
+                    m_Type.enumValueIndex = (int)LightType.Spot;
+                    EditorGUILayout.PropertyField(m_SpotLightShape);
+                    //Cone Spot
+                    if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Cone)
+                    {
+                        EditorGUILayout.Slider(m_SpotAngle, 1f, 179f);
+                        EditorGUILayout.Slider(m_SpotInnerAngle, 0f, 100f);
+                    }
+                    // TODO : replace with angle and ratio
+                    if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Pyramid)
+                    {
+                        EditorGUILayout.Slider(m_ShapeLength, 0.01f, 10);
+                        EditorGUILayout.Slider(m_ShapeWidth, 0.01f, 10);
+                    }
+                    if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Box)
+                    {
+                        EditorGUILayout.PropertyField(m_ShapeLength);
+                        EditorGUILayout.PropertyField(m_ShapeWidth);
+                    }
+                    EditorGUILayout.PropertyField(m_MaxSmoothness);
+                    break;
+
+                case LightShape.Rectangle:
+                    m_Type.enumValueIndex = (int)LightType.Area;
+                    EditorGUILayout.PropertyField(m_ShapeLength);
+                    EditorGUILayout.PropertyField(m_ShapeWidth);
+                    m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
+                    m_AreaSizeY.floatValue = m_ShapeWidth.floatValue;
+                    m_ShadowsType.enumValueIndex = (int)LightShadows.None;
+                    break;
+
+                case LightShape.Line:
+                    m_Type.enumValueIndex = (int)LightType.Area;
+                    EditorGUILayout.PropertyField(m_ShapeLength);
+                    m_ShapeWidth.floatValue = 0;
+                    // Fake line with a small rectangle in vanilla unity for GI
+                    m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
+                    m_AreaSizeY.floatValue = 0.01f;
+                    break;
+
+                default:
+                    Debug.Assert(false, "Not implemented light type");
+                    break;
+            }
+        }
+
+        void LightGUI()
+        {
+            EditorGUILayout.PropertyField(m_Color);
+            EditorGUILayout.PropertyField(m_Intensity);
+            EditorGUILayout.PropertyField(m_BounceIntensity);
+            EditorGUILayout.PropertyField(m_Range);
+            EditorGUILayout.PropertyField(m_Lightmapping);
+            EditorGUILayout.PropertyField(m_Cookie);
+            if (m_Cookie.objectReferenceValue != null && m_Type.enumValueIndex == 1)
+            {
+                EditorGUILayout.PropertyField(m_CookieSize);
+                m_ShapeLength.floatValue = m_CookieSize.floatValue;
+                m_ShapeWidth.floatValue = m_CookieSize.floatValue;
+            }
+            EditorGUILayout.PropertyField(m_ApplyRangeAttenuation);
+
+            // Do not display option for shadow if we are fully bake
+            if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+            {
+                EditorGUILayout.PropertyField(m_ShadowsType);
+            }
+        }
+
+        void ShadowsGUI()
+        {
+            if (m_ShadowsType.enumValueIndex != (int)LightShadows.None)
+            {
+                if (m_Lightmapping.enumValueIndex == (int)LightMappingType.Static)
+                {
+                    switch ((LightType)m_Type.enumValueIndex)
+                    {
+                        case LightType.Directional:
+                            EditorGUILayout.PropertyField(m_BakedShadowAngle, new GUIContent("Bake shadow angle"));
+                            break;
+                        case LightType.Spot:
+                        case LightType.Point:
+                            EditorGUILayout.PropertyField(m_BakedShadowRadius, new GUIContent("Bake shadow radius"));
+                            break;
+                    }
+                }
+                else 
+                {
+                    EditorGUILayout.PropertyField(m_ShadowResolution);
+                    EditorGUILayout.Slider(m_ShadowsBias, 0.001f, 1);
+                    EditorGUILayout.Slider(m_ShadowsNormalBias, 0.001f, 1);
+                    EditorGUILayout.Slider(m_ShadowsNearPlane, 0.01f, 10);
+                }
+            }
+        }
+
+        void ShadowsCascadeGUI()
+        {
+            UnityEditor.EditorGUI.BeginChangeCheck();
+            EditorGUILayout.IntSlider(m_ShadowCascadeCount, 1, 4);
+            if (UnityEditor.EditorGUI.EndChangeCheck())
+            {
+                m_ShadowCascadeRatios.arraySize = m_ShadowCascadeCount.intValue - 1;
+                m_ShadowCascadeBorders.arraySize = m_ShadowCascadeCount.intValue;
+            }
+
+            for (int i = 0; i < m_ShadowCascadeRatios.arraySize; i++)
+            {
+                UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeRatios.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Cascade " + i));
+            }
+        }
+
+        void AdditionalSettingsGUI()
+        {
+            EditorGUILayout.LabelField(new GUIContent("General"), EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_CullingMask);
+
+            EditorGUILayout.LabelField(new GUIContent("Light"), EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_AffectDiffuse);
+            EditorGUILayout.PropertyField(m_AffectSpecular);
+            EditorGUILayout.PropertyField(m_FadeDistance);
+            EditorGUILayout.PropertyField(m_LightDimmer);
+
+            if (m_ShadowsType.enumValueIndex != (int)LightShadows.None && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+            {
+                EditorGUILayout.LabelField(new GUIContent("Shadows"), EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(m_ShadowFadeDistance);
+                EditorGUILayout.PropertyField(m_ShadowDimmer);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -160,32 +376,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 serializedObject.ApplyModifiedProperties();
                 // It is required to save m_UseOldInspector value
                 additionalDataSerializedObject.ApplyModifiedProperties();
-                shadowDataSerializedObject.ApplyModifiedProperties();
+                shadowDataSerializedObject.ApplyModifiedProperties(); // Should not be needed but if we do some change, could be, so let it here.
                 return;
             }
 
             ApplyAdditionalComponentsVisibility(true);
 
-            // Light features
-            EditorGUI.indentLevel++;
-            EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
-            EditorLightUtilities.DrawSplitter();
-           // m_affectDiffuse.isExpanded = EditorLightUtilities.DrawHeaderFoldout("Light features", m_AffectDiffuse.isExpanded);
+            // Allow to display the arrow for reduce/expanfd correctly
             EditorGUI.indentLevel = 1;
 
-            //Resolve shadows
-            m_CastShadows.boolValue = m_ShadowsType.enumValueIndex == 0 ? false : true;
+            // Light features
+            // EditorGUI.indentLevel++;
+            // EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
+            // EditorLightUtilities.DrawSplitter();
+            // m_affectDiffuse.isExpanded = EditorLightUtilities.DrawHeaderFoldout("Light features", m_AffectDiffuse.isExpanded);
+            
 
-            /*
-            if (m_AffectDiffuse.isExpanded)
-            {
-                EditorGUILayout.PropertyField(m_AffectDiffuse, new GUIContent("Diffuse"), GUILayout.MaxWidth(EditorGUIUtility.labelWidth + 30));
-                var AffectDiffuseRect = GUILayoutUtility.GetLastRect();
-                var AffectSpecularRect = new Rect(EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.y, EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.height);
-                EditorGUI.PropertyField(AffectSpecularRect, m_AffectSpecular, new GUIContent("Specular"));
-                EditorGUILayout.PropertyField(m_CastShadows, new GUIContent("Shadows"));
-            }
-            */
+            // if (m_AffectDiffuse.isExpanded)
+            // {
+            //    EditorGUILayout.PropertyField(m_AffectDiffuse, new GUIContent("Diffuse"), GUILayout.MaxWidth(EditorGUIUtility.labelWidth + 30));
+            //    var AffectDiffuseRect = GUILayoutUtility.GetLastRect();
+            //    var AffectSpecularRect = new Rect(EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.y, EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.height);
+            //    EditorGUI.PropertyField(AffectSpecularRect, m_AffectSpecular, new GUIContent("Specular"));
+            //}
 
 
             // LightShape
@@ -196,65 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_Type.isExpanded)
             {
-                EditorGUILayout.PropertyField(m_LightShape);
-
-                // LightShape is HD specific, it need to drive Lighttype from the original lighttype when it make sense, so the GI is still in sync with the light shape
-                switch ((LightShape)m_LightShape.enumValueIndex)
-                {
-                    case LightShape.Directional:
-                        m_Type.enumValueIndex = (int)LightType.Directional;
-                        break;
-
-                    case LightShape.Point:
-                        m_Type.enumValueIndex = (int)LightType.Point;
-                        EditorGUILayout.PropertyField(m_MaxSmoothness);
-                        break;
-
-                    case LightShape.Spot:
-                        m_Type.enumValueIndex = (int)LightType.Spot;
-                        EditorGUILayout.PropertyField(m_SpotLightShape);                        
-                        //Cone Spot
-                        if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Cone)
-                        {                            
-                            EditorGUILayout.Slider(m_SpotAngle, 1f, 179f);
-                            EditorGUILayout.Slider(m_SpotInnerAngle, 0f, 100f);
-                        }
-                        // TODO : replace with angle and ratio
-                        if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Pyramid)
-                        {
-                            EditorGUILayout.Slider(m_ShapeLength, 0.01f, 10);
-                            EditorGUILayout.Slider(m_ShapeWidth, 0.01f, 10);
-                        }
-                        if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Box)
-                        {
-                            EditorGUILayout.PropertyField(m_ShapeLength);
-                            EditorGUILayout.PropertyField(m_ShapeWidth);
-                        }
-                        EditorGUILayout.PropertyField(m_MaxSmoothness);
-                        break;
-
-                    case LightShape.Rectangle:
-                        m_Type.enumValueIndex = (int)LightType.Area;
-                        EditorGUILayout.PropertyField(m_ShapeLength);
-                        EditorGUILayout.PropertyField(m_ShapeWidth);
-                        m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
-                        m_AreaSizeY.floatValue = m_ShapeWidth.floatValue;
-                        m_ShadowsType.enumValueIndex = 0; // No shadow
-                        break;
-
-                    case LightShape.Line:
-                        m_Type.enumValueIndex = (int)LightType.Area;
-                        EditorGUILayout.PropertyField(m_ShapeLength);
-                        m_ShapeWidth.floatValue = 0;
-                        // Fake line with a small rectangle in vanilla unity for GI
-                        m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
-                        m_AreaSizeY.floatValue = 0.01f;
-                        break;
-
-                    default:
-                        Debug.Assert(false, "Not implemented light type");
-                        break;
-                }
+                LigthShapeGUI();
             }
 
             // Light
@@ -265,72 +420,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_Intensity.isExpanded)
             {
-                EditorGUILayout.PropertyField(m_Color);
-                EditorGUILayout.PropertyField(m_Intensity);
-                EditorGUILayout.PropertyField(m_BounceIntensity);
-                EditorGUILayout.PropertyField(m_Range);
-                EditorGUILayout.PropertyField(m_Lightmapping);
-                EditorGUILayout.PropertyField(m_Cookie);
-                if (m_Cookie.objectReferenceValue != null && m_Type.enumValueIndex == 1)
-                {
-                    EditorGUILayout.PropertyField(m_CookieSize);
-                    m_ShapeLength.floatValue = m_CookieSize.floatValue;
-                    m_ShapeWidth.floatValue = m_CookieSize.floatValue;
-                }
+                LightGUI();
             }
     
             // Shadows
-            if (m_CastShadows.boolValue)
-                m_ShadowsType.enumValueIndex = Mathf.Clamp(m_ShadowsType.enumValueIndex, 1, 2);
-            else 
-                m_ShadowsType.enumValueIndex = 0; // No shadow
-
-            if (m_CastShadows.boolValue)
+            if (m_ShadowsType.enumValueIndex != (int)LightShadows.None)
             {
                 EditorGUI.indentLevel--;
                 EditorLightUtilities.DrawSplitter();
-                m_ShadowsType.isExpanded = EditorLightUtilities.DrawHeaderFoldout("Shadows", m_ShadowsType.isExpanded);
+                m_ShadowsType.isExpanded = EditorLightUtilities.DrawHeaderFoldout("Shadow", m_ShadowsType.isExpanded);
                 EditorGUI.indentLevel++;
 
                 if (m_ShadowsType.isExpanded)
                 {
-                    if (m_Lightmapping.enumValueIndex != 1)
-                    {
-                        EditorGUILayout.PropertyField(m_ShadowsType);
-                        EditorGUILayout.PropertyField(m_ShadowResolution);
-                        EditorGUILayout.Slider(m_ShadowsBias, 0.001f, 1);
-                        EditorGUILayout.Slider(m_ShadowsNormalBias, 0.001f, 1);
-                        EditorGUILayout.Slider(m_ShadowsNearPlane, 0.01f, 10);
-                    }
-                    if (m_Lightmapping.enumValueIndex != 2)
-                    {
-                        switch (m_Type.enumValueIndex)
-                        {
-                            case 1:
-                                EditorGUILayout.PropertyField(m_BakedShadowAngle, new GUIContent("Bake shadow angle"));
-                                break;
-                            case 0:
-                                EditorGUILayout.PropertyField(m_BakedShadowRadius, new GUIContent("Bake shadow radius"));
-                                break;
-                            case 2:
-                                EditorGUILayout.PropertyField(m_BakedShadowRadius, new GUIContent("Bake shadow radius"));
-                                break;
-                        }
-                    }
+                    ShadowsGUI();
                 }
 
-            }
-
-            // shadow cascade
-            if (m_CastShadows.boolValue && m_Type.enumValueIndex == 1)
-            {
-                EditorGUI.indentLevel--;
-                EditorLightUtilities.DrawSplitter();
-                m_ShadowCascadeCount.isExpanded = EditorLightUtilities.DrawHeaderFoldout("ShadowCascades", m_ShadowCascadeCount.isExpanded);
-                EditorGUI.indentLevel++;
-                if (m_ShadowCascadeCount.isExpanded)
+                // shadow cascade
+                if (m_Type.enumValueIndex == (int)LightType.Directional && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
                 {
-                    EditorGUILayout.IntSlider(m_ShadowCascadeCount, 1, 4);
+                    EditorGUI.indentLevel--;
+                    EditorLightUtilities.DrawSplitter();
+                    m_ShadowCascadeCount.isExpanded = EditorLightUtilities.DrawHeaderFoldout("ShadowCascades", m_ShadowCascadeCount.isExpanded);
+                    EditorGUI.indentLevel++;
+
+                    if (m_ShadowCascadeCount.isExpanded)
+                    {
+                        ShadowsCascadeGUI();
+                    }
                 }
             }
 
@@ -339,19 +456,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorLightUtilities.DrawSplitter();
             m_ShowAdditionalSettings.boolValue = EditorLightUtilities.DrawHeaderFoldout("Additional Settings", m_ShowAdditionalSettings.boolValue);
             EditorGUI.indentLevel++;
+
             if (m_ShowAdditionalSettings.boolValue)
             {
-                EditorGUILayout.LabelField(new GUIContent("General"), EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(m_CullingMask);
-                EditorGUILayout.PropertyField(m_AffectDiffuse);
-                EditorGUILayout.PropertyField(m_AffectSpecular);
-                EditorGUILayout.PropertyField(m_FadeDistance);
-
-                EditorGUILayout.LabelField(new GUIContent("Shadows"), EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(m_ShadowFadeDistance);
+                AdditionalSettingsGUI();
             }
 
-            EditorGUI.indentLevel--;
+            EditorGUI.indentLevel = 0; // Reset the value that we have init to 1
 
             serializedObject.ApplyModifiedProperties();
             additionalDataSerializedObject.ApplyModifiedProperties();
