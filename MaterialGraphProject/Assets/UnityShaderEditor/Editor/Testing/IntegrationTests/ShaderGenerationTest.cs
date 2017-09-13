@@ -154,7 +154,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             Assert.IsNotNull(m_PreviewMaterial, "preview material could not be created");
 
             const int res = 256;
-            using (var generator = new MaterialGraphPreviewGenerator())
+            using (var generator = new MaterialGraphPreviewGenerator(true))
             {
                 var rendered =
                     generator.DoRenderPreview(m_PreviewMaterial, PreviewMode.Preview3D, new Rect(0, 0, res, res), 10) as
