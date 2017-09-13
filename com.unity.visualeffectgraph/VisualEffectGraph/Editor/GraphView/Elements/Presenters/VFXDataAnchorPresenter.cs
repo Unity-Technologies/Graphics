@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider
+    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider, IValuePresenter
     {
         [SerializeField]
         private VFXSlot m_Model;
@@ -218,7 +218,7 @@ namespace UnityEditor.VFX.UI
 
         public void DrawGizmo(VFXComponent component)
         {
-            VFXDataAnchorGizmo.Draw(this, component);
+            VFXValueGizmo.Draw(this, component);
         }
     }
 }

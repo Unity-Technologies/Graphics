@@ -9,13 +9,24 @@ using Action = System.Action;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXDataAnchorGizmo
+    interface IValuePresenter
     {
-        static Dictionary<System.Type, System.Action<VFXDataAnchorPresenter, VFXComponent>> s_DrawFunctions;
+        object value { get; set; }
 
-        static VFXDataAnchorGizmo()
+        System.Type anchorType { get; }
+    }
+
+
+    public class VFXValueGizmo
+    {
+        static Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>> s_DrawFunctions;
+
+
+        const float handleSize = 0.1f;
+
+        static VFXValueGizmo()
         {
-            s_DrawFunctions = new Dictionary<System.Type, System.Action<VFXDataAnchorPresenter, VFXComponent>>();
+            s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
 
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
@@ -24,7 +35,7 @@ namespace UnityEditor.VFX.UI
             s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
             s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
 
-            foreach (Type type in typeof(VFXDataAnchorGizmo).Assembly.GetTypes())
+            foreach (Type type in typeof(VFXValueGizmo).Assembly.GetTypes())
             {
                 Type gizmoedType = GetGizmoType(type);
 
@@ -34,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
                     if (info != null)
                     {
-                        s_DrawFunctions[gizmoedType] = (System.Action<VFXDataAnchorPresenter, VFXComponent>)Delegate.CreateDelegate(typeof(System.Action<VFXDataAnchorPresenter, VFXComponent>), info);
+                        s_DrawFunctions[gizmoedType] = (System.Action<IValuePresenter, VFXComponent>)Delegate.CreateDelegate(typeof(System.Action<IValuePresenter, VFXComponent>), info);
                     }
                 }
             }
@@ -54,9 +65,9 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        static internal void Draw(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static internal void Draw(IValuePresenter anchor, VFXComponent component)
         {
-            System.Action<VFXDataAnchorPresenter, VFXComponent> func;
+            System.Action<IValuePresenter, VFXComponent> func;
             if (s_DrawFunctions.TryGetValue(anchor.anchorType, out func))
             {
                 func(anchor, component);
@@ -128,7 +139,7 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        static void OnDrawPositionDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawPositionDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Position pos = (Position)anchor.value;
 
@@ -138,7 +149,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawSphereDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Sphere sphere = (Sphere)anchor.value;
 
@@ -162,7 +173,7 @@ namespace UnityEditor.VFX.UI
             {
                 EditorGUI.BeginChangeCheck();
                 Vector3 sliderPos = center + dist * radius;
-                Vector3 result = Handles.Slider(sliderPos, dist, 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -179,7 +190,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawAABoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawAABoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             AABox box = (AABox)anchor.value;
 
@@ -189,7 +200,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawOrientedBoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawOrientedBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             OrientedBox box = (OrientedBox)anchor.value;
 
@@ -203,7 +214,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawPlaneDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawPlaneDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Plane plane = (Plane)anchor.value;
 
@@ -236,15 +247,21 @@ namespace UnityEditor.VFX.UI
             EditorGUI.EndChangeCheck();
         }
 
-        static void OnDrawCylinderDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        static void OnDrawCylinderDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
 
             Vector3 center = cylinder.position;
             Vector3 normal = cylinder.direction.normalized;
-            Vector3 topCap = center + cylinder.height * 0.5f * normal;
-            Vector3 bottomCap = center - cylinder.height * 0.5f * normal;
+            if (normal == Vector3.zero)
+                normal = Vector3.up;
+            normal.Normalize();
+
+            Vector3 worldNormal = normal;
+
+            Vector3 topCap = cylinder.height * 0.5f * Vector3.up;
+            Vector3 bottomCap = -cylinder.height * 0.5f * Vector3.up;
 
             Vector3[] extremities = new Vector3[8];
 
@@ -260,6 +277,26 @@ namespace UnityEditor.VFX.UI
             extremities[6] = bottomCap + Vector3.left * cylinder.radius;
             extremities[7] = bottomCap - Vector3.left * cylinder.radius;
 
+
+            Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up, normal);
+
+            for (int i = 0; i < extremities.Length; ++i)
+            {
+                extremities[i] = normalRotation * extremities[i];
+            }
+
+            topCap = normalRotation * topCap;
+            bottomCap = normalRotation * bottomCap;
+
+            for (int i = 0; i < extremities.Length; ++i)
+            {
+                extremities[i] = center + extremities[i];
+            }
+
+            topCap += center;
+            bottomCap += center;
+
+
             if (cylinder.space == CoordinateSpace.Local)
             {
                 Matrix4x4 mat = component.transform.localToWorldMatrix;
@@ -268,7 +305,7 @@ namespace UnityEditor.VFX.UI
                 topCap = mat.MultiplyPoint(topCap);
                 bottomCap = mat.MultiplyPoint(bottomCap);
 
-                normal = mat.MultiplyVector(normal).normalized;
+                worldNormal = mat.MultiplyVector(normal).normalized;
 
                 for (int i = 0; i < extremities.Length; ++i)
                 {
@@ -276,8 +313,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Handles.DrawWireDisc(topCap, normal, cylinder.radius);
-            Handles.DrawWireDisc(bottomCap, normal, cylinder.radius);
+            Handles.DrawWireDisc(topCap, worldNormal, cylinder.radius);
+            Handles.DrawWireDisc(bottomCap, worldNormal, cylinder.radius);
 
             for (int i = 0; i < extremities.Length / 2; ++i)
             {
@@ -286,6 +323,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, cylinder.space, ref cylinder.position))
             {
+                cylinder.direction = normal;
                 anchor.value = cylinder;
             }
 
@@ -295,10 +333,11 @@ namespace UnityEditor.VFX.UI
                 EditorGUI.BeginChangeCheck();
 
                 Vector3 pos = (extremities[i] + extremities[i + +extremities.Length / 2]) * 0.5f;
-                result = Handles.Slider(pos, pos - center, 0.1f, Handles.CubeHandleCap, 0);
+                result = Handles.Slider(pos, pos - center, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
+                    cylinder.direction = normal;
                     cylinder.radius = (result - center).magnitude;
                     anchor.value = cylinder;
                 }
@@ -308,10 +347,11 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.BeginChangeCheck();
 
-            result = Handles.Slider(topCap, topCap - center, 0.1f, Handles.CubeHandleCap, 0);
+            result = Handles.Slider(topCap, topCap - center, handleSize * HandleUtility.GetHandleSize(topCap), Handles.CubeHandleCap, 0);
 
             if (GUI.changed)
             {
+                cylinder.direction = normal;
                 cylinder.height = (result - center).magnitude * 2;
                 anchor.value = cylinder;
             }
@@ -320,10 +360,11 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.BeginChangeCheck();
 
-            result = Handles.Slider(bottomCap, bottomCap - center, 0.1f, Handles.CubeHandleCap, 0);
+            result = Handles.Slider(bottomCap, bottomCap - center, handleSize * HandleUtility.GetHandleSize(bottomCap), Handles.CubeHandleCap, 0);
 
             if (GUI.changed)
             {
+                cylinder.direction = normal;
                 cylinder.height = (result - center).magnitude * 2;
                 anchor.value = cylinder;
             }
@@ -350,7 +391,7 @@ namespace UnityEditor.VFX.UI
     */
         }
 
-        static bool OnDrawBoxDataAnchorGizmo(VFXDataAnchorPresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
+        static bool OnDrawBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
         {
             Vector3 worldCenter = center;
             if (space == CoordinateSpace.Local)
@@ -408,7 +449,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +Z
                 Vector3 middle = (points[0] + points[1] + points[2] + points[3]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -421,7 +462,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Z
                 Vector3 middle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -434,7 +475,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +X
                 Vector3 middle = (points[0] + points[1] + points[4] + points[5]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -447,7 +488,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -X
                 Vector3 middle = (points[2] + points[3] + points[6] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -460,7 +501,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis +Y
                 Vector3 middle = (points[0] + points[2] + points[4] + points[6]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -473,7 +514,7 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Y
                 Vector3 middle = (points[1] + points[3] + points[5] + points[7]) * 0.25f;
-                Vector3 middleResult = Handles.Slider(middle, (middle - center), 0.1f, Handles.CubeHandleCap, 0);
+                Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
@@ -528,7 +569,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXPositionGizmo : VFXGizmo<Position>
     {
-        public static void OnDrawGizmo(VFXDataAnchorPresenter anchor, VFXComponent component)
+        public static void OnDrawGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Position pos = (Position)anchor.value;
 

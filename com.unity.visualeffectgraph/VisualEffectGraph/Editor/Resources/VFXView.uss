@@ -410,6 +410,26 @@ VFXOutputDataAnchor #type
 	background-image: resource("VFX/connectors/int-output-selected");
 }
 
+.VFXDataAnchor.connected > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
 /* flipbook */
 
 .VFXDataAnchor.connected > #connector.typeflipbook
@@ -541,6 +561,10 @@ VFXDataEdge.typeboolean
 	border-color : #a081e6;
 }
 VFXDataEdge.typeint32
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeuint32
 {
 	border-color : #a081e6;
 }
