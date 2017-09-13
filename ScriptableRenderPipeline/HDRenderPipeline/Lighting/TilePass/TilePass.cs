@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -2081,8 +2081,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._DeferredShadowTexture, deferredShadowTexture);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
-                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
+
+                                // TODO: Don't know why but If we use Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0) instead of HDShaderIDs._GBufferTexture0 the screen start to flicker in SceneView...
+                                // Need to investigate what is happening. But this may be unnecessary as development of SetGlobalTexture for compute shader have begin
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, HDShaderIDs._GBufferTexture0);
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, HDShaderIDs._GBufferTexture2);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, HDShaderIDs._GBufferTexture3);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
