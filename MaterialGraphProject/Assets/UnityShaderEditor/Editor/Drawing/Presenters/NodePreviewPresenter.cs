@@ -77,7 +77,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (m_PreviewGenerator == null)
                 {
-                    m_PreviewGenerator = new MaterialGraphPreviewGenerator();
+                    m_PreviewGenerator = new MaterialGraphPreviewGenerator(m_Node is AbstractMasterNode);
                 }
                 return m_PreviewGenerator;
             }

@@ -8,67 +8,9 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    /*internal class PreviewScene : IDisposable
-    {
-       public PreviewScene(string sceneName)
-        {
-            camera.cameraType = CameraType.Preview;
-            camera.enabled = false;
-            camera.clearFlags = CameraClearFlags.Depth;
-            camera.fieldOfView = 15;
-            camera.farClipPlane = 10.0f;
-            camera.nearClipPlane = 2.0f;
-            camera.backgroundColor = new Color(49.0f / 255.0f, 49.0f / 255.0f, 49.0f / 255.0f, 1.0f);
-
-            // Explicitly use forward rendering for all previews
-            // (deferred fails when generating some static previews at editor launch; and we never want
-            // vertex lit previews if that is chosen in the player settings)
-            camera.renderingPath = RenderingPath.Forward;
-            camera.useOcclusionCulling = false;
-            camera.scene = m_Scene;
-        }
-
-        public void AddGameObject(GameObject go)
-        {
-            if (m_GameObjects.Contains(go))
-                return;
-
-            m_GameObjects.Add(go);
-        }
-
-        public void Dispose() {
-
-        }
-
-    }*/
-
-    /*internal class SavedRenderTargetState
-    {
-        RenderTexture renderTexture;
-        Rect viewport;
-        Rect scissor;
-
-        internal SavedRenderTargetState()
-        {
-            GL.PushMatrix();
-            if (ShaderUtil.hardwareSupportsRectRenderTexture)
-                renderTexture = RenderTexture.active;
-            viewport = ShaderUtil.rawViewportRect;
-            scissor = ShaderUtil.rawScissorRect;
-        }
-
-        internal void Restore()
-        {
-            if (ShaderUtil.hardwareSupportsRectRenderTexture)
-                EditorGUIUtility.SetRenderTextureNoViewport(renderTexture);
-            ShaderUtil.rawViewportRect = viewport;
-            ShaderUtil.rawScissorRect = scissor;
-            GL.PopMatrix();
-        }
-    }*/
-
     internal class MaterialGraphPreviewGenerator : IDisposable
     {
+        private bool m_AllowSRP;
         private readonly Scene m_Scene;
         static Mesh s_Quad;
         private Camera m_Camera;
@@ -94,8 +36,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             return lightGO;
         }
 
-        public MaterialGraphPreviewGenerator()
+        public MaterialGraphPreviewGenerator(bool allowSRP)
         {
+            m_AllowSRP = allowSRP;
             m_Scene = EditorSceneManager.NewPreviewScene();
             var camGO = EditorUtility.CreateGameObjectWithHideFlags("Preview Scene Camera", HideFlags.HideAndDontSave, typeof(Camera));
             SceneManager.MoveGameObjectToScene(camGO, m_Scene);
@@ -287,7 +230,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 Quaternion.identity,
                 mat,
                 0);
+
+
+            var oldAllowPipes = Unsupported.useScriptableRenderPipeline;
+            Unsupported.useScriptableRenderPipeline = m_AllowSRP;
             m_Camera.Render();
+            Unsupported.useScriptableRenderPipeline = oldAllowPipes;
 
             Unsupported.RestoreOverrideRenderSettings();
 
