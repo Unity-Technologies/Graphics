@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -90,6 +91,60 @@ namespace UnityEditor.VFX.Test
             {
                 GraphWithImplicitBehavior_Internal(currentTest);
             }
+        }
+
+        class VFXBlockSourceVariantTest : VFXBlock
+        {
+            public override VFXContextType compatibleContexts
+            {
+                get
+                {
+                    return VFXContextType.kInitAndUpdate;
+                }
+            }
+
+            public override VFXDataType compatibleData
+            {
+                get
+                {
+                    return VFXDataType.kParticle;
+                }
+            }
+
+            [VFXSetting]
+            public bool switchSourceCode;
+
+            public static string[] sourceCodeVariant = { "/*rlbtmxcxbitlahdw*/", "/*qxrkittomkkiouqf*/" };
+
+            public override string source
+            {
+                get
+                {
+                    return switchSourceCode ? sourceCodeVariant[0] : sourceCodeVariant[1];
+                }
+            }
+        }
+
+        [Test]
+        public void DifferentSettingsGenerateDifferentFunction()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(updateContext);
+
+            var blockA = ScriptableObject.CreateInstance<VFXBlockSourceVariantTest>();
+            blockA.SetSettingValue("switchSourceCode", true);
+            var blockB = ScriptableObject.CreateInstance<VFXBlockSourceVariantTest>();
+            blockB.SetSettingValue("switchSourceCode", false);
+            updateContext.AddChild(blockA);
+            updateContext.AddChild(blockB);
+
+            var stringBuilders = new[] { new StringBuilder() };
+            VFXCodeGenerator.Build(updateContext, new[] { VFXCodeGenerator.CompilationMode.Runtime }, stringBuilders, new VFXContextCompiledData(), updateContext.codeGeneratorTemplate);
+
+            var code = stringBuilders[0].ToString();
+            Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));
+            Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[1]));
         }
     }
 }

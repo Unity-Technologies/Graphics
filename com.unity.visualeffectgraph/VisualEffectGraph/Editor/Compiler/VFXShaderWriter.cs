@@ -246,7 +246,7 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
+        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, string commentMethod)
         {
             var parameters = new List<string>();
             for (int i = 0; i < parameterNames.Count; ++i)
@@ -257,7 +257,12 @@ namespace UnityEditor.VFX
                 parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.valueType), parameter));
             }
 
-            WriteLineFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            WriteFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            if (!string.IsNullOrEmpty(commentMethod))
+            {
+                WriteFormat(" /*{0}*/", commentMethod);
+            }
+            WriteLine();
             EnterScope();
             if (source != null)
                 WriteMultilineWithIndent(source);
