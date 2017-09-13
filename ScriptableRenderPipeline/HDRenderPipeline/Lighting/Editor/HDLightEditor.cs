@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_FadeDistance;
         SerializedProperty m_AffectDiffuse;
         SerializedProperty m_AffectSpecular;
-        SerializedProperty m_LightShape;
+        SerializedProperty m_LightTypeExtent;
         SerializedProperty m_SpotLightShape;
         SerializedProperty m_ShapeLength;
         SerializedProperty m_ShapeWidth;
@@ -63,6 +63,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_ShadowCascadeRatios;
         SerializedProperty m_ShadowCascadeBorders;
         SerializedProperty m_ShadowResolution;
+
+        // This enum below is LightType enum + LightTypeExtent enum
+        public enum LightShape
+        {
+            Spot = 0,
+            Directional = 1,
+            Point = 2,
+            //Area = 3, <= offline type of Unity not dispay in our case but reuse for GI of our area light
+            Rectangle = 4,
+            Line = 5,
+            // Sphere = 6, 
+            // Disc = 7,
+        }
+
+        // LightShape is use for displaying UI only. The processing code must use LightTypeExtent and LightType
+        LightShape m_LightShape;
 
         private Light light { get { return target as Light; } }
 
@@ -126,6 +142,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent CookieWarning = EditorGUIUtility.TextContent("Cookie textures for spot lights should be set to clamp, not repeat, to avoid artifacts.");
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
             */
+
+            public static string lightShapeText = "LightShape";
+            public static readonly string[] lightShapeNames = Enum.GetNames(typeof(LightShape));
         }
 
         static Styles s_Styles;
@@ -179,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FadeDistance = additionalDataSerializedObject.FindProperty("fadeDistance");
             m_AffectDiffuse = additionalDataSerializedObject.FindProperty("affectDiffuse");
             m_AffectSpecular = additionalDataSerializedObject.FindProperty("affectSpecular");
-            m_LightShape = additionalDataSerializedObject.FindProperty("m_LightShape");
+            m_LightTypeExtent = additionalDataSerializedObject.FindProperty("lightTypeExtent");     
             m_SpotLightShape = additionalDataSerializedObject.FindProperty("spotLightShape");
             m_ShapeLength = additionalDataSerializedObject.FindProperty("shapeLength");
             m_ShapeWidth = additionalDataSerializedObject.FindProperty("shapeWidth");
@@ -200,12 +219,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowResolution = shadowDataSerializedObject.FindProperty("shadowResolution");                        
         }
 
+        void ResolveLightShape()
+        {
+            if (m_LightTypeExtent.enumValueIndex == (int)LightTypeExtent.Punctual)
+            {
+                switch ((LightType)m_Type.enumValueIndex)
+                {
+                    case LightType.Directional:
+                        m_LightShape = LightShape.Directional;
+                        break;
+                    case LightType.Point:
+                        m_LightShape = LightShape.Point;
+                        break;
+                    case LightType.Spot:
+                        m_LightShape = LightShape.Spot;
+                        break;
+                }
+            }
+            else
+            {
+                switch ((LightTypeExtent)m_LightTypeExtent.enumValueIndex)
+                {
+                    case LightTypeExtent.Rectangle:
+                        m_LightShape = LightShape.Rectangle;
+                        break;
+                    case LightTypeExtent.Line:
+                        m_LightShape = LightShape.Line;
+                        break;
+                }
+            }
+        }
+
         void LigthShapeGUI()
         {
-            EditorGUILayout.PropertyField(m_LightShape);
+            m_LightShape = (LightShape)EditorGUILayout.Popup(Styles.lightShapeText, (int)m_LightShape, Styles.lightShapeNames);
 
             // LightShape is HD specific, it need to drive LightType from the original LightType when it make sense, so the GI is still in sync with the light shape
-            switch ((LightShape)m_LightShape.enumValueIndex)
+            switch (m_LightShape)
             {
                 case LightShape.Directional:
                     m_Type.enumValueIndex = (int)LightType.Directional;
@@ -241,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 case LightShape.Rectangle:
                     m_Type.enumValueIndex = (int)LightType.Area;
+                    m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_ShapeLength);
                     EditorGUILayout.PropertyField(m_ShapeWidth);
                     m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
@@ -250,6 +301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 case LightShape.Line:
                     m_Type.enumValueIndex = (int)LightType.Area;
+                    m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
                     EditorGUILayout.PropertyField(m_ShapeLength);
                     m_ShapeWidth.floatValue = 0;
                     // Fake line with a small rectangle in vanilla unity for GI
@@ -276,13 +328,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_CookieSize);
                 m_ShapeLength.floatValue = m_CookieSize.floatValue;
                 m_ShapeWidth.floatValue = m_CookieSize.floatValue;
-            }
-            EditorGUILayout.PropertyField(m_ApplyRangeAttenuation);
-
-            // Do not display option for shadow if we are fully bake
-            if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
-            {
-                EditorGUILayout.PropertyField(m_ShadowsType);
             }
         }
 
@@ -331,14 +376,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void AdditionalSettingsGUI()
         {
-            EditorGUILayout.LabelField(new GUIContent("General"), EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_CullingMask);
+            // Currently culling mask is not working with HD
+            // EditorGUILayout.LabelField(new GUIContent("General"), EditorStyles.boldLabel);
+            // EditorGUILayout.PropertyField(m_CullingMask);
 
             EditorGUILayout.LabelField(new GUIContent("Light"), EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_AffectDiffuse);
             EditorGUILayout.PropertyField(m_AffectSpecular);
             EditorGUILayout.PropertyField(m_FadeDistance);
             EditorGUILayout.PropertyField(m_LightDimmer);
+            EditorGUILayout.PropertyField(m_ApplyRangeAttenuation);
 
             if (m_ShadowsType.enumValueIndex != (int)LightShadows.None && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
             {
@@ -358,6 +405,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             additionalDataSerializedObject.Update();
             shadowDataSerializedObject.Update();
+
+            ResolveLightShape();
 
             var additionalData = light.GetComponent<HDAdditionalLightData>();
             var shadowData = light.GetComponent<AdditionalShadowData>();
@@ -382,24 +431,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             ApplyAdditionalComponentsVisibility(true);
 
-            // Allow to display the arrow for reduce/expanfd correctly
-            EditorGUI.indentLevel = 1;
-
             // Light features
-            // EditorGUI.indentLevel++;
-            // EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
-            // EditorLightUtilities.DrawSplitter();
-            // m_affectDiffuse.isExpanded = EditorLightUtilities.DrawHeaderFoldout("Light features", m_AffectDiffuse.isExpanded);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
             
+            // Do not display option for shadow if we are fully bake
+            if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+            {
+                if (EditorGUILayout.Toggle(new GUIContent("Enable Shadow"), m_ShadowsType.enumValueIndex != 0))
+                    m_ShadowsType.enumValueIndex = (int)LightShadows.Hard;
+                else
+                    m_ShadowsType.enumValueIndex = (int)LightShadows.None;
+            }
 
-            // if (m_AffectDiffuse.isExpanded)
-            // {
-            //    EditorGUILayout.PropertyField(m_AffectDiffuse, new GUIContent("Diffuse"), GUILayout.MaxWidth(EditorGUIUtility.labelWidth + 30));
-            //    var AffectDiffuseRect = GUILayoutUtility.GetLastRect();
-            //    var AffectSpecularRect = new Rect(EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.y, EditorGUIUtility.labelWidth + 30, AffectDiffuseRect.height);
-            //    EditorGUI.PropertyField(AffectSpecularRect, m_AffectSpecular, new GUIContent("Specular"));
-            //}
+            EditorGUI.indentLevel--;
 
+            // Allow to display the arrow for reduce/expand correctly
+            EditorGUI.indentLevel = 1;
 
             // LightShape
             EditorGUI.indentLevel--;
