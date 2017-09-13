@@ -93,7 +93,7 @@
             #pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentPBR
 
-			void DefineSurface(LightweightVertexOutput i, inout Surface s)
+			void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s)
 			{
 				// Albedo
 				float4 c = tex2D(_MainTex, i.uv01.xy);
@@ -127,9 +127,7 @@
 				s.Occlusion = Occlusion(i.uv01.xy);
 
 				// Emission
-#ifdef _EMISSION
-				s.Emission = Emission(i.uv01.xy);
-#endif
+				s.Emission = CalculateEmission(i.uv01.xy);
 
 				// Alpha
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
