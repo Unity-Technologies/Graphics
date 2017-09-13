@@ -48,15 +48,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Rectangle/Line/projector lights
         [Range(0.0f, 20.0f)]
+        [FormerlySerializedAs("lightLength")]
         public float shapeLength = 0.5f;
 
         // Only for Rectangle/projector lights
         [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightLength")]
+        [FormerlySerializedAs("lightWidth")]
         public float shapeWidth = 0.5f;
 
-        // Only for Sphere/Disc
-        [FormerlySerializedAs("lightWidth")]
+        // Only for Sphere/Disc        
         public float shapeRadius = 0.0f;
 
         // Only for Spot/Point - use to cheaply fake specular spherical area light
