@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void OnDrawGizmos()
         {
-            DrawGizmos(false);
+            // DrawGizmos(false);
         }
 
         private void OnDrawGizmosSelected()
