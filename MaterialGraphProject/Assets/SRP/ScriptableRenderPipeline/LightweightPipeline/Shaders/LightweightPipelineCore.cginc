@@ -231,7 +231,7 @@ LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
                 return OutputColor(color, s.Alpha);
             }
 
-			half4 LightweightFragmentLegacy(LightweightVertexOutput i) : SV_Target
+			half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
             {
                 half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
                 half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
