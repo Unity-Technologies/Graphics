@@ -1,4 +1,4 @@
-﻿Shader "ScriptableRenderPipeline/LightweightPipeline/Standard"
+﻿Shader "ScriptableRenderPipeline/LightweightPipeline/PBR"
 {
     Properties
     {
@@ -87,8 +87,7 @@
 			#pragma multi_compile_instancing
 
 			#include "UnityCG.cginc"
-			#include "UnityStandardInput.cginc"
-			#include "LightweightPipelineCore.cginc"
+			#include "CGIncludes/LightweightPBR.cginc"
 
             #pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentPBR
@@ -98,7 +97,6 @@
 				// Albedo
 				float4 c = tex2D(_MainTex, i.uv01.xy);
 				s.Albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(c.rgb) * _Color.rgb;
-
 				// Metallic
 #ifdef _METALLICSPECGLOSSMAP
 				float4 metallicMap = tex2D(_MetallicSpecGlossMap, i.uv01.xy).r;
@@ -118,17 +116,18 @@
 				s.Smoothness = _Glossiness;
 #endif
 #endif
-
 				// Normal
 #if _NORMALMAP
 				s.Normal = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
 #endif
 				// Occlusion
 				s.Occlusion = Occlusion(i.uv01.xy);
-
 				// Emission
-				s.Emission = CalculateEmission(i.uv01.xy);
-
+#ifndef _EMISSION
+				s.Emission = 0;
+#else
+				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
 				// Alpha
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 				s.Alpha = _Color.a;
@@ -139,7 +138,6 @@
 #ifdef _ALPHATEST_ON
 				clip(s.Alpha - _Cutoff);
 #endif
-
 			}
 
             ENDCG
@@ -153,7 +151,7 @@
             CGPROGRAM
             #pragma target 2.0
 			#include "UnityCG.cginc"
-			#include "LightweightPipelinePass.cginc"
+			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex shadowVert
             #pragma fragment shadowFrag
             ENDCG
@@ -167,7 +165,7 @@
             CGPROGRAM
             #pragma target 2.0
 			#include "UnityCG.cginc"
-			#include "LightweightPipelinePass.cginc"
+			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex depthVert
             #pragma fragment depthFrag
             ENDCG

@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_INPUT_INCLUDED
 
 #include "UnityCG.cginc"
-#include "UnityStandardInput.cginc"
 
 #define MAX_VISIBLE_LIGHTS 16
 
@@ -99,100 +98,5 @@ struct LightweightVertexOutput
     float4 hpos : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
-
-struct SurfacePBR
-{
-	float3 Albedo;      // diffuse color
-	float3 Specular;    // specular color
-	float Metallic;		// metallic
-	float3 Normal;      // tangent space normal, if written
-	half3 Emission;
-	half Smoothness;    // 0=rough, 1=smooth
-	half Occlusion;     // occlusion (default 1)
-	float Alpha;        // alpha for transparencies
-};
-
-struct SurfaceFastBlinn
-{
-	float3 Diffuse;     // diffuse color
-	float3 Specular;    // specular color
-	float3 Normal;      // tangent space normal, if written
-	half3 Emission;
-	half Glossiness;    // 0=rough, 1=smooth
-	float Alpha;        // alpha for transparencies
-};
-
-inline void CalculateNormal(half3 normalMap, LightweightVertexOutput i, out half3 normal)
-{
-#if _NORMALMAP
-	normal = normalize(half3(dot(normalMap, i.tangentToWorld0), dot(normalMap, i.tangentToWorld1), dot(normalMap, i.tangentToWorld2)));
-#else
-    normal = normalize(i.normal);
-#endif
-}
-
-inline half3 CalculateEmission(half2 uv)
-{
-#ifndef _EMISSION
-	return 0;
-#else
-	return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
-#endif
-}
-
-inline half3 CalculateEmissionFastBlinn(half2 uv)
-{
-#ifndef _EMISSION
-	return _EmissionColor.rgb;
-#else
-	return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
-#endif
-}
-
-inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
-{
-#ifdef _SPECGLOSSMAP
-    specularGloss = tex2D(_SpecGlossMap, uv);
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
-#endif
-#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, uv).rgb) * _SpecColor.rgb;
-    specularGloss.a = alpha;
-#else
-    specularGloss = _SpecColor;
-#endif
-}
-
-half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
-{
-    half4 specGloss;
-
-#ifdef _METALLICSPECGLOSSMAP
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.rgb = tex2D(_MetallicSpecGlossMap, uv).rgb;
-    specGloss.a = albedoAlpha;
-#else
-    specGloss = tex2D(_MetallicSpecGlossMap, uv).rgba;
-#endif
-    specGloss.a *= _GlossMapScale;
-
-#else // _METALLICSPECGLOSSMAP
-
-#if _METALLIC_SETUP
-    specGloss.r = _Metallic;
-#else
-    specGloss.rgb = _SpecColor.rgb;
-#endif
-
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a = _Glossiness;
-#endif
-#endif
-
-    return specGloss;
-}
 
 #endif

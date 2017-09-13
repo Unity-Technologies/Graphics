@@ -83,9 +83,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
-            #include "UnityStandardInput.cginc"
-            #include "LightweightPipelineCore.cginc"
-            //#include "LightweightPipelineLighting.cginc"    
+            #include "CGIncludes/LightweightFastBlinn.cginc"
 
 			#pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentFastBlinn
@@ -95,7 +93,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 				// Albedo
 				float4 c = tex2D(_MainTex, i.uv01.xy);
 				s.Diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(c.rgb) * _Color.rgb;
-
 				// Specular
 #ifdef _SPECGLOSSMAP
 				half4 specularMap = tex2D(_SpecGlossMap, i.uv01.xy);
@@ -109,15 +106,16 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 				s.Specular = _SpecColor.rgb;
 				s.Glossiness = _SpecColor.a;
 #endif
-
 				// Normal
 #if _NORMALMAP
 				s.Normal = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
 #endif
-
 				// Emission
-				s.Emission = CalculateEmission(i.uv01.xy);
-
+#ifndef _EMISSION
+				s.Emission =  _EmissionColor.rgb;
+#else
+				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
 				// Alpha
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 				s.Alpha = _Color.a;
@@ -128,7 +126,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 #ifdef _ALPHATEST_ON
 				clip(s.Alpha - _Cutoff);
 #endif
-
 			}
 
             ENDCG
@@ -142,7 +139,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
             CGPROGRAM
             #pragma target 2.0
             #include "UnityCG.cginc"
-			#include "LightweightPipelinePass.cginc"
+			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex shadowVert
             #pragma fragment shadowFrag
             ENDCG
@@ -155,7 +152,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 
             CGPROGRAM
             #pragma target 2.0
-			#include "LightweightPipelinePass.cginc"
+			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex depthVert
             #pragma fragment depthFrag
             ENDCG
@@ -178,9 +175,36 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
             #pragma shader_feature EDITOR_VISUALIZATION
 			
 			#include "UnityCG.cginc"
-			#include "LightweightPipelinePass.cginc"
+			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex vert_meta
-            #pragma fragment frag_meta_ld            
+            #pragma fragment frag_meta_ld   
+
+			void DefineSurfaceMeta(v2f_meta i, inout SurfaceFastBlinn s)
+			{
+				// Albedo
+				float4 c = tex2D(_MainTex, i.uv.xy);
+				s.Diffuse = c.rgb;
+				// Specular
+#ifdef _SPECGLOSSMAP
+				half4 specularMap = tex2D(_SpecGlossMap, i.uv.xy);
+#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
+				s.Specular = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
+#endif
+#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
+				s.Specular.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, i.uv.xy).rgb) * _SpecColor.rgb;
+				s.Glossiness = s.Alpha;
+#else
+				s.Specular = _SpecColor.rgb;
+				s.Glossiness = _SpecColor.a;
+#endif
+				// Emission
+#ifndef _EMISSION
+				s.Emission = _EmissionColor.rgb;
+#else
+				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
+			}
+
             ENDCG
         }
     }
