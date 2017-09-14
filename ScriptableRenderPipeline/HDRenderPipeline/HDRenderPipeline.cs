@@ -316,6 +316,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly int m_VelocityBuffer;
         readonly int m_DistortionBuffer;
 
+        readonly int m_DeferredShadowBuffer;
+
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         readonly RenderTargetIdentifier m_CameraColorBufferRT;
         readonly RenderTargetIdentifier m_CameraSssDiffuseLightingBufferRT;
@@ -325,17 +327,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
 
+        readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
+
         private RenderTexture m_CameraDepthStencilBuffer = null;
         private RenderTexture m_CameraDepthBufferCopy = null;
         private RenderTexture m_CameraStencilBufferCopy = null;
         private RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
-        private RenderTexture m_DeferredDirShadow = null;
 
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
         private RenderTargetIdentifier m_CameraStencilBufferCopyRT;
         private RenderTargetIdentifier m_HTileRT;
-        private RenderTargetIdentifier m_DeferredDirShadowRT;
         
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -477,6 +479,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
+            m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
+            m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
+
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
 
             m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
@@ -602,11 +607,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_HTileRT = new RenderTargetIdentifier(m_HTile);
             }
 
-            m_DeferredDirShadow = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            m_DeferredDirShadow.filterMode = FilterMode.Point;
-            m_DeferredDirShadow.enableRandomWrite = true;
-            m_DeferredDirShadow.Create();
-            m_DeferredDirShadowRT = new RenderTargetIdentifier(m_DeferredDirShadow);
         }
 
         void Resize(Camera camera)
@@ -892,11 +892,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
                     m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
-                    m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);  
+                    m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
-                    m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredDirShadowRT, GetDepthTexture(), cmd);
+                    cmd.GetTemporaryRT(m_DeferredShadowBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1 , true);
+                    m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
 
-                    PushFullScreenDebugTexture(cmd, m_DeferredDirShadowRT, hdCamera.camera, renderContext, FullScreenDebugMode.DeferredShadows);
+                    PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.DeferredShadows);
 
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                     m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
@@ -1142,13 +1143,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredDirShadowRT,options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredDirShadowRT, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.

@@ -192,8 +192,6 @@ CBUFFER_END
 TEXTURE2D_FLOAT(_MainDepthTexture);
 SAMPLER2D(sampler_MainDepthTexture);
 
-TEXTURE2D(_DeferredShadowTexture);
-
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER2D(samplerunity_Lightmap);
