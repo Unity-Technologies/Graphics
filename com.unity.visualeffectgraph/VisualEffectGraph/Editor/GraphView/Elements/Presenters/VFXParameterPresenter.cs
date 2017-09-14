@@ -240,6 +240,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
+
         public object value
         {
             get
@@ -249,7 +250,6 @@ namespace UnityEditor.VFX.UI
             set
             {
                 object b = value;
-
 
                 if (!object.Equals(m_CachedValue, b))
                 {
