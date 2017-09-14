@@ -1652,7 +1652,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (enableFeatureVariants)
                 {
                     // material classification
-                    if(m_TileSettings.enableComputeMaterialVariants)
+                    if (m_TileSettings.enableComputeMaterialVariants)
                     {
                         int buildMaterialFlagsKernel = s_BuildMaterialFlagsOrKernel;
 
