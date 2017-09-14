@@ -1795,7 +1795,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 65143432471e8af4db8443b42a8f1b3c, type: 2}
+  - {fileID: 2100000, guid: 61f42391dbd7154448c0045c536e1d65, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9363,7 +9363,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 65143432471e8af4db8443b42a8f1b3c, type: 2}
+  - {fileID: 2100000, guid: 61f42391dbd7154448c0045c536e1d65, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -15253,22 +15253,6 @@ MonoBehaviour:
   fastApproximateAntialiasing:
     mobileOptimized: 0
     keepAlpha: 0
-  ambientOcclusion:
-    enabled: 1
-    mode: 1
-    ambientOnly: 0
-    scalableAO:
-      intensity: 0.5
-      radius: 0.25
-      quality: 2
-      color: {r: 0, g: 0, b: 0, a: 1}
-    multiScaleVO:
-      noiseFilterTolerance: 0
-      blurTolerance: -4.6
-      upsampleTolerance: -12
-      thicknessModifier: 1
-      intensity: 1
-      color: {r: 0, g: 0, b: 0, a: 1}
   fog:
     enabled: 1
     excludeSkybox: 1
@@ -15290,8 +15274,9 @@ MonoBehaviour:
     overlaySettings:
       motionColorIntensity: 4
       motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
-  m_ShowRenderingFeatures: 0
   m_ShowToolkit: 0
   m_ShowCustomSorter: 0
   breakBeforeColorGrading: 0

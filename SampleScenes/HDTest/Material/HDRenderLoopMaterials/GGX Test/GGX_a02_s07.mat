@@ -31,6 +31,14 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BentNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -136,11 +144,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _Anisotropy: 0.2
     - _BlendMode: 0
     - _BumpScale: 1
+    - _CoatCoverage: 1
+    - _CoatIOR: 0.5
     - _CullMode: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
@@ -162,6 +173,7 @@ Material:
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnablePerPixelDisplacement: 0
+    - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -170,10 +182,12 @@ Material:
     - _HeightBias: 0
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
+    - _HeightMax: 1
+    - _HeightMin: -1
     - _HeightScale: 1
     - _HorizonFade: 1
     - _InitialBend: 1
-    - _MaterialID: 4
+    - _MaterialID: 2
     - _Metalic: 0
     - _Metallic: 1
     - _Mettalic: 0
@@ -188,6 +202,8 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.7
+    - _SmoothnessRemapMax: 1
+    - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
