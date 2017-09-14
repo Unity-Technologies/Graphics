@@ -314,14 +314,14 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    {
+        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
+    }
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdAnisoData(bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
-    {
-        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -381,15 +381,15 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID value in GBuffer2
         outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID, 4.0));
     }
+    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
+    {
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
+    }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, GBUFFER_LIT_STANDARD_ANISOTROPIC_ID, 4.0));
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
-    {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
+            outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, 0.0, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -490,8 +490,8 @@ void DecodeFromGBuffer(
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
     int supportsStandard = (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
-    int supportsAniso = (featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
     int supportsSSS = (featureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
+    int supportsAniso = (featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
     int supportClearCoat = (featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
 
     if (supportsStandard + supportsSSS + supportsAniso + supportClearCoat > 1)
@@ -504,10 +504,10 @@ void DecodeFromGBuffer(
         // materialid is statically known. this allows the compiler to eliminate a lot of code.
         if (supportsStandard)
             bsdfData.materialId = MATERIALID_LIT_STANDARD;
-        if (supportsAniso)
-            bsdfData.materialId = MATERIALID_LIT_ANISO;
         else if (supportsSSS)
             bsdfData.materialId = MATERIALID_LIT_SSS;
+        else if (supportsAniso)
+            bsdfData.materialId = MATERIALID_LIT_ANISO;
         else
             bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
@@ -543,10 +543,10 @@ void DecodeFromGBuffer(
         float metallic;
         int unused;
         UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, unused);
-        float anisotropy = inGBuffer2.b;
-
         FillMaterialIdStandardData(baseColor, metallic, bsdfData);
+
         float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        float anisotropy = inGBuffer2.b;
         FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
     else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)

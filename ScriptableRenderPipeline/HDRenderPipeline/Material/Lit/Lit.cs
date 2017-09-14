@@ -33,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public static int s_GBufferLitStandardRegularId = 0;
             public static int s_GBufferLitStandardSpecularColorId = 1;
-            public static int s_GBufferLitStandardAnisotropicId = 2;
 
             public static float s_DefaultSpecularValue = 0.04f;
             public static float s_SkinSpecularValue = 0.028f;
