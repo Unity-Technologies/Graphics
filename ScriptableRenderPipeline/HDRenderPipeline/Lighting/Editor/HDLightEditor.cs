@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedObject additionalDataSerializedObject;
         SerializedObject shadowDataSerializedObject;
 
-        SerializedProperty m_SpotInnerAngle;
+        SerializedProperty m_SpotInnerPercent;
         SerializedProperty m_LightDimmer;
         SerializedProperty m_FadeDistance;
         SerializedProperty m_AffectDiffuse;
@@ -92,12 +92,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //    kLightBaked     = 1 << 1,   // light will always be fully baked
         //    kLightMixed     = 1 << 0,   // depends on selected LightmapMixedBakeMode
         //};
-        // This mean that m_Lightmapping.enumValueIndex is enum { Stationary=0, Static=1, Dynamic=2 }
+        // This mean that m_Lightmapping.enumValueIndex is enum { Mixed=0, Baked=1, Realtime=2 }
         enum LightMappingType
         {
-            Stationary = 0,
-            Static=1, 
-            Dynamic=2
+            Mixed,
+            Baked,
+            Realtime
         }
 
         protected class Styles
@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static GUIContent SpotLightShape = new GUIContent("SpotLightShape", "The shape use for the spotlight. Have impact on cookie transformation and light angular attenuation.");
 
             public static GUIContent SpotAngle = new GUIContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
-            public static GUIContent SpotInnerAngle = new GUIContent("Spot Inner Angle", "Controls the inner angle in percent of the base angle of a Spot light's cone.");
+            public static GUIContent SpotInnerPercent = new GUIContent("Spot Inner Percent", "Controls the inner angle in percent of the base angle of a Spot light's cone.");
 
             public static GUIContent Color = new GUIContent("Color", "Controls the color being emitted by the light.");
             public static GUIContent Intensity = new GUIContent("Intensity", "Controls the brightness of the light. Light color is multiplied by this value.");
@@ -141,8 +141,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static GUIContent ShadowCascadeCount = new GUIContent("ShadowCascadeCount", "");
             public static GUIContent[] ShadowCascadeRatios = new GUIContent[6] { new GUIContent("Cascade 1"), new GUIContent("Cascade 2"), new GUIContent("Cascade 3"), new GUIContent("Cascade 4"), new GUIContent("Cascade 5"), new GUIContent("Cascade 6") };
 
-            public static GUIContent AffectDiffuse = new GUIContent("AffectDiffuse", "This will disable diffuse lighting for this light. Don't save performance, diffuse lighting is still.");
-            public static GUIContent AffectSpecular = new GUIContent("AffectSpecular", "This will disable specular lighting for this light. Don't save performance, specular lighting is still.");
+            public static GUIContent AffectDiffuse = new GUIContent("AffectDiffuse", "This will disable diffuse lighting for this light. Don't save performance, diffuse lighting is still computed.");
+            public static GUIContent AffectSpecular = new GUIContent("AffectSpecular", "This will disable specular lighting for this light. Don't save performance, specular lighting is still computed.");
             public static GUIContent FadeDistance = new GUIContent("FadeDistance", "The light color will fade at distance FadeDistance before being culled to minimize popping.");
             public static GUIContent LightDimmer = new GUIContent("LightDimmer", "Aim to be use with script, timeline or animation. It allow to dim one or multiple lights of heterogeneous intensity easily (Else you need to know the intensity of each light)");
             public static GUIContent ApplyRangeAttenuation = new GUIContent("ApplyRangeAttenuation", "Allow to disable range attenuation. This aim to be use indoor (like a room) to avoid to have to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
@@ -156,6 +156,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public static string lightShapeText = "LightShape";
             public static readonly string[] lightShapeNames = Enum.GetNames(typeof(LightShape));
+
+            public static string lightmappingModeText = "Mode";
+            public static readonly string[] lightmappingModeNames = Enum.GetNames(typeof(LightMappingType));
         }
 
         static Styles s_Styles;
@@ -169,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private bool lightmappingTypeIsSame { get { return !m_Lightmapping.hasMultipleDifferentValues; } }
 
-        private bool isRealtime             { get { return m_Lightmapping.enumValueIndex == (int)LightMappingType.Dynamic; } }
+        private bool isRealtime             { get { return m_Lightmapping.enumValueIndex == (int)LightMappingType.Realtime; } }
 
         private bool isBakedOrMixed { get { return !isRealtime; } }
 
@@ -246,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             shadowDataSerializedObject = new SerializedObject(shadowDatas);
 
             // Additional data
-            m_SpotInnerAngle = additionalDataSerializedObject.FindProperty("m_InnerSpotPercent");
+            m_SpotInnerPercent = additionalDataSerializedObject.FindProperty("m_InnerSpotPercent");
             m_LightDimmer = additionalDataSerializedObject.FindProperty("lightDimmer");
             m_FadeDistance = additionalDataSerializedObject.FindProperty("fadeDistance");
             m_AffectDiffuse = additionalDataSerializedObject.FindProperty("affectDiffuse");
@@ -337,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Cone)
                     {
                         EditorGUILayout.Slider(m_SpotAngle, 1f, 179f, Styles.SpotAngle);
-                        EditorGUILayout.Slider(m_SpotInnerAngle, 0f, 100f, Styles.SpotInnerAngle);
+                        EditorGUILayout.Slider(m_SpotInnerPercent, 0f, 100f, Styles.SpotInnerPercent);
                     }
                     // TODO : replace with angle and ratio
                     if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Pyramid)
@@ -374,6 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Fake line with a small rectangle in vanilla unity for GI
                     m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
                     m_AreaSizeY.floatValue = 0.01f;
+                    m_ShadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
                 case (LightShape)(-1):
@@ -397,7 +401,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox(Styles.IndirectBounceShadowWarning.text, MessageType.Info);
             }
             EditorGUILayout.PropertyField(m_Range, Styles.Range);
-            EditorGUILayout.PropertyField(m_Lightmapping, Styles.LightmappingMode);
+
+            // We need to overwrite the name of the default enum that doesn't make any sense
+            // EditorGUILayout.PropertyField(m_Lightmapping, Styles.LightmappingMode);
+            m_Lightmapping.enumValueIndex = EditorGUILayout.Popup(Styles.lightmappingModeText, (int)m_Lightmapping.enumValueIndex, Styles.lightmappingModeNames);     
 
             // Warning if GI Baking disabled and m_Lightmapping isn't realtime
             if (bakingWarningValue)
@@ -429,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_ShadowsType.enumValueIndex != (int)LightShadows.None)
             {
-                if (m_Lightmapping.enumValueIndex == (int)LightMappingType.Static)
+                if (m_Lightmapping.enumValueIndex == (int)LightMappingType.Baked)
                 {
                     switch ((LightType)m_Type.enumValueIndex)
                     {
@@ -481,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_LightDimmer, Styles.LightDimmer);
             EditorGUILayout.PropertyField(m_ApplyRangeAttenuation, Styles.ApplyRangeAttenuation);
 
-            if (m_ShadowsType.enumValueIndex != (int)LightShadows.None && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+            if (m_ShadowsType.enumValueIndex != (int)LightShadows.None && m_Lightmapping.enumValueIndex != (int)LightMappingType.Baked)
             {
                 EditorGUILayout.LabelField(new GUIContent("Shadows"), EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(m_ShadowFadeDistance, Styles.ShadowFadeDistance);
@@ -530,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
             
             // Do not display option for shadow if we are fully bake
-            if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+            if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Baked)
             {
                 if (EditorGUILayout.Toggle(new GUIContent("Enable Shadow"), m_ShadowsType.enumValueIndex != 0))
                     m_ShadowsType.enumValueIndex = (int)LightShadows.Hard;
@@ -579,7 +586,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // shadow cascade
-                if (m_Type.enumValueIndex == (int)LightType.Directional && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
+                if (m_Type.enumValueIndex == (int)LightType.Directional && m_Lightmapping.enumValueIndex != (int)LightMappingType.Baked)
                 {
                     EditorGUI.indentLevel--;
                     EditorLightUtilities.DrawSplitter();
