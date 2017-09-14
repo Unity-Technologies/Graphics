@@ -1,105 +1,48 @@
 ﻿using System;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class IMGUISlotEditorView : DataWatchContainer
+    public class IMGUISlotEditorView : VisualElement
     {
-        [SerializeField]
-        IMGUISlotEditorPresenter m_Presenter;
+        MaterialSlot m_Slot;
+        int m_SlotsHash;
 
-        ConcreteSlotValueType m_CurrentValueType = ConcreteSlotValueType.Error;
-
-        public override void OnDataChanged()
+        public IMGUISlotEditorView(MaterialSlot slot)
         {
-            if (presenter == null)
+            m_Slot = slot;
+            Add(new IMGUIContainer(OnGUIHandler));
+        }
+
+        void OnGUIHandler()
+        {
+            if (m_Slot == null)
+                return;
+            var previousWideMode = EditorGUIUtility.wideMode;
+            EditorGUIUtility.wideMode = true;
+            var newValue = SlotField(m_Slot);
+            if (newValue != m_Slot.currentValue)
             {
-                Clear();
-                return;
+                m_Slot.currentValue = newValue;
+                m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
             }
-
-            if (presenter.slot.concreteValueType == m_CurrentValueType)
-                return;
-
-            Clear();
-            m_CurrentValueType = presenter.slot.concreteValueType;
-
-            Action onGUIHandler;
-            if (presenter.slot.concreteValueType == ConcreteSlotValueType.Vector4)
-                onGUIHandler = Vector4OnGUIHandler;
-            else if (presenter.slot.concreteValueType == ConcreteSlotValueType.Vector3)
-                onGUIHandler = Vector3OnGUIHandler;
-            else if (presenter.slot.concreteValueType == ConcreteSlotValueType.Vector2)
-                onGUIHandler = Vector2OnGUIHandler;
-            else if (presenter.slot.concreteValueType == ConcreteSlotValueType.Vector1)
-                onGUIHandler = Vector1OnGUIHandler;
-            else
-                return;
-
-            Add(new IMGUIContainer(onGUIHandler));
-        }
-
-        void Vector4OnGUIHandler()
-        {
-            if (presenter.slot == null)
-                return;
-            var previousWideMode = EditorGUIUtility.wideMode;
-            EditorGUIUtility.wideMode = true;
-            presenter.value = EditorGUILayout.Vector4Field(presenter.slot.displayName, presenter.value);
             EditorGUIUtility.wideMode = previousWideMode;
         }
 
-        void Vector3OnGUIHandler()
+        static Vector4 SlotField(MaterialSlot slot)
         {
-            if (presenter.slot == null)
-                return;
-            var previousWideMode = EditorGUIUtility.wideMode;
-            EditorGUIUtility.wideMode = true;
-            presenter.value = EditorGUILayout.Vector3Field(presenter.slot.displayName, presenter.value);
-            EditorGUIUtility.wideMode = previousWideMode;
-        }
-
-        void Vector2OnGUIHandler()
-        {
-            if (presenter.slot == null)
-                return;
-            var previousWideMode = EditorGUIUtility.wideMode;
-            EditorGUIUtility.wideMode = true;
-            presenter.value = EditorGUILayout.Vector2Field(presenter.slot.displayName, presenter.value);
-            EditorGUIUtility.wideMode = previousWideMode;
-        }
-
-        void Vector1OnGUIHandler()
-        {
-            if (presenter.slot == null)
-                return;
-            var previousWideMode = EditorGUIUtility.wideMode;
-            EditorGUIUtility.wideMode = true;
-            presenter.value = new Vector4(EditorGUILayout.FloatField(presenter.slot.displayName, presenter.value.x), 0, 0, 0);
-            EditorGUIUtility.wideMode = previousWideMode;
-        }
-
-        protected override Object[] toWatch
-        {
-            get { return new Object[] { presenter }; }
-        }
-
-        public IMGUISlotEditorPresenter presenter
-        {
-            get { return m_Presenter; }
-            set
-            {
-                if (value == m_Presenter)
-                    return;
-                RemoveWatch();
-                m_Presenter = value;
-                OnDataChanged();
-                AddWatch();
-            }
+            if (slot.concreteValueType == ConcreteSlotValueType.Vector1)
+                return new Vector4(EditorGUILayout.FloatField(slot.displayName, slot.currentValue.x), 0, 0, 0);
+            if (slot.concreteValueType == ConcreteSlotValueType.Vector2)
+                return EditorGUILayout.Vector2Field(slot.displayName, slot.currentValue);
+            if (slot.concreteValueType == ConcreteSlotValueType.Vector3)
+                return EditorGUILayout.Vector3Field(slot.displayName, slot.currentValue);
+            if (slot.concreteValueType == ConcreteSlotValueType.Vector4)
+                return EditorGUILayout.Vector4Field(slot.displayName, slot.currentValue);
+            return Vector4.zero;
         }
     }
 }
