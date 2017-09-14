@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Rendering;
+using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -99,49 +100,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Dynamic=2
         }
 
-        class Styles
+        protected class Styles
         {
-            /*
-            public readonly GUIContent Type = EditorGUIUtility.TextContent("Type|Specifies the current type of light. Possible types are Directional, Spot, Point, and Area lights.");
-            public readonly GUIContent Range = EditorGUIUtility.TextContent("Range|Controls how far the light is emitted from the center of the object.");
-            public readonly GUIContent SpotAngle = EditorGUIUtility.TextContent("Spot Angle|Controls the angle in degrees at the base of a Spot light's cone.");
-            public readonly GUIContent Color = EditorGUIUtility.TextContent("Color|Controls the color being emitted by the light.");
-            public readonly GUIContent UseColorTemperature = EditorGUIUtility.TextContent("Use color temperature mode|Cho0se between RGB and temperature mode for light's color.");
-            public readonly GUIContent ColorFilter = EditorGUIUtility.TextContent("Filter|A colored gel can be put in front of the light source to tint the light.");
-            public readonly GUIContent ColorTemperature = EditorGUIUtility.TextContent("Temperature|Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
-            public readonly GUIContent Intensity = EditorGUIUtility.TextContent("Intensity|Controls the brightness of the light. Light color is multiplied by this value.");
-            public readonly GUIContent LightmappingMode = EditorGUIUtility.TextContent("Mode|Specifies the light mode used to determine if and how a light will be baked. Possible modes are Baked, Mixed, and Realtime.");
-            public readonly GUIContent LightBounceIntensity = EditorGUIUtility.TextContent("Indirect Multiplier|Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
-            public readonly GUIContent ShadowType = EditorGUIUtility.TextContent("Shadow Type|Specifies whether Hard Shadows, Soft Shadows, or No Shadows will be cast by the light.");
-            //realtime
-            public readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TextContent("Realtime Shadows|Settings for realtime direct shadows.");
-            public readonly GUIContent ShadowStrength = EditorGUIUtility.TextContent("Strength|Controls how dark the shadows cast by the light will be.");
-            public readonly GUIContent ShadowResolution = EditorGUIUtility.TextContent("Resolution|Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
-            public readonly GUIContent ShadowBias = EditorGUIUtility.TextContent("Bias|Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
-            public readonly GUIContent ShadowNormalBias = EditorGUIUtility.TextContent("Normal Bias|Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
-            public readonly GUIContent ShadowNearPlane = EditorGUIUtility.TextContent("Near Plane|Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
-            //baked
-            public readonly GUIContent BakedShadowRadius = EditorGUIUtility.TextContent("Baked Shadow Radius|Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
-            public readonly GUIContent BakedShadowAngle = EditorGUIUtility.TextContent("Baked Shadow Angle|Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
+            public static GUIContent CookieSizeX = new GUIContent("CookieSizeX", "");
+            public static GUIContent CookieSizeY = new GUIContent("CookieSizeY", "");
 
-            public readonly GUIContent Cookie = EditorGUIUtility.TextContent("Cookie|Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
-            public readonly GUIContent CookieSize = EditorGUIUtility.TextContent("Cookie Size|Controls the size of the cookie mask currently assigned to the light.");
-            public readonly GUIContent DrawHalo = EditorGUIUtility.TextContent("Draw Halo|When enabled, draws a spherical halo of light with a radius equal to the lights range value.");
-            public readonly GUIContent Flare = EditorGUIUtility.TextContent("Flare|Specifies the flare object to be used by the light to render lens flares in the scene.");
-            public readonly GUIContent RenderMode = EditorGUIUtility.TextContent("Render Mode|Specifies the importance of the light which impacts lighting fidelity and performance. Options are Auto, Important, and Not Important. This only affects Forward Rendering");
-            public readonly GUIContent CullingMask = EditorGUIUtility.TextContent("Culling Mask|Specifies which layers will be affected or excluded from the light's effect on objects in the scene.");
+            public static GUIContent ShapeLengthLine = new GUIContent("Length", "Length of the line light");
+            public static GUIContent ShapeLengthRect = new GUIContent("SizeX", "SizeX of the rectangle light");
+            public static GUIContent ShapeWidthRect = new GUIContent("SizeY", "SizeY of the rectangle light");
 
-            public readonly GUIContent iconRemove = EditorGUIUtility.IconContent("Toolbar Minus", "Remove command buffer");
-            public readonly GUIStyle invisibleButton = "InvisibleButton";
+            public static GUIContent ShapeLengthPyramid = new GUIContent("SizeX", "");
+            public static GUIContent ShapeWidthPyramid = new GUIContent("SizeY", "");
 
-            public readonly GUIContent AreaWidth = EditorGUIUtility.TextContent("Width|Controls the width in units of the area light.");
-            public readonly GUIContent AreaHeight = EditorGUIUtility.TextContent("Height|Controls the height in units of the area light.");
+            public static GUIContent ShapeLengthBox = new GUIContent("SizeX", "");
+            public static GUIContent ShapeWidthBox = new GUIContent("SizeY", "");
 
-            public readonly GUIContent BakingWarning = EditorGUIUtility.TextContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
-            public readonly GUIContent IndirectBounceShadowWarning = EditorGUIUtility.TextContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
-            public readonly GUIContent CookieWarning = EditorGUIUtility.TextContent("Cookie textures for spot lights should be set to clamp, not repeat, to avoid artifacts.");
-            public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
-            */
+            public static GUIContent MaxSmoothness = new GUIContent("MaxSmoothness", "Very low cost way of faking spherical area lighting. This will modifying the roughness of the material lit. This is use when the highlight point is not visible enough.");
+            public static GUIContent SpotLightShape = new GUIContent("SpotLightShape", "The shape use for the spotlight. Have impact on cookie transformation and light angular attenuation.");
+
+            public static GUIContent SpotAngle = new GUIContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
+            public static GUIContent SpotInnerAngle = new GUIContent("Spot Inner Angle", "Controls the inner angle in percent of the base angle of a Spot light's cone.");
+
+            public static GUIContent Color = new GUIContent("Color", "Controls the color being emitted by the light.");
+            public static GUIContent Intensity = new GUIContent("Intensity", "Controls the brightness of the light. Light color is multiplied by this value.");
+
+            public static GUIContent Range = new GUIContent("Range", "Controls how far the light is emitted from the center of the object.");
+            public static GUIContent LightmappingMode = new GUIContent("Mode", "Specifies the light mode used to determine if and how a light will be baked. Possible modes are Baked, Mixed, and Realtime.");
+            public static GUIContent BounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
+            public static GUIContent Cookie = new GUIContent("Cookie", "Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
+
+            public static GUIContent BakedShadowRadius = new GUIContent("Baked Shadow Radius", "Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
+            public static GUIContent BakedShadowAngle = new GUIContent("Baked Shadow Angle", "Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
+
+            public static GUIContent ShadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
+            public static GUIContent ShadowBias = new GUIContent("Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
+            public static GUIContent ShadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
+            public static GUIContent ShadowNearPlane = new GUIContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
+
+
+            public static GUIContent ShadowCascadeCount = new GUIContent("ShadowCascadeCount", "");
+            public static GUIContent[] ShadowCascadeRatios = new GUIContent[6] { new GUIContent("Cascade 1"), new GUIContent("Cascade 2"), new GUIContent("Cascade 3"), new GUIContent("Cascade 4"), new GUIContent("Cascade 5"), new GUIContent("Cascade 6") };
+
+            public static GUIContent AffectDiffuse = new GUIContent("AffectDiffuse", "This will disable diffuse lighting for this light. Don't save performance, diffuse lighting is still.");
+            public static GUIContent AffectSpecular = new GUIContent("AffectSpecular", "This will disable specular lighting for this light. Don't save performance, specular lighting is still.");
+            public static GUIContent FadeDistance = new GUIContent("FadeDistance", "The light color will fade at distance FadeDistance before being culled to minimize popping.");
+            public static GUIContent LightDimmer = new GUIContent("LightDimmer", "Aim to be use with script, timeline or animation. It allow to dim one or multiple lights of heterogeneous intensity easily (Else you need to know the intensity of each light)");
+            public static GUIContent ApplyRangeAttenuation = new GUIContent("ApplyRangeAttenuation", "Allow to disable range attenuation. This aim to be use indoor (like a room) to avoid to have to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
+            public static GUIContent ShadowFadeDistance = new GUIContent("ShadowFadeDistance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
+            public static GUIContent ShadowDimmer = new GUIContent("ShadowDimmer", "Aim to be use with script, timeline or animation. It allow to dim one or multiple shadows. this can also be use to fit in shadow budget manually and minimize popping.");
+
+            public static GUIContent DisabledLightWarning = new GUIContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
+            public static GUIContent CookieWarning = new GUIContent("Cookie textures for spot lights must be set to clamp. Repeat is not supported.");
+            public static GUIContent IndirectBounceShadowWarning = new GUIContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
+            public static GUIContent BakingWarning = new GUIContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
 
             public static string lightShapeText = "LightShape";
             public static readonly string[] lightShapeNames = Enum.GetNames(typeof(LightShape));
@@ -152,6 +163,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Should match same colors in GizmoDrawers.cpp!
         static Color kGizmoLight = new Color(254 / 255f, 253 / 255f, 136 / 255f, 128 / 255f);
         static Color kGizmoDisabledLight = new Color(135 / 255f, 116 / 255f, 50 / 255f, 128 / 255f);
+
+        private bool typeIsSame { get { return !m_Type.hasMultipleDifferentValues; } }
+        private Texture cookie { get { return m_Cookie.objectReferenceValue as Texture; } }
+
+        private bool lightmappingTypeIsSame { get { return !m_Lightmapping.hasMultipleDifferentValues; } }
+
+        private bool isRealtime             { get { return m_Lightmapping.enumValueIndex == (int)LightMappingType.Dynamic; } }
+
+        private bool isBakedOrMixed { get { return !isRealtime; } }
+
+        private bool bakingWarningValue { get { return !Lightmapping.bakedGI && lightmappingTypeIsSame && isBakedOrMixed; } }
+
+        private bool cookieWarningValue
+        {
+            get
+            {
+                return typeIsSame && light.type == LightType.Spot &&
+                    !m_Cookie.hasMultipleDifferentValues && cookie && cookie.wrapMode != TextureWrapMode.Clamp;
+            }
+        }
+        private bool bounceWarningValue
+        {
+            get
+            {
+                return typeIsSame && (light.type == LightType.Point || light.type == LightType.Spot) &&
+                    lightmappingTypeIsSame && isRealtime && !m_BounceIntensity.hasMultipleDifferentValues && m_BounceIntensity.floatValue > 0.0f && m_ShadowsType.enumValueIndex != (int)LightShadows.None;
+            }
+        }
 
         private void OnEnable()
         {
@@ -181,16 +220,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BakedShadowAngle = serializedObject.FindProperty("m_ShadowAngle");
 
             // Automatically add HD data if not present
-            var additionalData = light.GetComponent<HDAdditionalLightData>();
-            var shadowData = light.GetComponent<AdditionalShadowData>();
+            // We need to handle multiSelection. To do this we need to get the array of selection and assign it to additionalDataSerializedObject
+            // additionalDataSerializedObject must be see as an array of selection in all following operation (this is transparent)
 
-            if (additionalData == null || shadowData == null)
+            var additionalDatas = this.targets.Select(t => (t as Component).GetComponent<HDAdditionalLightData>()).ToArray();
+            var shadowDatas = this.targets.Select(t => (t as Component).GetComponent<AdditionalShadowData>()).ToArray();
+
+            for (int i = 0; i < additionalDatas.Length; ++i)
             {
-                AddAdditionalComponents(additionalData, shadowData);
+                if (additionalDatas[i] == null)
+                {
+                    additionalDatas[i] = Undo.AddComponent<HDAdditionalLightData>((targets[i] as Component).gameObject);
+                }
             }
 
-            additionalDataSerializedObject = new SerializedObject(additionalData);
-            shadowDataSerializedObject = new SerializedObject(shadowData);
+            for (int i = 0; i < shadowDatas.Length; ++i)
+            {
+                if (shadowDatas[i] == null)
+                {
+                    shadowDatas[i] = Undo.AddComponent<AdditionalShadowData>((targets[i] as Component).gameObject);
+                }
+            }
+
+            additionalDataSerializedObject = new SerializedObject(additionalDatas);
+            shadowDataSerializedObject = new SerializedObject(shadowDatas);
 
             // Additional data
             m_SpotInnerAngle = additionalDataSerializedObject.FindProperty("m_InnerSpotPercent");
@@ -221,6 +274,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ResolveLightShape()
         {
+            // When we do multiple selection we must not avoid to chose a type, else it may corrupt light
+            if (m_Type.hasMultipleDifferentValues)
+            {
+                m_LightShape = (LightShape)(-1);
+
+                return;
+            }
+
             if (m_LightTypeExtent.enumValueIndex == (int)LightTypeExtent.Punctual)
             {
                 switch ((LightType)m_Type.enumValueIndex)
@@ -259,34 +320,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case LightShape.Directional:
                     m_Type.enumValueIndex = (int)LightType.Directional;
+                    m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
                     break;
 
                 case LightShape.Point:
                     m_Type.enumValueIndex = (int)LightType.Point;
-                    EditorGUILayout.PropertyField(m_MaxSmoothness);
+                    m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
+                    EditorGUILayout.PropertyField(m_MaxSmoothness, Styles.MaxSmoothness);
                     break;
 
                 case LightShape.Spot:
                     m_Type.enumValueIndex = (int)LightType.Spot;
-                    EditorGUILayout.PropertyField(m_SpotLightShape);
+                    m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
+                    EditorGUILayout.PropertyField(m_SpotLightShape, Styles.SpotLightShape);
                     //Cone Spot
                     if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Cone)
                     {
-                        EditorGUILayout.Slider(m_SpotAngle, 1f, 179f);
-                        EditorGUILayout.Slider(m_SpotInnerAngle, 0f, 100f);
+                        EditorGUILayout.Slider(m_SpotAngle, 1f, 179f, Styles.SpotAngle);
+                        EditorGUILayout.Slider(m_SpotInnerAngle, 0f, 100f, Styles.SpotInnerAngle);
                     }
                     // TODO : replace with angle and ratio
                     if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Pyramid)
                     {
-                        EditorGUILayout.Slider(m_ShapeLength, 0.01f, 10);
-                        EditorGUILayout.Slider(m_ShapeWidth, 0.01f, 10);
+                        EditorGUILayout.Slider(m_ShapeLength, 0.01f, 10, Styles.ShapeLengthPyramid);
+                        EditorGUILayout.Slider(m_ShapeWidth, 0.01f, 10, Styles.ShapeWidthPyramid);
                     }
                     if (m_SpotLightShape.enumValueIndex == (int)SpotLightShape.Box)
                     {
-                        EditorGUILayout.PropertyField(m_ShapeLength);
-                        EditorGUILayout.PropertyField(m_ShapeWidth);
+                        EditorGUILayout.PropertyField(m_ShapeLength, Styles.ShapeLengthBox);
+                        EditorGUILayout.PropertyField(m_ShapeWidth, Styles.ShapeWidthBox);
                     }
-                    EditorGUILayout.PropertyField(m_MaxSmoothness);
+                    EditorGUILayout.PropertyField(m_MaxSmoothness, Styles.MaxSmoothness);
                     break;
 
                 case LightShape.Rectangle:
@@ -294,8 +358,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     //m_Type.enumValueIndex = (int)LightType.Area;
                     m_Type.enumValueIndex = (int)LightType.Point;
                     m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
-                    EditorGUILayout.PropertyField(m_ShapeLength);
-                    EditorGUILayout.PropertyField(m_ShapeWidth);
+                    EditorGUILayout.PropertyField(m_ShapeLength, Styles.ShapeLengthRect);
+                    EditorGUILayout.PropertyField(m_ShapeWidth, Styles.ShapeWidthRect);
                     m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
                     m_AreaSizeY.floatValue = m_ShapeWidth.floatValue;
                     m_ShadowsType.enumValueIndex = (int)LightShadows.None;
@@ -306,10 +370,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     //m_Type.enumValueIndex = (int)LightType.Area;
                     m_Type.enumValueIndex = (int)LightType.Point;
                     m_LightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
-                    EditorGUILayout.PropertyField(m_ShapeLength);
+                    EditorGUILayout.PropertyField(m_ShapeLength, Styles.ShapeLengthLine);
                     // Fake line with a small rectangle in vanilla unity for GI
                     m_AreaSizeX.floatValue = m_ShapeLength.floatValue;
                     m_AreaSizeY.floatValue = 0.01f;
+                    break;
+
+                case (LightShape)(-1):
+                    // don't do anything, this is just to handle multi selection
                     break;
 
                 default:
@@ -320,15 +388,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void LightGUI()
         {
-            EditorGUILayout.PropertyField(m_Color);
-            EditorGUILayout.PropertyField(m_Intensity);
-            EditorGUILayout.PropertyField(m_BounceIntensity);
-            EditorGUILayout.PropertyField(m_Range);
-            EditorGUILayout.PropertyField(m_Lightmapping);
+            EditorGUILayout.PropertyField(m_Color, Styles.Color);
+            EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
+            EditorGUILayout.PropertyField(m_BounceIntensity, Styles.BounceIntensity);
+            // Indirect shadows warning (Should be removed when we support realtime indirect shadows)
+            if (bounceWarningValue)
+            {
+                EditorGUILayout.HelpBox(Styles.IndirectBounceShadowWarning.text, MessageType.Info);
+            }
+            EditorGUILayout.PropertyField(m_Range, Styles.Range);
+            EditorGUILayout.PropertyField(m_Lightmapping, Styles.LightmappingMode);
+
+            // Warning if GI Baking disabled and m_Lightmapping isn't realtime
+            if (bakingWarningValue)
+            {
+                EditorGUILayout.HelpBox(Styles.BakingWarning.text, MessageType.Info);
+            }
+
             // no cookie with area light (maybe in future textured area light ?)
             if (!(m_LightShape == LightShape.Rectangle) && !(m_LightShape == LightShape.Line))
             {
-                EditorGUILayout.PropertyField(m_Cookie);
+                EditorGUILayout.PropertyField(m_Cookie, Styles.Cookie);
+
+                // When directional light use a cookie, it can control the size
+                if (m_LightShape == LightShape.Directional)
+                {
+                    EditorGUILayout.Slider(m_ShapeLength, 0.01f, 10, Styles.CookieSizeX);
+                    EditorGUILayout.Slider(m_ShapeWidth, 0.01f, 10, Styles.CookieSizeY);
+                }
+
+                if (cookieWarningValue)
+                {
+                    // warn on spotlights if the cookie is set to repeat
+                    EditorGUILayout.HelpBox(Styles.CookieWarning.text, MessageType.Warning);
+                }
             }
         }
 
@@ -341,20 +434,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch ((LightType)m_Type.enumValueIndex)
                     {
                         case LightType.Directional:
-                            EditorGUILayout.PropertyField(m_BakedShadowAngle, new GUIContent("Bake shadow angle"));
+                            EditorGUILayout.PropertyField(m_BakedShadowAngle, Styles.BakedShadowAngle);
                             break;
                         case LightType.Spot:
                         case LightType.Point:
-                            EditorGUILayout.PropertyField(m_BakedShadowRadius, new GUIContent("Bake shadow radius"));
+                            EditorGUILayout.PropertyField(m_BakedShadowRadius, Styles.BakedShadowRadius);
                             break;
                     }
                 }
                 else 
                 {
-                    EditorGUILayout.PropertyField(m_ShadowResolution);
-                    EditorGUILayout.Slider(m_ShadowsBias, 0.001f, 1);
-                    EditorGUILayout.Slider(m_ShadowsNormalBias, 0.001f, 1);
-                    EditorGUILayout.Slider(m_ShadowsNearPlane, 0.01f, 10);
+                    EditorGUILayout.PropertyField(m_ShadowResolution, Styles.ShadowResolution);
+                    EditorGUILayout.Slider(m_ShadowsBias, 0.001f, 1, Styles.ShadowBias);
+                    EditorGUILayout.Slider(m_ShadowsNormalBias, 0.001f, 1, Styles.ShadowNormalBias);
+                    EditorGUILayout.Slider(m_ShadowsNearPlane, 0.01f, 10, Styles.ShadowNearPlane);
                 }
             }
         }
@@ -362,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void ShadowsCascadeGUI()
         {
             UnityEditor.EditorGUI.BeginChangeCheck();
-            EditorGUILayout.IntSlider(m_ShadowCascadeCount, 1, 4);
+            EditorGUILayout.IntSlider(m_ShadowCascadeCount, 1, 4, Styles.ShadowCascadeCount);
             if (UnityEditor.EditorGUI.EndChangeCheck())
             {
                 m_ShadowCascadeRatios.arraySize = m_ShadowCascadeCount.intValue - 1;
@@ -371,7 +464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < m_ShadowCascadeRatios.arraySize; i++)
             {
-                UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeRatios.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Cascade " + i));
+                UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeRatios.GetArrayElementAtIndex(i), 0.0f, 1.0f, Styles.ShadowCascadeRatios[i]);
             }
         }
 
@@ -382,17 +475,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // EditorGUILayout.PropertyField(m_CullingMask);
 
             EditorGUILayout.LabelField(new GUIContent("Light"), EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_AffectDiffuse);
-            EditorGUILayout.PropertyField(m_AffectSpecular);
-            EditorGUILayout.PropertyField(m_FadeDistance);
-            EditorGUILayout.PropertyField(m_LightDimmer);
-            EditorGUILayout.PropertyField(m_ApplyRangeAttenuation);
+            EditorGUILayout.PropertyField(m_AffectDiffuse, Styles.AffectDiffuse);
+            EditorGUILayout.PropertyField(m_AffectSpecular, Styles.AffectSpecular);
+            EditorGUILayout.PropertyField(m_FadeDistance, Styles.FadeDistance);
+            EditorGUILayout.PropertyField(m_LightDimmer, Styles.LightDimmer);
+            EditorGUILayout.PropertyField(m_ApplyRangeAttenuation, Styles.ApplyRangeAttenuation);
 
             if (m_ShadowsType.enumValueIndex != (int)LightShadows.None && m_Lightmapping.enumValueIndex != (int)LightMappingType.Static)
             {
                 EditorGUILayout.LabelField(new GUIContent("Shadows"), EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(m_ShadowFadeDistance);
-                EditorGUILayout.PropertyField(m_ShadowDimmer);
+                EditorGUILayout.PropertyField(m_ShadowFadeDistance, Styles.ShadowFadeDistance);
+                EditorGUILayout.PropertyField(m_ShadowDimmer, Styles.ShadowDimmer);
             }
         }
 
@@ -513,18 +606,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel = 0; // Reset the value that we have init to 1
 
+            if (SceneView.lastActiveSceneView != null && SceneView.lastActiveSceneView.m_SceneLighting == false)
+            {
+                EditorGUILayout.HelpBox(Styles.DisabledLightWarning.text, MessageType.Warning);
+            }
+
             serializedObject.ApplyModifiedProperties();
             additionalDataSerializedObject.ApplyModifiedProperties();
             shadowDataSerializedObject.ApplyModifiedProperties();
-        }
-
-        void AddAdditionalComponents(HDAdditionalLightData additionalData, AdditionalShadowData shadowData)
-        {
-            if (additionalData == null)
-                additionalData = light.gameObject.AddComponent<HDAdditionalLightData>();
-
-            if (shadowData == null)
-                shadowData = light.gameObject.AddComponent<AdditionalShadowData>();
         }
 
         void ApplyAdditionalComponentsVisibility(bool hide)
