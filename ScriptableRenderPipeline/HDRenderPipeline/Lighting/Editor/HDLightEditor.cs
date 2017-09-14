@@ -271,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowFadeDistance = shadowDataSerializedObject.FindProperty("shadowFadeDistance");
             m_ShadowCascadeCount = shadowDataSerializedObject.FindProperty("shadowCascadeCount");
             m_ShadowCascadeRatios = shadowDataSerializedObject.FindProperty("shadowCascadeRatios");
-            m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
+            m_ShadowCascadeBorders = shadowDataSerializedObject.FindProperty("shadowCascadeBorders");
             m_ShadowResolution = shadowDataSerializedObject.FindProperty("shadowResolution");                        
         }
 
