@@ -52,6 +52,8 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
+    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------

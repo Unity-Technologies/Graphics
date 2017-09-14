@@ -316,6 +316,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly int m_VelocityBuffer;
         readonly int m_DistortionBuffer;
 
+        readonly int m_DeferredShadowBuffer;
+
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         readonly RenderTargetIdentifier m_CameraColorBufferRT;
         readonly RenderTargetIdentifier m_CameraSssDiffuseLightingBufferRT;
@@ -324,6 +326,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
+
+        readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
 
         private RenderTexture m_CameraDepthStencilBuffer = null;
         private RenderTexture m_CameraDepthBufferCopy = null;
@@ -475,6 +479,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
+            m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
+            m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
+
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
 
             m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
@@ -599,6 +606,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_HTile.Create();
                 m_HTileRT = new RenderTargetIdentifier(m_HTile);
             }
+
         }
 
         void Resize(Camera camera)
@@ -816,8 +824,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
           
             // emit scene view UI
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
 
             CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
 
@@ -883,6 +893,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
+
+                    cmd.GetTemporaryRT(m_DeferredShadowBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1 , true);
+                    m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
+
+                    PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.DeferredShadows);
+
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                     m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
                 }
@@ -1127,13 +1143,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
@@ -1338,14 +1354,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 
-        public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
-            if(debugMode == m_DebugDisplaySettings.fullScreenDebugMode)
+            if (debugMode == m_DebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 cb.Blit(textureID, m_DebugFullScreenTempRT);
             }
+        }
+
+        public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        {
+            PushFullScreenDebugTexture(cb, new RenderTargetIdentifier(textureID), camera, renderContext, debugMode);
         }
 
         void RenderDebug(HDCamera camera, CommandBuffer cmd)

@@ -166,6 +166,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
 
+    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
     #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT

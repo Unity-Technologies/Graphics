@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -354,6 +354,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private ComputeShader buildDispatchIndirectShader { get { return m_Resources.buildDispatchIndirectShader; } }
             private ComputeShader clearDispatchIndirectShader { get { return m_Resources.clearDispatchIndirectShader; } }
             private ComputeShader deferredComputeShader { get { return m_Resources.deferredComputeShader; } }
+            private ComputeShader deferredDirectionalShadowComputeShader { get { return m_Resources.deferredDirectionalShadowComputeShader; } }
+
 
             static int s_GenAABBKernel;
             static int s_GenListPerTileKernel;
@@ -370,6 +372,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
             //static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.s_NumFeatureVariants];
             static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
+
+            static int s_deferredDirectionalShadowKernel;
 
             static ComputeBuffer s_LightVolumeDataBuffer = null;
             static ComputeBuffer s_ConvexBoundsBuffer = null;
@@ -414,6 +418,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_SingleDeferredMaterialMRT   = null;
 
             Light m_CurrentSunLight = null;
+            int m_CurrentSunLightShadowIndex = -1;
+
             public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
             // shadow related stuff
@@ -529,6 +535,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
                 s_shadeOpaqueDirectClusteredDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Clustered_DebugDisplay");
                 s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
+
+                s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
 
                 for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
@@ -759,6 +767,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     directionalLightData.shadowIndex = shadowIdx;
                     m_CurrentSunLight = light.light;
+                    m_CurrentSunLightShadowIndex = shadowIdx;
                 }
                 m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
 
@@ -1331,6 +1340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // The lightLoop is in charge, not the shadow pass.
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
                     m_CurrentSunLight = null;
+                    m_CurrentSunLightShadowIndex = -1;
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
@@ -1531,6 +1541,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
             {
+                cmd.BeginSample("Build Light List");
+
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
                 var numBigTilesX = (w + 63) / 64;
@@ -1676,6 +1688,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
                     cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
                 }
+
+                cmd.EndSample("Build Light List");
             }
 
             // This is a workaround for global properties not being accessible from compute.
@@ -1905,9 +1919,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 public bool volumetricLightingEnabled;
             }
 
+            public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RenderTargetIdentifier deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
+            {
+                if (m_CurrentSunLight == null)
+                    return;
+
+                using (new Utilities.ProfilingSample("Deferred Directional", cmd))
+                {
+                    hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
+                    m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
+
+                    cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
+                    cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
+                    cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._MainDepthTexture, depthTexture);
+
+                    int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
+                    int numTilesX = (hdCamera.camera.pixelWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                    int numTilesY = (hdCamera.camera.pixelHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+
+                    cmd.DispatchCompute(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, numTilesX, numTilesY, 1);
+                }
+            }
+
             public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd,
                                                 DebugDisplaySettings debugDisplaySettings,
-                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
+                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture, RenderTargetIdentifier deferredShadowTexture,
                                                 LightingPassOptions options)
             {
                 var bUseClusteredForDeferred = !usingFptl;
@@ -2040,6 +2076,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._DebugLightingSmoothness, debugLightingSmoothness);
 
                                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
+
+                                cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._DeferredShadowTexture, deferredShadowTexture);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 

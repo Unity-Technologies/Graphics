@@ -485,6 +485,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MinLightingFullScreenDebug, 
         SSAO,
         SSAOBeforeFiltering,
+        DeferredShadows,
         MaxLightingFullScreenDebug,
 
         // Rendering
