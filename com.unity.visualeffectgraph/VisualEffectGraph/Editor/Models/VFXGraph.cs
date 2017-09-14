@@ -256,15 +256,25 @@ namespace UnityEditor.VFX
             if (m_ExpressionGraphDirty)
             {
                 compiledData.Compile();
-                m_ExpressionGraphDirty = false;
-                m_ExpressionValuesDirty = false; // values already set
             }
-
-            if (m_ExpressionValuesDirty)
+            else if (m_ExpressionValuesDirty)
             {
                 compiledData.UpdateValues();
-                m_ExpressionValuesDirty = false;
             }
+
+            if (m_ExpressionGraphDirty || m_ExpressionValuesDirty)
+            {
+                foreach (var component in VFXComponent.GetAllActive())
+                {
+                    if (component.vfxAsset == compiledData.vfxAsset)
+                    {
+                        component.SetVfxAssetDirty(m_ExpressionGraphDirty);
+                    }
+                }
+            }
+
+            m_ExpressionGraphDirty = false;
+            m_ExpressionValuesDirty = false;
         }
 
         private VFXGraphCompiledData compiledData
