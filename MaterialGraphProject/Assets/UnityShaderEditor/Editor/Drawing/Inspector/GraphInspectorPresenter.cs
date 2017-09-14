@@ -32,8 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             this.assetName = assetName;
             selectedNodes = new List<INode>();
 
-            if (onChange != null)
-                onChange(ChangeType.Graph | ChangeType.SelectedNodes | ChangeType.AssetName);
+            Change(ChangeType.Graph | ChangeType.SelectedNodes | ChangeType.AssetName);
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
@@ -41,8 +40,13 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             selectedNodes.Clear();
             selectedNodes.AddRange(nodes);
 
+            Change(ChangeType.SelectedNodes);
+        }
+
+        void Change(ChangeType changeType)
+        {
             if (onChange != null)
-                onChange(ChangeType.SelectedNodes);
+                onChange(changeType);
         }
     }
 }
