@@ -509,9 +509,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             ResolveLightShape();
 
-            var additionalData = light.GetComponent<HDAdditionalLightData>();
-            var shadowData = light.GetComponent<AdditionalShadowData>();
-
             if (GUILayout.Button("Toggle light editor"))
             {
                 m_UseOldInspector.boolValue = !m_UseOldInspector.boolValue;
