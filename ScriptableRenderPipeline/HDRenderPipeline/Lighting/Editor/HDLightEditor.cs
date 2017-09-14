@@ -115,11 +115,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static GUIContent ShapeLengthBox = new GUIContent("SizeX", "");
             public static GUIContent ShapeWidthBox = new GUIContent("SizeY", "");
 
-            public static GUIContent MaxSmoothness = new GUIContent("MaxSmoothness", "Very low cost way of faking spherical area lighting. This will modifying the roughness of the material lit. This is use when the highlight point is not visible enough.");
-            public static GUIContent SpotLightShape = new GUIContent("SpotLightShape", "The shape use for the spotlight. Have impact on cookie transformation and light angular attenuation.");
+            public static GUIContent MaxSmoothness = new GUIContent("MaxSmoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
+            public static GUIContent SpotLightShape = new GUIContent("SpotLightShape", "The shape use for the spotlight. Has an impact on the cookie transformation and light angular attenuation.");
 
             public static GUIContent SpotAngle = new GUIContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
-            public static GUIContent SpotInnerPercent = new GUIContent("Spot Inner Percent", "Controls the inner angle in percent of the base angle of a Spot light's cone.");
+            public static GUIContent SpotInnerPercent = new GUIContent("Spot Inner Percent", "Controls size of the angular attenuation in percent of the base angle of the Spot light's cone.");
 
             public static GUIContent Color = new GUIContent("Color", "Controls the color being emitted by the light.");
             public static GUIContent Intensity = new GUIContent("Intensity", "Controls the brightness of the light. Light color is multiplied by this value.");
@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static GUIContent Range = new GUIContent("Range", "Controls how far the light is emitted from the center of the object.");
             public static GUIContent LightmappingMode = new GUIContent("Mode", "Specifies the light mode used to determine if and how a light will be baked. Possible modes are Baked, Mixed, and Realtime.");
             public static GUIContent BounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
-            public static GUIContent Cookie = new GUIContent("Cookie", "Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
+            public static GUIContent Cookie = new GUIContent("Cookie", "Specifies the Texture projected by the light. Spotlights require 2D texture and pointlights require texture cube.");
 
             public static GUIContent BakedShadowRadius = new GUIContent("Baked Shadow Radius", "Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
             public static GUIContent BakedShadowAngle = new GUIContent("Baked Shadow Angle", "Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
@@ -141,13 +141,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static GUIContent ShadowCascadeCount = new GUIContent("ShadowCascadeCount", "");
             public static GUIContent[] ShadowCascadeRatios = new GUIContent[6] { new GUIContent("Cascade 1"), new GUIContent("Cascade 2"), new GUIContent("Cascade 3"), new GUIContent("Cascade 4"), new GUIContent("Cascade 5"), new GUIContent("Cascade 6") };
 
-            public static GUIContent AffectDiffuse = new GUIContent("AffectDiffuse", "This will disable diffuse lighting for this light. Don't save performance, diffuse lighting is still computed.");
-            public static GUIContent AffectSpecular = new GUIContent("AffectSpecular", "This will disable specular lighting for this light. Don't save performance, specular lighting is still computed.");
-            public static GUIContent FadeDistance = new GUIContent("FadeDistance", "The light color will fade at distance FadeDistance before being culled to minimize popping.");
-            public static GUIContent LightDimmer = new GUIContent("LightDimmer", "Aim to be use with script, timeline or animation. It allow to dim one or multiple lights of heterogeneous intensity easily (Else you need to know the intensity of each light)");
-            public static GUIContent ApplyRangeAttenuation = new GUIContent("ApplyRangeAttenuation", "Allow to disable range attenuation. This aim to be use indoor (like a room) to avoid to have to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
+            public static GUIContent AffectDiffuse = new GUIContent("AffectDiffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
+            public static GUIContent AffectSpecular = new GUIContent("AffectSpecular", "This will disable specular lighting for this light. Doesn't save performance, specular lighting is still computed.");
+            public static GUIContent FadeDistance = new GUIContent("FadeDistance", "The distance at which the light will smoothly fade before being culled to minimize popping.");
+            public static GUIContent LightDimmer = new GUIContent("LightDimmer", "Aim to be used with script, timeline or animation. It allows dimming one or multiple lights of heterogeneous intensity easily (without needing to know the intensity of each light).");
+            public static GUIContent ApplyRangeAttenuation = new GUIContent("ApplyRangeAttenuation", "Allows disabling range attenuation. This is useful indoor (like a room) to avoid having to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
             public static GUIContent ShadowFadeDistance = new GUIContent("ShadowFadeDistance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
-            public static GUIContent ShadowDimmer = new GUIContent("ShadowDimmer", "Aim to be use with script, timeline or animation. It allow to dim one or multiple shadows. this can also be use to fit in shadow budget manually and minimize popping.");
+            public static GUIContent ShadowDimmer = new GUIContent("ShadowDimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
 
             public static GUIContent DisabledLightWarning = new GUIContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
             public static GUIContent CookieWarning = new GUIContent("Cookie textures for spot lights must be set to clamp. Repeat is not supported.");
