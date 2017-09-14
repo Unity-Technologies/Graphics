@@ -515,17 +515,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &113580756
 Light:
   m_ObjectHideFlags: 0
@@ -1221,17 +1224,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &192903506
 Light:
   m_ObjectHideFlags: 0
@@ -1663,17 +1669,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &269387786
 Light:
   m_ObjectHideFlags: 0
@@ -2813,17 +2822,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &476925264
 Light:
   m_ObjectHideFlags: 0
@@ -3398,17 +3410,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &563884888
 Light:
   m_ObjectHideFlags: 0
@@ -3518,17 +3533,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &580932149
 Light:
   m_ObjectHideFlags: 0
@@ -4391,17 +4409,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &682868819
 Light:
   m_ObjectHideFlags: 0
@@ -4683,7 +4704,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &710116621
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 710116620}
@@ -4692,17 +4713,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 1
+  lightTypeExtent: 2
   spotLightShape: 0
-  lightLength: 16
-  lightWidth: 0
+  shapeLength: 16
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &710116622
 Light:
   m_ObjectHideFlags: 0
@@ -4733,7 +4757,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_Lightmapping: 4
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 16, y: 0.01}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -4761,7 +4785,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &710116624
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 710116620}
@@ -4901,7 +4925,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: -0.39200002, y: 1.033, z: -0.92}
 --- !u!114 &726298022
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 726298020}
@@ -4910,17 +4934,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &726298023
 Light:
   m_ObjectHideFlags: 0
@@ -4959,7 +4986,7 @@ Light:
   m_ShadowAngle: 0
 --- !u!114 &726298024
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 726298020}
@@ -5068,17 +5095,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!114 &733865597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5979,17 +6009,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!114 &785457128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6140,17 +6173,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 1
+  lightTypeExtent: 1
   spotLightShape: 0
-  lightLength: 16
-  lightWidth: 2
+  shapeLength: 16
+  shapeWidth: 2
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &827169275
 Light:
   m_ObjectHideFlags: 0
@@ -6479,7 +6515,7 @@ Light:
   m_ShadowAngle: 0
 --- !u!114 &834722898
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 834722895}
@@ -6488,20 +6524,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!114 &834722899
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 834722895}
@@ -6524,12 +6563,14 @@ MonoBehaviour:
   - 0.2
   - 0.2
   shadowAlgorithm: 0
-  shadowVariant: 0
+  shadowVariant: 4
   shadowPrecision: 0
   shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
+    format: 4
+    data: 0bd7a33b0000803f
+  shadowDatas:
+  - format: 4
+    data: 0bd7a33b0000803f
 --- !u!1 &835886985
 GameObject:
   m_ObjectHideFlags: 0
@@ -6725,17 +6766,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &858501141
 Light:
   m_ObjectHideFlags: 0
@@ -6935,17 +6979,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 1
-  lightLength: 4
-  lightWidth: 2
+  shapeLength: 4
+  shapeWidth: 2
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &903116312
 Light:
   m_ObjectHideFlags: 0
@@ -7380,17 +7427,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &970745599
 Light:
   m_ObjectHideFlags: 0
@@ -7620,17 +7670,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &990293191
 Light:
   m_ObjectHideFlags: 0
@@ -8104,17 +8157,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1013563954
 Light:
   m_ObjectHideFlags: 0
@@ -8510,17 +8566,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1046252902
 Light:
   m_ObjectHideFlags: 0
@@ -8694,17 +8753,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1063426086
 Light:
   m_ObjectHideFlags: 0
@@ -8934,17 +8996,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1083738370
 Light:
   m_ObjectHideFlags: 0
@@ -9054,17 +9119,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 1
-  lightWidth: 1
+  shapeLength: 1
+  shapeWidth: 1
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1085128924
 Light:
   m_ObjectHideFlags: 0
@@ -9496,17 +9564,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1148469246
 Light:
   m_ObjectHideFlags: 0
@@ -9616,17 +9687,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1161056799
 Light:
   m_ObjectHideFlags: 0
@@ -10040,17 +10114,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!114 &1220024537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10270,17 +10347,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1235762390
 Light:
   m_ObjectHideFlags: 0
@@ -10769,17 +10849,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1308071701
 Light:
   m_ObjectHideFlags: 0
@@ -10889,17 +10972,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1309651670
 Light:
   m_ObjectHideFlags: 0
@@ -11475,17 +11561,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1352160402
 Light:
   m_ObjectHideFlags: 0
@@ -12667,17 +12756,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1555751258
 Light:
   m_ObjectHideFlags: 0
@@ -12787,17 +12879,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1559142270
 Light:
   m_ObjectHideFlags: 0
@@ -13378,17 +13473,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 1
+  lightTypeExtent: 1
   spotLightShape: 0
-  lightLength: 4
-  lightWidth: 2
+  shapeLength: 4
+  shapeWidth: 2
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1640077385
 Light:
   m_ObjectHideFlags: 0
@@ -14181,17 +14279,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1737381190
 Light:
   m_ObjectHideFlags: 0
@@ -15146,7 +15247,7 @@ MonoBehaviour:
   antialiasingMode: 0
   temporalAntialiasing:
     jitterSpread: 0.75
-    sharpen: 0.25
+    sharpness: 0.25
     stationaryBlending: 0.95
     motionBlending: 0.85
   fastApproximateAntialiasing:
@@ -15154,14 +15255,24 @@ MonoBehaviour:
     keepAlpha: 0
   ambientOcclusion:
     enabled: 1
-    intensity: 0.5
-    radius: 0.25
-    quality: 2
+    mode: 1
     ambientOnly: 0
+    scalableAO:
+      intensity: 0.5
+      radius: 0.25
+      quality: 2
+      color: {r: 0, g: 0, b: 0, a: 1}
+    multiScaleVO:
+      noiseFilterTolerance: 0
+      blurTolerance: -4.6
+      upsampleTolerance: -12
+      thicknessModifier: 1
+      intensity: 1
+      color: {r: 0, g: 0, b: 0, a: 1}
   fog:
     enabled: 1
     excludeSkybox: 1
-  monitors:
+  debugLayer:
     lightMeter:
       width: 512
       height: 256
@@ -15176,6 +15287,9 @@ MonoBehaviour:
     vectorscope:
       size: 256
       exposure: 0.12
+    overlaySettings:
+      motionColorIntensity: 4
+      motionGridSize: 64
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
   m_ShowRenderingFeatures: 0
   m_ShowToolkit: 0
@@ -15453,17 +15567,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!114 &1854618468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15529,17 +15646,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 2
-  lightLength: 4
-  lightWidth: 2
+  shapeLength: 4
+  shapeWidth: 2
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1879857774
 Light:
   m_ObjectHideFlags: 0
@@ -16206,17 +16326,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1943835614
 Light:
   m_ObjectHideFlags: 0
@@ -16328,17 +16451,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1945509647
 Light:
   m_ObjectHideFlags: 0
@@ -16538,17 +16664,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &1988224188
 Light:
   m_ObjectHideFlags: 0
@@ -16748,17 +16877,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!108 &2015022936
 Light:
   m_ObjectHideFlags: 0
