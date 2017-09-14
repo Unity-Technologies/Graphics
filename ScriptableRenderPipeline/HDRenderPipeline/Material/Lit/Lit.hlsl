@@ -127,14 +127,7 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
     /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
 
-    // Future usage
-    /* 25 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_UNUSED,
-    /* 26 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_UNUSED,
-    /* 27 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED,
-    /* 28 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_UNUSED,
-    /* 29 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_UNUSED,
-
-    /* 30 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
+    /* 25 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
@@ -390,7 +383,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
-        outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_ANISOTROPIC_ID value in GBuffer2
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
         outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, GBUFFER_LIT_STANDARD_ANISOTROPIC_ID, 4.0));
@@ -497,11 +489,12 @@ void DecodeFromGBuffer(
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
-    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
-    int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
-    int supportClearCoat = (featureFlags & (MATERIALFEATUREFLAGS_LIT_CLEAR_COAT)) != 0;
+    int supportsStandard = (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
+    int supportsAniso = (featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
+    int supportsSSS = (featureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
+    int supportClearCoat = (featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
 
-    if (supportsStandard + supportsSSS + supportClearCoat > 1)
+    if (supportsStandard + supportsSSS + supportsAniso + supportClearCoat > 1)
     {
         // only fetch materialid if it is not statically known from feature flags
         bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
@@ -511,6 +504,8 @@ void DecodeFromGBuffer(
         // materialid is statically known. this allows the compiler to eliminate a lot of code.
         if (supportsStandard)
             bsdfData.materialId = MATERIALID_LIT_STANDARD;
+        if (supportsAniso)
+            bsdfData.materialId = MATERIALID_LIT_ANISO;
         else if (supportsSSS)
             bsdfData.materialId = MATERIALID_LIT_SSS;
         else
@@ -522,49 +517,17 @@ void DecodeFromGBuffer(
         float metallic;
         int materialIdExtent;
         UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, materialIdExtent);
-        float anisotropy = inGBuffer2.b;
 
-        if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_STANDARD)
+        if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
         {
-            if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
-            {
-                // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
-                // For material classification it will be consider as Standard as well, thus no need to create special case
-                bsdfData.diffuseColor = baseColor;
-                bsdfData.fresnel0 = inGBuffer2.rgb;
-            }
-            else
-            {
-                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-            }
+            // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
+            // For material classification it will be consider as Standard as well, thus no need to create special case
+            bsdfData.diffuseColor = baseColor;
+            bsdfData.fresnel0 = inGBuffer2.rgb;
         }
-        else if (featureFlags & (MATERIAL_FEATURE_MASK_FLAGS) == MATERIALFEATUREFLAGS_LIT_ANISO)
+        else // GBUFFER_LIT_STANDARD_REGULAR_ID
         {
-            bsdfData.materialId = MATERIALID_LIT_ANISO;
             FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-            float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-            FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
-        }
-        else // either MATERIAL_FEATURE_MASK_FLAGS or MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO
-        {
-            if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
-            {
-                // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
-                // For material classification it will be consider as Standard as well, thus no need to create special case
-                bsdfData.diffuseColor = baseColor;
-                bsdfData.fresnel0 = inGBuffer2.rgb;
-            }
-            else if (materialIdExtent == GBUFFER_LIT_STANDARD_ANISOTROPIC_ID)
-            {
-                bsdfData.materialId = MATERIALID_LIT_ANISO;
-                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-                float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-                FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
-            }
-            else // GBUFFER_LIT_STANDARD_REGULAR_ID
-            {
-                FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-            }
         }
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
@@ -574,6 +537,17 @@ void DecodeFromGBuffer(
         int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
+    }
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    {
+        float metallic;
+        int unused;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, unused);
+        float anisotropy = inGBuffer2.b;
+
+        FillMaterialIdStandardData(baseColor, metallic, bsdfData);
+        float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
     else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
