@@ -396,14 +396,6 @@ namespace UnityEditor.VFX
                 }
 
                 m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray());
-
-                foreach (var component in VFXComponent.GetAllActive())
-                {
-                    if (component.vfxAsset == m_Graph.vfxAsset)
-                    {
-                        component.vfxAsset = m_Graph.vfxAsset; //TODOPAUL : find another way to detect reload
-                    }
-                }
             }
             catch (Exception e)
             {
@@ -457,6 +449,18 @@ namespace UnityEditor.VFX
             }
 
             m_Graph.vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
+        }
+
+        public VFXAsset vfxAsset
+        {
+            get
+            {
+                if (m_Graph != null)
+                {
+                    return m_Graph.vfxAsset;
+                }
+                return null;
+            }
         }
 
         private VFXGraph m_Graph;
