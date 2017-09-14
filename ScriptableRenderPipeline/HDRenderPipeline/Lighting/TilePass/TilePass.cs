@@ -26,11 +26,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GPUShadowType shadowType = GPUShadowType.Unknown;
 
-            switch (ald.archetype)
+            switch (ald.lightTypeExtent)
             {
-                case LightArchetype.Punctual:
+                case LightTypeExtent.Punctual:
                     shadowType = ShadowRegistry.ShadowLightType(l);
                     break;
+
                 // Area and projector not supported yet
             }
 
@@ -393,9 +394,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
 
-            private static GameObject s_DefaultAdditionalLightDataGameObject;
-            private static HDAdditionalLightData s_DefaultAdditionalLightData;
-
             bool usingFptl
             {
                 get
@@ -404,21 +402,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(!isEnabledMSAA || m_TileSettings.enableClustered);
                     bool disableFptl = (!m_TileSettings.enableFptlForOpaqueWhenClustered && m_TileSettings.enableClustered) || isEnabledMSAA;
                     return !disableFptl;
-                }
-            }
-
-            private static HDAdditionalLightData DefaultAdditionalLightData
-            {
-                get
-                {
-                    if (s_DefaultAdditionalLightDataGameObject == null)
-                    {
-                        s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
-                        s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
-                        s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<HDAdditionalLightData>();
-                        s_DefaultAdditionalLightDataGameObject.SetActive(false);
-                    }
-                    return s_DefaultAdditionalLightData;
                 }
             }
 
@@ -650,10 +633,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterialSRT);
                 Utilities.Destroy(m_SingleDeferredMaterialMRT);
-
-                Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
-                s_DefaultAdditionalLightDataGameObject = null;
-                s_DefaultAdditionalLightData = null;
             }
 
             public void NewFrame()
@@ -761,8 +740,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Light direction for directional is opposite to the forward direction
                 directionalLightData.forward = light.light.transform.forward;
                 // Rescale for cookies and windowing.
-                directionalLightData.up         = light.light.transform.up    * 2 / additionalData.lightWidth;
-                directionalLightData.right      = light.light.transform.right * 2 / additionalData.lightLength;
+                directionalLightData.up         = light.light.transform.up    * 2 / additionalData.shapeWidth;
+                directionalLightData.right      = light.light.transform.right * 2 / additionalData.shapeLength;
                 directionalLightData.positionWS = light.light.transform.position;
                 directionalLightData.color = GetLightColor(light);
                 directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
@@ -810,13 +789,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.up = light.light.transform.up;
                 lightData.right = light.light.transform.right;
 
-                lightData.size = new Vector2(additionalLightData.lightLength, additionalLightData.lightWidth);
+                lightData.size = new Vector2(additionalLightData.shapeLength, additionalLightData.shapeWidth);
 
                 if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
                 {
                     // Rescale for cookies and windowing.
-                    lightData.right *= 2 / additionalLightData.lightLength;
-                    lightData.up    *= 2 / additionalLightData.lightWidth;
+                    lightData.right *= 2 / additionalLightData.shapeLength;
+                    lightData.up    *= 2 / additionalLightData.shapeWidth;
                 }
 
                 if (lightData.lightType == GPULightType.Spot)
@@ -1252,26 +1231,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // We only process light with additional data
                         var additionalData = light.light.GetComponent<HDAdditionalLightData>();
 
+                        // Debug.Assert(additionalData == null, "Missing HDAdditionalData on a light - Should have been create by HDLightEditor");
+
                         if (additionalData == null)
-                            additionalData = DefaultAdditionalLightData;
+                            return;                        
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
 
-                        // Note: LightType.Area is offline only, use for baking, no need to test it
-                        if (additionalData.archetype == LightArchetype.Punctual)
+                        if (additionalData.lightTypeExtent == LightTypeExtent.Punctual)
                         {
                             lightCategory = LightCategory.Punctual;
+
                             switch (light.lightType)
                             {
-                                case LightType.Point:
-                                    if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
-                                        continue;
-                                    gpuLightType = GPULightType.Point;
-                                    lightVolumeType = LightVolumeType.Sphere;
-                                    break;
-
                                 case LightType.Spot:
                                     if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
                                         continue;
@@ -1303,17 +1277,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     lightVolumeType = LightVolumeType.Count; // Count is none
                                     break;
 
+                                case LightType.Point:
+                                    if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Point;
+                                    lightVolumeType = LightVolumeType.Sphere;
+                                    break;
+
                                 default:
                                     Debug.Assert(false, "Encountered an unknown LightType.");
                                     break;
                             }
                         }
-                        else // LightArchetype.Area
+                        else
                         {
-                            if (areaLightCount >= k_MaxAreaLightsOnScreen) { continue; }
-                            lightCategory   = LightCategory.Area;
-                            gpuLightType    = (additionalData.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line;
-                            lightVolumeType = LightVolumeType.Box;
+                            lightCategory = LightCategory.Area;
+
+                            switch (additionalData.lightTypeExtent)
+                            {
+                                case LightTypeExtent.Rectangle:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Rectangle;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+
+                                case LightTypeExtent.Line:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;                                    
+                                    gpuLightType = GPULightType.Line;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+
+                                default:
+                                    Debug.Assert(false, "Encountered an unknown LightType.");
+                                    break;
+                            }
                         }
 
                         uint shadow = m_ShadowIndices.ContainsKey(lightIndex) ? 1u : 0;
@@ -1347,7 +1346,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int lightIndex = (int)(sortKey & 0xFFFF);
 
                         var light = cullResults.visibleLights[lightIndex];
-                        var additionalLightData = light.light.GetComponent<HDAdditionalLightData>() ?? DefaultAdditionalLightData;
+                        var additionalLightData = light.light.GetComponent<HDAdditionalLightData>();
                         var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
