@@ -1,7 +1,9 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "LightweightPipelineInput.cginc"
+#include "LightweightInput.cginc"
+#include "LightweightLighting.cginc"
+#include "LightweightBRDF.cginc"
 
 #if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
 #define _SHADOWS
@@ -12,7 +14,7 @@
 #endif
 
 #ifdef _SHADOWS
-#include "LightweightPipelineShadows.cginc"
+#include "LightweightShadows.cginc"
 #endif
 
 #if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)

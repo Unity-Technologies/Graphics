@@ -1,3 +1,5 @@
+#ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
+#define LIGHTWEIGHT_SHADOWS_INCLUDED
 #define MAX_SHADOW_CASCADES 4
 
 sampler2D_float _ShadowMap;
@@ -79,3 +81,5 @@ inline half ComputeShadowAttenuation(LightweightVertexOutput i, half3 shadowDir)
     return ShadowAttenuation(shadowCoord.xyz);
 #endif
 }
+
+#endif
