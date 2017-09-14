@@ -1,78 +1,48 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.Graphing.Util;
-using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class GraphInspectorPresenter : ScriptableObject
     {
-        [SerializeField]
-        AbstractNodeEditorPresenter m_Editor;
+        public IGraph graph { get; set; }
 
-        [SerializeField]
-        string m_Title;
+        public string assetName { get; set; }
 
-        [SerializeField]
-        int m_SelectionCount;
+        public List<INode> selectedNodes { get; set; }
 
-        TypeMapper m_TypeMapper;
-
-        public AbstractNodeEditorPresenter editor
+        [Flags]
+        public enum ChangeType
         {
-            get { return m_Editor; }
+            Graph = 1 << 0,
+            SelectedNodes = 1 << 1,
+            AssetName = 1 << 2,
+            All = -1
         }
 
-        public string title
-        {
-            get { return m_Title; }
-            set { m_Title = value; }
-        }
+        public delegate void OnChange(ChangeType changeType);
 
-        public int selectionCount
-        {
-            get { return m_SelectionCount; }
-            set { m_SelectionCount = value; }
-        }
+        public OnChange onChange;
 
-        public void Initialize(string graphName)
+        public void Initialize(string assetName, IGraph graph)
         {
-            m_Title = graphName;
-            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorPresenter), typeof(StandardNodeEditorPresenter))
-            {
-                {typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorPresenter)}
-            };
-            // Nodes missing custom editors:
-            // - PropertyNode
-            // - SubGraphInputNode
-            // - SubGraphOutputNode
+            this.graph = graph;
+            this.assetName = assetName;
+            selectedNodes = new List<INode>();
+
+            if (onChange != null)
+                onChange(ChangeType.Graph | ChangeType.SelectedNodes | ChangeType.AssetName);
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
         {
-            using (var nodesList = ListPool<INode>.GetDisposable())
-            {
-                nodesList.value.AddRange(nodes);
+            selectedNodes.Clear();
+            selectedNodes.AddRange(nodes);
 
-                m_SelectionCount = nodesList.value.Count;
-
-                if (m_SelectionCount == 1)
-                {
-                    var node = nodesList.value.First();
-                    if (m_Editor == null || node != m_Editor.node)
-                    {
-                        m_Editor = (AbstractNodeEditorPresenter) CreateInstance(m_TypeMapper.MapType(node.GetType()));
-                        m_Editor.node = node;
-                    }
-                }
-                else
-                {
-                    m_Editor = null;
-                }
-            }
+            if (onChange != null)
+                onChange(ChangeType.SelectedNodes);
         }
     }
 }

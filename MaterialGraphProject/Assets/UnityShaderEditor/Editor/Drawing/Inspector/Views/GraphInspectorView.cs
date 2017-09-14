@@ -1,22 +1,25 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class GraphInspectorView : DataWatchContainer
+    public class GraphInspectorView : VisualElement, IDisposable
     {
         [SerializeField]
         GraphInspectorPresenter m_Presenter;
 
-        int m_PresenterHash;
+        int m_SelectionHash;
 
         VisualElement m_Title;
         VisualElement m_ContentContainer;
-        VisualElement m_MultipleSelectionsElement;
+        AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
 
@@ -34,44 +37,49 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             m_ContentContainer = new VisualElement { name = "contentContainer" };
             Add(m_ContentContainer);
 
-            m_TypeMapper = new TypeMapper(typeof(AbstractNodeEditorPresenter), typeof(AbstractNodeEditorView))
+            // Nodes missing custom editors:
+            // - PropertyNode
+            // - SubGraphInputNode
+            // - SubGraphOutputNode
+            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorView), typeof(StandardNodeEditorView))
             {
-                { typeof(StandardNodeEditorPresenter), typeof(StandardNodeEditorView) },
-                { typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView) }
+                { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
             };
         }
 
-        public override void OnDataChanged()
+        public void OnChange(GraphInspectorPresenter.ChangeType changeType)
         {
             if (presenter == null)
             {
                 m_ContentContainer.Clear();
-                m_PresenterHash = 0;
+                m_SelectionHash = 0;
                 return;
             }
 
-            var presenterHash = UIUtilities.GetHashCode(presenter.editor, presenter.selectionCount);
+            if ((changeType & GraphInspectorPresenter.ChangeType.AssetName) != 0)
+                m_Title.text = presenter.assetName;
 
-            m_Title.text = presenter.title;
-
-            if (presenterHash != m_PresenterHash)
+            if ((changeType & GraphInspectorPresenter.ChangeType.SelectedNodes) != 0)
             {
-                m_PresenterHash = presenterHash;
-                m_ContentContainer.Clear();
-                if (presenter.selectionCount > 1)
+                var selectionHash = UIUtilities.GetHashCode(presenter.selectedNodes.Count, presenter.selectedNodes != null ? presenter.selectedNodes.FirstOrDefault() : null);
+                if (selectionHash != m_SelectionHash)
                 {
-                    var element = new VisualElement { name = "selectionCount", text = string.Format("{0} nodes selected.", presenter.selectionCount) };
-                    m_ContentContainer.Add(element);
-                }
-                else if (presenter.editor != null)
-                {
-                    var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(presenter.editor.GetType()));
-                    view.presenter = presenter.editor;
-                    m_ContentContainer.Add(view);
+                    m_SelectionHash = selectionHash;
+                    m_ContentContainer.Clear();
+                    if (presenter.selectedNodes.Count > 1)
+                    {
+                        var element = new VisualElement { name = "selectionCount", text = string.Format("{0} nodes selected.", presenter.selectedNodes.Count) };
+                        m_ContentContainer.Add(element);
+                    }
+                    else if (presenter.selectedNodes.Count == 1)
+                    {
+                        var node = presenter.selectedNodes.First();
+                        var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
+                        view.node = node;
+                        m_ContentContainer.Add(view);
+                    }
                 }
             }
-
-            Dirty(ChangeType.Repaint);
         }
 
         public GraphInspectorPresenter presenter
@@ -81,16 +89,18 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             {
                 if (m_Presenter == value)
                     return;
-                RemoveWatch();
+                if (m_Presenter != null)
+                    m_Presenter.onChange -= OnChange;
                 m_Presenter = value;
-                OnDataChanged();
-                AddWatch();
+                OnChange(GraphInspectorPresenter.ChangeType.All);
+                m_Presenter.onChange += OnChange;
             }
         }
 
-        protected override Object[] toWatch
+        public void Dispose()
         {
-            get { return new Object[] { m_Presenter }; }
+            if (m_Presenter != null)
+                m_Presenter.onChange -= OnChange;
         }
     }
 }

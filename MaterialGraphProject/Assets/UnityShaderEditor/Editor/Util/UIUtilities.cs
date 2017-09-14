@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.Graphing.Util
 {
@@ -23,6 +25,11 @@ namespace UnityEditor.Graphing.Util
         }
 
         public static int GetHashCode(params object[] objects)
+        {
+            return GetHashCode(objects.AsEnumerable());
+        }
+
+        public static int GetHashCode<T>(IEnumerable<T> objects)
         {
             var hashCode = 17;
             foreach (var @object in objects)

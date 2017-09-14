@@ -1,7 +1,9 @@
 ﻿using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
@@ -10,10 +12,29 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         NodeEditorHeaderView m_HeaderView;
         VisualElement m_SlotsContainer;
         VisualElement m_DefaultSlotValuesSection;
+        AbstractMaterialNode m_Node;
+        int m_SlotsHash;
 
-        new StandardNodeEditorPresenter presenter
+        public override INode node
         {
-            get { return (StandardNodeEditorPresenter) base.presenter; }
+            get { return m_Node; }
+            set
+            {
+                if (value == m_Node)
+                    return;
+                if (m_Node != null)
+                    m_Node.onModified -= OnModified;
+                m_Node = value as AbstractMaterialNode;
+                OnModified(m_Node, ModificationScope.Node);
+                if (m_Node != null)
+                    m_Node.onModified += OnModified;
+            }
+        }
+
+        public override void Dispose()
+        {
+            if (m_Node != null)
+                m_Node.onModified -= OnModified;
         }
 
         public StandardNodeEditorView()
@@ -36,23 +57,27 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             Add(m_DefaultSlotValuesSection);
         }
 
-        public override void OnDataChanged()
+        void OnModified(INode changedNode, ModificationScope scope)
         {
-            if (presenter == null)
+            if (node == null)
                 return;
 
-            m_HeaderView.title = presenter.node.name;
+            m_HeaderView.title = node.name;
 
-            m_SlotsContainer.Clear();
-            foreach (var slotEditorPresenter in presenter.slotEditorPresenters)
+            var slotsHash = UIUtilities.GetHashCode(node.GetInputSlots<MaterialSlot>().Select(s => UIUtilities.GetHashCode(s.slotReference.nodeGuid.GetHashCode(), s.slotReference.slotId)));
+
+            if (slotsHash != m_SlotsHash)
             {
-                m_SlotsContainer.Add(new IMGUISlotEditorView { presenter = slotEditorPresenter });
-            }
+                m_SlotsHash = slotsHash;
+                m_SlotsContainer.Clear();
+                foreach (var slot in node.GetInputSlots<MaterialSlot>())
+                    m_SlotsContainer.Add(new IMGUISlotEditorView(slot));
 
-            if (m_SlotsContainer.Any())
-                m_DefaultSlotValuesSection.RemoveFromClassList("hidden");
-            else
-                m_DefaultSlotValuesSection.AddToClassList("hidden");
+                if (m_SlotsContainer.Any())
+                    m_DefaultSlotValuesSection.RemoveFromClassList("hidden");
+                else
+                    m_DefaultSlotValuesSection.AddToClassList("hidden");
+            }
         }
     }
 }
