@@ -155,7 +155,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposedName != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed Name");
                     parameter.exposedName = value;
                 }
             }
@@ -167,7 +166,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposed != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed");
                     parameter.exposed = value;
                 }
             }
@@ -180,7 +178,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.order != value)
                 {
-                    Undo.RecordObject(parameter, "Parameter Order");
                     parameter.order = value;
                 }
             }
@@ -206,7 +203,6 @@ namespace UnityEditor.VFX.UI
             get { return m_CachedMinValue; }
             set
             {
-                Undo.RecordObject(parameter, "Parameter Min");
                 m_CachedMinValue = value;
                 if (value != null)
                 {
@@ -224,7 +220,6 @@ namespace UnityEditor.VFX.UI
             get { return m_CachedMaxValue; }
             set
             {
-                Undo.RecordObject(parameter, "Parameter Max");
                 m_CachedMaxValue = value;
                 if (value != null)
                 {

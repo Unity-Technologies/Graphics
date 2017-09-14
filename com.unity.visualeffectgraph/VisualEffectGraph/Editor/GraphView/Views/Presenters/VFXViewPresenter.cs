@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
         }
 
-        protected new void OnEnable()
+        protected void OnEnable()
         {
             base.OnEnable();
 
@@ -58,6 +58,15 @@ namespace UnityEditor.VFX.UI
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
             SetVFXAsset(m_VFXAsset != null ? m_VFXAsset : new VFXAsset(), true);
+            InitializeUndoStack();
+            Undo.undoRedoPerformed += SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord += WillFlushUndoRecord;
+        }
+
+        protected void OnDisable()
+        {
+            Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord -= WillFlushUndoRecord;
         }
 
         public VFXView View
@@ -279,7 +288,6 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXBlockPresenter)
             {
                 var block = element as VFXBlockPresenter;
-
                 block.contextPresenter.RemoveBlock(block.block);
             }
             else if (element is VFXSlotContainerPresenter)
@@ -418,7 +426,7 @@ namespace UnityEditor.VFX.UI
                         allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
                             {
                                 var candidate = o as VFXDataAnchorPresenter;
-                                return toSlot.CanLink(candidate.model);
+                                return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
                             }).ToList();
                     }
                     else
@@ -436,7 +444,7 @@ namespace UnityEditor.VFX.UI
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
-                            return toSlot.CanLink(startAnchorOperatorPresenter.model);
+                            return toSlot.CanLink(startAnchorOperatorPresenter.model) && startAnchorOperatorPresenter.model.CanLink(toSlot);
                         }).ToList();
 
                     // For edge starting with an output, we must add all data anchors from all blocks

@@ -15,7 +15,6 @@ namespace UnityEditor.VFX
             kStructureChanged,      // Model structure (hierarchy) has changed
             kParamChanged,          // Some parameter values have changed
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
-            kParamExpanded,         // Some parameter values have been expanded or retracted
             kSettingChanged,        // A setting value has changed
             kConnectionChanged,     // Connection have changed
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
@@ -31,6 +30,7 @@ namespace UnityEditor.VFX
 
         protected VFXModel()
         {
+            m_UICollapsed = true;
         }
 
         public virtual void OnEnable()
@@ -56,17 +56,16 @@ namespace UnityEditor.VFX
 
         public virtual T Clone<T>() where T : VFXModel
         {
-            T clone = (T)Instantiate(this);
+            T clone = CreateInstance(GetType()) as T;
 
-            clone.m_Children.Clear();
             foreach (var child in children)
             {
                 var cloneChild = child.Clone<VFXModel>();
-                clone.m_Children.Add(cloneChild);
-                cloneChild.m_Parent = clone;
+                clone.AddChild(cloneChild, -1, false);
             }
 
-            clone.m_Parent = null;
+            clone.m_UICollapsed = m_UICollapsed;
+            clone.m_UIPosition = m_UIPosition;
             return clone;
         }
 
@@ -103,10 +102,7 @@ namespace UnityEditor.VFX
                     throw new ArgumentException("Cannot attach " + model + " to " + this);
 
                 model.Detach(notify && model.m_Parent != this); // Dont notify if the owner is already this to avoid double invalidation
-
                 realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
-
-                //AssetDatabase.AddObjectToAsset(model, this);
 
                 m_Children.Insert(realIndex, model);
                 model.m_Parent = this;
@@ -222,16 +218,16 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        protected VFXModel m_Parent = null;
+        protected VFXModel m_Parent;
 
         [SerializeField]
         protected List<VFXModel> m_Children;
 
         [SerializeField]
-        private Vector2 m_UIPosition;
+        protected Vector2 m_UIPosition;
 
         [SerializeField]
-        private bool m_UICollapsed;
+        protected bool m_UICollapsed;
     }
 
     abstract class VFXModel<ParentType, ChildrenType> : VFXModel
