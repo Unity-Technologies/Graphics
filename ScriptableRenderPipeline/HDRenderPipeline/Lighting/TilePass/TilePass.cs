@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_TileSizeClustered = 32;
 
             // feature variants
-            public static int s_NumFeatureVariants = 31;
+            public static int s_NumFeatureVariants = 26;
 
             // Following define the maximum number of bits use in each feature category.
             public static uint s_LightFeatureMaskFlags = 0xFF00;
@@ -1652,7 +1652,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (enableFeatureVariants)
                 {
                     // material classification
-                    if(m_TileSettings.enableComputeMaterialVariants)
+                    if (m_TileSettings.enableComputeMaterialVariants)
                     {
                         int buildMaterialFlagsKernel = s_BuildMaterialFlagsOrKernel;
 
