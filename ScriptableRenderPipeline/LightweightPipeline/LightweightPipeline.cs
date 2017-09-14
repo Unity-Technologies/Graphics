@@ -669,7 +669,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (postProcess)
                 {
-                    cmd.GetTemporaryRT(m_CameraDepthProperty, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear);
+                    cmd.GetTemporaryRT(m_CameraDepthProperty, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth, RenderTextureReadWrite.Default, msaaSamples);
                     depthRenderTargetIdentifier = m_CameraDepthRTID;
                 }
             }
