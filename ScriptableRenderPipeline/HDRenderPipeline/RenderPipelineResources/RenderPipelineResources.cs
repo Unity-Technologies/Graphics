@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
@@ -35,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             instance.buildPerVoxelLightListShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/lightlistbuild-clustered.compute");
             instance.buildMaterialFlagsShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/materialflags.compute");
             instance.deferredComputeShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/Deferred.compute");
+            
+            instance.deferredDirectionalShadowComputeShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/DeferredDirectionalShadow.compute");
 
             // SceneSettings
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
@@ -78,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildPerVoxelLightListShader;    // clustered
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
+        public ComputeShader deferredDirectionalShadowComputeShader;
 
         // SceneSettings
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)

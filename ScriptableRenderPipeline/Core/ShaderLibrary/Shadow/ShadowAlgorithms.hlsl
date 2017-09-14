@@ -289,6 +289,16 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 	float3 orig_pos = positionWS;
 	uint orig_payloadOffset = payloadOffset;
 	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );
+
+    /* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */
+    float border = borders[shadowSplitIndex];
+	float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
+    float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];
+	float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[min(3,shadowSplitIndex+1)].xyz );
+	float3 wposDir     = normalize( -splitSphere.xyz + positionWS );
+	float  cascDot     = dot( cascadeDir, wposDir );
+	alpha = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );
+
 	// get shadowmap texcoords
 	float3 posNDC;
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true );
@@ -301,18 +311,10 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
 	float shadow = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 
-	float border = borders[shadowSplitIndex];
-	float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
-
 	shadowSplitIndex++;
 	float shadow1 = 1.0;
 	if( shadowSplitIndex < kMaxShadowCascades )
 	{
-		float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex - 1];
-		float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[shadowSplitIndex].xyz );
-		float3 wposDir     = normalize( -splitSphere.xyz + positionWS );
-		float  cascDot     = dot( cascadeDir, wposDir );
-		alpha   = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );
 		shadow1 = shadow;
 
 		[branch]
@@ -347,13 +349,22 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 		payloadOffset++;                                                                                                                                                                        \
 		float4 borders = asfloat( shadowContext.payloads[payloadOffset] );                                                                                                                      \
 		payloadOffset++;                                                                                                                                                                        \
-																																																\
 		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										        \
 		/* normal based bias */																																							        \
 		float3 orig_pos = positionWS;                                                                                                                                                           \
-		uint   orig_payloadOffset = payloadOffset;		                                                                                                                                        \
+		uint orig_payloadOffset = payloadOffset;		                                                                                                                                        \
 		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );									        \
-		/* get shadowmap texcoords */																																					        \
+                                                                                                                                                                                                \
+        /* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */                                     \
+		float border = borders[shadowSplitIndex];                                                                                                                                               \
+		float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                               \
+        float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];                                                                                                                           \
+		float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[min(kMaxShadowCascades-1,shadowSplitIndex+1)].xyz );                                                           \
+		float3 wposDir     = normalize( -splitSphere.xyz + positionWS );                                                                                                                        \
+		float  cascDot     = dot( cascadeDir, wposDir );                                                                                                                                        \
+        alpha = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );                                                                                                         \
+                                                                                                                                                                                                \
+        /* get shadowmap texcoords */																																					        \
 		float3 posNDC;                                                                                                                                                                          \
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true );																											        \
 		/* sample the texture */																																						        \
@@ -362,18 +373,10 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 																																																\
 		float shadow = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );                                                     \
 																																																\
-		float border = borders[shadowSplitIndex];                                                                                                                                               \
-		float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                               \
-																																																\
 		shadowSplitIndex++;                                                                                                                                                                     \
 		float shadow1 = 1.0;                                                                                                                                                                    \
 		if( shadowSplitIndex < kMaxShadowCascades )                                                                                                                                             \
 		{                                                                                                                                                                                       \
-			float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex - 1];                                                                                                                   \
-			float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[shadowSplitIndex].xyz );                                                                                   \
-			float3 wposDir     = normalize( -splitSphere.xyz + positionWS );                                                                                                                    \
-			float  cascDot     = dot( cascadeDir, wposDir );                                                                                                                                    \
-			alpha   = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );                                                                                                   \
 			shadow1 = shadow;                                                                                                                                                                   \
 																																																\
 			[branch]                                                                                                                                                                            \
