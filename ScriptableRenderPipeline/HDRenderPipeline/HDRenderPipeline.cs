@@ -824,8 +824,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
           
             // emit scene view UI
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
 
             CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
 
