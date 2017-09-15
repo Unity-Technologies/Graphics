@@ -33,13 +33,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_GraphInspectorPresenter = value; }
         }
 
-        public void Initialize(IGraph graph, IMaterialGraphEditWindow container, string graphName)
+        public void Initialize(IGraph graph, IMaterialGraphEditWindow container, string assetName)
         {
             m_TitleBarPresenter = CreateInstance<TitleBarPresenter>();
             m_TitleBarPresenter.Initialize(container);
 
             m_GraphInspectorPresenter = CreateInstance<GraphInspectorPresenter>();
-            m_GraphInspectorPresenter.Initialize(graphName);
+            m_GraphInspectorPresenter.Initialize(assetName, graph);
 
             m_GraphPresenter = CreateInstance<MaterialGraphPresenter>();
             m_GraphPresenter.Initialize(graph, container);

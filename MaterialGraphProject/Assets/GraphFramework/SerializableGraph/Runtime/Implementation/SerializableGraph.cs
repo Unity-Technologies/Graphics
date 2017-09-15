@@ -11,6 +11,9 @@ namespace UnityEngine.Graphing
         List<IEdge> m_Edges = new List<IEdge>();
 
         [NonSerialized]
+        Dictionary<Guid, List<IEdge>> m_NodeEdges = new Dictionary<Guid, List<IEdge>>();
+
+        [NonSerialized]
         Dictionary<Guid, INode> m_Nodes = new Dictionary<Guid, INode>();
 
         [SerializeField]
@@ -51,6 +54,19 @@ namespace UnityEngine.Graphing
                 return;
 
             m_Nodes.Remove(node.guid);
+        }
+
+        void AddEdgeToNodeEdges(IEdge edge)
+        {
+            List<IEdge> inputEdges;
+            if (!m_NodeEdges.TryGetValue(edge.inputSlot.nodeGuid, out inputEdges))
+                m_NodeEdges[edge.inputSlot.nodeGuid] = inputEdges = new List<IEdge>();
+            inputEdges.Add(edge);
+
+            List<IEdge> outputEdges;
+            if (!m_NodeEdges.TryGetValue(edge.outputSlot.nodeGuid, out outputEdges))
+                m_NodeEdges[edge.outputSlot.nodeGuid] = outputEdges = new List<IEdge>();
+            outputEdges.Add(edge);
         }
 
         public virtual Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
@@ -107,6 +123,7 @@ namespace UnityEngine.Graphing
 
             var newEdge = new Edge(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
+            AddEdgeToNodeEdges(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
             ValidateGraph();
@@ -115,7 +132,7 @@ namespace UnityEngine.Graphing
 
         public virtual void RemoveEdge(IEdge e)
         {
-            m_Edges.Remove(e);
+            RemoveEdgeNoValidate(e);
             ValidateGraph();
         }
 
@@ -133,6 +150,14 @@ namespace UnityEngine.Graphing
         void RemoveEdgeNoValidate(IEdge e)
         {
             m_Edges.Remove(e);
+
+            List<IEdge> inputNodeEdges;
+            if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
+                inputNodeEdges.Remove(e);
+
+            List<IEdge> outputNodeEdges;
+            if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
+                outputNodeEdges.Remove(e);
         }
 
         public INode GetNodeFromGuid(Guid guid)
@@ -158,11 +183,15 @@ namespace UnityEngine.Graphing
         public IEnumerable<IEdge> GetEdges(SlotReference s)
         {
             if (s == null)
-                return new Edge[0];
+                return Enumerable.Empty<IEdge>();
 
-            return m_Edges.Where(x =>
+            List<IEdge> candidateEdges;
+            if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
+                return Enumerable.Empty<IEdge>();
+
+            return candidateEdges.Where(x =>
                 (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotId == s.slotId)
-                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId).ToList();
+                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId);
         }
 
         public virtual void OnBeforeSerialize()
@@ -186,6 +215,8 @@ namespace UnityEngine.Graphing
 
             m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
             m_SerializableEdges = null;
+            foreach (var edge in m_Edges)
+                AddEdgeToNodeEdges(edge);
 
             ValidateGraph();
         }

@@ -19,7 +19,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public MaterialGraphView()
         {
             RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
-            this.AddManipulator(new ContentZoomer());
+            SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new SelectionDragger());

@@ -8,10 +8,28 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
     public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
     {
         NodeEditorHeaderView m_HeaderView;
+        AbstractSurfaceMasterNode m_Node;
 
-        new SurfaceMasterNodeEditorPresenter presenter
+        public override INode node
         {
-            get { return (SurfaceMasterNodeEditorPresenter)base.presenter; }
+            get { return m_Node; }
+            set
+            {
+                if (value == m_Node)
+                    return;
+                if (m_Node != null)
+                    m_Node.onModified -= OnModified;
+                m_Node = value as AbstractSurfaceMasterNode;
+                OnModified(m_Node, ModificationScope.Node);
+                if (m_Node != null)
+                    m_Node.onModified += OnModified;
+            }
+        }
+
+        public override void Dispose()
+        {
+            if (m_Node != null)
+                m_Node.onModified -= OnModified;
         }
 
         public SurfaceMasterNodeEditorView()
@@ -31,10 +49,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         void OnGUIHandler()
         {
-            if (presenter == null)
+            if (m_Node == null)
                 return;
 
-            var options = presenter.node.options;
+            var options = m_Node.options;
 
             EditorGUI.BeginChangeCheck();
             options.srcBlend = (SurfaceMaterialOptions.BlendMode)EditorGUILayout.EnumPopup("Src Blend", options.srcBlend);
@@ -45,15 +63,16 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             options.renderQueue = (SurfaceMaterialOptions.RenderQueue)EditorGUILayout.EnumPopup("Render Queue", options.renderQueue);
             options.renderType = (SurfaceMaterialOptions.RenderType)EditorGUILayout.EnumPopup("Render Type", options.renderType);
             if (EditorGUI.EndChangeCheck())
-                presenter.node.onModified(presenter.node, ModificationScope.Graph);
+                m_Node.onModified(m_Node, ModificationScope.Graph);
         }
 
-        public override void OnDataChanged()
+        void OnModified(INode changedNode, ModificationScope scope)
         {
-            if (presenter == null)
+            if (m_Node == null)
                 return;
 
-            m_HeaderView.title = presenter.node.name;
+            m_HeaderView.title = m_Node.name;
+            Dirty(ChangeType.Repaint);
         }
     }
 }

@@ -4,11 +4,11 @@ using UnityEngine.Events;
 
 namespace UnityEngine.Graphing
 {
-    internal class ObjectPool<T> where T : new()
+    class ObjectPool<T> where T : new()
     {
-        private readonly Stack<T> m_Stack = new Stack<T>();
-        private readonly UnityAction<T> m_ActionOnGet;
-        private readonly UnityAction<T> m_ActionOnRelease;
+        readonly Stack<T> m_Stack = new Stack<T>();
+        readonly UnityAction<T> m_ActionOnGet;
+        readonly UnityAction<T> m_ActionOnRelease;
 
         public int countAll { get; private set; }
         public int countActive { get { return countAll - countInactive; } }
