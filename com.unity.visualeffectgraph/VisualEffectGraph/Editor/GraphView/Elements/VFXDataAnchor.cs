@@ -117,6 +117,9 @@ namespace UnityEditor.VFX.UI
             }
 
 
+            RemoveFromClassList("hidden");
+            RemoveFromClassList("invisible");
+
             if (presenter.collapsed && !presenter.connected)
             {
                 visible = false;
@@ -127,8 +130,6 @@ namespace UnityEditor.VFX.UI
             else if (!visible)
             {
                 visible = true;
-                RemoveFromClassList("hidden");
-                RemoveFromClassList("invisible");
             }
 
             if (presenter.direction == Direction.Output)

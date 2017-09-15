@@ -176,6 +176,19 @@ CurveField .curve
 	border-bottom-width:1;
     border-color:#000;
 }
+
+
+GradientField
+{
+    flex:1;
+    height:13;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
+    border-color:#000;
+}
+
 CurvePropertyRM CurveField
 {
     flex:1;

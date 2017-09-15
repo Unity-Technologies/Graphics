@@ -21,8 +21,6 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        public bool expanded = false;
-
         protected VFXSlot() {}
 
         public object value
@@ -314,17 +312,94 @@ namespace UnityEditor.VFX
             InvalidateChildren(model, cause);
 
             var owner = this.owner;
-            if (owner != null  && direction == Direction.kInput)
+            if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
                 owner.Invalidate(cause);
         }
 
         public override T Clone<T>()
         {
-            var clone = base.Clone<T>();
-            var cloneSlot = clone as VFXSlot;
+            var clone = CreateInstance(GetType()) as VFXSlot;
 
-            cloneSlot.m_LinkedSlots.Clear();
-            return clone;
+            clone.m_LinkedSlots.Clear();
+            clone.m_Property = m_Property;
+            clone.m_Direction = m_Direction;
+            if (IsMasterSlot())
+            {
+                clone.m_MasterData = new MasterData();
+                clone.m_MasterData.m_Owner = null;
+                clone.m_MasterData.m_Value = new VFXSerializableObject(property.type, value);
+                clone.m_MasterSlot = clone;
+            }
+            else
+            {
+                clone.m_MasterData = null;
+            }
+            clone.m_UICollapsed = m_UICollapsed;
+            clone.m_UIPosition = m_UIPosition;
+
+            clone.m_Children.Clear();
+            foreach (var child in children)
+            {
+                var cloneChild = child.Clone<VFXSlot>();
+                clone.AddChild(cloneChild, -1, false);
+            }
+            return clone as T;
+        }
+
+        static private void RecurseIntoSlots(VFXModel[] fromArray, VFXModel[] toArray, Action<VFXSlot, VFXSlot> fnAction)
+        {
+            if (fromArray.Length != toArray.Length)
+            {
+                throw new Exception("both model aren't equivalent");
+            }
+
+            for (int i = 0; i < fromArray.Length; ++i)
+            {
+                var from = fromArray[i];
+                var to = toArray[i];
+                if (from.GetType() != to.GetType())
+                {
+                    throw new Exception("incoherent type");
+                }
+
+                if (from is VFXSlot)
+                {
+                    fnAction(from as VFXSlot, to as VFXSlot);
+                }
+
+                if (from is IVFXSlotContainer)
+                {
+                    var fromContainer = from as IVFXSlotContainer;
+                    var toContainer = to as IVFXSlotContainer;
+                    RecurseIntoSlots(fromContainer.inputSlots.Concat(fromContainer.outputSlots).ToArray(), toContainer.inputSlots.Concat(toContainer.outputSlots).ToArray(), fnAction);
+                }
+
+                RecurseIntoSlots(from.children.ToArray(), to.children.ToArray(), fnAction);
+            }
+        }
+
+        static public void ReproduceLinkedSlotFromHierachy(VFXModel[] fromArray, VFXModel[] toArray)
+        {
+            var associativeSlot = new List<KeyValuePair<VFXSlot, VFXSlot>>();
+            RecurseIntoSlots(fromArray, toArray, (from, to) =>
+                {
+                    associativeSlot.Add(new KeyValuePair<VFXSlot, VFXSlot>(from, to));
+                });
+
+            var associativeSlotDictionnary = associativeSlot.ToDictionary(p => p.Key);
+            RecurseIntoSlots(fromArray, toArray, (from, to) =>
+                {
+                    to.m_LinkedSlots = from.m_LinkedSlots.Select(f =>
+                    {
+                        KeyValuePair<VFXSlot, VFXSlot> refSlot;
+                        if (!associativeSlotDictionnary.TryGetValue(f, out refSlot))
+                        {
+                            Debug.LogError("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
+                            return null;
+                        }
+                        return refSlot.Value;
+                    }).Where(o => o != null).ToList();
+                });
         }
 
         protected override void OnAdded()

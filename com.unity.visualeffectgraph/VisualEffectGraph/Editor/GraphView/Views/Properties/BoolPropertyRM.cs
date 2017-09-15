@@ -32,6 +32,11 @@ namespace UnityEditor.VFX.UI
 
         Toggle m_Toggle;
 
+        protected override void UpdateEnabled()
+        {
+            m_Toggle.SetEnabled(propertyEnabled);
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

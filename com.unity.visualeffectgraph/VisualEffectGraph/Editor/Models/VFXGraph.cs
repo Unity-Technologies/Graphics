@@ -99,6 +99,22 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
+        public override T Clone<T>()
+        {
+            var from = children.ToArray();
+            var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
+            VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+            VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
+
+            var clone = CreateInstance(GetType()) as VFXGraph;
+            clone.m_Children = new List<VFXModel>();
+            foreach (var model in copy)
+            {
+                clone.AddChild(model, -1, false);
+            }
+            return clone as T;
+        }
+
         public void OnSaved()
         {
             try

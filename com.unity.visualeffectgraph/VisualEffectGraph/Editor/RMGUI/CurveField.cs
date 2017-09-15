@@ -84,13 +84,14 @@ namespace UnityEditor.VFX.UIElements
             if (previewHeight > 0 && previewWidth > 0)
             {
                 Rect range = new Rect(0, 0, 1, 1);
-                m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
-                        previewHeight,
-                        m_Value,
-                        Color.green,
-                        Color.clear,
-                        Color.clear,
-                        range);
+                // Instantiate because AnimationCurvePreviewCache returns a temporary;
+                m_Curve.style.backgroundImage = Texture2D.Instantiate(AnimationCurvePreviewCache.GetPreview(previewWidth,
+                            previewHeight,
+                            m_Value,
+                            Color.green,
+                            Color.clear,
+                            Color.clear,
+                            range));
             }
         }
     }
