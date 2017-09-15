@@ -57,7 +57,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 //    }
 //#endif
 
-#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
+#if !defined(LIGHTMAP_ON)
     o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 
@@ -223,7 +223,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 
 #if defined(LIGHTMAP_ON)
     color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
+#endif
+
+#if defined(_VERTEX_LIGHTS) || !defined(LIGHTMAP_ON)
     color += i.fogCoord.yzw * diffuse;
 #endif
 
