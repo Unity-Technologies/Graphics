@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent defaults = new GUIContent("Defaults");
-            public static GUIContent linearRenderingLabel = new GUIContent("Linear Colorspace", "When enabled Lightweight shader will perform gamma to linear conversion when linear rendering is not supported or disabled");
+            public static GUIContent linearRenderingLabel = new GUIContent("Force Linear Colorspace", "When enabled Lightweight shader will perform gamma to linear conversion in the shader when linear rendering is not supported or disabled");
 
             public static GUIContent maxPixelLights = new GUIContent("Per-Object Pixel Lights",
                     "Max amount of dynamic per-object pixel lights.");
@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent defaultShader = new GUIContent("Default Shader",
                 "Shader to use when creating materials");
 
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
 
             public static GUIContent attenuationTextureLabel = new GUIContent("Attenuation Texture", "Light attenuation falloff texture");
         }
@@ -66,8 +66,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_LinearRenderingProperty;
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
-        private SerializedProperty m_EnableLightmapsProp;
-        private SerializedProperty m_EnableAmbientProbeProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -89,8 +87,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LinearRenderingProperty = serializedObject.FindProperty("m_LinearRendering");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
-            m_EnableLightmapsProp = serializedObject.FindProperty("m_EnableLightmaps");
-            m_EnableAmbientProbeProp = serializedObject.FindProperty("m_EnableAmbientProbe");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -121,8 +117,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, 4);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
-            EditorGUILayout.PropertyField(m_EnableLightmapsProp, Styles.enableLightmap);
-            EditorGUILayout.PropertyField(m_EnableAmbientProbeProp, Styles.enableAmbientProbe);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
             EditorGUILayout.PropertyField(m_AttenuationTexture, Styles.attenuationTextureLabel);
             EditorGUI.indentLevel--;
