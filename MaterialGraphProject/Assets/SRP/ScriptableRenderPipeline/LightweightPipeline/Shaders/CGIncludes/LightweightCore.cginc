@@ -44,26 +44,24 @@ half4 OutputColor(half3 color, half alpha)
 #endif
 }
 
-void Vertex(inout VertexInput v);
-
-LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
+VertOutput Vertex(VertInput v)
 {
-	LightweightVertexOutput o = (LightweightVertexOutput)0;
+	VertOutput o = (VertOutput)0;
 
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 	o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 
-	o.meshUV0.xy = TRANSFORM_TEX(v.texcoord0, _MainTex);
+	o.meshUV0.xy = v.texcoord0.xy;// TRANSFORM_TEX(v.texcoord0, _MainTex);
 #ifdef LIGHTMAP_ON
 	o.meshUV0.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 #endif
 
 	//${ VertexShaderBody }
-	o.tangent = normalize(UnityObjectToWorldDir(v.tangent));
-	o.binormal = cross(o.normal, o.tangent) * v.tangent.w;
-	//End VertexShaderBody
+#ifdef VERTEX_CUSTOM
+	VERTEX_CUSTOM;
+#endif
 
 	o.hpos = UnityObjectToClipPos(v.vertex);
 	float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;

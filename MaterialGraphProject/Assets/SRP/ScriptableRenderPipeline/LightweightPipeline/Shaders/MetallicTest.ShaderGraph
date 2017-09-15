@@ -12,7 +12,7 @@
                 "fullName": "UnityEngine.MaterialGraph.Vector1Node",
                 "assemblyName": "Assembly-CSharp"
             },
-            "JSONnodeData": "{\n    \"m_GuidSerialized\": \"d58fd931-5a1c-4439-b624-b7370bfc30e4\",\n    \"m_Name\": \"Vector1\",\n    \"m_DrawState\": {\n        \"m_Expanded\": true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n            \"x\": -1099.674560546875,\n            \"y\": -120.6020736694336,\n            \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Value\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_Hidden\\\": false,\\n    \\\"m_ValueType\\\": 9,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 8,\\n    \\\"m_ShaderOutputName\\\": \\\"Value\\\",\\n    \\\"m_ShaderStage\\\": 0\\n}\"\n        }\n    ],\n    \"m_Description\": \"\",\n    \"m_Exposed\": 0,\n    \"m_Value\": 0.5,\n    \"m_floatType\": 2,\n    \"m_rangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0,\n        \"z\": 2.0\n    }\n}"
+            "JSONnodeData": "{\n    \"m_GuidSerialized\": \"d58fd931-5a1c-4439-b624-b7370bfc30e4\",\n    \"m_Name\": \"Vector1\",\n    \"m_DrawState\": {\n        \"m_Expanded\": true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n            \"x\": -1103.2545166015625,\n            \"y\": -120.6020736694336,\n            \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Value\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_Hidden\\\": false,\\n    \\\"m_ValueType\\\": 9,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 8,\\n    \\\"m_ShaderOutputName\\\": \\\"Value\\\",\\n    \\\"m_ShaderStage\\\": 0\\n}\"\n        }\n    ],\n    \"m_Description\": \"\",\n    \"m_Exposed\": 0,\n    \"m_Value\": 0.5,\n    \"m_floatType\": 2,\n    \"m_rangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0,\n        \"z\": 2.0\n    }\n}"
         },
         {
             "typeInfo": {
@@ -177,13 +177,6 @@
         },
         {
             "typeInfo": {
-                "fullName": "UnityEngine.MaterialGraph.Vector3Node",
-                "assemblyName": "Assembly-CSharp"
-            },
-            "JSONnodeData": "{\n    \"m_GuidSerialized\": \"a676f6a4-5a16-41f3-91a7-ec3e86a06f6a\",\n    \"m_Name\": \"Vector3\",\n    \"m_DrawState\": {\n        \"m_Expanded\": true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n            \"x\": 811.8843383789063,\n            \"y\": -465.88671875,\n            \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Value\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_Hidden\\\": false,\\n    \\\"m_ValueType\\\": 7,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 6,\\n    \\\"m_ShaderOutputName\\\": \\\"Value\\\",\\n    \\\"m_ShaderStage\\\": 0\\n}\"\n        }\n    ],\n    \"m_Description\": \"\",\n    \"m_Exposed\": 0,\n    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    }\n}"
-        },
-        {
-            "typeInfo": {
                 "fullName": "UnityEngine.MaterialGraph.Vector1Node",
                 "assemblyName": "Assembly-CSharp"
             },
@@ -224,13 +217,6 @@
                 "fullName": "UnityEngine.Graphing.Edge",
                 "assemblyName": "Assembly-CSharp"
             },
-            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"941521a4-38c3-4150-8668-c0395e13d210\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
-        },
-        {
-            "typeInfo": {
-                "fullName": "UnityEngine.Graphing.Edge",
-                "assemblyName": "Assembly-CSharp"
-            },
             "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"3904d993-7cf7-4642-ad77-b4a4da90ea52\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"419e640d-090c-476b-931d-081b3bc4c277\"\n    }\n}"
         },
         {
@@ -246,13 +232,6 @@
                 "assemblyName": "Assembly-CSharp"
             },
             "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"d58fd931-5a1c-4439-b624-b7370bfc30e4\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"2e5a96df-0209-42e7-941c-33dc085fe46b\"\n    }\n}"
-        },
-        {
-            "typeInfo": {
-                "fullName": "UnityEngine.Graphing.Edge",
-                "assemblyName": "Assembly-CSharp"
-            },
-            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"2e5a96df-0209-42e7-941c-33dc085fe46b\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
         },
         {
             "typeInfo": {
@@ -364,14 +343,21 @@
                 "fullName": "UnityEngine.Graphing.Edge",
                 "assemblyName": "Assembly-CSharp"
             },
-            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"a676f6a4-5a16-41f3-91a7-ec3e86a06f6a\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 7,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
+            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"b72a1daa-857d-447a-ba1d-8b4a9021fa6c\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 6,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
         },
         {
             "typeInfo": {
                 "fullName": "UnityEngine.Graphing.Edge",
                 "assemblyName": "Assembly-CSharp"
             },
-            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"b72a1daa-857d-447a-ba1d-8b4a9021fa6c\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 6,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
+            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"941521a4-38c3-4150-8668-c0395e13d210\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
+        },
+        {
+            "typeInfo": {
+                "fullName": "UnityEngine.Graphing.Edge",
+                "assemblyName": "Assembly-CSharp"
+            },
+            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"2e5a96df-0209-42e7-941c-33dc085fe46b\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\": \"a5d5c3f4-7c3b-41db-9a79-022b0ae25922\"\n    }\n}"
         }
     ],
     "m_ActiveMasterNodeGUIDSerialized": "6af68ded-8268-47c9-97b3-252605fa6bfe"

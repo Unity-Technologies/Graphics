@@ -26,9 +26,9 @@ SurfaceFastBlinn InitializeSurfaceFastBlinn()
 	return s;
 }
 
-void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn o);
+void DefineSurface(VertOutput i, inout SurfaceFastBlinn o);
 
-half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
+half4 LightweightFragmentFastBlinn(VertOutput i) : SV_Target
 {
 	SurfaceFastBlinn o = InitializeSurfaceFastBlinn();
 	DefineSurface(i, o);

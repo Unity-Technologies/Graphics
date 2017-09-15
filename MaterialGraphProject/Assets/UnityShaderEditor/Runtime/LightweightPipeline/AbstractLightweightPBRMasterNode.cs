@@ -235,21 +235,23 @@ namespace UnityEngine.MaterialGraph
             int vertOutputIndex = 5;
 
             // always add everything because why not. 
-            shaderInputVisitor.AddShaderChunk("float4 vertex : POSITION;", true);
-            shaderInputVisitor.AddShaderChunk("half3 normal : NORMAL;", true);
-            shaderInputVisitor.AddShaderChunk("half4 tangent : TANGENT;", true);
-            shaderInputVisitor.AddShaderChunk("half4 color : COLOR;", true);
-            shaderInputVisitor.AddShaderChunk("half4 texcoord0 : TEXCOORD0;", true);
-            shaderInputVisitor.AddShaderChunk("float2 lightmapUV : TEXCOORD1;", true);
+            /*shaderInputVisitor.AddShaderChunk("float4 vertex : POSITION; \\", true);
+            shaderInputVisitor.AddShaderChunk("half3 normal : NORMAL; \\", true);
+            shaderInputVisitor.AddShaderChunk("half4 tangent : TANGENT; \\", true);
+            shaderInputVisitor.AddShaderChunk("half4 color : COLOR; \\", true);
+            shaderInputVisitor.AddShaderChunk("half4 texcoord0 : TEXCOORD0; \\", true);
+            shaderInputVisitor.AddShaderChunk("float2 lightmapUV : TEXCOORD1;", true);*/
+
+            shaderInputVisitor.AddShaderChunk("half4 texcoord1 : TEXCOORD1;", true);
 
             // Need these for lighting
-            shaderOutputVisitor.AddShaderChunk("float4 posWS : TEXCOORD0;", true);
-            shaderOutputVisitor.AddShaderChunk("half4 viewDir : TEXCOORD1;", true);
-            shaderOutputVisitor.AddShaderChunk("half4 fogCoord : TEXCOORD2;", true);
-            shaderOutputVisitor.AddShaderChunk("half3 normal : TEXCOORD3;", true);
-            shaderOutputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD4;", true);
-            shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION;", true);
-            
+            /*shaderOutputVisitor.AddShaderChunk("float4 posWS : TEXCOORD0; \\", true);
+            shaderOutputVisitor.AddShaderChunk("half4 viewDir : TEXCOORD1; \\", true);
+            shaderOutputVisitor.AddShaderChunk("half4 fogCoord : TEXCOORD2; \\", true);
+            shaderOutputVisitor.AddShaderChunk("half3 normal : TEXCOORD3; \\", true);
+            shaderOutputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD4; \\", true);
+            shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION; \\", true);*/
+
             bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
             bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
             bool requiresViewDirTangentSpace = activeNodeList.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
@@ -321,8 +323,8 @@ namespace UnityEngine.MaterialGraph
 
             if (requiresBitangent || requiresTangent || requiresViewDirTangentSpace)
             {
-                shaderOutputVisitor.AddShaderChunk(string.Format("half3 tangent : TEXCOORD{0};", vertOutputIndex), true);
-                vertexShaderBlock.AddShaderChunk("o.tangent = normalize(UnityObjectToWorldDir(v.tangent));", true);
+                shaderOutputVisitor.AddShaderChunk(string.Format("half3 tangent : TEXCOORD{0}; \\", vertOutputIndex), true);
+                vertexShaderBlock.AddShaderChunk("o.tangent = normalize(UnityObjectToWorldDir(v.tangent)); \\", true);
                 shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(i.tangent.xyz);", true);
                 vertOutputIndex++;
             }
@@ -402,6 +404,9 @@ namespace UnityEngine.MaterialGraph
                             continue;
 
                         shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+
+                        if (slot.id == AlbedoSlotId)
+                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
 
                         if (slot.id == NormalSlotId)
                             shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
