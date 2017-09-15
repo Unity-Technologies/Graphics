@@ -4,20 +4,20 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    [Title("Master/Lightweight/PBR Metallic")]
-    public class LightweightMetallicMasterNode : AbstractLightweightPBRMasterNode
+    [Title("Master/Lightweight/PBR Specular")]
+    public class LightweightSpecularMasterNode : AbstractLightweightPBRMasterNode
     {
-        public const string MetallicSlotName = "Metallic";
-        public const int MetallicSlotId = 2;
+        public const string SpecularSlotName = "Specular";
+        public const int SpecularSlotId = 2;
 
-        public const string WorkflowName = "Metallic";
+        public const string WorkflowName = "Specular";
 
         //public const string LightFunctionName = "Standard";
         //public const string SurfaceOutputStructureName = "SurfaceOutputStandard";
 
-        public LightweightMetallicMasterNode()
+        public LightweightSpecularMasterNode()
         {
-            name = "LightweightMetallicMasterNode";
+            name = "LightweightSpecularMasterNode";
             UpdateNodeAfterDeserialization();
         }
 
@@ -27,7 +27,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
@@ -40,7 +40,7 @@ namespace UnityEngine.MaterialGraph
                 AlbedoSlotId,
                 NormalSlotId,
                 EmissionSlotId,
-                MetallicSlotId,
+                SpecularSlotId,
                 SmoothnessSlotId,
                 OcclusionSlotId,
                 AlphaSlotId,
@@ -57,7 +57,7 @@ namespace UnityEngine.MaterialGraph
                     AlbedoSlotId,
                     NormalSlotId,
                     EmissionSlotId,
-                    MetallicSlotId,
+                    SpecularSlotId,
                     SmoothnessSlotId,
                     OcclusionSlotId,
                     AlphaSlotId,

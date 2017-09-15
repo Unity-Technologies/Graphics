@@ -34,6 +34,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialOptions; }
         }
 
+        public abstract string GetWorkflowName();
         //public abstract string GetSurfaceOutputName();
         //public abstract string GetLightFunction();
 
@@ -135,6 +136,7 @@ namespace UnityEngine.MaterialGraph
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
+            var definesVisitor = new ShaderGenerator();
 
             m_MaterialOptions.GetTags(tagsVisitor);
             m_MaterialOptions.GetBlend(blendingVisitor);
@@ -142,12 +144,14 @@ namespace UnityEngine.MaterialGraph
             m_MaterialOptions.GetDepthTest(zTestVisitor);
             m_MaterialOptions.GetDepthWrite(zWriteVisitor);
 
+            GetDefines(definesVisitor);
+
             var resultShader = templateText.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
             //resultShader = resultShader.Replace("${LightingFunctionName}", GetLightFunction());
             //resultShader = resultShader.Replace("${SurfaceOutputStructureName}", GetSurfaceOutputName());
             resultShader = resultShader.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(3));
-            resultShader = resultShader.Replace("${ShaderOutputs}", shaderOutputVisitor.GetShaderString(3));
+            resultShader = resultShader.Replace("${VertexInputs}", shaderInputVisitor.GetShaderString(3));
+            resultShader = resultShader.Replace("${VertexOutputs}", shaderOutputVisitor.GetShaderString(3));
             resultShader = resultShader.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(3));
             resultShader = resultShader.Replace("${Tags}", tagsVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${Blending}", blendingVisitor.GetShaderString(2));
@@ -156,10 +160,20 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
 
+            resultShader = resultShader.Replace("${Defines}", definesVisitor.GetShaderString(2));
+
             //resultShader = resultShader.Replace("${VertexShaderDecl}", "vertex:vert");
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
-
+            
             return resultShader;
+        }
+
+        public void GetDefines(ShaderGenerator visitor)
+        {
+            if(GetWorkflowName() == "Metallic")
+                visitor.AddShaderChunk("#define _METALLIC_SETUP 1", false);
+            else
+                visitor.AddShaderChunk("", false);
         }
 
         public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
@@ -180,6 +194,9 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             //resultShader = templateText.Replace("${Fallback}", "Diffuse");
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
+
+            Debug.Log(resultShader);
+
             return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
@@ -217,7 +234,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             int vertInputIndex = 1; // DIRTY
-            int vertOutputIndex = 3; // DIRTY
+            int vertOutputIndex = 4; // DIRTY
 
             // Need these for lighting
             shaderInputVisitor.AddShaderChunk("float4 vertex : POSITION;", true);
@@ -230,6 +247,7 @@ namespace UnityEngine.MaterialGraph
             shaderOutputVisitor.AddShaderChunk("float4 posWS : TEXCOORD0;", true);
             shaderOutputVisitor.AddShaderChunk("half4 viewDir : TEXCOORD1;", true);
             shaderOutputVisitor.AddShaderChunk("half4 fogCoord : TEXCOORD2;", true);
+            shaderOutputVisitor.AddShaderChunk("half3 normal : TEXCOORD3;", true);
             shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION;", true);
             
             bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
@@ -358,6 +376,8 @@ namespace UnityEngine.MaterialGraph
                 //shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
             }
 
+
+
             GenerateNodeCode(shaderBody, mode);
         }
 
@@ -390,7 +410,7 @@ namespace UnityEngine.MaterialGraph
                         if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                             continue;
 
-                        shaderBody.AddShaderChunk("s." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
 
                         if (slot.id == NormalSlotId)
                             shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);

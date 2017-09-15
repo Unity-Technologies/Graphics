@@ -109,7 +109,7 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
     half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
 #ifdef _SHADOWS
-    lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+    lightAtten *= ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
 #endif
 
     half NdotL = saturate(dot(normal, lightDirection));
@@ -118,7 +118,7 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
 #else
 
 #ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
+    half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
 #endif
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
