@@ -13,8 +13,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MaxPixelLights: 4
   m_SupportsVertexLight: 1
-  m_EnableLightmaps: 1
-  m_EnableAmbientProbe: 1
   m_MSAA: 4
   m_ShadowType: 1
   m_ShadowAtlasResolution: 1024
