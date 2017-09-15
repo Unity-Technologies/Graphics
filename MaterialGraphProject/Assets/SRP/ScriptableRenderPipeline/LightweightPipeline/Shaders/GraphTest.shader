@@ -48,8 +48,10 @@
 
 #pragma vertex LightweightVertexCustom
 #pragma fragment LightweightFragmentPBR
-//#pragma glsl
-//#pragma debug
+#pragma glsl
+#pragma debug
+
+#define _GLOSSYREFLECTIONS_ON
 
 
 		float Vector1_Vector1_4B0AEC3F_Uniform;
@@ -144,7 +146,7 @@
 		o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 
-		UNITY_TRANSFER_FOG(o, o.hpos);
+		//UNITY_TRANSFER_FOG(o, o.hpos);
 		return o;
 	}
 
@@ -182,6 +184,7 @@
 	{
 		o.Albedo = Color_Color_8256B4E6_Uniform;
 		o.Specular = Vector1_Vector1_5370E8F3_Uniform;
+		o.Metallic = Vector1_Vector1_5370E8F3_Uniform;
 		o.Smoothness = Vector1_Vector1_4B0AEC3F_Uniform;
 
 	}
@@ -219,78 +222,78 @@
 	half4 LightweightFragmentPBR(vOutput i) : SV_Target
 	{
 		SurfacePBR o = InitializeSurfacePBR();
-	DefineSurface(i, o);
+		DefineSurface(i, o);
 
-	//float2 uv = i.uv01.xy;
-	float2 lightmapUV = i.uv01.zw;
+		//float2 uv = i.uv01.xy;
+		float2 lightmapUV = i.uv01.zw;
 
-	half3 specColor;
-	half smoothness;
-	half oneMinusReflectivity;
-	//#ifdef _METALLIC_SETUP
-	//half3 diffColor = MetallicSetup(o, specColor, smoothness, oneMinusReflectivity);
-	//#else
-	half3 diffColor = SpecularSetup(o, specColor, smoothness, oneMinusReflectivity);
-	//#endif
-
-	diffColor = PreMultiplyAlpha(diffColor, o.Alpha, oneMinusReflectivity, /*out*/ o.Alpha);
-
-	// Roughness is (1.0 - smoothness)²
-	half perceptualRoughness = 1.0h - smoothness;
-
-	// TODO - Actually handle normal
-	half3 normal;
-	CalculateNormal(i.normal, normal);
-
-	// TODO: shader keyword for occlusion
-	// TODO: Reflection Probe blend support.
-	half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-
-	UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, o.Occlusion, perceptualRoughness);
-
-	// PBS
-	// grazingTerm = F90
-	half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
-	half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
-	half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
-	half3 lightDirection;
-
-#ifndef _MULTIPLE_LIGHTS
-	LightInput light;
-	INITIALIZE_MAIN_LIGHT(light);
-	half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-
-	//#ifdef _SHADOWS
-	lightAtten *= ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
-	//#endif
-
-	half NdotL = saturate(dot(normal, lightDirection));
-	half3 radiance = light.color * (lightAtten * NdotL);
-	color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
-#else
-	//#ifdef _SHADOWS
-	half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
-	//#endif
-	int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-	for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
-	{
-		LightInput light;
-		int lightIndex = unity_4LightIndices0[lightIter];
-		INITIALIZE_LIGHT(light, lightIndex);
-		half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-		//#ifdef _SHADOWS
-		lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
+		half3 specColor;
+		half smoothness;
+		half oneMinusReflectivity;
+		//#ifdef _METALLIC_SETUP
+		half3 diffColor = MetallicSetup(o, specColor, smoothness, oneMinusReflectivity);
+		//#else
+		//half3 diffColor = SpecularSetup(o, specColor, smoothness, oneMinusReflectivity);
 		//#endif
+
+		diffColor = PreMultiplyAlpha(diffColor, o.Alpha, oneMinusReflectivity, /*out*/ o.Alpha);
+
+		// Roughness is (1.0 - smoothness)²
+		half perceptualRoughness = 1.0h - smoothness;
+
+		// TODO - Actually handle normal
+		half3 normal;
+		CalculateNormal(i.normal, normal);
+
+		// TODO: shader keyword for occlusion
+		// TODO: Reflection Probe blend support.
+		half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+
+		UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, o.Occlusion, perceptualRoughness);
+
+		// PBS
+		// grazingTerm = F90
+		half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
+		half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
+		half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
+		half3 lightDirection;
+
+	#ifndef _MULTIPLE_LIGHTS
+		LightInput light;
+		INITIALIZE_MAIN_LIGHT(light);
+		half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
+
+		//#ifdef _SHADOWS
+		lightAtten *= ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
+		//#endif
+
 		half NdotL = saturate(dot(normal, lightDirection));
 		half3 radiance = light.color * (lightAtten * NdotL);
-
 		color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
-	}
-#endif
+	#else
+		//#ifdef _SHADOWS
+		half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
+		//#endif
+		int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+		for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
+		{
+			LightInput light;
+			int lightIndex = unity_4LightIndices0[lightIter];
+			INITIALIZE_LIGHT(light, lightIndex);
+			half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
+			//#ifdef _SHADOWS
+			lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
+			//#endif
+			half NdotL = saturate(dot(normal, lightDirection));
+			half3 radiance = light.color * (lightAtten * NdotL);
 
-	color += o.Emission;
-	//UNITY_APPLY_FOG(i.fogCoord, color);
-	return OutputColor(color, o.Alpha);
+			color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
+		}
+	#endif
+
+		color += o.Emission;
+		UNITY_APPLY_FOG(i.fogCoord, color);
+		return OutputColor(color, o.Alpha);
 	}
 
 		ENDCG
