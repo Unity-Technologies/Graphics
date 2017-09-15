@@ -66,7 +66,7 @@ half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
     half3 color = half3(0, 0, 0);
 
 #ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
+    half shadowAttenuation = ComputeShadowAttenuation(normal, i.posWS, _ShadowLightDirection.xyz);
 #endif
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
