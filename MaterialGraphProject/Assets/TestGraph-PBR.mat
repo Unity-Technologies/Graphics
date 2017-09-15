@@ -6,10 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Test-PBR
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Name: TestGraph-PBR
+  m_Shader: {fileID: 4800000, guid: 02a3ca69ec995e94aa47105621a17e4c, type: 3}
   m_ShaderKeywords: _GLOSSYREFLECTIONS_ON _METALLIC_SETUP _SPECULARHIGHLIGHTS_ON
-  m_LightmapFlags: 4
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -77,7 +77,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0
+    - _Glossiness: 1
     - _GlossinessSource: 0
     - _GlossyReflections: 1
     - _Metallic: 0

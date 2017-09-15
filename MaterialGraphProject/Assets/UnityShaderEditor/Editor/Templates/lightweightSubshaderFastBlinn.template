@@ -16,14 +16,14 @@ SubShader
 		CGPROGRAM
 		#pragma target 3.0
 		#include "UnityCG.cginc"
-		#include "CGIncludes/LightweightPBR.cginc"
+		#include "CGIncludes/LightweightFastBlinn.cginc"
 		
 		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
         #pragma multi_compile_fog
 		#pragma multi_compile_instancing
 
         #pragma vertex LightweightVertex
-        #pragma fragment LightweightFragmentPBR
+        #pragma fragment LightweightFragmentFastBlinn
 		#pragma glsl
 		#pragma debug
 
