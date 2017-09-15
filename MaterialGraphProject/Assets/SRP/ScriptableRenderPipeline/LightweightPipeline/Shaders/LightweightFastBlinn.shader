@@ -83,12 +83,21 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
+
+#define VERTEX_CUSTOM \
+	o.tangent = normalize(UnityObjectToWorldDir(v.tangent)); \
+	o.binormal = cross(o.normal, o.tangent) * v.tangent.w;
+
+#define VERTOUTPUT_CUSTOM \
+	half3 tangent : TEXCOORD5; \
+	half3 binormal : TEXCOORD6;
+
             #include "CGIncludes/LightweightFastBlinn.cginc"
 
-			#pragma vertex LightweightVertex
+			#pragma vertex Vertex
             #pragma fragment LightweightFragmentFastBlinn
 
-			void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s)
+			void DefineSurface(VertOutput i, inout SurfaceFastBlinn s)
 			{
 				// Albedo
 				float4 c = tex2D(_MainTex, i.meshUV0.xy);

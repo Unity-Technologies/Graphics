@@ -32,7 +32,7 @@ SurfacePBR InitializeSurfacePBR()
 	return s;
 }
 
-void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s);
+void DefineSurface(VertOutput i, inout SurfacePBR o);
 
 half3 MetallicSetup(float2 uv, SurfacePBR s, out half3 specular, out half smoothness, out half oneMinusReflectivity)
 {
@@ -54,9 +54,9 @@ half3 SpecularSetup(float2 uv, SurfacePBR s, out half3 specular, out half smooth
 {
 	half4 specGloss = float4(s.Specular, s.Smoothness);
 
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
+/*#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
 	specGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specGloss.rgb);
-#endif
+#endif*/
 
 	specular = specGloss.rgb;
 	smoothness = specGloss.a;
@@ -64,7 +64,7 @@ half3 SpecularSetup(float2 uv, SurfacePBR s, out half3 specular, out half smooth
 	return s.Albedo * (half3(1, 1, 1) - specular);
 }
 
-half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
+half4 LightweightFragmentPBR(VertOutput i) : SV_Target
 {
 	SurfacePBR o = InitializeSurfacePBR();
 	DefineSurface(i, o);

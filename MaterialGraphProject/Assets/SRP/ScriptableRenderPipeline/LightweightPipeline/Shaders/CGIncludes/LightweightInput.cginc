@@ -29,9 +29,13 @@
 //#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(sRGB) sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h)
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linRGB) max(1.055h * pow(max(linRGB, 0.h), 0.416666667h) - 0.055h, 0.h)
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR4(sRGBA) float4(sRGBA.rgb * (sRGBA.rgb * (sRGBA.rgb * 0.305306011h + 0.682171111h) + 0.012522878h), sRGBA.a)
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA4(linRGBA) float4(max(1.055h * pow(max(linRGBA.rgb, 0.h), 0.416666667h) - 0.055h, 0.h), linRGBA.a)
 #else
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR4(color) color
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA4(color) color
 #endif
 
 
@@ -72,25 +76,29 @@ half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
 
-struct LightweightVertexInput
+struct VertInput
 {
 	float4 vertex : POSITION;
     float3 normal : NORMAL;
     float4 tangent : TANGENT;
     float4 texcoord0 : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
+#ifdef VERTINPUT_CUSTOM
+	VERTINPUT_CUSTOM;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct LightweightVertexOutput
+struct VertOutput
 {
 	float4 posWS : TEXCOORD0;
 	float4 viewDir : TEXCOORD1; // xyz: viewDir
 	half4 fogCoord : TEXCOORD2; // x: fogCoord, yzw: vertexColor
 	half3 normal : TEXCOORD3;
 	half4 meshUV0 : TEXCOORD4; // uv01.xy: uv0, uv01.zw: uv1 // uv
-	half3 tangent : TEXCOORD5; 
-	half3 binormal : TEXCOORD6; 
+#ifdef VERTOUTPUT_CUSTOM
+	VERTOUTPUT_CUSTOM
+#endif
 	float4 hpos : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
