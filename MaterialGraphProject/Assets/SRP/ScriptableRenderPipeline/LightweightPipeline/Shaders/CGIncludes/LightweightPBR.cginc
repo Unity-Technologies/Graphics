@@ -2,6 +2,7 @@
 #define LIGHTWEIGHT_PBR_INCLUDED
 
 #include "UnityStandardInput.cginc"
+#include "LightweightShadows.cginc"
 #include "LightweightBRDF.cginc"
 #include "LightweightCore.cginc"
 

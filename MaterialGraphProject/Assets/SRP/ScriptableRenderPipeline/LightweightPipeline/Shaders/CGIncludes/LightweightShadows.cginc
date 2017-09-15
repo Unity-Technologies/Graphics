@@ -1,6 +1,8 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
+#include "LightweightInput.cginc"
+
 #define MAX_SHADOW_CASCADES 4
 
 sampler2D_float _ShadowMap;

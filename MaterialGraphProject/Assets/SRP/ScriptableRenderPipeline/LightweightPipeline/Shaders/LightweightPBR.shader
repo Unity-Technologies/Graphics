@@ -92,6 +92,11 @@
             #pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentPBR
 
+			void ModifyVertex(inout LightweightVertexInput v)
+			{
+
+			}
+
 			void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s)
 			{
 				// Albedo
