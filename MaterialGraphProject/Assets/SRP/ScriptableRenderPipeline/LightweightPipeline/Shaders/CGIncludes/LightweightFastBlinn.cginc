@@ -48,12 +48,21 @@ half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
     half3 lightDirection;
                 
 	half4 specularGloss = half4(s.Specular, s.Glossiness);
+
+#ifdef _SHADOWS
+#if _NORMALMAP
+	half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z); // Fix this
+#else
+	half3 vertexNormal = i.normal;
+#endif
+#endif
+
 #ifndef _MULTIPLE_LIGHTS
     LightInput lightInput;
     INITIALIZE_MAIN_LIGHT(lightInput);
     half lightAtten = ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #ifdef _SHADOWS
-    lightAtten *= ComputeShadowAttenuation(normal, i.posWS, _ShadowLightDirection.xyz);
+    lightAtten *= ComputeShadowAttenuation(vertexNormal, i.posWS, _ShadowLightDirection.xyz);
 #endif
 				
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
@@ -66,7 +75,7 @@ half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
     half3 color = half3(0, 0, 0);
 
 #ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(normal, i.posWS, _ShadowLightDirection.xyz);
+    half shadowAttenuation = ComputeShadowAttenuation(vertexNormal, i.posWS, _ShadowLightDirection.xyz);
 #endif
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)

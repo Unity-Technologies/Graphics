@@ -88,11 +88,6 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 			#pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentFastBlinn
 
-			void ModifyVertex(inout LightweightVertexInput v)
-			{
-
-			}
-
 			void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s)
 			{
 				// Albedo

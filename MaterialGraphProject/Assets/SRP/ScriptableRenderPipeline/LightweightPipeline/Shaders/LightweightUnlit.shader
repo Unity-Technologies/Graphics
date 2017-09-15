@@ -34,11 +34,6 @@
 			#pragma vertex LightweightVertexUnlit
             #pragma fragment LightweightFragmentUnlit
 
-			void ModifyVertex(inout appdata_unlit v)
-			{
-
-			}
-
 			void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit s)
 			{
 				// Albedo
