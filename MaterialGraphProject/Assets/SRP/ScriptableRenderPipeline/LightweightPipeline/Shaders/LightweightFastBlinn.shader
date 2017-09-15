@@ -91,7 +91,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 			void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s)
 			{
 				// Albedo
-				float4 c = tex2D(_MainTex, i.uv01.xy);
+				float4 c = tex2D(_MainTex, i.meshUV0.xy);
 				s.Diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(c.rgb) * _Color.rgb;
 				// Specular
 #ifdef _SPECGLOSSMAP
@@ -100,7 +100,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 				s.Specular = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
 #endif
 #elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-				s.Specular.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, i.uv01.xy).rgb) * _SpecColor.rgb;
+				s.Specular.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, i.meshUV0.xy).rgb) * _SpecColor.rgb;
 				s.Glossiness = s.Alpha;
 #else
 				s.Specular = _SpecColor.rgb;
@@ -108,7 +108,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 #endif
 				// Normal
 #if _NORMALMAP
-				s.Normal = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
+				s.Normal = UnpackNormal(tex2D(_BumpMap, i.meshUV0.xy));
 #endif
 				// Emission
 #ifndef _EMISSION

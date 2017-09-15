@@ -55,21 +55,19 @@ ${VertexOutputs}
 
 			UNITY_SETUP_INSTANCE_ID(v);
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-			
+
 			o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 
-${VertexShaderBody}
-			
-			// TODO - Handle lightmaps
-			//o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
+			o.meshUV0.xy = v.texcoord0.xy;//TRANSFORM_TEX(v.texcoord0, _MainTex);
 		#ifdef LIGHTMAP_ON
-			//o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+			o.meshUV0.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 		#endif
-			o.hpos = UnityObjectToClipPos(v.vertex);
 
+			${VertexShaderBody}
+
+			o.hpos = UnityObjectToClipPos(v.vertex);
 			float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 			o.posWS.xyz = worldPos;
-
 			o.viewDir.xyz = normalize(_WorldSpaceCameraPos - worldPos);
 
 			// TODO: change to only support point lights per vertex. This will greatly simplify shader ALU

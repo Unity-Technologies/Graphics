@@ -26,32 +26,39 @@ SurfaceFastBlinn InitializeSurfaceFastBlinn()
 	return s;
 }
 
-void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s);
+void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn o);
 
 half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
 {
-	SurfaceFastBlinn s = InitializeSurfaceFastBlinn();
-	DefineSurface(i, s);
+	SurfaceFastBlinn o = InitializeSurfaceFastBlinn();
+	DefineSurface(i, o);
 
     // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
     // due overdraw performance impact.
 #ifdef _ALPHATEST_ON
-    clip(s.Alpha - _Cutoff);
+    clip(o.Alpha - _Cutoff);
 #endif
 
-    half3 normal;
-    CalculateNormal(s.Normal, i, normal);
+	half3 normal;
+#if _NORMALMAP
+	half3 tangentToWorld0 = half3(i.tangent.x, i.binormal.x, i.normal.x);
+	half3 tangentToWorld1 = half3(i.tangent.y, i.binormal.y, i.normal.y);
+	half3 tangentToWorld2 = half3(i.tangent.z, i.binormal.z, i.normal.z);
+	normal = normalize(half3(dot(o.Normal, tangentToWorld0), dot(o.Normal, tangentToWorld1), dot(o.Normal, tangentToWorld2)));
+#else
+	normal = normalize(i.normal);
+#endif
 
     half3 viewDir = i.viewDir.xyz;
     float3 worldPos = i.posWS.xyz;
 
     half3 lightDirection;
                 
-	half4 specularGloss = half4(s.Specular, s.Glossiness);
+	half4 specularGloss = half4(o.Specular, o.Glossiness);
 
 #ifdef _SHADOWS
 #if _NORMALMAP
-	half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z); // Fix this
+	half3 vertexNormal = half3(tangentToWorld0.z, tangentToWorld1.z, tangentToWorld2.z); // Fix this
 #else
 	half3 vertexNormal = i.normal;
 #endif
@@ -66,9 +73,9 @@ half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
 #endif
 				
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-    half3 color = LightingBlinnPhong(s.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
+    half3 color = LightingBlinnPhong(o.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
 #else
-    half3 color = LightingLambert(s.Diffuse, lightDirection, normal, lightAtten) * lightInput.color;
+    half3 color = LightingLambert(o.Diffuse, lightDirection, normal, lightAtten) * lightInput.color;
 #endif
     
 #else
@@ -89,35 +96,35 @@ half4 LightweightFragmentFastBlinn(LightweightVertexOutput i) : SV_Target
 #endif
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-        color += LightingBlinnPhong(s.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
+        color += LightingBlinnPhong(o.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
 #else
-        color += LightingLambert(s.Diffuse, lightDirection, normal, lightAtten) * lightData.color;
+        color += LightingLambert(o.Diffuse, lightDirection, normal, lightAtten) * lightData.color;
 #endif
     }
 
 #endif // _MULTIPLE_LIGHTS
 
-	color += s.Emission;
+	color += o.Emission;
 
 #if defined(LIGHTMAP_ON)
-    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * s.Diffuse;
+    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * o.Diffuse;
 #elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
-    color += i.fogCoord.yzw * s.Diffuse;
+    color += i.fogCoord.yzw * o.Diffuse;
 #endif
 
 #if _REFLECTION_CUBEMAP
     // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    color += texCUBE(_Cube, reflectVec).rgb * s.Specular;
+    color += texCUBE(_Cube, reflectVec).rgb * o.Specular;
 #elif defined(_REFLECTION_PROBE)
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
     half4 reflectionProbe = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectVec);
-    color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * s.Specular;
+    color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * o.Specular;
 #endif
 
     UNITY_APPLY_FOG(i.fogCoord, color);
 
-    return OutputColor(color, s.Alpha);
+    return OutputColor(color, o.Alpha);
 };
 
 #endif

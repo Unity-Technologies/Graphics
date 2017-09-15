@@ -95,7 +95,7 @@
 			void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s)
 			{
 				// Albedo
-				float4 c = tex2D(_MainTex, i.uv01.xy);
+				float4 c = tex2D(_MainTex, i.meshUV0.xy);
 				s.Albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(c.rgb) * _Color.rgb;
 				// Metallic
 #ifdef _METALLICSPECGLOSSMAP
@@ -118,10 +118,10 @@
 #endif
 				// Normal
 #if _NORMALMAP
-				s.Normal = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
+				s.Normal = UnpackNormal(tex2D(_BumpMap, i.meshUV0.xy));
 #endif
 				// Occlusion
-				s.Occlusion = Occlusion(i.uv01.xy);
+				s.Occlusion = Occlusion(i.meshUV0.xy);
 				// Emission
 #ifndef _EMISSION
 				s.Emission = 0;
