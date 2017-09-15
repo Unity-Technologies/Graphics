@@ -335,7 +335,7 @@ namespace UnityEditor.VFX
                     if (hasState)
                     {
                         attributeBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, data.bufferSize >> 2, 4));
+                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, data.bufferSize, 4));
                         systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
                     }
 
