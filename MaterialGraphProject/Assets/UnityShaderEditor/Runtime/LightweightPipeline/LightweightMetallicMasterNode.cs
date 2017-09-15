@@ -12,9 +12,6 @@ namespace UnityEngine.MaterialGraph
 
         public const string WorkflowName = "Metallic";
 
-        //public const string LightFunctionName = "Standard";
-        //public const string SurfaceOutputStructureName = "SurfaceOutputStandard";
-
         public LightweightMetallicMasterNode()
         {
             name = "LightweightMetallicMasterNode";
@@ -80,15 +77,5 @@ namespace UnityEngine.MaterialGraph
         {
             return WorkflowName;
         }
-
-        /*public override string GetSurfaceOutputName()
-        {
-            return SurfaceOutputStructureName;
-        }
-
-        public override string GetLightFunction()
-        {
-            return LightFunctionName;
-        }*/
     }
 }

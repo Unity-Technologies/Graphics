@@ -86,7 +86,6 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
     // Roughness is (1.0 - smoothness)²
     half perceptualRoughness = 1.0h - smoothness;
 
-	// TODO - Actually handle normal
     half3 normal;
     CalculateNormal(s.Normal, i, normal);
 
@@ -103,13 +102,21 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
     half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
     half3 lightDirection;
 
+#ifdef _SHADOWS
+#if _NORMALMAP
+	half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z); // Fix this
+#else
+	half3 vertexNormal = i.normal;
+#endif
+#endif
+
 #ifndef _MULTIPLE_LIGHTS
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
     half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
 #ifdef _SHADOWS
-    lightAtten *= ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
+    lightAtten *= ComputeShadowAttenuation(vertexNormal, i.posWS, _ShadowLightDirection.xyz);
 #endif
 
     half NdotL = saturate(dot(normal, lightDirection));
@@ -118,7 +125,7 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
 #else
 
 #ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
+    half shadowAttenuation = ComputeShadowAttenuation(vertexNormal, i.posWS, _ShadowLightDirection.xyz);
 #endif
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)

@@ -1,8 +1,6 @@
 ﻿#ifndef LIGHTWEIGHT_UNLIT_INCLUDED
 #define LIGHTWEIGHT_UNLIT_INCLUDED
 
-//#include "UnityStandardInput.cginc"
-
 struct appdata_unlit
 {
 	float4 vertex : POSITION;
@@ -39,16 +37,12 @@ float4 _MainTex_ST;
 half4 _Color;
 half _Cutoff;
 
-void ModifyVertex(inout appdata_unlit v);
-
 LightweightVertexOutputUnlit LightweightVertexUnlit(appdata_unlit v)
 {
 	LightweightVertexOutputUnlit o;
 
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-	ModifyVertex(v);
 
     o.vertex = UnityObjectToClipPos(v.vertex);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);

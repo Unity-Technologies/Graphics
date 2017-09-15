@@ -12,9 +12,6 @@ namespace UnityEngine.MaterialGraph
 
         public const string WorkflowName = "Specular";
 
-        //public const string LightFunctionName = "Standard";
-        //public const string SurfaceOutputStructureName = "SurfaceOutputStandard";
-
         public LightweightSpecularMasterNode()
         {
             name = "LightweightSpecularMasterNode";
@@ -80,15 +77,5 @@ namespace UnityEngine.MaterialGraph
         {
             return WorkflowName;
         }
-
-        /*public override string GetSurfaceOutputName()
-        {
-            return SurfaceOutputStructureName;
-        }
-
-        public override string GetLightFunction()
-        {
-            return LightFunctionName;
-        }*/
     }
 }
