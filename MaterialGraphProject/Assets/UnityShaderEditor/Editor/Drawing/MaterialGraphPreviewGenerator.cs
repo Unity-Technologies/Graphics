@@ -170,7 +170,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size, float time)
         {
             if (mat == null || mat.shader == null)
-                return Texture2D.blackTexture;
+                return Texture2D.blackTexture; 
 
             int rtWidth = (int)(size.width);
             int rtHeight = (int)(size.height);

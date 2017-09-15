@@ -122,21 +122,12 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        public void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
         {
             foreach (var node in usedNodes)
             {
                 if (node is IGenerateProperties)
-                    (node as IGenerateProperties).GeneratePropertyBlock(visitor, generationMode);
-            }
-        }
-
-        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                if (node is IGenerateProperties)
-                    (node as IGenerateProperties).GeneratePropertyUsages(visitor, generationMode);
+                    (node as IGenerateProperties).CollectShaderProperties(visitor, generationMode);
             }
         }
 

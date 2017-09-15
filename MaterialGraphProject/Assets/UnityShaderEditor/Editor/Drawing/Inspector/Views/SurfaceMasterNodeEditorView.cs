@@ -5,7 +5,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
+   /* public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
     {
         NodeEditorHeaderView m_HeaderView;
 
@@ -55,5 +55,5 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
             m_HeaderView.title = presenter.node.name;
         }
-    }
+    }*/
 }

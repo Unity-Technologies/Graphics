@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IMasterNode : INode
+   /* public interface IMasterNode : INode
     {
         string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures);
 
@@ -12,5 +12,5 @@ namespace UnityEngine.MaterialGraph
         string GetVariableNameForNode();
 
         bool has3DPreview();
-    }
+    }*/
 }

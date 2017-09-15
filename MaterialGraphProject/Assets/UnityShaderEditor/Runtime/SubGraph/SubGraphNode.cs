@@ -228,24 +228,14 @@ namespace UnityEngine.MaterialGraph
             shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
         {
-            base.GeneratePropertyBlock(visitor, generationMode);
+            base.CollectShaderProperties(visitor, generationMode);
 
             if (subGraph == null)
                 return;
 
-            subGraph.GeneratePropertyBlock(visitor, GenerationMode.ForReals);
-        }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            base.GeneratePropertyUsages(visitor, generationMode);
-
-            if (subGraph == null)
-                return;
-
-            subGraph.GeneratePropertyUsages(visitor, GenerationMode.ForReals);
+            subGraph.CollectShaderProperties(visitor, GenerationMode.ForReals);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

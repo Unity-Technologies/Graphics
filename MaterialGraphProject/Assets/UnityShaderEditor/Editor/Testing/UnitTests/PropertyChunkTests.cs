@@ -5,7 +5,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.UnitTests
 {
-    [TestFixture]
+ /*   [TestFixture]
     public class PropertyChunkTests
     {
         class TestPropertyChunch : PropertyChunk
@@ -112,5 +112,5 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(TexturePropertyChunk.ModifiableState.NonModifiable, chunk.modifiableState);
             Assert.AreEqual(PropertyChunk.HideState.Hidden, chunk.hideState);
         }
-    }
+    }*/
 }

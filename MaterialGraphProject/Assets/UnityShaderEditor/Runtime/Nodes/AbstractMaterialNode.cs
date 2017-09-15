@@ -73,10 +73,7 @@ namespace UnityEngine.MaterialGraph
             version = 0;
         }
 
-        public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {}
-
-        public virtual void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generateDefaultInputs)
                 return;
@@ -90,7 +87,7 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                inputSlot.GeneratePropertyUsages(visitor, generationMode);
+                inputSlot.AddProperty(properties, generationMode);
             }
         }
 

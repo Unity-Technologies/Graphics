@@ -16,6 +16,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (tNode == null)
                 return;
 
+
+            tNode.value = EditorGUILayout.FloatField("Value:", tNode.value);
+            /*
             tNode.floatType = (FloatPropertyChunk.FloatType)EditorGUILayout.EnumPopup("Float", tNode.floatType);
 
 
@@ -58,7 +61,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     toggleState = EditorGUILayout.Toggle(toggleState);
                     tNode.value = toggleState == true ? 1f : 0f;
                     break;
-            }
+            }*/
         }
 
         public override float GetHeight()

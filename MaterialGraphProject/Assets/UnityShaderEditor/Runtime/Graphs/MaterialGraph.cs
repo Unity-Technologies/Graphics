@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
 
@@ -7,56 +8,38 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class MaterialGraph : AbstractMaterialGraph
     {
-        [NonSerialized]
-        private Guid m_ActiveMasterNodeGUID;
-
-        [SerializeField]
-        private string m_ActiveMasterNodeGUIDSerialized;
-
-        public MaterialGraph()
+        public MasterNode masterNode
         {
-            m_ActiveMasterNodeGUID = Guid.NewGuid();
+            get { return GetNodes<MasterNode>().FirstOrDefault(); }
         }
 
-        public IMasterNode masterNode
+        public string GetFullShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            get
+            // Lets collect all the properties
+            var generatedProperties = new PropertyCollector();
+            var shaderFunctions = new ShaderGenerator();
+            var shaderBody = new ShaderGenerator();
+
+            foreach (var prop in properties)
+                generatedProperties.AddShaderProperty(prop);
+
+            // start by collecting all the active nodes!
+            var activeNodeList = new List<INode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode);
+
+            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
-                var found = GetNodeFromGuid(m_ActiveMasterNodeGUID) as IMasterNode;
-                if (found != null)
-                    return found;
+                if (node is IGeneratesFunction)
+                    (node as IGeneratesFunction).GenerateNodeFunction(shaderFunctions, mode);
 
-                return GetNodes<IMasterNode>().FirstOrDefault();
+                if (node is IGeneratesBodyCode)
+                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, mode);
+
+                node.CollectShaderProperties(generatedProperties, mode);
             }
-            set
-            {
-                var previousMaster = masterNode;
 
-                if (value == null)
-                    m_ActiveMasterNodeGUID = Guid.NewGuid();
-                else
-                    m_ActiveMasterNodeGUID = value.guid;
-
-                masterNode.onModified(masterNode, ModificationScope.Node);
-                previousMaster.onModified(previousMaster, ModificationScope.Node);
-            }
-        }
-
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-
-            m_ActiveMasterNodeGUIDSerialized = m_ActiveMasterNodeGUID.ToString();
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-
-            if (!string.IsNullOrEmpty(m_ActiveMasterNodeGUIDSerialized))
-                m_ActiveMasterNodeGUID = new Guid(m_ActiveMasterNodeGUIDSerialized);
-            else
-                m_ActiveMasterNodeGUID = Guid.NewGuid();
+            configuredTextures = generatedProperties.GetConfiguredTexutres();
+            return string.Empty;
         }
     }
 }
