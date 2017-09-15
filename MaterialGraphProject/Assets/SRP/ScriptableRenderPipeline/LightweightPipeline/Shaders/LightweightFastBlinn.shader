@@ -88,6 +88,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 			#pragma vertex LightweightVertex
             #pragma fragment LightweightFragmentFastBlinn
 
+			void ModifyVertex(inout LightweightVertexInput v)
+			{
+
+			}
+
 			void DefineSurface(LightweightVertexOutput i, inout SurfaceFastBlinn s)
 			{
 				// Albedo
@@ -177,7 +182,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 			#include "UnityCG.cginc"
 			#include "CGIncludes/LightweightPass.cginc"
             #pragma vertex vert_meta
-            #pragma fragment frag_meta_ld   
+            #pragma fragment frag_meta_ld
 
 			void DefineSurfaceMeta(v2f_meta i, inout SurfaceFastBlinn s)
 			{

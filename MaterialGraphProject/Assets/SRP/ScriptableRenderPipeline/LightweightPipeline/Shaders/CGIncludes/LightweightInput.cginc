@@ -76,26 +76,26 @@ struct LightweightVertexInput
 {
     float4 vertex : POSITION;
     float3 normal : NORMAL;
-    float4 tangent : TANGENT;
-    float2 texcoord : TEXCOORD0;
+    float4 tangent : TANGENT;		// normal map
+    float2 texcoord : TEXCOORD0;	// uv
     float2 lightmapUV : TEXCOORD1;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct LightweightVertexOutput
 {
-    float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-    float4 posWS : TEXCOORD1;
+    float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1 // uv
+    float4 posWS : TEXCOORD1;	// lighting
 #if _NORMALMAP
-    half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix
+    half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix // normal map
     half3 tangentToWorld1 : TEXCOORD3; // tangentToWorld matrix
     half3 tangentToWorld2 : TEXCOORD4; // tangentToWorld matrix
 #else
-    half3 normal : TEXCOORD2;
+    half3 normal : TEXCOORD2; // no normal map
 #endif
-    half4 viewDir : TEXCOORD5; // xyz: viewDir
-    half4 fogCoord : TEXCOORD6; // x: fogCoord, yzw: vertexColor
-    float4 hpos : SV_POSITION;
+    half4 viewDir : TEXCOORD5; // xyz: viewDir // lighting
+    half4 fogCoord : TEXCOORD6; // x: fogCoord, yzw: vertexColor // fog
+    float4 hpos : SV_POSITION; // lighting
     UNITY_VERTEX_OUTPUT_STEREO
 };
 

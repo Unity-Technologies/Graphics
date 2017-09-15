@@ -1,0 +1,69 @@
+SubShader
+{
+	Tags{"RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline"}
+
+	LOD ${LOD}
+	
+	Pass
+	{
+		Tags{"LightMode" = "LightweightForward"}
+		${Tags}
+		${Blending}
+		${Culling}
+		${ZTest}
+		${ZWrite}
+		
+		CGPROGRAM
+		#pragma target 3.0
+		#include "UnityCG.cginc"
+		#include "CGIncludes/LightweightUnlit.cginc"
+		
+		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+        #pragma multi_compile_fog
+		#pragma multi_compile_instancing
+
+        #pragma vertex LightweightVertexUnlit
+        #pragma fragment LightweightFragmentUnlit
+		#pragma glsl
+		#pragma debug
+
+${ShaderPropertyUsages}
+${ShaderFunctions}
+
+/*		struct appdata_unlit
+		{
+${VertexInputs}
+			UNITY_VERTEX_INPUT_INSTANCE_ID
+		};
+	
+		struct LightweightVertexOutputUnlit
+		{
+${VertexOutputs}
+		
+			UNITY_VERTEX_OUTPUT_STEREO
+		};
+	
+		LightweightVertexOutputUnlit LightweightVertexUnlitCustom(appdata_unlit v)
+		{
+			LightweightVertexOutputUnlit o = (LightweightVertexOutputUnlit)0;
+			
+${VertexShaderBody}
+
+			UNITY_SETUP_INSTANCE_ID(v);
+			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+			return o;
+		}*/
+		
+		void ModifyVertex(inout appdata_unlit v)
+		{
+${VertexShaderBody}		
+		}
+		
+		void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit s)
+		{
+${PixelShaderBody}		
+		}
+	
+		ENDCG
+	}
+}

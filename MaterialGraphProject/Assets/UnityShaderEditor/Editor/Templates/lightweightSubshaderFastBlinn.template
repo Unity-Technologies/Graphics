@@ -1,0 +1,97 @@
+SubShader
+{
+	Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+
+	LOD ${LOD}
+	
+	Pass
+	{
+		Tags{"LightMode" = "LightweightForward"}
+		${Tags}
+		${Blending}
+		${Culling}
+		${ZTest}
+		${ZWrite}
+		
+		CGPROGRAM
+		#pragma target 3.0
+		#include "UnityCG.cginc"
+		#include "CGIncludes/LightweightPBR.cginc"
+		
+		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+        #pragma multi_compile_fog
+		#pragma multi_compile_instancing
+
+        #pragma vertex LightweightVertex
+        #pragma fragment LightweightFragmentPBR
+		#pragma glsl
+		#pragma debug
+
+${ShaderPropertyUsages}
+${ShaderFunctions}
+
+/*		struct LightweightVertexInput
+		{
+${VertexInputs}
+			UNITY_VERTEX_INPUT_INSTANCE_ID
+		};
+	
+		struct LightweightVertexOutput
+		{
+${VertexOutputs}
+		
+			UNITY_VERTEX_OUTPUT_STEREO
+		};
+	
+		LightweightVertexOutput LightweightVertexCustom(Input v)
+		{
+			LightweightVertexOutput o = (LightweightVertexOutput)0;
+			
+${VertexShaderBody}
+
+			UNITY_SETUP_INSTANCE_ID(v);
+			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+			return o;
+		}*/
+		
+		void ModifyVertex(inout LightweightVertexInput v)
+		{
+${VertexShaderBody}		
+		}
+		
+		void DefineSurface(LightweightVertexOutput i, inout SurfacePBR s)
+		{
+${PixelShaderBody}		
+		}
+	
+		ENDCG
+	}
+	
+	Pass
+	{
+		Tags{"Lightmode" = "ShadowCaster"}
+		ZWrite On ZTest LEqual
+
+		CGPROGRAM
+		#pragma target 2.0
+		#include "UnityCG.cginc"
+		#include "CGIncludes/LightweightPass.cginc"
+		#pragma vertex shadowVert
+		#pragma fragment shadowFrag
+		ENDCG
+	}
+
+	Pass
+	{
+		Tags{"Lightmode" = "DepthOnly"}
+		ZWrite On
+
+		CGPROGRAM
+		#pragma target 2.0
+		#include "UnityCG.cginc"
+		#include "CGIncludes/LightweightPass.cginc"
+		#pragma vertex depthVert
+		#pragma fragment depthFrag
+		ENDCG
+	}
+}

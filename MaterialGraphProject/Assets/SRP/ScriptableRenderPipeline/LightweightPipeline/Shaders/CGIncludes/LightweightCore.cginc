@@ -53,12 +53,16 @@ half4 OutputColor(half3 color, half alpha)
 #endif
 }
 
+void ModifyVertex(inout LightweightVertexInput v);
+
 LightweightVertexOutput LightweightVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
 
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+	ModifyVertex(v);
 
     o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
 #ifdef LIGHTMAP_ON
