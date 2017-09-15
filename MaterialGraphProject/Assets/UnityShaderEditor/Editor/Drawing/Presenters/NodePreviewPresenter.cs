@@ -164,7 +164,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var resultShader = GetPreviewShaderString();
             Debug.Log("RecreateShaderAndMaterial : " + m_Node.GetVariableNameForNode() + Environment.NewLine + resultShader);
             string shaderOuputString = resultShader.Replace("UnityEngine.MaterialGraph", "Generated");
-            System.IO.File.WriteAllText(Application.dataPath + "/GeneratedShader.shader", shaderOuputString);
+            System.IO.File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", shaderOuputString);
 
             if (string.IsNullOrEmpty(resultShader))
                 return false;

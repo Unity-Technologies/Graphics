@@ -1,12 +1,13 @@
+using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEditor.MaterialGraph.Drawing.Inspector;
-using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class GraphEditorView : DataWatchContainer
+    public class GraphEditorView : DataWatchContainer, IDisposable
     {
         GraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
@@ -63,6 +64,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected override Object[] toWatch
         {
             get { return new Object[] { m_Presenter }; }
+        }
+
+        public void Dispose()
+        {
+            if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
         }
     }
 }
