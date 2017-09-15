@@ -181,13 +181,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
                 SetShaderKeywords(ref lightData, ref context);
 
-                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes;
-                if (m_Asset.EnableLightmap)
-                    configuration |= RendererConfiguration.PerObjectLightmaps;
-
-                if (m_Asset.EnableAmbientProbe)
-                    configuration |= RendererConfiguration.PerObjectLightProbe;
-
+                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
                 if (!lightData.isSingleLight)
                     configuration |= RendererConfiguration.PerObjectLightIndices8;
 
@@ -565,11 +559,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleLight, bool vertexLightSupport)
         {
-            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
+            LightweightUtils.SetKeyword(cmd, "_LIGHTWEIGHT_FORCE_LINEAR", m_Asset.ForceLinearRendering);
             LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
             LightweightUtils.SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
-            LightweightUtils.SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
-            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
 
             if (!singleLight)
             {

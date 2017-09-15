@@ -69,8 +69,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField] private int m_MaxPixelLights = 1;
         [SerializeField] private bool m_SupportsVertexLight = true;
-        [SerializeField] private bool m_EnableLightmaps = true;
-        [SerializeField] private bool m_EnableAmbientProbe = true;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
@@ -99,18 +97,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return m_SupportsVertexLight; }
             private set { m_SupportsVertexLight = value; }
-        }
-
-        public bool EnableLightmap
-        {
-            get { return m_EnableLightmaps; }
-            private set { m_EnableLightmaps = value; }
-        }
-
-        public bool EnableAmbientProbe
-        {
-            get { return m_EnableAmbientProbe; }
-            private set { m_EnableAmbientProbe = value; }
         }
 
         public int MSAASampleCount
