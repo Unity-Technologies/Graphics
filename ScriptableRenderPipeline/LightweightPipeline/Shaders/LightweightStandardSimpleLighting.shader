@@ -42,11 +42,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
 
         [Enum(UV0,0,UV1,1)] _UVSec("UV Set for secondary textures", Float) = 0
 
-            // Blending state
-            [HideInInspector] _Mode("__mode", Float) = 0.0
-            [HideInInspector] _SrcBlend("__src", Float) = 1.0
-            [HideInInspector] _DstBlend("__dst", Float) = 0.0
-            [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        // Blending state
+        [HideInInspector] _Mode("__mode", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
     }
 
     SubShader
@@ -70,11 +70,10 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
-            #pragma multi_compile _ LIGHTWEIGHT_LINEAR
+            #pragma multi_compile _ _LIGHTWEIGHT_FORCE_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _ATTENUATION_TEXTURE
@@ -89,7 +88,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
             ENDCG
         }
 
-            Pass
+        Pass
         {
             Tags{"Lightmode" = "ShadowCaster"}
 

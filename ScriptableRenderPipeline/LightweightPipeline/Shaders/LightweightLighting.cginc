@@ -8,7 +8,7 @@ UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 reflect
     o.diffuse = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)));
 #endif
 
-#if defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
+#if defined(_VERTEX_LIGHTS) || !defined(LIGHTMAP_ON)
     o.diffuse += ambientColor;
 #endif
     o.diffuse *= occlusion;
