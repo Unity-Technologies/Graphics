@@ -3,7 +3,7 @@ guid: b56f0b54c8a1042f3ae9a8904a576f5d
 timeCreated: 1493308431
 licenseType: Pro
 ModelImporter:
-  serializedVersion: 21
+  serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
@@ -15,10 +15,24 @@ ModelImporter:
     4300000: Cornell Box
     7400000: Take 001
     9500000: //RootNode
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cornell Box
+    second: {fileID: 2100000, guid: 654f7c5a4dd5d4d139a072ab9b5c5738, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cornell Box_green
+    second: {fileID: 2100000, guid: 58bbc5d4f141a4cbc9e0f0cc569fdbca, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cornell Box_red
+    second: {fileID: 2100000, guid: 9b02cdc6dbf754bf1aa60a08bf1c909d, type: 2}
   materials:
     importMaterials: 1
-    autoMapExternalMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 0
@@ -54,16 +68,17 @@ ModelImporter:
     importCameras: 1
     importLights: 1
     swapUVChannels: 0
-    generateSecondaryUV: 1
+    generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
-    secondaryUVAreaDistortion: 15.000001
+    secondaryUVAreaDistortion: 15
     secondaryUVHardAngle: 88
-    secondaryUVPackMargin: 4
+    secondaryUVPackMargin: 8
     useFileScale: 1
   tangentSpace:
     normalSmoothAngle: 60
