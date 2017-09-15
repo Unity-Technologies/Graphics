@@ -36,6 +36,11 @@ namespace UnityEditor.VFX.UI
 
         GradientField m_GradientField;
 
+        protected override void UpdateEnabled()
+        {
+            m_GradientField.SetEnabled(propertyEnabled);
+        }
+
         public override void UpdateGUI()
         {
             m_GradientField.SetValue(m_Value);

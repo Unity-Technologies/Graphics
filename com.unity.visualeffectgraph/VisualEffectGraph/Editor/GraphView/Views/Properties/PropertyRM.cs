@@ -38,6 +38,23 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement m_Label;
 
+
+        public bool m_PropertyEnabled;
+
+        public bool propertyEnabled
+        {
+            get { return m_PropertyEnabled; }
+
+            set
+            {
+                m_PropertyEnabled = value;
+                UpdateEnabled();
+            }
+        }
+
+
+        protected abstract void UpdateEnabled();
+
         public void Update()
         {
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
@@ -265,6 +282,11 @@ namespace UnityEditor.VFX.UI
                 m_Value = newValue;
                 NotifyValueChanged();
             }
+        }
+
+        protected override void UpdateEnabled()
+        {
+            m_Field.SetEnabled(propertyEnabled);
         }
 
         ValueControl<T> m_Field;

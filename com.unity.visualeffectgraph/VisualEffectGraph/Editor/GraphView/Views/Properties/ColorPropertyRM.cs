@@ -13,15 +13,16 @@ namespace UnityEditor.VFX.UI
 {
     class ColorPropertyRM : PropertyRM<Color>
     {
+        VisualElement m_MainContainer;
         public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            VisualElement mainContainer = new VisualElement();
+            m_MainContainer = new VisualElement();
 
             m_ColorField = new ColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
 
-            mainContainer.Add(m_ColorField);
-            mainContainer.AddToClassList("maincontainer");
+            m_MainContainer.Add(m_ColorField);
+            m_MainContainer.AddToClassList("maincontainer");
 
             VisualElement fieldContainer = new VisualElement();
             fieldContainer.AddToClassList("fieldContainer");
@@ -43,11 +44,16 @@ namespace UnityEditor.VFX.UI
             fieldContainer.Add(m_BFloatField);
             fieldContainer.Add(m_AFloatField);
 
-            mainContainer.Add(fieldContainer);
+            m_MainContainer.Add(fieldContainer);
 
-            mainContainer.style.flexDirection = FlexDirection.Column;
-            mainContainer.style.alignItems = Align.Stretch;
-            Add(mainContainer);
+            m_MainContainer.style.flexDirection = FlexDirection.Column;
+            m_MainContainer.style.alignItems = Align.Stretch;
+            Add(m_MainContainer);
+        }
+
+        protected override void UpdateEnabled()
+        {
+            m_MainContainer.SetEnabled(propertyEnabled);
         }
 
         public void OnValueChanged()
