@@ -4,7 +4,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class SurfaceMasterNodeEditorPresenter : AbstractNodeEditorPresenter
+   /* public class SurfaceMasterNodeEditorPresenter : AbstractNodeEditorPresenter
     {
         [SerializeField]
         AbstractSurfaceMasterNode m_Node;
@@ -19,5 +19,5 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         {
             get { return m_Node; }
         }
-    }
+    }*/
 }

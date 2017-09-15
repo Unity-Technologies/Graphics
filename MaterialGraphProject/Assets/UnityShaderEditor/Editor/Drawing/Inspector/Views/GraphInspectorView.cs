@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
@@ -31,13 +36,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 headerContainer.Add(m_Title);
             }
             Add(headerContainer);
-            
-             m_PropertiesContainer = new VisualElement()
-            {
-                new IMGUIContainer(OnGuiHandler)
-            };
-            m_PropertiesContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Column);
-            Add(m_PropertiesContainer);
+
+            ReaddProps();
 
             m_ContentContainer = new VisualElement { name = "contentContainer" };
             Add(m_ContentContainer);
@@ -45,11 +45,25 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             m_TypeMapper = new TypeMapper(typeof(AbstractNodeEditorPresenter), typeof(AbstractNodeEditorView))
             {
                 { typeof(StandardNodeEditorPresenter), typeof(StandardNodeEditorView) },
-                { typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView) }
+//                { typeof(SurfaceMasterNodeEditorPresenter), typeof(SurfaceMasterNodeEditorView) }
             };
         }
 
-private void OnGuiHandler()
+        private void ReaddProps()
+        {
+            if (m_PropertiesContainer != null)
+                Remove(m_PropertiesContainer);
+
+            m_PropertiesContainer = new VisualElement()
+            {
+                new IMGUIContainer(OnGuiHandler)
+            };
+
+            m_PropertiesContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Column);
+            Add(m_PropertiesContainer);
+        }
+
+        private void OnGuiHandler()
         {
             if (m_Presenter == null)
                 return;
@@ -60,32 +74,38 @@ private void OnGuiHandler()
                 gm.AddItem(new GUIContent("Float"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new FloatShaderProperty());
-                    m_Presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.AddItem(new GUIContent("Vector2"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new Vector2ShaderProperty());
-                    presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.AddItem(new GUIContent("Vector3"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new Vector3ShaderProperty());
-                    m_Presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.AddItem(new GUIContent("Vector4"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty());
-                    m_Presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.AddItem(new GUIContent("Color"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new ColorShaderProperty());
-                    m_Presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.AddItem(new GUIContent("Texture"), false, () =>
                 {
                     m_Presenter.graph.AddShaderProperty(new TextureShaderProperty());
-                    m_Presenter.Dirty();
+                    ReaddProps();
+
                 });
                 gm.ShowAsContext();
             }
@@ -133,10 +153,13 @@ private void OnGuiHandler()
                 }
                 EditorGUILayout.Separator();
             }
-            if(EditorGUI.EndChangeCheck())
-                m_Presenter.Dirty();
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var node in m_Presenter.graph.GetNodes<PropertyNode>())
+                    node.onModified(node, ModificationScope.Node);
+            }
         }
-        
+
         public override void OnDataChanged()
         {
             if (presenter == null)

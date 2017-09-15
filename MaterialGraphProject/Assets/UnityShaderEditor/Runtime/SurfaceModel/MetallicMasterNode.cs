@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+  /*  [Serializable]
     [Title("Master/Metallic")]
     public class MetallicMasterNode : AbstractSurfaceMasterNode
     {
@@ -84,5 +84,5 @@ namespace UnityEngine.MaterialGraph
         {
             return LightFunctionName;
         }
-    }
+    }*/
 }

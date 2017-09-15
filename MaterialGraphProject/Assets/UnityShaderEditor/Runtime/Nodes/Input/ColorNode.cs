@@ -64,12 +64,19 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + ";", true);
+            properties.AddShaderProperty(new ColorShaderProperty()
+            {
+                name = GetVariableNameForNode(),
+                generatePropertyBlock = false,
+                value = color,
+                HDR = HDR
+            });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

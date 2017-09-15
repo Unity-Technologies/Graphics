@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+/*    [Serializable]
     [Title("Master/Specular")]
     public class SpecularMasterNode : AbstractSurfaceMasterNode
     {
@@ -83,5 +83,5 @@ namespace UnityEngine.MaterialGraph
         {
             return LightFunctionName;
         }
-    }
+    }*/
 }

@@ -6,7 +6,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class SurfaceMasterNodeInspector : BasicNodeInspector
     {
-        public override void OnInspectorGUI()
+ /*       public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
@@ -29,6 +29,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (EditorGUI.EndChangeCheck())
                 node.onModified(node, ModificationScope.Node);
-        }
+        }*/
     }
 }

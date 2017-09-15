@@ -9,11 +9,11 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private float m_Value;
 
-        [SerializeField]
-        private FloatPropertyChunk.FloatType m_floatType;
+        /*[SerializeField]
+        private FloatPropertyChunk.FloatType m_floatType;*/
 
-        [SerializeField]
-        private Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
+       // [SerializeField]
+        //private Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
 
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Value";
@@ -45,7 +45,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public FloatPropertyChunk.FloatType floatType
+       /* public FloatPropertyChunk.FloatType floatType
         {
             get { return m_floatType; }
             set
@@ -58,9 +58,9 @@ namespace UnityEngine.MaterialGraph
                 if (onModified != null)
                     onModified(this, ModificationScope.Node);
             }
-        }
+        }*/
 
-        public Vector3 rangeValues
+      /*  public Vector3 rangeValues
         {
             get { return m_rangeValues; }
             set
@@ -74,13 +74,18 @@ namespace UnityEngine.MaterialGraph
                     onModified(this, ModificationScope.Node);
             }
         }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+*/
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + ";", true);
+            properties.AddShaderProperty(new FloatShaderProperty()
+            {
+                name = GetVariableNameForNode(),
+                generatePropertyBlock = false,
+                value = value
+            });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

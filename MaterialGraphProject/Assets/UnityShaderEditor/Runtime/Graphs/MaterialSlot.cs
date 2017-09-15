@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -143,22 +144,6 @@ namespace UnityEngine.MaterialGraph
             set { m_ShaderStage = value; }
         }
 
-        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            if (concreteValueType == ConcreteSlotValueType.SamplerState ||
-                concreteValueType == ConcreteSlotValueType.Texture2D)
-                return;
-
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
-                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
-
-            visitor.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(matOwner.precision, concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
-        }
-
         public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
         {
             switch (valueType)
@@ -230,6 +215,44 @@ namespace UnityEngine.MaterialGraph
                 default:
                     return "error";
             }
+        }
+
+        public void AddProperty(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            if (concreteValueType == ConcreteSlotValueType.SamplerState ||
+                concreteValueType == ConcreteSlotValueType.Texture2D)
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            IShaderProperty property;
+            switch (concreteValueType)
+            {
+                case ConcreteSlotValueType.Vector4:
+                    property = new Vector4ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector3:
+                    property = new Vector3ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector2:
+                    property = new Vector2ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector1:
+                    property = new FloatShaderProperty();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            property.name = matOwner.GetVariableNameForSlot(id);
+            property.generatePropertyBlock = false;
+
+            properties.AddShaderProperty(property);
         }
     }
 }

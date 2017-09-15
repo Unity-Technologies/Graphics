@@ -240,11 +240,13 @@ namespace UnityEngine.MaterialGraph
 
             var shaderBodyVisitor = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertiesVisitor = new PropertyGenerator();
-            var shaderPropertyUsagesVisitor = new ShaderGenerator();
+            var shaderPropertiesVisitor = new PropertyCollector();
 
             var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
 
+            var owner = node.owner as AbstractMaterialGraph;
+            if (owner != null)
+                owner.CollectShaderProperties(shaderPropertiesVisitor, GenerationMode.Preview);
 
             var shaderInputVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
@@ -356,17 +358,17 @@ namespace UnityEngine.MaterialGraph
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(shaderBodyVisitor, generationMode);
 
-                activeNode.GeneratePropertyBlock(shaderPropertiesVisitor, generationMode);
-                activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
+                activeNode.CollectShaderProperties(shaderPropertiesVisitor, generationMode);
             }
+
 
             shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id) + ";", true);
 
             ListPool<INode>.Release(activeNodeList);
 
             template = template.Replace("${ShaderName}", shaderName);
-            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
-            template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
+            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetPropertiesBlock(2));
+            template = template.Replace("${ShaderPropertyUsages}", shaderPropertiesVisitor.GetPropertiesDeclaration(3));
             template = template.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(4));
             template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));
             template = template.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(4));

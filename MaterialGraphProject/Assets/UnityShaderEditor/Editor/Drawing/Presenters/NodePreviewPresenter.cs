@@ -77,7 +77,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (m_PreviewGenerator == null)
                 {
-                    m_PreviewGenerator = new MaterialGraphPreviewGenerator(m_Node is AbstractMasterNode);
+                    m_PreviewGenerator = new MaterialGraphPreviewGenerator(m_Node is MasterNode);
                 }
                 return m_PreviewGenerator;
             }
@@ -111,12 +111,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 if (scope >= ModificationScope.Graph)
                 {
                     var stage = NodeUtils.FindEffectiveShaderStage(m_Node, true);
-                    if (!(m_Node is AbstractSurfaceMasterNode) && stage == ShaderStage.Vertex)
+/*                    if (!(m_Node is AbstractSurfaceMasterNode) && stage == ShaderStage.Vertex)
                     {
 //                        Debug.Log(m_Node.name + ":" + stage);
                         m_Texture = null;
                         return;
-                    }
+                    }*/
                     // TODO: Handle shader regeneration error
                     var status = UpdatePreviewShader();
                 }
@@ -137,13 +137,13 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected virtual string GetPreviewShaderString()
         {
             // TODO: this is a workaround right now.
-            if (m_Node is IMasterNode)
+   /*         if (m_Node is IMasterNode)
             {
                 var localNode = (IMasterNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
 
-                List<PropertyGenerator.TextureInfo> defaultTextures;
+                List<PropertyCollector.TextureInfo> defaultTextures;
                 var resultShader =  ((IMasterNode)m_Node).GetFullShader(GenerationMode.Preview, m_Node.guid + "_preview", out defaultTextures);
 
                 if (((IMasterNode)m_Node).has3DPreview())
@@ -152,7 +152,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
 
                 return resultShader;
-            }
+            }*/
             return ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
         }
 
@@ -244,6 +244,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                     continue;
 
                 node.CollectPreviewMaterialProperties(pList);
+            }
+
+            var graph = target.owner as AbstractMaterialGraph;
+            foreach (var prop in graph.properties)
+            {
+                SetPreviewMaterialProperty(prop.GetPreviewMaterialProperty(), material);
             }
 
             foreach (var prop in pList)

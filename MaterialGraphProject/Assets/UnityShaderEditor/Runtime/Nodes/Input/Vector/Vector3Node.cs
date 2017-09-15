@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Graphing;
 
@@ -39,12 +40,17 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "3 " + GetVariableNameForNode() + ";", true);
+            properties.AddShaderProperty(new Vector3ShaderProperty()
+            {
+                name = GetVariableNameForNode(),
+                generatePropertyBlock = false,
+                value = value
+            });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

@@ -101,7 +101,7 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             var graph = owner as AbstractMaterialGraph;
-            var property = graph.properties.FirstOrDefault(x => x.guid == guid);
+            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
             return property.name;
         }
 
@@ -109,7 +109,7 @@ namespace UnityEngine.MaterialGraph
         {
             var graph = owner as AbstractMaterialGraph;
 
-            if (!graph.properties.Any(x => x.guid == guid))
+            if (!graph.properties.Any(x => x.guid == propertyGuid))
                 return true;
 
             return false;
