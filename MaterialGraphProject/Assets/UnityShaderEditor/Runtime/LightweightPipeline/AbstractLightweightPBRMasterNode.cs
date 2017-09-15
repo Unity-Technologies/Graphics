@@ -231,22 +231,23 @@ namespace UnityEngine.MaterialGraph
                 node.GeneratePropertyUsages(propertyUsages, mode);
             }
 
-            int vertInputIndex = 3;
-            int vertOutputIndex = 4;
+            int vertInputIndex = 2;
+            int vertOutputIndex = 5;
 
             // always add everything because why not. 
             shaderInputVisitor.AddShaderChunk("float4 vertex : POSITION;", true);
             shaderInputVisitor.AddShaderChunk("half3 normal : NORMAL;", true);
+            shaderInputVisitor.AddShaderChunk("half4 tangent : TANGENT;", true);
+            shaderInputVisitor.AddShaderChunk("half4 color : COLOR;", true);
             shaderInputVisitor.AddShaderChunk("half4 texcoord0 : TEXCOORD0;", true);
             shaderInputVisitor.AddShaderChunk("float2 lightmapUV : TEXCOORD1;", true);
-            shaderInputVisitor.AddShaderChunk("half4 tangent : TEXCOORD2;", true);
-            shaderInputVisitor.AddShaderChunk("half4 color : COLOR;", true);
 
             // Need these for lighting
             shaderOutputVisitor.AddShaderChunk("float4 posWS : TEXCOORD0;", true);
             shaderOutputVisitor.AddShaderChunk("half4 viewDir : TEXCOORD1;", true);
             shaderOutputVisitor.AddShaderChunk("half4 fogCoord : TEXCOORD2;", true);
             shaderOutputVisitor.AddShaderChunk("half3 normal : TEXCOORD3;", true);
+            shaderOutputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD4;", true);
             shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION;", true);
             
             bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
@@ -291,12 +292,12 @@ namespace UnityEngine.MaterialGraph
                     if(uvIndex != 0)
                     {
                         shaderInputVisitor.AddShaderChunk(string.Format("half4 texcoord{0} : TEXCOORD{1};", uvIndex, vertInputIndex), true);
+                        shaderOutputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, vertOutputIndex), true);
+                        vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex), true);
                         vertInputIndex++;
+                        vertOutputIndex++;
                     }
-                    shaderOutputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, vertOutputIndex), true);
-                    vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex), true);
                     shaderBody.AddShaderChunk(string.Format("half4 {0} = i.meshUV{1};", channel.GetUVName(), uvIndex), true);
-                    vertOutputIndex++;
                 }
             }
 

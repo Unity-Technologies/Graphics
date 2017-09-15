@@ -66,34 +66,41 @@ half3 SpecularSetup(float2 uv, SurfacePBR s, out half3 specular, out half smooth
 
 half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
 {
-	SurfacePBR s = InitializeSurfacePBR();
-	DefineSurface(i, s);
+	SurfacePBR o = InitializeSurfacePBR();
+	DefineSurface(i, o);
 
-    float2 uv = i.uv01.xy;
-    float2 lightmapUV = i.uv01.zw;
+    //float2 uv = i.mesUV0.xy;
+    float2 lightmapUV = i.meshUV0.zw;
 
     half3 specColor;
     half smoothness;
     half oneMinusReflectivity;
 #ifdef _METALLIC_SETUP
-    half3 diffColor = MetallicSetup(uv, s, specColor, smoothness, oneMinusReflectivity);
+    half3 diffColor = MetallicSetup(i.meshUV0.xy, o, specColor, smoothness, oneMinusReflectivity);
 #else
-    half3 diffColor = SpecularSetup(uv, s, specColor, smoothness, oneMinusReflectivity);
+    half3 diffColor = SpecularSetup(i.meshUV0.xy, o, specColor, smoothness, oneMinusReflectivity);
 #endif
 
-    diffColor = PreMultiplyAlpha(diffColor, s.Alpha, oneMinusReflectivity, /*out*/ s.Alpha);
+    diffColor = PreMultiplyAlpha(diffColor, o.Alpha, oneMinusReflectivity, /*out*/ o.Alpha);
 
     // Roughness is (1.0 - smoothness)²
     half perceptualRoughness = 1.0h - smoothness;
 
-    half3 normal;
-    CalculateNormal(s.Normal, i, normal);
+	half3 normal;
+#if _NORMALMAP
+	half3 tangentToWorld0 = half3(i.tangent.x, i.binormal.x, i.normal.x);
+	half3 tangentToWorld1 = half3(i.tangent.y, i.binormal.y, i.normal.y);
+	half3 tangentToWorld2 = half3(i.tangent.z, i.binormal.z, i.normal.z);
+	normal = normalize(half3(dot(o.Normal, tangentToWorld0), dot(o.Normal, tangentToWorld1), dot(o.Normal, tangentToWorld2)));
+#else
+	normal = normalize(i.normal);
+#endif
 
     // TODO: shader keyword for occlusion
     // TODO: Reflection Probe blend support.
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
 
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, s.Occlusion, perceptualRoughness);
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, o.Occlusion, perceptualRoughness);
 
     // PBS
     // grazingTerm = F90
@@ -104,7 +111,7 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
 
 #ifdef _SHADOWS
 #if _NORMALMAP
-	half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z); // Fix this
+	half3 vertexNormal = half3(tangentToWorld0.z, tangentToWorld1.z, tangentToWorld2.z); // Fix this
 #else
 	half3 vertexNormal = i.normal;
 #endif
@@ -144,9 +151,9 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i) : SV_Target
     }
 #endif
 
-	color += s.Emission;
+	color += o.Emission;
     UNITY_APPLY_FOG(i.fogCoord, color);
-    return OutputColor(color, s.Alpha);
+    return OutputColor(color, o.Alpha);
 }
 
 #endif
