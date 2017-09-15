@@ -55,6 +55,8 @@ ${VertexOutputs}
 
 			UNITY_SETUP_INSTANCE_ID(v);
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+			
+			o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 
 ${VertexShaderBody}
 
@@ -68,19 +70,16 @@ ${VertexShaderBody}
 			o.posWS.xyz = worldPos;
 
 			o.viewDir.xyz = normalize(_WorldSpaceCameraPos - worldPos);
-			half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
 
 		#if _NORMALMAP
-			half sign = v.tangent.w * unity_WorldTransformParams.w;
-			half3 tangent = normalize(UnityObjectToWorldDir(v.tangent));
-			half3 binormal = cross(normal, tangent) * v.tangent.w;
+			//half sign = v.tangent.w * unity_WorldTransformParams.w;
+			//o.tangent = normalize(UnityObjectToWorldDir(v.tangent));
+			//o.binormal = cross(normal, tangent) * v.tangent.w;
 
 			// Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
-			o.tangentToWorld0 = half3(tangent.x, binormal.x, normal.x);
-			o.tangentToWorld1 = half3(tangent.y, binormal.y, normal.y);
-			o.tangentToWorld2 = half3(tangent.z, binormal.z, normal.z);
-		#else
-			o.normal = normal;
+			//o.tangentToWorld0 = half3(tangent.x, binormal.x, normal.x);
+			//o.tangentToWorld1 = half3(tangent.y, binormal.y, normal.y);
+			//o.tangentToWorld2 = half3(tangent.z, binormal.z, normal.z);
 		#endif
 
 			// TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
@@ -98,13 +97,13 @@ ${VertexShaderBody}
 				INITIALIZE_LIGHT(lightInput, lightIndex);
 
 				half3 lightDirection;
-				half atten = ComputeLightAttenuationVertex(lightInput, normal, worldPos, lightDirection);
+				half atten = ComputeLightAttenuationVertex(lightInput, o.normal, worldPos, lightDirection);
 				o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
 			}
 		#endif
 
 		#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
-			o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+			o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(o.normal, 1)));
 		#endif
 
 			UNITY_TRANSFER_FOG(o, o.hpos);
@@ -181,6 +180,8 @@ ${PixelShaderBody}
 		{
 			SurfacePBR o = InitializeSurfacePBR();
 			DefineSurface(i, o);
+			
+			o.Albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(o.Albedo);
 
 			//float2 uv = i.uv01.xy;
 			float2 lightmapUV = float2(0,0);//i.uv01.zw;
@@ -201,7 +202,14 @@ ${PixelShaderBody}
 
 			// TODO - Actually handle normal
 			half3 normal;
-			CalculateNormal(i.normal, normal);
+		#if _NORMALMAP
+			half3 tangentToWorld0 = half3(i.tangent.x, i.binormal.x, i.normal.x);
+			half3 tangentToWorld1 = half3(i.tangent.y, i.binormal.y, i.normal.y);
+			half3 tangentToWorld2 = half3(i.tangent.z, i.binormal.z, i.normal.z);
+			normal = normalize(half3(dot(o.Normal, tangentToWorld0), dot(o.Normal, tangentToWorld1), dot(o.Normal, tangentToWorld2)));
+		#else
+			normal = normalize(i.normal);
+		#endif
 
 			// TODO: shader keyword for occlusion
 			// TODO: Reflection Probe blend support.
