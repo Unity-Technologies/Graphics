@@ -171,9 +171,12 @@ namespace UnityEngine.MaterialGraph
         public void GetDefines(ShaderGenerator visitor)
         {
             if(GetWorkflowName() == "Metallic")
-                visitor.AddShaderChunk("#define _METALLIC_SETUP 1", false);
+                visitor.AddShaderChunk("#define _METALLIC_SETUP 1", true);
             else
                 visitor.AddShaderChunk("", false);
+            visitor.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
+            //visitor.AddShaderChunk("#define _SOFT_SHADOWS", true);
+            visitor.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);
         }
 
         public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)

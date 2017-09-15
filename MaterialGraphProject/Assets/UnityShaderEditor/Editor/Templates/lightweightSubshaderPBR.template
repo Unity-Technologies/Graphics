@@ -31,8 +31,8 @@ SubShader
 		#pragma fragment LightweightFragmentPBR
 		#pragma glsl
 		#pragma debug
-
-		${Defines}
+		
+${Defines}
 ${ShaderPropertyUsages}
 ${ShaderFunctions}
 
@@ -188,11 +188,11 @@ ${PixelShaderBody}
 			half3 specColor;
 			half smoothness;
 			half oneMinusReflectivity;
-		//#ifdef _METALLIC_SETUP
-			//half3 diffColor = MetallicSetup(o, specColor, smoothness, oneMinusReflectivity);
-		//#else
+		#ifdef _METALLIC_SETUP
+			half3 diffColor = MetallicSetup(o, specColor, smoothness, oneMinusReflectivity);
+		#else
 			half3 diffColor = SpecularSetup(o, specColor, smoothness, oneMinusReflectivity);
-		//#endif
+		#endif
 
 			diffColor = PreMultiplyAlpha(diffColor, o.Alpha, oneMinusReflectivity, /*out*/ o.Alpha);
 
@@ -221,18 +221,18 @@ ${PixelShaderBody}
 			INITIALIZE_MAIN_LIGHT(light);
 			half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
-		//#ifdef _SHADOWS
+		#ifdef _SHADOWS
 			lightAtten *= ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
-		//#endif
+		#endif
 
 			half NdotL = saturate(dot(normal, lightDirection));
 			half3 radiance = light.color * (lightAtten * NdotL);
 			color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
 		#else
 
-		//#ifdef _SHADOWS
+		#ifdef _SHADOWS
 			half shadowAttenuation = ComputeShadowAttenuation(i.normal, i.posWS, _ShadowLightDirection.xyz);
-		//#endif
+		#endif
 			int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
 			for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
 			{
@@ -240,9 +240,9 @@ ${PixelShaderBody}
 				int lightIndex = unity_4LightIndices0[lightIter];
 				INITIALIZE_LIGHT(light, lightIndex);
 				half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-		//#ifdef _SHADOWS
+		#ifdef _SHADOWS
 				lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
-		//#endif
+		#endif
 				half NdotL = saturate(dot(normal, lightDirection));
 				half3 radiance = light.color * (lightAtten * NdotL);
 
