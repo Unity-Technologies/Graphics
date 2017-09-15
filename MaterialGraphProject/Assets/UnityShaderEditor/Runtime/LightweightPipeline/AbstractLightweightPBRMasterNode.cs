@@ -231,6 +231,7 @@ namespace UnityEngine.MaterialGraph
                 node.GeneratePropertyUsages(propertyUsages, mode);
             }
 
+            int vertInputIndex = 3;
             int vertOutputIndex = 4;
 
             // always add everything because why not. 
