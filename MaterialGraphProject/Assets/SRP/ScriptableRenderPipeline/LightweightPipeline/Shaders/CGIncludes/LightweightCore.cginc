@@ -53,7 +53,7 @@ VertOutput Vertex(VertInput v)
 
 	o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 
-	o.meshUV0.xy = v.texcoord0.xy;// TRANSFORM_TEX(v.texcoord0, _MainTex);
+	o.meshUV0.xy = v.texcoord0.xy;
 #ifdef LIGHTMAP_ON
 	o.meshUV0.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 #endif

@@ -37,7 +37,7 @@
 			void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit s)
 			{
 				// Albedo
-				float4 c = tex2D(_MainTex, i.uv);
+				float4 c = tex2D(_MainTex, i.meshUV0);
 				s.Color = c.rgb * _Color.rgb;
 				// Alpha
 				s.Alpha = c.a * _Color.a;

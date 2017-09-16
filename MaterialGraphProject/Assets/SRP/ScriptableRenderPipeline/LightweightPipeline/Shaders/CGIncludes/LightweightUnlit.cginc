@@ -4,15 +4,21 @@
 struct appdata_unlit
 {
 	float4 vertex : POSITION;
-	float2 uv : TEXCOORD0;
+	float4 texcoord0 : TEXCOORD0;
+#ifdef VERTINPUT_CUSTOM
+	VERTINPUT_CUSTOM;
+#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct LightweightVertexOutputUnlit
 {
-	float2 uv : TEXCOORD0;
+	float4 meshUV0 : TEXCOORD0;
 	UNITY_FOG_COORDS(1)
-		float4 vertex : SV_POSITION;
+	float4 vertex : SV_POSITION;
+#ifdef VERTOUTPUT_CUSTOM
+	VERTOUTPUT_CUSTOM
+#endif
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -44,8 +50,13 @@ LightweightVertexOutputUnlit LightweightVertexUnlit(appdata_unlit v)
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#ifdef VERTEX_CUSTOM
+	VERTEX_CUSTOM;
+#endif
+
     o.vertex = UnityObjectToClipPos(v.vertex);
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+	o.meshUV0 = float4(0, 0, 0, 0);
+	o.meshUV0.xy = v.texcoord0.xy;// TRANSFORM_TEX(v.texcoord0, _MainTex);
     UNITY_TRANSFER_FOG(o,o.vertex);
     return o;
 }
