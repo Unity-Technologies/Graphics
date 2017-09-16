@@ -1,3 +1,8 @@
+#ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
+#define LIGHTWEIGHT_SHADOWS_INCLUDED
+
+#include "LightweightInput.cginc"
+
 #define MAX_SHADOW_CASCADES 4
 
 sampler2D_float _ShadowMap;
@@ -50,18 +55,12 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(LightweightVertexOutput i, half3 shadowDir)
+inline half ComputeShadowAttenuation(half3 vertexNormal, half4 posWS, half3 shadowDir)
 {
-#if _NORMALMAP
-    half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
-#else
-    half3 vertexNormal = i.normal;
-#endif
-
     half NdotL = dot(vertexNormal, shadowDir);
     half bias = saturate(1.0 - NdotL) * _ShadowData.z;
 
-    float3 posWorldOffsetNormal = i.posWS + vertexNormal * bias;
+    float3 posWorldOffsetNormal = posWS + vertexNormal * bias;
 
     int cascadeIndex = 0;
 #ifdef _SHADOW_CASCADES
@@ -79,3 +78,5 @@ inline half ComputeShadowAttenuation(LightweightVertexOutput i, half3 shadowDir)
     return ShadowAttenuation(shadowCoord.xyz);
 #endif
 }
+
+#endif
