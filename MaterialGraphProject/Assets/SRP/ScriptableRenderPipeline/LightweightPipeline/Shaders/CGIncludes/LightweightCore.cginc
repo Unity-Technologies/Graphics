@@ -19,7 +19,7 @@
 #endif
 
 #if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-#define LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#define _SPECULARHIGHLIGHTS_ON
 #endif
 
 #define _DieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
