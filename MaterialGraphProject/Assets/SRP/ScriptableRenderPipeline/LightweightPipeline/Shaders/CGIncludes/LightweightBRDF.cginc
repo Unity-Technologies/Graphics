@@ -59,7 +59,7 @@ half3 LightweightBDRF(half3 diffColor, half3 specColor, half oneMinusReflectivit
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
 
-    return diffColor + specularTerm * specColor;
+	return diffColor + specularTerm * specColor;
 #else
     return diffColor;
 #endif

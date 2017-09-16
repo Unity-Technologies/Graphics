@@ -1,6 +1,8 @@
 #ifndef LIGHTWEIGHT_INPUT_INCLUDED
 #define LIGHTWEIGHT_INPUT_INCLUDED
 
+#include "UnityCG.cginc"
+
 #define MAX_VISIBLE_LIGHTS 16
 
 // Main light initialized without indexing
@@ -27,9 +29,14 @@
 //#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(sRGB) sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h)
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linRGB) max(1.055h * pow(max(linRGB, 0.h), 0.416666667h) - 0.055h, 0.h)
+
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR4(sRGBA) float4(sRGBA.rgb * (sRGBA.rgb * (sRGBA.rgb * 0.305306011h + 0.682171111h) + 0.012522878h), sRGBA.a)
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA4(linRGBA) float4(max(1.055h * pow(max(linRGBA.rgb, 0.h), 0.416666667h) - 0.055h, 0.h), linRGBA.a)
 #else
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
+#define LIGHTWEIGHT_GAMMA_TO_LINEAR4(color) color
+#define LIGHTWEIGHT_LINEAR_TO_GAMMA4(color) color
 #endif
 
 
@@ -70,91 +77,31 @@ half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
 
-struct LightweightVertexInput
+struct VertInput
 {
-    float4 vertex : POSITION;
+	float4 vertex : POSITION;
     float3 normal : NORMAL;
     float4 tangent : TANGENT;
-    float2 texcoord : TEXCOORD0;
+    float4 texcoord0 : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
+#ifdef VERTINPUT_CUSTOM
+	VERTINPUT_CUSTOM;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct LightweightVertexOutput
+struct VertOutput
 {
-    float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-    float4 posWS : TEXCOORD1;
-#if _NORMALMAP
-    half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix
-    half3 tangentToWorld1 : TEXCOORD3; // tangentToWorld matrix
-    half3 tangentToWorld2 : TEXCOORD4; // tangentToWorld matrix
-#else
-    half3 normal : TEXCOORD2;
+	float4 posWS : TEXCOORD0;
+	float4 viewDir : TEXCOORD1; // xyz: viewDir
+	half4 fogCoord : TEXCOORD2; // x: fogCoord, yzw: vertexColor
+	half3 normal : TEXCOORD3;
+	half4 meshUV0 : TEXCOORD4; // uv01.xy: uv0, uv01.zw: uv1
+#ifdef VERTOUTPUT_CUSTOM
+	VERTOUTPUT_CUSTOM
 #endif
-    half4 viewDir : TEXCOORD5; // xyz: viewDir
-    half4 fogCoord : TEXCOORD6; // x: fogCoord, yzw: vertexColor
-    float4 hpos : SV_POSITION;
+	float4 hpos : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
-
-inline void NormalMap(LightweightVertexOutput i, out half3 normal)
-{
-#if _NORMALMAP
-    half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
-
-    // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
-    // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
-    // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    normal = normalize(half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2)));
-#else
-    normal = normalize(i.normal);
-#endif
-}
-
-inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
-{
-#ifdef _SPECGLOSSMAP
-    specularGloss = tex2D(_SpecGlossMap, uv);
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
-#endif
-#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, uv).rgb) * _SpecColor.rgb;
-    specularGloss.a = alpha;
-#else
-    specularGloss = _SpecColor;
-#endif
-}
-
-half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
-{
-    half4 specGloss;
-
-#ifdef _METALLICSPECGLOSSMAP
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.rgb = tex2D(_MetallicSpecGlossMap, uv).rgb;
-    specGloss.a = albedoAlpha;
-#else
-    specGloss = tex2D(_MetallicSpecGlossMap, uv).rgba;
-#endif
-    specGloss.a *= _GlossMapScale;
-
-#else // _METALLICSPECGLOSSMAP
-
-#if _METALLIC_SETUP
-    specGloss.r = _Metallic;
-#else
-    specGloss.rgb = _SpecColor.rgb;
-#endif
-
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a = _Glossiness;
-#endif
-#endif
-
-    return specGloss;
-}
 
 #endif
