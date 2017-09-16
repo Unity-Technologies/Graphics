@@ -8,26 +8,16 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    [Title("Master/Lightweight/Fast Blinn")]
-    public class LightweightFastBlinnMasterNode : AbstractMasterNode
+    [Title("Master/Lightweight/Unlit")]
+    public class LightweightUnlitMasterNode : AbstractMasterNode
     {
-        public const string AlbedoSlotName = "Diffuse";
-        public const string SpecularSlotName = "Specular";
-        public const string ShininessSlotName = "Shininess";
-        public const string GlossinessSlotName = "Glossiness";
-        public const string NormalSlotName = "Normal";
-        public const string EmissionSlotName = "Emission";
+        public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
         public const string VertexOffsetName = "VertexPosition";
 
-        public const int AlbedoSlotId = 0;
-        public const int SpecularSlotId = 1;
-        public const int ShininessSlotId = 3;
-        public const int GlossinessSlotId = 4;
-        public const int NormalSlotId = 5;
-        public const int EmissionSlotId = 6;
-        public const int AlphaSlotId = 7;
-        public const int VertexOffsetId = 8;
+        public const int ColorSlotId = 0;
+        public const int AlphaSlotId = 1;
+        public const int VertexOffsetId = 2;
 
         [SerializeField]
         private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
@@ -37,21 +27,16 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialOptions; }
         }
 
-        public LightweightFastBlinnMasterNode()
+        public LightweightUnlitMasterNode()
         {
-            name = "LightweightFastBlinnMasterNode";
+            name = "LightweightUnlitMasterNode";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Vertex));
-            AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(ShininessSlotId, ShininessSlotName, ShininessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(GlossinessSlotId, GlossinessSlotName, GlossinessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
@@ -59,12 +44,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(
                 new[]
             {
-                AlbedoSlotId,
-                NormalSlotId,
-                EmissionSlotId,
-                SpecularSlotId,
-                ShininessSlotId,
-                GlossinessSlotId,
+                ColorSlotId,
                 AlphaSlotId,
                 VertexOffsetId
             });
@@ -76,12 +56,7 @@ namespace UnityEngine.MaterialGraph
             {
                 return new[]
                 {
-                    AlbedoSlotId,
-                    NormalSlotId,
-                    EmissionSlotId,
-                    SpecularSlotId,
-                    ShininessSlotId,
-                    GlossinessSlotId,
+                    ColorSlotId,
                     AlphaSlotId,
                 };
             }
@@ -156,7 +131,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath("lightweightSubshaderFastBlinn.template");
+            var templateLocation = ShaderGenerator.GetTemplatePath("lightweightSubshaderUnlit.template");
 
             if (!File.Exists(templateLocation))
                 return string.Empty;
@@ -227,8 +202,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GetDefines(ShaderGenerator visitor)
         {
-            visitor.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
-            visitor.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);
+            
         }
 
         public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
@@ -306,13 +280,6 @@ namespace UnityEngine.MaterialGraph
                         var remapper = fromNode as INodeGroupRemapper;
                         if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                             continue;
-
-                        if (slot.id == NormalSlotId)
-                        {
-                            requiresBitangent = true;
-                            requiresTangent = true;
-                            definesVisitor.AddShaderChunk("#define _NORMALMAP 1", true);
-                        }
                     }
                 }
             }
@@ -435,9 +402,6 @@ namespace UnityEngine.MaterialGraph
                             continue;
 
                         shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-
-                        if (slot.id == NormalSlotId)
-                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
 
                         if (slot.id == AlphaSlotId)
                             propertyUsages.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON", true);

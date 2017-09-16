@@ -96,7 +96,7 @@ struct VertOutput
 	float4 viewDir : TEXCOORD1; // xyz: viewDir
 	half4 fogCoord : TEXCOORD2; // x: fogCoord, yzw: vertexColor
 	half3 normal : TEXCOORD3;
-	half4 meshUV0 : TEXCOORD4; // uv01.xy: uv0, uv01.zw: uv1 // uv
+	half4 meshUV0 : TEXCOORD4; // uv01.xy: uv0, uv01.zw: uv1
 #ifdef VERTOUTPUT_CUSTOM
 	VERTOUTPUT_CUSTOM
 #endif

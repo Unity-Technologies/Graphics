@@ -405,9 +405,6 @@ namespace UnityEngine.MaterialGraph
 
                         shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
 
-                        if (slot.id == AlbedoSlotId)
-                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
-
                         if (slot.id == NormalSlotId)
                             shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
 
