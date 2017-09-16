@@ -10,21 +10,19 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     internal class MaterialGraphPreviewGenerator : IDisposable
     {
-        private bool m_AllowSRP;
         private readonly Scene m_Scene;
         static Mesh s_Quad;
         private Camera m_Camera;
-        private RenderTexture m_RenderTexture;
         private Light Light0 { get; set; }
         private Light Light1 { get; set; }
 
         private Material m_CheckerboardMaterial;
 
-        private static readonly Mesh[] s_Meshes = {null, null, null, null, null};
+        private static readonly Mesh[] s_Meshes = { null, null, null, null, null };
         private static Mesh s_PlaneMesh;
-        private static readonly GUIContent[] s_MeshIcons = {null, null, null, null, null};
-        private static readonly GUIContent[] s_LightIcons = {null, null};
-        private static readonly GUIContent[] s_TimeIcons = {null, null};
+        private static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
+        private static readonly GUIContent[] s_LightIcons = { null, null };
+        private static readonly GUIContent[] s_TimeIcons = { null, null };
 
         protected static GameObject CreateLight()
         {
@@ -36,9 +34,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             return lightGO;
         }
 
-        public MaterialGraphPreviewGenerator(bool allowSRP)
+        public MaterialGraphPreviewGenerator()
         {
-            m_AllowSRP = allowSRP;
             m_Scene = EditorSceneManager.NewPreviewScene();
             var camGO = EditorUtility.CreateGameObjectWithHideFlags("Preview Scene Camera", HideFlags.HideAndDontSave, typeof(Camera));
             SceneManager.MoveGameObjectToScene(camGO, m_Scene);
@@ -69,6 +66,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var l1 = CreateLight();
             SceneManager.MoveGameObjectToScene(l1, m_Scene);
+
             //previewScene.AddGameObject(l1);
             Light1 = l1.GetComponent<Light>();
 
@@ -81,6 +79,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (s_Meshes[0] == null)
             {
                 var handleGo = (GameObject)EditorGUIUtility.LoadRequired("Previews/PreviewMaterials.fbx");
+
                 // @TODO: temp workaround to make it not render in the scene
                 handleGo.SetActive(false);
                 foreach (Transform t in handleGo.transform)
@@ -124,11 +123,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size)
-        {
-            return DoRenderPreview(mat, mode, size, Time.realtimeSinceStartup);
-        }
-
         public static Mesh quad
         {
             get
@@ -139,9 +133,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var vertices = new[]
                 {
                     new Vector3(-1f, -1f, 0f),
-                    new Vector3(1f,  1f, 0f),
+                    new Vector3(1f, 1f, 0f),
                     new Vector3(1f, -1f, 0f),
-                    new Vector3(-1f,  1f, 0f)
+                    new Vector3(-1f, 1f, 0f)
                 };
 
                 var uvs = new[]
@@ -167,39 +161,20 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size, float time)
+        public void DoRenderPreview(RenderTexture renderTexture, Material mat, PreviewMode mode, bool allowSRP, float time, MaterialPropertyBlock properties = null)
         {
             if (mat == null || mat.shader == null)
-                return Texture2D.blackTexture;
+                return;
 
-            int rtWidth = (int)(size.width);
-            int rtHeight = (int)(size.height);
-
-            if (!m_RenderTexture || m_RenderTexture.width != rtWidth || m_RenderTexture.height != rtHeight)
-            {
-                if (m_RenderTexture)
-                {
-                    UnityEngine.Object.DestroyImmediate(m_RenderTexture);
-                    m_RenderTexture = null;
-                }
-
-                // Do not use GetTemporary to manage render textures. Temporary RTs are only
-                // garbage collected each N frames, and in the editor we might be wildly resizing
-                // the inspector, thus using up tons of memory.
-                RenderTextureFormat format = m_Camera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                m_RenderTexture = new RenderTexture(rtWidth, rtHeight, 16, format, RenderTextureReadWrite.Default);
-                m_RenderTexture.hideFlags = HideFlags.HideAndDontSave;
-
-                m_Camera.targetTexture = m_RenderTexture;
-            }
+            m_Camera.targetTexture = renderTexture;
 
             Unsupported.SetOverrideRenderSettings(m_Scene);
 
-            RenderTexture.active = m_RenderTexture;
+            RenderTexture.active = renderTexture;
             GL.Clear(true, true, Color.black);
             m_CheckerboardMaterial.SetFloat("_X", 32);
             m_CheckerboardMaterial.SetFloat("_Y", 32);
-            Graphics.Blit(Texture2D.whiteTexture, m_RenderTexture, m_CheckerboardMaterial);
+            Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
             if (mode == PreviewMode.Preview3D)
             {
                 m_Camera.transform.position = -Vector3.forward * 5;
@@ -214,7 +189,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographic = true;
             }
 
-            m_Camera.targetTexture = m_RenderTexture;
+            m_Camera.targetTexture = renderTexture;
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_Camera, time);
             Light0.enabled = true;
@@ -224,16 +199,21 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.intensity = 1.0f;
             m_Camera.clearFlags = CameraClearFlags.Depth;
 
-            DrawMesh(
+            Graphics.DrawMesh(
                 mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
-                Vector3.zero,
-                Quaternion.identity,
+                Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
                 mat,
-                0);
-
+                1,
+                m_Camera,
+                0,
+                properties,
+                ShadowCastingMode.Off,
+                false,
+                null,
+                false);
 
             var oldAllowPipes = Unsupported.useScriptableRenderPipeline;
-            Unsupported.useScriptableRenderPipeline = m_AllowSRP;
+            Unsupported.useScriptableRenderPipeline = allowSRP;
             m_Camera.Render();
             Unsupported.useScriptableRenderPipeline = oldAllowPipes;
 
@@ -241,17 +221,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             Light0.enabled = false;
             Light1.enabled = false;
-            return m_RenderTexture;
         }
 
         public void Dispose()
         {
-            if (m_RenderTexture == null)
-            {
-                UnityEngine.Object.DestroyImmediate(m_RenderTexture);
-                m_RenderTexture = null;
-            }
-
             if (Light0 == null)
             {
                 UnityEngine.Object.DestroyImmediate(Light0.gameObject);
@@ -277,16 +250,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             EditorSceneManager.ClosePreviewScene(m_Scene);
-        }
-
-        private void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex)
-        {
-            DrawMesh(mesh, pos, rot, mat, subMeshIndex, null, null, false);
-        }
-
-        private void DrawMesh(Mesh mesh, Vector3 pos, Quaternion rot, Material mat, int subMeshIndex, MaterialPropertyBlock customProperties, Transform probeAnchor, bool useLightProbe)
-        {
-            Graphics.DrawMesh(mesh, Matrix4x4.TRS(pos, rot, Vector3.one), mat, 1, m_Camera, subMeshIndex, customProperties, ShadowCastingMode.Off, false, probeAnchor, useLightProbe);
         }
     }
 }

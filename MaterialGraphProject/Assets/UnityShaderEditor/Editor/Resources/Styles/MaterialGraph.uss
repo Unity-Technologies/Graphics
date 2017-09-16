@@ -8,49 +8,45 @@ GraphEditorView #TitleBar {
 
 }
 
-GraphEditorView #content {
+GraphEditorView > #content {
     flex: 1;
     flex-direction: row;
 }
 
-GraphEditorView #content #GraphView {
+GraphEditorView > #content > #GraphView {
     flex: 1;
 }
 
-GraphEditorView #content #inspector {
+GraphEditorView > #content > #inspector {
     width: 400;
 }
 
-.MaterialNode #preview Image {
+MaterialNodeView > .mainContainer > #left > #preview > Image {
 	height: 200;
 	width: 200;
 }
 
-.MaterialNode #preview.inactive,
-.MaterialNode #preview.hidden {
-	width: 0;
-	height: 0;
-}
-
 GridBackground {
-	grid-background-color:rgb(20, 21, 21);
+	grid-background-color: rgb(20, 21, 21);
 	line-color: rgb(20, 21, 21);
 	thick-line-color: rgb(20, 21, 21);
-	spacing:75.0;
-	thick-lines:10;
+	spacing: 75.0;
+	thick-lines: 10;
 }
 
 GraphInspectorView {
     background-color: rgb(56, 56, 56);
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-GraphInspectorView > #header {
+GraphInspectorView > #top > #header {
     background-color: rgb(64, 64, 64);
     border-color: rgb(79, 79, 79);
     border-bottom-width: 1;
 }
 
-GraphInspectorView > #header > #title {
+GraphInspectorView > #top > #header > #title {
     text-color: rgb(180, 180, 180);
     font-style: bold;
     padding-left: 16;
@@ -59,12 +55,17 @@ GraphInspectorView > #header > #title {
     padding-bottom: 10;
 }
 
-GraphInspectorView > #contentContainer > #selectionCount {
+GraphInspectorView > #top > #content > #selectionCount {
     text-color: rgb(180, 180, 180);
     padding-left: 16;
     padding-right: 16;
     padding-top: 10;
     padding-bottom: 10;
+}
+
+GraphInspectorView > #bottom > #preview {
+    height: 400;
+    background-color: rgb(79, 79, 79);
 }
 
 .nodeEditor {
