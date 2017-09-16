@@ -115,6 +115,8 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 				s.Specular = _SpecColor.rgb;
 				s.Glossiness = _SpecColor.a;
 #endif
+				// Shininess
+				s.Shininess = _Shininess;
 				// Normal
 #if _NORMALMAP
 				s.Normal = UnpackNormal(tex2D(_BumpMap, i.meshUV0.xy));
@@ -166,7 +168,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
             #pragma fragment depthFrag
             ENDCG
         }
-
+		/*
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
@@ -185,22 +187,22 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 			
 			#include "UnityCG.cginc"
 			#include "CGIncludes/LightweightPass.cginc"
-            #pragma vertex vert_meta
+            #pragma vertex Vert_Meta
             #pragma fragment frag_meta_ld
 
-			void DefineSurfaceMeta(v2f_meta i, inout SurfaceFastBlinn s)
+			void DefineSurfaceMeta(VertOutput_Meta i, inout SurfaceFastBlinn s)
 			{
 				// Albedo
-				float4 c = tex2D(_MainTex, i.uv.xy);
+				float4 c = tex2D(_MainTex, i.meshUV0.xy);
 				s.Diffuse = c.rgb;
 				// Specular
 #ifdef _SPECGLOSSMAP
-				half4 specularMap = tex2D(_SpecGlossMap, i.uv.xy);
+				half4 specularMap = tex2D(_SpecGlossMap, i.meshUV0.xy);
 #if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
 				s.Specular = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
 #endif
 #elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-				s.Specular.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, i.uv.xy).rgb) * _SpecColor.rgb;
+				s.Specular.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, i.meshUV0.xy).rgb) * _SpecColor.rgb;
 				s.Glossiness = s.Alpha;
 #else
 				s.Specular = _SpecColor.rgb;
@@ -216,6 +218,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 
             ENDCG
         }
+		*/
     }
     Fallback "Standard (Specular setup)"
     CustomEditor "LightweightPipelineMaterialEditor"

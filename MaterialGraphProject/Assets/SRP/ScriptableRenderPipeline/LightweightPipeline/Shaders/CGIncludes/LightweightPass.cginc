@@ -33,9 +33,23 @@ half4 depthFrag() : SV_TARGET
 #include "UnityStandardMeta.cginc"
 #include "LightweightFastBlinn.cginc"
 
-void DefineSurfaceMeta(v2f_meta i, inout SurfaceFastBlinn s);
+struct VertOutput_Meta
+{
+	float4 meshUV0       : TEXCOORD0;
+	float4 pos      : SV_POSITION;
+};
 
-fixed4 frag_meta_ld(v2f_meta i) : SV_Target
+VertOutput_Meta Vert_Meta(VertexInput v)
+{
+	VertOutput_Meta o;
+	o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+	o.meshUV0 = TexCoords(v);
+	return o;
+}
+
+void DefineSurfaceMeta(VertOutput_Meta i, inout SurfaceFastBlinn s);
+
+fixed4 frag_meta_ld(VertOutput_Meta i) : SV_Target
 {
     UnityMetaInput o;
     UNITY_INITIALIZE_OUTPUT(UnityMetaInput, o);

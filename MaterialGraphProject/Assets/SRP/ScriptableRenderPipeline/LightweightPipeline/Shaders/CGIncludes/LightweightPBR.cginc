@@ -53,11 +53,6 @@ half3 MetallicSetup(float2 uv, SurfacePBR s, out half3 specular, out half smooth
 half3 SpecularSetup(float2 uv, SurfacePBR s, out half3 specular, out half smoothness, out half oneMinusReflectivity)
 {
 	half4 specGloss = float4(s.Specular, s.Smoothness);
-
-/*#if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
-	specGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specGloss.rgb);
-#endif*/
-
 	specular = specGloss.rgb;
 	smoothness = specGloss.a;
 	oneMinusReflectivity = 1.0h - SpecularReflectivity(specular);

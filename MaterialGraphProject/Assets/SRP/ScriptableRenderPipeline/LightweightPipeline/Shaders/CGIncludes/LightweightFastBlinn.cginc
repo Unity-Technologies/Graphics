@@ -8,6 +8,7 @@ struct SurfaceFastBlinn
 {
 	float3 Diffuse;     // diffuse color
 	float3 Specular;    // specular color
+	float Shininess;
 	float3 Normal;      // tangent space normal, if written
 	half3 Emission;
 	half Glossiness;    // 0=rough, 1=smooth
@@ -19,6 +20,7 @@ SurfaceFastBlinn InitializeSurfaceFastBlinn()
 	SurfaceFastBlinn s;
 	s.Diffuse = float3(0.5, 0.5, 0.5);
 	s.Specular = float3(0, 0, 0);
+	s.Shininess = 0.5;
 	s.Normal = float3(.5, .5, 1);
 	s.Emission = 0;
 	s.Glossiness = 0;
@@ -32,6 +34,8 @@ half4 LightweightFragmentFastBlinn(VertOutput i) : SV_Target
 {
 	SurfaceFastBlinn o = InitializeSurfaceFastBlinn();
 	DefineSurface(i, o);
+
+	_Shininess = o.Shininess;
 
     // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
     // due overdraw performance impact.
@@ -72,7 +76,7 @@ half4 LightweightFragmentFastBlinn(VertOutput i) : SV_Target
     lightAtten *= ComputeShadowAttenuation(vertexNormal, i.posWS, _ShadowLightDirection.xyz);
 #endif
 				
-#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#ifdef _SPECULARHIGHLIGHTS_ON
     half3 color = LightingBlinnPhong(o.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
 #else
     half3 color = LightingLambert(o.Diffuse, lightDirection, normal, lightAtten) * lightInput.color;
@@ -95,7 +99,7 @@ half4 LightweightFragmentFastBlinn(VertOutput i) : SV_Target
         lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
 #endif
 
-#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#ifdef _SPECULARHIGHLIGHTS_ON
         color += LightingBlinnPhong(o.Diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
 #else
         color += LightingLambert(o.Diffuse, lightDirection, normal, lightAtten) * lightData.color;
