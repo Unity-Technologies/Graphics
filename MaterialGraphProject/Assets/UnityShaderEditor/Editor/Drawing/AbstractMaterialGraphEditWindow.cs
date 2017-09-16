@@ -307,16 +307,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UpdateShaderGraphOnDisk(string path)
         {
-    /*        var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
+            var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
             if (graph == null)
                 return;
 
-            var masterNode = graph.masterNode;
-            if (masterNode == null)
-                return;
-
             List<PropertyCollector.TextureInfo> configuredTextures;
-            masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
+            graph.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)
@@ -324,8 +320,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var textureNames = new List<string>();
             var textures = new List<Texture>();
-            foreach (var textureInfo in configuredTextures.Where(
-                         x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
@@ -337,8 +332,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             textureNames.Clear();
             textures.Clear();
-            foreach (var textureInfo in configuredTextures.Where(
-                         x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+            foreach (var textureInfo in configuredTextures.Where(x => !x.modifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
@@ -349,7 +343,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
             File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             shaderImporter.SaveAndReimport();
-            AssetDatabase.ImportAsset(path);*/
+            AssetDatabase.ImportAsset(path);
         }
 
         public override void ToggleRequiresTime()
