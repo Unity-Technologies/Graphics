@@ -53,7 +53,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             set
             {
                 if (m_GraphEditorView != null)
+                {
+                    if (m_GraphEditorView.presenter != null)
+                        m_GraphEditorView.presenter.Dispose();
                     m_GraphEditorView.Dispose();
+                }
                 m_GraphEditorView = value;
             }
         }
@@ -76,7 +80,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (graphEditorView.presenter == null)
                     CreatePresenter();
-                graphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
+                if (graphEditorView.presenter != null)
+                    graphEditorView.presenter.UpdatePreviews();
             }
         }
 
@@ -89,6 +94,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnDisable()
         {
             rootVisualContainer.Clear();
+            graphEditorView = null;
         }
 
         void OnDestroy()
@@ -97,7 +103,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 UpdateAsset();
             }
-            graphEditorView.Dispose();
+            graphEditorView = null;
         }
 
         void OnGUI()
@@ -371,6 +377,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void CreatePresenter()
         {
+            if (graphEditorView.presenter != null)
+                graphEditorView.presenter.Dispose();
             var presenter = CreateInstance<GraphEditorPresenter>();
             presenter.Initialize(inMemoryAsset, this, selected.name);
             graphEditorView.presenter = presenter;

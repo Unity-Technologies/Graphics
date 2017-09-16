@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
@@ -22,20 +22,32 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
+        Image m_Preview;
 
         public GraphInspectorView()
         {
             AddStyleSheetPath("Styles/MaterialGraph");
 
-            var headerContainer = new VisualElement { name = "header" };
+            var topContainer = new VisualElement { name = "top" };
             {
-                m_Title = new VisualElement() { name = "title" };
-                headerContainer.Add(m_Title);
-            }
-            Add(headerContainer);
+                var headerContainer = new VisualElement { name = "header" };
+                {
+                    m_Title = new VisualElement() { name = "title" };
+                    headerContainer.Add(m_Title);
+                }
+                topContainer.Add(headerContainer);
 
-            m_ContentContainer = new VisualElement { name = "contentContainer" };
-            Add(m_ContentContainer);
+                m_ContentContainer = new VisualElement { name = "content" };
+                topContainer.Add(m_ContentContainer);
+            }
+            Add(topContainer);
+
+            var bottomContainer = new VisualElement { name = "bottom" };
+            {
+                m_Preview = new Image { name = "preview", image = Texture2D.blackTexture};
+                bottomContainer.Add(m_Preview);
+            }
+            Add(bottomContainer);
 
             // Nodes missing custom editors:
             // - PropertyNode
@@ -79,6 +91,11 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                         m_ContentContainer.Add(view);
                     }
                 }
+            }
+
+            if ((changeType & GraphInspectorPresenter.ChangeType.PreviewTexture) != 0)
+            {
+                m_Preview.image = presenter.previewTexture ?? Texture2D.blackTexture;
             }
         }
 

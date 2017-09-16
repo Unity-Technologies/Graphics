@@ -10,7 +10,7 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class MaterialNodePresenter : NodePresenter
+    public class MaterialNodePresenter : NodePresenter, IDisposable
     {
         public INode node { get; private set; }
 
@@ -23,15 +23,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
 
         [SerializeField]
-        NodePreviewPresenter m_Preview;
-
-        public NodePreviewPresenter preview
-        {
-            get { return m_Preview; }
-        }
-
-        [SerializeField]
         int m_Version;
+
+        PreviewHandle m_PreviewHandle;
+
+        public Texture previewTexture { get; private set; }
 
         public override bool expanded
         {
@@ -46,14 +42,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     node.drawState = ds;
                 }
             }
-        }
-
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            var towatch = new List<UnityEngine.Object>();
-            towatch.AddRange(base.GetObjectsToWatch());
-            towatch.Add(preview);
-            return towatch.ToArray();
         }
 
         public virtual void OnModified(ModificationScope scope)
@@ -74,10 +62,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 inputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
                 outputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
             }
-
-            // TODO: Propagate callback rather than setting property
-            if (preview != null)
-                preview.modificationScope = scope;
         }
 
         public override void CommitChanges()
@@ -117,7 +101,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected MaterialNodePresenter()
         {}
 
-        public virtual void Initialize(INode inNode)
+        public virtual void Initialize(INode inNode, PreviewSystem previewSystem)
         {
             node = inNode;
 
@@ -135,17 +119,24 @@ namespace UnityEditor.MaterialGraph.Drawing
             position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
 
             m_Version = 0;
-            AddPreview(inNode);
+
+            m_PreviewHandle = previewSystem.GetPreviewHandle(inNode.guid);
+            m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
         }
 
-        private void AddPreview(INode inNode)
+        void OnPreviewChanged()
         {
-            var materialNode = inNode as AbstractMaterialNode;
-            if (materialNode == null || !materialNode.hasPreview)
-                return;
+            previewTexture = m_PreviewHandle.texture;
+            m_Version++;
+        }
 
-            m_Preview = CreateInstance<NodePreviewPresenter>();
-            preview.Initialize(materialNode);
+        public void Dispose()
+        {
+            if (m_PreviewHandle != null)
+            {
+                m_PreviewHandle.Dispose();
+                m_PreviewHandle = null;
+            }
         }
     }
 }
