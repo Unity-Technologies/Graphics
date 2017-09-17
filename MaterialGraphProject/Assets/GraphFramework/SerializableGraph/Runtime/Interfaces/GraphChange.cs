@@ -21,4 +21,24 @@ namespace UnityEngine.Graphing
 
         public INode node { get; private set; }
     }
+
+    public sealed class EdgeAddedGraphChange : GraphChange
+    {
+        public EdgeAddedGraphChange(IEdge edge)
+        {
+            this.edge = edge;
+        }
+
+        public IEdge edge { get; private set; }
+    }
+
+    public sealed class EdgeRemovedGraphChange : GraphChange
+    {
+        public EdgeRemovedGraphChange(IEdge edge)
+        {
+            this.edge = edge;
+        }
+
+        public IEdge edge { get; private set; }
+    }
 }

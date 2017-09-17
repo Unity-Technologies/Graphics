@@ -126,6 +126,7 @@ namespace UnityEngine.Graphing
 
             var newEdge = new Edge(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
+            NotifyChange(new EdgeAddedGraphChange(newEdge));
             AddEdgeToNodeEdges(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
@@ -161,6 +162,8 @@ namespace UnityEngine.Graphing
             List<IEdge> outputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
+            
+            NotifyChange(new EdgeRemovedGraphChange(e));
         }
 
         public INode GetNodeFromGuid(Guid guid)
