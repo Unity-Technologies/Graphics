@@ -36,10 +36,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
             m_ErrorTexture.Apply();
 
-            m_Graph.onChange += OnGraphChange;
-
             foreach (var node in m_Graph.GetNodes<INode>())
                 AddPreview(node);
+            m_Graph.onChange += OnGraphChange;
         }
 
         public PreviewData GetPreview(INode node)
@@ -151,7 +150,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             // Fill MaterialPropertyBlock
             m_PreviewPropertyBlock.Clear();
-            foreach (var nodeGuid in m_DirtyPreviews)
+            foreach (var nodeGuid in m_PropertyNodeGuids)
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
                 node.CollectPreviewMaterialProperties(m_PreviewProperties);
