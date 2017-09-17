@@ -13,14 +13,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
-        Dictionary<Guid, MaterialNodePresenter> m_TimeDependentPresenters = new Dictionary<Guid, MaterialNodePresenter>();
-
-        public bool hasTimeDependentNodes
-        {
-            get { return m_TimeDependentPresenters.Any(); }
-        }
-
-        protected GraphTypeMapper typeMapper { get; set; }
+        GraphTypeMapper typeMapper { get; set; }
+        PreviewSystem m_PreviewSystem;
 
         public IGraph graph { get; private set; }
 
@@ -146,17 +140,22 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdateData()
         {
-            // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
-            var deletedElementPresenters = m_Elements
-                .OfType<MaterialNodePresenter>()
-                .Where(nd => !graph.ContainsNodeGuid(nd.node.guid))
-                .OfType<GraphElementPresenter>()
-                .ToList();
+            var deletedElementPresenters = new List<GraphElementPresenter>();
 
-            var deletedEdgePresenters = m_Elements.OfType<GraphEdgePresenter>()
-                .Where(ed => !graph.edges.Contains(ed.edge));
+            // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
+            foreach (var presenter in m_Elements)
+            {
+                var nodePresenter = presenter as MaterialNodePresenter;
+                if (nodePresenter != null && !graph.ContainsNodeGuid(nodePresenter.node.guid))
+                {
+                    nodePresenter.Dispose();
+                    deletedElementPresenters.Add(nodePresenter);
+                }
+            }
 
             // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
+            var deletedEdgePresenters = m_Elements.OfType<GraphEdgePresenter>()
+                .Where(ed => !graph.edges.Contains(ed.edge));
             foreach (var edgePresenter in deletedEdgePresenters)
             {
                 // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
@@ -167,12 +166,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var fromNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == fromNodeGuid);
 
                 var toNodeGuid = edgePresenter.edge.inputSlot.nodeGuid;
-                var toNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+                var toNode = graph.GetNodeFromGuid(toNodeGuid);
 
-                if (toNodePresenter != null)
-
+                if (toNode != null && toNode.onModified != null)
                     // Make the input node (i.e. right side of the connection) re-render
-                    OnNodeChanged(toNodePresenter.node, ModificationScope.Graph);
+                    toNode.onModified(toNode, ModificationScope.Graph);
 
                 deletedElementPresenters.Add(edgePresenter);
             }
@@ -194,7 +192,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 var nodePresenter = (MaterialNodePresenter)typeMapper.Create(node);
                 node.onModified += OnNodeChanged;
-                nodePresenter.Initialize(node);
+                nodePresenter.Initialize(node, m_PreviewSystem);
                 addedNodePresenters.Add(nodePresenter);
             }
 
@@ -249,7 +247,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var targetAnchors = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>();
                 var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == targetSlot);
 
-                OnNodeChanged(targetNodePresenter.node, ModificationScope.Graph);
+                if (targetNodePresenter.node.onModified != null)
+                    targetNodePresenter.node.onModified(targetNodePresenter.node, ModificationScope.Graph);
 
                 var edgePresenter = CreateInstance<GraphEdgePresenter>();
                 edgePresenter.Initialize(edge);
@@ -261,53 +260,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             m_Elements.AddRange(edgePresenters.OfType<GraphElementPresenter>());
-
-            // Calculate which nodes require updates each frame (i.e. are time-dependent).
-
-            // Let the node set contain all the nodes that are directly time-dependent.
-            m_TimeDependentPresenters.Clear();
-            foreach (var presenter in m_Elements.OfType<MaterialNodePresenter>().Where(x => x.node.RequiresTime()))
-                m_TimeDependentPresenters.Add(presenter.node.guid, presenter);
-
-            // The wavefront contains time-dependent nodes from which we wish to propagate time-dependency into the
-            // nodes that it feeds into.
-            {
-                var wavefront = new Stack<MaterialNodePresenter>(m_TimeDependentPresenters.Values);
-                while (wavefront.Count > 0)
-                {
-                    var presenter = wavefront.Pop();
-
-                    // Loop through all nodes that the node feeds into.
-                    foreach (var slot in presenter.node.GetOutputSlots<ISlot>())
-                    {
-                        foreach (var edge in graph.GetEdges(slot.slotReference))
-                        {
-                            // We look at each node we feed into.
-                            var inputNodeGuid = edge.inputSlot.nodeGuid;
-
-                            // If the input node is already in the set of time-dependent nodes, we don't need to process it.
-                            if (m_TimeDependentPresenters.ContainsKey(inputNodeGuid))
-                                continue;
-
-                            // Find the matching presenter.
-                            var inputPresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == inputNodeGuid);
-                            if (inputPresenter == null)
-                            {
-                                Debug.LogErrorFormat("A presenter could not be found for the node with guid `{0}`", inputNodeGuid);
-                                continue;
-                            }
-
-                            // Add the node to the set of time-dependent nodes, and to the wavefront such that we can process the nodes that it feeds into.
-                            m_TimeDependentPresenters.Add(inputPresenter.node.guid, inputPresenter);
-                            wavefront.Push(inputPresenter);
-                        }
-                    }
-                }
-            }
+            m_PreviewSystem.UpdateTimeDependentPreviews();
         }
 
-        public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container)
+        public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
         {
+            m_PreviewSystem = previewSystem;
             this.graph = graph;
             m_Container = container;
 
@@ -502,14 +460,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void RemoveElement(GraphElementPresenter element)
         {
             throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
-        }
-
-        public void UpdateTimeDependentNodes()
-        {
-            foreach (var nodePresenter in m_TimeDependentPresenters.Values)
-            {
-                nodePresenter.OnModified(ModificationScope.Node);
-            }
         }
     }
 }

@@ -154,18 +154,18 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             Assert.IsNotNull(m_PreviewMaterial, "preview material could not be created");
 
             const int res = 256;
-            using (var generator = new MaterialGraphPreviewGenerator(true))
+            using (var generator = new MaterialGraphPreviewGenerator())
             {
-                var rendered =
-                    generator.DoRenderPreview(m_PreviewMaterial, PreviewMode.Preview3D, new Rect(0, 0, res, res), 10) as
-                    RenderTexture;
+                var renderTexture = new RenderTexture(res, res, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                generator.DoRenderPreview(renderTexture, m_PreviewMaterial, PreviewMode.Preview3D, true, 10);
 
-                Assert.IsNotNull(rendered, "Render failed");
+                Assert.IsNotNull(renderTexture, "Render failed");
 
-                RenderTexture.active = rendered;
-                m_Captured = new Texture2D(rendered.width, rendered.height, TextureFormat.ARGB32, false);
-                m_Captured.ReadPixels(new Rect(0, 0, rendered.width, rendered.height), 0, 0);
+                RenderTexture.active = renderTexture;
+                m_Captured = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+                m_Captured.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
                 RenderTexture.active = null; //can help avoid errors
+                Object.DestroyImmediate(renderTexture, true);
 
                 // find the reference image
                 var dumpFileLocation = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "png"));

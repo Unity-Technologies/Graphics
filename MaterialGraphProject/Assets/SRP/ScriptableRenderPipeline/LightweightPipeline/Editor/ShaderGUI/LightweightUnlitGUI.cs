@@ -31,7 +31,7 @@ public class LightweightUnlitGUI : ShaderGUI
     {
         blendModeProp = FindProperty("_Mode", properties);
         mainTexProp = FindProperty("_MainTex", properties);
-        mainColorProp = FindProperty("_MainColor", properties);
+        mainColorProp = FindProperty("_Color", properties);
         alphaCutoffProp = FindProperty("_Cutoff", properties);
     }
 
