@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
             [Slot(3, Binding.None, 1f, 1f, 1f, 1f)] Vector1 radius,
             [Slot(4, Binding.None)] out Vector3 resultUV,
             [Slot(5, Binding.None)] out Vector3 resultNormal,
-            [Slot(6, Binding.ViewDirectionTangentSpace, true)] Vector3 tangentSpaceViewDirection)
+            [Slot(6, Binding.TangentSpaceViewDirection, true)] Vector3 tangentSpaceViewDirection)
         {
             resultUV = Vector3.zero;
             resultNormal = Vector3.up;

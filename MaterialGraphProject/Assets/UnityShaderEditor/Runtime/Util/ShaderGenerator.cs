@@ -13,12 +13,31 @@ namespace UnityEngine.MaterialGraph
         private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
         public static int UVCount = 4;
 
+        public const string ObjectSpaceNormal = "objectSpaceNormal";
+        public const string ViewSpaceNormal = "viewSpaceNormal";
         public const string WorldSpaceNormal = "worldSpaceNormal";
-        public const string WorldSpaceBitangent = "worldSpaceBitangent";
-        public const string WorldSpaceTangent = "worldSpaceTangent";
-        public const string WorldSpacePosition = "worldPosition";
+        public const string TangentSpaceNormal = "tangentSpaceNormal";
+
+        public const string ObjectSpaceBiTangent = "objectSpaceBiTangent";
+        public const string ViewSpaceBiTangent = "viewSpaceBiTangent";
+        public const string WorldSpaceSpaceBiTangent = "worldSpaceSpaceBiTangent";
+        public const string TangentSpaceBiTangent = "TangentSpaceBitangent";
+
+        public const string ObjectSpaceTangent = "objectSpaceTangent";
+        public const string ViewSpaceTangent = "viewSpaceTangent";
+        public const string WorldSpaceTangent = "worldSpaceSpaceTangent";
+        public const string TangentSpaceTangent = "tangentSpaceSpaceTangent";
+
+        public const string ObjectSpaceViewDirection = "objectSpaceViewDirection";
+        public const string ViewSpaceViewDirection = "viewSpaceViewDirection";
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
         public const string TangentSpaceViewDirection = "tangentSpaceViewDirection";
+
+        public const string ObjectSpacePosition = "objectSpacePosition";
+        public const string ViewSpacePosition = "viewSpaceVPosition";
+        public const string WorldSpacePosition = "worldSpacePosition";
+        public const string TangentSpacePosition = "tangentSpacePosition";
+
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
 
@@ -218,175 +237,159 @@ namespace UnityEngine.MaterialGraph
 
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
-            if (!node.GetOutputSlots<MaterialSlot>().Any())
-            {
-                generatedShaderMode = PreviewMode.Preview2D;
-                return string.Empty;
-            }
-
-            // figure out what kind of preview we want!
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             generatedShaderMode = PreviewMode.Preview2D;
-
-            if (activeNodeList.OfType<AbstractMaterialNode>().Any(x => x.previewMode == PreviewMode.Preview3D))
-                generatedShaderMode = PreviewMode.Preview3D;
-
-            string templateLocation = GetTemplatePath("2DPreview.template");
-            if (!File.Exists(templateLocation))
-                return null;
-
-            string template = File.ReadAllText(templateLocation);
-
-            var shaderBodyVisitor = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertiesVisitor = new PropertyCollector();
-
-            var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
-
-            var owner = node.owner as AbstractMaterialGraph;
-            if (owner != null)
-                owner.CollectShaderProperties(shaderPropertiesVisitor, GenerationMode.Preview);
-
-            var shaderInputVisitor = new ShaderGenerator();
-            var vertexShaderBlock = new ShaderGenerator();
-
-            // always add color because why not.
-            shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
-
-            vertexShaderBlock.AddShaderChunk("float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;", true);
-            vertexShaderBlock.AddShaderChunk("float3 viewDir = UnityWorldSpaceViewDir(worldPos);", true);
-            vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
-            vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
-
-            bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
-            bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
-            bool requiresViewDirTangentSpace = activeNodeList.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
-            bool requiresViewDir = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
-            bool requiresWorldPos = activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
-            bool requiresNormal = activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
-            bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
-            bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
-
-            // view directions calculated from world position
-            if (requiresWorldPos || requiresViewDir || requiresViewDirTangentSpace)
-            {
-                shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD0;", true);
-                vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
-                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = IN.worldPos;", true);
-            }
-
-            if (requiresBitangent || requiresNormal || requiresViewDirTangentSpace)
-            {
-                shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD1;", true);
-                vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
-                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
-            }
-
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
-            {
-                var channel = (UVChannel)uvIndex;
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
-                {
-                    shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, (uvIndex + 5)), true);
-                    vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), true);
-                    shaderBodyVisitor.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", channel.GetUVName(), uvIndex), true);
-                }
-            }
-
-            if (requiresViewDir || requiresViewDirTangentSpace)
-            {
-                shaderBodyVisitor.AddShaderChunk(
-                    "float3 "
-                    + ShaderGeneratorNames.WorldSpaceViewDirection
-                    + " = normalize(UnityWorldSpaceViewDir("
-                    + ShaderGeneratorNames.WorldSpacePosition
-                    + "));", true);
-            }
-
-            if (requiresScreenPosition)
-            {
-                shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
-                vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
-                shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
-            }
-
-            if (requiresBitangent || requiresViewDirTangentSpace || requiresTangent)
-            {
-                shaderInputVisitor.AddShaderChunk("float4 worldTangent : TEXCOORD4;", true);
-                vertexShaderBlock.AddShaderChunk("o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);", true);
-                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent.xyz);", true);
-            }
-
-            if (requiresBitangent || requiresViewDirTangentSpace)
-            {
-                shaderBodyVisitor.AddShaderChunk(string.Format("float3 {0} = cross({1}, {2}) * IN.worldTangent.w;", ShaderGeneratorNames.WorldSpaceBitangent, ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.WorldSpaceTangent), true);
-            }
-
-            if (requiresViewDirTangentSpace)
-            {
-                shaderBodyVisitor.AddShaderChunk(
-                    "float3 " + ShaderGeneratorNames.TangentSpaceViewDirection + ";", true);
-
-                shaderBodyVisitor.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".x = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceTangent + ");", true);
-
-                shaderBodyVisitor.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".y = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
-
-                shaderBodyVisitor.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".z = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceNormal + ");", true);
-            }
-
-            if (requiresVertexColor)
-            {
-                vertexShaderBlock.AddShaderChunk("o.color = v.color;", true);
-                shaderBodyVisitor.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
-            }
-
-            var generationMode = GenerationMode.Preview;
-            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
-            {
-                if (activeNode is IGeneratesFunction)
-                    (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
-                if (activeNode is IGeneratesBodyCode)
-                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(shaderBodyVisitor, generationMode);
-
-                activeNode.CollectShaderProperties(shaderPropertiesVisitor, generationMode);
-            }
-
-
-            shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id) + ";", true);
-
-            ListPool<INode>.Release(activeNodeList);
-
-            template = template.Replace("${ShaderName}", shaderName);
-            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetPropertiesBlock(2));
-            template = template.Replace("${ShaderPropertyUsages}", shaderPropertiesVisitor.GetPropertiesDeclaration(3));
-            template = template.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(4));
-            template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));
-            template = template.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(4));
-            template = template.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(4));
-
-            string vertexShaderBody = vertexShaderBlock.GetShaderString(4);
-            if (vertexShaderBody.Length > 0)
-            {
-                template = template.Replace("${VertexShaderDecl}", "vertex:vert");
-                template = template.Replace("${VertexShaderBody}", vertexShaderBody);
-            }
-            else
-            {
-                template = template.Replace("${VertexShaderDecl}", "");
-                template = template.Replace("${VertexShaderBody}", vertexShaderBody);
-            }
-
-            return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
+            return string.Empty;
         }
+
+        /*
+        if (!node.GetOutputSlots<MaterialSlot>().Any())
+        {
+            generatedShaderMode = PreviewMode.Preview2D;
+            return string.Empty;
+        }
+
+        // figure out what kind of preview we want!
+        var activeNodeList = ListPool<INode>.Get();
+        NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+        generatedShaderMode = PreviewMode.Preview2D;
+
+        if (activeNodeList.OfType<AbstractMaterialNode>().Any(x => x.previewMode == PreviewMode.Preview3D))
+            generatedShaderMode = PreviewMode.Preview3D;
+
+        string templateLocation = GetTemplatePath("2DPreview.template");
+        if (!File.Exists(templateLocation))
+            return null;
+
+        string template = File.ReadAllText(templateLocation);
+
+        var shaderBodyVisitor = new ShaderGenerator();
+        var shaderFunctionVisitor = new ShaderGenerator();
+        var shaderPropertiesVisitor = new PropertyCollector();
+
+        var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
+
+        var owner = node.owner as AbstractMaterialGraph;
+        if (owner != null)
+            owner.CollectShaderProperties(shaderPropertiesVisitor, GenerationMode.Preview);
+
+        var shaderInputVisitor = new ShaderGenerator();
+        var vertexShaderBlock = new ShaderGenerator();
+
+        // always add color because why not.
+        shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
+
+        vertexShaderBlock.AddShaderChunk("float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;", true);
+        vertexShaderBlock.AddShaderChunk("float3 viewDir = UnityWorldSpaceViewDir(worldPos);", true);
+        vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
+        vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
+
+        bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
+        bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
+        bool requiresViewDirTangentSpace = activeNodeList.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
+        bool requiresViewDir = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+        bool requiresWorldPos = activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
+        bool requiresNormal = activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
+        bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+        bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
+
+        // view directions calculated from world position
+        if (requiresWorldPos || requiresViewDir || requiresViewDirTangentSpace)
+        {
+            shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD0;", true);
+            vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
+            shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.Position + " = IN.worldPos;", true);
+        }
+/*
+        if (requiresBitangent || requiresNormal || requiresViewDirTangentSpace)
+        {
+            shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD1;", true);
+            vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
+            shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.Normal + " = normalize(IN.worldNormal);", true);
+        }*
+
+        for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+        {
+            var channel = (UVChannel)uvIndex;
+            if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
+            {
+                shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, (uvIndex + 5)), true);
+                vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), true);
+                shaderBodyVisitor.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", channel.GetUVName(), uvIndex), true);
+            }
+        }
+
+        if (requiresViewDir || requiresViewDirTangentSpace)
+        {
+            shaderBodyVisitor.AddShaderChunk(
+                "float3 "
+                + ShaderGeneratorNames.WorldSpaceViewDirection
+                + " = normalize(UnityWorldSpaceViewDir("
+                + ShaderGeneratorNames.Position
+                + "));", true);
+        }
+
+        if (requiresScreenPosition)
+        {
+            shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
+            vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
+            shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
+        }
+
+       /* if (requiresBitangent || requiresViewDirTangentSpace || requiresTangent)
+        {
+            shaderInputVisitor.AddShaderChunk("float4 worldTangent : TEXCOORD4;", true);
+            vertexShaderBlock.AddShaderChunk("o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);", true);
+            shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.Tangent + " = normalize(IN.worldTangent.xyz);", true);
+        }*
+
+        if (requiresBitangent || requiresViewDirTangentSpace)
+        {
+            shaderBodyVisitor.AddShaderChunk(string.Format("float3 {0} = cross({1}, {2}) * IN.worldTangent.w;", ShaderGeneratorNames.BiTangent, ShaderGeneratorNames.Normal, ShaderGeneratorNames.Tangent), true);
+        }
+
+        if (requiresVertexColor)
+        {
+            vertexShaderBlock.AddShaderChunk("o.color = v.color;", true);
+            shaderBodyVisitor.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
+        }
+
+        var generationMode = GenerationMode.Preview;
+        foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+        {
+            if (activeNode is IGeneratesFunction)
+                (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
+            if (activeNode is IGeneratesBodyCode)
+                (activeNode as IGeneratesBodyCode).GenerateNodeCode(shaderBodyVisitor, generationMode);
+
+            activeNode.CollectShaderProperties(shaderPropertiesVisitor, generationMode);
+        }
+
+
+        shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id) + ";", true);
+
+        ListPool<INode>.Release(activeNodeList);
+
+        template = template.Replace("${ShaderName}", shaderName);
+        template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetPropertiesBlock(2));
+        template = template.Replace("${ShaderPropertyUsages}", shaderPropertiesVisitor.GetPropertiesDeclaration(3));
+        template = template.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(4));
+        template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));
+        template = template.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(4));
+        template = template.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(4));
+
+        string vertexShaderBody = vertexShaderBlock.GetShaderString(4);
+        if (vertexShaderBody.Length > 0)
+        {
+            template = template.Replace("${VertexShaderDecl}", "vertex:vert");
+            template = template.Replace("${VertexShaderBody}", vertexShaderBody);
+        }
+        else
+        {
+            template = template.Replace("${VertexShaderDecl}", "");
+            template = template.Replace("${VertexShaderBody}", vertexShaderBody);
+        }
+
+        return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
+    }*/
     }
 }

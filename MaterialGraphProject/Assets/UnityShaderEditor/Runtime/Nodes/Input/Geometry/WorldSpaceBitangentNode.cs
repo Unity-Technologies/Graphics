@@ -4,10 +4,10 @@ namespace UnityEngine.MaterialGraph
 {
     public interface IMayRequireBitangent
     {
-        bool RequiresBitangent();
+        NeededCoordinateSpace RequiresBitangent();
     }
 
-    [Title("Input/Geometry/World Bitangent")]
+   /* [Title("Input/Geometry/World Bitangent")]
     public class WorldSpaceBitangentNode : AbstractMaterialNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
@@ -37,12 +37,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpaceBitangent;
+            return ShaderGeneratorNames.BiTangent;
         }
 
         public bool RequiresBitangent()
         {
             return true;
         }
-    }
+    }*/
 }

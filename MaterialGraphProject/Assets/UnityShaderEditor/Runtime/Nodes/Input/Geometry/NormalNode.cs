@@ -3,14 +3,14 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Geometry/World Normal")]
-    public class WorldSpaceNormalNode : AbstractMaterialNode, IMayRequireNormal
+    public class NormalNode : AbstractMaterialNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Normal";
 
-        public WorldSpaceNormalNode()
+        public NormalNode()
         {
-            name = "WorldNormal";
+            name = "Normal";
             UpdateNodeAfterDeserialization();
         }
 
@@ -32,12 +32,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpaceNormal;
+            return ShaderGeneratorNames.ObjectSpaceNormal;
         }
 
-        public bool RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal()
         {
-            return true;
+            return NeededCoordinateSpace.Object;
         }
     }
 }

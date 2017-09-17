@@ -4,18 +4,18 @@ namespace UnityEngine.MaterialGraph
 {
     public interface IMayRequireTangent
     {
-        bool RequiresTangent();
+        NeededCoordinateSpace RequiresTangent();
     }
 
     [Title("Input/Geometry/World Tangent")]
-    public class WorldSpaceTangentNode : AbstractMaterialNode, IMayRequireTangent
+    public class TangentNode : AbstractMaterialNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Tangent";
 
-        public WorldSpaceTangentNode()
+        public TangentNode()
         {
-            name = "WorldTangent";
+            name = "Tangent";
             UpdateNodeAfterDeserialization();
         }
 
@@ -37,12 +37,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpaceTangent;
+            return ShaderGeneratorNames.ObjectSpaceTangent;
         }
 
-        public bool RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent()
         {
-            return true;
+            return NeededCoordinateSpace.Object;
         }
     }
 }
