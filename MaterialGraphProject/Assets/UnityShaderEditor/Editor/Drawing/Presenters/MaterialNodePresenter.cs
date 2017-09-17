@@ -24,8 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         [SerializeField]
         int m_Version;
-
-        PreviewHandle m_PreviewHandle;
+        PreviewData m_Preview;
 
         public Texture previewTexture { get; private set; }
 
@@ -120,22 +119,22 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_Version = 0;
 
-            m_PreviewHandle = previewSystem.GetPreviewHandle(inNode.guid);
-            m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
+            m_Preview = previewSystem.GetPreview(inNode);
+            m_Preview.onPreviewChanged += OnPreviewChanged;
         }
 
         void OnPreviewChanged()
         {
-            previewTexture = m_PreviewHandle.texture;
+            previewTexture = m_Preview.texture;
             m_Version++;
         }
 
         public void Dispose()
         {
-            if (m_PreviewHandle != null)
+            if (m_Preview != null)
             {
-                m_PreviewHandle.Dispose();
-                m_PreviewHandle = null;
+                m_Preview.onPreviewChanged -= OnPreviewChanged;
+                m_Preview = null;
             }
         }
     }
