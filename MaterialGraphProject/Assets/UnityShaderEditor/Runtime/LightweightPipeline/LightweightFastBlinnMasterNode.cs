@@ -7,7 +7,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+/*    [Serializable]
     [Title("Master/Lightweight/Fast Blinn")]
     public class LightweightFastBlinnMasterNode : AbstractMasterNode
     {
@@ -219,9 +219,9 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${Defines}", definesVisitor.GetShaderString(2));
-            
+
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
-            
+
             return resultShader;
         }
 
@@ -445,5 +445,5 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-    }
+    }*/
 }

@@ -7,7 +7,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+    /*[Serializable]
     public abstract class AbstractLightweightPBRMasterNode : AbstractMasterNode
     {
         public const string AlbedoSlotName = "Albedo";
@@ -158,9 +158,9 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${Defines}", definesVisitor.GetShaderString(2));
-            
+
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
-            
+
             return resultShader;
         }
 
@@ -234,13 +234,13 @@ namespace UnityEngine.MaterialGraph
             int vertInputIndex = 2;
             int vertOutputIndex = 5;
 
-            // always add everything because why not. 
+            // always add everything because why not.
             /*shaderInputVisitor.AddShaderChunk("float4 vertex : POSITION; \\", true);
             shaderInputVisitor.AddShaderChunk("half3 normal : NORMAL; \\", true);
             shaderInputVisitor.AddShaderChunk("half4 tangent : TANGENT; \\", true);
             shaderInputVisitor.AddShaderChunk("half4 color : COLOR; \\", true);
             shaderInputVisitor.AddShaderChunk("half4 texcoord0 : TEXCOORD0; \\", true);
-            shaderInputVisitor.AddShaderChunk("float2 lightmapUV : TEXCOORD1;", true);*/
+            shaderInputVisitor.AddShaderChunk("float2 lightmapUV : TEXCOORD1;", true);*
 
             shaderInputVisitor.AddShaderChunk("half4 texcoord1 : TEXCOORD1;", true);
 
@@ -250,7 +250,7 @@ namespace UnityEngine.MaterialGraph
             shaderOutputVisitor.AddShaderChunk("half4 fogCoord : TEXCOORD2; \\", true);
             shaderOutputVisitor.AddShaderChunk("half3 normal : TEXCOORD3; \\", true);
             shaderOutputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD4; \\", true);
-            shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION; \\", true);*/
+            shaderOutputVisitor.AddShaderChunk("float4 hpos : SV_POSITION; \\", true);*
 
             bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
             bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
@@ -414,5 +414,5 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-    }
+    }*/
 }
