@@ -68,6 +68,20 @@ namespace UnityEditor.MaterialGraph.Drawing
         TGraphType m_InMemoryAsset;
 
         GraphEditorView m_GraphEditorView;
+        GraphEditorView graphEditorView
+        {
+            get { return m_GraphEditorView; }
+            set
+            {
+                if (m_GraphEditorView != null)
+                {
+                    if (m_GraphEditorView.presenter != null)
+                        m_GraphEditorView.presenter.Dispose();
+                    m_GraphEditorView.Dispose();
+                }
+                m_GraphEditorView = value;
+            }
+        }
 
         protected TGraphType inMemoryAsset
         {
@@ -83,23 +97,25 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Update()
         {
-            if (m_GraphEditorView != null)
+            if (graphEditorView != null)
             {
-                if (m_GraphEditorView.presenter == null)
+                if (graphEditorView.presenter == null)
                     CreatePresenter();
-                m_GraphEditorView.presenter.graphPresenter.UpdateTimeDependentNodes();
+                if (graphEditorView.presenter != null)
+                    graphEditorView.presenter.UpdatePreviews();
             }
         }
 
         void OnEnable()
         {
-            m_GraphEditorView = new GraphEditorView();
-            rootVisualContainer.Add(m_GraphEditorView);
+            graphEditorView = new GraphEditorView();
+            rootVisualContainer.Add(graphEditorView);
         }
 
         void OnDisable()
         {
             rootVisualContainer.Clear();
+            graphEditorView = null;
         }
 
         void OnDestroy()
@@ -108,11 +124,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 UpdateAsset();
             }
+            graphEditorView = null;
         }
 
         void OnGUI()
         {
-            var presenter = m_GraphEditorView.presenter;
+            var presenter = graphEditorView.presenter;
             var e = Event.current;
 
             if (e.type == EventType.ValidateCommand && (
@@ -142,15 +159,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (e.type == EventType.KeyDown)
             {
                 if (e.keyCode == KeyCode.A)
-                    m_GraphEditorView.graphView.FrameAll();
+                    graphEditorView.graphView.FrameAll();
                 if (e.keyCode == KeyCode.F)
-                    m_GraphEditorView.graphView.FrameSelection();
+                    graphEditorView.graphView.FrameSelection();
                 if (e.keyCode == KeyCode.O)
-                    m_GraphEditorView.graphView.FrameOrigin();
+                    graphEditorView.graphView.FrameOrigin();
                 if (e.keyCode == KeyCode.Tab)
-                    m_GraphEditorView.graphView.FrameNext();
+                    graphEditorView.graphView.FrameNext();
                 if (e.keyCode == KeyCode.Tab && e.modifiers == EventModifiers.Shift)
-                    m_GraphEditorView.graphView.FramePrev();
+                    graphEditorView.graphView.FramePrev();
             }
         }
 
@@ -185,7 +202,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (path.Length == 0)
                 return;
 
-            var graphPresenter = m_GraphEditorView.presenter.graphPresenter;
+            var graphPresenter = graphEditorView.presenter.graphPresenter;
             var selected = graphPresenter.elements.Where(e => e.selected).ToArray();
             var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(selected)));
 
@@ -375,16 +392,18 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void CreatePresenter()
         {
+            if (graphEditorView.presenter != null)
+                graphEditorView.presenter.Dispose();
             var presenter = CreateInstance<GraphEditorPresenter>();
             presenter.Initialize(inMemoryAsset, this, selected.name);
-            m_GraphEditorView.presenter = presenter;
-            m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+            graphEditorView.presenter = presenter;
+            graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
         }
 
         void OnPostLayout(PostLayoutEvent evt)
         {
-            m_GraphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
-            m_GraphEditorView.graphView.FrameAll();
+            graphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+            graphEditorView.graphView.FrameAll();
         }
     }
 }

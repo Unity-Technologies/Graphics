@@ -1,0 +1,53 @@
+SubShader
+{
+	Tags{"RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline"}
+
+	LOD ${LOD}
+	
+	Pass
+	{
+		Tags{"LightMode" = "LightweightForward"}
+		${Tags}
+		${Blending}
+		${Culling}
+		${ZTest}
+		${ZWrite}
+		
+		CGPROGRAM
+		#pragma target 3.0
+		
+		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+        #pragma multi_compile_fog
+		#pragma multi_compile_instancing
+
+        #pragma vertex LightweightVertexUnlit
+        #pragma fragment LightweightFragmentUnlit
+		#pragma glsl
+		#pragma debug
+		
+${Defines}
+		
+		#include "UnityCG.cginc"
+		
+#define VERTEX_CUSTOM \
+	${VertexShaderBody}
+	
+//#define VERTINPUT_CUSTOM \
+	//${VertexInputs}
+
+#define VERTOUTPUT_CUSTOM \
+	${VertexOutputs}
+		
+		#include "CGIncludes/LightweightUnlit.cginc"
+
+${ShaderPropertyUsages}
+${ShaderFunctions}
+		
+		void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit o)
+		{
+${PixelShaderBody}		
+		}
+	
+		ENDCG
+	}
+}

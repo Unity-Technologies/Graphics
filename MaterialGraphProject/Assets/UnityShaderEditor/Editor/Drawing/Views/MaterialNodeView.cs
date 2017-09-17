@@ -44,13 +44,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             leftContainer.Add(m_PreviewContainer);
         }
 
-        void UpdatePreviewTexture(NodePreviewPresenter preview)
+        void UpdatePreviewTexture(Texture previewTexture)
         {
-            if (preview != null)
-                preview.UpdateTexture();
-            if (preview == null || preview.texture == null)
+            if (previewTexture == null)
             {
-//                Debug.Log(GetPresenter<MaterialNodePresenter>().node.name);
                 m_PreviewContainer.Clear();
                 m_PreviewImage.image = Texture2D.whiteTexture;
             }
@@ -58,9 +55,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (m_PreviewContainer.childCount == 0)
                     m_PreviewContainer.Add(m_PreviewImage);
-                m_PreviewImage.image = preview.texture;
+                m_PreviewImage.image = previewTexture;
             }
-            Dirty(ChangeType.Repaint);
+            Dirty(ChangeType.Repaint | ChangeType.Layout);
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)
@@ -89,9 +86,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnDataChanged();
 
-            var node = GetPresenter<MaterialNodePresenter>();
+            var nodePresenter = GetPresenter<MaterialNodePresenter>();
 
-            if (node == null)
+            if (nodePresenter == null)
             {
                 m_ControlsContainer.Clear();
                 m_CurrentControls.Clear();
@@ -100,15 +97,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
             }
 
-            UpdateControls(node);
-            UpdatePreviewTexture(node.preview);
+            UpdateControls(nodePresenter);
 
-            if (node.expanded)
-            {
-                UpdatePreviewTexture(node.preview);
-            }
-            else
-                m_PreviewContainer.Clear();
+//            if (nodePresenter.expanded)
+            UpdatePreviewTexture(nodePresenter.previewTexture);
+
+//            else
+//                m_PreviewContainer.Clear();
         }
     }
 }
