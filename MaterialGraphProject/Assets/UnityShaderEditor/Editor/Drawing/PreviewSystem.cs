@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,25 +35,41 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_ErrorTexture.SetPixel(1, 0, Color.black);
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
             m_ErrorTexture.Apply();
+
+            m_Graph.onChange += OnGraphChange;
+
+            foreach (var node in m_Graph.GetNodes<INode>())
+                AddPreview(node);
         }
 
-        public PreviewHandle GetPreviewHandle(Guid nodeGuid)
+        public PreviewData GetPreview(INode node)
         {
-            PreviewData previewData;
-            if (!m_Previews.TryGetValue(nodeGuid, out previewData))
+            return m_Previews[node.guid];
+        }
+
+        void OnGraphChange(GraphChange change)
+        {
+            if (change is NodeAddedGraphChange)
+                AddPreview(((NodeAddedGraphChange)change).node);
+            else if (change is NodeRemovedGraphChange)
+                RemovePreview(((NodeRemovedGraphChange)change).node);
+        }
+
+        void AddPreview(INode node)
+        {
+            var previewData = new PreviewData
             {
-                var node = m_Graph.GetNodeFromGuid(nodeGuid);
-                if (node == null)
-                    throw new ArgumentException("Node does not exist.", "nodeGuid");
-                previewData = new PreviewData();
-                previewData.renderTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                m_Previews.Add(nodeGuid, previewData);
-                m_DirtyShaders.Add(nodeGuid);
-                m_DirtyPreviews.Add(nodeGuid);
-                node.onModified += OnNodeModified;
-            }
-            previewData.refCount++;
-            return new PreviewHandle(nodeGuid, previewData, this);
+                renderTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
+            };
+            m_Previews.Add(node.guid, previewData);
+            m_DirtyShaders.Add(node.guid);
+            node.onModified += OnNodeModified;
+        }
+
+        void RemovePreview(INode node)
+        {
+            node.onModified -= OnNodeModified;
+            m_Previews.Remove(node.guid);
         }
 
         void OnNodeModified(INode node, ModificationScope scope)
@@ -243,16 +259,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void DestroyPreviewHandle(Guid nodeGuid)
-        {
-            PreviewData previewData;
-            if (!m_Previews.TryGetValue(nodeGuid, out previewData))
-                return;
-            previewData.refCount--;
-            if (previewData.refCount == 0)
-                DestroyPreview(nodeGuid, previewData);
-        }
-
         void DestroyPreview(Guid nodeGuid, PreviewData previewData)
         {
             if (m_Previews.Remove(nodeGuid))
@@ -308,48 +314,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public PreviewMode previewMode { get; set; }
         public RenderTexture renderTexture { get; set; }
         public Texture texture { get; set; }
-        public int refCount { get; set; }
         public OnPreviewChanged onPreviewChanged;
-    }
-
-    public class PreviewHandle : IDisposable
-    {
-        Guid m_NodeGuid;
-        PreviewData m_PreviewData;
-        PreviewSystem m_PreviewSystem;
-
-        public PreviewHandle(Guid nodeGuid, PreviewData previewData, PreviewSystem previewSystem)
-        {
-            m_NodeGuid = nodeGuid;
-            m_PreviewData = previewData;
-            m_PreviewSystem = previewSystem;
-        }
-
-        public OnPreviewChanged onPreviewChanged
-        {
-            get { return m_PreviewData.onPreviewChanged; }
-            set { m_PreviewData.onPreviewChanged = value; }
-        }
-
-        public Texture texture
-        {
-            get { return m_PreviewData.texture; }
-        }
-
-        void ReleaseUnmanagedResources()
-        {
-            m_PreviewSystem.DestroyPreviewHandle(m_NodeGuid);
-        }
-
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-
-        ~PreviewHandle()
-        {
-            ReleaseUnmanagedResources();
-        }
     }
 }

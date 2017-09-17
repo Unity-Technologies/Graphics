@@ -36,6 +36,7 @@ namespace UnityEngine.Graphing
         {
             m_Nodes.Add(node.guid, node);
             node.owner = this;
+            NotifyChange(new NodeAddedGraphChange(node));
             ValidateGraph();
         }
 
@@ -45,6 +46,7 @@ namespace UnityEngine.Graphing
                 return;
 
             m_Nodes.Remove(node.guid);
+            NotifyChange(new NodeRemovedGraphChange(node));
             ValidateGraph();
         }
 
@@ -54,6 +56,7 @@ namespace UnityEngine.Graphing
                 return;
 
             m_Nodes.Remove(node.guid);
+            NotifyChange(new NodeRemovedGraphChange(node));
         }
 
         void AddEdgeToNodeEdges(IEdge edge)
@@ -253,6 +256,14 @@ namespace UnityEngine.Graphing
             {
                 node.OnEnable();
             }
+        }
+
+        public OnGraphChange onChange { get; set; }
+
+        void NotifyChange(GraphChange change)
+        {
+            if (onChange != null)
+                onChange(change);
         }
     }
 }

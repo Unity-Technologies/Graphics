@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class GraphInspectorPresenter : ScriptableObject, IDisposable
     {
-        PreviewHandle m_PreviewHandle;
+        PreviewData m_PreviewHandle;
 
         public IGraph graph { get; set; }
 
@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             var masterNode = graph.GetNodes<AbstractMasterNode>().FirstOrDefault();
             if (masterNode != null)
             {
-                m_PreviewHandle = previewSystem.GetPreviewHandle(masterNode.guid);
+                m_PreviewHandle = previewSystem.GetPreview(masterNode);
                 m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
             }
             this.graph = graph;
@@ -72,7 +72,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         {
             if (m_PreviewHandle != null)
             {
-                m_PreviewHandle.Dispose();
+                m_PreviewHandle.onPreviewChanged -= OnPreviewChanged;
                 m_PreviewHandle = null;
             };
         }
