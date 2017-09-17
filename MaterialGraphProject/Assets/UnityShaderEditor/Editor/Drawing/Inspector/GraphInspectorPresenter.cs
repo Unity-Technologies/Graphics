@@ -11,13 +11,14 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
     {
         PreviewData m_PreviewHandle;
 
-        public IGraph graph { get; set; }
-
         public string assetName { get; set; }
 
         public List<INode> selectedNodes { get; set; }
 
         public Texture previewTexture { get; private set; }
+
+        [SerializeField]
+        private int m_Version;
 
         [Flags]
         public enum ChangeType
@@ -33,15 +34,28 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         public OnChange onChange;
 
-        public void Initialize(string assetName, IGraph graph, PreviewSystem previewSystem)
+        [SerializeField]
+        private HelperMaterialGraphEditWindow m_Owner;
+
+        public AbstractMaterialGraph graph
         {
-            var masterNode = graph.GetNodes<AbstractMasterNode>().FirstOrDefault();
+            get { return m_Owner.GetMaterialGraph(); }
+        }
+
+        public void Dirty()
+        {
+            m_Version++;
+        }
+
+        public void Initialize(string assetName, PreviewSystem previewSystem, HelperMaterialGraphEditWindow window)
+        {
+            var masterNode = graph.GetNodes<MasterNode>().FirstOrDefault();
             if (masterNode != null)
             {
                 m_PreviewHandle = previewSystem.GetPreview(masterNode);
                 m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
             }
-            this.graph = graph;
+            m_Owner = window;
             this.assetName = assetName;
             selectedNodes = new List<INode>();
 
