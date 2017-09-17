@@ -7,7 +7,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+/*    [Serializable]
     [Title("Master/Lightweight/Unlit")]
     public class LightweightUnlitMasterNode : AbstractMasterNode
     {
@@ -194,15 +194,15 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${Defines}", definesVisitor.GetShaderString(2));
-            
+
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
-            
+
             return resultShader;
         }
 
         public void GetDefines(ShaderGenerator visitor)
         {
-            
+
         }
 
         public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
@@ -409,5 +409,5 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-    }
+    }*/
 }
