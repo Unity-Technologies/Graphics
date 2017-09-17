@@ -19,9 +19,8 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
-        , IMayRequireWorldPosition
+        , IMayRequirePosition
         , IMayRequireVertexColor
-        , IMayRequireViewDirectionTangentSpace
         , IMayRequireTime
     {
         [SerializeField]
@@ -272,12 +271,16 @@ namespace UnityEngine.MaterialGraph
             subGraph.GenerateVertexToFragmentBlock(visitor, GenerationMode.ForReals);
         }
 
-        public bool RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal()
         {
             if (subGraph == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
+            return subGraph.activeNodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            {
+                mask |= node.RequiresNormal();
+                return mask;
+            });
         }
 
         public bool RequiresMeshUV(UVChannel channel)
@@ -296,36 +299,41 @@ namespace UnityEngine.MaterialGraph
             return subGraph.activeNodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
         }
 
-        public bool RequiresViewDirection()
+        public NeededCoordinateSpace RequiresViewDirection()
         {
             if (subGraph == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+            return subGraph.activeNodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            {
+                mask |= node.RequiresViewDirection();
+                return mask;
+            });
         }
 
-        public bool RequiresViewDirectionTangentSpace()
+
+        public NeededCoordinateSpace RequiresPosition()
         {
             if (subGraph == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
+            return subGraph.activeNodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            {
+                mask |= node.RequiresPosition();
+                return mask;
+            });
         }
 
-        public bool RequiresWorldPosition()
+        public NeededCoordinateSpace RequiresTangent()
         {
             if (subGraph == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
-        }
-
-        public bool RequiresTangent()
-        {
-            if (subGraph == null)
-                return false;
-
-            return subGraph.activeNodes.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
+            return subGraph.activeNodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            {
+                mask |= node.RequiresTangent();
+                return mask;
+            });
         }
 
         public bool RequiresTime()
@@ -336,12 +344,16 @@ namespace UnityEngine.MaterialGraph
             return subGraph.activeNodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
         }
 
-        public bool RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent()
         {
             if (subGraph == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
+            return subGraph.activeNodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            {
+                mask |= node.RequiresBitangent();
+                return mask;
+            });
         }
 
         public bool RequiresVertexColor()

@@ -31,8 +31,8 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_ReflectionProbe(
-            [Slot(0, Binding.ViewDirection)] Vector3 viewDirection,
-            [Slot(1, Binding.Normal)] Vector3 worldSpaceNormal,
+            [Slot(0, Binding.ObjectSpaceNormal)] Vector3 viewDirection,
+            [Slot(1, Binding.ObjectSpaceViewDirection)] Vector3 worldSpaceNormal,
             [Slot(2, Binding.None)] Vector1 lod,
             [Slot(3, Binding.None)] out Vector4 color)
         {

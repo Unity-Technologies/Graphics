@@ -62,14 +62,14 @@ namespace UnityEngine.MaterialGraph
                 fullName = "UnityEngine.MaterialGraph.ViewDirectionNode",
                 assemblyName = "Assembly-CSharp"
             };
-            result[viewNode] = SerializationHelper.GetTypeSerializableAsString(typeof(WorldSpaceViewDirectionNode));
+            result[viewNode] = SerializationHelper.GetTypeSerializableAsString(typeof(ViewDirectionNode));
 
             var normalNode = new SerializationHelper.TypeSerializationInfo
             {
                 fullName = "UnityEngine.MaterialGraph.NormalNode",
                 assemblyName = "Assembly-CSharp"
             };
-            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(WorldSpaceNormalNode));
+            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {

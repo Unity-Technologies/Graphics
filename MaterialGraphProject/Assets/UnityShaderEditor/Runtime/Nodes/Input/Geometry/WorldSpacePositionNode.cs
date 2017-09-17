@@ -2,13 +2,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IMayRequireWorldPosition
+    interface IMayRequirePosition
     {
-        bool RequiresWorldPosition();
+        NeededCoordinateSpace RequiresPosition();
     }
 
     [Title("Input/Geometry/World Space Position")]
-    public class WorldSpacePositionNode : AbstractMaterialNode, IMayRequireWorldPosition
+    public class WorldSpacePositionNode : AbstractMaterialNode, IMayRequirePosition
     {
         private const int kOutputSlotId = 0;
 
@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpacePositionNode()
         {
-            name = "WorldSpacePosition";
+            name = "Position";
             UpdateNodeAfterDeserialization();
         }
 
@@ -39,12 +39,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpacePosition;
+            return "IN." + ShaderGeneratorNames.WorldSpacePosition;
         }
 
-        public bool RequiresWorldPosition()
+        public NeededCoordinateSpace RequiresPosition()
         {
-            return true;
+            return NeededCoordinateSpace.World;
         }
     }
 }

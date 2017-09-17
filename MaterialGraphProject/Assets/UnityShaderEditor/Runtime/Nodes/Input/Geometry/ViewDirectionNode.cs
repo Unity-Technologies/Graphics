@@ -5,11 +5,11 @@ namespace UnityEngine.MaterialGraph
 {
     interface IMayRequireViewDirection
     {
-        bool RequiresViewDirection();
+        NeededCoordinateSpace RequiresViewDirection();
     }
 
-    [Title("Input/Geometry/World Space View Direction")]
-    public class WorldSpaceViewDirectionNode : AbstractMaterialNode, IMayRequireViewDirection
+    [Title("Input/Geometry/View Direction")]
+    public class ViewDirectionNode : AbstractMaterialNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
 
@@ -19,9 +19,9 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public WorldSpaceViewDirectionNode()
+        public ViewDirectionNode()
         {
-            name = "WorldSpaceViewDirection";
+            name = "ViewDirection";
             UpdateNodeAfterDeserialization();
         }
 
@@ -42,9 +42,9 @@ namespace UnityEngine.MaterialGraph
             return ShaderGeneratorNames.WorldSpaceViewDirection;
         }
 
-        public bool RequiresViewDirection()
+        public NeededCoordinateSpace RequiresViewDirection()
         {
-            return true;
+            return NeededCoordinateSpace.Object;
         }
     }
 }

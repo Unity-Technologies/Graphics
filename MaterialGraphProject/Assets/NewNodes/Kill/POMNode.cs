@@ -14,9 +14,9 @@ namespace UnityEngine.MaterialGraph
             [Slot(1, Binding.None)] Texture2D tex,
             [Slot(2, Binding.None)] Vector1 heightScale,
             [Slot(3, Binding.MeshUV0)] Vector2 UVs,
-            [Slot(4, Binding.ViewDirectionTangentSpace)] Vector3 viewTangentSpace,
-            [Slot(5, Binding.Normal)] Vector3 worldSpaceNormal,
-            [Slot(6, Binding.ViewDirection)] Vector3 worldSpaceViewDirection,
+            [Slot(4, Binding.TangentSpaceViewDirection)] Vector3 viewTangentSpace,
+            [Slot(5, Binding.WorldSpaceNormal)] Vector3 worldSpaceNormal,
+            [Slot(6, Binding.WorldSpaceViewDirection)] Vector3 worldSpaceViewDirection,
             [Slot(7, Binding.None)] out Vector2 result)
         {
             result = Vector2.zero;

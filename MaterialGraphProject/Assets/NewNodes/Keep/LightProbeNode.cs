@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_LightProbe(
-            [Slot(0, Binding.Normal)] Vector3 worldSpaceNormal,
+            [Slot(0, Binding.WorldSpaceNormal)] Vector3 worldSpaceNormal,
             [Slot(1, Binding.None)] out Vector4 color)
         {
             color = Vector4.one;
