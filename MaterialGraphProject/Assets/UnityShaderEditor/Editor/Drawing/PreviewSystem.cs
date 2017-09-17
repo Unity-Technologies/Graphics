@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -52,6 +53,17 @@ namespace UnityEditor.MaterialGraph.Drawing
                 AddPreview(((NodeAddedGraphChange)change).node);
             else if (change is NodeRemovedGraphChange)
                 RemovePreview(((NodeRemovedGraphChange)change).node);
+            else if (change is EdgeAddedGraphChange)
+            {
+                var edge = ((EdgeAddedGraphChange)change).edge;
+                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+            }
+            else if (change is EdgeRemovedGraphChange)
+            {
+                var edge = ((EdgeRemovedGraphChange)change).edge;
+                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+            }
+
         }
 
         void AddPreview(INode node)
@@ -63,12 +75,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Previews.Add(node.guid, previewData);
             m_DirtyShaders.Add(node.guid);
             node.onModified += OnNodeModified;
+            if (node.RequiresTime())
+                m_TimeDependentPreviews.Add(node.guid);
         }
 
         void RemovePreview(INode node)
         {
             node.onModified -= OnNodeModified;
             m_Previews.Remove(node.guid);
+            m_TimeDependentPreviews.Remove(node.guid);
         }
 
         void OnNodeModified(INode node, ModificationScope scope)
@@ -77,14 +92,19 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_DirtyShaders.Add(node.guid);
             else if (scope == ModificationScope.Node)
                 m_DirtyPreviews.Add(node.guid);
+
+            if (node.RequiresTime())
+                m_TimeDependentPreviews.Add(node.guid);
+            else
+                m_TimeDependentPreviews.Remove(node.guid);
         }
 
         Stack<Guid> m_Wavefront = new Stack<Guid>();
 
-        void PropagateNodeSet(HashSet<Guid> nodeGuidSet, bool forward = true)
+        void PropagateNodeSet(HashSet<Guid> nodeGuidSet, bool forward = true, IEnumerable<Guid> initialWavefront = null)
         {
             m_Wavefront.Clear();
-            foreach (var guid in nodeGuidSet)
+            foreach (var guid in initialWavefront ?? nodeGuidSet)
                 m_Wavefront.Push(guid);
             while (m_Wavefront.Count > 0)
             {
@@ -114,18 +134,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void UpdateTimeDependentPreviews()
-        {
-            m_TimeDependentPreviews.Clear();
-            foreach (var node in m_Graph.GetNodes<INode>())
-            {
-                var timeNode = node as IMayRequireTime;
-                if (timeNode != null && timeNode.RequiresTime())
-                    m_TimeDependentPreviews.Add(node.guid);
-            }
-            PropagateNodeSet(m_TimeDependentPreviews);
-        }
-
         HashSet<Guid> m_PropertyNodeGuids = new HashSet<Guid>();
         List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
 
@@ -139,8 +147,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_DirtyPreviews.UnionWith(m_DirtyShaders);
             m_DirtyShaders.Clear();
 
-            PropagateNodeSet(m_DirtyPreviews);
             m_DirtyPreviews.UnionWith(m_TimeDependentPreviews);
+            PropagateNodeSet(m_DirtyPreviews);
 
             // Find nodes we need properties from
             m_PropertyNodeGuids.Clear();

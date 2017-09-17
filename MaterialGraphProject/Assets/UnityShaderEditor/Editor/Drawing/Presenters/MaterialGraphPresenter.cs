@@ -162,15 +162,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 edgePresenter.output.Disconnect(edgePresenter);
                 edgePresenter.input.Disconnect(edgePresenter);
 
-                var fromNodeGuid = edgePresenter.edge.outputSlot.nodeGuid;
-                var fromNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == fromNodeGuid);
-
                 var toNodeGuid = edgePresenter.edge.inputSlot.nodeGuid;
                 var toNode = graph.GetNodeFromGuid(toNodeGuid);
-
-                if (toNode != null && toNode.onModified != null)
-                    // Make the input node (i.e. right side of the connection) re-render
-                    toNode.onModified(toNode, ModificationScope.Graph);
 
                 deletedElementPresenters.Add(edgePresenter);
             }
@@ -247,9 +240,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var targetAnchors = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>();
                 var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == targetSlot);
 
-                if (targetNodePresenter.node.onModified != null)
-                    targetNodePresenter.node.onModified(targetNodePresenter.node, ModificationScope.Graph);
-
                 var edgePresenter = CreateInstance<GraphEdgePresenter>();
                 edgePresenter.Initialize(edge);
                 edgePresenter.output = sourceAnchorPresenter;
@@ -260,7 +250,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             m_Elements.AddRange(edgePresenters.OfType<GraphElementPresenter>());
-            m_PreviewSystem.UpdateTimeDependentPreviews();
         }
 
         public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
