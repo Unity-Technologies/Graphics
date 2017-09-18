@@ -92,6 +92,7 @@ CBUFFER_END
 static int g_FeatureFlags = 0xFFFFFFFF;
 
 // This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
+// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the MaterialID is)
 bool HasMaterialFeatureFlag(int flag)
 {
     return ((g_FeatureFlags & flag) != 0);
@@ -322,16 +323,16 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdAnisoData(bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         // When using clear coat we assume that bottom layer is regular
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
@@ -393,13 +394,13 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+    else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
             outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, 0.0, 4.0));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         // In the cae of clear coat, we want more precision for the coat normal than for the bottom normal (as it is expected to be smooth). So swap the normal encoding storage in Gbuffer.
         // It also allow to use clear coat normal for SSR
@@ -499,10 +500,10 @@ void DecodeFromGBuffer(
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
-    int supportsStandard = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
-    int supportsSSS = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
-    int supportsAniso = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
-    int supportClearCoat = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
+    int supportsStandard = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD);
+    int supportsSSS = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
+    int supportsAniso = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO);
+    int supportClearCoat = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT);
 
     if (supportsStandard + supportsSSS + supportsAniso + supportClearCoat > 1)
     {
@@ -522,7 +523,7 @@ void DecodeFromGBuffer(
             bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
 
-    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
+    if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
     {
         float metallic;
         int materialIdExtent;
