@@ -104,7 +104,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(expected, result);
         }
 
-        [Test]
+ /*       [Test]
         public void NodeGenerateCorrectPreviewPropertyUsages()
         {
             string expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.@fixed, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
@@ -124,6 +124,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
             m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
-        }
+        }*/
     }
 }

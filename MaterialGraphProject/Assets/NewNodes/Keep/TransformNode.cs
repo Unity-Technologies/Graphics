@@ -213,19 +213,19 @@ namespace UnityEngine.MaterialGraph
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
         }
 
-        public bool RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent()
         {
-            return true;
+            return NeededCoordinateSpace.World;
         }
 
-        public bool RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent()
         {
-            return true;
+            return NeededCoordinateSpace.World;
         }
 
-        public bool RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal()
         {
-            return true;
+            return NeededCoordinateSpace.World;
         }
     }
 }

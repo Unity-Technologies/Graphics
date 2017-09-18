@@ -18,33 +18,33 @@ namespace UnityEditor.MaterialGraph.UnitTests
         private const string kPropertyName = "ThePropertyName";
         private const string kPropertyDescription = "ThePropertyDescription";
 
-        [Test]
+ /*       [Test]
         public void TestCanAddPropertyChunkToPropertyGenerator()
         {
             var chunk = new FloatPropertyChunk(kPropertyName, kPropertyDescription, 0.5f, PropertyChunk.HideState.Visible);
-            var generator = new PropertyGenerator();
+            var generator = new PropertyCollector();
             generator.AddShaderProperty(chunk);
 
-            Assert.AreNotEqual(string.Empty, generator.GetShaderString(0));
+            Assert.AreNotEqual(string.Empty, generator.GetPropertiesBlock(0));
         }
 
         [Test]
         public void TestCanGetShaderStringWithIndentWorks()
         {
             var chunk = new FloatPropertyChunk(kPropertyName, kPropertyDescription, 0.5f, PropertyChunk.HideState.Visible);
-            var generator = new PropertyGenerator();
+            var generator = new PropertyCollector();
             generator.AddShaderProperty(chunk);
 
-            Assert.AreEqual(0, generator.GetShaderString(0).Count(x => x == '\t'));
-            Assert.AreEqual(1, generator.GetShaderString(1).Count(x => x == '\t'));
-            Assert.AreEqual(2, generator.GetShaderString(2).Count(x => x == '\t'));
+            Assert.AreEqual(0, generator.GetPropertiesBlock(0).Count(x => x == '\t'));
+            Assert.AreEqual(1, generator.GetPropertiesBlock(1).Count(x => x == '\t'));
+            Assert.AreEqual(2, generator.GetPropertiesBlock(2).Count(x => x == '\t'));
         }
 
         [Test]
         public void TestCanGetConfiguredTextureInfos()
         {
             var chunk = new TexturePropertyChunk(kPropertyName, kPropertyDescription, null, TextureType.Bump, PropertyChunk.HideState.Visible, TexturePropertyChunk.ModifiableState.Modifiable);
-            var generator = new PropertyGenerator();
+            var generator = new PropertyCollector();
             generator.AddShaderProperty(chunk);
 
             var infos = generator.GetConfiguredTexutres();
@@ -52,6 +52,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(kPropertyName, infos[0].name);
             Assert.AreEqual(0, infos[0].textureId);
             Assert.AreEqual(TexturePropertyChunk.ModifiableState.Modifiable, infos[0].modifiable);
-        }
+        }*/
     }
 }

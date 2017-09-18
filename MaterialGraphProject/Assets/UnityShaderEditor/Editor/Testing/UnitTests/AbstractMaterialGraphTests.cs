@@ -65,7 +65,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(node, graph.GetNodeFromGuid<TestableMNode>(node.guid));
         }
 
-        [Test]
+   /*     [Test]
         public void TestCreatePixelShaderGraphWorks()
         {
             var graph = new UnityEngine.MaterialGraph.MaterialGraph();
@@ -95,6 +95,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             graph.AddNode(psn2);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
-        }
+        }*/
     }
 }

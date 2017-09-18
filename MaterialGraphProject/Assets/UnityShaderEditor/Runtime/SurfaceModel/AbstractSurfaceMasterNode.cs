@@ -7,8 +7,8 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
-    public abstract class AbstractSurfaceMasterNode : AbstractMasterNode
+ /*   [Serializable]
+    public abstract class AbstractSurfaceMasterNode : MasterNode
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -94,7 +94,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
+/        public override string GetSubShader(GenerationMode mode, PropertyCollector shaderPropertiesVisitor)
         {
             var templateLocation = ShaderGenerator.GetTemplatePath("subshader.template");
 
@@ -159,22 +159,22 @@ namespace UnityEngine.MaterialGraph
             return resultShader;
         }
 
-        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
 
             if (!File.Exists(templateLocation))
             {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
+                configuredTextures = new List<PropertyCollector.TextureInfo>();
                 return string.Empty;
             }
 
             var templateText = File.ReadAllText(templateLocation);
 
-            var shaderPropertiesVisitor = new PropertyGenerator();
+            var shaderPropertiesVisitor = new PropertyCollector();
             var resultShader = templateText.Replace("${ShaderName}", name);
             resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
-            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetPropertiesBlock(2));
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
@@ -346,5 +346,5 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-    }
+    }*/
 }

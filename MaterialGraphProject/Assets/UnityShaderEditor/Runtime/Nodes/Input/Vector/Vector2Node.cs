@@ -1,15 +1,16 @@
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Vector/Vector 2")]
-    public class Vector2Node : PropertyNode, IGeneratesBodyCode
+    public class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
-        private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
-
         [SerializeField]
         private Vector2 m_Value;
+
+        public const int OutputSlotId = 0;
+        private const string kOutputSlotName = "Value";
 
         public Vector2Node()
         {
@@ -19,13 +20,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector2, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
-        }
-
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Vector2; }
+            AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector2, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         public Vector2 value
@@ -43,34 +39,40 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
-        }
+            if (!generationMode.IsPreview())
+                return;
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "2 " + propertyName + ";", true);
+            properties.AddShaderProperty(new Vector2ShaderProperty()
+            {
+                name = GetVariableNameForNode(),
+                generatePropertyBlock = false,
+                value = value
+            });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
+            if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "2 " + propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value + ";", true);
         }
 
-        public override PreviewProperty GetPreviewProperty()
+        public override string GetVariableNameForSlot(int slotId)
         {
-            return new PreviewProperty
+            return GetVariableNameForNode();
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            properties.Add(new PreviewProperty()
             {
-                m_Name = propertyName,
+                m_Name = GetVariableNameForNode(),
                 m_PropType = PropertyType.Vector2,
                 m_Vector4 = m_Value
-            };
+            });
         }
     }
 }

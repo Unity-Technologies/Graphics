@@ -51,14 +51,5 @@ namespace UnityEngine.MaterialGraph
 }
 ";
         }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            base.GeneratePropertyUsages(visitor, generationMode);
-
-            visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
-            visitor.AddShaderChunk("SamplerState my_linear_repeat_sampler;", false);
-            visitor.AddShaderChunk("#endif", false);
-        }
     }
 }

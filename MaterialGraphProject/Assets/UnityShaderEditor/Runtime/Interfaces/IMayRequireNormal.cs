@@ -2,6 +2,6 @@
 {
     public interface IMayRequireNormal
     {
-        bool RequiresNormal();
+        NeededCoordinateSpace RequiresNormal();
     }
 }

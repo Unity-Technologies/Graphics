@@ -100,9 +100,9 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             //Assert.IsNotNull(materialGraph);
 
             // Generate the shader
-            List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString =
-                graph.masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(filePath), out configuredTextures);
+            List<PropertyCollector.TextureInfo> configuredTextures = new List<PropertyCollector.TextureInfo>();
+            var shaderString = String.Empty;
+                //graph.masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(filePath), out configuredTextures);
 
             var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
             var shaderTemplatePath = Path.Combine(rootPath.ToString(), "ShaderTemplates");

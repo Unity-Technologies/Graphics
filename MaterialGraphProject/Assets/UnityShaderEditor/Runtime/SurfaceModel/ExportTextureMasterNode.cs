@@ -7,9 +7,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+ /*   [Serializable]
     [Title("Master/Custom Texture")]
-    public class ExportTextureMasterNode : AbstractMasterNode
+    public class ExportTextureMasterNode : MasterNode
     {
         public const string ColorSlotName = "Color";
         public const int ColorSlotId = 0;
@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
+        public override string GetSubShader(GenerationMode mode, PropertyCollector shaderPropertiesVisitor)
         {
             return "";
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        public override string GetFullShader(GenerationMode generationMode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode generationMode, string name, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
@@ -55,7 +55,7 @@ namespace UnityEngine.MaterialGraph
             string templateLocation = ShaderGenerator.GetTemplatePath("ExportTexture.template");
             if (!File.Exists(templateLocation))
             {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
+                configuredTextures = new List<PropertyCollector.TextureInfo>();
                 return string.Empty;
             }
 
@@ -63,7 +63,7 @@ namespace UnityEngine.MaterialGraph
 
             var shaderBodyVisitor = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertiesVisitor = new PropertyGenerator();
+            var shaderPropertiesVisitor = new PropertyCollector();
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var shaderInputVisitor = new ShaderGenerator();
 
@@ -141,7 +141,7 @@ namespace UnityEngine.MaterialGraph
             ListPool<INode>.Release(activeNodeList);
 
             template = template.Replace("${ShaderName}", name);
-            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
+            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetPropertiesBlock(2));
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
             template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));
             template = template.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(4));
@@ -152,5 +152,5 @@ namespace UnityEngine.MaterialGraph
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
-    }
+    }*/
 }

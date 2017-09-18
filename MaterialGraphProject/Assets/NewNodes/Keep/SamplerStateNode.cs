@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine.MaterialGraph;
+using System;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -7,35 +6,10 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Texture/Sampler State")]
     public class SamplerStateNode : AbstractMaterialNode
     {
-        public enum FilterMode
-        {
-            Linear,
-            Point
-        }
-
-        public enum WrapMode
-        {
-            Repeat,
-            Clamp
-        }
-
-        static Dictionary<FilterMode, string> filterMode = new Dictionary<FilterMode, string>
-        {
-            {FilterMode.Linear, "_linear"},
-            {FilterMode.Point, "_point"},
-        };
-
-        static Dictionary<WrapMode, string> wrapMode = new Dictionary<WrapMode, string>
-        {
-            {WrapMode.Repeat, "_repeat"},
-            {WrapMode.Clamp, "_clamp"},
-        };
-
-
         [SerializeField]
-        private FilterMode m_filter = FilterMode.Linear;
+        private TextureSamplerState.FilterMode m_filter = TextureSamplerState.FilterMode.Linear;
 
-        public FilterMode filter
+        public TextureSamplerState.FilterMode filter
         {
             get { return m_filter; }
             set
@@ -52,9 +26,9 @@ namespace UnityEngine.MaterialGraph
         }
 
         [SerializeField]
-        private WrapMode m_wrap = WrapMode.Repeat;
+        private TextureSamplerState.WrapMode m_wrap = TextureSamplerState.WrapMode.Repeat;
 
-        public WrapMode wrap
+        public TextureSamplerState.WrapMode wrap
         {
             get { return m_wrap; }
             set
@@ -92,18 +66,26 @@ namespace UnityEngine.MaterialGraph
             return GetVariableNameForNode();
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            var decl = string.Format(@"
-#ifdef UNITY_COMPILER_HLSL
-SamplerState {0};
-#endif", GetVariableNameForNode());
-            visitor.AddShaderChunk(decl, true);
+            properties.AddShaderProperty(new SamplerStateShaderProperty()
+            {
+                name = GetVariableNameForNode(),
+                generatePropertyBlock = false,
+                value = new TextureSamplerState()
+                {
+                    filter = m_filter,
+                    wrap =  m_wrap
+                }
+            });
         }
 
         public override string GetVariableNameForNode()
         {
-            return base.GetVariableNameForNode() + filterMode[filter] + wrapMode[wrap] + "_sampler";
+            string ss = name + "_"
+                        + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
+                        + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler;";
+            return ss;
         }
     }
 }

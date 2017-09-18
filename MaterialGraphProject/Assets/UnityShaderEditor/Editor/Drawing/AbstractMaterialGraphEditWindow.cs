@@ -26,16 +26,38 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Show();
         void Focus();
-        Object selected { get; }
+        Object selected { get; set; }
         void ChangeSelection(Object newSelection);
     }
 
-    public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>
-    {}
-    public class SubGraphEditWindow : AbstractMaterialGraphEditWindow<SubGraph>
-    {}
+    public abstract class HelperMaterialGraphEditWindow : EditorWindow, IMaterialGraphEditWindow
+    {
+        public abstract AbstractMaterialGraph GetMaterialGraph();
+        public abstract void PingAsset();
+        public abstract void UpdateAsset();
+        public abstract void ToggleRequiresTime();
+        public abstract void ToSubGraph();
+        public abstract Object selected { get; set; }
+        public abstract void ChangeSelection(Object newSelection);
+    }
 
-    public abstract class AbstractMaterialGraphEditWindow<TGraphType> : EditorWindow, IMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
+    public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return inMemoryAsset;
+        }
+    }
+
+    public class SubGraphEditWindow : AbstractMaterialGraphEditWindow<SubGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return inMemoryAsset;
+        }
+    }
+
+    public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         public static bool allowAlwaysRepaint = true;
 
@@ -46,7 +68,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         TGraphType m_InMemoryAsset;
 
         GraphEditorView m_GraphEditorView;
-
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -62,13 +83,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public TGraphType inMemoryAsset
+        protected TGraphType inMemoryAsset
         {
             get { return m_InMemoryAsset; }
             set { m_InMemoryAsset = value; }
         }
 
-        public Object selected
+        public override Object selected
         {
             get { return m_Selected; }
             set { m_Selected = value; }
@@ -150,13 +171,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void PingAsset()
+        public override void PingAsset()
         {
             if (selected != null)
                 EditorGUIUtility.PingObject(selected);
         }
 
-        public void UpdateAsset()
+        public override void UpdateAsset()
         {
             if (selected != null && inMemoryAsset != null)
             {
@@ -174,7 +195,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void ToSubGraph()
+        public override void ToSubGraph()
         {
             string path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", "ShaderSubGraph", "");
             path = path.Replace(Application.dataPath, "Assets");
@@ -307,12 +328,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
 
-            var masterNode = graph.masterNode;
-            if (masterNode == null)
-                return;
-
-            List<PropertyGenerator.TextureInfo> configuredTextures;
-            masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
+            List<PropertyCollector.TextureInfo> configuredTextures;
+            graph.GetShader(Path.GetFileNameWithoutExtension(path), out configuredTextures);
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)
@@ -320,8 +337,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var textureNames = new List<string>();
             var textures = new List<Texture>();
-            foreach (var textureInfo in configuredTextures.Where(
-                         x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
@@ -333,8 +349,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             textureNames.Clear();
             textures.Clear();
-            foreach (var textureInfo in configuredTextures.Where(
-                         x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+            foreach (var textureInfo in configuredTextures.Where(x => !x.modifiable))
             {
                 var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
@@ -348,12 +363,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
-        public virtual void ToggleRequiresTime()
+        public override void ToggleRequiresTime()
         {
             allowAlwaysRepaint = !allowAlwaysRepaint;
         }
 
-        public void ChangeSelection(Object newSelection)
+        public override void ChangeSelection(Object newSelection)
         {
             if (!EditorUtility.IsPersistent(newSelection))
                 return;

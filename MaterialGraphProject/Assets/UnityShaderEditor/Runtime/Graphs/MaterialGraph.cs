@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
 
@@ -7,56 +8,16 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class MaterialGraph : AbstractMaterialGraph
     {
-        [NonSerialized]
-        private Guid m_ActiveMasterNodeGUID;
-
-        [SerializeField]
-        private string m_ActiveMasterNodeGUIDSerialized;
-
-        public MaterialGraph()
+        public MasterNode masterNode
         {
-            m_ActiveMasterNodeGUID = Guid.NewGuid();
+            get { return GetNodes<MasterNode>().FirstOrDefault(); }
         }
 
-        public IMasterNode masterNode
+        public string GetShader(string name, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            get
-            {
-                var found = GetNodeFromGuid(m_ActiveMasterNodeGUID) as IMasterNode;
-                if (found != null)
-                    return found;
-
-                return GetNodes<IMasterNode>().FirstOrDefault();
-            }
-            set
-            {
-                var previousMaster = masterNode;
-
-                if (value == null)
-                    m_ActiveMasterNodeGUID = Guid.NewGuid();
-                else
-                    m_ActiveMasterNodeGUID = value.guid;
-
-                masterNode.onModified(masterNode, ModificationScope.Node);
-                previousMaster.onModified(previousMaster, ModificationScope.Node);
-            }
+            PreviewMode mode;
+            return GetShader(masterNode, GenerationMode.ForReals, name, out configuredTextures, out mode);
         }
 
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-
-            m_ActiveMasterNodeGUIDSerialized = m_ActiveMasterNodeGUID.ToString();
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-
-            if (!string.IsNullOrEmpty(m_ActiveMasterNodeGUIDSerialized))
-                m_ActiveMasterNodeGUID = new Guid(m_ActiveMasterNodeGUIDSerialized);
-            else
-                m_ActiveMasterNodeGUID = Guid.NewGuid();
-        }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
-    public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
+   /* public class SurfaceMasterNodeEditorView : AbstractNodeEditorView
     {
         NodeEditorHeaderView m_HeaderView;
         AbstractSurfaceMasterNode m_Node;
@@ -74,5 +74,5 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             m_HeaderView.title = m_Node.name;
             Dirty(ChangeType.Repaint);
         }
-    }
+    }*/
 }

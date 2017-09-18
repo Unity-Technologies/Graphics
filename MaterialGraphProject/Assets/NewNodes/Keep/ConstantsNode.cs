@@ -5,7 +5,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Constants")]
-    public class ConstantsNode : PropertyNode, IGeneratesBodyCode
+    public class ConstantsNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
@@ -50,24 +50,9 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Float; }
-        }
-
-        public override PreviewProperty GetPreviewProperty()
-        {
-            return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Float,
-                m_Float = m_constantList[constant]
-            };
-        }
-
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + " " + propertyName + " = " + m_constantList[constant] + ";", true);
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant] + ";", true);
         }
     }
 }
