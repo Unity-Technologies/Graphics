@@ -312,6 +312,8 @@ namespace UnityEditor.VFX.UI
         public override void OnSelected()
         {
             //this.SendToFront();
+
+            Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
 
         public EventPropagation DeleteSelection()
