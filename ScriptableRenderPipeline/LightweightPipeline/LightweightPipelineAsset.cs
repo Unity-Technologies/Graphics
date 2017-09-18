@@ -65,8 +65,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DestroyCreatedInstances();
         }
 
-        #region PipelineAssetSettings
-
         [SerializeField] private int m_MaxPixelLights = 1;
         [SerializeField] private bool m_SupportsVertexLight = true;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
@@ -159,7 +157,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_AttenuationTexture = value; }
         }
 
-        #endregion
         public override Material GetDefaultMaterial()
         {
             return m_DefaultDiffuseMaterial;
@@ -202,6 +199,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override Shader GetDefaultShader()
         {
             return m_DefaultShader;
+        }
+
+        public Shader BlitShader
+        {
+            get { return Shader.Find("Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit"); }
         }
     }
 }
