@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class PreviewSystem : IDisposable
     {
-        IGraph m_Graph;
+        AbstractMaterialGraph m_Graph;
         Dictionary<Guid, PreviewData> m_Previews = new Dictionary<Guid, PreviewData>();
         HashSet<Guid> m_DirtyPreviews = new HashSet<Guid>();
         HashSet<Guid> m_DirtyShaders = new HashSet<Guid>();
@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         MaterialGraphPreviewGenerator m_PreviewGenerator = new MaterialGraphPreviewGenerator();
         Texture2D m_ErrorTexture;
 
-        public PreviewSystem(IGraph graph)
+        public PreviewSystem(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -224,9 +224,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             else
             {
-                PreviewMode previewMode;
-                previewData.shaderString = ShaderGenerator.GeneratePreviewShader(node, out previewMode);
-                previewData.previewMode = previewMode;
+                List<PropertyCollector.TextureInfo> defaultTextures;
+                previewData.shaderString = m_Graph.GetPreviewShader(node);
             }
 
             // Debug output

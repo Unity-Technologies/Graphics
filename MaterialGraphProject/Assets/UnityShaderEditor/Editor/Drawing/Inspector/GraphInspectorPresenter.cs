@@ -49,13 +49,13 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         public void Initialize(string assetName, PreviewSystem previewSystem, HelperMaterialGraphEditWindow window)
         {
+            m_Owner = window;
             var masterNode = graph.GetNodes<MasterNode>().FirstOrDefault();
             if (masterNode != null)
             {
                 m_PreviewHandle = previewSystem.GetPreview(masterNode);
                 m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
             }
-            m_Owner = window;
             this.assetName = assetName;
             selectedNodes = new List<INode>();
 
