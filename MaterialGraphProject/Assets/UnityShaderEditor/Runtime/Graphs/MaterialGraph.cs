@@ -15,7 +15,8 @@ namespace UnityEngine.MaterialGraph
 
         public string GetShader(string name, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            return GetShader(masterNode, GenerationMode.ForReals, name, out configuredTextures);
+            PreviewMode mode;
+            return GetShader(masterNode, GenerationMode.ForReals, name, out configuredTextures, out mode);
         }
 
     }

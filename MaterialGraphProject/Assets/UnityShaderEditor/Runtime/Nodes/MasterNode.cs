@@ -123,26 +123,25 @@ namespace UnityEngine.MaterialGraph
 
             if (shaderGraphRequirements.requiresScreenPosition)
             {
-                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};;", ShaderGeneratorNames.ScreenPosition, interpolatorIndex), false);
+                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ScreenPosition, interpolatorIndex), false);
                 vertexShader.AddShaderChunk(string.Format("o.{0} = ComputeScreenPos(UnityObjectToClipPos(v.vertex)", ShaderGeneratorNames.ScreenPosition), false);
                 pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
                 interpolatorIndex++;
             }
 
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+            foreach (var channel in shaderGraphRequirements.requiresMeshUVs.Distinct())
             {
-                var channel = (UVChannel)uvIndex;
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
-                {
-                    interpolators.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, interpolatorIndex), false);
-                    vertexShader.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), false);
-                    pixelShader.AddShaderChunk(string.Format("surfaceInput.{0}  = IN.meshUV{1};", channel.GetUVName(), uvIndex), false);
-                    interpolatorIndex++;
-                }
+                interpolators.AddShaderChunk(string.Format("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = v.texcoord{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString()), false);
+                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0}  = IN.{0};", channel.GetUVName()), false);
+                interpolatorIndex++;
             }
 
             var outputs = new ShaderGenerator();
-            outputs.AddShaderChunk(string.Format("return surf.{0};", FindSlot<MaterialSlot>(0).shaderOutputName), true);
+            var slot = FindSlot<MaterialSlot>(0);
+
+            var result = string.Format("surf.{0}", slot.shaderOutputName);
+            outputs.AddShaderChunk(string.Format("return {0};", ShaderGenerator.AdaptNodeOutputForPreview(this, 0, result)), true);
 
             var res = subShaderTemplate.Replace("{0}", interpolators.GetShaderString(0));
             res = res.Replace("{1}", vertexShader.GetShaderString(0));

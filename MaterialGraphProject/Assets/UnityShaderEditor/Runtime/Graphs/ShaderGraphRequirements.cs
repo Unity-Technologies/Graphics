@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Collections.Generic;
+
+namespace UnityEngine.MaterialGraph
 {
     public struct ShaderGraphRequirements
     {
@@ -9,6 +11,7 @@
         public NeededCoordinateSpace requiresPosition;
         public bool requiresScreenPosition;
         public bool requiresVertexColor;
+        public List<UVChannel> requiresMeshUVs;
 
         public bool NeedsTangentSpace()
         {

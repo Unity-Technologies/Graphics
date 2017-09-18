@@ -106,6 +106,13 @@ namespace UnityEngine.MaterialGraph
             bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
             bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
 
+            var meshUV = new List<UVChannel>();
+            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+            {
+                var channel = (UVChannel)uvIndex;
+                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
+                    meshUV.Add(channel);
+            }
 
             // if anything needs tangentspace we have make
             // sure to have our othonormal basis!
@@ -129,7 +136,8 @@ namespace UnityEngine.MaterialGraph
                 requiresViewDir = requiresViewDir,
                 requiresPosition = requiresPosition,
                 requiresScreenPosition = requiresScreenPosition,
-                requiresVertexColor = requiresVertexColor
+                requiresVertexColor = requiresVertexColor,
+                requiresMeshUVs = meshUV
             };
             ListPool<INode>.Release(activeNodeList);
             return reqs;
@@ -156,13 +164,13 @@ namespace UnityEngine.MaterialGraph
                 surfaceInputs.AddShaderChunk(string.Format("float3 {0};", tangentSpaceName), false);
         }
 
-        public string GetPreviewShader(AbstractMaterialNode node)
+        public string GetPreviewShader(AbstractMaterialNode node, out PreviewMode previewMode)
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
-            return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures);
+            return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode);
         }
 
-        protected string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures)
+        protected string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
         {
             var vertexShader = new ShaderGenerator();
             var pixelShader = new ShaderGenerator();
@@ -176,8 +184,8 @@ struct GraphVertexInput
      float4 vertex : POSITION;
      float3 normal : NORMAL;
      float4 tangent : TANGENT;
-     float2 texcoord : TEXCOORD0;
-     float2 lightmapUV : TEXCOORD1;
+     float4 texcoord : TEXCOORD0;
+     float4 lightmapUV : TEXCOORD1;
      UNITY_VERTEX_INPUT_INSTANCE_ID
 };";
 
@@ -213,12 +221,18 @@ struct GraphVertexInput
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
 
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+            previewMode = PreviewMode.Preview2D;
+            foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
-                var channel = (UVChannel) uvIndex;
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
-                    surfaceInputs.AddShaderChunk(string.Format("half4 meshUV{0};", uvIndex), false);
+                if (pNode.previewMode == PreviewMode.Preview3D)
+                {
+                    previewMode = PreviewMode.Preview3D;
+                    break;
+                }
             }
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
 
             surfaceInputs.Deindent();
             surfaceInputs.AddShaderChunk("};", false);
@@ -247,18 +261,70 @@ struct GraphVertexInput
             pixelShader.AddShaderChunk("SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {", false);
             pixelShader.Indent();
 
-            var generationMode = GenerationMode.ForReals;
+            if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceNormal), false);
+            if ((requirements.requiresNormal & NeededCoordinateSpace.View) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceNormal), false);
+            if ((requirements.requiresNormal & NeededCoordinateSpace.World) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceNormal), false);
+            if ((requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceNormal), false);
+
+            if ((requirements.requiresTangent & NeededCoordinateSpace.Object) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceTangent), false);
+            if ((requirements.requiresTangent & NeededCoordinateSpace.View) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceTangent), false);
+            if ((requirements.requiresTangent & NeededCoordinateSpace.World) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceTangent), false);
+            if ((requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceTangent), false);
+
+            if ((requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceBiTangent), false);
+            if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceBiTangent), false);
+            if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceSpaceBiTangent), false);
+            if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceBiTangent), false);
+
+            if ((requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceViewDirection), false);
+            if ((requirements.requiresViewDir & NeededCoordinateSpace.View) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceViewDirection), false);
+            if ((requirements.requiresViewDir & NeededCoordinateSpace.World) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceViewDirection), false);
+            if ((requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceViewDirection), false);
+
+            if ((requirements.requiresPosition & NeededCoordinateSpace.Object) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpacePosition), false);
+            if ((requirements.requiresPosition & NeededCoordinateSpace.View) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpacePosition), false);
+            if ((requirements.requiresPosition & NeededCoordinateSpace.World) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpacePosition), false);
+            if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpacePosition), false);
+
+            if (requirements.requiresScreenPosition)
+                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
+            if (requirements.requiresVertexColor)
+                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                pixelShader.AddShaderChunk(string.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
+
             var shaderProperties = new PropertyCollector();
-            CollectShaderProperties(shaderProperties, generationMode);
+            CollectShaderProperties(shaderProperties, mode);
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
-                    (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
+                    (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, mode);
                 if (activeNode is IGeneratesBodyCode)
-                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(pixelShader, generationMode);
+                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(pixelShader, mode);
 
-                activeNode.CollectShaderProperties(shaderProperties, generationMode);
+                activeNode.CollectShaderProperties(shaderProperties, mode);
             }
 
             pixelShader.AddShaderChunk("SurfaceDescription surface;", false);
@@ -314,8 +380,8 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(pixelShader.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
-            if (generationMode == GenerationMode.Preview)
-                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, GetRequierments(node)), false);
+            if (mode == GenerationMode.Preview)
+                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
             else
             {
                 var master = (MasterNode) node;

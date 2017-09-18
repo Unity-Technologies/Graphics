@@ -38,9 +38,7 @@ namespace UnityEngine.MaterialGraph
             result.Append(name);
             result.Append("(\"");
             result.Append(description);
-            result.Append("\", 2D) = \"");
-            result.Append(Enum.GetName(typeof(TextureType), value.texture).ToLower());
-            result.Append("\" {}");
+            result.Append("\", 2D) = \"white\" {}");
             return result.ToString();
         }
 
