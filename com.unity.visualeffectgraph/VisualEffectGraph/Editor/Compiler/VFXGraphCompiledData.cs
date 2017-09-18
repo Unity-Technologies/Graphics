@@ -12,16 +12,10 @@ namespace UnityEditor.VFX
 {
     struct VFXContextCompiledData
     {
+        public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public Object processor;
-
-        public VFXContextCompiledData(VFXExpressionMapper gpuMapper, VFXUniformMapper uniformMapper)
-        {
-            this.gpuMapper = gpuMapper;
-            this.uniformMapper = uniformMapper;
-            processor = null;
-        }
     }
 
     class VFXGraphCompiledData
@@ -135,11 +129,21 @@ namespace UnityEditor.VFX
                     expressionDescs[i].data = data;
                 }
 
+                Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
+                foreach (var context in models.OfType<VFXContext>())
+                    contextToCompiledData.Add(context, new VFXContextCompiledData());
+
                 var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                 foreach (var context in models.OfType<VFXContext>())
                 {
                     uint contextId = (uint)context.GetParent().GetIndex(context);
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
+
+                    // Add cpu mapper
+                    var contextData = contextToCompiledData[context];
+                    contextData.cpuMapper = cpuMapper;
+                    contextToCompiledData[context] = contextData;
+
                     foreach (var exp in cpuMapper.expressions)
                     {
                         VFXExpressionSemanticDesc desc;
@@ -239,7 +243,7 @@ namespace UnityEditor.VFX
 
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
                 var generatedList = new List<GeneratedCodeData>();
-                Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
+
                 foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                 {
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
@@ -249,8 +253,12 @@ namespace UnityEditor.VFX
 
                         var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
                         var uniformMapper = new VFXUniformMapper(gpuMapper);
-                        var contextData = new VFXContextCompiledData(gpuMapper, uniformMapper);
-                        contextToCompiledData.Add(context, contextData);
+
+                        // Add gpu and uniform mapper
+                        var contextData = contextToCompiledData[context];
+                        contextData.gpuMapper = gpuMapper;
+                        contextData.uniformMapper = uniformMapper;
+                        contextToCompiledData[context] = contextData;
 
                         VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
 
@@ -331,6 +339,7 @@ namespace UnityEditor.VFX
                     var deadListBufferIndex = -1;
 
                     var systemBufferMappings = new List<VFXBufferMapping>();
+                    var systemValueMappings = new List<VFXValueMapping>();
 
                     if (hasState)
                     {
@@ -348,14 +357,30 @@ namespace UnityEditor.VFX
                         systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
                     }
 
+
                     var taskDescs = new List<VFXTaskDesc>();
                     var bufferMappings = new List<VFXBufferMapping>();
                     var uniformMappings = new List<VFXValueMapping>();
 
                     foreach (var context in data.owners)
                     {
-                        if (!contextToCompiledData.ContainsKey(context))
-                            continue;
+                        //if (!contextToCompiledData.ContainsKey(context))
+                        //    continue;
+
+                        var contextData = contextToCompiledData[context];
+
+                        // TMP
+                        if (context.contextType == VFXContextType.kInit)
+                        {
+                            const string kSpawnRateName = "SpawnRate_tmp";
+                            var spawnRateExp = contextData.cpuMapper.FromNameAndId(kSpawnRateName, -1);
+                            if (spawnRateExp != null)
+                            {
+                                int index = m_ExpressionGraph.GetFlattenedIndex(spawnRateExp);
+                                if (index != -1)
+                                    systemValueMappings.Add(new VFXValueMapping(index, kSpawnRateName));
+                            }
+                        }
 
                         var taskDesc = new VFXTaskDesc();
                         taskDesc.type = context.taskType;
@@ -366,13 +391,13 @@ namespace UnityEditor.VFX
                         if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                             bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
 
-                        var contextData = contextToCompiledData[context];
+
                         uniformMappings.Clear();
                         foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                             uniformMappings.Add(new VFXValueMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
                         taskDesc.buffers = bufferMappings.ToArray();
-                        taskDesc.uniforms = uniformMappings.ToArray();
+                        taskDesc.values = uniformMappings.ToArray();
 
                         taskDesc.processor = contextToCompiledData[context].processor;
 
@@ -385,6 +410,7 @@ namespace UnityEditor.VFX
                         tasks = taskDescs.ToArray(),
                         capacity = data.capacity,
                         buffers = systemBufferMappings.ToArray(),
+                        values = systemValueMappings.ToArray(),
                         type = VFXSystemType.kVFXParticle,
                     });
                 }
