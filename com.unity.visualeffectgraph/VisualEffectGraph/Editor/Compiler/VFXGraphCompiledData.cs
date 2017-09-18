@@ -350,7 +350,7 @@ namespace UnityEditor.VFX
 
                     var taskDescs = new List<VFXTaskDesc>();
                     var bufferMappings = new List<VFXBufferMapping>();
-                    var uniformMappings = new List<VFXUniformMapping>();
+                    var uniformMappings = new List<VFXValueMapping>();
 
                     foreach (var context in data.owners)
                     {
@@ -369,7 +369,7 @@ namespace UnityEditor.VFX
                         var contextData = contextToCompiledData[context];
                         uniformMappings.Clear();
                         foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                            uniformMappings.Add(new VFXUniformMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                            uniformMappings.Add(new VFXValueMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
                         taskDesc.buffers = bufferMappings.ToArray();
                         taskDesc.uniforms = uniformMappings.ToArray();
