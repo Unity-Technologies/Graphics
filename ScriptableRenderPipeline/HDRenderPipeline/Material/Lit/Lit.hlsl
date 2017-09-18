@@ -89,6 +89,15 @@ CBUFFER_END
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/TilePass/TilePass.cs.hlsl"
 
+static int g_FeatureFlags = 0xFFFFFFFF;
+
+// This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
+// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the MaterialID is)
+bool HasMaterialFeatureFlag(int flag)
+{
+    return ((g_FeatureFlags & flag) != 0);
+}
+
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
@@ -457,6 +466,8 @@ void DecodeFromGBuffer(
 {
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
+    g_FeatureFlags = featureFlags;
+
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
 
@@ -489,10 +500,10 @@ void DecodeFromGBuffer(
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
-    int supportsStandard = (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
-    int supportsSSS = (featureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
-    int supportsAniso = (featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
-    int supportClearCoat = (featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
+    int supportsStandard = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD);
+    int supportsSSS = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
+    int supportsAniso = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO);
+    int supportClearCoat = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT);
 
     if (supportsStandard + supportsSSS + supportsAniso + supportClearCoat > 1)
     {
@@ -512,7 +523,7 @@ void DecodeFromGBuffer(
             bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
 
-    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
+    if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
     {
         float metallic;
         int materialIdExtent;
@@ -530,7 +541,7 @@ void DecodeFromGBuffer(
             FillMaterialIdStandardData(baseColor, metallic, bsdfData);
         }
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
         float subsurfaceRadius  = inGBuffer2.x;
         float thickness         = inGBuffer2.y;
@@ -538,7 +549,7 @@ void DecodeFromGBuffer(
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float metallic;
         int unused;
@@ -549,7 +560,7 @@ void DecodeFromGBuffer(
         float anisotropy = inGBuffer2.b;
         FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
-    else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // We have swap the encoding of the normal to have more precision for coat normal as it is more smooth
         float3 coatNormalWS = bsdfData.normalWS;
@@ -677,7 +688,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
         preLightData.ieta = ieta;
@@ -732,7 +743,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // GGX aniso
     preLightData.TdotV = 0.0;
     preLightData.BdotV = 0.0;
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
@@ -749,7 +760,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // IBL
     GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Update the roughness and the IBL miplevel
         // Bottom layer is affected by upper layer BRDF, result can't be more sharp than input (it is to mimic what a path tracer will do)
@@ -804,7 +815,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
         float F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
@@ -874,7 +885,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float3 F = 1.0;
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) )
     {
         // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
@@ -913,7 +924,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float Vis;
     float D;
 
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float3 H = (L + V) * invLenLV;
         // For anisotropy we must not saturate these values
@@ -1285,7 +1296,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     }
 
     // Evaluate the coat part
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // TODO
         // ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformClearCoat);
@@ -1411,7 +1422,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     }
 
     // Evaluate the coat part
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // TODO
         // ltcValue = LTCEvaluate(lightVerts, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
@@ -1515,7 +1526,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         R = (positionWS + dist * R) - lightData.positionWS;
 
         // Test again for clear code
-        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
             dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
@@ -1535,7 +1546,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // TODO: add distance based roughness
 
         // Test again for clear code
-        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
             dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
@@ -1568,7 +1579,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     specularLighting = float3(0.0, 0.0, 0.0);
 
     // Evaluate the Clear Coat component if needed and change the BSDF roughness to match Fresnel transmission
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
 
