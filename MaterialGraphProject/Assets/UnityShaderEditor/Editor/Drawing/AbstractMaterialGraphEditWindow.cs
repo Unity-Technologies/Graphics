@@ -328,8 +328,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
 
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            graph.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
+            List<PropertyCollector.TextureInfo> configuredTextures = new List<PropertyCollector.TextureInfo>();
+//            graph.GetPreviewShader(graph.masterNode, GenerationMode.ForReals, Path.GetFileNameWithoutExtension(path), out configuredTextures);
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)
