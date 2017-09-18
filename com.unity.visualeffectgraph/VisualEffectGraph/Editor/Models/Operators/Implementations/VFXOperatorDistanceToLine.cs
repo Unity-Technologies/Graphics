@@ -29,10 +29,8 @@ namespace UnityEditor.VFX
         {
             VFXExpression lineDelta = new VFXExpressionSubtract(inputExpression[1], inputExpression[0]);
             VFXExpression lineLength = new VFXExpressionMax(VFXOperatorUtility.Dot(lineDelta, lineDelta), VFXValue.Constant(Mathf.Epsilon));
-            VFXExpression pointProjected = new VFXExpressionMul(new VFXExpressionSubtract(inputExpression[2], inputExpression[0]), lineDelta);
+            VFXExpression t = VFXOperatorUtility.Dot(new VFXExpressionSubtract(inputExpression[2], inputExpression[0]), lineDelta);
 
-            VFXExpression[] pointProjectedComponents = VFXOperatorUtility.ExtractComponents(pointProjected).ToArray();
-            VFXExpression t = new VFXExpressionAdd(pointProjectedComponents[0], new VFXExpressionAdd(pointProjectedComponents[1], pointProjectedComponents[2]));
             t = VFXOperatorUtility.Clamp(new VFXExpressionDivide(t, lineLength), VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
 
             VFXExpression pointOnLine = new VFXExpressionAdd(inputExpression[0], new VFXExpressionMul(VFXOperatorUtility.CastFloat(t, lineDelta.valueType), lineDelta));

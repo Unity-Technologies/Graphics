@@ -27,9 +27,13 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression sphereDelta = new VFXExpressionSubtract(inputExpression[0], inputExpression[2]);
-            VFXExpression sphereDistance = new VFXExpressionSubtract(VFXOperatorUtility.Length(sphereDelta), inputExpression[1]);
-            VFXExpression pointOnSphere = new VFXExpressionAdd(inputExpression[2], VFXOperatorUtility.Normalize(sphereDelta));
+            VFXExpression sphereDelta = new VFXExpressionSubtract(inputExpression[2], inputExpression[0]);
+            VFXExpression sphereDeltaLength = VFXOperatorUtility.Length(sphereDelta);
+            VFXExpression sphereDistance = new VFXExpressionSubtract(sphereDeltaLength, inputExpression[1]);
+
+            VFXExpression pointOnSphere = new VFXExpressionDivide(inputExpression[1], sphereDeltaLength);
+            pointOnSphere = new VFXExpressionAdd(new VFXExpressionMul(sphereDelta, VFXOperatorUtility.CastFloat(pointOnSphere, inputExpression[0].valueType)), inputExpression[0]);
+
             return new VFXExpression[] { pointOnSphere, sphereDistance };
         }
     }
