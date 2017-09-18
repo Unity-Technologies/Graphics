@@ -12,7 +12,6 @@ namespace UnityEditor.VFX
             public FloatN x = new FloatN(0.0f);
             [Tooltip("The end value.")]
             public FloatN y = new FloatN(1.0f);
-            [Tooltip("The amount to interpolate between x and y (0-1).")]
             [Tooltip("Smoothstep returns a value between 0 and 1, and s is clamped between x and y.")]
             public FloatN s = new FloatN(0.5f);
         }

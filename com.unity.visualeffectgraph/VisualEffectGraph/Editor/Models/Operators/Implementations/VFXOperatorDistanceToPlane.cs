@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression planeDistance = VFXOperatorUtility.SignedDistanceToPlane(inputExpression[0], inputExpression[1], inputExpression[2]);
-            VFXExpression pointOnPlane = new VFXExpressionSubtract(inputExpression[2], new VFXExpressionMul(inputExpression[1], VFXOperatorUtility.CastFloat(planeDistance, inputExpression[1].ValueType)));
+            VFXExpression pointOnPlane = new VFXExpressionSubtract(inputExpression[2], new VFXExpressionMul(inputExpression[1], VFXOperatorUtility.CastFloat(planeDistance, inputExpression[1].valueType)));
             return new VFXExpression[] { pointOnPlane, planeDistance };
         }
     }

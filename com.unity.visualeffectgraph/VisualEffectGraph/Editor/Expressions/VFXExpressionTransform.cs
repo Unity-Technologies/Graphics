@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public override VFXValueType valueType
         {
             get
             {
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -97,7 +97,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public override VFXValueType valueType
         {
             get
             {
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public override VFXValueType valueType
         {
             get
             {
@@ -164,6 +164,14 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOp.kVFXTransformPosOp;
+            }
+        }
+
+        public override VFXValueType valueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
             }
         }
 
@@ -229,7 +237,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp Operation
+        public override VFXExpressionOp operation
         {
             get
             {
@@ -237,7 +245,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public override VFXValueType valueType
         {
             get
             {

@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Plane plane = new Plane { normal = Vector3.up};
+            public Plane plane = new Plane(Vector3.up);
         }
     }
     [VFXInfo(category = "Tests")]
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Cylinder cylinder = new Cylinder { radius = 1, height = 1, direction = Vector3.up};
+            public Cylinder cylinder = new Cylinder { radius = 1, height = 1 };
         }
     }
 }

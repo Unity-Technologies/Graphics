@@ -75,6 +75,8 @@ namespace UnityEditor.VFX
     [VFXType]
     struct Plane : ISpaceable
     {
+        public Plane(Vector3 direction) { space = CoordinateSpace.Local; position = Vector3.zero; normal.space = CoordinateSpace.Local; normal.direction = direction; }
+
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
@@ -117,7 +119,7 @@ namespace UnityEditor.VFX
     [VFXType]
     struct Torus : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         [Tooltip("The centre of the torus.")]
@@ -131,7 +133,7 @@ namespace UnityEditor.VFX
     [VFXType]
     struct Line : ISpaceable
     {
-        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
         [Tooltip("The start position of the line.")]
