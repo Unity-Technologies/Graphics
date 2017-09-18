@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
                             exp = VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
                             break;
                         case Type.kMin:
-                            exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.ValueType));
+                            exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));
                             break;
                         case Type.kNormalize:
                             exp = VFXOperatorUtility.Normalize(exp);

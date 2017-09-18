@@ -35,6 +35,8 @@ namespace  UnityEditor.VFX.UI
             });
         }
 
+        public static VFXViewWindow currentWindow;
+
         [MenuItem("VFX Editor/Window")]
         public static void ShowWindow()
         {
@@ -80,6 +82,16 @@ namespace  UnityEditor.VFX.UI
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+
+
+            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            if (rootVisualElement.panel != null)
+            {
+                rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+                Debug.Log("View window was already attached to a panel on OnEnable");
+            }
+
+            currentWindow = this;
         }
 
         protected new void OnDisable()
@@ -88,6 +100,7 @@ namespace  UnityEditor.VFX.UI
             graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
+            currentWindow = null;
         }
 
         void OnSelectionChange()
@@ -104,12 +117,16 @@ namespace  UnityEditor.VFX.UI
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+
+            Debug.Log("VFXViewWindow.OnEnterPanel");
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
+
+            Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
         void Update()

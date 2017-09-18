@@ -124,6 +124,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public override bool Overlaps(Rect rect)
+        {
+            if (m_Mesh == null)
+                return false;
+
+            Vector3[] meshPoints = m_Mesh.vertices;
+
+            for (int i = 0; i < meshPoints.Length / 2 - 1; ++i)
+            {
+                Vector3 a = (meshPoints[i * 2] + meshPoints[i * 2 + 1]) * 0.5f;
+                Vector3 b = (meshPoints[(i + 1) * 2] + meshPoints[(i + 1) * 2 + 1]) * 0.5f;
+
+                if (RectUtils.IntersectsSegment(rect, a, b))
+                    return true;
+            }
+
+            return false;
+        }
+
         List<Vector2> m_CurvePoints = new List<Vector2>();
 
         protected override void DrawEdge()
@@ -135,9 +155,9 @@ namespace UnityEditor.VFX.UI
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
             float realWidth = edgeWidth;
-            if (realWidth * view.scale < 1.5f)
+            if (realWidth * view.scale < 1.0f)
             {
-                realWidth = 1.5f / view.scale;
+                realWidth = 1.0f / view.scale;
             }
 
             if (m_PrevControlPoints == null

@@ -70,16 +70,20 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
-        public static void RenderLine(Vector2 start, Vector2 end, Color color, float edgeWidth)
+        public static void RenderLine(Vector2 start, Vector2 end, Color color, float edgeWidth, float viewScale)
         {
+            lineMat.SetFloat("_ZoomFactor", viewScale);
+            lineMat.SetColor("_Color", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.gamma : color);
+
             lineMat.SetPass(0);
+
+
             GL.Begin(GL.TRIANGLE_STRIP);
-            GL.Color(color);
 
             Vector2 dir = (end - start).normalized;
             Vector2 norm = new Vector2(dir.y, -dir.x);
 
-            float halfWidth = edgeWidth * 0.5f + 0.5f;
+            float halfWidth = edgeWidth * 0.5f;
 
             float vertexHalfWidth = halfWidth + 2;
             Vector2 edge = norm * vertexHalfWidth;
@@ -95,11 +99,13 @@ namespace UnityEditor.VFX.UI
             GL.Vertex(end + edge);
 
             GL.End();
+            GL.sRGBWrite = false;
         }
 
         public static void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
         {
             lineMat.SetPass(0);
+            lineMat.SetColor("_Color", color);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(color);
 

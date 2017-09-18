@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         public VFXExpressionCombine(params VFXExpression[] parents)
             : base(parents)
         {
-            if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.ValueType)))
+            if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.valueType)))
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine");
             }
@@ -24,15 +24,12 @@ namespace UnityEditor.VFX
             {
                 case 2:
                     m_Operation = VFXExpressionOp.kVFXCombine2fOp;
-                    m_ValueType = VFXValueType.kFloat2;
                     break;
                 case 3:
                     m_Operation = VFXExpressionOp.kVFXCombine3fOp;
-                    m_ValueType = VFXValueType.kFloat3;
                     break;
                 case 4:
                     m_Operation = VFXExpressionOp.kVFXCombine4fOp;
-                    m_ValueType = VFXValueType.kFloat4;
                     break;
             }
         }
@@ -40,12 +37,12 @@ namespace UnityEditor.VFX
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var constParentFloat = reducedParents.Cast<VFXValue<float>>().Select(o => o.Get()).ToArray();
-            if (constParentFloat.Length != Parents.Length)
+            if (constParentFloat.Length != parents.Length)
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
             }
 
-            switch (Parents.Length)
+            switch (parents.Length)
             {
                 case 2: return VFXValue.Constant(new Vector2(constParentFloat[0], constParentFloat[1]));
                 case 3: return VFXValue.Constant(new Vector3(constParentFloat[0], constParentFloat[1], constParentFloat[2]));
@@ -56,12 +53,7 @@ namespace UnityEditor.VFX
 
         sealed public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}({1})", TypeToCode(ValueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
-        }
-
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            FillOperandsWithParents(data, this, graph);
+            return string.Format("{0}({1})", TypeToCode(valueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
         }
     }
 }

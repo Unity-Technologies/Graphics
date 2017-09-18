@@ -17,5 +17,39 @@ namespace UnityEditor.VFX.UI
                 //Debug.Log("Blocks:"+allBlocks.Count());
             }
         }
+
+        public static void OnDrawComponentGizmo(Object component)
+        {
+            VFXComponent comp = component as VFXComponent;
+
+            if (VFXViewWindow.currentWindow == null) return;
+
+
+            VFXView view = VFXViewWindow.currentWindow.graphView as VFXView;
+
+            VFXBlockUI selectedBlock = view.selection.OfType<VFXBlockUI>().FirstOrDefault();
+
+            if (selectedBlock != null)
+            {
+                selectedBlock.GetPresenter<VFXBlockPresenter>().DrawGizmos(comp);
+            }
+            else
+            {
+                VFXOperatorUI selectedOperator = view.selection.OfType<VFXOperatorUI>().FirstOrDefault();
+
+                if (selectedOperator != null)
+                {
+                    selectedOperator.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                }
+                else
+                {
+                    VFXParameterUI selectedParameter = view.selection.OfType<VFXParameterUI>().FirstOrDefault();
+                    if (selectedParameter != null)
+                    {
+                        selectedParameter.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                    }
+                }
+            }
+        }
     }
 }

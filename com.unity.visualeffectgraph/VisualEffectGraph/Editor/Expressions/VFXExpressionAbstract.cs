@@ -47,18 +47,7 @@ namespace UnityEditor.VFX
 
         public static int TypeToSize(VFXValueType type)
         {
-            switch (type)
-            {
-                case VFXValueType.kFloat: return 1;
-                case VFXValueType.kFloat2: return 2;
-                case VFXValueType.kFloat3: return 3;
-                case VFXValueType.kFloat4: return 4;
-                case VFXValueType.kInt: return 1;
-                case VFXValueType.kUint: return 1;
-                case VFXValueType.kBool: return 1;
-                case VFXValueType.kTransform: return 16;
-            }
-            throw new NotImplementedException(type.ToString());
+            return VFXExpressionHelper.GetSizeOfType(type);
         }
 
         public static string TypeToCode(VFXValueType type)
@@ -146,23 +135,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kBool:
                     return true;
             }
-
             return false;
-        }
-
-        protected static void FillOperandsWithParents(int[] data, VFXExpression exp, VFXExpressionGraph graph)
-        {
-            var parents = exp.Parents;
-            for (int i = 0; i < parents.Length; ++i)
-                data[i] = graph.GetFlattenedIndex(parents[i]);
-        }
-
-        protected static void FillOperandsWithParentsAndValueSize(int[] data, VFXExpression exp, VFXExpressionGraph graph)
-        {
-            if (exp.Parents.Length > 3)
-                throw new Exception("parents length cannot be more than 3 for operation of variable size");
-            FillOperandsWithParents(data, exp, graph);
-            data[3] = VFXExpression.TypeToSize(exp.ValueType);
         }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
@@ -219,9 +192,23 @@ namespace UnityEditor.VFX
         }
 
         // Get the operands for the runtime evaluation
-        public virtual void FillOperands(int[] data, VFXExpressionGraph graph)
+        public int[] GetOperands(VFXExpressionGraph graph)
         {
-            FillOperandsWithParents(data, this, graph);
+            var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
+            if (parentsIndex.Length + additionnalOperands.Length > 4)
+                throw new Exception("Too much parameter for expression : " + this);
+
+            var data = new int[] { -1, -1, -1, -1};
+            for (int i = 0; i < parents.Length; ++i)
+            {
+                data[i] = parentsIndex[i];
+            }
+
+            for (int i = 0; i < additionnalOperands.Length; ++i)
+            {
+                data[data.Length - additionnalOperands.Length + i] = additionnalOperands[i];
+            }
+            return data;
         }
 
         public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()
@@ -232,10 +219,17 @@ namespace UnityEditor.VFX
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
         public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
 
-        public abstract VFXValueType ValueType { get; }
-        public abstract VFXExpressionOp Operation { get; }
+        public virtual VFXValueType valueType
+        {
+            get
+            {
+                var data = GetOperands(null);
+                return VFXExpressionHelper.GetTypeOfOperation(operation, data[0], data[1], data[2], data[3]);
+            }
+        }
+        public abstract VFXExpressionOp operation { get; }
 
-        public VFXExpression[] Parents { get { return m_Parents; } }
+        public VFXExpression[] parents { get { return m_Parents; } }
 
         public override bool Equals(object obj)
         {
@@ -243,31 +237,24 @@ namespace UnityEditor.VFX
             if (other == null)
                 return false;
 
-            if (Operation != other.Operation)
+            if (operation != other.operation)
                 return false;
 
-            if (ValueType != other.ValueType)
+            if (valueType != other.valueType)
                 return false;
 
             if (m_Flags != other.m_Flags)
                 return false;
 
-            var additionalParams = AdditionalParameters;
-            var otherAdditionalParams = other.AdditionalParameters;
-
-            if (additionalParams.Length != otherAdditionalParams.Length)
+            if (other.additionnalOperands.Length != additionnalOperands.Length)
                 return false;
 
-            for (int i = 0; i < additionalParams.Length; ++i)
-                if (additionalParams[i] != otherAdditionalParams[i])
+            for (int i = 0; i < additionnalOperands.Length; ++i)
+                if (additionnalOperands[i] != other.additionnalOperands[i])
                     return false;
 
-            //if (GetHashCode() != obj.GetHashCode())
-            //    return false;
-
-            // TODO Not really optimized for an equal function!
-            var thisParents = Parents;
-            var otherParents = other.Parents;
+            var thisParents = parents;
+            var otherParents = other.parents;
 
             if (thisParents == null && otherParents == null)
                 return true;
@@ -287,22 +274,21 @@ namespace UnityEditor.VFX
         {
             int hash = GetType().GetHashCode();
 
-            var parents = Parents;
+            var parents = this.parents;
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            var additionalParameters = AdditionalParameters;
-            for (int i = 0; i < additionalParameters.Length; ++i)
-                hash = (hash * 397) ^ additionalParameters[i].GetHashCode();
+            for (int i = 0; i < additionnalOperands.Length; ++i)
+                hash = (hash * 397) ^ additionnalOperands[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
-            hash = (hash * 397) ^ ValueType.GetHashCode();
-            hash = (hash * 397) ^ Operation.GetHashCode();
+            hash = (hash * 397) ^ valueType.GetHashCode();
+            hash = (hash * 397) ^ operation.GetHashCode();
 
             return hash;
         }
 
-        public virtual int[] AdditionalParameters { get { return new int[] {}; } }
+        protected virtual int[] additionnalOperands { get { return Enumerable.Empty<int>().ToArray(); } }
         public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);

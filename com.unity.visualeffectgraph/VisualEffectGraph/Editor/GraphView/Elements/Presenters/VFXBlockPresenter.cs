@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
     }
 }

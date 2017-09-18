@@ -101,6 +101,7 @@ namespace UnityEditor.VFX
     class VFXModelDescriptorBuiltInParameters : VFXModelDescriptor<VFXBuiltInParameter>
     {
         private string m_name;
+        private VFXExpressionOp m_op;
         public override string name
         {
             get
@@ -112,13 +113,14 @@ namespace UnityEditor.VFX
         public VFXModelDescriptorBuiltInParameters(VFXExpressionOp op) : base(ScriptableObject.CreateInstance<VFXBuiltInParameter>())
         {
             m_name = op.ToString();
+            m_op = op;
             m_Template.Init(op);
         }
 
         public override VFXBuiltInParameter CreateInstance()
         {
             var instance = base.CreateInstance();
-            instance.Init(m_Template.outputSlots[0].GetExpression().Operation);
+            instance.Init(m_op);
             return instance;
         }
     }

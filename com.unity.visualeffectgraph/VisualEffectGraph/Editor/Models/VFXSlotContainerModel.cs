@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
@@ -27,9 +28,7 @@ namespace UnityEditor.VFX
 
         void SetSettingValue(string name, object value);
 
-        object settings {get; }
-
-        bool expanded { get; set; }
+        bool collapsed { get; set; }
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -38,19 +37,6 @@ namespace UnityEditor.VFX
     {
         public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
-
-        public object settings { get { return m_Settings != null ? m_Settings.Get() : null; } }
-
-        public bool expanded { get; set; }
-
-        [SerializeField]
-        private VFXSerializableObject m_Settings;
-
-
-        public T GetSettings<T>() where T : class
-        {
-            return m_Settings != null ? m_Settings.Get<T>() : null;
-        }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
         public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
@@ -64,7 +50,7 @@ namespace UnityEditor.VFX
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
             if (!slot.IsMasterSlot())
-                throw new ArgumentException();
+                throw new ArgumentException("InnerAddSlot expect only a masterSlot");
 
             if (slot.owner != this as IVFXSlotContainer)
             {
@@ -123,15 +109,8 @@ namespace UnityEditor.VFX
             return "OutputProperties";
         }
 
-        protected string GetSettingsTypeName()
-        {
-            return "Settings";
-        }
-
         protected VFXSlotContainerModel()
-        {
-            InitSettings();
-        }
+        {}
 
         public override void OnEnable()
         {
@@ -174,27 +153,22 @@ namespace UnityEditor.VFX
 
         public override T Clone<T>()
         {
-            var clone = base.Clone<T>();
-            var cloneContainer = clone as VFXSlotContainerModel<ParentType, ChildrenType>;
+            var clone = base.Clone<T>() as VFXSlotContainerModel<ParentType, ChildrenType>;
 
-            cloneContainer.m_InputSlots.Clear();
-            cloneContainer.m_OutputSlots.Clear();
-
-            foreach (var input in inputSlots)
+            var settings = VFXSettingAttribute.Collect(this);
+            foreach (var setting in settings)
             {
-                var cloneSlot = input.Clone<VFXSlot>();
-                cloneContainer.m_InputSlots.Add(cloneSlot);
-                cloneSlot.SetOwner(cloneContainer);
+                clone.SetSettingValue(setting.Name, setting.GetValue(this), false);
             }
 
-            foreach (var output in outputSlots)
+            clone.m_InputSlots.Clear();
+            clone.m_OutputSlots.Clear();
+            foreach (var slot in inputSlots.Concat(outputSlots))
             {
-                var cloneSlot = output.Clone<VFXSlot>();
-                cloneContainer.m_OutputSlots.Add(cloneSlot);
-                cloneSlot.SetOwner(cloneContainer);
+                var cloneSlot = slot.Clone<VFXSlot>();
+                clone.InnerAddSlot(cloneSlot, false);
             }
-
-            return clone;
+            return clone as T;
         }
 
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
@@ -275,20 +249,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void InitSettings()
-        {
-            var type = GetType().GetRecursiveNestedType(GetSettingsTypeName());
-            if (type != null)
-            {
-                if (!type.IsClass)
-                {
-                    Debug.LogError("Settings type must be a class:" + type.FullName);
-                    return;
-                }
-                m_Settings = new VFXSerializableObject(type);
-            }
-        }
-
         public void ExpandPath(string fieldPath)
         {
             m_expandedPaths.Add(fieldPath);
@@ -326,15 +286,19 @@ namespace UnityEditor.VFX
         [SerializeField]
         List<VFXSlot> m_OutputSlots;
 
+        // TODO This could be directly in VFXModel and remove from the IVFXSlotContainer interface
         public void SetSettingValue(string name, object value)
         {
-            object sett = m_Settings.Get();
-            if (settings != null)
-                settings.GetType().GetField(name).SetValue(sett, value);
+            SetSettingValue(name, value, true);
+        }
 
-            m_Settings.Set(sett);
-
-            Invalidate(InvalidationCause.kSettingChanged);
+        private void SetSettingValue(string name, object value, bool notify)
+        {
+            GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
+            if (notify)
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
         }
     }
 }

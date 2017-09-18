@@ -9,9 +9,63 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
+    class Collapser : Manipulator
+    {
+        public Collapser()
+        {
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseDownEvent>(OnMouseUp);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseDownEvent>(OnMouseUp);
+        }
+
+        void OnMouseUp(MouseDownEvent e)
+        {
+            if (e.clickCount == 2)
+            {
+                VFXSlotContainerUI slotContainer = (VFXSlotContainerUI)target;
+
+                slotContainer.collapse = !slotContainer.collapse;
+            }
+        }
+    }
+
     class VFXSlotContainerUI : VFXNodeUI
     {
         public VisualElement m_SettingsContainer;
+
+        bool m_Collapse;
+        public bool collapse
+        {
+            get { return m_Collapse; }
+
+            set
+            {
+                if (m_Collapse != value)
+                {
+                    m_Collapse = value;
+                    if (m_Collapse)
+                    {
+                        AddToClassList("collapsed");
+                    }
+                    else
+                    {
+                        RemoveFromClassList("collapsed");
+                    }
+                }
+            }
+        }
+
+        public VFXSlotContainerUI()
+        {
+            this.AddManipulator(new Collapser());
+        }
 
         public override void OnDataChanged()
         {

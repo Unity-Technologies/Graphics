@@ -15,18 +15,15 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(model, viewPresenter);
 
-            object settings = slotContainer.settings;
-            if (settings != null)
+            var settings = VFXSettingAttribute.Collect(model);
+            m_Settings = new VFXSettingPresenter[settings.Count()];
+            int cpt = 0;
+            foreach (var setting in settings)
             {
-                m_Settings = new VFXSettingPresenter[settings.GetType().GetFields().Length];
-                int cpt = 0;
-                foreach (var member in settings.GetType().GetFields())
-                {
-                    VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
+                VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
 
-                    settingPresenter.Init(this.slotContainer, member.Name, member.FieldType);
-                    m_Settings[cpt++] = settingPresenter;
-                }
+                settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
+                m_Settings[cpt++] = settingPresenter;
             }
             OnInvalidate(model, VFXModel.InvalidationCause.kStructureChanged);
             viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
@@ -82,14 +79,14 @@ namespace UnityEditor.VFX.UI
                     newAnchors.Add(propPresenter);
                     viewPresenter.RegisterDataAnchorPresenter(propPresenter);
 
-                    if (!typeof(Spaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
+                    if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
                     {
-                        UpdateSlots(newAnchors, slot.children, expanded && slot.expanded, input);
+                        UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
                     }
                     else
                     {
                         VFXSlot firstSlot = slot.children.First();
-                        UpdateSlots(newAnchors, firstSlot.children, expanded && slot.expanded, input);
+                        UpdateSlots(newAnchors, firstSlot.children, expanded && !slot.collapsed, input);
                     }
                 }
             }
@@ -124,22 +121,29 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public new bool  expanded
+        public bool expanded
         {
             get
             {
-                return slotContainer.expanded;
+                return !slotContainer.collapsed;
             }
 
             set
             {
-                if (value != slotContainer.expanded)
+                if (value != !slotContainer.collapsed)
                 {
-                    slotContainer.expanded = value;
+                    slotContainer.collapsed = !value;
                 }
             }
         }
 
+        public virtual void DrawGizmos(VFXComponent component)
+        {
+            foreach (VFXDataAnchorPresenter presenter in inputAnchors.Cast<VFXDataAnchorPresenter>())
+            {
+                presenter.DrawGizmo(component);
+            }
+        }
 
         [SerializeField]
         private VFXSettingPresenter[] m_Settings;

@@ -2,6 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
@@ -23,7 +24,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXSubParameterPresenter : IPropertyRMProvider
+    class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
     {
         VFXParameterPresenter m_Parameter;
         //int m_Field;
@@ -97,7 +98,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
+    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
     {
         VFXSubParameterPresenter[] m_SubPresenters;
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
@@ -123,7 +124,7 @@ namespace UnityEditor.VFX.UI
 
                 int count = fields.Length;
 
-                bool spaceable = typeof(Spaceable).IsAssignableFrom(type);
+                bool spaceable = typeof(ISpaceable).IsAssignableFrom(type);
                 if (spaceable)
                 {
                     --count;
@@ -154,7 +155,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposedName != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed Name");
                     parameter.exposedName = value;
                 }
             }
@@ -166,7 +166,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.exposed != value)
                 {
-                    Undo.RecordObject(parameter, "Exposed");
                     parameter.exposed = value;
                 }
             }
@@ -179,7 +178,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (parameter.order != value)
                 {
-                    Undo.RecordObject(parameter, "Parameter Order");
                     parameter.order = value;
                 }
             }
@@ -205,7 +203,6 @@ namespace UnityEditor.VFX.UI
             get { return m_CachedMinValue; }
             set
             {
-                Undo.RecordObject(parameter, "Parameter Min");
                 m_CachedMinValue = value;
                 if (value != null)
                 {
@@ -223,7 +220,6 @@ namespace UnityEditor.VFX.UI
             get { return m_CachedMaxValue; }
             set
             {
-                Undo.RecordObject(parameter, "Parameter Max");
                 m_CachedMaxValue = value;
                 if (value != null)
                 {
@@ -244,6 +240,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
+
         public object value
         {
             get
@@ -253,7 +250,6 @@ namespace UnityEditor.VFX.UI
             set
             {
                 object b = value;
-
 
                 if (!object.Equals(m_CachedValue, b))
                 {
@@ -295,6 +291,16 @@ namespace UnityEditor.VFX.UI
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             return new UnityEngine.Object[] { this, model, parameter.outputSlots[0] };
+        }
+
+        public override void DrawGizmos(VFXComponent component)
+        {
+            VFXValueGizmo.Draw(this, component);
+
+            foreach (var presenter in m_SubPresenters)
+            {
+                VFXValueGizmo.Draw(presenter, component);
+            }
         }
     }
 }

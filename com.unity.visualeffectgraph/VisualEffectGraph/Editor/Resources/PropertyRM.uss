@@ -51,7 +51,7 @@
 	margin-bottom:3;
 	margin-left:6;
 }
-.propertyrm .textfield
+.propertyrm .textfieldd
 {
     text-color:#BBB;
 
@@ -85,10 +85,6 @@
 .propertyrm .textfield::disabled
 {
     text-color:#666;
-}
-
-.propertyrm .fieldContainer  * .textfield:focus
-{
 }
 
 .propertyrm .fieldContainer * .label
@@ -153,6 +149,11 @@ ColorField
     flex-direction:row;
 }
 
+FloatField TextField
+{
+	flex:1;
+}
+
 FloatPropertyRM FloatField
 {
     align-self:flex-end;
@@ -175,6 +176,19 @@ CurveField .curve
 	border-bottom-width:1;
     border-color:#000;
 }
+
+
+GradientField
+{
+    flex:1;
+    height:13;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
+    border-color:#000;
+}
+
 CurvePropertyRM CurveField
 {
     flex:1;

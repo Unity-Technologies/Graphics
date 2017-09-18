@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
 
         public Mode ValueMode { get { return m_Mode; } }
 
-        sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
+        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -48,14 +48,9 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             if (Is(Flags.InvalidOnGPU) || !Is(Flags.Constant))
-                throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", ValueType));
+                throw new InvalidOperationException(string.Format("Type {0} is either not valid on GPU or expression is not constant", valueType));
 
-            return VFXShaderWriter.GetValueString(ValueType, GetContent());
-        }
-
-        public override void FillOperands(int[] data, VFXExpressionGraph graph)
-        {
-            data[0] = (int)ValueType;
+            return VFXShaderWriter.GetValueString(valueType, GetContent());
         }
 
         abstract public VFXValue CopyExpression(Mode mode);
@@ -68,7 +63,7 @@ namespace UnityEditor.VFX
                 if (val == null)
                     return false;
 
-                if (ValueType != val.ValueType)
+                if (valueType != val.valueType)
                     return false;
 
                 var content = GetContent();
@@ -87,7 +82,7 @@ namespace UnityEditor.VFX
         {
             if (m_Mode == Mode.Constant)
             {
-                int hashCode = ValueType.GetHashCode();
+                int hashCode = valueType.GetHashCode();
                 var content = GetContent();
 
                 if (content != null)
@@ -110,7 +105,7 @@ namespace UnityEditor.VFX
         {
             m_Content = content;
 
-            if (!IsTypeValidOnGPU(ValueType))
+            if (!IsTypeValidOnGPU(valueType))
                 m_Flags |= VFXExpression.Flags.InvalidOnGPU;
         }
 
@@ -190,11 +185,11 @@ namespace UnityEditor.VFX
         }
 
         static private readonly VFXValueType s_ValueType = ToValueType();
-        sealed public override VFXValueType ValueType
+        protected override int[] additionnalOperands
         {
             get
             {
-                return s_ValueType;
+                return new int[] { (int)s_ValueType };
             }
         }
     }

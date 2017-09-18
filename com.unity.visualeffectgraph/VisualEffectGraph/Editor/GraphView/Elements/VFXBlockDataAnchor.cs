@@ -48,14 +48,14 @@ namespace UnityEditor.VFX.UI
 
                     GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
-                    float realWidth = edge.presenter.selected ? edge.edgeWidth * 2 : edge.edgeWidth;
-                    if (realWidth * view.scale < 1.5f)
+                    float realWidth = edge.edgeWidth;
+                    if (realWidth * view.scale < 1.0f)
                     {
-                        realWidth = 1.5f / view.scale;
+                        realWidth = 1.0f / view.scale;
                     }
 
                     Color edgeColor = edge.style.borderColor;
-                    VFXEdgeUtils.RenderLine(from, to, edgeColor, realWidth);
+                    VFXEdgeUtils.RenderLine(from, to, edgeColor, realWidth, view.scale);
                 }
             }
         }

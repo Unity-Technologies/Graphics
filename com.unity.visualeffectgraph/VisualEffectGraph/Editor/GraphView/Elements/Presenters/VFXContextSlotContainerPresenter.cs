@@ -43,12 +43,12 @@ namespace UnityEditor.VFX.UI
 
         static bool ShouldSkipLevel(Type type)
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+            return typeof(ISpaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
         }
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)
         {
-            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
 
         protected VFXContextPresenter m_ContextPresenter;

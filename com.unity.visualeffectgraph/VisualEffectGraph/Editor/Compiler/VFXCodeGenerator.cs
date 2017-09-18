@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                if (context.GetData().IsAttributeStored(attribute) && context.contextType != VFXContextType.kInit)
+                if (context.GetData().IsAttributeStored(attribute) && context.GetData().IsAttributeRead(attribute, context) && context.contextType != VFXContextType.kInit)
                 {
                     r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute));
                 }
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
                 if (attributesCurrent.Any(o => o.attrib.name == attribute.name))
                 {
                     var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, VFXAttributeLocation.Current));
-                    r.WriteVariable(reference.ValueType, name, reference.GetCodeString(null));
+                    r.WriteVariable(reference.valueType, name, reference.GetCodeString(null));
                 }
                 else
                 {
@@ -101,7 +101,11 @@ namespace UnityEditor.VFX
         {
             var r = new StringBuilder();
             var regex = new Regex(matching);
-            var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) && context.GetData().IsAttributeStored(o.attrib)).ToArray();
+
+            var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
+                    context.GetData().IsAttributeStored(o.attrib) &&
+                    context.GetData().IsAttributeWritten(o.attrib, context)).ToArray();
+
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {
                 r.Append(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
@@ -119,7 +123,7 @@ namespace UnityEditor.VFX
             var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name)).ToArray();
             foreach (var namedExpression in filteredNamedExpressions)
             {
-                r.WriteVariable(namedExpression.exp.ValueType, namedExpression.name, "0");
+                r.WriteVariable(namedExpression.exp.valueType, namedExpression.name, "0");
                 r.WriteLine();
             }
 
@@ -131,7 +135,7 @@ namespace UnityEditor.VFX
                     r.WriteVariable(namedExpression.exp, expressionToNameLocal);
                     r.WriteLine();
                 }
-                r.WriteAssignement(namedExpression.exp.ValueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
+                r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
                 r.WriteLine();
             }
             r.ExitScope();
@@ -160,6 +164,28 @@ namespace UnityEditor.VFX
                     Build(context, currentTemplate, stringBuilders[i], gpuMapper);
                     processedFile.Add(currentTemplate, stringBuilders[i]);
                 }
+            }
+        }
+
+        static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
+        {
+            var settings = VFXSettingAttribute.Collect(block).ToArray();
+            if (settings.Length > 0)
+            {
+                comment = "";
+                int hash = 0;
+                foreach (var setting in settings)
+                {
+                    var value = setting.GetValue(block);
+                    hash = (hash * 397) ^ value.GetHashCode();
+                    comment += string.Format("{0}:{1} ", setting.Name, value.ToString());
+                }
+                functionName = string.Format("{0}_{1}", block.GetType().Name, hash.ToString("X"));
+            }
+            else
+            {
+                comment = null;
+                functionName = block.GetType().Name;
             }
         }
 
@@ -208,11 +234,12 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var methodName = block.functionName;
+                string methodName, commentMethod;
+                GetFunctionName(block, out methodName, out commentMethod);
                 if (!blockDeclared.Contains(methodName))
                 {
                     blockDeclared.Add(methodName);
-                    blockFunction.WriteBlockFunction(gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter);
+                    blockFunction.WriteBlockFunction(gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter, commentMethod);
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
@@ -289,8 +316,8 @@ namespace UnityEditor.VFX
             //< Store Attribute
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
-                var loadAttribute = GenerateStoreAttribute(".*", context);
-                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", loadAttribute);
+                var storeAttribute = GenerateStoreAttribute(".*", context);
+                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
             }
 
             var storeAttributeRegex = new Regex("\\${VFXStoreAttributes:{(.*?)}}");

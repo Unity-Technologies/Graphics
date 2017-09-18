@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UI
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(presenter.attributes, ref text, ref tooltip);
 
-            TooltipExtension.AddTooltip(this, tooltip);
+            this.AddTooltip(tooltip);
         }
 
         public override bool ContainsPoint(Vector2 localPoint)

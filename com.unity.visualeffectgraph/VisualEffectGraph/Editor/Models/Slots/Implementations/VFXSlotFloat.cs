@@ -20,23 +20,23 @@ namespace UnityEditor.VFX
 
         sealed protected override bool CanConvertFrom(VFXExpression expr)
         {
-            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.ValueType));
+            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.valueType));
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.ValueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.kFloat)
                 return expression;
 
-            if (expression.ValueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.kInt)
                 return new VFXExpressionCastIntToFloat(expression);
 
-            if (expression.ValueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.kUint)
                 return new VFXExpressionCastUintToFloat(expression);
 
-            if (expression.ValueType == VFXValueType.kFloat2
-                ||  expression.ValueType == VFXValueType.kFloat3
-                ||  expression.ValueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.kFloat2
+                ||  expression.valueType == VFXValueType.kFloat3
+                ||  expression.valueType == VFXValueType.kFloat4)
             {
                 return new VFXExpressionExtractComponent(expression, 0);
             }

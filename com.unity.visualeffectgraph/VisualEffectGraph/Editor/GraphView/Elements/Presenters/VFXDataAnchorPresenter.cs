@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider
+    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider, IValuePresenter
     {
         [SerializeField]
         private VFXSlot m_Model;
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             VFXSlot parent = m_Model.GetParent();
             while (parent != null)
             {
-                if (!parent.expanded)
+                if (parent.collapsed)
                 {
                     m_Hidden = true;
                     break;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
 
         public bool expanded
         {
-            get { return model.expanded; }
+            get { return !model.collapsed; }
         }
 
         public virtual bool expandable
@@ -198,23 +198,25 @@ namespace UnityEditor.VFX.UI
 
         public void ExpandPath()
         {
-            model.expanded = true;
-            if (typeof(Spaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            model.collapsed = false;
+            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
             {
-                model.children.First().expanded = model.expanded;
+                model.children.First().collapsed = model.collapsed;
             }
-            model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
         }
 
         public void RetractPath()
         {
-            Undo.RecordObject(model, "Retract path");
-            model.expanded = false;
-            if (typeof(Spaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            model.collapsed = true;
+            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
             {
-                model.children.First().expanded = model.expanded;
+                model.children.First().collapsed = model.collapsed;
             }
-            model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
+        }
+
+        public void DrawGizmo(VFXComponent component)
+        {
+            VFXValueGizmo.Draw(this, component);
         }
     }
 }

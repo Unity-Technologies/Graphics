@@ -196,19 +196,19 @@ namespace UnityEditor.VFX
         public void WriteTexture(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.ValueType), mapper.GetName(texture));
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), mapper.GetName(texture));
         }
 
         public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
-                .OrderByDescending(e => VFXValue.TypeToSize(e.ValueType));
+                .OrderByDescending(e => VFXValue.TypeToSize(e.valueType));
 
             var uniformBlocks = new List<List<VFXExpression>>();
             foreach (var value in uniformValues)
             {
-                var block = uniformBlocks.FirstOrDefault(b => b.Sum(e => VFXValue.TypeToSize(e.ValueType)) + VFXValue.TypeToSize(value.ValueType) <= 4);
+                var block = uniformBlocks.FirstOrDefault(b => b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= 4);
                 if (block != null)
                     block.Add(value);
                 else
@@ -226,9 +226,9 @@ namespace UnityEditor.VFX
                     int currentSize = 0;
                     foreach (var value in block)
                     {
-                        string type = VFXExpression.TypeToCode(value.ValueType);
+                        string type = VFXExpression.TypeToCode(value.valueType);
                         string name = mapper.GetName(value);
-                        currentSize += VFXExpression.TypeToSize(value.ValueType);
+                        currentSize += VFXExpression.TypeToSize(value.valueType);
 
                         WriteLineFormat("{0} {1};", type, name);
                     }
@@ -246,7 +246,7 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes)
+        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, string commentMethod)
         {
             var parameters = new List<string>();
             for (int i = 0; i < parameterNames.Count; ++i)
@@ -254,10 +254,15 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.ValueType), parameter));
+                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.valueType), parameter));
             }
 
-            WriteLineFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            WriteFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            if (!string.IsNullOrEmpty(commentMethod))
+            {
+                WriteFormat(" /*{0}*/", commentMethod);
+            }
+            WriteLine();
             EnterScope();
             if (source != null)
                 WriteMultilineWithIndent(source);
@@ -302,14 +307,14 @@ namespace UnityEditor.VFX
                     entry = exp.GetCodeString(null); // Patch constant directly
                 else
                 {
-                    foreach (var parent in exp.Parents)
+                    foreach (var parent in exp.parents)
                         WriteVariable(parent, variableNames);
 
                     // Generate a new variable name
                     entry = "tmp_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)variableNames.Count());
-                    string value = exp.GetCodeString(exp.Parents.Select(p => variableNames[p]).ToArray());
+                    string value = exp.GetCodeString(exp.parents.Select(p => variableNames[p]).ToArray());
 
-                    WriteVariable(exp.ValueType, entry, value);
+                    WriteVariable(exp.valueType, entry, value);
                     WriteLine();
                 }
 

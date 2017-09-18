@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector4))]
     class VFXSlotFloat4 : VFXSlot
     {
-        sealed protected override bool CanConvertFrom(Type type)
+        protected override bool CanConvertFrom(Type type)
         {
             return base.CanConvertFrom(type)
                 || type == typeof(float)
@@ -18,24 +18,24 @@ namespace UnityEditor.VFX
 
         sealed protected override bool CanConvertFrom(VFXExpression expr)
         {
-            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.ValueType));
+            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.valueType));
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.ValueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.kFloat4)
                 return expression;
 
-            if (expression.ValueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.kFloat)
                 return new VFXExpressionCombine(expression, expression, expression, expression);
 
-            if (expression.ValueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.kUint)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.ValueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.kInt)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);

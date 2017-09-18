@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
+using System.Globalization;
 
 namespace UnityEditor.VFX
 {
@@ -196,7 +197,7 @@ namespace UnityEditor.VFX
 
             if (obj.GetType().IsPrimitive)
             {
-                return obj.ToString();
+                return string.Format(CultureInfo.InvariantCulture, "{0}", obj.ToString());
             }
             else if (obj is UnityEngine.Object) //type is a unity object
             {
@@ -264,7 +265,7 @@ namespace UnityEditor.VFX
                 if (string.IsNullOrEmpty(text))
                     return Activator.CreateInstance(type);
 
-                return Convert.ChangeType(text, type);
+                return Convert.ChangeType(text, type, CultureInfo.InvariantCulture);
             }
             else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
             {
