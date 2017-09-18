@@ -12,6 +12,7 @@ namespace UnityEditor.VFX
         {
             m_exposedName = "exposedName";
             m_exposed = false;
+            m_UICollapsed = false;
         }
 
         [SerializeField]
