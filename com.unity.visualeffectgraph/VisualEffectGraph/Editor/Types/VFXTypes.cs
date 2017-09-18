@@ -13,8 +13,12 @@ namespace UnityEditor.VFX
     {
         Local,
         Global,
-        Camera,
-        SpaceCount
+        Camera
+    }
+
+    class CoordinateSpaceInfo
+    {
+        public const int SpaceCount = 3;
     }
 
     interface ISpaceable

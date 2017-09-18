@@ -186,7 +186,7 @@ namespace UnityEditor.VFX.UI
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             int result = (int)presenter.context.space;
 
-            presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
+            presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
