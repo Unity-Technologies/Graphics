@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -10,6 +11,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Point Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXParticlePoints"; } }
         public override bool codeGeneratorCompute { get { return false; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kParticlePointOutput; } }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
         {

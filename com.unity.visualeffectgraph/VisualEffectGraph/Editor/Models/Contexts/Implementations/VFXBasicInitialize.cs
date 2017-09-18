@@ -1,3 +1,5 @@
+using UnityEngine.VFX;
+
 namespace UnityEditor.VFX
 {
     [VFXInfo]
@@ -7,5 +9,6 @@ namespace UnityEditor.VFX
         public override string name { get { return "Initialize"; } }
         public override string codeGeneratorTemplate { get { return "VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kInitialize; } }
     }
 }

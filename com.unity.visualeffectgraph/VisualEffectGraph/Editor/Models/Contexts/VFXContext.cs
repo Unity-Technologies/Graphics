@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 using Type = System.Type;
 using Object = UnityEngine.Object;
@@ -82,6 +83,7 @@ namespace UnityEditor.VFX
         public virtual VFXDataType inputType                            { get { return m_InputType; } }
         public virtual VFXDataType outputType                           { get { return m_OutputType; } }
         public virtual VFXDataType ownedType                            { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
+        public virtual VFXTaskType taskType                             { get { return VFXTaskType.kNone; } }
         public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXAttributeInfo> optionalAttributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }

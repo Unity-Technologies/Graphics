@@ -358,13 +358,7 @@ namespace UnityEditor.VFX
                             continue;
 
                         var taskDesc = new VFXTaskDesc();
-                        switch (context.contextType)
-                        {
-                            case VFXContextType.kInit: taskDesc.type = VFXTaskType.kVFXInitialize; break;
-                            case VFXContextType.kUpdate: taskDesc.type = VFXTaskType.kVFXUpdate; break;
-                            case VFXContextType.kOutput: taskDesc.type = VFXTaskType.kVFXOutput; break;
-                            default: throw new InvalidOperationException(string.Format("Not supposed to have this context types in particle system {0}", context.contextType));
-                        }
+                        taskDesc.type = context.taskType;
 
                         bufferMappings.Clear();
                         if (attributeBufferIndex != -1)
@@ -374,7 +368,7 @@ namespace UnityEditor.VFX
 
                         var contextData = contextToCompiledData[context];
                         uniformMappings.Clear();
-                        foreach (var uniform in contextData.uniformMapper.uniforms)
+                        foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                             uniformMappings.Add(new VFXUniformMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
                         taskDesc.buffers = bufferMappings.ToArray();
@@ -406,6 +400,7 @@ namespace UnityEditor.VFX
                 {
                     m_Graph.vfxAsset.ClearSpawnerData();
                     m_Graph.vfxAsset.ClearPropertyData();
+                    m_Graph.vfxAsset.SetSystem(null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();

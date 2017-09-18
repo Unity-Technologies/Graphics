@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -11,6 +12,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXOutput"; } }
         public override bool codeGeneratorCompute { get { return false; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kOutput; } }
 
         public enum BlendMode
         {

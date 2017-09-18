@@ -19,6 +19,8 @@ Shader "Hidden/VFX/ParticlePoints"
 				${VFXGlobalDeclaration}
 				${VFXGeneratedBlockFunction}
 				
+				#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
+				
 				ByteAddressBuffer attributeBuffer;
 				
 				#pragma vertex vert
@@ -31,8 +33,8 @@ Shader "Hidden/VFX/ParticlePoints"
 				struct ps_input
 				{
 					float4 pos : SV_POSITION;
-#if VFX_USE_COLOR_CURRENT
-					nointerpolation float3 color : COLOR0;
+#if VFX_NEEDS_COLOR_INTERPOLATOR
+					nointerpolation float4 color : COLOR0;
 #endif
 #if USE_SOFT_PARTICLE
 					nointerpolation float invSoftParticlesFadeDistance : INV_FADE_DISTANCE;
@@ -54,8 +56,14 @@ Shader "Hidden/VFX/ParticlePoints"
 					ps_input o = (ps_input)0;
 					o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
 
+#if VFX_NEEDS_COLOR_INTERPOLATOR
+					o.color = (float4)1.0f;
 #if VFX_USE_COLOR_CURRENT
-					o.color = color;
+					o.color.rgb = color;
+#endif
+#if VFX_USE_COLOR_ALPHA
+					o.color.a = alpha;
+#endif
 #endif
 
 #if USE_SOFT_PARTICLE
@@ -72,8 +80,8 @@ Shader "Hidden/VFX/ParticlePoints"
 					ps_output o = (ps_output)0;
 					
 					o.color = 1.0f;
-#if VFX_USE_COLOR_CURRENT
-					o.color.rgb *= i.color.rgb;
+#if VFX_NEEDS_COLOR_INTERPOLATOR
+					o.color *= i.color;
 #endif
 
 #if USE_SOFT_PARTICLE

@@ -196,7 +196,10 @@ namespace UnityEditor.VFX
         public void WriteTexture(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
+            {
                 WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), mapper.GetName(texture));
+                WriteLineFormat("SamplerState sampler{0};", mapper.GetName(texture));
+            }
         }
 
         public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
