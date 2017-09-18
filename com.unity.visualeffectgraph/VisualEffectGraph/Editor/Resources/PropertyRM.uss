@@ -192,6 +192,13 @@ ObjectField *
 	text-color: #BBB;
 }
 
+ObjectField #icon
+{
+	margin-bottom:1;
+	margin-top:1;
+	margin-left:1;
+}
+
 GradientField
 {
     flex:1;

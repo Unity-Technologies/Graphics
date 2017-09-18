@@ -138,6 +138,7 @@ namespace UnityEditor.VFX.UIElements
 
             m_IconContainer = new VisualElement();
             m_IconContainer.style.width = 13;
+            m_IconContainer.name = "icon";
 
 
             m_SelectContainer = new VisualElement();
@@ -157,7 +158,8 @@ namespace UnityEditor.VFX.UIElements
             this.AddManipulator(new Clickable(OnSelect));
             this.AddManipulator(new ShortcutHandler(new Dictionary<Event, ShortcutDelegate>
             {
-                { Event.KeyboardEvent("delete"), SetToNull }
+                { Event.KeyboardEvent("delete"), SetToNull },
+                { Event.KeyboardEvent("backspace"), SetToNull }
             }));
 
 
