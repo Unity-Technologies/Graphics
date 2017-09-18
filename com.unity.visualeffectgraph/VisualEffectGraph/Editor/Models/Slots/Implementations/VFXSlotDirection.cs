@@ -7,14 +7,14 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(DirectionType))]
     class VFXSlotDirection : VFXSlot
     {
-        /*protected override bool CanConvertFrom(Type type)
-        {
-            return base.CanConvertFrom(type) || (type == typeof(Vector3));
-        }*/
-
         protected override VFXValue DefaultExpression()
         {
             return new VFXValue<Vector3>(Vector3.forward, VFXValue.Mode.FoldableVariable);
+        }
+
+        protected override bool CanConvertFrom(Type type)
+        {
+            return type == typeof(Vector3);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
