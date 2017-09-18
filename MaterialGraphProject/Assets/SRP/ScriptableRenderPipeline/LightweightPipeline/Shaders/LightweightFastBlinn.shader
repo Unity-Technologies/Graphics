@@ -104,7 +104,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 				s.Diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(c.rgb) * _Color.rgb;
 				// Specular
 #ifdef _SPECGLOSSMAP
-				half4 specularMap = tex2D(_SpecGlossMap, i.uv01.xy);
+				half4 specularMap = tex2D(_SpecGlossMap, i.meshUV0.xy);
 #if defined(UNITY_COLORSPACE_GAMMA) && defined(LIGHTWEIGHT_LINEAR)
 				s.Specular = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
 #endif
@@ -125,7 +125,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/FastBlinn"
 #ifndef _EMISSION
 				s.Emission =  _EmissionColor.rgb;
 #else
-				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.meshUV0.xy).rgb) * _EmissionColor.rgb;
 #endif
 				// Alpha
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
