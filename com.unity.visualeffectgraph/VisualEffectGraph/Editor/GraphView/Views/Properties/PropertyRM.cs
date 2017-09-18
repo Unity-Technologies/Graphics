@@ -157,6 +157,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Color), typeof(ColorPropertyRM)},
             {typeof(Gradient), typeof(GradientPropertyRM)},
             {typeof(AnimationCurve), typeof(CurvePropertyRM)},
+            {typeof(Texture), typeof(ObjectPropertyRM)},
             {typeof(string), typeof(StringPropertyRM)}
         };
 
