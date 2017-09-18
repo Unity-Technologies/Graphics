@@ -4,10 +4,67 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace UnityEditor.VFX.UIElements
 {
+    class ObjectDropper : Manipulator
+    {
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<IMGUIEvent>(OnIMGUIEvent);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<IMGUIEvent>(OnIMGUIEvent);
+        }
+
+        public IDropTarget prevDropTarget;
+        protected void OnIMGUIEvent(IMGUIEvent e)
+        {
+            Event evt = e.imguiEvent;
+
+
+            ObjectField target = this.target as ObjectField;
+            switch (evt.type)
+            {
+                case EventType.DragUpdated:
+                {
+                    var matchingObjects = DragAndDrop.objectReferences.Where(t => target.editedType.IsAssignableFrom(t.GetType())).ToArray();
+
+                    if (matchingObjects.Length > 0)
+                    {
+                        //target.AddToClassList("droppable");
+                        DragAndDrop.visualMode = evt.control ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
+                        e.StopPropagation();
+                    }
+
+                    break;
+                }
+
+                case EventType.DragExited:
+                {
+                    //target.RemoveFromClassList("droppable");
+                    break;
+                }
+
+                case EventType.DragPerform:
+                {
+                    //target.RemoveFromClassList("droppable");
+                    var matchingObjects = DragAndDrop.objectReferences.Where(t => target.editedType.IsAssignableFrom(t.GetType())).ToArray();
+
+                    if (matchingObjects.Length > 0)
+                    {
+                        target.ValueChanged(matchingObjects[0]);
+                        e.StopPropagation();
+                    }
+                    break;
+                }
+            }
+        }
+    }
     class ObjectField : ValueControl<Object>
     {
         VisualElement m_IconContainer;
@@ -46,6 +103,13 @@ namespace UnityEditor.VFX.UIElements
         void OnSelect()
         {
             panel.focusController.SwitchFocus(this);
+
+            Object value = GetValue();
+
+            if (value != null) ;
+
+            Selection.activeObject = value;
+            EditorGUIUtility.PingObject(value);
         }
 
         public ObjectField(string label) : base(label)
@@ -58,7 +122,7 @@ namespace UnityEditor.VFX.UIElements
             Setup();
         }
 
-        void ValueChanged(Object value)
+        public void ValueChanged(Object value)
         {
             SetValue(value);
             if (OnValueChanged != null)
@@ -96,6 +160,9 @@ namespace UnityEditor.VFX.UIElements
                 { Event.KeyboardEvent("delete"), SetToNull }
             }));
 
+
+            this.AddManipulator(new ObjectDropper());
+
             m_Reciever = Receiver.CreateInstance<Receiver>();
             m_Reciever.m_ObjectField = this;
 
@@ -119,6 +186,25 @@ namespace UnityEditor.VFX.UIElements
 
             m_IconContainer.style.width = m_IconContainer.style.backgroundImage.value == null ? 0 : 18;
             m_NameContainer.text = value == null ? "null" : value.name;
+        }
+
+        private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
+        {
+            if (dropTarget == null)
+                return;
+
+            switch ((EventType)evt.imguiEvent.type)
+            {
+                case EventType.DragUpdated:
+                    dropTarget.DragUpdated(evt, selection, dropTarget);
+                    break;
+                case EventType.DragExited:
+                    dropTarget.DragExited();
+                    break;
+                case EventType.DragPerform:
+                    dropTarget.DragPerform(evt, selection, dropTarget);
+                    break;
+            }
         }
     }
 }
