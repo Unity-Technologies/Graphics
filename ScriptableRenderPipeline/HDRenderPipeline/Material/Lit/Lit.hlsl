@@ -390,7 +390,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID value in GBuffer2
         outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID, 4.0));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
+    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
         outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
     }
