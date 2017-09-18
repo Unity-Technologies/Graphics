@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorLinearInterpolate : VFXOperatorFloatUnified
+    class VFXOperatorSmoothstep : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
@@ -12,15 +12,15 @@ namespace UnityEditor.VFX
             public FloatN x = new FloatN(0.0f);
             [Tooltip("The end value.")]
             public FloatN y = new FloatN(1.0f);
-            [Tooltip("The amount to interpolate between x and y (0-1).")]
+            [Tooltip("Smoothstep returns a value between 0 and 1, and s is clamped between x and y.")]
             public FloatN s = new FloatN(0.5f);
         }
 
-        override public string name { get { return "Linear Interpolate"; } }
+        override public string name { get { return "Smoothstep"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], inputExpression[2]) };
+            return new[] { VFXOperatorUtility.Smoothstep(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
     }
 }

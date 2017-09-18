@@ -20,17 +20,17 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
+            expr[1] = VFXOperatorUtility.DegToRad(expr[1]);
             return new VFXExpressionTRSToMatrix(expr);
         }
 
         protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
-            // TODO - decompose matrix into TRS for display in the GUI
             return new VFXExpression[3]
             {
-                VFXValue.Constant(Vector3.zero),
-                VFXValue.Constant(Vector3.zero),
-                VFXValue.Constant(Vector3.zero)
+                new VFXExpressionExtractPositionFromMatrix(expr),
+                VFXOperatorUtility.RadToDeg(new VFXExpressionExtractAnglesFromMatrix(expr)),
+                new VFXExpressionExtractScaleFromMatrix(expr)
             };
         }
     }
