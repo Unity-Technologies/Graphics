@@ -89,6 +89,14 @@ CBUFFER_END
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/TilePass/TilePass.cs.hlsl"
 
+static int g_FeatureFlags = 0xFFFFFFFF;
+
+// This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
+bool HasMaterialFeatureFlag(int flag)
+{
+    return ((g_FeatureFlags & flag) != 0);
+}
+
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
@@ -314,16 +322,16 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
         FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdAnisoData(bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // When using clear coat we assume that bottom layer is regular
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
@@ -381,17 +389,17 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         outGBuffer1.a = PackMaterialId(MATERIALID_LIT_STANDARD); // Encode MATERIALID_LIT_SPECULAR as MATERIALID_LIT_STANDARD + GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID value in GBuffer2
         outGBuffer2 = float4(surfaceData.specularColor, PackFloatInt8bit(0.0, GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID, 4.0));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
+    else if (surfaceData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
         outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, PackByte(surfaceData.subsurfaceProfile));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
+    else if (surfaceData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
             outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, 0.0, 4.0));
     }
-    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // In the cae of clear coat, we want more precision for the coat normal than for the bottom normal (as it is expected to be smooth). So swap the normal encoding storage in Gbuffer.
         // It also allow to use clear coat normal for SSR
@@ -457,6 +465,8 @@ void DecodeFromGBuffer(
 {
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
+    g_FeatureFlags = featureFlags;
+
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
 
@@ -489,10 +499,10 @@ void DecodeFromGBuffer(
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
     // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
-    int supportsStandard = (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
-    int supportsSSS = (featureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
-    int supportsAniso = (featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
-    int supportClearCoat = (featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
+    int supportsStandard = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) != 0;
+    int supportsSSS = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_SSS) != 0;
+    int supportsAniso = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) != 0;
+    int supportClearCoat = (g_FeatureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) != 0;
 
     if (supportsStandard + supportsSSS + supportsAniso + supportClearCoat > 1)
     {
@@ -530,7 +540,7 @@ void DecodeFromGBuffer(
             FillMaterialIdStandardData(baseColor, metallic, bsdfData);
         }
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
         float subsurfaceRadius  = inGBuffer2.x;
         float thickness         = inGBuffer2.y;
@@ -538,7 +548,7 @@ void DecodeFromGBuffer(
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float metallic;
         int unused;
@@ -549,7 +559,7 @@ void DecodeFromGBuffer(
         float anisotropy = inGBuffer2.b;
         FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
-    else //if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // We have swap the encoding of the normal to have more precision for coat normal as it is more smooth
         float3 coatNormalWS = bsdfData.normalWS;
@@ -732,7 +742,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // GGX aniso
     preLightData.TdotV = 0.0;
     preLightData.BdotV = 0.0;
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
@@ -749,7 +759,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // IBL
     GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Update the roughness and the IBL miplevel
         // Bottom layer is affected by upper layer BRDF, result can't be more sharp than input (it is to mimic what a path tracer will do)
@@ -913,7 +923,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float Vis;
     float D;
 
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float3 H = (L + V) * invLenLV;
         // For anisotropy we must not saturate these values
