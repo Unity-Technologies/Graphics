@@ -687,7 +687,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
         preLightData.ieta = ieta;
@@ -814,7 +814,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
         float F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
@@ -884,7 +884,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float3 F = 1.0;
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) )
     {
         // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
@@ -1295,7 +1295,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     }
 
     // Evaluate the coat part
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // TODO
         // ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformClearCoat);
@@ -1421,7 +1421,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     }
 
     // Evaluate the coat part
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // TODO
         // ltcValue = LTCEvaluate(lightVerts, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
@@ -1525,7 +1525,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         R = (positionWS + dist * R) - lightData.positionWS;
 
         // Test again for clear code
-        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
             dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
@@ -1545,7 +1545,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // TODO: add distance based roughness
 
         // Test again for clear code
-        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+        if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
             dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
@@ -1578,7 +1578,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     specularLighting = float3(0.0, 0.0, 0.0);
 
     // Evaluate the Clear Coat component if needed and change the BSDF roughness to match Fresnel transmission
-    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
 
