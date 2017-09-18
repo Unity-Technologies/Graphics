@@ -111,7 +111,7 @@ half4 LightweightFragmentFastBlinn(VertOutput i) : SV_Target
 	color += o.Emission;
 
 #if defined(LIGHTMAP_ON)
-    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * o.Diffuse;
+    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.meshUV0.zw)) + i.fogCoord.yzw) * o.Diffuse;
 #elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
     color += i.fogCoord.yzw * o.Diffuse;
 #endif

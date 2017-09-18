@@ -84,7 +84,7 @@ VertOutput Vertex(VertInput v)
 
 		half3 lightDirection;
 		half atten = ComputeLightAttenuationVertex(lightInput, o.normal, worldPos, lightDirection);
-		o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
+		o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, o.normal, atten);
 	}
 #endif
 
