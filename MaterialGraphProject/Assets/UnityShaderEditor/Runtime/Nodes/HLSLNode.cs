@@ -17,9 +17,8 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
-        , IMayRequireWorldPosition
+        , IMayRequirePosition
         , IMayRequireVertexColor
-        , IMayRequireViewDirectionTangentSpace
     {
         [NonSerialized]
         private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
@@ -49,18 +48,32 @@ namespace UnityEngine.MaterialGraph
         protected enum Binding
         {
             None,
-            Normal,
-            Tangent,
-            Bitangent,
+            ObjectSpaceNormal,
+            ObjectSpaceTangent,
+            ObjectSpaceBitangent,
+            ObjectSpacePosition,
+            ViewSpaceNormal,
+            ViewSpaceTangent,
+            ViewSpaceBitangent,
+            ViewSpacePosition,
+            WorldSpaceNormal,
+            WorldSpaceTangent,
+            WorldSpaceBitangent,
+            WorldSpacePosition,
+            TangentSpaceNormal,
+            TangentSpaceTangent,
+            TangentSpaceBitangent,
+            TangentSpacePosition,
             MeshUV0,
             MeshUV1,
             MeshUV2,
             MeshUV3,
             ScreenPosition,
-            ViewDirection,
-            WorldPosition,
+            ObjectSpaceViewDirection,
+            ViewSpaceViewDirection,
+            WorldSpaceViewDirection,
+            TangentSpaceViewDirection,
             VertexColor,
-            ViewDirectionTangentSpace
         }
 
         private static string BindChannelToShaderName(Binding channel)
@@ -69,30 +82,58 @@ namespace UnityEngine.MaterialGraph
             {
                 case Binding.None:
                     return "ERROR!";
-                case Binding.Normal:
+                case Binding.ObjectSpaceNormal:
+                    return ShaderGeneratorNames.ObjectSpaceNormal;
+                case Binding.ObjectSpaceTangent:
+                    return ShaderGeneratorNames.ObjectSpaceTangent;
+                case Binding.ObjectSpaceBitangent:
+                    return ShaderGeneratorNames.ObjectSpaceBiTangent;
+                case Binding.ObjectSpacePosition:
+                    return ShaderGeneratorNames.ObjectSpacePosition;
+                case Binding.ViewSpaceNormal:
+                    return ShaderGeneratorNames.ViewSpaceNormal;
+                case Binding.ViewSpaceTangent:
+                    return ShaderGeneratorNames.ViewSpaceTangent;
+                case Binding.ViewSpaceBitangent:
+                    return ShaderGeneratorNames.ViewSpaceBiTangent;
+                case Binding.ViewSpacePosition:
+                    return ShaderGeneratorNames.ViewSpacePosition;
+                case Binding.WorldSpaceNormal:
                     return ShaderGeneratorNames.WorldSpaceNormal;
-                case Binding.Tangent:
+                case Binding.WorldSpaceTangent:
                     return ShaderGeneratorNames.WorldSpaceTangent;
-                case Binding.Bitangent:
-                    return ShaderGeneratorNames.WorldSpaceBitangent;
+                case Binding.WorldSpaceBitangent:
+                    return ShaderGeneratorNames.WorldSpaceSpaceBiTangent;
+                case Binding.WorldSpacePosition:
+                    return ShaderGeneratorNames.WorldSpacePosition;
+                case Binding.TangentSpaceNormal:
+                    return ShaderGeneratorNames.TangentSpaceNormal;
+                case Binding.TangentSpaceTangent:
+                    return ShaderGeneratorNames.TangentSpaceTangent;
+                case Binding.TangentSpaceBitangent:
+                    return ShaderGeneratorNames.TangentSpaceBiTangent;
+                case Binding.TangentSpacePosition:
+                    return ShaderGeneratorNames.TangentSpacePosition;
                 case Binding.MeshUV0:
-                    return ShaderGeneratorNames.GetUVName(UVChannel.uv0);
+                    return UVChannel.uv0.GetUVName();
                 case Binding.MeshUV1:
-                    return ShaderGeneratorNames.GetUVName(UVChannel.uv1);
+                    return UVChannel.uv1.GetUVName();
                 case Binding.MeshUV2:
-                    return ShaderGeneratorNames.GetUVName(UVChannel.uv2);
+                    return UVChannel.uv2.GetUVName();
                 case Binding.MeshUV3:
-                    return ShaderGeneratorNames.GetUVName(UVChannel.uv3);
+                    return UVChannel.uv3.GetUVName();
                 case Binding.ScreenPosition:
                     return ShaderGeneratorNames.ScreenPosition;
-                case Binding.ViewDirection:
+                case Binding.ObjectSpaceViewDirection:
+                    return ShaderGeneratorNames.ObjectSpaceViewDirection;
+                case Binding.ViewSpaceViewDirection:
+                    return ShaderGeneratorNames.ViewSpaceViewDirection;
+                case Binding.WorldSpaceViewDirection:
                     return ShaderGeneratorNames.WorldSpaceViewDirection;
-                case Binding.WorldPosition:
-                    return ShaderGeneratorNames.WorldSpacePosition;
+                case Binding.TangentSpaceViewDirection:
+                    return ShaderGeneratorNames.TangentSpaceViewDirection;
                 case Binding.VertexColor:
                     return ShaderGeneratorNames.VertexColor;
-                case Binding.ViewDirectionTangentSpace:
-                    return ShaderGeneratorNames.TangentSpaceViewDirection;
                 default:
                     throw new ArgumentOutOfRangeException("channel", channel, null);
             }
@@ -361,9 +402,19 @@ namespace UnityEngine.MaterialGraph
             return attrs.FirstOrDefault();
         }
 
-        public bool RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal()
         {
-            return NodeRequiresBinding(Binding.Normal);
+            var binding = NeededCoordinateSpace.None;
+            if (NodeRequiresBinding(Binding.ObjectSpaceNormal))
+                binding |= NeededCoordinateSpace.Object;
+            if (NodeRequiresBinding(Binding.ViewSpaceNormal))
+                binding |= NeededCoordinateSpace.View;
+            if (NodeRequiresBinding(Binding.WorldSpaceNormal))
+                binding |= NeededCoordinateSpace.World;
+            if (NodeRequiresBinding(Binding.TangentSpaceNormal))
+                binding |= NeededCoordinateSpace.Tangent;
+
+            return binding;
         }
 
         public bool RequiresMeshUV(UVChannel channel)
@@ -388,29 +439,64 @@ namespace UnityEngine.MaterialGraph
             return NodeRequiresBinding(Binding.ScreenPosition);
         }
 
-        public bool RequiresViewDirection()
+        public NeededCoordinateSpace RequiresViewDirection()
         {
-            return NodeRequiresBinding(Binding.ViewDirection);
+            var binding = NeededCoordinateSpace.None;
+            if (NodeRequiresBinding(Binding.ObjectSpaceViewDirection))
+                binding |= NeededCoordinateSpace.Object;
+            if (NodeRequiresBinding(Binding.ViewSpaceViewDirection))
+                binding |= NeededCoordinateSpace.View;
+            if (NodeRequiresBinding(Binding.WorldSpaceViewDirection))
+                binding |= NeededCoordinateSpace.World;
+            if (NodeRequiresBinding(Binding.TangentSpaceNormal))
+                binding |= NeededCoordinateSpace.Tangent;
+
+            return binding;
         }
 
-        public bool RequiresViewDirectionTangentSpace()
+        public NeededCoordinateSpace RequiresPosition()
         {
-            return NodeRequiresBinding(Binding.ViewDirectionTangentSpace);
+            var binding = NeededCoordinateSpace.None;
+            if (NodeRequiresBinding(Binding.ObjectSpacePosition))
+                binding |= NeededCoordinateSpace.Object;
+            if (NodeRequiresBinding(Binding.ViewSpacePosition))
+                binding |= NeededCoordinateSpace.View;
+            if (NodeRequiresBinding(Binding.WorldSpacePosition))
+                binding |= NeededCoordinateSpace.World;
+            if (NodeRequiresBinding(Binding.TangentSpacePosition))
+                binding |= NeededCoordinateSpace.Tangent;
+
+            return binding;
         }
 
-        public bool RequiresWorldPosition()
+        public NeededCoordinateSpace RequiresTangent()
         {
-            return NodeRequiresBinding(Binding.WorldPosition);
+            var binding = NeededCoordinateSpace.None;
+            if (NodeRequiresBinding(Binding.ObjectSpaceTangent))
+                binding |= NeededCoordinateSpace.Object;
+            if (NodeRequiresBinding(Binding.ViewSpaceTangent))
+                binding |= NeededCoordinateSpace.View;
+            if (NodeRequiresBinding(Binding.WorldSpaceTangent))
+                binding |= NeededCoordinateSpace.World;
+            if (NodeRequiresBinding(Binding.TangentSpaceTangent))
+                binding |= NeededCoordinateSpace.Tangent;
+
+            return binding;
         }
 
-        public bool RequiresTangent()
+        public NeededCoordinateSpace RequiresBitangent()
         {
-            return NodeRequiresBinding(Binding.Tangent);
-        }
+            var binding = NeededCoordinateSpace.None;
+            if (NodeRequiresBinding(Binding.ObjectSpaceBitangent))
+                binding |= NeededCoordinateSpace.Object;
+            if (NodeRequiresBinding(Binding.ViewSpaceBitangent))
+                binding |= NeededCoordinateSpace.View;
+            if (NodeRequiresBinding(Binding.WorldSpaceBitangent))
+                binding |= NeededCoordinateSpace.World;
+            if (NodeRequiresBinding(Binding.TangentSpaceBitangent))
+                binding |= NeededCoordinateSpace.Tangent;
 
-        public bool RequiresBitangent()
-        {
-            return NodeRequiresBinding(Binding.Bitangent);
+            return binding;
         }
 
         public bool RequiresVertexColor()

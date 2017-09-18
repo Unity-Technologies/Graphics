@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class PreviewSystem : IDisposable
     {
-        IGraph m_Graph;
+        AbstractMaterialGraph m_Graph;
         Dictionary<Guid, PreviewData> m_Previews = new Dictionary<Guid, PreviewData>();
         HashSet<Guid> m_DirtyPreviews = new HashSet<Guid>();
         HashSet<Guid> m_DirtyShaders = new HashSet<Guid>();
@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         MaterialGraphPreviewGenerator m_PreviewGenerator = new MaterialGraphPreviewGenerator();
         Texture2D m_ErrorTexture;
 
-        public PreviewSystem(IGraph graph)
+        public PreviewSystem(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -154,6 +154,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
                 node.CollectPreviewMaterialProperties(m_PreviewProperties);
+                foreach (var prop in m_Graph.properties)
+                    m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
+
                 foreach (var previewProperty in m_PreviewProperties)
                 {
                     if (previewProperty.m_PropType == PropertyType.Texture && previewProperty.m_Texture != null)
@@ -190,7 +193,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
                 var node = m_Graph.GetNodeFromGuid(nodeGuid);
                 m_PreviewMaterial.shader = previewData.shader;
-                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
+                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is MasterNode, time, m_PreviewPropertyBlock);
                 previewData.texture = previewData.renderTexture;
             }
 
@@ -211,11 +214,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                 return;
 
-            if (node is IMasterNode)
+            if (node is MasterNode && node.owner is UnityEngine.MaterialGraph.MaterialGraph)
             {
-                var masterNode = (IMasterNode)node;
-                List<PropertyGenerator.TextureInfo> defaultTextures;
-                previewData.shaderString = masterNode.GetFullShader(GenerationMode.Preview, node.guid + "_preview", out defaultTextures);
+                var masterNode = (MasterNode)node;
+                var materialGraph = (UnityEngine.MaterialGraph.MaterialGraph) node.owner;
+
+                List<PropertyCollector.TextureInfo> defaultTextures;
+                previewData.shaderString = materialGraph.GetShader(node.guid + "_preview", out defaultTextures);
                 previewData.previewMode = masterNode.has3DPreview() ? PreviewMode.Preview3D : PreviewMode.Preview2D;
             }
             else if (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex)
@@ -224,9 +229,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             else
             {
-                PreviewMode previewMode;
-                previewData.shaderString = ShaderGenerator.GeneratePreviewShader(node, out previewMode);
-                previewData.previewMode = previewMode;
+                List<PropertyCollector.TextureInfo> defaultTextures;
+                PreviewMode mode;
+                previewData.shaderString = m_Graph.GetPreviewShader(node, out mode);
+                previewData.previewMode = mode;
             }
 
             // Debug output

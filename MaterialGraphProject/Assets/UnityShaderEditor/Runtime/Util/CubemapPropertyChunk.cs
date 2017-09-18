@@ -3,7 +3,7 @@ using System.Text;
 
 namespace UnityEngine.MaterialGraph
 {
-    public class CubemapPropertyChunk : PropertyChunk
+/*    public class CubemapPropertyChunk : PropertyChunk
     {
         public enum ModifiableState
         {
@@ -52,5 +52,5 @@ namespace UnityEngine.MaterialGraph
                 return m_Modifiable;
             }
         }
-    }
+    }*/
 }

@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Serializable]
+ /*   [Serializable]
     [Title("Master/Lightweight/PBR Specular")]
     public class LightweightSpecularMasterNode : AbstractLightweightPBRMasterNode
     {
@@ -77,5 +77,5 @@ namespace UnityEngine.MaterialGraph
         {
             return WorkflowName;
         }
-    }
+    }*/
 }

@@ -32,16 +32,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             //typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
             //typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodePresenter);
             //typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodePresenter);
-            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodePresenter);
-            typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
+//            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodePresenter);
+ //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
             typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodePresenter);
-            typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
-            typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
+   //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
+     //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
             typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
             typeMapper[typeof(Vector1Node)] = typeof(Vector1NodePresenter);
             typeMapper[typeof(Vector2Node)] = typeof(Vector2NodePresenter);
             typeMapper[typeof(Vector3Node)] = typeof(Vector3NodePresenter);
             typeMapper[typeof(Vector4Node)] = typeof(Vector4NodePresenter);
+            typeMapper[typeof(PropertyNode)] = typeof(PropertyNodePresenter);
+
             /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(RadialShearNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
@@ -53,7 +55,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             //   typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
             // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
-            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);
+//            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);
             typeMapper[typeof(LevelsNode)] = typeof(LevelsNodePresenter);
             typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodePresenter);
 

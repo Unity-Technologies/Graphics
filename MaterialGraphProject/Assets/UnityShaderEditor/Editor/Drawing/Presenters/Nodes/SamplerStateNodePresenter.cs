@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             get
             {
                 if (samplerFilterMode == null)
-                    samplerFilterMode = Enum.GetNames(typeof(SamplerStateNode.FilterMode));
+                    samplerFilterMode = Enum.GetNames(typeof(TextureSamplerState.FilterMode));
                 return samplerFilterMode;
             }
         }
@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             get
             {
                 if (samplerWrapMode == null)
-                    samplerWrapMode = Enum.GetNames(typeof(SamplerStateNode.WrapMode));
+                    samplerWrapMode = Enum.GetNames(typeof(TextureSamplerState.WrapMode));
                 return samplerWrapMode;
             }
         }
@@ -35,12 +35,12 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var cNode = node as UnityEngine.MaterialGraph.SamplerStateNode;
+            var cNode = node as SamplerStateNode;
             if (cNode == null)
                 return;
 
-            cNode.filter = (SamplerStateNode.FilterMode)EditorGUILayout.Popup((int)cNode.filter, _samplerFilterMode, EditorStyles.popup);
-            cNode.wrap = (SamplerStateNode.WrapMode)EditorGUILayout.Popup((int)cNode.wrap, _samplerWrapMode, EditorStyles.popup);
+            cNode.filter = (TextureSamplerState.FilterMode)EditorGUILayout.Popup((int)cNode.filter, _samplerFilterMode, EditorStyles.popup);
+            cNode.wrap = (TextureSamplerState.WrapMode)EditorGUILayout.Popup((int)cNode.wrap, _samplerWrapMode, EditorStyles.popup);
         }
 
         public override float GetHeight()

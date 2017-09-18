@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
@@ -12,21 +13,31 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var tNode = node as UnityEngine.MaterialGraph.PropertyNode;
+            var tNode = node as PropertyNode;
             if (tNode == null)
                 return;
 
-            tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
+            var graph = node.owner as AbstractMaterialGraph;
+
+            var currentGUID = tNode.propertyGuid;
+            var properties = graph.properties.ToList();
+            var propertiesGUID = properties.Select(x => x.guid).ToList();
+            var currentSelectedIndex = propertiesGUID.IndexOf(currentGUID);
+
+            var newIndex = EditorGUILayout.Popup("Property", currentSelectedIndex, properties.Select(x => x.name).ToArray());
+
+            if (newIndex != currentSelectedIndex)
+                tNode.propertyGuid = propertiesGUID[newIndex];
         }
 
         public override float GetHeight()
         {
-            return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+            return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2 + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 
     [Serializable]
-    public abstract class PropertyNodePresenter : MaterialNodePresenter
+    public class PropertyNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
         {

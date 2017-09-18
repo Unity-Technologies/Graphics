@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
@@ -27,15 +28,33 @@ namespace UnityEngine.MaterialGraph
             RemoveSlot(-lastSlotId);
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (generationMode == GenerationMode.ForReals)
+            if (!generationMode.IsPreview())
                 return;
 
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-                visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot.id) + ";", true);
+                IShaderProperty property;
+                switch (slot.concreteValueType)
+                {
+                    case ConcreteSlotValueType.Vector4:
+                        property = new Vector4ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector3:
+                        property = new Vector3ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector2:
+                        property = new Vector2ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector1:
+                        property = new FloatShaderProperty();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                property.generatePropertyBlock = false;
+                properties.AddShaderProperty(property);
             }
         }
 
@@ -47,13 +66,13 @@ namespace UnityEngine.MaterialGraph
                 properties.Add
                 (
                     new PreviewProperty
-                {
-                    m_Name = GetVariableNameForSlot(s.id),
-                    m_PropType = ConvertConcreteSlotValueTypeToPropertyType(s.concreteValueType),
-                    m_Vector4 = s.currentValue,
-                    m_Float = s.currentValue.x,
-                    m_Color = s.currentValue
-                }
+                    {
+                        m_Name = GetVariableNameForSlot(s.id),
+                        m_PropType = ConvertConcreteSlotValueTypeToPropertyType(s.concreteValueType),
+                        m_Vector4 = s.currentValue,
+                        m_Float = s.currentValue.x,
+                        m_Color = s.currentValue
+                    }
                 );
             }
         }

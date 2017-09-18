@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("UV/MultiLayerParallax")]
-    public class MultiLayerParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirectionTangentSpace
+    public class MultiLayerParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirection
     {
         protected const string kInputDepthShaderName = "Depth";
         protected const string kInputFadeRateShaderName = "FadeRate";
@@ -197,9 +197,9 @@ namespace UnityEngine.MaterialGraph
             return channel == UVChannel.uv0;
         }
 
-        public bool RequiresViewDirectionTangentSpace()
+        public NeededCoordinateSpace RequiresViewDirection()
         {
-            return true;
+            return NeededCoordinateSpace.Tangent;
         }
     }
 }

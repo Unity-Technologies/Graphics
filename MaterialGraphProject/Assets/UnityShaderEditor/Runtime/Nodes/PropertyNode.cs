@@ -1,115 +1,220 @@
-using System.Collections.Generic;
+using System;
+using System.Linq;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public abstract class PropertyNode : AbstractMaterialNode
+    [Title("Property Node")]
+    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
-        public enum ExposedState
+        private Guid m_PropertyGuid;
+
+        [SerializeField] private string m_PropertyGuidSerialized;
+
+        public const int OutputSlotId = 0;
+
+        public const int ROutputSlotId = 1;
+        public const int GOutputSlotId = 2;
+        public const int BOutputSlotId = 3;
+        public const int AOutputSlotId = 4;
+        public const int TOutputSlotId = 5;
+
+        public const int UVInput = 6;
+
+        public PropertyNode()
         {
-            Exposed,
-            NotExposed
+            name = "Property";
+            UpdateNodeAfterDeserialization();
         }
 
-        [SerializeField]
-        private string m_Description = string.Empty;
-
-        [SerializeField]
-        private ExposedState m_Exposed = ExposedState.NotExposed;
-
-        public ExposedState exposedState
+        private void UpdateNode()
         {
-            get
-            {
-                if (owner is SubGraph)
-                    return ExposedState.NotExposed;
+            var graph = owner as AbstractMaterialGraph;
+            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return;
 
-                return m_Exposed;
+            if (property is FloatShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "float", "float", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
+            else if (property is Vector2ShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "V2", "V2", SlotType.Output, SlotValueType.Vector2, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+            }
+            else if (property is Vector3ShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "V3", "V3", SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+            }
+            else if (property is Vector4ShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "V4", "V4", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+            }
+            else if (property is ColorShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "Color", "Color", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+            }
+            else if (property is TextureShaderProperty)
+            {
+                AddSlot(new MaterialSlot(OutputSlotId, "RGBA", "RGBA", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                AddSlot(new MaterialSlot(ROutputSlotId, "R", "R", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new MaterialSlot(GOutputSlotId, "G", "G", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new MaterialSlot(BOutputSlotId, "B", "B", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new MaterialSlot(AOutputSlotId, "A", "A", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new MaterialSlot(TOutputSlotId, "T", "T", SlotType.Output, SlotValueType.Texture2D, Vector4.zero));
+                AddSlot(new MaterialSlot(UVInput, "UV", "UV", SlotType.Input, SlotValueType.Vector2, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId, TOutputSlotId,UVInput});
+            }
+        }
+
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var graph = owner as AbstractMaterialGraph;
+            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return;
+
+            if (property is FloatShaderProperty)
+            {
+                var result = string.Format("{0} {1} = {2};"
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , property.name);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Vector2ShaderProperty)
+            {
+                var result = string.Format("{0}2 {1} = {2};"
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , property.name);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Vector3ShaderProperty)
+            {
+                var result = string.Format("{0}3 {1} = {2};"
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , property.name);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Vector4ShaderProperty)
+            {
+                var result = string.Format("{0}4 {1} = {2};"
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , property.name);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is ColorShaderProperty)
+            {
+                var result = string.Format("{0}4 {1} = {2};"
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , property.name);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is TextureShaderProperty)
+            {
+                //UV input slot
+                var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
+                var uvName = string.Format("{0}.xy", UVChannel.uv0.GetUVName());
+                var edgesUV = owner.GetEdges(uvSlot.slotReference);
+                if (edgesUV.Any())
+                    uvName = GetSlotValue(UVInput, generationMode);
+
+                //Sampler input slot
+                var result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.name
+                        , uvName);
+                visitor.AddShaderChunk(result, true);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(ROutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.g;", precision, GetVariableNameForSlot(GOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.b;", precision, GetVariableNameForSlot(BOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.a;", precision, GetVariableNameForSlot(AOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
+            }
+        }
+
+        public bool RequiresMeshUV(UVChannel channel)
+        {
+            if (channel != UVChannel.uv0)
+                return false;
+
+            var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
+            if (uvSlot == null)
+                return true;
+
+            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
+            return edges.Count == 0;
+        }
+
+
+        public Guid propertyGuid
+        {
+            get { return m_PropertyGuid; }
             set
             {
-                if (m_Exposed == value)
+                if (m_PropertyGuid == value)
                     return;
 
-                m_Exposed = value;
+                var graph = owner as AbstractMaterialGraph;
+                var property = graph.properties.FirstOrDefault(x => x.guid == value);
+                if (property == null)
+                    return;
+                m_PropertyGuid = value;
+
+                UpdateNode();
+
+                if (onModified != null)
+                {
+                    onModified(this, ModificationScope.Topological);
+                }
             }
         }
 
-        public string description
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            get
-            {
-                return string.IsNullOrEmpty(m_Description) ? name : m_Description;
-            }
-            set { m_Description = value; }
+            base.UpdateNodeAfterDeserialization();
         }
-
-        public string propertyName
-        {
-            get
-            {
-                return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode());
-            }
-        }
-
-        public abstract PropertyType propertyType { get; }
-
-        public abstract PreviewProperty GetPreviewProperty();
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return propertyName;
-        }
+            if (slotId != TOutputSlotId)
+                return base.GetVariableNameForSlot(slotId);
 
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            base.CollectPreviewMaterialProperties(properties);
-            properties.Add(GetPreviewProperty());
+            var graph = owner as AbstractMaterialGraph;
+            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            return property.name;
         }
 
         protected override bool CalculateNodeHasError()
         {
-            if (exposedState == ExposedState.NotExposed)
-                return false;
+            var graph = owner as AbstractMaterialGraph;
 
-            var propNodes = owner.GetNodes<PropertyNode>();
-            foreach (var n in propNodes)
-            {
-                if (n == this || n.exposedState == ExposedState.NotExposed)
-                    continue;
+            if (!graph.properties.Any(x => x.guid == propertyGuid))
+                return true;
 
-                if (n.propertyName == propertyName)
-                {
-                    return true;
-                }
-            }
             return false;
         }
 
-        /*
-        public override float GetNodeUIHeight(float width)
+        public override void OnBeforeSerialize()
         {
-            return 2 * EditorGUIUtility.singleLineHeight;
+            base.OnBeforeSerialize();
+            m_PropertyGuidSerialized = m_PropertyGuid.ToString();
         }
 
-        public override bool OnGUI()
+        public override void OnAfterDeserialize()
         {
-            EditorGUI.BeginChangeCheck();
-            m_Exposed = EditorGUILayout.Toggle("Exposed Property", m_Exposed);
-            if (m_Exposed)
-                m_PropertyName = EditorGUILayout.DelayedTextField("Property Name", m_PropertyName);
-
-            var modified = EditorGUI.EndChangeCheck();
-            if (modified)
-            {
-                owner.ValidateGraph();
-            }
-
-            if (m_Exposed)
-                m_Description = EditorGUILayout.TextField("Description", m_Description);
-
-            modified |= base.OnGUI();
-            return modified;
-        }*/
+            base.OnAfterDeserialize();
+            if (!string.IsNullOrEmpty(m_PropertyGuidSerialized))
+                m_PropertyGuid = new Guid(m_PropertyGuidSerialized);
+        }
     }
 }

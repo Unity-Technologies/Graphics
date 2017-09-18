@@ -2,7 +2,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Toggle")]
+   /* [Title("Input/Toggle")]
     public class ToggleNode : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]
@@ -74,5 +74,5 @@ namespace UnityEngine.MaterialGraph
                 m_Float = value ? 1f : 0f
             };
         }
-    }
+    }*/
 }

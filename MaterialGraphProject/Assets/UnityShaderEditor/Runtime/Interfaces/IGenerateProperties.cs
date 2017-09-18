@@ -1,8 +1,9 @@
+using System.Collections.Generic;
+
 namespace UnityEngine.MaterialGraph
 {
     public interface IGenerateProperties
     {
-        void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode);
-        void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode);
+        void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode);
     }
 }

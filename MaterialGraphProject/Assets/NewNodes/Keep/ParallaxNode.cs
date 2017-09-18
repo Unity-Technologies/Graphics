@@ -2,13 +2,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IMayRequireViewDirectionTangentSpace
-    {
-        bool RequiresViewDirectionTangentSpace();
-    }
 
     [Title("UV/Parallax")]
-    public class ParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirectionTangentSpace
+    public class ParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirection
     {
         protected const string kInputSlot1ShaderName = "Depth";
         protected const string kOutputSlotShaderName = "UV";
@@ -117,9 +113,9 @@ namespace UnityEngine.MaterialGraph
             return channel == UVChannel.uv0;
         }
 
-        public bool RequiresViewDirectionTangentSpace()
+        public NeededCoordinateSpace RequiresViewDirection()
         {
-            return true;
+            return NeededCoordinateSpace.Tangent;
         }
     }
 }

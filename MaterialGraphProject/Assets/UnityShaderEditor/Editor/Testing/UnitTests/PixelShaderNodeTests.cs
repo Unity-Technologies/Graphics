@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class PixelShaderNodeTests
     {
-        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
+      /*  private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private Vector1Node m_InputOne;
         private AbsoluteNode m_Abs;
         private MetallicMasterNode m_PixelNode;
@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             //m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
         }
 
-        /*  [Test]
+         [Test]
           public void TestNodeGeneratesCorrectNodeCode()
           {
               string expected = string.Format("half {0} = 0.2;" + Environment.NewLine

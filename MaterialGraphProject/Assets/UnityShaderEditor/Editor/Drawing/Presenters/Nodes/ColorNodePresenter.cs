@@ -17,7 +17,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (cNode == null)
                 return;
 
-            cNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), cNode.exposedState);
             cNode.color = EditorGUILayout.ColorField(new GUIContent("Color"), cNode.color, true, true, cNode.HDR, new ColorPickerHDRConfig(0f, 8f, 0.125f, 3f));
             cNode.HDR = EditorGUILayout.Toggle("HDR", cNode.HDR);
         }

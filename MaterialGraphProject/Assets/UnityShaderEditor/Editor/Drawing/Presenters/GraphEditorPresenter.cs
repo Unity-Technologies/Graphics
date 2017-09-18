@@ -1,7 +1,8 @@
-﻿﻿using System;
+﻿using System;
 using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -36,7 +37,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_GraphInspectorPresenter = value; }
         }
 
-        public void Initialize(IGraph graph, IMaterialGraphEditWindow container, string assetName)
+        public void Initialize(AbstractMaterialGraph graph, HelperMaterialGraphEditWindow container, string assetName)
         {
             m_PreviewSystem = new PreviewSystem(graph);
 
@@ -44,7 +45,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_TitleBarPresenter.Initialize(container);
 
             m_GraphInspectorPresenter = CreateInstance<GraphInspectorPresenter>();
-            m_GraphInspectorPresenter.Initialize(assetName, graph, m_PreviewSystem);
+            m_GraphInspectorPresenter.Initialize(assetName, m_PreviewSystem, container);
 
             m_GraphPresenter = CreateInstance<MaterialGraphPresenter>();
             m_GraphPresenter.Initialize(graph, container, m_PreviewSystem);

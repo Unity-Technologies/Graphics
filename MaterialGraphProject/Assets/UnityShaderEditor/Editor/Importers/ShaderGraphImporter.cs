@@ -20,14 +20,11 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
 
-            IMasterNode masterNode = graph.masterNode;
-            if (masterNode == null)
-                return null;
-
             var name = Path.GetFileNameWithoutExtension(path);
 
-            List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = masterNode.GetFullShader(GenerationMode.ForReals, string.Format("graphs/{0}", name), out configuredTextures);
+            List<PropertyCollector.TextureInfo> configuredTextures;
+            var shaderString = graph.GetShader(string.Format("graphs/{0}", name), out configuredTextures);
+            Debug.Log(shaderString);
             return shaderString;
         }
         catch (Exception)
