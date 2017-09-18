@@ -205,26 +205,30 @@ namespace UnityEngine.MaterialGraph
 
         public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
         {
-            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
+        }
 
-            if (outputSlot == null)
+        public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int slotId, string variableName)
+        {
+            var slot = node.FindSlot<MaterialSlot>(slotId);
+
+            if (slot == null)
                 return kErrorString;
 
-            var convertFromType = outputSlot.concreteValueType;
-
-            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            var convertFromType = slot.concreteValueType;
 
             // preview is always dimension 4, and we always ignore alpha
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("half4({0}, {0}, {0}, 1.0)", rawOutput);
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector2:
-                    return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", rawOutput);
+                    return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector3:
-                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector4:
-                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
                 default:
                     return kErrorString;
             }
@@ -246,25 +250,25 @@ namespace UnityEngine.MaterialGraph
         {
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
             {
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = IN.{0};", objectSpaceName), false);
+                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", objectSpaceName), false);
             }
 
             if ((neededSpaces & NeededCoordinateSpace.World) > 0)
             {
                 if (isNormal)
-                    pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToWorldNormal(IN.{1});", worldSpaceName, objectSpaceName), false);
+                    pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToWorldNormal({1});", worldSpaceName, objectSpaceName), false);
                 else
-                    pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToWorldDir(IN.{1});", worldSpaceName, objectSpaceName), false);
+                    pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToWorldDir({1});", worldSpaceName, objectSpaceName), false);
             }
 
             if ((neededSpaces & NeededCoordinateSpace.View) > 0)
             {
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToViewPos(IN.{1});", viewSpaceName, objectSpaceName), false);
+                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = UnityObjectToViewPos({1});", viewSpaceName, objectSpaceName), false);
             }
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
             {
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = mul(tangentSpaceTransform, IN.{1})", tangentSpaceName, objectSpaceName), false);
+                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = mul(tangentSpaceTransform, {1})", tangentSpaceName, objectSpaceName), false);
             }
         }
 
@@ -369,7 +373,10 @@ namespace UnityEngine.MaterialGraph
             var outputs = new ShaderGenerator();
             var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
             if (outputSlot != null)
-                outputs.AddShaderChunk(string.Format("return surf.{0};", node.GetVariableNameForSlot(outputSlot.id)), true);
+            {
+                var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
+                outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+            }
             else
                 outputs.AddShaderChunk("return 0;", true);
 

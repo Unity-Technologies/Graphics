@@ -397,15 +397,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        /*
-        public virtual bool DrawSlotDefaultInput(Rect rect, MaterialSlot inputSlot)
-        {
-            var inputSlotType = inputSlot.concreteValueType;
-            return inputSlot.OnGUI(rect, inputSlotType);
-        }
-
-      */
-
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             var validSlots = GetInputSlots<MaterialSlot>().ToArray();

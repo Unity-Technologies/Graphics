@@ -154,6 +154,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
                 node.CollectPreviewMaterialProperties(m_PreviewProperties);
+                foreach (var prop in m_Graph.properties)
+                    m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
+
                 foreach (var previewProperty in m_PreviewProperties)
                 {
                     if (previewProperty.m_PropType == PropertyType.Texture && previewProperty.m_Texture != null)
@@ -211,12 +214,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                 return;
 
-            if (node is MasterNode)
+            if (node is MasterNode && node.owner is UnityEngine.MaterialGraph.MaterialGraph)
             {
-               /* var masterNode = (MasterNode)node;
-                List<PropertyGenerator.TextureInfo> defaultTextures;
-                previewData.shaderString = masterNode.(GenerationMode.Preview, node.guid + "_preview", out defaultTextures);
-                previewData.previewMode = masterNode.has3DPreview() ? PreviewMode.Preview3D : PreviewMode.Preview2D;*/
+                var masterNode = (MasterNode)node;
+                var materialGraph = (UnityEngine.MaterialGraph.MaterialGraph) node.owner;
+
+                List<PropertyCollector.TextureInfo> defaultTextures;
+                previewData.shaderString = materialGraph.GetShader(node.guid + "_preview", out defaultTextures);
+                previewData.previewMode = masterNode.has3DPreview() ? PreviewMode.Preview3D : PreviewMode.Preview2D;
             }
             else if (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex)
             {
@@ -225,7 +230,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             else
             {
                 List<PropertyCollector.TextureInfo> defaultTextures;
-                previewData.shaderString = m_Graph.GetPreviewShader(node);
+                PreviewMode mode;
+                previewData.shaderString = m_Graph.GetPreviewShader(node, out mode);
+                previewData.previewMode = mode;
             }
 
             // Debug output

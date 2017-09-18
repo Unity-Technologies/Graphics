@@ -39,7 +39,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN." + ShaderGeneratorNames.WorldSpacePosition;
+            return ShaderGeneratorNames.WorldSpacePosition;
         }
 
         public NeededCoordinateSpace RequiresPosition()
