@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
             var rot = rotReduce.Get<Vector3>();
             var scale = scaleReduce.Get<Vector3>();
 
-            var quat = Quaternion.Euler(rot * Mathf.Deg2Rad);
+            var quat = Quaternion.Euler(rot);
 
             Matrix4x4 matrix = new Matrix4x4();
             matrix.SetTRS(pos, quat, scale);
