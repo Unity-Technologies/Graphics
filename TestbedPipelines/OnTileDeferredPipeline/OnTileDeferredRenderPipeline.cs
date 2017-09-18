@@ -581,7 +581,10 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			for (int i = 0; i < lcnt; ++i)
 			{
 				VisibleLight vl = inputs.visibleLights[i];
-				if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalShadowData>().shadowDimmer > 0.0f)
+
+				AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+
+				if (vl.light.shadows != LightShadows.None && asd != null && asd.shadowDimmer > 0.0f)
 					m_ShadowRequests.Add(i);
 			}
 			// pass this list to a routine that assigns shadows based on some heuristic
