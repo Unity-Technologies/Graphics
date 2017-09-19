@@ -49,21 +49,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnGraphChange(GraphChange change)
         {
-            if (change is NodeAddedGraphChange)
-                AddPreview(((NodeAddedGraphChange)change).node);
-            else if (change is NodeRemovedGraphChange)
-                RemovePreview(((NodeRemovedGraphChange)change).node);
-            else if (change is EdgeAddedGraphChange)
-            {
-                var edge = ((EdgeAddedGraphChange)change).edge;
-                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
-            }
-            else if (change is EdgeRemovedGraphChange)
-            {
-                var edge = ((EdgeRemovedGraphChange)change).edge;
-                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
-            }
-
+            change.Match(
+                nodeAdded: c => AddPreview(c.node),
+                nodeRemoved: c => RemovePreview(c.node),
+                edgeAdded: c => m_DirtyShaders.Add(c.edge.inputSlot.nodeGuid),
+                edgeRemoved: c => m_DirtyShaders.Add(c.edge.inputSlot.nodeGuid));
         }
 
         void AddPreview(INode node)
@@ -84,6 +74,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             node.onModified -= OnNodeModified;
             m_Previews.Remove(node.guid);
             m_TimeDependentPreviews.Remove(node.guid);
+            m_DirtyPreviews.Remove(node.guid);
+            m_DirtyShaders.Remove(node.guid);
         }
 
         void OnNodeModified(INode node, ModificationScope scope)
@@ -161,6 +153,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             foreach (var nodeGuid in m_PropertyNodeGuids)
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
+                if (node == null)
+                    continue;
                 node.CollectPreviewMaterialProperties(m_PreviewProperties);
                 foreach (var prop in m_Graph.properties)
                     m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
@@ -188,7 +182,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             var time = Time.realtimeSinceStartup;
             foreach (var nodeGuid in m_DirtyPreviews)
             {
-                var previewData = m_Previews[nodeGuid];
+                PreviewData previewData;
+                if (!m_Previews.TryGetValue(nodeGuid, out previewData))
+                    continue;
+
                 if (previewData.shader == null)
                 {
                     previewData.texture = null;
@@ -207,7 +204,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             foreach (var nodeGuid in m_DirtyPreviews)
             {
-                var previewData = m_Previews[nodeGuid];
+                PreviewData previewData;
+                if (!m_Previews.TryGetValue(nodeGuid, out previewData))
+                    continue;
+
                 if (previewData.onPreviewChanged != null)
                     previewData.onPreviewChanged();
             }

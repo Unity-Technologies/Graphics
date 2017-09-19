@@ -7,6 +7,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Graphing;
+using Debug = System.Diagnostics.Debug;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -140,6 +141,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdateData()
         {
+            return;
             var deletedElementPresenters = new List<GraphElementPresenter>();
 
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
@@ -262,6 +264,68 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             UpdateData();
+
+            foreach (var node in graph.GetNodes<INode>())
+                NodeAdded(new NodeAddedGraphChange(node));
+            foreach (var edge in graph.edges)
+                EdgeAdded(new EdgeAddedGraphChange(edge));
+
+            this.graph.onChange += OnChange;
+        }
+
+        void OnChange(GraphChange change)
+        {
+            change.Match(NodeAdded, NodeRemoved, EdgeAdded, EdgeRemoved);
+        }
+
+        void NodeAdded(NodeAddedGraphChange change)
+        {
+            var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
+            change.node.onModified += OnNodeChanged;
+            nodePresenter.Initialize(change.node, m_PreviewSystem);
+            m_Elements.Add(nodePresenter);
+        }
+
+        void NodeRemoved(NodeRemovedGraphChange change)
+        {
+            change.node.onModified -= OnNodeChanged;
+            var nodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == change.node.guid);
+            if (nodePresenter != null)
+                m_Elements.Remove(nodePresenter);
+        }
+
+        void EdgeAdded(EdgeAddedGraphChange change)
+        {
+            var edge = change.edge;
+
+            var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
+            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
+            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot == sourceSlot);
+
+            var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+            var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
+            var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
+            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot == targetSlot);
+
+            var edgePresenter = CreateInstance<GraphEdgePresenter>();
+            edgePresenter.Initialize(edge);
+            edgePresenter.output = sourceAnchorPresenter;
+            edgePresenter.output.Connect(edgePresenter);
+            edgePresenter.input = targetAnchor;
+            edgePresenter.input.Connect(edgePresenter);
+            m_Elements.Add(edgePresenter);
+        }
+
+        void EdgeRemoved(EdgeRemovedGraphChange change)
+        {
+            var edgePresenter = m_Elements.OfType<GraphEdgePresenter>().FirstOrDefault(p => p.edge == change.edge);
+            if (edgePresenter != null)
+            {
+                edgePresenter.output.Disconnect(edgePresenter);
+                edgePresenter.input.Disconnect(edgePresenter);
+                m_Elements.Remove(edgePresenter);
+            }
         }
 
         public void AddNode(INode node)
