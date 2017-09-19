@@ -13,11 +13,22 @@ namespace UnityEditor.VFX.UI
             base.Init(model, scPresenter);
         }
 
+        public static System.Type GetDisplayAnchorType(VFXSlot slot)
+        {
+            System.Type newAnchorType = slot.property.type;
+
+            if (newAnchorType != typeof(Color) && slot.GetExpression() != null)
+                newAnchorType = VFXExpression.TypeToType(slot.GetExpression().valueType);//model.property.type;
+
+            return newAnchorType;
+        }
+
         public override void UpdateInfos()
         {
             if (model.GetExpression() != null)
             {
-                var newAnchorType = VFXExpression.TypeToType(model.GetExpression().valueType);//model.property.type;
+                System.Type newAnchorType = GetDisplayAnchorType(model);
+
                 if (newAnchorType != anchorType)
                 {
                     this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
