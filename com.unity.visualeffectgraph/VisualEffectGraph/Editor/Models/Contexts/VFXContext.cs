@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
 
     class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
     {
-        private VFXContext() {} // Used by serialization
+        private VFXContext() { m_UICollapsed = false; } // Used by serialization
 
         public VFXContext(VFXContextType contextType, VFXDataType inputType, VFXDataType outputType)
         {
@@ -65,6 +65,8 @@ namespace UnityEditor.VFX
 
             if (m_Data == null)
                 SetDefaultData(false);
+
+            m_UICollapsed = false;
         }
 
         public override T Clone<T>()
