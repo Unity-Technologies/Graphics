@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Rendering Settings
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
-            public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
+            public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
 
             // Texture Settings
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
+            m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
 
             // Subsurface Scattering Settings
             // Old SSS Model >>>
@@ -264,20 +264,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.renderingSettingsLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, styles.useDepthPrepass);
             EditorGUILayout.PropertyField(m_RenderingUseForwardOnly, styles.useForwardRenderingOnly);
-
-            if (EditorGUI.EndChangeCheck())
+            if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
             {
-                if (m_RenderingUseForwardOnly.boolValue && !m_RenderingUseDepthPrepass.boolValue)
-                {
-                    // Force depth prepass for forward-only rendering (for FPTL, etc).
-                    m_RenderingUseDepthPrepass.boolValue = true;
-                    HackSetDirty(renderContext); // Repaint
-                }
+                EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, styles.useDepthPrepassWithDeferredRendering);
             }
+
             EditorGUI.indentLevel--;
         }
 
