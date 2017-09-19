@@ -179,6 +179,7 @@ CurveField .curve
 
 ObjectField
 {
+	height : 16;
 	flex-direction:row;
 	background-image:resource("dropwell nothumb");
 }
