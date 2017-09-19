@@ -154,6 +154,22 @@ VFXContextUI > * >#Title {
 	
 }
 
+
+VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
+{
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:0;
+}
+
+VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #title
+{
+	max-width:0;
+}
+VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #left #leftBackground
+{
+	background-color:rgba(0,0,0,0);
+}
+
 VFXContextUI BlockContainer {
 	text-alignment:upper-center;
 
