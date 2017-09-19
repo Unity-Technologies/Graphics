@@ -82,6 +82,35 @@ namespace UnityEditor.VFX
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
 
+        private VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
+        {
+            var allSpawner = vfxContext.Where(o => o.contextType == VFXContextType.kSpawner);
+            var spawnerToResolve = new HashSet<VFXContext>(vfxContext.Where(o => o.contextType == VFXContextType.kInit).SelectMany(o => o.inputContexts));
+
+            var spawnerProcessed = new List<VFXContext>();
+            while (spawnerToResolve.Count != 0)
+            {
+                var currentSpawnerToResolve = spawnerToResolve.ToArray();
+                foreach (var spawner in currentSpawnerToResolve)
+                {
+                    var dependencyNeeded = spawner.inputContexts.Where(o => spawnerProcessed.Contains(o)).ToArray();
+                    if (dependencyNeeded.Length != 0)
+                    {
+                        foreach (var dependency in dependencyNeeded)
+                        {
+                            spawnerToResolve.Add(dependency);
+                        }
+                    }
+                    else
+                    {
+                        spawnerProcessed.Add(spawner);
+                        spawnerToResolve.Remove(spawner);
+                    }
+                }
+            }
+            return spawnerProcessed.ToArray();
+        }
+
         public void Compile()
         {
             try
@@ -175,7 +204,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var eventAttributes = new List<VFXEventAttributeDesc>();
+                var eventAttributes = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
                 foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
                 {
                     foreach (var linked in context.outputContexts)
@@ -184,7 +213,7 @@ namespace UnityEditor.VFX
                         {
                             if (attribute.attrib.location == VFXAttributeLocation.Source)
                             {
-                                eventAttributes.Add(new VFXEventAttributeDesc()
+                                eventAttributes.Add(new VFXLayoutElementDesc()
                                 {
                                     name = attribute.attrib.name,
                                     type = attribute.attrib.type
@@ -202,40 +231,10 @@ namespace UnityEditor.VFX
                 expressionSheet.values = m_ExpressionValues.ToArray();
                 expressionSheet.semantics = expressionSemantics.ToArray();
                 expressionSheet.exposed = parameterExposed.ToArray();
-                expressionSheet.eventAttributes = eventAttributes.ToArray();
 
                 m_Graph.vfxAsset.ClearSpawnerData();
                 m_Graph.vfxAsset.ClearPropertyData();
                 m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
-
-                foreach (var spawnerContext in models.OfType<VFXContext>().Where(model => model.contextType == VFXContextType.kSpawner))
-                {
-                    var spawnDescs = spawnerContext.childrenWithImplicit.Select(b =>
-                        {
-                            var spawner = b as VFXAbstractSpawner;
-                            if (spawner == null)
-                            {
-                                throw new InvalidCastException("Unexpected type in spawnerContext");
-                            }
-
-                            if (spawner.spawnerType == VFXSpawnerType.kCustomCallback && spawner.customBehavior == null)
-                            {
-                                throw new Exception("VFXAbstractSpawner excepts a custom behavior for custom callback type");
-                            }
-
-                            if (spawner.spawnerType != VFXSpawnerType.kCustomCallback && spawner.customBehavior != null)
-                            {
-                                throw new Exception("VFXAbstractSpawner only expects a custom behavior for custom callback type");
-                            }
-                            return new VFXSpawnerDesc()
-                            {
-                                customBehavior = spawner.customBehavior,
-                                type = spawner.spawnerType
-                            };
-                        }).ToArray();
-                    int spawnerIndex = m_Graph.vfxAsset.AddSpawner(spawnDescs, (uint)spawnerContext.GetParent().GetIndex(spawnerContext));
-                    m_Graph.vfxAsset.LinkStartEvent("OnStart", spawnerIndex);
-                }
 
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
                 var generatedList = new List<GeneratedCodeData>();
@@ -320,7 +319,41 @@ namespace UnityEditor.VFX
                 }
 
                 var bufferDescs = new List<VFXBufferDesc>();
+                var cpuBufferDescs = new List<VFXCPUBufferDesc>(); //{ new VFXCPUBufferDesc() { capacity = 1, layout = eventAttributes.ToArray() } };
                 var systemDescs = new List<VFXSystemDesc>();
+
+                var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
+                foreach (var spawner in spawners)
+                {
+                    var buffers = spawner.inputContexts.Select(o => new VFXBufferMapping()
+                    {
+                        bufferIndex = Array.IndexOf(spawners, o),
+                        name = "spawner_input"
+                    }).ToList();
+
+                    if (buffers.Count > 1)
+                        throw new InvalidOperationException("Unexpected spawner with multiple inputs");
+
+                    buffers.Add(new VFXBufferMapping()
+                    {
+                        bufferIndex = Array.IndexOf(spawners, spawner),
+                        name = "spawner_output"
+                    });
+
+                    systemDescs.Add(new VFXSystemDesc()
+                    {
+                        buffers = buffers.ToArray(),
+                        capacity = 0u,
+                        flags = VFXSystemFlag.kVFXSystemDefault,
+                        tasks = spawner.children.Select(b =>
+                            {
+                                return new VFXTaskDesc
+                                {
+                                    type = VFXTaskType.kVFXSpawner,
+                                };
+                            }).ToArray()
+                    });
+                }
 
                 foreach (var data in models.OfType<VFXDataParticle>())
                 {
@@ -377,7 +410,7 @@ namespace UnityEditor.VFX
                         foreach (var uniform in contextData.uniformMapper.uniforms)
                             uniformMappings.Add(new VFXUniformMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
-                        taskDesc.buffers = bufferMappings.ToArray();
+                        taskDesc.gpuBuffers = bufferMappings.ToArray();
                         taskDesc.uniforms = uniformMappings.ToArray();
 
                         taskDesc.processor = contextToCompiledData[context].processor;
@@ -395,7 +428,7 @@ namespace UnityEditor.VFX
                     });
                 }
 
-                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray());
+                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
             }
             catch (Exception e)
             {
