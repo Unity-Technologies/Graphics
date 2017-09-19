@@ -1284,11 +1284,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (renderOpaque)
                 {
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, arrayNames, Utilities.kRendererConfigurationBakedLighting, m_ErrorMaterial);
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, arrayNames, 0, m_ErrorMaterial);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, arrayNames, Utilities.kRendererConfigurationBakedLighting, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, arrayNames, 0, m_ErrorMaterial);
                 }
             }
         }
