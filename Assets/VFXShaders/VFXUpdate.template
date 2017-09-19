@@ -22,7 +22,7 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
-			if (!alive)
+			if (alive)
 			{
 				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 			}

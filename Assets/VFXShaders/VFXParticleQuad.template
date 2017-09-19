@@ -56,31 +56,35 @@ Shader "Hidden/VFX/ParticleQuads"
 					ps_input o = (ps_input)0;
 					if (index < asuint(nbMax))
 					{
-						${VFXLoadAttributes}
-						${VFXProcessBlocks}
-						
-						float2 offsets = (float2)0;
-						o.uv.x = float(id & 1);
-						o.uv.y = float((id & 2) >> 1);
-						position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
-						
-						o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
+						${VFXLoadAttributes:{alive}}
+						if (alive)
+						{
+							${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+							${VFXProcessBlocks}
+							
+							float2 offsets = (float2)0;
+							o.uv.x = float(id & 1);
+							o.uv.y = float((id & 2) >> 1);
+							position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
+							
+							o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
 
 #if VFX_NEEDS_COLOR_INTERPOLATOR
-						o.color = (float4)1.0f;
+							o.color = (float4)1.0f;
 #if VFX_USE_COLOR_CURRENT
-						o.color.rgb = color;
+							o.color.rgb = color;
 #endif
 #if VFX_USE_COLOR_ALPHA
-						o.color.a = alpha;
+							o.color.a = alpha;
 #endif
 #endif
 
 #if USE_SOFT_PARTICLE
-						o.projPos = ComputeScreenPos(o.pos);		
-						${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-						o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
+							o.projPos = ComputeScreenPos(o.pos);		
+							${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+							o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
 #endif
+						}
 					}
 					return o;
 				}
@@ -101,6 +105,8 @@ Shader "Hidden/VFX/ParticleQuads"
 					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 					o.color.a *= fade;
 #endif
+					clip(o.color.a - 1e-10);
+
 					return o;
 				}
 			ENDCG
