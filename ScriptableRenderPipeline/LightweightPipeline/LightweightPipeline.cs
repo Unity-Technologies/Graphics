@@ -300,7 +300,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 renderingConfig |= RenderingConfiguration.DefaultViewport;
 
-            intermediateTexture |= m_CurrCamera.targetTexture != null;
+            intermediateTexture |= (m_CurrCamera.targetTexture != null || m_Asset.RenderScale < 1.0f);
             if (intermediateTexture && !LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTextureArray))
                 renderingConfig |= RenderingConfiguration.IntermediateTexture;
 
@@ -673,8 +673,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
-            int rtWidth = m_CurrCamera.pixelWidth;
-            int rtHeight = m_CurrCamera.pixelHeight;
 
             // When postprocess is enabled, msaa is forced to be disabled due to lack of depth resolve.
             int msaaSamples = (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.Msaa)) ? m_Asset.MSAASampleCount : 1;
@@ -682,6 +680,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var cmd = CommandBufferPool.Get("SetCameraRenderTarget");
             if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTexture))
             {
+                int rtWidth = (int)((float)m_CurrCamera.pixelWidth * m_Asset.RenderScale);
+                int rtHeight = (int)((float)m_CurrCamera.pixelHeight * m_Asset.RenderScale);
+
                 if (m_CurrCamera.targetTexture == null)
                 {
                     RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
