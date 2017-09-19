@@ -34,6 +34,9 @@
 	text-color: #c4c4c4;
 	margin-top:12;
 	font-size:14;
+	margin-left:10;
+	margin-right:20;
+	font-size:14;
 }
 
 .VFXNodeUI.node.horizontal .mainContainer > #left
@@ -119,16 +122,6 @@ VFXParameterUI #exposedNameContainer
 {
 	flex-direction:row;
 }
-
-
-
-.node.horizontal #title > Label {
-	margin-top:4;
-	margin-left:10;
-	margin-right:20;
-	font-size:14;
-}
-
 
 .VFXNodeUI.collapsed
 {
