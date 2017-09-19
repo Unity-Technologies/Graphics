@@ -125,6 +125,7 @@ namespace UnityEditor.Experimental.Rendering
 				             (testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
 				             24);
 			rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
+            rtDesc.msaaSamples = testSetup.msaaSamples;
 
 			// render the scene
 			var tempTarget = RenderTexture.GetTemporary (rtDesc);
