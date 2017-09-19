@@ -177,6 +177,27 @@ CurveField .curve
     border-color:#000;
 }
 
+ObjectField
+{
+	flex-direction:row;
+	background-image:resource("dropwell nothumb");
+}
+
+ObjectField:focus
+{
+	background-image:resource("dropwell nothumb focus");
+}
+ObjectField * 
+{
+	text-color: #BBB;
+}
+
+ObjectField #icon
+{
+	margin-bottom:1;
+	margin-top:1;
+	margin-left:1;
+}
 
 GradientField
 {

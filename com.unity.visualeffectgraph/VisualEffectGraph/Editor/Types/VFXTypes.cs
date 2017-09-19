@@ -13,8 +13,12 @@ namespace UnityEditor.VFX
     {
         Local,
         Global,
-        Camera,
-        SpaceCount
+        Camera
+    }
+
+    class CoordinateSpaceInfo
+    {
+        public const int SpaceCount = 3;
     }
 
     interface ISpaceable
@@ -75,7 +79,7 @@ namespace UnityEditor.VFX
     [VFXType]
     struct Plane : ISpaceable
     {
-        public Plane(Vector3 direction) { space = CoordinateSpace.Local; position = Vector3.zero; normal.space = CoordinateSpace.Local; normal.direction = direction; }
+        public Plane(Vector3 direction) { space = CoordinateSpace.Local; position = Vector3.zero; normal = direction; }
 
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
@@ -83,7 +87,8 @@ namespace UnityEditor.VFX
         [Tooltip("The position of the plane.")]
         public Vector3 position;
         [Tooltip("The direction of the plane.")]
-        public DirectionType normal;
+        [Normalize]
+        public Vector3 normal;
     }
 
     [VFXType]

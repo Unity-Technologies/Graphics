@@ -218,7 +218,7 @@ namespace UnityEditor.VFX.UI
         {
             Plane plane = (Plane)anchor.value;
 
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal.direction);
+            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
             Handles.DrawRectangle(0, plane.position, normalQuat, 10);
 
             Handles.DrawArrow(0, plane.position, normalQuat, 5);
@@ -228,7 +228,7 @@ namespace UnityEditor.VFX.UI
                 anchor.value = plane;
             }
 
-            Vector3 normal = plane.normal.direction.normalized;
+            Vector3 normal = plane.normal.normalized;
 
             Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, normal);
 
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX.UI
             if (GUI.changed)
             {
                 normal = result * Vector3.forward;
-                plane.normal.direction = normal;
+                plane.normal = normal;
                 anchor.value = plane;
             }
             EditorGUI.EndChangeCheck();

@@ -431,5 +431,39 @@ namespace UnityEditor.VFX.UI
             newParameter.exposedName = parameter.exposedName;
             newParameter.exposed = true;
         }
+
+        void SelectionUpdated()
+        {
+            var contextSelected = selection.OfType<VFXContextUI>();
+
+            if (contextSelected.Count() > 0)
+            {
+                Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+            }
+            else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+            {
+                Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+            }
+        }
+
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void ClearSelection()
+        {
+            bool selectionEmpty = selection.Count() == 0;
+            base.ClearSelection();
+            if (!selectionEmpty)
+                SelectionUpdated();
+        }
     }
 }

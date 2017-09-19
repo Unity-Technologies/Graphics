@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
         {
             if (GUI.Button(rect, new GUIContent(Resources.Load<Texture2D>(string.Format("vfx/space{0}", value.space.ToString()))), GUIStyle.none))
             {
-                value.space = (CoordinateSpace)((int)(value.space + 1) % (int)CoordinateSpace.SpaceCount);
+                value.space = (CoordinateSpace)((int)(value.space + 1) % CoordinateSpaceInfo.SpaceCount);
                 GUI.changed = true;
             }
         }

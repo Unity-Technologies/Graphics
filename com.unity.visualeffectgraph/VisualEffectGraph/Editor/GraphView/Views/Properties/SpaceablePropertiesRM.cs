@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % (int)CoordinateSpace.SpaceCount);
+            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);
             NotifyValueChanged();
         }
 

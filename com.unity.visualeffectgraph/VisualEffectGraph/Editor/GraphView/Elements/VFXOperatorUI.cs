@@ -40,24 +40,15 @@ namespace UnityEditor.VFX.UI
     {
         public VisualElement m_SettingsContainer;
 
-        bool m_Collapse;
         public bool collapse
         {
-            get { return m_Collapse; }
+            get { return GetPresenter<VFXNodePresenter>().model.collapsed; }
 
             set
             {
-                if (m_Collapse != value)
+                if (GetPresenter<VFXNodePresenter>().model.collapsed != value)
                 {
-                    m_Collapse = value;
-                    if (m_Collapse)
-                    {
-                        AddToClassList("collapsed");
-                    }
-                    else
-                    {
-                        RemoveFromClassList("collapsed");
-                    }
+                    GetPresenter<VFXNodePresenter>().model.collapsed = value;
                 }
             }
         }
@@ -114,6 +105,16 @@ namespace UnityEditor.VFX.UI
                         edge.OnDataChanged();
                     }
                 }
+            }
+
+
+            if (presenter.model.collapsed)
+            {
+                AddToClassList("collapsed");
+            }
+            else
+            {
+                RemoveFromClassList("collapsed");
             }
         }
 
