@@ -7,15 +7,18 @@ namespace UnityEngine.MaterialGraph
 {
     [Serializable]
     [Title("Master/Master")]
-    public class MasterNode : AbstractMaterialNode
+    public abstract class MasterNode : AbstractMaterialNode
     {
+        [SerializeField]
+        protected SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
+
         public MasterNode()
         {
             name = "MasterNode";
             UpdateNodeAfterDeserialization();
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
+        public override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(0, "Test", "Test", SlotType.Input, SlotValueType.Vector4, Vector4.one));
             RemoveSlotsNameNotMatching(new[] { 0 });
@@ -43,8 +46,20 @@ namespace UnityEngine.MaterialGraph
             return true;
         }
 
-        public string GetSubShader(ShaderGraphRequirements shaderGraphRequirements)
-        {
+        public abstract string GetSubShader(ShaderGraphRequirements shaderGraphRequirements);
+        /*{
+            var tagsVisitor = new ShaderGenerator();
+            var blendingVisitor = new ShaderGenerator();
+            var cullingVisitor = new ShaderGenerator();
+            var zTestVisitor = new ShaderGenerator();
+            var zWriteVisitor = new ShaderGenerator();
+
+            m_MaterialOptions.GetTags(tagsVisitor);
+            m_MaterialOptions.GetBlend(blendingVisitor);
+            m_MaterialOptions.GetCull(cullingVisitor);
+            m_MaterialOptions.GetDepthTest(zTestVisitor);
+            m_MaterialOptions.GetDepthWrite(zWriteVisitor);
+
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
@@ -143,11 +158,18 @@ namespace UnityEngine.MaterialGraph
             var result = string.Format("surf.{0}", slot.shaderOutputName);
             outputs.AddShaderChunk(string.Format("return {0};", ShaderGenerator.AdaptNodeOutputForPreview(this, 0, result)), true);
 
-            var res = subShaderTemplate.Replace("{0}", interpolators.GetShaderString(0));
-            res = res.Replace("{1}", vertexShader.GetShaderString(0));
-            res = res.Replace("{2}", pixelShader.GetShaderString(0));
-            res = res.Replace("{3}", outputs.GetShaderString(0));
-            return res;
+            var resultShader = subShaderTemplate.Replace("{0}", interpolators.GetShaderString(0));
+            resultShader = resultShader.Replace("{1}", vertexShader.GetShaderString(0));
+            resultShader = resultShader.Replace("{2}", pixelShader.GetShaderString(0));
+            resultShader = resultShader.Replace("{3}", outputs.GetShaderString(0));
+
+            resultShader = resultShader.Replace("${Tags}", tagsVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${Blending}", blendingVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
+            return resultShader;
         }
 
         private const string subShaderTemplate = @"
@@ -190,6 +212,6 @@ SubShader
         }
         ENDCG
     }
-}";
+}";*/
     }
 }
