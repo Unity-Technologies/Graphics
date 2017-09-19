@@ -20,16 +20,14 @@ SAMPLER2D(sampler_BaseColorMap);
 
 TEXTURE2D(_MaskMap);
 SAMPLER2D(sampler_MaskMap);
-TEXTURE2D(_SpecularOcclusionMap);
-SAMPLER2D(sampler_SpecularOcclusionMap);
+TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
+SAMPLER2D(sampler_BentNormalMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
 TEXTURE2D(_NormalMapOS);
 SAMPLER2D(sampler_NormalMapOS);
 
-TEXTURE2D(_DetailMask);
-SAMPLER2D(sampler_DetailMask);
 TEXTURE2D(_DetailMap);
 SAMPLER2D(sampler_DetailMap);
 
@@ -71,11 +69,10 @@ SAMPLER2D(sampler_SpecularColorMap);
 
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
-PROP_DECL_TEX2D(_SpecularOcclusionMap);
+PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_HeightMap);
-PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
@@ -90,14 +87,15 @@ CBUFFER_START(_PerMaterial)
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
 
-float _HorizonFade;
-
 float _PPDMaxSamples;
 float _PPDMinSamples;
 float _PPDLodThreshold;
 
 float3 _EmissiveColor;
 float _EmissiveIntensity;
+float _AlbedoAffectEmissive;
+
+float _EnableSpecularOcclusion;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
@@ -120,6 +118,8 @@ float4 _BaseColorMap_ST;
 
 float _Metallic;
 float _Smoothness;
+float _SmoothnessRemapMin;
+float _SmoothnessRemapMax;
 
 float _NormalScale;
 
@@ -159,6 +159,8 @@ float4 _BaseColorMap3_ST;
 
 PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
+PROP_DECL(float, _SmoothnessRemapMin);
+PROP_DECL(float, _SmoothnessRemapMax);
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
@@ -195,6 +197,7 @@ float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 

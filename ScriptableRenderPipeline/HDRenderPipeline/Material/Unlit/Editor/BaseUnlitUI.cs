@@ -182,6 +182,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetInt("_ZWrite", 0);
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 
+                SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
+                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
+                SetKeyword(material, "_BLENDMODE_SOFT_ADD", BlendMode.SoftAdd == blendMode);
+                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiply == blendMode);
+                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
+
                 switch (blendMode)
                 {
                     case BlendMode.Lerp:

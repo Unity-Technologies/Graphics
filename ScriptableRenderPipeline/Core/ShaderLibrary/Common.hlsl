@@ -393,6 +393,14 @@ float3 FastSign(float x)
     return  saturate(x * FLT_MAX) * 2.0 - 1.0;
 }
 
+// Orthonormalize the basis vectors using the Gram-Schmidt process.
+// We assume that the length of the surface normal is sufficiently close to 1.
+// return orthonormalize tangent
+float3 Orthonormalize(float3 tangent, float3 normal)
+{
+    return normalize(tangent - dot(tangent, normal) * normal);
+}
+
 // ----------------------------------------------------------------------------
 // Texture utilities
 // ----------------------------------------------------------------------------

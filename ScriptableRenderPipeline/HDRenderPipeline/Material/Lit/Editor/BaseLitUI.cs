@@ -19,13 +19,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
-            public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
-
             // Per pixel displacement
-            public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
-            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimum samples to use with per pixel displacement mapping");
-            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum samples", "Maximum samples to use with per pixel displacement mapping");
-            public static GUIContent ppdLodThresholdText = new GUIContent("Fading LOD start", "Starting Lod where the parallax occlusion mapping effect start to disappear");
+            public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "Per pixel displacement work best with flat surfaces. This is an expensive features and should be enable wisely. Typical use case is paved road.");
+            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
+            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
+            public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
 
             // Tessellation
             public static string tessellationModeText = "Tessellation Mode";
@@ -38,8 +36,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
-            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tessellation displacement will take into account the object scale - Only work with uniform positive scale");
-            public static GUIContent tessellationTilingScaleText = new GUIContent("Enable tiling scale", "Tessellation displacement will take into account the tiling scale - Only work with uniform positive scale");
+            public static GUIContent tessellationObjectScaleText = new GUIContent("Lock with object scale", "Tessellation displacement will take into account the object scale - Only work with uniform positive scale");
+            public static GUIContent tessellationTilingScaleText = new GUIContent("Lock with heightmap tiling", "Tessellation displacement will take into account the tiling scale - Only work with uniform positive scale");
 
             // Wind
             public static GUIContent windText = new GUIContent("Enable Wind");
@@ -77,9 +75,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string     kMaterialID = "_MaterialID";
 
         protected const string     kStencilRef = "_StencilRef";
-
-        protected MaterialProperty horizonFade = null;
-        protected const string kHorizonFade = "_HorizonFade";
 
         // Wind
         protected MaterialProperty windEnable = null;
@@ -134,8 +129,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // MaterialID
             materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
-
-            horizonFade = FindProperty(kHorizonFade, props);
 
             // Per pixel displacement
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
@@ -207,8 +200,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                 EditorGUI.indentLevel--;
             }
-
-            m_MaterialEditor.ShaderProperty(horizonFade, StylesBaseLit.horizonFadeText);
 
             EditorGUI.indentLevel--;
 

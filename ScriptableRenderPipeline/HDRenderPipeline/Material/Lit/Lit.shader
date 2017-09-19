@@ -12,19 +12,23 @@ Shader "HDRenderPipeline/Lit"
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         _MaskMap("MaskMap", 2D) = "white" {}
-
-        _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
+        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
+        _BentNormalMap("_BentNormalMap", 2D) = "bump" {}
+        _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
+
         _HeightMap("HeightMap", 2D) = "black" {}
-        _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units. This will be computed in the UI.
+        _HeightMin("Heightmap Min", Float) = -1
+        _HeightMax("Heightmap Max", Float) = 1
         _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         _DetailMap("DetailMap", 2D) = "black" {}
-        _DetailMask("DetailMask", 2D) = "white" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
@@ -58,10 +62,12 @@ Shader "HDRenderPipeline/Lit"
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
+        [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
@@ -70,8 +76,6 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
-        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -94,8 +98,7 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        // Note: 2 and 3 are currently unused
-        [Enum(Subsurface Scattering, 0, Standard, 1, ClearCoat, 2, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -131,12 +134,12 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
-    #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
-    #pragma shader_feature _SPECULAROCCLUSIONMAP
+    #pragma shader_feature _BENTNORMALMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
+    #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
@@ -145,6 +148,8 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
+
+    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD

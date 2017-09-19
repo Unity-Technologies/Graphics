@@ -9,7 +9,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [CustomEditor(typeof(ProceduralSkySettings))]
     public class ProceduralSkySettingsEditor : Editor
     {
-        private float heightFogFalloff = 1.0f;
         private float heightFogHeight = 0.0f;
 
         private class Styles

@@ -1,0 +1,8 @@
+{
+	"name": "com.unity.render-pipelines",
+	"version": "0.1.0",
+	"unity": "2017.3",
+	"description": "Render pipelines using SRP",
+	"dependencies": {
+	}
+}

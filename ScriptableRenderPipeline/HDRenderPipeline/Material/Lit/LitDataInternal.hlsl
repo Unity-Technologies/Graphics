@@ -1,20 +1,20 @@
-void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetail,
                                     float3 positionWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
-    float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
-                    ADD_IDX(_UVMappingMask).y * texCoord1 +
-                    ADD_IDX(_UVMappingMask).z * texCoord2 +
-                    ADD_IDX(_UVMappingMask).w * texCoord3;
+    float2 uvBase = uvMappingMask.x * texCoord0 +
+                    uvMappingMask.y * texCoord1 +
+                    uvMappingMask.z * texCoord2 +
+                    uvMappingMask.w * texCoord3;
 
     // Only used with layered, allow to have additional tiling
     uvBase *= additionalTiling.xx;
 
 
-    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * texCoord0 +
-                        ADD_IDX(_UVDetailsMappingMask).y * texCoord1 +
-                        ADD_IDX(_UVDetailsMappingMask).z * texCoord2 +
-                        ADD_IDX(_UVDetailsMappingMask).w * texCoord3;
+    float2 uvDetails =  uvMappingMaskDetail.x * texCoord0 +
+                        uvMappingMaskDetail.y * texCoord1 +
+                        uvMappingMaskDetail.z * texCoord2 +
+                        uvMappingMaskDetail.w * texCoord3;
 
     uvDetails *= additionalTiling.xx;
 
@@ -55,60 +55,40 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
     // Note: This code work only in pixel shader (as we rely on ddx), it should not be use in other context
-    ADD_IDX(layerTexCoord.base).tangentWS = ADD_IDX(_UVMappingMask).x * layerTexCoord.vertexTangentWS0 +
-                                            ADD_IDX(_UVMappingMask).y * layerTexCoord.vertexTangentWS1 +
-                                            ADD_IDX(_UVMappingMask).z * layerTexCoord.vertexTangentWS2 +
-                                            ADD_IDX(_UVMappingMask).w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.base).tangentWS = uvMappingMask.x * layerTexCoord.vertexTangentWS0 +
+                                            uvMappingMask.y * layerTexCoord.vertexTangentWS1 +
+                                            uvMappingMask.z * layerTexCoord.vertexTangentWS2 +
+                                            uvMappingMask.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.base).bitangentWS =   ADD_IDX(_UVMappingMask).x * layerTexCoord.vertexBitangentWS0 +
-                                                ADD_IDX(_UVMappingMask).y * layerTexCoord.vertexBitangentWS1 +
-                                                ADD_IDX(_UVMappingMask).z * layerTexCoord.vertexBitangentWS2 +
-                                                ADD_IDX(_UVMappingMask).w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.base).bitangentWS =   uvMappingMask.x * layerTexCoord.vertexBitangentWS0 +
+                                                uvMappingMask.y * layerTexCoord.vertexBitangentWS1 +
+                                                uvMappingMask.z * layerTexCoord.vertexBitangentWS2 +
+                                                uvMappingMask.w * layerTexCoord.vertexBitangentWS3;
 
-    ADD_IDX(layerTexCoord.details).tangentWS =  ADD_IDX(_UVDetailsMappingMask).x * layerTexCoord.vertexTangentWS0 +
-                                                ADD_IDX(_UVDetailsMappingMask).y * layerTexCoord.vertexTangentWS1 +
-                                                ADD_IDX(_UVDetailsMappingMask).z * layerTexCoord.vertexTangentWS2 +
-                                                ADD_IDX(_UVDetailsMappingMask).w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetail.x * layerTexCoord.vertexTangentWS0 +
+                                                uvMappingMaskDetail.y * layerTexCoord.vertexTangentWS1 +
+                                                uvMappingMaskDetail.z * layerTexCoord.vertexTangentWS2 +
+                                                uvMappingMaskDetail.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.details).bitangentWS =    ADD_IDX(_UVDetailsMappingMask).x * layerTexCoord.vertexBitangentWS0 +
-                                                    ADD_IDX(_UVDetailsMappingMask).y * layerTexCoord.vertexBitangentWS1 +
-                                                    ADD_IDX(_UVDetailsMappingMask).z * layerTexCoord.vertexBitangentWS2 +
-                                                    ADD_IDX(_UVDetailsMappingMask).w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetail.x * layerTexCoord.vertexBitangentWS0 +
+                                                    uvMappingMaskDetail.y * layerTexCoord.vertexBitangentWS1 +
+                                                    uvMappingMaskDetail.z * layerTexCoord.vertexBitangentWS2 +
+                                                    uvMappingMaskDetail.w * layerTexCoord.vertexBitangentWS3;
     #endif
 }
 
-float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)
+// Caution: Duplicate from GetBentNormalTS - keep in sync!
+float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
 {
     float3 normalTS;
 
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
-    if (useBias)
-    {
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP_BIAS(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias);
-    }
-    else
-    {
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
-    }
     #else // Object space
-    // We forbid scale in case of object space as it make no sense
-    // To be able to combine object space normal with detail map then later we will re-transform it to world space.
-    // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
-    if (useBias)
-    {
-        #ifdef SURFACE_GRADIENT
-        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
-        float3 normalOS = SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
-        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
-        #else
-        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
-        normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
-        #endif
-    }
-    else
-    {
+        // We forbid scale in case of object space as it make no sense
+        // To be able to combine object space normal with detail map then later we will re-transform it to world space.
+        // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
@@ -118,7 +98,6 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         #endif
-    }
     #endif
 
     #ifdef _DETAIL_MAP_IDX
@@ -139,8 +118,46 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     return normalTS;
 }
 
+// Caution: Duplicate from GetNormalTS - keep in sync!
+float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 normalTS, float3 detailNormalTS, float detailMask)
+{
+    float3 bentNormalTS;
+
+#ifdef _BENTNORMALMAP_IDX
+    #ifdef _NORMALMAP_TANGENT_SPACE_IDX
+        bentNormalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_BentNormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+    #else // Object space
+        // We forbid scale in case of object space as it make no sense
+        // To be able to combine object space normal with detail map then later we will re-transform it to world space.
+        // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
+        #ifdef SURFACE_GRADIENT
+        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
+        float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
+        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
+        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldDir(normalOS));
+        #else
+        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
+        bentNormalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
+        #endif
+    #endif
+
+    #ifdef _DETAIL_MAP_IDX
+        #ifdef SURFACE_GRADIENT
+        bentNormalTS += detailNormalTS * detailMask;
+        #else
+        bentNormalTS = lerp(bentNormalTS, BlendNormalRNM(bentNormalTS, detailNormalTS), detailMask);
+        #endif
+    #endif
+#else
+    // If there is no bent normal map provided, fallback on regular normal map
+    bentNormalTS = normalTS;
+#endif
+
+    return bentNormalTS;
+}
+
 // Return opacity
-float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS)
+float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
     float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a * ADD_IDX(_BaseColor).a;
 
@@ -152,7 +169,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
     float detailMask = 0.0;
 #ifdef _DETAIL_MAP_IDX
-    detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMask), SAMPLER_DETAILMASK_IDX, ADD_IDX(layerTexCoord.base)).g;
+    detailMask = 1.0;
+    #ifdef _MASKMAP_IDX
+        detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
+    #endif
     float2 detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
     float detailAlbedo = detailAlbedoAndSmoothness.r;
     float detailSmoothness = detailAlbedoAndSmoothness.g;
@@ -166,23 +186,20 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor *= LerpWhiteTo(2.0 * saturate(detailAlbedo * ADD_IDX(_DetailAlbedoScale)), detailMask);
 #endif
 
-#ifdef _SPECULAROCCLUSIONMAP_IDX
-    // TODO: Do something. For now just take alpha channel
-    surfaceData.specularOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), SAMPLER_SPECULAROCCLUSIONMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
-#else
-    // The specular occlusion will be perform outside the internal loop
-    surfaceData.specularOcclusion = 1.0;
-#endif
+    surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
+
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
 
-    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask, false, 0.0);
+    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask);
+    bentNormalTS = ADD_IDX(GetBentNormalTS)(input, layerTexCoord, normalTS, detailNormalTS, detailMask);
 
 #if defined(_MASKMAP_IDX)
     surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness = lerp(ADD_IDX(_SmoothnessRemapMin), ADD_IDX(_SmoothnessRemapMax), surfaceData.perceptualSmoothness);
 #else
-    surfaceData.perceptualSmoothness = 1.0;
+    surfaceData.perceptualSmoothness = ADD_IDX(_Smoothness);
 #endif
-    surfaceData.perceptualSmoothness *= ADD_IDX(_Smoothness);
+
 #ifdef _DETAIL_MAP_IDX
     surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale)), detailMask);
 #endif
@@ -227,7 +244,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _ANISOTROPYMAP
-    surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).b;
+    surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).r;
 #else
     surfaceData.anisotropy = 1.0;
 #endif

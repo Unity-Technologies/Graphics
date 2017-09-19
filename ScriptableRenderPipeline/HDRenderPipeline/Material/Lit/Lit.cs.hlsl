@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Lit.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Lit.cs.  Please don't edit by hand.
 //
 
 #ifndef LIT_CS_HLSL
@@ -9,26 +9,23 @@
 //
 #define MATERIALID_LIT_SSS (0)
 #define MATERIALID_LIT_STANDARD (1)
-#define MATERIALID_LIT_CLEAR_COAT (2)
-#define MATERIALID_LIT_UNUSED (3)
-#define MATERIALID_LIT_ANISO (4)
-#define MATERIALID_LIT_SPECULAR (5)
+#define MATERIALID_LIT_ANISO (2)
+#define MATERIALID_LIT_CLEAR_COAT (3)
+#define MATERIALID_LIT_SPECULAR (4)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_LIT_SSS (1)
 #define MATERIALFEATUREFLAGS_LIT_STANDARD (2)
-#define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (4)
-#define MATERIALFEATUREFLAGS_LIT_UNUSED (8)
-#define MATERIALFEATUREFLAGS_LIT_ANISO (16)
+#define MATERIALFEATUREFLAGS_LIT_ANISO (4)
+#define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (8)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+StandardDefinitions:  static fields
 //
 #define GBUFFER_LIT_STANDARD_REGULAR_ID (0)
 #define GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID (1)
-#define GBUFFER_LIT_STANDARD_ANISOTROPIC_ID (2)
 #define DEFAULT_SPECULAR_VALUE (0.04)
 #define SKIN_SPECULAR_VALUE (0.028)
 
