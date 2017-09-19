@@ -72,14 +72,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Mobile/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
             materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Mobile/Unlit (Supports Lightmap)", SupportedUpgradeParams.diffuseOpaque));
             materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Mobile/VertexLit", SupportedUpgradeParams.specularOpaque));
-
-            /////////////////////////////////////
-            // Particles                        /
-            /////////////////////////////////////
-            materialUpgraders.Add(new ParticlesAdditiveUpgrader("Particles/Additive"));
-            materialUpgraders.Add(new ParticlesAdditiveUpgrader("Mobile/Particles/Additive"));
-            materialUpgraders.Add(new ParticlesMultiplyUpgrader("Particles/Multiply"));
-            materialUpgraders.Add(new ParticlesMultiplyUpgrader("Mobile/Particles/Multiply"));
         }
     }
 }

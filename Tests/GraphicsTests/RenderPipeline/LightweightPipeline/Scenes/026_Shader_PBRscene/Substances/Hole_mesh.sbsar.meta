@@ -1,0 +1,66 @@
+fileFormatVersion: 2
+guid: c53335b5520f8495bb2f81c23ad1181f
+timeCreated: 1505146677
+licenseType: Pro
+SubstanceImporter:
+  externalObjects: {}
+  serializedVersion: 5
+  materialInstances:
+  - serializedVersion: 16
+    name: Hole_mesh
+    prototypeName: Hole_mesh
+    shaderName: 
+    shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+    shaderKeywords: 
+    renderQueue: -1
+    lightmapFlags: 4
+    inputs: []
+    materialInformation:
+      serializedVersion: 5
+      offset: {x: 0, y: 0}
+      scale: {x: 1, y: 1}
+      generateMipmaps: 1
+      generateAllOutputs: 0
+      animationUpdateRate: 0
+    materialProperties:
+      serializedVersion: 3
+      texEnvs: []
+      floats: []
+      colors: []
+    textureParameters:
+    - name: Hole_mesh_basecolor
+      alphaSource: 6
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: Hole_mesh_normal
+      alphaSource: 0
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: Hole_mesh_metallic
+      alphaSource: 7
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    textureAssignments:
+    - shaderProp: _MainTex
+      material: {instanceID: 0}
+      baseUID: 2119263600
+    - shaderProp: _BumpMap
+      material: {instanceID: 0}
+      baseUID: 2119263602
+    - shaderProp: _MetallicGlossMap
+      material: {instanceID: 0}
+      baseUID: 2119263606
+    buildTargetSettings:
+    - serializedVersion: 2
+      buildTarget: 
+      textureWidth: 512
+      textureHeight: 512
+      textureFormat: 0
+      loadingBehavior: 1
+  deletedPrototypes: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
