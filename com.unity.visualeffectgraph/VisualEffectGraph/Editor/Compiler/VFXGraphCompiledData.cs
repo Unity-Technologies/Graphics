@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
             public VFXCodeGenerator.CompilationMode compilMode;
         }
 
-        private VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
+        private static VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
         {
             var desc = new VFXExpressionValueContainerDesc<T>();
             desc.value = exp.Get<T>();
@@ -76,7 +76,120 @@ namespace UnityEditor.VFX
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
 
-        private VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
+        private static void FillExpressionDescs(List<VFXExpressionDesc> outExpressionDescs, List<VFXExpressionValueContainerDescAbstract> outValueDescs, VFXExpressionGraph graph)
+        {
+            var flatGraph = graph.FlattenedExpressions;
+            var numFlattenedExpressions = flatGraph.Count;
+
+            for (int i = 0; i < numFlattenedExpressions; ++i)
+            {
+                var exp = flatGraph[i];
+
+                // Must match data in C++ expression
+                if (exp.Is(VFXExpression.Flags.Value))
+                {
+                    VFXExpressionValueContainerDescAbstract value;
+                    switch (exp.valueType)
+                    {
+                        case VFXValueType.kFloat: value = CreateValueDesc<float>(exp, i); break;
+                        case VFXValueType.kFloat2: value = CreateValueDesc<Vector2>(exp, i); break;
+                        case VFXValueType.kFloat3: value = CreateValueDesc<Vector3>(exp, i); break;
+                        case VFXValueType.kFloat4: value = CreateValueDesc<Vector4>(exp, i); break;
+                        case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
+                        case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
+                        case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D>(exp, i); break;
+                        case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D>(exp, i); break;
+                        case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
+                        case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
+                        case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
+                        case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.kBool: value = CreateValueDesc<bool>(exp, i); break;
+                        default: throw new InvalidOperationException("Invalid type");
+                    }
+                    value.expressionIndex = (uint)i;
+                    outValueDescs.Add(value);
+                }
+
+                outExpressionDescs.Add(new VFXExpressionDesc
+                {
+                    op = exp.operation,
+                    data = exp.GetOperands(graph),
+                });
+            }
+        }
+
+        private static void FillSemanticsDescs(List<VFXExpressionSemanticDesc> outExpressionSementics, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        {
+            foreach (var context in models.OfType<VFXContext>())
+            {
+                uint contextId = (uint)context.GetParent().GetIndex(context);
+                var cpuMapper = graph.BuildCPUMapper(context);
+
+                // Add cpu mapper
+                var contextData = contextToCompiledData[context];
+                contextData.cpuMapper = cpuMapper;
+                contextToCompiledData[context] = contextData;
+
+                foreach (var exp in cpuMapper.expressions)
+                {
+                    VFXExpressionSemanticDesc desc;
+                    var mappedDataList = cpuMapper.GetData(exp);
+                    foreach (var mappedData in mappedDataList)
+                    {
+                        desc.blockID = (uint)mappedData.id;
+                        desc.contextID = contextId;
+                        int expIndex = graph.GetFlattenedIndex(exp);
+                        if (expIndex == -1)
+                            throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
+                        desc.expressionIndex = (uint)expIndex;
+                        desc.name = mappedData.name;
+                        outExpressionSementics.Add(desc);
+                    }
+                }
+            }
+        }
+
+        private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, HashSet<Object> models)
+        {
+            foreach (var parameter in models.OfType<VFXParameter>())
+            {
+                if (parameter.exposed)
+                {
+                    var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
+                    if (outputSlotExpr != null)
+                    {
+                        outExposedParameters.Add(new VFXExposedDesc()
+                        {
+                            name = parameter.exposedName,
+                            expressionIndex = (uint)graph.GetFlattenedIndex(outputSlotExpr)
+                        });
+                    }
+                }
+            }
+        }
+
+        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, HashSet<Object> models)
+        {
+            foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
+            {
+                foreach (var linked in context.outputContexts)
+                {
+                    foreach (var attribute in linked.GetData().GetAttributes())
+                    {
+                        if (attribute.attrib.location == VFXAttributeLocation.Source)
+                        {
+                            eventAttributeDescs.Add(new VFXLayoutElementDesc()
+                            {
+                                name = attribute.attrib.name,
+                                type = attribute.attrib.type
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
         {
             var allSpawner = vfxContext.Where(o => o.contextType == VFXContextType.kSpawner);
             var spawnerToResolve = new HashSet<VFXContext>(vfxContext.Where(o => o.contextType == VFXContextType.kInit).SelectMany(o => o.inputContexts));
@@ -105,6 +218,95 @@ namespace UnityEditor.VFX
             return spawnerProcessed.ToArray();
         }
 
+        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        {
+            var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
+
+            foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
+            {
+                var codeGeneratorTemplate = context.codeGeneratorTemplate;
+                if (codeGeneratorTemplate != null)
+                {
+                    var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
+
+                    var gpuMapper = graph.BuildGPUMapper(context);
+                    var uniformMapper = new VFXUniformMapper(gpuMapper);
+
+                    // Add gpu and uniform mapper
+                    var contextData = contextToCompiledData[context];
+                    contextData.gpuMapper = gpuMapper;
+                    contextData.uniformMapper = uniformMapper;
+                    contextToCompiledData[context] = contextData;
+
+                    VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
+
+                    for (int i = 0; i < compilMode.Length; ++i)
+                    {
+                        outGeneratedCodeData.Add(new GeneratedCodeData()
+                        {
+                            context = context,
+                            computeShader = context.codeGeneratorCompute,
+                            compilMode = compilMode[i],
+                            content = generatedContent[i]
+                        });
+                    }
+                }
+            }
+        }
+
+        private static void SaveShaderFiles(VFXAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        {
+            //var generatedShader = new List<Object>();
+            var currentCacheFolder = baseCacheFolder;
+            if (asset != null)
+            {
+                var path = AssetDatabase.GetAssetPath(asset);
+                path = path.Replace("Assets", "");
+                path = path.Replace(".asset", "");
+                currentCacheFolder += path;
+            }
+
+            System.IO.Directory.CreateDirectory(currentCacheFolder);
+            for (int i = 0; i < generatedCodeData.Count; ++i)
+            {
+                var generated = generatedCodeData[i];
+                var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+
+                string oldContent = "";
+                if (System.IO.File.Exists(path))
+                {
+                    oldContent = System.IO.File.ReadAllText(path);
+                }
+                var newContent = generated.content.ToString();
+                bool hasChanged = oldContent != newContent;
+                if (hasChanged)
+                {
+                    System.IO.File.WriteAllText(path, newContent);
+                }
+
+                AssetDatabase.ImportAsset(path);
+                Object imported = null;
+                if (generated.computeShader)
+                {
+                    imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                }
+                else
+                {
+                    var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
+                    imported = importer.GetShader();
+                }
+                if (hasChanged)
+                {
+                    EditorUtility.SetDirty(imported);
+                }
+                //generatedShader.Add(imported);
+
+                var contextData = contextToCompiledData[generated.context];
+                contextData.processor = imported;
+                contextToCompiledData[generated.context] = contextData;
+            }
+        }
+
         public void Compile()
         {
             try
@@ -118,220 +320,46 @@ namespace UnityEditor.VFX
                 m_ExpressionGraph = new VFXExpressionGraph();
                 m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction);
 
-                // build expressions data and set them to vfx asset
-                var flatGraph = m_ExpressionGraph.FlattenedExpressions;
-                var numFlattenedExpressions = flatGraph.Count;
-
-                var expressionDescs = new VFXExpressionDesc[numFlattenedExpressions];
-                m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
-                for (int i = 0; i < numFlattenedExpressions; ++i)
-                {
-                    var exp = flatGraph[i];
-                    var data = exp.GetOperands(m_ExpressionGraph);
-
-                    // Must match data in C++ expression
-                    if (exp.Is(VFXExpression.Flags.Value))
-                    {
-                        VFXExpressionValueContainerDescAbstract value;
-                        switch (exp.valueType)
-                        {
-                            case VFXValueType.kFloat: value = CreateValueDesc<float>(exp, i); break;
-                            case VFXValueType.kFloat2: value = CreateValueDesc<Vector2>(exp, i); break;
-                            case VFXValueType.kFloat3: value = CreateValueDesc<Vector3>(exp, i); break;
-                            case VFXValueType.kFloat4: value = CreateValueDesc<Vector4>(exp, i); break;
-                            case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
-                            case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
-                            case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D>(exp, i); break;
-                            case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D>(exp, i); break;
-                            case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
-                            case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
-                            case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
-                            case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
-                            case VFXValueType.kBool: value = CreateValueDesc<bool>(exp, i); break;
-                            default: throw new InvalidOperationException("Invalid type");
-                        }
-                        value.expressionIndex = (uint)i;
-                        m_ExpressionValues.Add(value);
-                    }
-
-                    expressionDescs[i].op = exp.operation;
-                    expressionDescs[i].data = data;
-                }
+                var expressionDescs = new List<VFXExpressionDesc>();
+                var valueDescs = new List<VFXExpressionValueContainerDescAbstract>();
+                FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
                 foreach (var context in models.OfType<VFXContext>())
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
-                var expressionSemantics = new List<VFXExpressionSemanticDesc>();
-                foreach (var context in models.OfType<VFXContext>())
-                {
-                    uint contextId = (uint)context.GetParent().GetIndex(context);
-                    var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
+                var semanticsDescs = new List<VFXExpressionSemanticDesc>();
+                FillSemanticsDescs(semanticsDescs, m_ExpressionGraph, models, contextToCompiledData);
 
-                    // Add cpu mapper
-                    var contextData = contextToCompiledData[context];
-                    contextData.cpuMapper = cpuMapper;
-                    contextToCompiledData[context] = contextData;
+                var exposedParameterDescs = new List<VFXExposedDesc>();
+                FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models);
 
-                    foreach (var exp in cpuMapper.expressions)
-                    {
-                        VFXExpressionSemanticDesc desc;
-                        var mappedDataList = cpuMapper.GetData(exp);
-                        foreach (var mappedData in mappedDataList)
-                        {
-                            desc.blockID = (uint)mappedData.id;
-                            desc.contextID = contextId;
-                            int expIndex = m_ExpressionGraph.GetFlattenedIndex(exp);
-                            if (expIndex == -1)
-                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
-                            desc.expressionIndex = (uint)expIndex;
-                            desc.name = mappedData.name;
-                            expressionSemantics.Add(desc);
-                        }
-                    }
-                }
-
-                var parameterExposed = new List<VFXExposedDesc>();
-                foreach (var parameter in models.OfType<VFXParameter>())
-                {
-                    if (parameter.exposed)
-                    {
-                        var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
-                        if (outputSlotExpr != null)
-                        {
-                            parameterExposed.Add(new VFXExposedDesc()
-                            {
-                                name = parameter.exposedName,
-                                expressionIndex = (uint)m_ExpressionGraph.GetFlattenedIndex(outputSlotExpr)
-                            });
-                        }
-                    }
-                }
-
-                var eventAttributes = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
-                foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
-                {
-                    foreach (var linked in context.outputContexts)
-                    {
-                        foreach (var attribute in linked.GetData().GetAttributes())
-                        {
-                            if (attribute.attrib.location == VFXAttributeLocation.Source)
-                            {
-                                eventAttributes.Add(new VFXLayoutElementDesc()
-                                {
-                                    name = attribute.attrib.name,
-                                    type = attribute.attrib.type
-                                });
-                            }
-                        }
-                    }
-                }
+                var eventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
+                FillEventAttributeDescs(eventAttributeDescs, m_ExpressionGraph, models);
 
                 foreach (var data in models.OfType<VFXData>())
                     data.GenerateAttributeLayout();
 
                 var expressionSheet = new VFXExpressionSheet();
-                expressionSheet.expressions = expressionDescs;
-                expressionSheet.values = m_ExpressionValues.ToArray();
-                expressionSheet.semantics = expressionSemantics.ToArray();
-                expressionSheet.exposed = parameterExposed.ToArray();
+                expressionSheet.expressions = expressionDescs.ToArray();
+                expressionSheet.values = valueDescs.ToArray();
+                expressionSheet.semantics = semanticsDescs.ToArray();
+                expressionSheet.exposed = exposedParameterDescs.ToArray();
 
                 m_Graph.vfxAsset.ClearSpawnerData();
                 m_Graph.vfxAsset.ClearPropertyData();
                 m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
 
-                var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
-                var generatedList = new List<GeneratedCodeData>();
-
-                foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
-                {
-                    var codeGeneratorTemplate = context.codeGeneratorTemplate;
-                    if (codeGeneratorTemplate != null)
-                    {
-                        var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
-
-                        var gpuMapper = m_ExpressionGraph.BuildGPUMapper(context);
-                        var uniformMapper = new VFXUniformMapper(gpuMapper);
-
-                        // Add gpu and uniform mapper
-                        var contextData = contextToCompiledData[context];
-                        contextData.gpuMapper = gpuMapper;
-                        contextData.uniformMapper = uniformMapper;
-                        contextToCompiledData[context] = contextData;
-
-                        VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
-
-                        for (int i = 0; i < compilMode.Length; ++i)
-                        {
-                            generatedList.Add(new GeneratedCodeData()
-                            {
-                                context = context,
-                                computeShader = context.codeGeneratorCompute,
-                                compilMode = compilMode[i],
-                                content = generatedContent[i]
-                            });
-                        }
-                    }
-                }
-
-                {
-                    var generatedShader = new List<Object>();
-                    var currentCacheFolder = baseCacheFolder;
-                    if (m_Graph.vfxAsset != null)
-                    {
-                        var path = AssetDatabase.GetAssetPath(m_Graph.vfxAsset);
-                        path = path.Replace("Assets", "");
-                        path = path.Replace(".asset", "");
-                        currentCacheFolder += path;
-                    }
-
-                    System.IO.Directory.CreateDirectory(currentCacheFolder);
-                    for (int i = 0; i < generatedList.Count; ++i)
-                    {
-                        var generated = generatedList[i];
-                        var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
-
-                        string oldContent = "";
-                        if (System.IO.File.Exists(path))
-                        {
-                            oldContent = System.IO.File.ReadAllText(path);
-                        }
-                        var newContent = generated.content.ToString();
-                        bool hasChanged = oldContent != newContent;
-                        if (hasChanged)
-                        {
-                            System.IO.File.WriteAllText(path, newContent);
-                        }
-
-                        AssetDatabase.ImportAsset(path);
-                        Object imported = null;
-                        if (generated.computeShader)
-                        {
-                            imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
-                        }
-                        else
-                        {
-                            var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
-                            imported = importer.GetShader();
-                        }
-                        if (hasChanged)
-                        {
-                            EditorUtility.SetDirty(imported);
-                        }
-                        generatedShader.Add(imported);
-
-                        var contextData = contextToCompiledData[generated.context];
-                        contextData.processor = imported;
-                        contextToCompiledData[generated.context] = contextData;
-                    }
-                }
+                var generatedCodeData = new List<GeneratedCodeData>();
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, models, contextToCompiledData);
+                SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
+                /* Begin WIP Spawner */
                 var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
-
                 var spawnContextToBufferIndex = new Dictionary<VFXContext, int>();
                 foreach (var spawnContext in spawners)
                 {
@@ -339,10 +367,9 @@ namespace UnityEditor.VFX
                     cpuBufferDescs.Add(new VFXCPUBufferDesc()
                     {
                         capacity = 1,
-                        layout = eventAttributes.ToArray()
+                        layout = eventAttributeDescs.ToArray()
                     });
                 }
-
                 foreach (var spawnContext in spawners)
                 {
                     var buffers = spawnContext.inputContexts.Select(o => new VFXBufferMapping()
@@ -413,93 +440,13 @@ namespace UnityEditor.VFX
                             }).ToArray()
                     });
                 }
+                /* End WIP Spawner */
 
                 foreach (var data in models.OfType<VFXDataParticle>())
-                {
-                    bool hasState = data.bufferSize > 0;
-                    bool hasKill = data.IsAttributeStored(VFXAttribute.Alive);
-
-                    var attributeBufferIndex = -1;
-                    var deadListBufferIndex = -1;
-
-                    var systemBufferMappings = new List<VFXBufferMapping>();
-                    var systemValueMappings = new List<VFXValueMapping>();
-
-                    if (hasState)
-                    {
-                        attributeBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, data.bufferSize, 4));
-                        systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
-                    }
-
-                    var systemFlag = VFXSystemFlag.kVFXSystemDefault;
-                    if (hasKill)
-                    {
-                        systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
-                        deadListBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, data.capacity, 4));
-                        systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
-                    }
-
-
-                    var taskDescs = new List<VFXTaskDesc>();
-                    var bufferMappings = new List<VFXBufferMapping>();
-                    var uniformMappings = new List<VFXValueMapping>();
-
-                    foreach (var context in data.owners)
-                    {
-                        //if (!contextToCompiledData.ContainsKey(context))
-                        //    continue;
-
-                        var contextData = contextToCompiledData[context];
-
-                        // TMP
-                        if (context.contextType == VFXContextType.kInit)
-                        {
-                            const string kSpawnRateName = "SpawnRate_tmp";
-                            var spawnRateExp = contextData.cpuMapper.FromNameAndId(kSpawnRateName, -1);
-                            if (spawnRateExp != null)
-                            {
-                                int index = m_ExpressionGraph.GetFlattenedIndex(spawnRateExp);
-                                if (index != -1)
-                                    systemValueMappings.Add(new VFXValueMapping(index, kSpawnRateName));
-                            }
-                        }
-
-                        var taskDesc = new VFXTaskDesc();
-                        taskDesc.type = context.taskType;
-
-                        bufferMappings.Clear();
-                        if (attributeBufferIndex != -1)
-                            bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
-                        if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                            bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
-
-
-                        uniformMappings.Clear();
-                        foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                            uniformMappings.Add(new VFXValueMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
-
-                        taskDesc.buffers = bufferMappings.ToArray();
-                        taskDesc.values = uniformMappings.ToArray();
-
-                        taskDesc.processor = contextToCompiledData[context].processor;
-
-                        taskDescs.Add(taskDesc);
-                    }
-
-                    systemDescs.Add(new VFXSystemDesc()
-                    {
-                        flags = systemFlag,
-                        tasks = taskDescs.ToArray(),
-                        capacity = data.capacity,
-                        buffers = systemBufferMappings.ToArray(),
-                        values = systemValueMappings.ToArray(),
-                        type = VFXSystemType.kVFXParticle,
-                    });
-                }
+                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData);
 
                 m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_ExpressionValues = valueDescs;
             }
             catch (Exception e)
             {

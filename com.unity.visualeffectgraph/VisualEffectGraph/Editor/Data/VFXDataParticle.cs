@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -181,6 +182,95 @@ namespace UnityEditor.VFX
             }
 
             return (currentOffset + minAlignment - 1) & ~(minAlignment - 1);
+        }
+
+        public void FillDescs(
+            List<VFXBufferDesc> outBufferDescs,
+            List<VFXSystemDesc> outSystemDescs,
+            VFXExpressionGraph expressionGraph,
+            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        {
+            bool hasState = bufferSize > 0;
+            bool hasKill = IsAttributeStored(VFXAttribute.Alive);
+
+            var attributeBufferIndex = -1;
+            var deadListBufferIndex = -1;
+
+            var systemBufferMappings = new List<VFXBufferMapping>();
+            var systemValueMappings = new List<VFXValueMapping>();
+
+            if (hasState)
+            {
+                attributeBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, bufferSize, 4));
+                systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+            }
+
+            var systemFlag = VFXSystemFlag.kVFXSystemDefault;
+            if (hasKill)
+            {
+                systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
+                deadListBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, capacity, 4));
+                systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
+            }
+
+
+            var taskDescs = new List<VFXTaskDesc>();
+            var bufferMappings = new List<VFXBufferMapping>();
+            var uniformMappings = new List<VFXValueMapping>();
+
+            foreach (var context in owners)
+            {
+                //if (!contextToCompiledData.ContainsKey(context))
+                //    continue;
+
+                var contextData = contextToCompiledData[context];
+
+                // TMP
+                if (context.contextType == VFXContextType.kInit)
+                {
+                    const string kSpawnRateName = "SpawnRate_tmp";
+                    var spawnRateExp = contextData.cpuMapper.FromNameAndId(kSpawnRateName, -1);
+                    if (spawnRateExp != null)
+                    {
+                        int index = expressionGraph.GetFlattenedIndex(spawnRateExp);
+                        if (index != -1)
+                            systemValueMappings.Add(new VFXValueMapping(index, kSpawnRateName));
+                    }
+                }
+
+                var taskDesc = new VFXTaskDesc();
+                taskDesc.type = context.taskType;
+
+                bufferMappings.Clear();
+                if (attributeBufferIndex != -1)
+                    bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+                if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
+                    bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+
+
+                uniformMappings.Clear();
+                foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
+                    uniformMappings.Add(new VFXValueMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+
+                taskDesc.buffers = bufferMappings.ToArray();
+                taskDesc.values = uniformMappings.ToArray();
+
+                taskDesc.processor = contextToCompiledData[context].processor;
+
+                taskDescs.Add(taskDesc);
+            }
+
+            outSystemDescs.Add(new VFXSystemDesc()
+            {
+                flags = systemFlag,
+                tasks = taskDescs.ToArray(),
+                capacity = capacity,
+                buffers = systemBufferMappings.ToArray(),
+                values = systemValueMappings.ToArray(),
+                type = VFXSystemType.kVFXParticle,
+            });
         }
 
         [SerializeField]
