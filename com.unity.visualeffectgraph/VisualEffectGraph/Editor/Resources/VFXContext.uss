@@ -161,10 +161,13 @@ VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
 	border-bottom-right-radius:0;
 }
 
-VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #title
+VFXContextUI VFXContextSlotContainerUI.VFXNodeUI #title
 {
-	max-width:0;
+	max-height:0;
 }
+
+
+
 VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #left #leftBackground
 {
 	background-color:rgba(0,0,0,0);
