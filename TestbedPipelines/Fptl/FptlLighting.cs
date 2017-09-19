@@ -792,18 +792,17 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                         light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cl.light.cookie);
                     }
 
-                    bound.center = worldToView.MultiplyPoint(lightPos);
-                    bound.boxAxisX.Set(range, 0, 0);
-                    bound.boxAxisY.Set(0, range, 0);
-                    bound.boxAxisZ.Set(0, 0, isNegDeterminant ? (-range) : range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = range;
-
-                    // represents a left hand coordinate system in world space since det(worldToView)<0
                     var lightToView = worldToView * lightToWorld;
                     Vector3 vx = lightToView.GetColumn(0);
                     Vector3 vy = lightToView.GetColumn(1);
                     Vector3 vz = lightToView.GetColumn(2);
+
+                    bound.center   = worldToView.MultiplyPoint(lightPos);
+                    bound.boxAxisX = vx * range;
+                    bound.boxAxisY = vy * range;
+                    bound.boxAxisZ = vz * range;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = range;
 
                     // fill up ldata
                     light.lightType = (uint)LightDefinitions.SPHERE_LIGHT;

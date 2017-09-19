@@ -972,19 +972,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else if (gpuLightType == GPULightType.Point)
                 {
-                    bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2))) < 0.0f; // 3x3 Determinant.
-
-                    bound.center = positionVS;
-                    bound.boxAxisX.Set(range, 0, 0);
-                    bound.boxAxisY.Set(0, range, 0);
-                    bound.boxAxisZ.Set(0, 0, isNegDeterminant ? (-range) : range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = range;
-
-                    // represents a left hand coordinate system in world space since det(worldToView)<0
                     Vector3 vx = xAxisVS;
                     Vector3 vy = yAxisVS;
                     Vector3 vz = zAxisVS;
+
+                    bound.center   = positionVS;
+                    bound.boxAxisX = vx * range;
+                    bound.boxAxisY = vy * range;
+                    bound.boxAxisZ = vz * range;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = range;
 
                     // fill up ldata
                     lightVolumeData.lightAxisX = vx;
