@@ -76,12 +76,11 @@ void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY
 
     if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
 
-    p0 = center + (vA + vB - vC);       // center + vA is center of face when scaleXY is 1.0
-    float3 vNout = cross( vB2, 0.5*(vA-vA2) - vC );
+    float3 v0 = vA + vB - vC;   // vector from center to p0
+    p0 = center + v0;           // center + vA is center of face when scaleXY is 1.0
 
-#if USE_LEFT_HAND_CAMERA_SPACE
-    vNout = -vNout;
-#endif
+    float3 n0    = cross(vB2, 0.5 * (vA - vA2) - vC);
+    float3 vNout = dot(n0,v0) < 0.0 ? (-n0) : n0;
 
     vN = vNout;
 }
