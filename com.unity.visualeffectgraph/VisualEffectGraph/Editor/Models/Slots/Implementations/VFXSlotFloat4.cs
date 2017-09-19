@@ -62,10 +62,10 @@ namespace UnityEditor.VFX
         {
             return new VFXExpression[4]
             {
-                new VFXExpressionExtractComponent(expr, 0),
-                new VFXExpressionExtractComponent(expr, 1),
-                new VFXExpressionExtractComponent(expr, 2),
-                new VFXExpressionExtractComponent(expr, 3)
+                expr.x,
+                expr.y,
+                expr.z,
+                expr.w
             };
         }
     }

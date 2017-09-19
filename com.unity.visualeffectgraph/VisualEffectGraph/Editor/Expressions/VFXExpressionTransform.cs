@@ -210,6 +210,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override VFXValueType valueType
+        {
+            get
+            {
+                return VFXValueType.kFloat3;
+            }
+        }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -261,7 +269,7 @@ namespace UnityEditor.VFX
             var matrix = matrixReduce.Get<Matrix4x4>();
             var vector = positionReduce.Get<Vector3>();
 
-            return VFXOperatorUtility.Normalize(VFXValue.Constant(matrix.MultiplyVector(vector)));
+            return VFXValue.Constant(matrix.MultiplyVector(vector).normalized);
         }
 
         public override string GetCodeString(string[] parents)

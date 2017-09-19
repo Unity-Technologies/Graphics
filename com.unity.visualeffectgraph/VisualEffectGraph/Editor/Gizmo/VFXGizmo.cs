@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
     {
         public static void OnDrawGizmo()
         {
-            VFXViewPresenter presenter = VFXViewWindow.viewPresenter;
+            VFXViewPresenter presenter = VFXViewPresenter.viewPresenter;
             if (presenter.HasVFXAsset())
             {
                 //var allBlocks = presenter.allChildren.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>());

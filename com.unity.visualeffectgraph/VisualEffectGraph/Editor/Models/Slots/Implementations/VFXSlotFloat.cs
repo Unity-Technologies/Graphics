@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
                 ||  expression.valueType == VFXValueType.kFloat3
                 ||  expression.valueType == VFXValueType.kFloat4)
             {
-                return new VFXExpressionExtractComponent(expression, 0);
+                return expression.x;
             }
 
             throw new Exception("Unexpected type of expression " + expression);

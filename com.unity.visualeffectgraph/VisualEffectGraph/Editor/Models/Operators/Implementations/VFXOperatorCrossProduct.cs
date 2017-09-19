@@ -24,9 +24,7 @@ namespace UnityEditor.VFX
 
             Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
                 {
-                    var ab = new VFXExpressionMul(a, b);
-                    var cd = new VFXExpressionMul(c, d);
-                    return new VFXExpressionSubtract(ab, cd);
+                    return (a * b - c * d);
                 };
 
             return new[] { new VFXExpressionCombine(new[]

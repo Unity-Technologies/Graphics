@@ -27,13 +27,13 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression lineDelta = new VFXExpressionSubtract(inputExpression[1], inputExpression[0]);
+            VFXExpression lineDelta = (inputExpression[1] - inputExpression[0]);
             VFXExpression lineLength = new VFXExpressionMax(VFXOperatorUtility.Dot(lineDelta, lineDelta), VFXValue.Constant(Mathf.Epsilon));
-            VFXExpression t = VFXOperatorUtility.Dot(new VFXExpressionSubtract(inputExpression[2], inputExpression[0]), lineDelta);
+            VFXExpression t = VFXOperatorUtility.Dot(inputExpression[2] - inputExpression[0], lineDelta);
 
-            t = VFXOperatorUtility.Clamp(new VFXExpressionDivide(t, lineLength), VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+            t = VFXOperatorUtility.Clamp(t / lineLength, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
 
-            VFXExpression pointOnLine = new VFXExpressionAdd(inputExpression[0], new VFXExpressionMul(VFXOperatorUtility.CastFloat(t, lineDelta.valueType), lineDelta));
+            VFXExpression pointOnLine = (inputExpression[0] + VFXOperatorUtility.CastFloat(t, lineDelta.valueType) * lineDelta);
             VFXExpression lineDistance = VFXOperatorUtility.Distance(inputExpression[2], pointOnLine);
             return new VFXExpression[] { pointOnLine, lineDistance };
         }

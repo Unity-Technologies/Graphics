@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         {
             var input = inputExpression[0];
             var one = VFXOperatorUtility.OneExpression[VFXExpression.TypeToSize(input.valueType)];
-            return new[] { new VFXExpressionSubtract(one, input) };
+            return new[] { one - input };
         }
     }
 }

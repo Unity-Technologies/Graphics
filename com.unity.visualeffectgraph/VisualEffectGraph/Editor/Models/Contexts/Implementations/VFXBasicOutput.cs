@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
                 if (useSoftParticle)
                 {
                     var softParticleFade = GetExpressionsFromSlots(this).First(o => o.name == "softParticlesFadeDistance");
-                    var invSoftParticleFade = new VFXExpressionDivide(VFXValue.Constant(1.0f), softParticleFade.exp);
+                    var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
                     gpuMapper.AddExpression(invSoftParticleFade, "invSoftParticlesFadeDistance", -1);
                 }
                 return gpuMapper;

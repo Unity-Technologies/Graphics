@@ -417,7 +417,7 @@ public class VFXComponentEditor : Editor
         if (asset == null)
             return;
 
-        VFXViewWindow.viewPresenter.SetVFXAsset(asset, false);
+        VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
 
 
         /*
@@ -592,7 +592,7 @@ public class VFXComponentEditor : Editor
             {
                 EditorWindow.GetWindow<VFXViewWindow>();
 
-                VFXViewWindow.viewPresenter.SetVFXAsset(component.vfxAsset, false);
+                VFXViewPresenter.viewPresenter.SetVFXAsset(component.vfxAsset, false);
             }
         }
 
@@ -611,7 +611,7 @@ public class VFXComponentEditor : Editor
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        var newList = VFXViewWindow.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
 
         foreach (var parameter in newList)
         {

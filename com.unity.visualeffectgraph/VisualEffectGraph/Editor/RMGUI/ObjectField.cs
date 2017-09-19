@@ -142,13 +142,13 @@ namespace UnityEditor.VFX.UIElements
 
 
             m_SelectContainer = new VisualElement();
-            //style.backgroundImage = EditorStyles.objectField.normal.background;
-            style.sliceLeft = EditorStyles.objectField.border.left;
-            style.sliceRight = EditorStyles.objectField.border.right;
-            style.sliceTop = EditorStyles.objectField.border.bottom;
-            style.sliceBottom = EditorStyles.objectField.border.top;
 
-            m_SelectContainer.style.width = EditorStyles.objectField.border.right;
+            style.sliceLeft = 4;
+            style.sliceRight = 23;
+            style.sliceTop = 4;
+            style.sliceBottom = 4;
+
+            m_SelectContainer.style.width = style.sliceRight.value;
 
             Add(m_IconContainer);
             Add(m_NameContainer);

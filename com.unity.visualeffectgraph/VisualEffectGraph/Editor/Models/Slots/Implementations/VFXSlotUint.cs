@@ -44,8 +44,7 @@ namespace UnityEditor.VFX
                 ||  expression.valueType == VFXValueType.kFloat3
                 ||  expression.valueType == VFXValueType.kFloat4)
             {
-                var floatExpression = new VFXExpressionExtractComponent(expression, 0);
-                return new VFXExpressionCastFloatToUint(floatExpression);
+                return new VFXExpressionCastFloatToUint(expression.x);
             }
 
             throw new Exception("Unexpected type of expression " + expression);

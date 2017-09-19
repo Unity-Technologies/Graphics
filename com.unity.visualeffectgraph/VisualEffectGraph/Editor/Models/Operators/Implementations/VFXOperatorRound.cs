@@ -10,8 +10,7 @@ namespace UnityEditor.VFX
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var half = VFXOperatorUtility.OneExpression[VFXExpression.TypeToSize(inputExpression[0].valueType)];
-            var sum = new VFXExpressionAdd(inputExpression[0], half);
-            return new[] { new VFXExpressionFloor(sum) };
+            return new[] { new VFXExpressionFloor(inputExpression[0] + half) };
         }
     }
 }
