@@ -1233,12 +1233,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Guidelines: To be able to switch from deferred to forward renderer we need to have forward opaque material with both Forward and ForwardOnlyOpaque pass.
             // This is what is assume here. But users may want to reduce number of shader combination once they have made their choice.
 
-            // If we are transparent, we add the forward pass. Else we add it only if we are forward rendering
-            bool addForwardPass = (renderOpaque && m_Asset.renderingSettings.ShouldUseForwardRenderingOnly()) || !renderOpaque;
-            // In case of deferred we can still have forward opaque object
-            bool addForwardOnlyOpaquePass = renderOpaque && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly();
+            // If we are transparent, we add the forward pass. Else (Render Opaque) we add it only if we are forward rendering
+            bool addForwardPass = !renderOpaque || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly();
 
-            // Note: Only addForwardPass or addForwardOnlyOpaquePass can be true, not both at the same time and they can't be false at the same time, so we always have a pass here.
+            // In case of deferred we can still have forward opaque object
+            // It mean that addForwardOnlyOpaquePass = !addForwardPass which is a simplification of: renderOpaque && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly()
+            // There is no need to store this case as we don't need to test for it
+
             ShaderPassName passName;
             string profileName;
             if (m_DebugDisplaySettings.IsDebugDisplayEnabled())
@@ -1302,7 +1303,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: Currently we can't render velocity vector into GBuffer, neither during forward pass (in case of forward opaque), so it is always a separate pass
                 // Note that we if we have forward only opaque with deferred rendering, it must also support the rendering of velocity vector to be correct with following test.
                 if ((ShaderConfig.s_VelocityInGbuffer == 1))
+                {
+                    Debug.LogWarning("Velocity in Gbuffer is currently not supported");
                     return;
+                }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
