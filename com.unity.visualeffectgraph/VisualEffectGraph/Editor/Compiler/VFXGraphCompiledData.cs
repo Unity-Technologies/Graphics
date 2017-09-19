@@ -360,10 +360,10 @@ namespace UnityEditor.VFX
 
                 /* Begin WIP Spawner */
                 var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
-                var spawnContextToBufferIndex = new Dictionary<VFXContext, int>();
+                var contextSpawnToBufferIndex = new Dictionary<VFXContext, int>();
                 foreach (var spawnContext in spawners)
                 {
-                    spawnContextToBufferIndex.Add(spawnContext, cpuBufferDescs.Count);
+                    contextSpawnToBufferIndex.Add(spawnContext, cpuBufferDescs.Count);
                     cpuBufferDescs.Add(new VFXCPUBufferDesc()
                     {
                         capacity = 1,
@@ -374,7 +374,7 @@ namespace UnityEditor.VFX
                 {
                     var buffers = spawnContext.inputContexts.Select(o => new VFXBufferMapping()
                     {
-                        bufferIndex = spawnContextToBufferIndex[o],
+                        bufferIndex = contextSpawnToBufferIndex[o],
                         name = "spawner_input"
                     }).ToList();
 
@@ -383,7 +383,7 @@ namespace UnityEditor.VFX
 
                     buffers.Add(new VFXBufferMapping()
                     {
-                        bufferIndex = spawnContextToBufferIndex[spawnContext],
+                        bufferIndex = contextSpawnToBufferIndex[spawnContext],
                         name = "spawner_output"
                     });
 
@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
                 /* End WIP Spawner */
 
                 foreach (var data in models.OfType<VFXDataParticle>())
-                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData);
+                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;

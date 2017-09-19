@@ -188,7 +188,8 @@ namespace UnityEditor.VFX
             List<VFXBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
-            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
         {
             bool hasState = bufferSize > 0;
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
@@ -225,20 +226,10 @@ namespace UnityEditor.VFX
                 //if (!contextToCompiledData.ContainsKey(context))
                 //    continue;
 
-                var contextData = contextToCompiledData[context];
-
-                // TMP
                 if (context.contextType == VFXContextType.kInit)
-                {
-                    const string kSpawnRateName = "SpawnRate_tmp";
-                    var spawnRateExp = contextData.cpuMapper.FromNameAndId(kSpawnRateName, -1);
-                    if (spawnRateExp != null)
-                    {
-                        int index = expressionGraph.GetFlattenedIndex(spawnRateExp);
-                        if (index != -1)
-                            systemValueMappings.Add(new VFXValueMapping(index, kSpawnRateName));
-                    }
-                }
+                    systemBufferMappings.AddRange(context.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+
+                var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXTaskDesc();
                 taskDesc.type = context.taskType;
@@ -248,7 +239,6 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
-
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
