@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionMul(inputExpression[0], inputExpression[1]) };
+            return new[] { inputExpression[0] * inputExpression[1] };
         }
     }
 }

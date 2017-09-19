@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<Vector2>(a);
             var value_b = new VFXValue<Vector2>(b);
 
-            var expression = new VFXExpressionAdd(value_a, value_b);
+            var expression = (value_a + value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);
@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<Vector2>(a);
             var value_b = new VFXValue<Vector2>(b);
 
-            var expression = new VFXExpressionDivide(value_a, value_b);
+            var expression = (value_a / value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);
@@ -174,7 +174,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<Vector2>(a);
             var value_b = new VFXValue<Vector2>(b);
 
-            var expression = new VFXExpressionMul(value_a, value_b);
+            var expression = (value_a * value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);
@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<Vector2>(a);
             var value_b = new VFXValue<Vector2>(b);
 
-            var expression = new VFXExpressionSubtract(value_a, value_b);
+            var expression = (value_a - value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);

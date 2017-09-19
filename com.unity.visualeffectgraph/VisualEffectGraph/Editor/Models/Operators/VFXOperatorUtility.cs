@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
         static public VFXExpression Negate(VFXExpression input)
         {
             var minusOne = VFXOperatorUtility.MinusOneExpression[VFXExpression.TypeToSize(input.valueType)];
-            return new VFXExpressionMul(minusOne, input);
+            return (minusOne * input);
         }
 
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
@@ -71,8 +71,7 @@ namespace UnityEditor.VFX
         static public VFXExpression Frac(VFXExpression input)
         {
             //x - floor(x)
-            var floor = new VFXExpressionFloor(input);
-            return new VFXExpressionSubtract(input, floor);
+            return input - new VFXExpressionFloor(input);
         }
 
         static public VFXExpression Sqrt(VFXExpression input)
@@ -90,7 +89,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentException(string.Format("Invalid Dot type input : {0} and {1}", a.valueType, b.valueType));
             }
 
-            var mul = new VFXExpressionMul(a, b);
+            var mul = (a * b);
             var sum = new Stack<VFXExpression>();
             if (size == 1)
             {
@@ -108,7 +107,7 @@ namespace UnityEditor.VFX
             {
                 var top = sum.Pop();
                 var bottom = sum.Pop();
-                sum.Push(new VFXExpressionAdd(top, bottom));
+                sum.Push(top + bottom);
             }
             return sum.Pop();
         }
@@ -116,22 +115,20 @@ namespace UnityEditor.VFX
         static public VFXExpression Distance(VFXExpression x, VFXExpression y)
         {
             //length(a - b)
-            return Length(new VFXExpressionSubtract(x, y));
+            return Length(x - y);
         }
 
         static public VFXExpression SqrDistance(VFXExpression x, VFXExpression y)
         {
             //dot(a - b)
-            var delta = new VFXExpressionSubtract(x, y);
+            var delta = (x - y);
             return Dot(delta, delta);
         }
 
         static public VFXExpression Lerp(VFXExpression x, VFXExpression y, VFXExpression s)
         {
             //x + s(y - x)
-            var yMinusx = new VFXExpressionSubtract(y, x);
-            var sMul_yMinusx = new VFXExpressionMul(s, yMinusx);
-            return new VFXExpressionAdd(x, sMul_yMinusx);
+            return (x + s * (y - x));
         }
 
         static public VFXExpression Length(VFXExpression v)
@@ -143,35 +140,34 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Normalize(VFXExpression v)
         {
-            var invLength = new VFXExpressionDivide(VFXOperatorUtility.OneExpression[1], VFXOperatorUtility.Length(v));
+            var invLength = (VFXOperatorUtility.OneExpression[1] / VFXOperatorUtility.Length(v));
             var invLengthVector = VFXOperatorUtility.CastFloat(invLength, v.valueType);
-            return new VFXExpressionMul(v, invLengthVector);
+            return (v * invLengthVector);
         }
 
         static public VFXExpression Fmod(VFXExpression x, VFXExpression y)
         {
             //frac(x / y) * y
-            var div = new VFXExpressionDivide(x, y);
-            return new VFXExpressionMul(VFXOperatorUtility.Frac(div), y);
+            return VFXOperatorUtility.Frac(x / y) * y;
         }
 
         static public VFXExpression Fit(VFXExpression value, VFXExpression oldRangeMin, VFXExpression oldRangeMax, VFXExpression newRangeMin, VFXExpression newRangeMax)
         {
             //percent = (value - oldRangeMin) / (oldRangeMax - oldRangeMin)
             //lerp(newRangeMin, newRangeMax, percent)
-            VFXExpression percent = new VFXExpressionDivide(new VFXExpressionSubtract(value, oldRangeMin), new VFXExpressionSubtract(oldRangeMax, oldRangeMin));
+            VFXExpression percent = (value - oldRangeMin) / (oldRangeMax - oldRangeMin);
             return Lerp(newRangeMin, newRangeMax, percent);
         }
 
         static public VFXExpression Smoothstep(VFXExpression x, VFXExpression y, VFXExpression s)
         {
-            VFXExpression t = new VFXExpressionDivide(new VFXExpressionSubtract(s, x), new VFXExpressionSubtract(y, x));
+            VFXExpression t = (s - x) / (y - x);
             t = Clamp(t, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
 
-            VFXExpression result = new VFXExpressionSubtract(VFXValue.Constant(3.0f), new VFXExpressionMul(VFXValue.Constant(2.0f), t));
+            VFXExpression result = (VFXValue.Constant(3.0f) - VFXValue.Constant(2.0f) * t);
 
-            result = new VFXExpressionMul(result, t);
-            result = new VFXExpressionMul(result, t);
+            result = (result * t);
+            result = (result * t);
 
             return result;
         }
@@ -185,12 +181,12 @@ namespace UnityEditor.VFX
 
         static public VFXExpression DegToRad(VFXExpression degrees)
         {
-            return new VFXExpressionMul(degrees, CastFloat(VFXValue.Constant(Mathf.PI / 180.0f), degrees.valueType));
+            return (degrees * CastFloat(VFXValue.Constant(Mathf.PI / 180.0f), degrees.valueType));
         }
 
         static public VFXExpression RadToDeg(VFXExpression radians)
         {
-            return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant(180.0f / Mathf.PI), radians.valueType));
+            return (radians * CastFloat(VFXValue.Constant(180.0f / Mathf.PI), radians.valueType));
         }
 
         static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression distance)
@@ -198,7 +194,7 @@ namespace UnityEditor.VFX
             //x = cos(angle) * distance
             //y = sin(angle) * distance
             var result = new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionCos(theta), new VFXExpressionSin(theta) });
-            return new VFXExpressionMul(result, CastFloat(distance, VFXValueType.kFloat2));
+            return (result * CastFloat(distance, VFXValueType.kFloat2));
         }
 
         static public VFXExpression[] RectangularToPolar(VFXExpression coord)
@@ -221,12 +217,12 @@ namespace UnityEditor.VFX
             var sinTheta = new VFXExpressionSin(theta);
             var sinPhi = new VFXExpressionSin(phi);
 
-            var x = new VFXExpressionMul(cosTheta, cosPhi);
+            var x = (cosTheta * cosPhi);
             var y = sinPhi;
-            var z = new VFXExpressionMul(sinTheta, cosPhi);
+            var z = (sinTheta * cosPhi);
 
             var result = new VFXExpressionCombine(new VFXExpression[] { x, y, z });
-            return new VFXExpressionMul(result, CastFloat(distance, VFXValueType.kFloat3));
+            return (result * CastFloat(distance, VFXValueType.kFloat3));
         }
 
         static public VFXExpression[] RectangularToSpherical(VFXExpression coord)
@@ -237,7 +233,7 @@ namespace UnityEditor.VFX
             var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
             var distance = Length(coord);
             var theta = new VFXExpressionATan2(components[2], components[0]);
-            var phi = new VFXExpressionASin(new VFXExpressionDivide(components[1], distance));
+            var phi = new VFXExpressionASin(components[1] / distance);
             return new VFXExpression[] { theta, phi, distance };
         }
 
@@ -245,7 +241,7 @@ namespace UnityEditor.VFX
         {
             //pi * r * r
             var pi = VFXValue.Constant(Mathf.PI);
-            return new VFXExpressionMul(pi, new VFXExpressionMul(radius, radius));
+            return (pi * radius * radius);
         }
 
         static public VFXExpression CircleCircumference(VFXExpression radius)
@@ -253,51 +249,51 @@ namespace UnityEditor.VFX
             //2 * pi * r
             var two = VFXValue.Constant(2.0f);
             var pi = VFXValue.Constant(Mathf.PI);
-            return new VFXExpressionMul(two, new VFXExpressionMul(pi, radius));
+            return (two * pi * radius);
         }
 
         static public VFXExpression BoxVolume(VFXExpression dimensions)
         {
             //x * y * z
             var components = ExtractComponents(dimensions).ToArray();
-            return new VFXExpressionMul(components[0], new VFXExpressionMul(components[1], components[2]));
+            return (components[0] * components[1] * components[2]);
         }
 
         static public VFXExpression SphereVolume(VFXExpression radius)
         {
             //(4 / 3) * pi * r * r * r
             var multiplier = VFXValue.Constant((4.0f / 3.0f) * Mathf.PI);
-            return new VFXExpressionMul(multiplier, new VFXExpressionMul(new VFXExpressionMul(radius, radius), radius));
+            return (multiplier * radius * radius * radius);
         }
 
         static public VFXExpression CylinderVolume(VFXExpression radius, VFXExpression height)
         {
             //pi * r * r * h
             var pi = VFXValue.Constant(Mathf.PI);
-            return new VFXExpressionMul(pi, new VFXExpressionMul(new VFXExpressionMul(radius, radius), height));
+            return (pi * radius * radius * height);
         }
 
         static public VFXExpression ConeVolume(VFXExpression radius0, VFXExpression radius1, VFXExpression height)
         {
             //pi/3 * (r0 * r0 + r0 * r1 + r1 * r1) * h
             var piOver3 = VFXValue.Constant(Mathf.PI / 3.0f);
-            VFXExpression r0r0 = new VFXExpressionMul(radius0, radius0);
-            VFXExpression r0r1 = new VFXExpressionMul(radius0, radius1);
-            VFXExpression r1r1 = new VFXExpressionMul(radius1, radius1);
-            VFXExpression result = new VFXExpressionAdd(r0r0, new VFXExpressionAdd(r0r1, r1r1));
-            return new VFXExpressionMul(piOver3, new VFXExpressionMul(result, height));
+            VFXExpression r0r0 = (radius0 * radius0);
+            VFXExpression r0r1 = (radius0 * radius1);
+            VFXExpression r1r1 = (radius1 * radius1);
+            VFXExpression result = (r0r0 + r0r1 + r1r1);
+            return (piOver3 * result * height);
         }
 
         static public VFXExpression TorusVolume(VFXExpression majorRadius, VFXExpression minorRadius)
         {
             //(pi * r * r) * (2 * pi * R)
-            return new VFXExpressionMul(CircleArea(minorRadius), CircleCircumference(majorRadius));
+            return CircleArea(minorRadius) * CircleCircumference(majorRadius);
         }
 
         static public VFXExpression SignedDistanceToPlane(VFXExpression planePosition, VFXExpression planeNormal, VFXExpression position)
         {
             VFXExpression d = Dot(planePosition, planeNormal);
-            return new VFXExpressionSubtract(Dot(position, planeNormal), d);
+            return Dot(position, planeNormal) - d;
         }
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)

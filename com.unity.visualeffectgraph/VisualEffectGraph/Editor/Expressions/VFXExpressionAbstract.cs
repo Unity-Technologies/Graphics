@@ -322,6 +322,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static VFXExpression operator*(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
+        public static VFXExpression operator/(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
+        public static VFXExpression operator+(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }
+        public static VFXExpression operator-(VFXExpression a, VFXExpression b) { return new VFXExpressionSubtract(a, b); }
+
         protected Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
     }

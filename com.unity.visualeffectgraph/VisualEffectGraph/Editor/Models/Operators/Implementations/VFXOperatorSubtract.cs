@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionSubtract(inputExpression[0], inputExpression[1]) };
+            return new[] { inputExpression[0] - inputExpression[1] };
         }
     }
 }

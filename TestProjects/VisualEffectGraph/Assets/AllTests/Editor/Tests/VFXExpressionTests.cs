@@ -45,16 +45,16 @@ namespace UnityEditor.VFX.Test
             var value_c = new VFXValue<float>(c);
             var value_d = new VFXValue<float>(d);
 
-            var addExpression = new VFXExpressionAdd(VFXOperatorUtility.CastFloat(value_a, value_b.valueType), value_b);
+            var addExpression = VFXOperatorUtility.CastFloat(value_a, value_b.valueType) + value_b;
             var sinExpression = new VFXExpressionSin(addExpression);
-            var mulExpression = new VFXExpressionMul(sinExpression, VFXOperatorUtility.CastFloat(value_c, sinExpression.valueType));
-            var substractExpression = new VFXExpressionSubtract(VFXOperatorUtility.CastFloat(value_d, mulExpression.valueType), mulExpression);
+            var mulExpression = (sinExpression * VFXOperatorUtility.CastFloat(value_c, sinExpression.valueType));
+            var subtractExpression = VFXOperatorUtility.CastFloat(value_d, mulExpression.valueType) - mulExpression;
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultA = context.Compile(addExpression);
             var resultB = context.Compile(sinExpression);
             var resultC = context.Compile(mulExpression);
-            var resultD = context.Compile(substractExpression);
+            var resultD = context.Compile(subtractExpression);
 
             Assert.AreEqual(refResultA, resultA.Get<Vector3>());
             Assert.AreEqual(refResultB, resultB.Get<Vector3>());
