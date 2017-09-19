@@ -98,6 +98,8 @@ Shader "Hidden/VFX/ParticlePoints"
 					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 					o.color.a *= fade;
 #endif
+					clip(o.color.a - 1e-10);
+
 					return o;
 				}
 			ENDCG
