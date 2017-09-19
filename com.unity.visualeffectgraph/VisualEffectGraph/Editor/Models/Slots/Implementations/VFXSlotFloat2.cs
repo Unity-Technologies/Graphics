@@ -50,9 +50,7 @@ namespace UnityEditor.VFX
 
             if (expression.valueType == VFXValueType.kFloat3 || expression.valueType == VFXValueType.kFloat4)
             {
-                var x = new VFXExpressionExtractComponent(expression, 0);
-                var y = new VFXExpressionExtractComponent(expression, 1);
-                return new VFXExpressionCombine(x, y);
+                return new VFXExpressionCombine(expression.x, expression.y);
             }
 
             throw new Exception("Unexpected type of expression " + expression);
@@ -69,8 +67,8 @@ namespace UnityEditor.VFX
         {
             return new VFXExpression[2]
             {
-                new VFXExpressionExtractComponent(expr, 0),
-                new VFXExpressionExtractComponent(expr, 1)
+                expr.x,
+                expr.y
             };
         }
     }

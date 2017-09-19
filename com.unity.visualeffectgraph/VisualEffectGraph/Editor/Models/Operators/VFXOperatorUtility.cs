@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
             {
                 for (int iChannel = 0; iChannel < size; ++iChannel)
                 {
-                    sum.Push(new VFXExpressionExtractComponent(mul, iChannel));
+                    sum.Push(mul[iChannel]);
                 }
             }
 
@@ -306,7 +306,7 @@ namespace UnityEditor.VFX
             var components = new List<VFXExpression>();
             for (int i = 0; i < VFXExpression.TypeToSize(expression.valueType); ++i)
             {
-                components.Add(new VFXExpressionExtractComponent(expression, i));
+                components.Add(expression[i]);
             }
             return components;
         }
@@ -350,7 +350,7 @@ namespace UnityEditor.VFX
             {
                 for (int iChannel = 0; iChannel < fromValueTypeSize; ++iChannel)
                 {
-                    inputComponent[iChannel] = new VFXExpressionExtractComponent(from, iChannel);
+                    inputComponent[iChannel] = from[iChannel];
                 }
             }
 
