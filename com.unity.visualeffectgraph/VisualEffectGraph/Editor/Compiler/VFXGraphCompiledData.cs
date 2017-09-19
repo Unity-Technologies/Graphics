@@ -357,7 +357,7 @@ namespace UnityEditor.VFX
                             {
                                 return new VFXTaskDesc
                                 {
-                                    type = VFXTaskType.kVFXSpawner,
+                                    type = VFXTaskType.kSpawnerConstantRate,
                                 };
                             }).ToArray()
                     });
@@ -429,8 +429,8 @@ namespace UnityEditor.VFX
                         foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                             uniformMappings.Add(new VFXValueMapping(m_ExpressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
-                        taskDesc.gpuBuffers = bufferMappings.ToArray();
-                        taskDesc.values = uniformMappings.ToArray();
+                        taskDesc.buffers = bufferMappings.ToArray();
+                        taskDesc.uniforms = uniformMappings.ToArray();
 
                         taskDesc.processor = contextToCompiledData[context].processor;
 
@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
                         tasks = taskDescs.ToArray(),
                         capacity = data.capacity,
                         buffers = systemBufferMappings.ToArray(),
-                        values = systemValueMappings.ToArray(),
+                        //uniformMappings = systemValueMappings.ToArray(), //TODOPAUL : confirm with Julienf, this entry is deprecated ?
                         type = VFXSystemType.kVFXParticle,
                     });
                 }
@@ -459,7 +459,7 @@ namespace UnityEditor.VFX
                 {
                     m_Graph.vfxAsset.ClearSpawnerData();
                     m_Graph.vfxAsset.ClearPropertyData();
-                    m_Graph.vfxAsset.SetSystem(null, null);
+                    m_Graph.vfxAsset.SetSystem(null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
