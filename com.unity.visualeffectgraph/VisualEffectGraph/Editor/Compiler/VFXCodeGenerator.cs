@@ -65,10 +65,10 @@ namespace UnityEditor.VFX
             var attributesCurrent = attributesFromContext.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
 
             //< Current Attribute
-            foreach (var attribute in attributesCurrent.Select(o => o.attrib))
+            foreach (var attribute in attributesCurrent.Select(o => o.attrib).Where(a => context.GetData().IsAttributeUsed(a, context) || (context.contextType == VFXContextType.kInit && context.GetData().IsAttributeStored(a))))
             {
                 var name = attribute.name;
-                if (context.GetData().IsAttributeStored(attribute) && context.GetData().IsAttributeRead(attribute, context) && context.contextType != VFXContextType.kInit)
+                if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
                 {
                     r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute));
                 }
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
 
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
                     context.GetData().IsAttributeStored(o.attrib) &&
-                    context.GetData().IsAttributeWritten(o.attrib, context)).ToArray();
+                    (context.contextType == VFXContextType.kInit || context.GetData().IsAttributeWritten(o.attrib, context))).ToArray();
 
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {

@@ -301,6 +301,13 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
+        public EventPropagation ReinitComponents()
+        {
+            foreach (var component in VFXComponent.GetAllActive())
+                component.Reinit();
+            return EventPropagation.Stop;
+        }
+
         public IEnumerable<VFXContextUI> GetAllContexts()
         {
             foreach (var layer in GetAllLayers())

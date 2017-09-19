@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -21,6 +22,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Update"; } }
         public override string codeGeneratorTemplate { get { return "VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
 
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {

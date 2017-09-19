@@ -586,9 +586,13 @@ public class VFXComponentEditor : Editor
         using (new GUILayout.HorizontalScope())
         {
             EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
+
+            GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
-                //VFXEditor.ShowWindow();
+                EditorWindow.GetWindow<VFXViewWindow>();
+
+                VFXViewWindow.viewPresenter.SetVFXAsset(component.vfxAsset, false);
             }
         }
 
@@ -622,6 +626,7 @@ public class VFXComponentEditor : Editor
             UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle.editModeButton,
             this
             );
+        GUI.enabled = true;
     }
 
     private void SetPlayRate(object rate)

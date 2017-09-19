@@ -218,7 +218,7 @@ namespace UnityEditor.VFX.UI
         {
             Plane plane = (Plane)anchor.value;
 
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
+            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal.direction);
             Handles.DrawRectangle(0, plane.position, normalQuat, 10);
 
             Handles.DrawArrow(0, plane.position, normalQuat, 5);
@@ -228,7 +228,7 @@ namespace UnityEditor.VFX.UI
                 anchor.value = plane;
             }
 
-            Vector3 normal = plane.normal.normalized;
+            Vector3 normal = plane.normal.direction.normalized;
 
             Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, normal);
 
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX.UI
             if (GUI.changed)
             {
                 normal = result * Vector3.forward;
-                plane.normal = normal;
+                plane.normal.direction = normal;
                 anchor.value = plane;
             }
             EditorGUI.EndChangeCheck();
@@ -251,12 +251,8 @@ namespace UnityEditor.VFX.UI
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
-
             Vector3 center = cylinder.position;
-            Vector3 normal = cylinder.direction.normalized;
-            if (normal == Vector3.zero)
-                normal = Vector3.up;
-            normal.Normalize();
+            Vector3 normal = Vector3.up;
 
             Vector3 worldNormal = normal;
 
@@ -323,7 +319,6 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, cylinder.space, ref cylinder.position))
             {
-                cylinder.direction = normal;
                 anchor.value = cylinder;
             }
 
@@ -337,7 +332,6 @@ namespace UnityEditor.VFX.UI
 
                 if (GUI.changed)
                 {
-                    cylinder.direction = normal;
                     cylinder.radius = (result - center).magnitude;
                     anchor.value = cylinder;
                 }
@@ -351,7 +345,6 @@ namespace UnityEditor.VFX.UI
 
             if (GUI.changed)
             {
-                cylinder.direction = normal;
                 cylinder.height = (result - center).magnitude * 2;
                 anchor.value = cylinder;
             }
@@ -364,31 +357,11 @@ namespace UnityEditor.VFX.UI
 
             if (GUI.changed)
             {
-                cylinder.direction = normal;
                 cylinder.height = (result - center).magnitude * 2;
                 anchor.value = cylinder;
             }
 
             EditorGUI.EndChangeCheck();
-
-            /*
-            Vector3 normal = plane.normal.normalized;
-
-            Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, normal);
-
-            EditorGUI.BeginChangeCheck();
-            Quaternion result = Handles.RotationHandle(rotation, plane.position);
-
-            //Quaternion result = UnityEditorInternal.Disc.Do(0, rotation, plane.position, Vector3.left, 3, true, 0, false, true, Color.yellow);
-
-            if (GUI.changed)
-            {
-                normal = result * Vector3.forward;
-                plane.normal = normal;
-                anchor.value = plane;
-            }
-            EditorGUI.EndChangeCheck();
-    */
         }
 
         static bool OnDrawBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)

@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
 
         override public string name { get { return "Linear Interpolate"; } }
 
-        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }

@@ -27,7 +27,8 @@ namespace UnityEditor.VFX
         void UpdateOutputs();
 
         void SetSettingValue(string name, object value);
-        bool expanded { get; set; }
+
+        bool collapsed { get; set; }
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -36,8 +37,6 @@ namespace UnityEditor.VFX
     {
         public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
-
-        public bool expanded { get; set; }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
         public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
@@ -51,7 +50,7 @@ namespace UnityEditor.VFX
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
             if (!slot.IsMasterSlot())
-                throw new ArgumentException();
+                throw new ArgumentException("InnerAddSlot expect only a masterSlot");
 
             if (slot.owner != this as IVFXSlotContainer)
             {
@@ -154,27 +153,22 @@ namespace UnityEditor.VFX
 
         public override T Clone<T>()
         {
-            var clone = base.Clone<T>();
-            var cloneContainer = clone as VFXSlotContainerModel<ParentType, ChildrenType>;
+            var clone = base.Clone<T>() as VFXSlotContainerModel<ParentType, ChildrenType>;
 
-            cloneContainer.m_InputSlots.Clear();
-            cloneContainer.m_OutputSlots.Clear();
-
-            foreach (var input in inputSlots)
+            var settings = VFXSettingAttribute.Collect(this);
+            foreach (var setting in settings)
             {
-                var cloneSlot = input.Clone<VFXSlot>();
-                cloneContainer.m_InputSlots.Add(cloneSlot);
-                cloneSlot.SetOwner(cloneContainer);
+                clone.SetSettingValue(setting.Name, setting.GetValue(this), false);
             }
 
-            foreach (var output in outputSlots)
+            clone.m_InputSlots.Clear();
+            clone.m_OutputSlots.Clear();
+            foreach (var slot in inputSlots.Concat(outputSlots))
             {
-                var cloneSlot = output.Clone<VFXSlot>();
-                cloneContainer.m_OutputSlots.Add(cloneSlot);
-                cloneSlot.SetOwner(cloneContainer);
+                var cloneSlot = slot.Clone<VFXSlot>();
+                clone.InnerAddSlot(cloneSlot, false);
             }
-
-            return clone;
+            return clone as T;
         }
 
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
@@ -295,8 +289,16 @@ namespace UnityEditor.VFX
         // TODO This could be directly in VFXModel and remove from the IVFXSlotContainer interface
         public void SetSettingValue(string name, object value)
         {
+            SetSettingValue(name, value, true);
+        }
+
+        private void SetSettingValue(string name, object value, bool notify)
+        {
             GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
-            Invalidate(InvalidationCause.kSettingChanged);
+            if (notify)
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
         }
     }
 }

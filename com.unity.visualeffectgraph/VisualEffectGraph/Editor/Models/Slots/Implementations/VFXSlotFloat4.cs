@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector4))]
     class VFXSlotFloat4 : VFXSlot
     {
-        sealed protected override bool CanConvertFrom(Type type)
+        protected override bool CanConvertFrom(Type type)
         {
             return base.CanConvertFrom(type)
                 || type == typeof(float)
