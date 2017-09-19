@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
                         tasks = taskDescs.ToArray(),
                         capacity = data.capacity,
                         buffers = systemBufferMappings.ToArray(),
-                        //uniformMappings = systemValueMappings.ToArray(), //TODOPAUL : confirm with Julienf, this entry is deprecated ?
+                        values = systemValueMappings.ToArray(),
                         type = VFXSystemType.kVFXParticle,
                     });
                 }
