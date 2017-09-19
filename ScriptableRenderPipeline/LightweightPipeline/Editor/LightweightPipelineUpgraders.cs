@@ -164,22 +164,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         }
     }
 
-    public class ParticlesMultiplyUpgrader : MaterialUpgrader
-    {
-        public ParticlesMultiplyUpgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, "ScriptableRenderPipeline/LightweightPipeline/Particles/Multiply");
-        }
-    }
-
-    public class ParticlesAdditiveUpgrader : MaterialUpgrader
-    {
-        public ParticlesAdditiveUpgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, "ScriptableRenderPipeline/LightweightPipeline/Particles/Additive");
-        }
-    }
-
     public class StandardUpgrader : MaterialUpgrader
     {
         public StandardUpgrader(string oldShaderName)

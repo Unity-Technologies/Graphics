@@ -78,10 +78,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private static readonly int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
-        private int m_ShadowMapProperty;
-        private int m_CameraRTProperty;
-        private RenderTargetIdentifier m_ShadowMapRTID;
-        private RenderTargetIdentifier m_CameraRTID;
+        private int m_ShadowMapTexture;
+        private int m_CameraColorTexture;
+        private int m_CameraDepthTexture;
+        private RenderTargetIdentifier m_ShadowMapRT;
+        private RenderTargetIdentifier m_CameraColorRT;
+        private RenderTargetIdentifier m_CameraDepthRT;
 
         private bool m_RenderToIntermediateTarget = false;
         private bool m_IntermediateTextureArray = false;
@@ -99,15 +101,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureFormat m_ColorFormat = RenderTextureFormat.ARGB32;
         private PostProcessRenderContext m_PostProcessRenderContext;
 
+        private CameraComparer m_CameraComparer = new CameraComparer();
+
+        private Mesh m_BlitQuad = null;
+        private Material m_BlitMaterial = null;
+        private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
+
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
 
             BuildShadowSettings();
-            m_ShadowMapProperty = Shader.PropertyToID("_ShadowMap");
-            m_CameraRTProperty = Shader.PropertyToID("_CameraRT");
-            m_ShadowMapRTID = new RenderTargetIdentifier(m_ShadowMapProperty);
-            m_CameraRTID = new RenderTargetIdentifier(m_CameraRTProperty);
+            m_ShadowMapTexture = Shader.PropertyToID("_ShadowMap");
+            m_CameraColorTexture = Shader.PropertyToID("_CameraRT");
+            m_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+
+            m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapTexture);
+            m_CameraColorRT = new RenderTargetIdentifier(m_CameraColorTexture);
+            m_CameraDepthRT = new RenderTargetIdentifier(m_CameraDepthTexture);
             m_PostProcessRenderContext = new PostProcessRenderContext();
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
@@ -115,6 +126,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 QualitySettings.antiAliasing = m_Asset.MSAASampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
+
+            m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
+            m_BlitMaterial = new Material(m_Asset.BlitShader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
         }
 
         public override void Dispose()
@@ -137,16 +154,30 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             bool stereoEnabled = XRSettings.isDeviceActive;
 
+            // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
+            // instead this should be forced when using SRP, since all SRP use linear lighting.
+            GraphicsSettings.lightsUseLinearIntensity = true;
+
+            Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
                 m_CurrCamera = camera;
 
+                PostProcessLayer postProcessLayer;
+                RenderingConfiguration renderingConfig = SetupRendering(out postProcessLayer);
+                bool postProcessEnabled = LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.PostProcess);
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
                     continue;
 
-                cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance, m_CurrCamera.farClipPlane);
-                CullResults.Cull(ref cullingParameters, context,ref m_CullResults);
+                cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
+                    m_CurrCamera.farClipPlane);
+
+                // emit scene view UI
+                if (camera.cameraType == CameraType.SceneView)
+                    ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+
+                CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
 
                 VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
 
@@ -155,33 +186,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // Render Shadow Map
                 if (lightData.shadowLightIndex > -1)
-                    lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, ref context);
+                    lightData.shadowsRendered = RenderShadows(ref m_CullResults,
+                        ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, ref context);
 
-                // Setup camera matrices and RT
+                // Setup camera matrices
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 // Setup light and shadow shader constants
                 SetupShaderLightConstants(visibleLights, ref lightData, ref m_CullResults, ref context);
                 if (lightData.shadowsRendered)
-                    SetupShadowShaderConstants(ref context, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
+                    SetupShadowShaderConstants(ref context, ref visibleLights[lightData.shadowLightIndex],
+                        lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
                 SetShaderKeywords(ref lightData, ref context);
 
-                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes;
-                if (m_Asset.EnableLightmap)
-                    configuration |= RendererConfiguration.PerObjectLightmaps;
-
-                if (m_Asset.EnableAmbientProbe)
-                    configuration |= RendererConfiguration.PerObjectLightProbe;
-
+                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
                 if (!lightData.isSingleLight)
                     configuration |= RendererConfiguration.PerObjectLightIndices8;
 
-
-                PostProcessLayer postProcessLayer = GetCurrCameraPostProcessLayer();
-                bool postProcessEnabled = postProcessLayer != null && postProcessLayer.enabled;
-                m_RenderToIntermediateTarget = postProcessEnabled || GetRenderToIntermediateTarget();
-
-                BeginForwardRendering(ref context, stereoEnabled);
+                BeginForwardRendering(ref context, renderingConfig);
 
                 var litDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
                 litDrawSettings.sorting.flags = SortFlags.CommonOpaque;
@@ -191,34 +213,44 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 unlitDrawSettings.sorting.flags = SortFlags.CommonTransparent;
 
                 // Render Opaques
-                var opaqueFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
+                var opaqueFilterSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = RenderQueueRange.opaque
+                };
 
                 context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, opaqueFilterSettings);
 
                 // TODO: Check skybox shader
                 context.DrawSkybox(m_CurrCamera);
 
+                if (postProcessEnabled)
+                    RenderPostProcess(ref context, postProcessLayer, true);
+
                 // Render Alpha blended
-                var transparentFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
+                var transparentFilterSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = RenderQueueRange.transparent
+                };
 
                 litDrawSettings.sorting.flags = SortFlags.CommonTransparent;
                 context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, transparentFilterSettings);
                 context.DrawRenderers(m_CullResults.visibleRenderers, ref unlitDrawSettings, transparentFilterSettings);
 
                 if (postProcessEnabled)
-                    RenderPostProcess(ref context, postProcessLayer);
+                    RenderPostProcess(ref context, postProcessLayer, false);
 
-                EndForwardRendering(ref context, stereoEnabled, postProcessEnabled);
+                EndForwardRendering(ref context, renderingConfig);
 
                 // Release temporary RT
                 var discardRT = CommandBufferPool.Get();
-                discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
-                discardRT.ReleaseTemporaryRT(m_CameraRTProperty);
+                discardRT.ReleaseTemporaryRT(m_ShadowMapTexture);
+                discardRT.ReleaseTemporaryRT(m_CameraColorTexture);
+                discardRT.ReleaseTemporaryRT(m_CameraDepthTexture);
                 context.ExecuteCommandBuffer(discardRT);
                 CommandBufferPool.Release(discardRT);
-            }
 
-            context.Submit();
+                context.Submit();
+            }
         }
 
         private void BuildShadowSettings()
@@ -244,6 +276,40 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_ShadowSettings.directionalLightCascades = m_Asset.Cascade4Split;
                     break;
             }
+        }
+
+        private RenderingConfiguration SetupRendering(out PostProcessLayer postProcessLayer)
+        {
+            RenderingConfiguration renderingConfig = (XRSettings.enabled) ? RenderingConfiguration.Stereo : RenderingConfiguration.None;
+            if (XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                renderingConfig |= RenderingConfiguration.IntermediateTextureArray;
+
+            postProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
+            bool intermediateTexture = false;
+            if (postProcessLayer != null && postProcessLayer.enabled)
+            {
+                renderingConfig |= RenderingConfiguration.PostProcess;
+                intermediateTexture = true;
+            }
+            // When post process is enabled we disable msaa due to lack of depth resolve
+            // One can still use PostFX AA
+            else if (m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1)
+            {
+                renderingConfig |= RenderingConfiguration.Msaa;
+                intermediateTexture = !LightweightUtils.PlatformSupportsMSAABackBuffer();
+            }
+
+            Rect cameraRect = m_CurrCamera.rect;
+            if (cameraRect.x > 0.0f || cameraRect.y > 0.0f || cameraRect.width < 1.0f || cameraRect.height < 1.0f)
+                intermediateTexture = true;
+            else
+                renderingConfig |= RenderingConfiguration.DefaultViewport;
+
+            intermediateTexture |= (m_CurrCamera.targetTexture != null || m_Asset.RenderScale < 1.0f);
+            if (intermediateTexture && !LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTextureArray))
+                renderingConfig |= RenderingConfiguration.IntermediateTexture;
+
+            return renderingConfig;
         }
 
         private void InitializeLightData(VisibleLight[] lights, out LightData lightData)
@@ -299,7 +365,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightColor = light.finalColor;
 
             float rangeSq = light.range * light.range;
-            float quadAtten = (light.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
+            float quadAtten = 0.0f;
+            if (light.lightType != LightType.Directional)
+                quadAtten = (m_Asset.AttenuationTexture != null) ? 1.0f : 25.0f / rangeSq;
 
             if (light.lightType == LightType.Spot)
             {
@@ -383,9 +451,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var setRenderTargetCommandBuffer = CommandBufferPool.Get();
             setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapProperty, m_ShadowSettings.shadowAtlasWidth,
+            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapTexture, m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
-            setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRTID);
+            setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRT);
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.black);
             context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
             CommandBufferPool.Release(setRenderTargetCommandBuffer);
@@ -534,48 +602,38 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(setupShadow);
         }
 
-        private void SetKeyword(CommandBuffer cmd, string keyword, bool enable)
-        {
-            if (enable)
-                cmd.EnableShaderKeyword(keyword);
-            else
-                cmd.DisableShaderKeyword(keyword);
-        }
-
         private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleLight, bool vertexLightSupport)
         {
-            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
-            SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
-            SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
-            SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
-            SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
+            LightweightUtils.SetKeyword(cmd, "_LIGHTWEIGHT_FORCE_LINEAR", m_Asset.ForceLinearRendering);
+            LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
+            LightweightUtils.SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
 
             if (!singleLight)
             {
-                SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
             }
             else
             {
                 switch (m_SingleLightType)
                 {
                         case LightType.Directional:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
                         break;
 
                         case LightType.Spot:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
                         break;
 
                         case LightType.Point:
-                        SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
+                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
                         break;
                 }
             }
@@ -616,92 +674,117 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return (type == LightType.Directional || type == LightType.Spot);
         }
 
-        private void BeginForwardRendering(ref ScriptableRenderContext context, bool stereoEnabled)
+        private void BeginForwardRendering(ref ScriptableRenderContext context, RenderingConfiguration renderingConfig)
         {
-            if (stereoEnabled)
-                context.StartMultiEye(m_CurrCamera);
+            RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
+            RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
+
+            // When postprocess is enabled, msaa is forced to be disabled due to lack of depth resolve.
+            int msaaSamples = (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.Msaa)) ? m_Asset.MSAASampleCount : 1;
 
             var cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            if (m_RenderToIntermediateTarget)
+            if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTexture))
             {
-                if (m_CurrCamera.activeTexture == null)
+                int rtWidth = (int)((float)m_CurrCamera.pixelWidth * m_Asset.RenderScale);
+                int rtHeight = (int)((float)m_CurrCamera.pixelHeight * m_Asset.RenderScale);
+
+                if (m_CurrCamera.targetTexture == null)
                 {
-                    m_IntermediateTextureArray = false;
-                    if (stereoEnabled)
+                    RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
+                    if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.Stereo))
                     {
-                        RenderTextureDescriptor xrDesc = XRSettings.eyeTextureDesc;
-                        xrDesc.depthBufferBits = kCameraDepthBufferBits;
-                        xrDesc.colorFormat = m_ColorFormat;
-                        xrDesc.msaaSamples = m_Asset.MSAASampleCount;
+                        context.StartMultiEye(m_CurrCamera);
+                        rtDesc = XRSettings.eyeTextureDesc;
+                        rtDesc.colorFormat = m_ColorFormat;
+                        rtDesc.msaaSamples = msaaSamples;
 
-                        m_IntermediateTextureArray = (xrDesc.dimension == TextureDimension.Tex2DArray);
-
-                        cmd.GetTemporaryRT(m_CameraRTProperty, xrDesc, FilterMode.Bilinear);
+                        cmd.GetTemporaryRT(m_CameraColorTexture, rtDesc, FilterMode.Bilinear);
                     }
                     else
                     {
-                        cmd.GetTemporaryRT(m_CameraRTProperty, Screen.width, Screen.height, kCameraDepthBufferBits,
-                            FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, m_Asset.MSAASampleCount);
+                        cmd.GetTemporaryRT(m_CameraColorTexture, rtWidth, rtHeight, kCameraDepthBufferBits,
+                            FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
                     }
 
-                    if (m_IntermediateTextureArray)
-                        cmd.SetRenderTarget(m_CameraRTID, 0, CubemapFace.Unknown, -1);
-                    else
-                        cmd.SetRenderTarget(m_CameraRTID);
+                    colorRT = m_CameraColorRT;
                 }
-                else
+
+                if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.PostProcess))
                 {
-                    cmd.SetRenderTarget(new RenderTargetIdentifier(m_CurrCamera.activeTexture));
+                    cmd.GetTemporaryRT(m_CameraDepthTexture, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+                    depthRT = m_CameraDepthRT;
                 }
             }
-            else
-            {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CurrentActive);
-            }
+
+            SetupRenderTargets(cmd, colorRT, depthRT);
 
             // Clear RenderTarget to avoid tile initialization on mobile GPUs
             // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
             if (m_CurrCamera.clearFlags != CameraClearFlags.Nothing)
             {
                 bool clearDepth = (m_CurrCamera.clearFlags != CameraClearFlags.Nothing);
-                bool clearColor = (m_CurrCamera.clearFlags == CameraClearFlags.Color);
-                cmd.ClearRenderTarget(clearDepth, clearColor, m_CurrCamera.backgroundColor);
+                bool clearColor = (m_CurrCamera.clearFlags == CameraClearFlags.Color || m_CurrCamera.clearFlags == CameraClearFlags.Skybox);
+                cmd.ClearRenderTarget(clearDepth, clearColor, m_CurrCamera.backgroundColor.linear);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void EndForwardRendering(ref ScriptableRenderContext context, bool stereoEnabled, bool postProcessing)
+        private void EndForwardRendering(ref ScriptableRenderContext context, RenderingConfiguration renderingConfig)
         {
+            // No additional rendering needs to be done if this is an offscren rendering camera
+            if (m_CurrCamera.targetTexture != null)
+                return;
 
-            if (m_RenderToIntermediateTarget || postProcessing)
+            var cmd = CommandBufferPool.Get("Blit");
+            if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTextureArray))
             {
-                var cmd = CommandBufferPool.Get("Blit");
-                if (m_IntermediateTextureArray)
-                {
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-                    cmd.Blit(m_CameraRTID, BuiltinRenderTextureType.CurrentActive);
-                }
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                cmd.Blit(m_CameraColorRT, BuiltinRenderTextureType.CurrentActive);
+            }
+            else if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTexture))
+            {
                 // If PostProcessing is enabled, it is already blitted to CameraTarget.
-                else if (!postProcessing)
-                    cmd.Blit(BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
-
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                if (!LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.PostProcess))
+                    Blit(cmd, renderingConfig, m_CameraColorRT, BuiltinRenderTextureType.CameraTarget);
             }
 
-            if (stereoEnabled)
+            cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.Stereo))
             {
                 context.StopMultiEye(m_CurrCamera);
                 context.StereoEndRender(m_CurrCamera);
             }
         }
 
-        private void RenderPostProcess(ref ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        private void SetupRenderTargets(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT)
+        {
+            if (m_IntermediateTextureArray)
+            {
+                if (depthRT != BuiltinRenderTextureType.None)
+                    cmd.SetRenderTarget(colorRT, 0, CubemapFace.Unknown, -1);
+                else
+                    cmd.SetRenderTarget(colorRT, depthRT, 0, CubemapFace.Unknown, -1);
+            }
+            else
+            {
+                if (depthRT != BuiltinRenderTextureType.None)
+                    cmd.SetRenderTarget(colorRT, depthRT);
+                else
+                    cmd.SetRenderTarget(colorRT);
+            }
+        }
+
+        private void RenderPostProcess(ref ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer, bool opaqueOnly)
         {
             var postProcessCommand = CommandBufferPool.Get("Post Processing");
+            postProcessCommand.SetGlobalTexture("m_CameraDepthTexture", m_CameraDepthRT);
+
             m_PostProcessRenderContext.Reset();
             m_PostProcessRenderContext.camera = m_CurrCamera;
             m_PostProcessRenderContext.source = BuiltinRenderTextureType.CurrentActive;
@@ -710,32 +793,30 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PostProcessRenderContext.command = postProcessCommand;
             m_PostProcessRenderContext.flip = true;
 
-            postProcessLayer.Render(m_PostProcessRenderContext);
+            if (opaqueOnly)
+                postProcessLayer.RenderOpaqueOnly(m_PostProcessRenderContext);
+            else
+                postProcessLayer.Render(m_PostProcessRenderContext);
             renderContext.ExecuteCommandBuffer(postProcessCommand);
             CommandBufferPool.Release(postProcessCommand);
         }
 
-        private bool GetRenderToIntermediateTarget()
+        private void Blit(CommandBuffer cmd, RenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {
-            bool allowMSAA = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && !PlatformSupportsMSAABackBuffer();
-            if (m_CurrCamera.cameraType == CameraType.SceneView || allowMSAA || m_CurrCamera.activeTexture != null)
-                return true;
+            if (LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.DefaultViewport))
+            {
+                cmd.Blit(sourceRT, destRT, material);
+            }
+            else
+            {
+                if (m_BlitQuad == null)
+                    m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
 
-            return false;
-        }
-
-        private PostProcessLayer GetCurrCameraPostProcessLayer()
-        {
-            return m_CurrCamera.GetComponent<PostProcessLayer>();
-        }
-
-        private bool PlatformSupportsMSAABackBuffer()
-        {
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SAMSUNGTV
-            return true;
-#else
-            return false;
-#endif
+                cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
+                cmd.SetRenderTarget(destRT);
+                cmd.SetViewport(m_CurrCamera.pixelRect);
+                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
+            }
         }
     }
 }

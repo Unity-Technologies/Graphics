@@ -118,12 +118,14 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
+            Camera testCamera = testSetup.cameraToUse;
             var rtDesc = new RenderTextureDescriptor (
 				             testSetup.width,
 				             testSetup.height,
-				             testSetup.hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
+				             (testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
 				             24);
 			rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
+            rtDesc.msaaSamples = testSetup.msaaSamples;
 
 			// render the scene
 			var tempTarget = RenderTexture.GetTemporary (rtDesc);
