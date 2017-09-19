@@ -13,13 +13,11 @@ namespace UnityEditor.VFX.UI
     {
         public VFXNodeUI()
         {
-            clipChildren = false;
-            inputContainer.clipChildren = false;
-            mainContainer.clipChildren = false;
-            leftContainer.clipChildren = false;
-            rightContainer.clipChildren = false;
-            outputContainer.clipChildren = false;
             m_CollapseButton.visible = false;
+
+            Insert(0, titleContainer);
+            rightContainer.Insert(0, new VisualElement() { name = "rightBackground" });
+            leftContainer.Insert(0, new VisualElement() { name = "leftBackground" });
             AddToClassList("VFXNodeUI");
         }
 

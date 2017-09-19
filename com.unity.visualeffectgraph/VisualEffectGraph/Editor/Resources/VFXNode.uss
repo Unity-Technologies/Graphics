@@ -16,34 +16,94 @@
 	border-right:2;
 }
 
-.node.horizontal #left > #title > Label {
+.VFXNodeUI.node.horizontal
+{
+	flex-direction:column;
+} 
+
+.VFXNodeUI.node.horizontal #title
+{
+	height:42;
+	background-color:rgb(54,54,54);
+	border-top-right-radius:2;
+	border-top-left-radius:2;
+	margin-bottom:1;
+}
+
+.node.horizontal #title > Label {
 	text-color: #c4c4c4;
+	margin-top:12;
+	font-size:14;
 }
 
 .VFXNodeUI.node.horizontal .mainContainer > #left
 {
 	width:250;
+	margin-right:1;
 }
 VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
 {
 	width:280;
 }
 
-.VFXNodeUI.node.horizontal #pane > #right
+.VFXNodeUI.node.horizontal .mainContainer #right
 {
-	padding-left:2;
-	padding-right:2;
+	background-color:rgba(0,0,0,0);
+	width:120;
+	margin-left:0;
+	padding-right:0;
 }
+.VFXNodeUI.node.horizontal .mainContainer #left
+{
+	background-color:rgba(0,0,0,0);
+}
+.VFXNodeUI #left > #input
+{
+	padding-top:8;
+	padding-bottom:8;
+}
+
+.VFXNodeUI.node #right > #output {
+	position-right:0;
+	padding-top:8;
+	padding-bottom:8;
+}
+
+.VFXNodeUI.node.horizontal .mainContainer
+{
+	border-left:0;
+	border-right:0;
+	border-top:0;
+	border-bottom:0;
+}
+
+.VFXNodeUI #right #rightBackground
+{
+	background-color:rgb(40,40,40);
+	position-type:absolute;
+	position-left:0;
+	position-right:0;
+	position-bottom:0;
+	position-top:0;
+	border-bottom-right-radius:2;
+} 
+
+.VFXNodeUI #left #leftBackground
+{
+	background-color:rgb(54,54,54);
+	position-type:absolute;
+	position-left:0;
+	position-right:0;
+	position-bottom:0;
+	position-top:0;
+	border-bottom-left-radius:2;
+} 
 
 .node.horizontal.selected
 {
 	border-color:#FFFFFF;
 }
 
-.node #right > #output {
-	-background-color:rgba(255,0,0,255);
-	position-right:0;
-}
 
 VFXParameterUI #exposedContainer
 {
@@ -87,12 +147,6 @@ height:30;
 .VFXNodeUI.collapsed #type
 {
 	max-width:0;
-}
-
-.VFXNodeUI.node.horizontal > .mainContainer #right
-{
-	-width:100;
-	padding-right:0;
 }
 
 .VFXNodeUI.collapsed.node.horizontal > .mainContainer #right
