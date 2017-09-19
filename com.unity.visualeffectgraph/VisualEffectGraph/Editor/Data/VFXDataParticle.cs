@@ -274,7 +274,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        private uint m_Capacity = 1024;
+        private uint m_Capacity = 65536;
         [SerializeField]
         private Bounds m_Bounds;
         [SerializeField]

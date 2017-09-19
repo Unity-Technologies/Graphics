@@ -23,6 +23,8 @@ Shader "Hidden/VFX/ParticleQuads"
 				
 				ByteAddressBuffer attributeBuffer;
 				
+				float nbMax;
+				
 				#pragma vertex vert
 				#pragma fragment frag
 				
@@ -51,34 +53,35 @@ Shader "Hidden/VFX/ParticleQuads"
 				ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 				{
 					uint index = (id >> 2) + instanceID * 2048;
-					${VFXLoadAttributes}
-					${VFXProcessBlocks}
-					
 					ps_input o = (ps_input)0;
-					
-					float2 offsets = (float2)0;
-					o.uv.x = float(id & 1);
-					o.uv.y = float((id & 2) >> 1);
-					position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
-					
-					o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
+					if (index < asuint(nbMax))
+					{
+						${VFXLoadAttributes}
+						${VFXProcessBlocks}
+						
+						float2 offsets = (float2)0;
+						o.uv.x = float(id & 1);
+						o.uv.y = float((id & 2) >> 1);
+						position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
+						
+						o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
 
 #if VFX_NEEDS_COLOR_INTERPOLATOR
-					o.color = (float4)1.0f;
+						o.color = (float4)1.0f;
 #if VFX_USE_COLOR_CURRENT
-					o.color.rgb = color;
+						o.color.rgb = color;
 #endif
 #if VFX_USE_COLOR_ALPHA
-					o.color.a = alpha;
+						o.color.a = alpha;
 #endif
 #endif
 
 #if USE_SOFT_PARTICLE
-					o.projPos = ComputeScreenPos(o.pos);		
-					${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-					o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
+						o.projPos = ComputeScreenPos(o.pos);		
+						${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+						o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
 #endif
-					
+					}
 					return o;
 				}
 				
