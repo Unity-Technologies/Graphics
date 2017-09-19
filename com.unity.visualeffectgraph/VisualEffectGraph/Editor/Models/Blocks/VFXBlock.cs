@@ -8,6 +8,11 @@ namespace UnityEditor.VFX
 {
     abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>
     {
+        public VFXBlock()
+        {
+            m_UICollapsed = false;
+        }
+
         [SerializeField]
         protected bool m_Disabled = false;
 
