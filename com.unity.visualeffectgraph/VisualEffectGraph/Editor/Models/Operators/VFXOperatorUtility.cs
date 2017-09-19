@@ -193,22 +193,22 @@ namespace UnityEditor.VFX
             return new VFXExpressionMul(radians, CastFloat(VFXValue.Constant(180.0f / Mathf.PI), radians.valueType));
         }
 
-        static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression radius)
+        static public VFXExpression PolarToRectangular(VFXExpression theta, VFXExpression distance)
         {
-            //x = cos(angle) * radius
-            //y = sin(angle) * radius
+            //x = cos(angle) * distance
+            //y = sin(angle) * distance
             var result = new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionCos(theta), new VFXExpressionSin(theta) });
-            return new VFXExpressionMul(result, CastFloat(radius, VFXValueType.kFloat2));
+            return new VFXExpressionMul(result, CastFloat(distance, VFXValueType.kFloat2));
         }
 
         static public VFXExpression[] RectangularToPolar(VFXExpression coord)
         {
             //theta = atan2(coord.y, coord.x)
-            //radius = length(coord)
+            //distance = length(coord)
             var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
             var theta = new VFXExpressionATan2(components[1], components[0]);
-            var radius = Length(coord);
-            return new VFXExpression[] { theta, radius };
+            var distance = Length(coord);
+            return new VFXExpression[] { theta, distance };
         }
 
         static public VFXExpression SphericalToRectangular(VFXExpression theta, VFXExpression phi, VFXExpression distance)
@@ -222,8 +222,8 @@ namespace UnityEditor.VFX
             var sinPhi = new VFXExpressionSin(phi);
 
             var x = new VFXExpressionMul(cosTheta, cosPhi);
-            var y = new VFXExpressionMul(sinTheta, cosPhi);
-            var z = sinPhi;
+            var y = sinPhi;
+            var z = new VFXExpressionMul(sinTheta, cosPhi);
 
             var result = new VFXExpressionCombine(new VFXExpression[] { x, y, z });
             return new VFXExpressionMul(result, CastFloat(distance, VFXValueType.kFloat3));
@@ -232,12 +232,12 @@ namespace UnityEditor.VFX
         static public VFXExpression[] RectangularToSpherical(VFXExpression coord)
         {
             //distance = length(coord)
-            //theta = atan2(y, x)
-            //phi = acos(z / distance)
+            //theta = atan2(z, x)
+            //phi = asin(y / distance)
             var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
             var distance = Length(coord);
-            var theta = new VFXExpressionATan2(components[1], components[0]);
-            var phi = new VFXExpressionACos(new VFXExpressionDivide(components[2], distance));
+            var theta = new VFXExpressionATan2(components[2], components[0]);
+            var phi = new VFXExpressionASin(new VFXExpressionDivide(components[1], distance));
             return new VFXExpression[] { theta, phi, distance };
         }
 
