@@ -1,12 +1,11 @@
 SubShader
 {
 	Tags{"RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline"}
-
 	LOD ${LOD}
-	
-	Pass
-	{
-		Tags{"LightMode" = "LightweightForward"}
+
+    Pass
+    {
+    	Tags{"LightMode" = "LightweightForward"}
 		${Tags}
 		${Blending}
 		${Culling}
@@ -15,39 +14,53 @@ SubShader
 		
 		CGPROGRAM
 		#pragma target 3.0
-		
 		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
         #pragma multi_compile_fog
 		#pragma multi_compile_instancing
 
-        #pragma vertex LightweightVertexUnlit
-        #pragma fragment LightweightFragmentUnlit
+		#pragma vertex vert
+        #pragma fragment frag
 		#pragma glsl
 		#pragma debug
-		
-${Defines}
-		
-		#include "UnityCG.cginc"
-		
-#define VERTEX_CUSTOM \
-	${VertexShaderBody}
-	
-//#define VERTINPUT_CUSTOM \
-	//${VertexInputs}
 
-#define VERTOUTPUT_CUSTOM \
-	${VertexOutputs}
-		
-		#include "CGIncludes/LightweightUnlit.cginc"
+        #include "UnityCG.cginc"
 
-${ShaderPropertyUsages}
-${ShaderFunctions}
-		
-		void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit o)
+        ${Defines}
+
+        struct GraphVertexOutput
+        {
+            float4 position : POSITION;
+            ${Interpolators}
+			UNITY_VERTEX_OUTPUT_STEREO
+        };
+
+        GraphVertexOutput vert (GraphVertexInput v)
 		{
-${PixelShaderBody}		
+		    v = PopulateVertexData(v);
+			
+			UNITY_SETUP_INSTANCE_ID(v);
+
+            GraphVertexOutput o;
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+            o.position = UnityObjectToClipPos(v.vertex);
+            ${VertexShader}
+            return o;
 		}
-	
-		ENDCG
-	}
+
+        fixed4 frag (GraphVertexOutput IN) : SV_Target
+        {
+            SurfaceInputs surfaceInput;
+            ${SurfaceInputs}
+
+            SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+            ${SurfaceOutputRemap}
+
+			#ifdef _ALPHABLEND_ON
+				return fixed4(Color, Alpha);
+			#else
+				return fixed4(Color, 1.0);
+			#endif
+        }
+        ENDCG
+    }
 }

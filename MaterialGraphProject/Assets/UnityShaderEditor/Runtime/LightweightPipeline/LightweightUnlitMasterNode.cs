@@ -7,9 +7,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-/*    [Serializable]
+    [Serializable]
     [Title("Master/Lightweight/Unlit")]
-    public class LightweightUnlitMasterNode : AbstractMasterNode
+    public class LightweightUnlitMasterNode : MasterNode
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -18,14 +18,6 @@ namespace UnityEngine.MaterialGraph
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 1;
         public const int VertexOffsetId = 2;
-
-        [SerializeField]
-        private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
-
-        public SurfaceMaterialOptions options
-        {
-            get { return m_MaterialOptions; }
-        }
 
         public LightweightUnlitMasterNode()
         {
@@ -50,7 +42,7 @@ namespace UnityEngine.MaterialGraph
             });
         }
 
-        protected int[] surfaceInputs
+        protected int[] masterSurfaceInputs
         {
             get
             {
@@ -62,7 +54,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        protected int[] vertexInputs
+        protected int[] masterVertexInputs
         {
             get
             {
@@ -73,100 +65,8 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        void GenerateNodeFunctionsAndPropertyUsages(
-            ShaderGenerator shaderBody,
-            ShaderGenerator propertyUsages,
-            ShaderGenerator nodeFunction,
-            GenerationMode mode,
-            int[] validNodeIds)
+        public override string GetSubShader(ShaderGraphRequirements shaderGraphRequirements)
         {
-            var activeNodeList = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
-                new List<int>(validNodeIds));
-
-            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
-            {
-                if (node is IGeneratesFunction)
-                    (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
-
-                node.GeneratePropertyUsages(propertyUsages, mode);
-            }
-
-            var nodes = ListPool<INode>.Get();
-            //Get the rest of the nodes for all the other slots
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(vertexInputs));
-            for (var i = 0; i < nodes.Count; i++)
-            {
-                var node = nodes[i];
-                if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, mode);
-            }
-            ListPool<INode>.Release(nodes);
-        }
-
-        void GenerateVertexShaderInternal(
-            ShaderGenerator propertyUsages,
-            ShaderGenerator shaderBody,
-            ShaderGenerator nodeFunction,
-            ShaderGenerator vertexShaderBlock,
-            GenerationMode mode)
-        {
-            GenerateNodeFunctionsAndPropertyUsages(vertexShaderBlock, propertyUsages, nodeFunction, mode, vertexInputs);
-
-            var slot = FindInputSlot<MaterialSlot>(VertexOffsetId);
-            foreach (var edge in owner.GetEdges(slot.slotReference))
-            {
-                var outputRef = edge.outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                if (fromNode == null)
-                    continue;
-
-                var remapper = fromNode as INodeGroupRemapper;
-                if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                    continue;
-
-                vertexShaderBlock.AddShaderChunk("v.vertex.xyz += " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-            }
-        }
-
-        public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
-        {
-            var templateLocation = ShaderGenerator.GetTemplatePath("lightweightSubshaderUnlit.template");
-
-            if (!File.Exists(templateLocation))
-                return string.Empty;
-
-            var activeNodeList = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
-            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
-                node.GeneratePropertyBlock(shaderPropertiesVisitor, mode);
-
-            var templateText = File.ReadAllText(templateLocation);
-            var shaderBodyVisitor = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertyUsagesVisitor = new ShaderGenerator();
-            var shaderInputVisitor = new ShaderGenerator();
-            var shaderOutputVisitor = new ShaderGenerator();
-            var vertexShaderBlock = new ShaderGenerator();
-            var definesVisitor = new ShaderGenerator();
-
-            GenerateSurfaceShaderInternal(
-                shaderPropertyUsagesVisitor,
-                shaderBodyVisitor,
-                shaderFunctionVisitor,
-                shaderInputVisitor,
-                shaderOutputVisitor,
-                vertexShaderBlock,
-                definesVisitor,
-                mode);
-
-            GenerateVertexShaderInternal(
-                shaderPropertyUsagesVisitor,
-                shaderBodyVisitor,
-                shaderFunctionVisitor,
-                vertexShaderBlock,
-                mode);
-
             var tagsVisitor = new ShaderGenerator();
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();
@@ -179,235 +79,159 @@ namespace UnityEngine.MaterialGraph
             m_MaterialOptions.GetDepthTest(zTestVisitor);
             m_MaterialOptions.GetDepthWrite(zWriteVisitor);
 
-            GetDefines(definesVisitor);
+            var activeNodeList = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
-            var resultShader = templateText.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${VertexInputs}", shaderInputVisitor.GetShaderString(3));
-            resultShader = resultShader.Replace("${VertexOutputs}", shaderOutputVisitor.GetShaderString(3));
-            resultShader = resultShader.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(3));
+            var interpolators = new ShaderGenerator();
+            var vertexShader = new ShaderGenerator();
+            var surfaceInput = new ShaderGenerator();
+
+            // bitangent needs normal for x product
+            if (shaderGraphRequirements.requiresNormal > 0 || shaderGraphRequirements.requiresBitangent > 0)
+            {
+                interpolators.AddShaderChunk(string.Format("float3 {0} : NORMAL;", ShaderGeneratorNames.ObjectSpaceNormal), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = v.normal;", ShaderGeneratorNames.ObjectSpaceNormal), false);
+                surfaceInput.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", ShaderGeneratorNames.ObjectSpaceNormal), false);
+            }
+
+            if (shaderGraphRequirements.requiresTangent > 0 || shaderGraphRequirements.requiresBitangent > 0)
+            {
+                interpolators.AddShaderChunk(string.Format("float4 {0} : TANGENT;", ShaderGeneratorNames.ObjectSpaceTangent), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = v.tangent;", ShaderGeneratorNames.ObjectSpaceTangent), false);
+                surfaceInput.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceTangent), false);
+                surfaceInput.AddShaderChunk(string.Format("float4 {0} = normalize(cross(normalize(IN.{1}), normalize(IN.{2}.xyz)) * IN.{2}.w);",
+                    ShaderGeneratorNames.ObjectSpaceBiTangent,
+                    ShaderGeneratorNames.ObjectSpaceTangent,
+                    ShaderGeneratorNames.ObjectSpaceNormal), false);
+            }
+
+            int interpolatorIndex = 0;
+            if (shaderGraphRequirements.requiresViewDir > 0)
+            {
+                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ObjectSpaceViewDirection, interpolatorIndex), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = ObjSpaceViewDir(v.vertex);", ShaderGeneratorNames.ObjectSpaceViewDirection), false);
+                surfaceInput.AddShaderChunk(string.Format("float4 {0} = normalize(IN.{0});", ShaderGeneratorNames.ObjectSpaceViewDirection), false);
+                interpolatorIndex++;
+            }
+
+            if (shaderGraphRequirements.requiresPosition > 0)
+            {
+                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ObjectSpacePosition, interpolatorIndex), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = v.vertex;", ShaderGeneratorNames.ObjectSpacePosition), false);
+                surfaceInput.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpacePosition), false);
+                interpolatorIndex++;
+            }
+
+            if (shaderGraphRequirements.NeedsTangentSpace())
+            {
+                surfaceInput.AddShaderChunk(string.Format("float3x3 tangentSpaceTransform = float3x3({0},{1},{2});",
+                    ShaderGeneratorNames.ObjectSpaceTangent, ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ObjectSpaceNormal), false);
+            }
+
+            ShaderGenerator.GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresNormal, surfaceInput,
+                ShaderGeneratorNames.ObjectSpaceNormal, ShaderGeneratorNames.ViewSpaceNormal,
+                ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.TangentSpaceNormal);
+
+            ShaderGenerator.GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresTangent, surfaceInput,
+                ShaderGeneratorNames.ObjectSpaceTangent, ShaderGeneratorNames.ViewSpaceTangent,
+                ShaderGeneratorNames.WorldSpaceTangent, ShaderGeneratorNames.TangentSpaceTangent);
+
+            ShaderGenerator.GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresBitangent, surfaceInput,
+                ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ViewSpaceBiTangent,
+                ShaderGeneratorNames.WorldSpaceSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
+
+            ShaderGenerator.GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresViewDir, surfaceInput,
+                ShaderGeneratorNames.ObjectSpaceViewDirection, ShaderGeneratorNames.ViewSpaceViewDirection,
+                ShaderGeneratorNames.WorldSpaceViewDirection, ShaderGeneratorNames.TangentSpaceViewDirection);
+
+            ShaderGenerator.GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresPosition, surfaceInput,
+                ShaderGeneratorNames.ObjectSpacePosition, ShaderGeneratorNames.ViewSpacePosition,
+                ShaderGeneratorNames.WorldSpacePosition, ShaderGeneratorNames.TangentSpacePosition);
+
+            if (shaderGraphRequirements.requiresVertexColor)
+            {
+                interpolators.AddShaderChunk(string.Format("float4 {0} : COLOR;", ShaderGeneratorNames.VertexColor), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = color", ShaderGeneratorNames.VertexColor), false);
+                surfaceInput.AddShaderChunk(string.Format("surfaceInput.{0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
+            }
+
+            if (shaderGraphRequirements.requiresScreenPosition)
+            {
+                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ScreenPosition, interpolatorIndex), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = ComputeScreenPos(UnityObjectToClipPos(v.vertex)", ShaderGeneratorNames.ScreenPosition), false);
+                surfaceInput.AddShaderChunk(string.Format("surfaceInput.{0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
+                interpolatorIndex++;
+            }
+
+            foreach (var channel in shaderGraphRequirements.requiresMeshUVs.Distinct())
+            {
+                interpolators.AddShaderChunk(string.Format("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = v.texcoord{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString()), false);
+                surfaceInput.AddShaderChunk(string.Format("surfaceInput.{0}  = IN.{0};", channel.GetUVName()), false);
+                interpolatorIndex++;
+            }
+
+            ShaderGenerator defines = new ShaderGenerator();
+            ShaderGenerator surfaceOutputRemap = new ShaderGenerator();
+
+
+            var color = FindInputSlot<MaterialSlot>(ColorSlotId);
+            var colorIn = owner.GetEdges(color.slotReference).FirstOrDefault();
+            if (colorIn != null)
+            {
+                var outputRef = colorIn.outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+
+                surfaceOutputRemap.AddShaderChunk(ConvertConcreteSlotValueTypeToString(precision, color.concreteValueType)
+                                                  + " "
+                                                  + color.shaderOutputName
+                                                  + " = surf."
+                                                  + color.shaderOutputName + ";", true);
+            }
+            else
+            {
+                surfaceOutputRemap.AddShaderChunk(ConvertConcreteSlotValueTypeToString(precision, color.concreteValueType)
+                                                  + " " + color.shaderOutputName + " = 0;", false);
+            }
+
+            var alpha = FindInputSlot<MaterialSlot>(AlphaSlotId);
+            var alphaIn = owner.GetEdges(alpha.slotReference).FirstOrDefault();
+            if (alphaIn != null)
+            {
+                var outputRef = alphaIn.outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+
+                surfaceOutputRemap.AddShaderChunk(ConvertConcreteSlotValueTypeToString(precision, alpha.concreteValueType)
+                                                  + " "
+                                                  + alpha.shaderOutputName
+                                                  + " = surf."
+                                                  + alpha.shaderOutputName + ";", true);
+            }
+            else
+            {
+                surfaceOutputRemap.AddShaderChunk(ConvertConcreteSlotValueTypeToString(precision, alpha.concreteValueType)
+                                                  + " " + alpha.shaderOutputName + " = 0;", false);
+            }
+
+            var templateLocation = ShaderGenerator.GetTemplatePath("lightweightSubshaderUnlit.template");
+
+            if (!File.Exists(templateLocation))
+                return string.Empty;
+
+            var subShaderTemplate = File.ReadAllText(templateLocation);
+            var resultShader = subShaderTemplate.Replace("${Defines}", defines.GetShaderString(3));
+            resultShader = resultShader.Replace("${Interpolators}", interpolators.GetShaderString(3));
+            resultShader = resultShader.Replace("${VertexShader}", vertexShader.GetShaderString(3));
+            resultShader = resultShader.Replace("${SurfaceInputs}", surfaceInput.GetShaderString(0));
+            resultShader = resultShader.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(0));
+
             resultShader = resultShader.Replace("${Tags}", tagsVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${Blending}", blendingVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
-
-            resultShader = resultShader.Replace("${Defines}", definesVisitor.GetShaderString(2));
-
-            resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
-
             return resultShader;
         }
-
-        public void GetDefines(ShaderGenerator visitor)
-        {
-
-        }
-
-        public override string GetFullShader(GenerationMode mode, string name, out List<PropertyGenerator.TextureInfo> configuredTextures)
-        {
-            var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
-
-            if (!File.Exists(templateLocation))
-            {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
-                return string.Empty;
-            }
-
-            var templateText = File.ReadAllText(templateLocation);
-
-            var shaderPropertiesVisitor = new PropertyGenerator();
-            var resultShader = templateText.Replace("${ShaderName}", name);
-            resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
-            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
-            configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
-
-            Debug.Log(resultShader);
-
-            return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-        }
-
-        private void GenerateSurfaceShaderInternal(
-            ShaderGenerator propertyUsages,
-            ShaderGenerator shaderBody,
-            ShaderGenerator nodeFunction,
-            ShaderGenerator shaderInputVisitor,
-            ShaderGenerator shaderOutputVisitor,
-            ShaderGenerator vertexShaderBlock,
-            ShaderGenerator definesVisitor,
-            GenerationMode mode)
-        {
-            var activeNodeList = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
-                new List<int>(surfaceInputs));
-
-            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
-            {
-                if (node is IGeneratesFunction)
-                {
-                    ((IGeneratesFunction)node).GenerateNodeFunction(nodeFunction, mode);
-                }
-
-                node.GeneratePropertyUsages(propertyUsages, mode);
-            }
-
-            int vertInputIndex = 2;
-            int vertOutputIndex = 5;
-
-            shaderInputVisitor.AddShaderChunk("half4 texcoord1 : TEXCOORD1;", true);
-
-            bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
-            bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
-            bool requiresViewDirTangentSpace = activeNodeList.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
-            bool requiresViewDir = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
-            bool requiresWorldPos = activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
-            bool requiresNormal = activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
-            bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
-            bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
-
-            foreach (var slot in GetInputSlots<MaterialSlot>())
-            {
-                if (surfaceInputs.Contains(slot.id))
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var outputRef = edge.outputSlot;
-                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                        if (fromNode == null)
-                            continue;
-
-                        var remapper = fromNode as INodeGroupRemapper;
-                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                            continue;
-                    }
-                }
-            }
-
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
-            {
-                var channel = (UVChannel)uvIndex;
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
-                {
-                    if(uvIndex != 0)
-                    {
-                        shaderInputVisitor.AddShaderChunk(string.Format("half4 texcoord{0} : TEXCOORD{1};", uvIndex, vertInputIndex), true);
-                        shaderOutputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, vertOutputIndex), true);
-                        vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex), true);
-                        vertInputIndex++;
-                        vertOutputIndex++;
-                    }
-                    shaderBody.AddShaderChunk(string.Format("half4 {0} = i.meshUV{1};", channel.GetUVName(), uvIndex), true);
-                }
-            }
-
-            if (requiresViewDir || requiresViewDirTangentSpace)
-            {
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceViewDirection + " = i.viewDir;", true);
-            }
-
-            if (requiresWorldPos)
-            {
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = i.posWS;", true);
-            }
-
-            if (requiresScreenPosition)
-            {
-                shaderOutputVisitor.AddShaderChunk(string.Format("half4 screenPos : TEXCOORD{0};", vertOutputIndex), true);
-                vertexShaderBlock.AddShaderChunk("o.screenPos = ComputeScreenPos(v.vertex);", true);
-                shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.ScreenPosition + " = i.screenPos;", true);
-                vertOutputIndex++;
-            }
-
-            if (requiresBitangent || requiresTangent || requiresViewDirTangentSpace)
-            {
-                shaderOutputVisitor.AddShaderChunk(string.Format("half3 tangent : TEXCOORD{0}; \\", vertOutputIndex), true);
-                vertexShaderBlock.AddShaderChunk("o.tangent = normalize(UnityObjectToWorldDir(v.tangent)); \\", true);
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(i.tangent.xyz);", true);
-                vertOutputIndex++;
-            }
-
-            if (requiresBitangent || requiresNormal || requiresViewDirTangentSpace)
-            {
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(i.normal);", true);
-            }
-
-            if (requiresBitangent || requiresViewDirTangentSpace)
-            {
-                shaderOutputVisitor.AddShaderChunk(string.Format("half3 binormal : TEXCOORD{0};", vertOutputIndex), true);
-                vertexShaderBlock.AddShaderChunk("o.binormal = cross(o.normal, o.tangent) * v.tangent.w;", true);
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceBitangent + " = i.binormal;", true);
-                vertOutputIndex++;
-            }
-
-            if (requiresViewDirTangentSpace)
-            {
-                shaderBody.AddShaderChunk(
-                    "float3 " + ShaderGeneratorNames.TangentSpaceViewDirection + ";", true);
-
-                shaderBody.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".x = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceTangent + ");", true);
-
-                shaderBody.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".y = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
-
-                shaderBody.AddShaderChunk(
-                    ShaderGeneratorNames.TangentSpaceViewDirection + ".z = dot(" +
-                    ShaderGeneratorNames.WorldSpaceViewDirection + "," +
-                    ShaderGeneratorNames.WorldSpaceNormal + ");", true);
-            }
-
-            if (requiresVertexColor)
-            {
-                shaderOutputVisitor.AddShaderChunk(string.Format("half4 color : TEXCOORD{0};", vertOutputIndex), true);
-                shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = i.color;", true);
-                vertInputIndex++;
-                vertOutputIndex++;
-            }
-
-            GenerateNodeCode(shaderBody, propertyUsages, mode);
-        }
-
-        public void GenerateNodeCode(ShaderGenerator shaderBody, ShaderGenerator propertyUsages, GenerationMode generationMode)
-        {
-            var nodes = ListPool<INode>.Get();
-
-            //Get the rest of the nodes for all the other slots
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(surfaceInputs));
-            for (var i = 0; i < nodes.Count; i++)
-            {
-                var node = nodes[i];
-                if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
-            }
-            ListPool<INode>.Release(nodes);
-
-            foreach (var slot in GetInputSlots<MaterialSlot>())
-            {
-                if (surfaceInputs.Contains(slot.id))
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var outputRef = edge.outputSlot;
-                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                        if (fromNode == null)
-                            continue;
-
-                        var remapper = fromNode as INodeGroupRemapper;
-                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                            continue;
-
-                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-
-                        if (slot.id == AlphaSlotId)
-                            propertyUsages.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON", true);
-                    }
-                }
-            }
-        }
-    }*/
+    }
 }
