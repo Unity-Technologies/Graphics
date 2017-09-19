@@ -59,13 +59,13 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             this.assetName = assetName;
             selectedNodes = new List<INode>();
 
-            Change(ChangeType.Graph | ChangeType.SelectedNodes | ChangeType.AssetName);
+            NotifyChange(ChangeType.Graph | ChangeType.SelectedNodes | ChangeType.AssetName);
         }
 
         void OnPreviewChanged()
         {
             previewTexture = m_PreviewHandle.texture;
-            Change(ChangeType.PreviewTexture);
+            NotifyChange(ChangeType.PreviewTexture);
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
@@ -73,10 +73,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             selectedNodes.Clear();
             selectedNodes.AddRange(nodes);
 
-            Change(ChangeType.SelectedNodes);
+            NotifyChange(ChangeType.SelectedNodes);
         }
 
-        void Change(ChangeType changeType)
+        void NotifyChange(ChangeType changeType)
         {
             if (onChange != null)
                 onChange(changeType);
