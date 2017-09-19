@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -112,6 +113,8 @@ namespace UnityEditor.VFX.UIElements
             if (m_Dragging)
             {
                 m_Dragging = false;
+
+                VFXViewPresenter.viewPresenter.EndLiveModification();
                 if (target.HasCapture())
                 {
                     UIElementsUtility.eventDispatcher.ReleaseCapture(target);
@@ -127,6 +130,7 @@ namespace UnityEditor.VFX.UIElements
             if (evt.button == 0 && m_Dragging)
             {
                 Release();
+
                 evt.StopPropagation();
             }
         }
@@ -139,6 +143,7 @@ namespace UnityEditor.VFX.UIElements
                 target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
                 UIElementsUtility.eventDispatcher.TakeCapture(target);
                 m_Dragging = true;
+                VFXViewPresenter.viewPresenter.BeginLiveModification();
                 m_OriginalValue = m_Listener.GetValue(m_UserData);
                 evt.StopPropagation();
             }

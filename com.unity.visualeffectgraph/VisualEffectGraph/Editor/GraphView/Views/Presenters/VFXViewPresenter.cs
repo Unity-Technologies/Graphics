@@ -44,9 +44,24 @@ namespace UnityEditor.VFX.UI
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
         }
 
+        static public VFXViewPresenter viewPresenter
+        {
+            get
+            {
+                if (s_ViewPresenter == null)
+                    CreateInstance<VFXViewPresenter>();
+                return s_ViewPresenter;
+            }
+        }
+
+        static VFXViewPresenter s_ViewPresenter;
+
         protected void OnEnable()
         {
             base.OnEnable();
+            if (s_ViewPresenter != null)
+                Debug.Log("Only one instance of VFXViewPresenter should exist");
+            s_ViewPresenter = this;
 
             if (m_FlowAnchorPresenters == null)
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
@@ -67,6 +82,7 @@ namespace UnityEditor.VFX.UI
         {
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+            s_ViewPresenter = null;
         }
 
         public VFXView View
