@@ -471,6 +471,9 @@ namespace UnityEngine.Experimental.Rendering
 
         override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
+            if (m_ActiveEntriesCount == 0)
+                return;
+
             var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), cmd);
 
             string cbName = "";
@@ -508,12 +511,12 @@ namespace UnityEngine.Experimental.Rendering
                     cmd.EndSample(cbName);
                 }
 
-                cbName = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
-                cmd.BeginSample(cbName);
+                //cbName = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
+                //cmd.BeginSample(cbName);
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
-                cmd.EndSample(cbName);
+                //cmd.EndSample(cbName);
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
@@ -1391,7 +1394,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
-            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", cmd))
+            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows", cmd))
             {
                 foreach( var sm in m_Shadowmaps )
                 {

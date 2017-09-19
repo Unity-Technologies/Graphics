@@ -454,6 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
                     m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
+                    m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;

@@ -22,28 +22,19 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             #include "../../../../Core/ShaderLibrary/Color.hlsl"
             #include "../../../../Core/ShaderLibrary/Common.hlsl"
             #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
+            #include "../../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
 
-            // x exposure, y multiplier, z rotation
-            float4 _SkyParam;
             float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-
-            // x = width, y = height, z = 1.0/width, w = 1.0/height
-            float4 _ScreenSize;
-
-            float4 _CameraPosWS;
-
-            float4x4 _InvViewProjMatrix;
-
-            float _SkyDepth;
-
-            float _DisableSkyOcclusionTest;
+            // x exposure, y multiplier, z rotation
+            float4   _SkyParam;
+            float    _SkyDepth;
+            float    _DisableSkyOcclusionTest;
 
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
-
 
             struct Attributes
             {
@@ -100,7 +91,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
-                VolundTransferScatter(posInput.positionWS, c1, c2, c3);
+                VolundTransferScatter(GetAbsolutePositionWS(posInput.positionWS), c1, c2, c3);
 
                 float4 coord1 = float4(c1.rgb + c3.rgb, max(0.f, 1.f - c1.a - c3.a));
                 float3 coord2 = c2.rgb;

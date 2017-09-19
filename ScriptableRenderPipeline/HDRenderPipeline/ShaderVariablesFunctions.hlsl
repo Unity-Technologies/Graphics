@@ -108,7 +108,13 @@ float3 GetCurrentViewPosition()
     // Otherwise, depth comparisons become meaningless!
     float4x4 trViewMat = transpose(GetWorldToViewMatrix());
     float3   rotCamPos = trViewMat[3].xyz;
-    return mul((float3x3)trViewMat, -rotCamPos);
+    float3 viewPositionWS = mul((float3x3)trViewMat, -rotCamPos);
+    // When USE_LEGACY_UNITY_MATRIX_VARIABLES is define GetWorldToViewMatrix is absolute (because it use legacy unity matrix), but if not define it use our own variable that is camera relative.
+    #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
+    return GetCameraRelativePositionWS(viewPositionWS);
+    #else
+    return viewPositionWS;
+    #endif
 #endif
 }
 

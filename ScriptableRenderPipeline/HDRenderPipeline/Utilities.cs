@@ -7,6 +7,11 @@ using UnityObject = UnityEngine.Object;
 using System.Reflection;
 using UnityEngine.Rendering.PostProcessing;
 
+#if UNITY_EDITOR
+using System.IO;
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Flags]
@@ -19,6 +24,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class Utilities
     {
+        
+#if UNITY_EDITOR
+        public static string GetHDRenderPipelinePath()
+        {
+            // User can create their own directory for SRP, so we need to find the current path that they use. 
+            // We know that DefaultHDMaterial exist and we know where it is, let's use that to find the current directory.
+            var guid = AssetDatabase.FindAssets("DefaultHDMaterial t:material");
+            string path = AssetDatabase.GUIDToAssetPath(guid[0]);
+            path = Path.GetDirectoryName(path); // Asset is in HDRenderPipeline/RenderPipelineResources/DefaultHDMaterial.mat
+            path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
+
+            return path;
+        }
+#endif
+
         public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
         {
             List<RenderPipelineMaterial> materialList = new List<RenderPipelineMaterial>();
