@@ -1,0 +1,82 @@
+fileFormatVersion: 2
+guid: aba17ece59d114ae4bb8a1ac54829c1e
+timeCreated: 1505146677
+licenseType: Pro
+SubstanceImporter:
+  externalObjects: {}
+  serializedVersion: 5
+  materialInstances:
+  - serializedVersion: 16
+    name: herringbone_brick_floor
+    prototypeName: herringbone_brick_floor
+    shaderName: 
+    shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+    shaderKeywords: 
+    renderQueue: -1
+    lightmapFlags: 4
+    inputs: []
+    materialInformation:
+      serializedVersion: 5
+      offset: {x: 0, y: 0}
+      scale: {x: 1, y: 1}
+      generateMipmaps: 1
+      generateAllOutputs: 0
+      animationUpdateRate: 0
+    materialProperties:
+      serializedVersion: 3
+      texEnvs: []
+      floats: []
+      colors: []
+    textureParameters:
+    - name: herringbone_brick_floor_basecolor
+      alphaSource: 6
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: herringbone_brick_floor_normal
+      alphaSource: 0
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: herringbone_brick_floor_metallic
+      alphaSource: 7
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: herringbone_brick_floor_ambient_occlusion
+      alphaSource: 0
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    - name: herringbone_brick_floor_height
+      alphaSource: 0
+      filterMode: 1
+      aniso: 1
+      wrapMode: 0
+    textureAssignments:
+    - shaderProp: _MainTex
+      material: {instanceID: 0}
+      baseUID: 3773653081
+    - shaderProp: _BumpMap
+      material: {instanceID: 0}
+      baseUID: 3773653079
+    - shaderProp: _MetallicGlossMap
+      material: {instanceID: 0}
+      baseUID: 3773653075
+    - shaderProp: _OcclusionMap
+      material: {instanceID: 0}
+      baseUID: 3773653073
+    - shaderProp: _ParallaxMap
+      material: {instanceID: 0}
+      baseUID: 3773653103
+    buildTargetSettings:
+    - serializedVersion: 2
+      buildTarget: 
+      textureWidth: 512
+      textureHeight: 512
+      textureFormat: 0
+      loadingBehavior: 1
+  deletedPrototypes: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
