@@ -244,7 +244,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 889296556}
-  hdr: 1
+  hdr: 0
   width: 1280
   height: 720
 --- !u!20 &889296556
