@@ -64,7 +64,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 		if(sideIndex<6 && lgtIndex<(int) g_iNrVisibLights)		// mask 2 out of 8 threads
 		{
 			float3 q0, q1, q2, q3;
-			GetQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, sideIndex);
+			GetHullQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, sideIndex);
 
 
 			const float4 vP0 = mul(g_mProjection, float4(q0, 1));
@@ -166,7 +166,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				for(f=0; f<6; f++)
 				{
 					float3 q0, q1, q2, q3;
-					GetQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, f);
+					GetHullQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, f);
 
 					// 4 vertices to a quad of the convex hull in post projection space
 					const float4 vP0 = mul(g_mProjection, float4(q0, 1));
@@ -235,7 +235,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				for(f=0; f<6; f++)
 				{
 					float3 vP0, vN;
-					GetPlane(vP0, vN, boxX, boxY, boxZ, center, scaleXY, f);
+					GetHullPlane(vP0, vN, boxX, boxY, boxZ, center, scaleXY, f);
 
 					for(i=0; i<8; i++)
 					{
