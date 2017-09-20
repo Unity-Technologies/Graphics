@@ -299,15 +299,22 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
+                float nbSteps = 8.0f;
+                string progressBarTitle = "Compiling VFX...";
+
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
                 var models = new HashSet<Object>();
                 m_Graph.CollectDependencies(models);
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);
                 foreach (var data in models.OfType<VFXData>())
                     data.CollectAttributes();
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
                 m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction);
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
                 var valueDescs = new List<VFXExpressionValueContainerDescAbstract>();
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
@@ -316,6 +323,7 @@ namespace UnityEditor.VFX
                 foreach (var context in models.OfType<VFXContext>())
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
                 var semanticsDescs = new List<VFXExpressionSemanticDesc>();
                 FillSemanticsDescs(semanticsDescs, m_ExpressionGraph, models, contextToCompiledData);
 
@@ -325,6 +333,7 @@ namespace UnityEditor.VFX
                 var eventAttributeDescs = new List<VFXEventAttributeDesc>();
                 FillEventAttributeDescs(eventAttributeDescs, m_ExpressionGraph, models);
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
                 foreach (var data in models.OfType<VFXData>())
                     data.GenerateAttributeLayout();
 
@@ -340,12 +349,16 @@ namespace UnityEditor.VFX
                 m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
 
                 var generatedCodeData = new List<GeneratedCodeData>();
+
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, models, contextToCompiledData);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
                 SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
                 foreach (var data in models.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData);
 
@@ -370,6 +383,7 @@ namespace UnityEditor.VFX
             finally
             {
                 Profiler.EndSample();
+                EditorUtility.ClearProgressBar();
             }
         }
 
