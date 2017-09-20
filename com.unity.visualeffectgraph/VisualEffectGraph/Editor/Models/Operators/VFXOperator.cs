@@ -10,6 +10,7 @@ namespace UnityEditor.VFX
     {
         protected VFXOperator()
         {
+            m_UICollapsed = false;
         }
 
         public override void OnEnable()

@@ -297,9 +297,12 @@ namespace UnityEditor.VFX.UI
         {
             VFXValueGizmo.Draw(this, component);
 
-            foreach (var presenter in m_SubPresenters)
+            if (m_SubPresenters != null)
             {
-                VFXValueGizmo.Draw(presenter, component);
+                foreach (var presenter in m_SubPresenters)
+                {
+                    VFXValueGizmo.Draw(presenter, component);
+                }
             }
         }
     }

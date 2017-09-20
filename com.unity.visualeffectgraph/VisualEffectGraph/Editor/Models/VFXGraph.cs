@@ -101,18 +101,39 @@ namespace UnityEditor.VFX
 
         public override T Clone<T>()
         {
-            var from = children.ToArray();
-            var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
-            VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
-            VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
-
-            var clone = CreateInstance(GetType()) as VFXGraph;
-            clone.m_Children = new List<VFXModel>();
-            foreach (var model in copy)
+            Profiler.BeginSample("VFXEditor.CloneGraph");
+            try
             {
-                clone.AddChild(model, -1, false);
+                var from = children.ToArray();
+                var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
+                VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+                VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
+
+                var clone = CreateInstance(GetType()) as VFXGraph;
+                clone.m_Children = new List<VFXModel>();
+                foreach (var model in copy)
+                {
+                    clone.AddChild(model, -1, false);
+                }
+                return clone as T;
             }
-            return clone as T;
+            finally
+            {
+                Profiler.EndSample();
+            }
+        }
+
+        public override void CollectDependencies(HashSet<Object> objs)
+        {
+            Profiler.BeginSample("VFXEditor.CollectDependencies");
+            try
+            {
+                base.CollectDependencies(objs);
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
 
         public void OnSaved()
@@ -170,7 +191,7 @@ namespace UnityEditor.VFX
             bool modified = false;
             if (EditorUtility.IsPersistent(this))
             {
-                Profiler.BeginSample("UpdateSubAssets");
+                Profiler.BeginSample("VFXEditor.UpdateSubAssets");
 
                 try
                 {
@@ -219,8 +240,10 @@ namespace UnityEditor.VFX
                 {
                     Debug.Log(e);
                 }
-
-                Profiler.EndSample();
+                finally
+                {
+                    Profiler.EndSample();
+                }
 
                 if (modified)
                     EditorUtility.SetDirty(this);

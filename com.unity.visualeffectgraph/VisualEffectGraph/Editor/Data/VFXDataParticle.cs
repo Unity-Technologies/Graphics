@@ -196,6 +196,7 @@ namespace UnityEditor.VFX
 
             var attributeBufferIndex = -1;
             var deadListBufferIndex = -1;
+            var deadListCountIndex = -1;
 
             var systemBufferMappings = new List<VFXBufferMapping>();
             var systemValueMappings = new List<VFXValueMapping>();
@@ -211,9 +212,14 @@ namespace UnityEditor.VFX
             if (hasKill)
             {
                 systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
+
                 deadListBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, capacity, 4));
                 systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
+
+                deadListCountIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.IndirectArguments, 1, 4));
+                systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
 
@@ -239,6 +245,8 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
@@ -264,7 +272,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        private uint m_Capacity = 1024;
+        private uint m_Capacity = 65536;
         [SerializeField]
         private Bounds m_Bounds;
         [SerializeField]

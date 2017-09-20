@@ -1,0 +1,417 @@
+
+
+
+/* Single (float) */
+
+.VFXDataAnchor.connected > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-output-selected");
+}
+
+/* Vector2 */
+
+.VFXDataAnchor.connected > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-output-selected");
+}
+
+
+
+
+
+/* Vector3 Vector Point */
+
+.VFXDataAnchor.connected > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
+.VFXDataAnchor.connected > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
+.VFXDataAnchor.connected > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
+/* vector4 Color */
+
+.VFXDataAnchor.connected > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-output-selected");
+}
+
+.VFXDataAnchor.connected > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-output-selected");
+}
+/* texture2d */
+
+.VFXDataAnchor.connected > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-output-selected");
+}
+
+
+/* texture3d */
+
+.VFXDataAnchor.connected > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-output-selected");
+}
+
+/* boolean */
+
+.VFXDataAnchor.connected > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+
+/* int32 */
+
+.VFXDataAnchor.connected > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+.VFXDataAnchor.connected > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeuint32
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+/* flipbook */
+
+.VFXDataAnchor.connected > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+/* mesh */
+
+.VFXDataAnchor.connected > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-output-selected");
+}
+
+/* animationcurve */
+
+.VFXDataAnchor.connected > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-output-selected");
+}
+
+
+
+
+
+/* Data edges */
+
+/*Default*/
+VFXDataEdge.edge
+{
+	border-color : #787878;
+	edge-width:2;
+}
+
+VFXDataEdge.edge.selected
+{
+	border-color : #FFF;
+	edge-color: #FFF;
+}
+
+VFXDataEdge.typesingle
+{
+	border-color : #6be6b0;
+}
+VFXDataEdge.typevector2
+{
+	border-color : #9aef92;
+}
+VFXDataEdge.typevector3
+{
+	border-color : #c9f774;
+}
+VFXDataEdge.typevector
+{
+	border-color : #c9f774;
+}
+VFXDataEdge.typeposition
+{
+	border-color : #c9f774;
+}
+VFXDataEdge.typevector4
+{
+	border-color : #effe5c;
+}
+VFXDataEdge.typecolor
+{
+	border-color : #effe5c;
+}
+VFXDataEdge.typegradient
+{
+	border-color : #effe5c;
+}
+VFXDataEdge.typeobject
+{
+	border-color : #787878;
+}
+VFXDataEdge.typetexture2d
+{
+	border-color : #e681ba;
+}
+VFXDataEdge.typetexture3d
+{
+	border-color : #f7add7;
+}
+VFXDataEdge.typeboolean
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeint32
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeuint32
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeflipbook
+{
+	border-color : #c2a8ff;
+}
+VFXDataEdge.typemesh
+{
+	border-color : #7aa3ea;
+}
+VFXDataEdge.typeanimationcurve
+{
+	border-color : #84e4e7;
+}

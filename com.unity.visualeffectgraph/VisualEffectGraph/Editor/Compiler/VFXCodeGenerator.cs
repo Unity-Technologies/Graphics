@@ -268,7 +268,7 @@ namespace UnityEditor.VFX
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
-            foreach (var attribute in context.GetData().GetAttributes().Select(o => o.attrib))
+            foreach (var attribute in context.GetData().GetAttributes().Select(o => o.attrib).Where(a => context.GetData().IsAttributeUsed(a, context)))
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.name.ToUpper(), attribute.location == VFXAttributeLocation.Current ? "CURRENT" : "SOURCE");
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);

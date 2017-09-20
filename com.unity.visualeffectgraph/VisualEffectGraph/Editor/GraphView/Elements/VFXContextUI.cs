@@ -48,6 +48,8 @@ namespace UnityEditor.VFX.UI
 
         VFXContextSlotContainerUI  m_OwnData;
 
+        VFXEdgeDrawer m_EdgeDrawer;
+
         protected GraphViewTypeFactory typeFactory { get; set; }
 
         public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
@@ -179,6 +181,20 @@ namespace UnityEditor.VFX.UI
 
             Add(new VisualElement() { name = "icon" });
             clipChildren = false;
+
+            m_EdgeDrawer = new VFXContextEdgeDrawer();
+
+            m_EdgeDrawer.style.positionType = PositionType.Absolute;
+            m_EdgeDrawer.style.positionLeft = 0;
+            m_EdgeDrawer.style.positionRight = 0;
+            m_EdgeDrawer.style.positionBottom = 0;
+            m_EdgeDrawer.style.positionTop = 0;
+            Add(m_EdgeDrawer);
+        }
+
+        public void DirtyDrawer()
+        {
+            m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
 
         void OnSpace()
@@ -186,7 +202,7 @@ namespace UnityEditor.VFX.UI
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             int result = (int)presenter.context.space;
 
-            presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
+            presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
@@ -312,6 +328,8 @@ namespace UnityEditor.VFX.UI
         public override void OnSelected()
         {
             //this.SendToFront();
+
+            Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
 
         public EventPropagation DeleteSelection()
@@ -444,6 +462,8 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
+            m_EdgeDrawer.presenter = this.presenter;
+
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             if (presenter == null || presenter.context == null)
                 return;
@@ -553,7 +573,7 @@ namespace UnityEditor.VFX.UI
 
             m_OwnData.presenter = presenter.slotPresenter;
 
-            bool slotsVisible = presenter.slotPresenter.inputAnchors.Count() > 0 || presenter.slotPresenter.settings != null;
+            bool slotsVisible = presenter.slotPresenter.inputAnchors.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.Add(m_OwnData);

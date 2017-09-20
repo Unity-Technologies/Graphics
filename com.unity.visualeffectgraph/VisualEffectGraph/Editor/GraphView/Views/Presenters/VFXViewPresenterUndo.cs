@@ -86,18 +86,42 @@ namespace UnityEditor.VFX.UI
 
         private void IncremenentGraphState()
         {
-            if (!m_reentrant)
+            if (!m_reentrant && m_graphUndoStack != null)
             {
                 m_graphUndoStack.IncrementGraphState();
             }
         }
 
-        private void WillFlushUndoRecord()
+        public bool m_InLiveModification;
+
+        public void BeginLiveModification()
         {
+            if (m_InLiveModification == true)
+                throw new System.Exception("BeginLiveModification is not reentrant");
+            m_InLiveModification = true;
+        }
+
+        public void EndLiveModification()
+        {
+            if (m_InLiveModification == false)
+                throw new System.Exception("EndLiveModification is not reentrant");
+            m_InLiveModification = false;
             if (m_graphUndoStack.IsDirtyState())
             {
                 m_graphUndoStack.FlushAndPushGraphState(m_Graph);
                 m_graphUndoStack.CleanDirtyState();
+            }
+        }
+
+        private void WillFlushUndoRecord()
+        {
+            if (!m_InLiveModification)
+            {
+                if (m_graphUndoStack.IsDirtyState())
+                {
+                    m_graphUndoStack.FlushAndPushGraphState(m_Graph);
+                    m_graphUndoStack.CleanDirtyState();
+                }
             }
         }
 

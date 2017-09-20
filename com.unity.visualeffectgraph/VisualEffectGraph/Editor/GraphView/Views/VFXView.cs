@@ -380,6 +380,20 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        public IEnumerable<VFXDataEdge> GetAllDataEdges()
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXDataEdge)
+                    {
+                        yield return element as VFXDataEdge;
+                    }
+                }
+            }
+        }
+
         public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))
@@ -430,6 +444,40 @@ namespace UnityEditor.VFX.UI
 
             newParameter.exposedName = parameter.exposedName;
             newParameter.exposed = true;
+        }
+
+        void SelectionUpdated()
+        {
+            var contextSelected = selection.OfType<VFXContextUI>();
+
+            if (contextSelected.Count() > 0)
+            {
+                Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+            }
+            else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+            {
+                Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+            }
+        }
+
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void ClearSelection()
+        {
+            bool selectionEmpty = selection.Count() == 0;
+            base.ClearSelection();
+            if (!selectionEmpty)
+                SelectionUpdated();
         }
     }
 }

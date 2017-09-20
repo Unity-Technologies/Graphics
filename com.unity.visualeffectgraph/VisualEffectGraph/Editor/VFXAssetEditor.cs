@@ -19,7 +19,7 @@ public class VFXAssetEditor : Editor
     void OnEnable()
     {
         VFXAsset asset = (VFXAsset)target;
-        VFXViewWindow.viewPresenter.SetVFXAsset(asset, false);
+        VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
         m_AdvDictionary.Clear();
     }
 
@@ -47,7 +47,7 @@ public class VFXAssetEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        var newList = VFXViewWindow.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;

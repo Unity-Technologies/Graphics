@@ -76,8 +76,8 @@ namespace UnityEditor.VFX
             }
 
             //Unexpected behavior at this stage (only one input slot should be remained)
-            if (inputSlots.Count > 1)
-                throw new Exception("Unexpected behavior in VFXSetAttribute");
+            /*if (inputSlots.Count > 1)
+                throw new Exception("Unexpected behavior in VFXSetAttribute");*/
         }
     }
 }

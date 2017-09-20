@@ -4,10 +4,18 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    internal class VFXDataEdge : Edge
+    internal class VFXEdge : Edge
+    {
+        public virtual void OnDisplayChanged()
+        {
+        }
+    }
+
+    internal class VFXDataEdge : VFXEdge
     {
         public VFXDataEdge()
         {
@@ -21,6 +29,25 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void OnDisplayChanged()
+        {
+            VFXDataEdgePresenter edgePresenter = GetPresenter<VFXDataEdgePresenter>();
+            VFXDataAnchorPresenter outputPresenter = edgePresenter.output as VFXDataAnchorPresenter;
+            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
+
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+
+            var nodes = view.GetAllNodes().Where(t => (outputPresenter != null && t.presenter == outputPresenter.sourceNode) || (inputPresenter != null && t.presenter == inputPresenter.sourceNode));
+
+            foreach (var node in nodes)
+            {
+                if (node is VFXStandaloneSlotContainerUI)
+                    (node as VFXStandaloneSlotContainerUI).DirtyDrawer();
+                else // node must be from a VFXContext
+                    node.GetFirstAncestorOfType<VFXContextUI>().DirtyDrawer();
+            }
+            //TODO VFXContext dirtydrawer when existing
+        }
 
         public override void OnDataChanged()
         {

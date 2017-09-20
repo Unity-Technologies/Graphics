@@ -16,6 +16,12 @@
 	flex-direction:column;
 	flex:1;
 }
+
+VFXContextUI VFXBlockUI.VFXNodeUI.node.horizontal #title
+{
+	background-color:rgba(0,0,0,0);
+}
+
 .VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
 {
 	width:-1;
@@ -42,11 +48,29 @@
 .VFXContextSlotContainerUI.node.horizontal #title {
 	flex-direction:row;
 }
+VFXBlockUI.node.horizontal #title > Label {
+	margin-left:0;
+}
 
-.VFXContextSlotContainerUI.node.horizontal #title Button
+VFXBlockUI.VFXContextSlotContainerUI.node.horizontal #title Toggle
 {
-	min-width:40;
+	width:16;
+	margin-top:16;
 	height:17;
+}
+
+
+VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed #title Toggle
+{
+	margin-top:6;
+	margin-left:17;
+}
+
+VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
+	margin-top:4;
+	margin-left:6;
+	margin-right:6;
+	font-size:14;
 }
 
 .node.horizontal.selected

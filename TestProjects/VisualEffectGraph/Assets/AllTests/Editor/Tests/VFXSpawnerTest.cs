@@ -9,6 +9,7 @@ using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
 
+/*
 namespace UnityEditor.VFX.Test
 {
     public class VFXSpawnerTest
@@ -170,3 +171,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+*/

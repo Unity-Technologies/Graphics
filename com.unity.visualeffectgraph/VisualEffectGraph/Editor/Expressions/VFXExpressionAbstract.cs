@@ -322,6 +322,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static VFXExpression operator*(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
+        public static VFXExpression operator/(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
+        public static VFXExpression operator+(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }
+        public static VFXExpression operator-(VFXExpression a, VFXExpression b) { return new VFXExpressionSubtract(a, b); }
+
+        public VFXExpression this[int index] { get { return new VFXExpressionExtractComponent(this, index); } }
+        public VFXExpression x { get { return new VFXExpressionExtractComponent(this, 0); }  }
+        public VFXExpression y { get { return new VFXExpressionExtractComponent(this, 1); }  }
+        public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); }  }
+        public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); }  }
+
         protected Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
     }

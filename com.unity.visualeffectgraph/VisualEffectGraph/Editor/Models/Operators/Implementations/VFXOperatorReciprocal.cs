@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionDivide(VFXValue.Constant<float>(1.0f), inputExpression[0]) };
+            return new[] { VFXValue.Constant(1.0f) / inputExpression[0] };
         }
     }
 }
