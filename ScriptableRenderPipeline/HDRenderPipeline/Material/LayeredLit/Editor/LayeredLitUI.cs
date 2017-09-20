@@ -137,6 +137,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kHeightTransition = "_HeightTransition";
 
         // UI
+        MaterialProperty showMaterialReferences = null;
+        const string kShowMaterialReferences = "_ShowMaterialReferences";
         MaterialProperty[] showLayer = new MaterialProperty[kMaxLayerCount];
         const string kShowLayer = "_ShowLayer";
 
@@ -158,6 +160,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             heightTransition = FindProperty(kHeightTransition, props);
+
+            showMaterialReferences = FindProperty(kShowMaterialReferences, props);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -430,8 +434,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool DoMaterialReferencesGUI(AssetImporter materialImporter)
         {
-            EditorGUILayout.LabelField(styles.materialReferencesText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
+            showMaterialReferences.floatValue = EditorGUILayout.Foldout(showMaterialReferences.floatValue != 0.0f, styles.materialReferencesText, styles.layerLabelColors[0]) ? 1.0f : 0.0f;
+            if (showMaterialReferences.floatValue == 0.0f)
+                return false;
 
             bool layersChanged = false;
             Material material = m_MaterialEditor.target as Material;
@@ -446,24 +451,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
                     layersChanged = true;
                 }
-            }
 
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(styles.syncAllButUVButtonText))
+                GUILayout.BeginHorizontal();
                 {
-                    SynchronizeAllLayersProperties(true);
-                    layersChanged = true;
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(styles.syncAllButUVButtonText))
+                    {
+                        SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
+                        layersChanged = true;
+                    }
+                    if (GUILayout.Button(styles.syncAllButtonText))
+                    {
+                        SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
+                        layersChanged = true;
+                    }
                 }
-                if (GUILayout.Button(styles.syncAllButtonText))
-                {
-                    SynchronizeAllLayersProperties(false);
-                    layersChanged = true;
-                }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
-            EditorGUI.indentLevel--;
 
             return layersChanged;
         }
@@ -478,14 +482,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
+            layerChanged |= DoMaterialReferencesGUI(materialImporter);
+
+            EditorGUILayout.Space();
+
             for (int i = 0; i < numLayer; i++)
             {
                 layerChanged |= DoLayerGUI(materialImporter, i);
             }
 
             EditorGUILayout.Space();
-
-            layerChanged |= DoMaterialReferencesGUI(materialImporter);
 
             layerChanged |= GUI.changed;
             GUI.changed = false;
