@@ -65,10 +65,10 @@ namespace UnityEditor.VFX
             var attributesCurrent = attributesFromContext.Where(o => o.attrib.location == VFXAttributeLocation.Current).ToArray();
 
             //< Current Attribute
-            foreach (var attribute in attributesCurrent.Select(o => o.attrib))
+            foreach (var attribute in attributesCurrent.Select(o => o.attrib).Where(a => context.GetData().IsAttributeUsed(a, context) || (context.contextType == VFXContextType.kInit && context.GetData().IsAttributeStored(a))))
             {
                 var name = attribute.name;
-                if (context.GetData().IsAttributeStored(attribute) && context.GetData().IsAttributeRead(attribute, context) && context.contextType != VFXContextType.kInit)
+                if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
                 {
                     r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute));
                 }
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
 
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
                     context.GetData().IsAttributeStored(o.attrib) &&
-                    context.GetData().IsAttributeWritten(o.attrib, context)).ToArray();
+                    (context.contextType == VFXContextType.kInit || context.GetData().IsAttributeWritten(o.attrib, context))).ToArray();
 
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXExpressionMapper gpuMapper, string templateName)
+        static public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXContextCompiledData contextData, string templateName)
         {
             var fallbackTemplate = string.Format("Assets/VFXShaders/{0}.template", templateName);
             var processedFile = new Dictionary<string, StringBuilder>();
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    Build(context, currentTemplate, stringBuilders[i], gpuMapper);
+                    Build(context, currentTemplate, stringBuilders[i], contextData);
                     processedFile.Add(currentTemplate, stringBuilders[i]);
                 }
             }
@@ -189,24 +189,23 @@ namespace UnityEditor.VFX
             }
         }
 
-        static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXExpressionMapper gpuMapper)
+        static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
 
             var templateContent = new StringBuilder(System.IO.File.ReadAllText(templatePath));
 
-            var uniformMapper = new VFXUniformMapper(gpuMapper);
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteCBuffer(uniformMapper, "parameters");
-            globalDeclaration.WriteTexture(uniformMapper);
+            globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
+            globalDeclaration.WriteTexture(contextData.uniformMapper);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
 
             foreach (var current in context.childrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {
@@ -225,7 +224,7 @@ namespace UnityEditor.VFX
 
                 foreach (var parameter in block.parameters)
                 {
-                    var expReduced = gpuMapper.FromNameAndId(parameter.name, blockIndex);
+                    var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
                     if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
                     {
                         expressionParameter.Add(expReduced);
@@ -239,7 +238,7 @@ namespace UnityEditor.VFX
                 if (!blockDeclared.Contains(methodName))
                 {
                     blockDeclared.Add(methodName);
-                    blockFunction.WriteBlockFunction(gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter, commentMethod);
+                    blockFunction.WriteBlockFunction(contextData.gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter, commentMethod);
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
@@ -259,7 +258,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, gpuMapper, expressionToNameLocal);
+                blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
 
                 if (needScope)
                     blockCallFunction.ExitScope();
@@ -268,8 +267,8 @@ namespace UnityEditor.VFX
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#include \"HLSLSupport.cginc\"");
-            globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 256");
-            foreach (var attribute in context.GetData().GetAttributes().Select(o => o.attrib))
+            globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
+            foreach (var attribute in context.GetData().GetAttributes().Select(o => o.attrib).Where(a => context.GetData().IsAttributeUsed(a, context)))
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.name.ToUpper(), attribute.location == VFXAttributeLocation.Current ? "CURRENT" : "SOURCE");
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
@@ -286,7 +285,7 @@ namespace UnityEditor.VFX
 
             //< Load Parameter
             var loadParameterRegex = new Regex("\\${VFXLoadParameter:{(.*?)}}");
-            var mainParameters = gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
             while (loadParameterRegex.IsMatch(stringBuilder.ToString()))
             {
                 var current = loadParameterRegex.Match(stringBuilder.ToString());

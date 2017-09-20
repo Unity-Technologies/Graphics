@@ -5,13 +5,13 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXQuadOutput : VFXContext
+    class VFXPointOutput : VFXContext
     {
-        public VFXQuadOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
-        public override string name { get { return "Quad Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXParticleQuad"; } }
+        public VFXPointOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
+        public override string name { get { return "Point Output"; } }
+        public override string codeGeneratorTemplate { get { return "VFXParticlePoints"; } }
         public override bool codeGeneratorCompute { get { return false; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleQuadOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kParticlePointOutput; } }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
         {
@@ -30,14 +30,8 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
             }
-        }
-
-        public class InputProperties
-        {
-            public Texture2D texture;
         }
     }
 }

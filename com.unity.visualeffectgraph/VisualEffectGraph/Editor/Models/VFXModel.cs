@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
         {
             if (onInvalidateDelegate != null)
             {
-                Profiler.BeginSample("OnInvalidateDelegate");
+                Profiler.BeginSample("VFXEditor.OnInvalidateDelegate");
                 try
                 {
                     onInvalidateDelegate(model, cause);
@@ -198,8 +198,8 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
-            string sampleName = GetType().Name + "-" + name + "-" + cause + "-Invalidate";
-            Profiler.BeginSample(sampleName);
+            string sampleName = GetType().Name + "-" + name + "-" + cause;
+            Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try
             {
                 Invalidate(this, cause);
