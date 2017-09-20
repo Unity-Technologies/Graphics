@@ -30,7 +30,7 @@ half3 LightweightBRDFDirect(half3 diffColor, half3 specColor, half smoothness, h
 // * Fresnel approximated with 1/LdotH
 half3 LightweightBDRF(half3 diffColor, half3 specColor, half oneMinusReflectivity, half perceptualRoughness, half3 normal, half3 lightDirection, half3 viewDir)
 {
-#ifdef _SPECULARHIGHLIGHTS_ON
+#ifndef _SPECULARHIGHLIGHTS_OFF
     half3 halfDir = Unity_SafeNormalize(lightDirection + viewDir);
 
     half NoH = saturate(dot(normal, halfDir));
