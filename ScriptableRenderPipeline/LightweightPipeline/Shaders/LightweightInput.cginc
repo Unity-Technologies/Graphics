@@ -21,6 +21,12 @@
 #define _MULTIPLE_LIGHTS
 #endif
 
+#ifdef _SPECULAR_SETUP
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_SpecGlossMap, uv)
+#else
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
+#endif
+
 #if defined(UNITY_COLORSPACE_GAMMA) && defined(_LIGHTWEIGHT_FORCE_LINEAR)
 // Ideally we want an approximation of gamma curve 2.0 to save ALU on GPU but as off now it won't match the GammaToLinear conversion of props in engine
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
@@ -131,16 +137,14 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
+    specGloss = SAMPLE_METALLICSPECULAR(uv);
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.rgb = tex2D(_MetallicSpecGlossMap, uv).rgb;
-    specGloss.a = albedoAlpha;
+    specGloss.a = albedoAlpha * _GlossMapScale;
 #else
-    specGloss = tex2D(_MetallicSpecGlossMap, uv).rgba;
-#endif
     specGloss.a *= _GlossMapScale;
+#endif
 
 #else // _METALLICSPECGLOSSMAP
-
 #if _METALLIC_SETUP
     specGloss.r = _Metallic;
 #else
