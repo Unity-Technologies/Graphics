@@ -374,7 +374,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
-        public DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        static DebugDisplaySettings s_NeutraDebugDisplaySettings = new DebugDisplaySettings();
+        DebugDisplaySettings m_CurrentDebugDisplaySettings = null;
+
         private int m_DebugFullScreenTempRT;
         private bool m_FullScreenDebugPushed = false;
 
@@ -676,7 +679,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Broadcast SSS parameters to all shaders.
-                Shader.SetGlobalInt(     HDShaderIDs._EnableSSSAndTransmission,   m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+                Shader.SetGlobalInt(     HDShaderIDs._EnableSSSAndTransmission,   m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
                 Shader.SetGlobalInt(     HDShaderIDs._TexturingModeFlags,    (int)sssParameters.texturingModeFlags);
                 Shader.SetGlobalInt(     HDShaderIDs._TransmissionFlags,     (int)sssParameters.transmissionFlags);
                 Shader.SetGlobalInt(     HDShaderIDs._UseDisneySSS,               sssParameters.useDisneySSS ? 1 : 0);
@@ -699,14 +702,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
             // Therefore, it's manually copied using a pixel shader.
-            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
         }
 
         bool NeedHTileCopy()
         {
             // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
             // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
-            return m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission;
         }
 
         RenderTargetIdentifier GetDepthTexture()
@@ -794,9 +797,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Do anything we need to do upon a new frame.
             m_LightLoop.NewFrame();
 
-            ApplyDebugDisplaySettings();
-            UpdateCommonSettings();
-
             // we only want to render one camera for now
             // select the most main camera!
 
@@ -820,6 +820,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            // If we render a reflection view or a preview we should not display any debug information
+            // This need to be call before ApplyDebugDisplaySettings()
+            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
+            {
+                // Neutral allow to disable all debug settings
+                m_CurrentDebugDisplaySettings = s_NeutraDebugDisplaySettings;
+            }
+            else
+            {
+                m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+            }
+
+            ApplyDebugDisplaySettings();
+            UpdateCommonSettings();
+
             ScriptableCullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
             {
@@ -828,7 +843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
-                      
+
 #if UNITY_EDITOR
             // emit scene view UI
             if (camera.cameraType == CameraType.SceneView)
@@ -887,7 +902,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
 
-            if (m_DebugDisplaySettings.IsDebugMaterialDisplayEnabled())
+            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
             {
                 RenderDebugViewMaterial(m_CullResults, hdCamera, renderContext, cmd);
             }
@@ -909,10 +924,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
                 }
 
-                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                // must be call after BuildGPULightLists.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                UpdateSkyEnvironment(hdCamera, cmd);
+
+                // Don't update the sky environment if we are rendering a cubemap (it should be update already)
+                if (camera.cameraType == CameraType.Reflection)
+                {
+                    // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                    // must be call after BuildGPULightLists.
+                    // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                    UpdateSkyEnvironment(hdCamera, cmd);
+                }
 
                 RenderDeferredLighting(hdCamera, cmd);
 
@@ -926,7 +946,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, true);
 #endif
 
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_DebugDisplaySettings);
+                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
                 // If Deferred nothing needs copying anymore.
@@ -993,7 +1013,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
         {
-            if (!m_DebugDisplaySettings.renderingDebugSettings.displayOpaqueObjects)
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayOpaqueObjects)
                 return;
 
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
@@ -1026,7 +1046,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
         {
-            if (!m_DebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
 
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
@@ -1084,12 +1104,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 return;
 
-            using (new Utilities.ProfilingSample(m_DebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", cmd))
+            using (new Utilities.ProfilingSample(m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", cmd))
             {
                 // setup GBuffer for rendering
                 Utilities.SetRenderTarget(cmd, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 // render opaque objects into GBuffer
-                RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DebugDisplaySettings.IsDebugDisplayEnabled() ? HDShaderPassNames.m_GBufferDebugDisplayName : HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting);
+                RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? HDShaderPassNames.m_GBufferDebugDisplayName : HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting);
             }
         }
 
@@ -1097,7 +1117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("DisplayDebug ViewMaterial", cmd))
             {
-                if(m_DebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+                if (m_CurrentDebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
                     using (new Utilities.ProfilingSample("DebugViewMaterialGBuffer", cmd))
                     {
@@ -1137,25 +1157,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightLoop.LightingPassOptions options = new LightLoop.LightingPassOptions();
             options.volumetricLightingEnabled = m_VolumetricLightingEnabled;
 
-            if (m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+            if (m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
             {
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_DebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
-            if (!m_DebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 return;
 
             using (new Utilities.ProfilingSample("Subsurface Scattering", cmd))
@@ -1242,7 +1262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             ShaderPassName passName;
             string profileName;
-            if (m_DebugDisplaySettings.IsDebugDisplayEnabled())
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
                 passName = addForwardPass ? HDShaderPassNames.m_ForwardDisplayDebugName :  HDShaderPassNames.m_ForwardOnlyOpaqueDisplayDebugName;
                 profileName = addForwardPass ? (renderOpaque ? "Forward Opaque Display Debug" : "Forward Transparent Display Debug") :  "ForwardOnlyOpaqueDisplayDebug";
@@ -1329,7 +1349,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (!m_DebugDisplaySettings.renderingDebugSettings.enableDistortion)
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
                 return;
 
             using (new Utilities.ProfilingSample("Distortion", cmd))
@@ -1375,21 +1395,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ApplyDebugDisplaySettings()
         {
-            m_ShadowSettings.enabled = m_DebugDisplaySettings.lightingDebugSettings.enableShadows;
+            m_ShadowSettings.enabled = m_CurrentDebugDisplaySettings.lightingDebugSettings.enableShadows;
 
-            LightingDebugSettings lightingDebugSettings = m_DebugDisplaySettings.lightingDebugSettings;
+            LightingDebugSettings lightingDebugSettings = m_CurrentDebugDisplaySettings.lightingDebugSettings;
             Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
 
-            Shader.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_DebugDisplaySettings.GetDebugMaterialIndex());
-            Shader.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_DebugDisplaySettings.GetDebugLightingMode());
+            Shader.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
+            Shader.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
             Shader.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
             Shader.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 
         public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
-            if (debugMode == m_DebugDisplaySettings.fullScreenDebugMode)
+            if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
@@ -1414,21 +1434,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
 
                 // First render full screen debug texture
-                if(m_DebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
+                if (m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
                 {
                     m_FullScreenDebugPushed = false;
                     cmd.SetGlobalTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempRT);
-                    m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_DebugDisplaySettings.fullScreenDebugMode);
+                    m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_CurrentDebugDisplaySettings.fullScreenDebugMode);
                     Utilities.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
 
                 // Then overlays
                 float x = 0;
-                float overlayRatio = m_DebugDisplaySettings.debugOverlayRatio;
+                float overlayRatio = m_CurrentDebugDisplaySettings.debugOverlayRatio;
                 float overlaySize = Math.Min(camera.camera.pixelHeight, camera.camera.pixelWidth) * overlayRatio;
                 float y = camera.camera.pixelHeight - overlaySize;
 
-                LightingDebugSettings lightingDebug = m_DebugDisplaySettings.lightingDebugSettings;
+                LightingDebugSettings lightingDebug = m_CurrentDebugDisplaySettings.lightingDebugSettings;
 
                 if (lightingDebug.displaySkyReflection)
                 {
@@ -1440,7 +1460,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
                 }
 
-                m_LightLoop.RenderDebugOverlay(camera.camera, cmd, m_DebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
+                m_LightLoop.RenderDebugOverlay(camera.camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
             }
         }
 
