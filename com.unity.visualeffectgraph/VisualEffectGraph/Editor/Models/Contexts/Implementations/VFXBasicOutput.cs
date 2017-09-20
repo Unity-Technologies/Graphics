@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -11,6 +12,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXOutput"; } }
         public override bool codeGeneratorCompute { get { return false; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kOutput; } }
 
         public enum BlendMode
         {
@@ -34,15 +36,18 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var gpuMapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
-            if (target == VFXDeviceTarget.GPU && useSoftParticle)
+            if (target == VFXDeviceTarget.GPU)
             {
-                var softParticleFade = GetExpressionsFromSlots(this).First(o => o.name == "softParticlesFadeDistance");
-                var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
-                gpuMapper.AddExpression(invSoftParticleFade, "invSoftParticlesFadeDistance", -1);
+                var gpuMapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
+                if (useSoftParticle)
+                {
+                    var softParticleFade = GetExpressionsFromSlots(this).First(o => o.name == "softParticlesFadeDistance");
+                    var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
+                    gpuMapper.AddExpression(invSoftParticleFade, "invSoftParticlesFadeDistance", -1);
+                }
                 return gpuMapper;
             }
-            return gpuMapper;
+            return new VFXExpressionMapper();
         }
 
         public override IEnumerable<string> additionalDefines

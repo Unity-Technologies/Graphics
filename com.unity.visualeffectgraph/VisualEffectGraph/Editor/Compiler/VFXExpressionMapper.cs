@@ -5,50 +5,6 @@ using System.Linq;
 
 namespace UnityEditor.VFX
 {
-    class VFXCompilerData
-    {
-        private VFXExpressionGraph m_Graph;
-        private Dictionary<VFXContext, VFXCompilerContextData> m_ContextData = new Dictionary<VFXContext, VFXCompilerContextData>();
-
-        public VFXCompilerData(VFXExpressionGraph graph)
-        {
-            m_Graph = graph;
-        }
-
-        public VFXExpressionGraph graph { get { return m_Graph; } }
-
-        public void AddUniformExpressionMapper(VFXContext context, VFXExpressionMapper binder)
-        {
-            GetOrCreateContextData(context).uniforms.Add(binder);
-        }
-
-        public void AddRuntimeExpressionsMapper(VFXContext context, VFXExpressionMapper binder)
-        {
-            GetOrCreateContextData(context).rtMappings.Add(binder);
-        }
-
-        private VFXCompilerContextData GetOrCreateContextData(VFXContext context)
-        {
-            if (context == null)
-                throw new ArgumentNullException();
-
-            VFXCompilerContextData data;
-            if (!m_ContextData.TryGetValue(context, out data))
-            {
-                data = new VFXCompilerContextData();
-                m_ContextData[context] = data;
-            }
-
-            return data;
-        }
-    }
-
-    class VFXCompilerContextData
-    {
-        public List<VFXExpressionMapper> uniforms = new List<VFXExpressionMapper>();
-        public List<VFXExpressionMapper> rtMappings = new List<VFXExpressionMapper>();
-    }
-
     struct VFXNamedExpression
     {
         public VFXNamedExpression(VFXExpression exp, string name)
@@ -76,7 +32,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        private void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
+        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
             foreach (var master in slotContainer.inputSlots)
             {

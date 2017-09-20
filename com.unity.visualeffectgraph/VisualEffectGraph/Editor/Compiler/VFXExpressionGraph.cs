@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options)
         {
-            Profiler.BeginSample("CompileExpressionGraph");
+            Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
 
             try
             {

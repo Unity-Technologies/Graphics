@@ -38,7 +38,8 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateInputFromSettings();
+            if (GetNbInputSlots() == 0)
+                UpdateInputFromSettings();
         }
 
         protected override void Invalidate(VFXModel model, InvalidationCause cause)

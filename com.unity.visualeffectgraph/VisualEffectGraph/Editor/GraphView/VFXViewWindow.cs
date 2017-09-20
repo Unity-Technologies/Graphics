@@ -32,6 +32,7 @@ namespace  UnityEditor.VFX.UI
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
+                {Event.KeyboardEvent("space"), view.ReinitComponents},
             });
         }
 

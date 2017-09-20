@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.Test
             updateContext.AddChild(blockB);
 
             var stringBuilders = new[] { new StringBuilder() };
-            VFXCodeGenerator.Build(updateContext, new[] { VFXCodeGenerator.CompilationMode.Runtime }, stringBuilders, new VFXExpressionMapper(), updateContext.codeGeneratorTemplate);
+            VFXCodeGenerator.Build(updateContext, new[] { VFXCodeGenerator.CompilationMode.Runtime }, stringBuilders, new VFXContextCompiledData(), updateContext.codeGeneratorTemplate);
 
             var code = stringBuilders[0].ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));

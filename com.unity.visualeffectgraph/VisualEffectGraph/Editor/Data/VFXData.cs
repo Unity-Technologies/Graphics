@@ -54,7 +54,8 @@ namespace UnityEditor.VFX
         public bool IsAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
         public bool IsAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
 
-        public bool AttributeExists(VFXAttribute attrib)                        { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib)                        { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)    { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
 
         public bool IsAttributeLocal(VFXAttribute attrib)                       { return m_LocalAttributes.Contains(attrib); }
         public bool IsAttributeStored(VFXAttribute attrib)                      { return m_StoredAttributes.ContainsKey(attrib); }

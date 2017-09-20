@@ -32,9 +32,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         }		
     }
 #else
-    uint index = id.x + spawnIndex;
-    ${VFXLoadAttributes}
-    ${VFXProcessBlocks}	
-    ${VFXStoreAttributes}
+	if (id.x < nbSpawned)
+	{
+		uint index = id.x + spawnIndex;
+		${VFXLoadAttributes}
+		${VFXProcessBlocks}	
+		${VFXStoreAttributes}
+	}
 #endif
 }
