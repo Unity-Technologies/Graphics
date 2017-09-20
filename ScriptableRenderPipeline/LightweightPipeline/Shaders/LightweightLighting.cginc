@@ -13,7 +13,7 @@ UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 reflect
 #endif
     o.diffuse *= occlusion;
 
-#ifdef _GLOSSYREFLECTIONS_ON
+#ifndef _GLOSSYREFLECTIONS_OFF
     // perceptualRoughness
     Unity_GlossyEnvironmentData g;
     g.roughness = roughness;
