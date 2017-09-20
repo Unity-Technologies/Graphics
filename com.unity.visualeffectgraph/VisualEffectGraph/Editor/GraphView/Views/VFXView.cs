@@ -373,6 +373,20 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        public IEnumerable<VFXDataEdge> GetAllDataEdges()
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXDataEdge)
+                    {
+                        yield return element as VFXDataEdge;
+                    }
+                }
+            }
+        }
+
         public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))

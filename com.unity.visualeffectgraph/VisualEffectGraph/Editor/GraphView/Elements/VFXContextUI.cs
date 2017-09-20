@@ -48,6 +48,8 @@ namespace UnityEditor.VFX.UI
 
         VFXContextSlotContainerUI  m_OwnData;
 
+        VFXEdgeDrawer m_EdgeDrawer;
+
         protected GraphViewTypeFactory typeFactory { get; set; }
 
         public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
@@ -179,6 +181,20 @@ namespace UnityEditor.VFX.UI
 
             Add(new VisualElement() { name = "icon" });
             clipChildren = false;
+
+            m_EdgeDrawer = new VFXContextEdgeDrawer();
+
+            m_EdgeDrawer.style.positionType = PositionType.Absolute;
+            m_EdgeDrawer.style.positionLeft = 0;
+            m_EdgeDrawer.style.positionRight = 0;
+            m_EdgeDrawer.style.positionBottom = 0;
+            m_EdgeDrawer.style.positionTop = 0;
+            Add(m_EdgeDrawer);
+        }
+
+        public void DirtyDrawer()
+        {
+            m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
 
         void OnSpace()
@@ -445,6 +461,8 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
+
+            m_EdgeDrawer.presenter = this.presenter;
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             if (presenter == null || presenter.context == null)

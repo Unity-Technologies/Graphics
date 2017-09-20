@@ -218,5 +218,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+        public override void DoRepaint()
+        {
+            base.DoRepaint();
+        }
     }
 }

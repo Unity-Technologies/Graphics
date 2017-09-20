@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
+        /*
         internal override void DoRepaint(IStylePainter pc)
         {
             base.DoRepaint(pc);
@@ -58,6 +59,6 @@ namespace UnityEditor.VFX.UI
                     VFXEdgeUtils.RenderLine(from, to, edgeColor, realWidth, view.scale);
                 }
             }
-        }
+        }*/
     }
 }

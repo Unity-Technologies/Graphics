@@ -9,54 +9,15 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node
-    {
-        public VFXNodeUI()
-        {
-            m_CollapseButton.visible = false;
-
-            Insert(0, titleContainer);
-            rightContainer.Insert(0, new VisualElement() { name = "rightBackground" });
-            leftContainer.Insert(0, new VisualElement() { name = "leftBackground" });
-            AddToClassList("VFXNodeUI");
-        }
-
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
-        {
-            if (presenter.direction == Direction.Input)
-            {
-                VFXDataAnchorPresenter anchorPresenter = presenter as VFXDataAnchorPresenter;
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
-
-
-                anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
-
-                return anchor;
-            }
-            else
-            {
-                return VFXOutputDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
-            }
-        }
-
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
-        {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                GetPresenter<VFXSlotContainerPresenter>().viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
-            }
-        }
-    }
-
-    class VFXBuiltInParameterUI : VFXSlotContainerUI
+    class VFXBuiltInParameterUI : VFXStandaloneSlotContainerUI
     {
     }
 
-    class VFXAttributeParameterUI : VFXSlotContainerUI
+    class VFXAttributeParameterUI : VFXStandaloneSlotContainerUI
     {
     }
 
-    class VFXParameterUI : VFXSlotContainerUI
+    class VFXParameterUI : VFXStandaloneSlotContainerUI
     {
         private TextField m_ExposedName;
         private Toggle m_Exposed;

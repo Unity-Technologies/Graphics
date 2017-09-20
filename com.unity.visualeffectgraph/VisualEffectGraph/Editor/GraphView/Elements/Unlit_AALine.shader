@@ -57,7 +57,7 @@ Shader "Unlit/AALine"
                 float distance = (i.uv.y * _ZoomFactor - abs(i.uv.x * _ZoomFactor));
 
 
-                float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
+            float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
                 return fixed4(_Color.rgb, _Color.a * distance * clipA);
             }
             ENDCG

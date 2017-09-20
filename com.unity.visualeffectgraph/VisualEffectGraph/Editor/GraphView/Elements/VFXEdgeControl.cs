@@ -146,6 +146,15 @@ namespace UnityEditor.VFX.UI
 
         List<Vector2> m_CurvePoints = new List<Vector2>();
 
+
+        protected override void PointsChanged()
+        {
+            base.PointsChanged();
+            VFXEdge edge = this.GetFirstAncestorOfType<VFXEdge>();
+
+            edge.OnDisplayChanged();
+        }
+
         protected override void DrawEdge()
         {
             Vector3[] points = controlPoints;
@@ -260,15 +269,13 @@ namespace UnityEditor.VFX.UI
                 m_Mesh.RecalculateBounds();
             }
 
-            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
 
             VFXEdgeUtils.lineMat.SetFloat("_ZoomFactor", view.scale);
-            VFXEdgeUtils.lineMat.SetColor("_Color", edgeColor);
+            VFXEdgeUtils.lineMat.SetColor("_Color", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? edgeColor.gamma : edgeColor);
             VFXEdgeUtils.lineMat.SetPass(0);
 
 
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
-            GL.sRGBWrite = false;
         }
 
         protected override void DrawEndpoint(Vector2 pos, bool start)
