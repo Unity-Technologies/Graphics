@@ -18,7 +18,6 @@ namespace UnityEditor.VFX.UI
         public BlockContainer()
         {
             selection = new List<ISelectable>();
-            clipChildren = false;
         }
     }
 
@@ -79,26 +78,22 @@ namespace UnityEditor.VFX.UI
 
             m_NodeContainer = new VisualElement()
             {
-                name = "NodeContents",
-                clipChildren = false
+                name = "NodeContents"
             };
 
             m_InsideContainer = new VisualElement()
             {
-                name = "Inside",
-                clipChildren = false
+                name = "Inside"
             };
 
             shadow.Add(m_NodeContainer);
 
             m_Header = new VisualElement() {
-                name = "Header",
-                clipChildren = false
+                name = "Header"
             };
             m_HeaderContainer = new VisualElement()
             {
-                name = "HeaderContainer",
-                clipChildren = false
+                name = "HeaderContainer"
             };
             m_HeaderContainer.AddToClassList("Extremity");
             m_HeaderTitle = new VisualElement() { name = "HeaderTitle" , text = "Title" };
@@ -135,8 +130,7 @@ namespace UnityEditor.VFX.UI
 
 
             m_Footer = new VisualElement() {
-                name = "Footer",
-                clipChildren = false
+                name = "Footer"
             };
             m_FooterTitle = new VisualElement() { name = "FooterTitle", text = "footer" };
             m_FooterTitle.AddToClassList("title");
@@ -189,7 +183,7 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.style.positionRight = 0;
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
-            Add(m_EdgeDrawer);
+            m_InsideContainer.Add(m_EdgeDrawer);
         }
 
         public void DirtyDrawer()

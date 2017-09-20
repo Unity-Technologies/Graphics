@@ -134,8 +134,6 @@ namespace UnityEditor.VFX.UI
 
             if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
-
-            clipChildren = false;
         }
 
         public Vector3 GetLocalCenter()

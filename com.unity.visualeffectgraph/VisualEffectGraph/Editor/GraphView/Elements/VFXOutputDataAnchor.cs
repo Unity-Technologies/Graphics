@@ -26,8 +26,6 @@ namespace UnityEditor.VFX.UI
 
         protected VFXOutputDataAnchor()
         {
-            clipChildren = false;
-
             m_Icon = new VisualElement()
             {
                 name = "icon"
@@ -57,7 +55,6 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            clipChildren = false;
 
             if (presenter.depth != 0 && m_Lines == null)
             {

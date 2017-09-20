@@ -113,7 +113,6 @@ namespace UnityEditor.VFX.UI
 
         protected VFXEditableDataAnchor()
         {
-            clipChildren = false;
         }
 
         void BuildProperty()
@@ -185,8 +184,6 @@ namespace UnityEditor.VFX.UI
                 m_Container.executionContext = presenter.GetInstanceID();*/
 
             OnRecompile();
-
-            clipChildren = false;
         }
 
         public void OnRecompile()
