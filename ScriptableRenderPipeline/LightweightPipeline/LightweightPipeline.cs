@@ -199,42 +199,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
                 SetShaderKeywords(ref lightData, ref context);
 
-                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-                if (!lightData.isSingleLight)
-                    configuration |= RendererConfiguration.PerObjectLightIndices8;
+                RendererConfiguration rendererSettings = GetRendererSettings(ref lightData);
 
                 BeginForwardRendering(ref context, renderingConfig);
-
-                var litDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
-                litDrawSettings.sorting.flags = SortFlags.CommonOpaque;
-                litDrawSettings.rendererConfiguration = configuration;
-
-                var unlitDrawSettings = new DrawRendererSettings(m_CurrCamera, m_UnlitPassName);
-                unlitDrawSettings.sorting.flags = SortFlags.CommonTransparent;
-
-                // Render Opaques
-                var opaqueFilterSettings = new FilterRenderersSettings(true)
-                {
-                    renderQueueRange = RenderQueueRange.opaque
-                };
-
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, opaqueFilterSettings);
-
-                // TODO: Check skybox shader
+                RenderOpaques(ref context, rendererSettings);
                 context.DrawSkybox(m_CurrCamera);
 
                 if (postProcessEnabled)
                     RenderPostProcess(ref context, postProcessLayer, true);
 
-                // Render Alpha blended
-                var transparentFilterSettings = new FilterRenderersSettings(true)
-                {
-                    renderQueueRange = RenderQueueRange.transparent
-                };
-
-                litDrawSettings.sorting.flags = SortFlags.CommonTransparent;
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, transparentFilterSettings);
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref unlitDrawSettings, transparentFilterSettings);
+                RenderTransparents(ref context, rendererSettings);
 
                 if (postProcessEnabled)
                     RenderPostProcess(ref context, postProcessLayer, false);
@@ -251,6 +225,36 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 context.Submit();
             }
+        }
+
+        private void RenderOpaques(ref ScriptableRenderContext context, RendererConfiguration settings)
+        {
+            var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
+            opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
+            opaqueDrawSettings.rendererConfiguration = settings;
+
+            var opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque
+            };
+
+            context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+        }
+
+        private void RenderTransparents(ref ScriptableRenderContext context, RendererConfiguration settings)
+        {
+            var transparentSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
+            transparentSettings.SetShaderPassName(1, m_UnlitPassName);
+            transparentSettings.sorting.flags = SortFlags.CommonTransparent;
+            transparentSettings.rendererConfiguration = settings;
+
+            var transparentFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.transparent
+            };
+
+            context.DrawRenderers(m_CullResults.visibleRenderers, ref transparentSettings, transparentFilterSettings);
+
         }
 
         private void BuildShadowSettings()
@@ -760,6 +764,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.StopMultiEye(m_CurrCamera);
                 context.StereoEndRender(m_CurrCamera);
             }
+        }
+
+        RendererConfiguration GetRendererSettings(ref LightData lightData)
+        {
+            RendererConfiguration settings = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+            if (!lightData.isSingleLight)
+                settings |= RendererConfiguration.PerObjectLightIndices8;
+            return settings;
         }
 
         private void SetupRenderTargets(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT)
