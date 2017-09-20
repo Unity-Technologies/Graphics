@@ -12,9 +12,37 @@ MonoBehaviour:
   m_Name: Main Camera Profile
   m_EditorClassIdentifier: 
   settings:
-  - {fileID: 114323377304365738}
+  - {fileID: 114243216902665680}
   - {fileID: 114306977002716200}
   - {fileID: 114582217330912456}
+  - {fileID: 114356350109050244}
+--- !u!114 &114243216902665680
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 556797029e73b2347956b6579e77e05b, type: 3}
+  m_Name: DepthOfField
+  m_EditorClassIdentifier: 
+  active: 0
+  enabled:
+    overrideState: 1
+    value: 1
+  focusDistance:
+    overrideState: 1
+    value: 5.2
+  aperture:
+    overrideState: 1
+    value: 4.6
+  focalLength:
+    overrideState: 1
+    value: 120
+  kernelSize:
+    overrideState: 1
+    value: 3
 --- !u!114 &114306977002716200
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -39,7 +67,7 @@ MonoBehaviour:
   mobileOptimized:
     overrideState: 1
     value: 0
---- !u!114 &114323377304365738
+--- !u!114 &114356350109050244
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_PrefabParentObject: {fileID: 0}
@@ -47,25 +75,40 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 556797029e73b2347956b6579e77e05b, type: 3}
-  m_Name: DepthOfField
+  m_Script: {fileID: 11500000, guid: 48a79b01ea5641d4aa6daa2e23605641, type: 3}
+  m_Name: Bloom
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
-  focusDistance:
+  intensity:
     overrideState: 1
-    value: 2
-  aperture:
+    value: 7.52
+  threshold:
     overrideState: 1
-    value: 3
-  focalLength:
+    value: 0.93
+  softKnee:
     overrideState: 1
-    value: 50
-  kernelSize:
+    value: 0.158
+  diffusion:
     overrideState: 1
-    value: 3
+    value: 3.95
+  anamorphicRatio:
+    overrideState: 1
+    value: 0
+  color:
+    overrideState: 1
+    value: {r: 1, g: 1, b: 1, a: 1}
+  mobileOptimized:
+    overrideState: 1
+    value: 0
+  lensTexture:
+    overrideState: 1
+    value: {fileID: 0}
+  lensIntensity:
+    overrideState: 1
+    value: 0
 --- !u!114 &114582217330912456
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -77,7 +120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d65e486e4de6e5448a8fbb43dc8756a0, type: 3}
   m_Name: Grain
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
