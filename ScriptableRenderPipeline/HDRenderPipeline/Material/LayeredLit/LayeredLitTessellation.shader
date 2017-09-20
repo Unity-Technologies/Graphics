@@ -256,6 +256,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [ToggleOff] _TessellationTilingScale("Tessellation tiling scale", Float) = 1.0
         // TODO: Handle culling mode for backface culling
 
+        [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
         [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
         [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
         [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
