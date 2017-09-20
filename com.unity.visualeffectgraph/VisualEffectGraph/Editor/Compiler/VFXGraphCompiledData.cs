@@ -346,7 +346,6 @@ namespace UnityEditor.VFX
                 expressionSheet.semantics = semanticsDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
-                m_Graph.vfxAsset.ClearSpawnerData();
                 m_Graph.vfxAsset.ClearPropertyData();
                 m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
 
@@ -455,7 +454,6 @@ namespace UnityEditor.VFX
                 // Cleaning
                 if (m_Graph.vfxAsset != null)
                 {
-                    m_Graph.vfxAsset.ClearSpawnerData();
                     m_Graph.vfxAsset.ClearPropertyData();
                     m_Graph.vfxAsset.SetSystem(null, null, null);
                 }

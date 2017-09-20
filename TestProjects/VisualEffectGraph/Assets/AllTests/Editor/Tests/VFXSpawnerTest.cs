@@ -48,9 +48,6 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.GetSpawnerState(0);
-            Assert.AreEqual(spawnCountValue, spawnerState.spawnCount);
-
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
 
@@ -87,10 +84,6 @@ namespace UnityEditor.VFX.Test
             }
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
-
-            var spawnerState = vfxComponent.GetSpawnerState(0);
-            var lifeTimeOut = spawnerState.vfxEventAttribute.GetFloat("lifeTime");
-            Assert.AreEqual(lifeTimeIn, lifeTimeOut);
 
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
@@ -129,10 +122,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.GetSpawnerState(0);
-            Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
-            Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifeTime"));
-            Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);
+            UnityEngine.Object.DestroyImmediate(gameObj);
         }
 
         [UnityTest]
