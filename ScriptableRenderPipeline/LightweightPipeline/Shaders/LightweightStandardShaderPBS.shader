@@ -15,8 +15,10 @@
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         [Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
+        _MetallicGlossMap("Metallic", 2D) = "white" {}
+
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
-        _MetallicSpecGlossMap("MetallicSpecGlossMap", 2D) = "white" {} // SpecGloss map when _SPECULAR_SETUP, MetallicGloss otherwise
+        _SpecGlossMap("Specular", 2D) = "white" {}
 
         [Toggle] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [Toggle] _GlossyReflections("Glossy Reflections", Float) = 1.0
@@ -70,11 +72,11 @@
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ _METALLICSPECGLOSSMAP
             #pragma shader_feature ___ _DETAIL_MULX2
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _ _SPECULARHIGHLIGHTS_ON
-            #pragma shader_feature _ _GLOSSYREFLECTIONS_ON
+            #pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _PARALLAXMAP
 
             #pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT

@@ -72,7 +72,8 @@ namespace UnityEditor
 
         private MaterialProperty metallic = null;
         private MaterialProperty specColor = null;
-        private MaterialProperty metallicSpecMap = null;
+        private MaterialProperty metallicGlossMap = null;
+        private MaterialProperty specGlossMap = null;
         private MaterialProperty highlights = null;
         private MaterialProperty reflections = null;
 
@@ -110,7 +111,8 @@ namespace UnityEditor
 
             metallic = FindProperty("_Metallic", props);
             specColor = FindProperty("_SpecColor", props);
-            metallicSpecMap = FindProperty("_MetallicSpecGlossMap", props);
+            metallicGlossMap = FindProperty("_MetallicGlossMap", props);
+            specGlossMap = FindProperty("_SpecGlossMap", props);
             highlights = FindProperty("_SpecularHighlights", props);
             reflections = FindProperty("_GlossyReflections", props);
 
@@ -292,24 +294,22 @@ namespace UnityEditor
 
         void DoMetallicSpecularArea()
         {
-            GUIContent metallicSpecMapName;
             string[] metallicSpecSmoothnessChannelName;
-            MaterialProperty metallicSpecColorProp;
+            bool hasGlossMap = false;
             if ((WorkflowMode) workflowMode.floatValue == WorkflowMode.Metallic)
             {
-                metallicSpecMapName = Styles.metallicMapText;
+                hasGlossMap = metallicGlossMap.textureValue != null;
                 metallicSpecSmoothnessChannelName = Styles.metallicSmoothnessChannelNames;
-                metallicSpecColorProp = metallic;
+                m_MaterialEditor.TexturePropertySingleLine(Styles.metallicMapText, metallicGlossMap,
+                    hasGlossMap ? null : metallic);
             }
             else
             {
-                metallicSpecMapName = Styles.specularMapText;
+                hasGlossMap = specGlossMap.textureValue != null;
                 metallicSpecSmoothnessChannelName = Styles.specularSmoothnessChannelNames;
-                metallicSpecColorProp = specColor;
+                m_MaterialEditor.TexturePropertySingleLine(Styles.specularMapText, specGlossMap,
+                    hasGlossMap ? null : specColor);
             }
-
-            bool hasGlossMap = metallicSpecMap.textureValue != null;
-            m_MaterialEditor.TexturePropertySingleLine(metallicSpecMapName, metallicSpecMap, hasGlossMap ? null : metallicSpecColorProp);
 
             bool showSmoothnessScale = hasGlossMap;
             if (smoothnessMapChannel != null)
@@ -390,13 +390,24 @@ namespace UnityEditor
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             bool isSpecularWorkFlow = (WorkflowMode)material.GetFloat("_WorkflowMode") == WorkflowMode.Specular;
+            bool hasGlossMap = false;
+            if (isSpecularWorkFlow)
+                hasGlossMap = material.GetTexture("_SpecGlossMap");
+            else
+                hasGlossMap = material.GetTexture("_MetallicGlossMap");
+
             LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
             LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", !isSpecularWorkFlow);
 
+            LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
+            LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap && isSpecularWorkFlow);
+            LightweightShaderHelper.SetKeyword(material, "_METALLICGLOSSMAP", hasGlossMap && !isSpecularWorkFlow);
+
             LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-            LightweightShaderHelper.SetKeyword(material, "_SPECULARHIGHLIGHTS_ON", material.GetFloat("_SpecularHighlights") > 0.0f);
-            LightweightShaderHelper.SetKeyword(material, "_GLOSSYREFLECTIONS_ON", material.GetFloat("_GlossyReflections") > 0.0f);
-            LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicSpecGlossMap") != null);
+
+            LightweightShaderHelper.SetKeyword(material, "_SPECULARHIGHLIGHTS_OFF", material.GetFloat("_SpecularHighlights") == 0.0f);
+            LightweightShaderHelper.SetKeyword(material, "_GLOSSYREFLECTIONS_OFF", material.GetFloat("_GlossyReflections") == 0.0f);
+
             LightweightShaderHelper.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
             LightweightShaderHelper.SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap") || material.GetTexture("_DetailNormalMap"));
 
