@@ -191,95 +191,112 @@ namespace UnityEditor.VFX
 
         private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
-            var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
-
-            foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
+            Profiler.BeginSample("VFXEditor.GenerateShaders");
+            try
             {
-                var codeGeneratorTemplate = context.codeGeneratorTemplate;
-                if (codeGeneratorTemplate != null)
+                var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
+
+                foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
                 {
-                    var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
-
-                    var gpuMapper = graph.BuildGPUMapper(context);
-                    var uniformMapper = new VFXUniformMapper(gpuMapper);
-
-                    // Add gpu and uniform mapper
-                    var contextData = contextToCompiledData[context];
-                    contextData.gpuMapper = gpuMapper;
-                    contextData.uniformMapper = uniformMapper;
-                    contextToCompiledData[context] = contextData;
-
-                    VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
-
-                    for (int i = 0; i < compilMode.Length; ++i)
+                    var codeGeneratorTemplate = context.codeGeneratorTemplate;
+                    if (codeGeneratorTemplate != null)
                     {
-                        outGeneratedCodeData.Add(new GeneratedCodeData()
+                        var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
+
+                        var gpuMapper = graph.BuildGPUMapper(context);
+                        var uniformMapper = new VFXUniformMapper(gpuMapper);
+
+                        // Add gpu and uniform mapper
+                        var contextData = contextToCompiledData[context];
+                        contextData.gpuMapper = gpuMapper;
+                        contextData.uniformMapper = uniformMapper;
+                        contextToCompiledData[context] = contextData;
+
+                        VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
+
+                        for (int i = 0; i < compilMode.Length; ++i)
                         {
-                            context = context,
-                            computeShader = context.codeGeneratorCompute,
-                            compilMode = compilMode[i],
-                            content = generatedContent[i]
-                        });
+                            outGeneratedCodeData.Add(new GeneratedCodeData()
+                            {
+                                context = context,
+                                computeShader = context.codeGeneratorCompute,
+                                compilMode = compilMode[i],
+                                content = generatedContent[i]
+                            });
+                        }
                     }
                 }
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 
         private static void SaveShaderFiles(VFXAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
-            //var generatedShader = new List<Object>();
-            var currentCacheFolder = baseCacheFolder;
-            if (asset != null)
+            Profiler.BeginSample("VFXEditor.SaveShaderFiles");
+            try
             {
-                var path = AssetDatabase.GetAssetPath(asset);
-                path = path.Replace("Assets", "");
-                path = path.Replace(".asset", "");
-                currentCacheFolder += path;
+                //var generatedShader = new List<Object>();
+                var currentCacheFolder = baseCacheFolder;
+                if (asset != null)
+                {
+                    var path = AssetDatabase.GetAssetPath(asset);
+                    path = path.Replace("Assets", "");
+                    path = path.Replace(".asset", "");
+                    currentCacheFolder += path;
+                }
+
+                System.IO.Directory.CreateDirectory(currentCacheFolder);
+                for (int i = 0; i < generatedCodeData.Count; ++i)
+                {
+                    var generated = generatedCodeData[i];
+                    var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+
+                    string oldContent = "";
+                    if (System.IO.File.Exists(path))
+                    {
+                        oldContent = System.IO.File.ReadAllText(path);
+                    }
+                    var newContent = generated.content.ToString();
+                    bool hasChanged = oldContent != newContent;
+                    if (hasChanged)
+                    {
+                        System.IO.File.WriteAllText(path, newContent);
+                    }
+
+                    AssetDatabase.ImportAsset(path);
+                    Object imported = null;
+                    if (generated.computeShader)
+                    {
+                        imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                    }
+                    else
+                    {
+                        var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
+                        imported = importer.GetShader();
+                    }
+                    if (hasChanged)
+                    {
+                        EditorUtility.SetDirty(imported);
+                    }
+                    //generatedShader.Add(imported);
+
+                    var contextData = contextToCompiledData[generated.context];
+                    contextData.processor = imported;
+                    contextToCompiledData[generated.context] = contextData;
+                }
             }
-
-            System.IO.Directory.CreateDirectory(currentCacheFolder);
-            for (int i = 0; i < generatedCodeData.Count; ++i)
+            finally
             {
-                var generated = generatedCodeData[i];
-                var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
-
-                string oldContent = "";
-                if (System.IO.File.Exists(path))
-                {
-                    oldContent = System.IO.File.ReadAllText(path);
-                }
-                var newContent = generated.content.ToString();
-                bool hasChanged = oldContent != newContent;
-                if (hasChanged)
-                {
-                    System.IO.File.WriteAllText(path, newContent);
-                }
-
-                AssetDatabase.ImportAsset(path);
-                Object imported = null;
-                if (generated.computeShader)
-                {
-                    imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
-                }
-                else
-                {
-                    var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
-                    imported = importer.GetShader();
-                }
-                if (hasChanged)
-                {
-                    EditorUtility.SetDirty(imported);
-                }
-                //generatedShader.Add(imported);
-
-                var contextData = contextToCompiledData[generated.context];
-                contextData.processor = imported;
-                contextToCompiledData[generated.context] = contextData;
+                Profiler.EndSample();
             }
         }
 
         public void Compile()
         {
+            Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
                 var models = new HashSet<Object>();
@@ -349,6 +366,10 @@ namespace UnityEditor.VFX
 
                 m_ExpressionGraph = new VFXExpressionGraph();
                 m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 

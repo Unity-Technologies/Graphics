@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -54,12 +55,21 @@ namespace UnityEditor.VFX
 
             public void Compile()
             {
-                foreach (var exp in m_EndExpressions)
-                    Compile(exp);
+                Profiler.BeginSample("VFXEditor.CompileExpressionContext");
 
-                if (Has(VFXExpressionContextOption.GPUDataTransformation))
+                try
+                {
                     foreach (var exp in m_EndExpressions)
-                        m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp));
+                        Compile(exp);
+
+                    if (Has(VFXExpressionContextOption.GPUDataTransformation))
+                        foreach (var exp in m_EndExpressions)
+                            m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp));
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
             }
 
             public void Recompile()
