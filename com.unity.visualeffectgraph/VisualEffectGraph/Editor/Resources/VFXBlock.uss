@@ -59,6 +59,20 @@ VFXBlockUI.VFXContextSlotContainerUI.node.horizontal #title Toggle
 	height:17;
 }
 
+
+VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed #title Toggle
+{
+	margin-top:6;
+	margin-left:17;
+}
+
+VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
+	margin-top:4;
+	margin-left:6;
+	margin-right:6;
+	font-size:14;
+}
+
 .node.horizontal.selected
 {
 	border-color:#FFFFFF;
