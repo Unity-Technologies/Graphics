@@ -1,5 +1,5 @@
 VFXContextUI {
-	font-size:12;
+	font-size:18;
 	-flex: 1;
 	flex-direction: column;
 	-align-items: stretch;
@@ -72,6 +72,7 @@ VFXContextUI #HeaderContainer
 {
 	flex-direction:row;
 	justify-content:center;
+	align-items:center;
 }
 
 VFXContextUI #Footer
@@ -90,7 +91,8 @@ VFXContextUI	.title
 	text-alignment:middle-center;
 
 	text-color:#c4c4c4;
-	font-size:14;
+	font-size:18;
+	height:36;
 	font-style: bold;
 }
 VFXContextUI	#FooterTitle
@@ -103,6 +105,7 @@ VFXContextUI	#FooterTitle
 VFXContextUI #HeaderIcon
 {
 	background-image:resource("VFX/Execution");
+	margin-right:6;
 }
 
 VFXContextUI #HeaderSpace
