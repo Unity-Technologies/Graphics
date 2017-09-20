@@ -151,8 +151,8 @@ namespace UnityEditor.VFX.UI
         {
             base.PointsChanged();
             VFXEdge edge = this.GetFirstAncestorOfType<VFXEdge>();
-
-            edge.OnDisplayChanged();
+            if (edge != null)
+                edge.OnDisplayChanged();
         }
 
         protected override void DrawEdge()

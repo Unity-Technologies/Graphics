@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         }
         public VFXEdgeDrawer()
         {
+            pickingMode = PickingMode.Ignore;
         }
 
         public virtual bool EdgeIsInThisDrawer(VFXDataEdgePresenter edgePresenter)
