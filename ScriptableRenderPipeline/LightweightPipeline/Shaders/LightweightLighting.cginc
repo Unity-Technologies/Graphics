@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
-UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half roughness)
+UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
 {
     UnityIndirect o = (UnityIndirect)0;
 #ifdef LIGHTMAP_ON
@@ -14,9 +14,8 @@ UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalW
     o.diffuse = ambientColor * occlusion;
 
 #ifndef _GLOSSYREFLECTIONS_OFF
-    // perceptualRoughness
     Unity_GlossyEnvironmentData g;
-    g.roughness = roughness;
+    g.roughness = perceptualRoughness;
     g.reflUVW = reflectVec;
     o.specular = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, g) * occlusion;
 #else
