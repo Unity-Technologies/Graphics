@@ -2,6 +2,20 @@
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 #define MAX_SHADOW_CASCADES 4
 
+#if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
+#define _SHADOWS
+#endif
+
+#if defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
+#define _SHADOW_CASCADES
+#endif
+
+#ifdef _SHADOWS
+#define SHADOW_ATTENUATION(vertexOutput, shadowDir) ComputeShadowAttenuation(vertexOutput, shadowDir)
+#else
+#define SHADOW_ATTENUATION(vertexOutput, shadowDir) 1.0h
+#endif
+
 sampler2D_float _ShadowMap;
 float _PCFKernel[8];
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];

@@ -3,63 +3,6 @@
 
 #include "LightweightCore.cginc"
 
-#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
-
-inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData outSurfaceData)
-{
-    float2 uv = i.uv01.xy;
-    half4 albedoAlpha = tex2D(_MainTex, uv);
-
-    outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
-    outSurfaceData.alpha = Alpha(albedoAlpha.a);
-    outSurfaceData.metallicSpecGloss = MetallicSpecGloss(uv, albedoAlpha);
-    outSurfaceData.normalWorld = Normal(i);
-    outSurfaceData.ao = OcclusionLW(uv);
-    outSurfaceData.emission = EmissionLW(uv);
-}
-
-inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData)
-{
-    // BRDF SETUP
-#ifdef _METALLIC_SETUP
-    half2 metallicGloss = surfaceData.metallicSpecGloss.ra;
-    half metallic = metallicGloss.r;
-    half smoothness = metallicGloss.g;
-
-    // We'll need oneMinusReflectivity, so
-    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
-    // store (1-dielectricSpec) in kDieletricSpec.a, then
-    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
-    //                  = alpha - metallic * alpha
-    half oneMinusDielectricSpec = kDieletricSpec.a;
-    half oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
-    half reflectivity = 1.0 - oneMinusReflectivity;
-
-    outBRDFData.diffuse = surfaceData.albedo * oneMinusReflectivity;
-    outBRDFData.specular = lerp(kDieletricSpec.rgb, surfaceData.albedo, metallic);
-    outBRDFData.oneMinusReflectivity = oneMinusReflectivity;
-
-#else
-    half3 specular = surfaceData.metallicSpecGloss.rgb;
-    half smoothness = surfaceData.metallicSpecGloss.a;
-    half reflectivity = SpecularReflectivity(specular);
-
-    outBRDFData.diffuse = surfaceData.albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
-    outBRDFData.oneMinusReflectivity = 1.0h - reflectivity;
-#endif
-
-    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
-    outBRDFData.perceptualRoughness = 1.0h - smoothness;
-    outBRDFData.roughness = outBRDFData.perceptualRoughness * outBRDFData.perceptualRoughness;
-
-#ifdef _ALPHAPREMULTIPLY_ON
-    half alpha = surfaceData.alpha;
-    outBRDFData.diffuse *= alpha;
-    surfaceData.alpha = reflectivity + alpha * oneMinusReflectivity;
-#endif
-}
-
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
@@ -170,7 +113,6 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 #endif
         half NdotL = saturate(dot(normal, lightDirection));
         half3 radiance = light.color * (lightAtten * NdotL);
-
         color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
     }
 #endif
