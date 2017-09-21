@@ -19,25 +19,40 @@ ${VFXGeneratedBlockFunction}
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
+	uint maxThreadId = nbSpawned;
 #if VFX_USE_ALIVE_CURRENT
-    if (id.x < min(nbSpawned,deadListCount[0]))
-    {
-        ${VFXLoadAttributes}
-        ${VFXProcessBlocks}	
+	maxThreadId = min(maxThreadId,deadListCount[0]);
+#endif
 
+    if (id.x < maxThreadId)
+    {
+		uint particleIndex = id.x + spawnIndex;
+        ${VFXLoadAttributes}
+				
+#if VFX_USE_PARTICLEID_CURRENT
+		particleId = particleIndex;
+#endif
+#if VFX_USE_SEED_CURRENT
+		seed = WangHash(particleIndex); // Needs system seed
+#endif
+#if VFX_USE_PHASE_CURRENT
+#if !VFX_USE_SEED_CURRENT // TODO Quite bad
+		uint seed = WangHash(particleIndex); // Needs system seed
+#endif
+		phase = randLcg(seed);
+#endif
+		
+        ${VFXProcessBlocks}
+
+#if VFX_USE_ALIVE_CURRENT		
         if (alive)
         {	
             uint index = deadListIn.Consume();
             ${VFXStoreAttributes}
-        }		
-    }
+        }
 #else
-	if (id.x < nbSpawned)
-	{
-		uint index = id.x + spawnIndex;
-		${VFXLoadAttributes}
-		${VFXProcessBlocks}	
+		uint index = particleIndex;
 		${VFXStoreAttributes}
-	}
-#endif
+#endif		
+    }
 }
