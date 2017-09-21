@@ -120,7 +120,6 @@ struct BRDFData
     half3 specular;
     half perceptualRoughness;
     half roughness;
-    half oneMinusReflectivity;
     half grazingTerm;
 };
 
@@ -201,13 +200,17 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 
 half OcclusionLW(float2 uv)
 {
-#if (SHADER_TARGET < 30)
+#ifdef _OCCLUSIONMAP
+    #if (SHADER_TARGET < 30)
     // SM20: instruction count limitation
     // SM20: simpler occlusion
     return tex2D(_OcclusionMap, uv).g;
 #else
     half occ = tex2D(_OcclusionMap, uv).g;
     return LerpOneTo(occ, _OcclusionStrength);
+#endif
+#else
+    return 1.0;
 #endif
 }
 

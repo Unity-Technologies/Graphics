@@ -408,6 +408,7 @@ namespace UnityEditor
             LightweightShaderHelper.SetKeyword(material, "_SPECULARHIGHLIGHTS_OFF", material.GetFloat("_SpecularHighlights") == 0.0f);
             LightweightShaderHelper.SetKeyword(material, "_GLOSSYREFLECTIONS_OFF", material.GetFloat("_GlossyReflections") == 0.0f);
 
+            LightweightShaderHelper.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             LightweightShaderHelper.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
             LightweightShaderHelper.SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap") || material.GetTexture("_DetailNormalMap"));
 
