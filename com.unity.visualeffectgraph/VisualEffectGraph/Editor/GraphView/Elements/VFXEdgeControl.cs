@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
                 edge.OnDisplayChanged();
         }
 
-        const float MinEdgeWidth = 1f;
+        const float MinEdgeWidth = 1.75f;
 
         protected override void DrawEdge()
         {
@@ -169,6 +169,8 @@ namespace UnityEditor.VFX.UI
             if (realWidth * view.scale < MinEdgeWidth)
             {
                 realWidth = MinEdgeWidth / view.scale;
+
+                edgeColor.a = edgeWidth / realWidth;
             }
 
             if (m_PrevControlPoints == null
