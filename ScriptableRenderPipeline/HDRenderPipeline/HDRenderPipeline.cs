@@ -926,7 +926,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                 // Don't update the sky environment if we are rendering a cubemap (it should be update already)
-                if (camera.cameraType == CameraType.Reflection)
+                if (camera.cameraType != CameraType.Reflection)
                 {
                     // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                     // must be call after BuildGPULightLists.
