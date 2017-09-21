@@ -333,14 +333,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             InitializeMainShadowLightIndex(lights, out lightData.shadowLightIndex);
         }
 
-        private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
-        {
-            if (lightData.isSingleLight)
-                SetupShaderSingleLightConstants(lights, (lightData.pixelLightsCount > 0) ? 0 : -1, ref context);
-            else
-                SetupShaderLightListConstants(lights, ref lightData, ref context);
-        }
-
         private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightSpotDir,
             out Vector4 lightAttenuationParams)
         {
@@ -392,22 +384,35 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupShaderSingleLightConstants(VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
+        private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get("SetupSingleLightConstants");
+            Vector4 glossyEnvColor = RenderSettings.ambientSkyColor.gamma * RenderSettings.reflectionIntensity;
+
+            cmd.SetGlobalVector("_GlossyEnvironmentColor", glossyEnvColor);
+            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
+
+            if (lightData.isSingleLight)
+                SetupShaderSingleLightConstants(cmd, lights, (lightData.pixelLightsCount > 0) ? 0 : -1, ref context);
+            else
+                SetupShaderLightListConstants(cmd, lights, ref lightData, ref context);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void SetupShaderSingleLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
         {
             Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
 
-            CommandBuffer cmd = new CommandBuffer() { name = "SetupSingleLightConstants" };
             cmd.SetGlobalVector("_LightPosition", lightPos);
             cmd.SetGlobalColor("_LightColor", lightColor);
             cmd.SetGlobalVector("_LightSpotDir", lightSpotDir);
             cmd.SetGlobalVector("_LightAttenuationParams", lightAttenuationParams);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
         }
 
-        private void SetupShaderLightListConstants(VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
+        private void SetupShaderLightListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
         {
             int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
 
@@ -421,15 +426,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightIndexMap[i] = -1;
             m_CullResults.SetLightIndexMap(lightIndexMap);
 
-            CommandBuffer cmd = CommandBufferPool.Get("SetupLightShaderConstants");
             cmd.SetGlobalVector("globalLightCount", new Vector4 (lightData.pixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
             cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         private void SetShaderKeywords(ref LightData lightData, ref ScriptableRenderContext context)

@@ -75,6 +75,7 @@ half4 _DieletricSpec;
 half _Shininess;
 samplerCUBE _Cube;
 half4 _ReflectColor;
+half4 _GlossyEnvironmentColor;
 
 struct LightweightVertexInput
 {

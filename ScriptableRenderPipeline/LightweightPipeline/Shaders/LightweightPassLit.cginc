@@ -58,7 +58,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 //#endif
 
 #if !defined(LIGHTMAP_ON)
-    o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+    o.fogCoord.yzw = SHEvalLinearL2(half4(normal, 1.0));
 #endif
 
     UNITY_TRANSFER_FOG(o, o.hpos);
@@ -104,7 +104,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     // TODO: Reflection Probe blend support.
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
     half occlusion = Occlusion(uv);
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, perceptualRoughness);
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, occlusion, perceptualRoughness);
 
     // PBS
     // grazingTerm = F90
