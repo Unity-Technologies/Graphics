@@ -3,6 +3,63 @@
 
 #include "LightweightCore.cginc"
 
+#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+
+inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData outSurfaceData)
+{
+    float2 uv = i.uv01.xy;
+    half4 albedoAlpha = tex2D(_MainTex, uv);
+
+    outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
+    outSurfaceData.alpha = Alpha(albedoAlpha.a);
+    outSurfaceData.metallicSpecGloss = MetallicSpecGloss(uv, albedoAlpha);
+    outSurfaceData.normalWorld = Normal(i);
+    outSurfaceData.ao = OcclusionLW(uv);
+    outSurfaceData.emission = EmissionLW(uv);
+}
+
+inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData)
+{
+    // BRDF SETUP
+#ifdef _METALLIC_SETUP
+    half2 metallicGloss = surfaceData.metallicSpecGloss.ra;
+    half metallic = metallicGloss.r;
+    half smoothness = metallicGloss.g;
+
+    // We'll need oneMinusReflectivity, so
+    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
+    // store (1-dielectricSpec) in kDieletricSpec.a, then
+    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
+    //                  = alpha - metallic * alpha
+    half oneMinusDielectricSpec = kDieletricSpec.a;
+    half oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+    half reflectivity = 1.0 - oneMinusReflectivity;
+
+    outBRDFData.diffuse = surfaceData.albedo * oneMinusReflectivity;
+    outBRDFData.specular = lerp(kDieletricSpec.rgb, surfaceData.albedo, metallic);
+    outBRDFData.oneMinusReflectivity = oneMinusReflectivity;
+
+#else
+    half3 specular = surfaceData.metallicSpecGloss.rgb;
+    half smoothness = surfaceData.metallicSpecGloss.a;
+    half reflectivity = SpecularReflectivity(specular);
+
+    outBRDFData.diffuse = surfaceData.albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.specular = specular;
+    outBRDFData.oneMinusReflectivity = 1.0h - reflectivity;
+#endif
+
+    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
+    outBRDFData.perceptualRoughness = 1.0h - smoothness;
+    outBRDFData.roughness = outBRDFData.perceptualRoughness * outBRDFData.perceptualRoughness;
+
+#ifdef _ALPHAPREMULTIPLY_ON
+    half alpha = surfaceData.alpha;
+    outBRDFData.diffuse *= alpha;
+    surfaceData.alpha = reflectivity + alpha * oneMinusReflectivity;
+#endif
+}
+
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
@@ -67,50 +124,21 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
 half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 {
-    float2 uv = i.uv01.xy;
+    SurfaceData surfaceData;
+    InitializeSurfaceData(i, surfaceData);
+
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData, brdfData);
+
     float2 lightmapUV = i.uv01.zw;
-
-    half4 albedoTex = tex2D(_MainTex, i.uv01.xy);
-    half3 albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoTex.rgb) * _Color.rgb;
-
-#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
-    half alpha = _Color.a;
-#else
-    half alpha = albedoTex.a * _Color.a;
-#endif
-
-#if defined(_ALPHATEST_ON)
-    clip(alpha - _Cutoff);
-#endif
-
-    half3 specColor;
-    half smoothness;
-    half oneMinusReflectivity;
-#ifdef _METALLIC_SETUP
-    half3 diffColor = MetallicSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
-#else
-    half3 diffColor = SpecularSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
-#endif
-
-    diffColor = PreMultiplyAlpha(diffColor, alpha, oneMinusReflectivity, /*out*/ alpha);
-
-    // Roughness is (1.0 - smoothness)²
-    half perceptualRoughness = 1.0h - smoothness;
-
-    half3 normal;
-    NormalMap(i, normal);
-
-    // TODO: shader keyword for occlusion
-    // TODO: Reflection Probe blend support.
+    half3 normal = surfaceData.normalWorld;
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    half occlusion = Occlusion(uv);
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, occlusion, perceptualRoughness);
+    half roughness2 = brdfData.roughness * brdfData.roughness;
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, surfaceData.ao, brdfData.perceptualRoughness);
 
     // PBS
-    // grazingTerm = F90
-    half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
     half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
-    half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
+    half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
     half3 lightDirection;
 
 #ifndef _MULTIPLE_LIGHTS
@@ -124,7 +152,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 
     half NdotL = saturate(dot(normal, lightDirection));
     half3 radiance = light.color * (lightAtten * NdotL);
-    color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
+    color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
 #else
 
 #ifdef _SHADOWS
@@ -143,13 +171,13 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
         half NdotL = saturate(dot(normal, lightDirection));
         half3 radiance = light.color * (lightAtten * NdotL);
 
-        color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
+        color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
     }
 #endif
 
-    color += Emission(uv);
+    color += surfaceData.emission;
     UNITY_APPLY_FOG(i.fogCoord, color);
-    return OutputColor(color, alpha);
+    return OutputColor(color, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
@@ -164,8 +192,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     clip(alpha - _Cutoff);
 #endif
 
-    half3 normal;
-    NormalMap(i, normal);
+    half3 normal = Normal(i);
 
     half4 specularGloss;
     SpecularGloss(i.uv01.xy, alpha, specularGloss);
