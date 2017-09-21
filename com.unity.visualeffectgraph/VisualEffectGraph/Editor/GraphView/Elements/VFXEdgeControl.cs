@@ -155,6 +155,8 @@ namespace UnityEditor.VFX.UI
                 edge.OnDisplayChanged();
         }
 
+        const float MinEdgeWidth = 1f;
+
         protected override void DrawEdge()
         {
             Vector3[] points = controlPoints;
@@ -164,9 +166,9 @@ namespace UnityEditor.VFX.UI
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
             float realWidth = edgeWidth;
-            if (realWidth * view.scale < 1.0f)
+            if (realWidth * view.scale < MinEdgeWidth)
             {
-                realWidth = 1.0f / view.scale;
+                realWidth = MinEdgeWidth / view.scale;
             }
 
             if (m_PrevControlPoints == null
