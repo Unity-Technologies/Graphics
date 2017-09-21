@@ -387,7 +387,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("SetupSingleLightConstants");
-            Vector4 glossyEnvColor = RenderSettings.ambientSkyColor.gamma * RenderSettings.reflectionIntensity;
+
+            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
+            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
+            Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
 
             cmd.SetGlobalVector("_GlossyEnvironmentColor", glossyEnvColor);
             if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
