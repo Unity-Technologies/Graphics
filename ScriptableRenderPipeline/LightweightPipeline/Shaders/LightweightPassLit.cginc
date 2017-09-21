@@ -222,11 +222,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #endif
 
 #if defined(LIGHTMAP_ON)
-    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#endif
-
-#if defined(_VERTEX_LIGHTS) || !defined(LIGHTMAP_ON)
-    color += i.fogCoord.yzw * diffuse;
+    color += DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
+#else
+    color += (SHEvalLinearL0L1(half4(normal, 1.0)) + i.fogCoord.yzw) * diffuse;
 #endif
 
 #if _REFLECTION_CUBEMAP
