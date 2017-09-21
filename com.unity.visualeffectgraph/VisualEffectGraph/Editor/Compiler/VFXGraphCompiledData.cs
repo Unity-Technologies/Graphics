@@ -218,6 +218,103 @@ namespace UnityEditor.VFX
             return spawnerProcessed.ToArray();
         }
 
+        private static void FillSpawner(Dictionary<VFXContext, int> contextSpawnToBufferIndex, List<VFXCPUBufferDesc> cpuBufferDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> eventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, List<VFXSystemDesc> systemDescs)
+        {
+            var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
+            foreach (var spawnContext in spawners)
+            {
+                contextSpawnToBufferIndex.Add(spawnContext, cpuBufferDescs.Count);
+                cpuBufferDescs.Add(new VFXCPUBufferDesc()
+                {
+                    capacity = 1,
+                    layout = eventAttributeDescs.ToArray()
+                });
+            }
+            foreach (var spawnContext in spawners)
+            {
+                var buffers = spawnContext.inputContexts.Select(o => new VFXBufferMapping()
+                {
+                    bufferIndex = contextSpawnToBufferIndex[o],
+                    name = "spawner_input"
+                }).ToList();
+
+                if (buffers.Count > 1)
+                    throw new InvalidOperationException("Unexpected spawner with multiple inputs");
+
+                buffers.Add(new VFXBufferMapping()
+                {
+                    bufferIndex = contextSpawnToBufferIndex[spawnContext],
+                    name = "spawner_output"
+                });
+
+                var contextData = contextToCompiledData[spawnContext];
+                systemDescs.Add(new VFXSystemDesc()
+                {
+                    buffers = buffers.ToArray(),
+                    capacity = 0u,
+                    flags = VFXSystemFlag.kVFXSystemDefault,
+                    tasks = spawnContext.childrenWithImplicit.Select((b, index) =>
+                        {
+                            var spawnerBlock = b as VFXAbstractSpawner;
+                            if (spawnerBlock == null)
+                            {
+                                throw new InvalidCastException("Unexpected block type in spawnerContext");
+                            }
+                            if (spawnerBlock.spawnerType == VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior == null)
+                            {
+                                throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
+                            }
+                            if (spawnerBlock.spawnerType != VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior != null)
+                            {
+                                throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
+                            }
+
+                            /* TODOPAUL : should not have to use two enum */
+                            VFXTaskType taskType = VFXTaskType.kNone;
+                            switch (spawnerBlock.spawnerType)
+                            {
+                                case VFXSpawnerType.kBurst: taskType = VFXTaskType.kSpawnerBurst; break;
+                                case VFXSpawnerType.kConstantRate: taskType = VFXTaskType.kSpawnerConstantRate; break;
+                                case VFXSpawnerType.kCustomCallback: taskType = VFXTaskType.kSpawnerCustomCallback; break;
+                                case VFXSpawnerType.kPeriodicBurst: taskType = VFXTaskType.kSpawnerPeriodicBurst; break;
+                                case VFXSpawnerType.kVariableRate: taskType = VFXTaskType.kSpawnerVariableRate; break;
+                                default: throw new InvalidCastException("Unexpected spawner type");
+                            }
+
+                            var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
+                            {
+                                return new VFXValueMapping
+                                {
+                                    expressionIndex = graph.GetFlattenedIndex(o.exp),
+                                    name = o.name
+                                };
+                            }).ToArray();
+
+                            Object processor = null;
+                            if (spawnerBlock.customBehavior != null)
+                            {
+                                var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
+                                if (assets.Length != 1)
+                                {
+                                    throw new InvalidOperationException("Unable to retrieve ScriptatbleObject for " + spawnerBlock.customBehavior);
+                                }
+
+                                var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
+                                processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
+                            }
+
+                            return new VFXTaskDesc
+                            {
+                                type = taskType,
+                                buffers = Enumerable.Empty<VFXBufferMapping>().ToArray(),
+                                processor = processor,
+                                values = cpuExpression.ToArray()
+                            };
+                        }).ToArray()
+                });
+            }
+        }
+
         private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
@@ -386,89 +483,8 @@ namespace UnityEditor.VFX
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
-                /* Begin WIP Spawner */
-                var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
                 var contextSpawnToBufferIndex = new Dictionary<VFXContext, int>();
-                foreach (var spawnContext in spawners)
-                {
-                    contextSpawnToBufferIndex.Add(spawnContext, cpuBufferDescs.Count);
-                    cpuBufferDescs.Add(new VFXCPUBufferDesc()
-                    {
-                        capacity = 1,
-                        layout = eventAttributeDescs.ToArray()
-                    });
-                }
-                foreach (var spawnContext in spawners)
-                {
-                    var buffers = spawnContext.inputContexts.Select(o => new VFXBufferMapping()
-                    {
-                        bufferIndex = contextSpawnToBufferIndex[o],
-                        name = "spawner_input"
-                    }).ToList();
-
-                    if (buffers.Count > 1)
-                        throw new InvalidOperationException("Unexpected spawner with multiple inputs");
-
-                    buffers.Add(new VFXBufferMapping()
-                    {
-                        bufferIndex = contextSpawnToBufferIndex[spawnContext],
-                        name = "spawner_output"
-                    });
-
-                    var contextData = contextToCompiledData[spawnContext];
-                    systemDescs.Add(new VFXSystemDesc()
-                    {
-                        buffers = buffers.ToArray(),
-                        capacity = 0u,
-                        flags = VFXSystemFlag.kVFXSystemDefault,
-                        tasks = spawnContext.childrenWithImplicit.Select((b, index) =>
-                            {
-                                var spawnerBlock = b as VFXAbstractSpawner;
-                                if (spawnerBlock == null)
-                                {
-                                    throw new InvalidCastException("Unexpected block type in spawnerContext");
-                                }
-                                if (spawnerBlock.spawnerType == VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior == null)
-                                {
-                                    throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
-                                }
-                                if (spawnerBlock.spawnerType != VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior != null)
-                                {
-                                    throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
-                                }
-
-                                /* TODOPAUL : should not have to use two enum */
-                                VFXTaskType taskType = VFXTaskType.kNone;
-                                switch (spawnerBlock.spawnerType)
-                                {
-                                    case VFXSpawnerType.kBurst: taskType = VFXTaskType.kSpawnerBurst; break;
-                                    case VFXSpawnerType.kConstantRate: taskType = VFXTaskType.kSpawnerConstantRate; break;
-                                    case VFXSpawnerType.kCustomCallback: taskType = VFXTaskType.kSpawnerCustomCallback; break;
-                                    case VFXSpawnerType.kPeriodicBurst: taskType = VFXTaskType.kSpawnerPeriodicBurst; break;
-                                    case VFXSpawnerType.kVariableRate: taskType = VFXTaskType.kSpawnerVariableRate; break;
-                                    default: throw new InvalidCastException("Unexpected spawner type");
-                                }
-
-                                var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
-                                {
-                                    return new VFXValueMapping
-                                    {
-                                        expressionIndex = m_ExpressionGraph.GetFlattenedIndex(o.exp),
-                                        name = o.name
-                                    };
-                                }).ToArray();
-
-                                return new VFXTaskDesc
-                                {
-                                    type = taskType,
-                                    buffers = Enumerable.Empty<VFXBufferMapping>().ToArray(),
-                                    processor = spawnerBlock.customBehavior == null ? null : Activator.CreateInstance(spawnerBlock.customBehavior) as Object,
-                                    values = cpuExpression.ToArray()
-                                };
-                            }).ToArray()
-                    });
-                }
-                /* End WIP Spawner */
+                FillSpawner(contextSpawnToBufferIndex, cpuBufferDescs, models, m_ExpressionGraph, eventAttributeDescs, contextToCompiledData, systemDescs);
 
                 foreach (var data in models.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
