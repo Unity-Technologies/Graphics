@@ -155,6 +155,8 @@ namespace UnityEditor.VFX.UI
                 edge.OnDisplayChanged();
         }
 
+        const float MinEdgeWidth = 1.75f;
+
         protected override void DrawEdge()
         {
             Vector3[] points = controlPoints;
@@ -164,9 +166,11 @@ namespace UnityEditor.VFX.UI
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
             float realWidth = edgeWidth;
-            if (realWidth * view.scale < 1.0f)
+            if (realWidth * view.scale < MinEdgeWidth)
             {
-                realWidth = 1.0f / view.scale;
+                realWidth = MinEdgeWidth / view.scale;
+
+                edgeColor.a = edgeWidth / realWidth;
             }
 
             if (m_PrevControlPoints == null
@@ -174,7 +178,8 @@ namespace UnityEditor.VFX.UI
                 || (m_PrevControlPoints[1] - points[1]).sqrMagnitude > 0.25
                 || (m_PrevControlPoints[2] - points[2]).sqrMagnitude > 0.25
                 || (m_PrevControlPoints[3] - points[3]).sqrMagnitude > 0.25
-                || realWidth != m_PrevRealWidth)
+                || realWidth != m_PrevRealWidth
+                || m_Mesh == null)
             {
                 m_PrevControlPoints = (Vector3[])points.Clone();
                 m_PrevRealWidth = realWidth;
@@ -189,7 +194,10 @@ namespace UnityEditor.VFX.UI
                 int cpt = m_CurvePoints.Count;
 
                 if (m_Mesh == null)
+                {
                     m_Mesh = new Mesh();
+                    m_Mesh.hideFlags = HideFlags.HideAndDontSave;
+                }
 
 
                 Vector3[] vertices = m_Mesh.vertices;
@@ -280,6 +288,20 @@ namespace UnityEditor.VFX.UI
 
         protected override void DrawEndpoint(Vector2 pos, bool start)
         {
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e)
+        {
+            if (m_Mesh != null)
+            {
+                Object.DestroyImmediate(m_Mesh);
+                m_Mesh = null;
+            }
+        }
+
+        public VFXEdgeControl()
+        {
+            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
         }
     }
 }

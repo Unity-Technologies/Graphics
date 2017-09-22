@@ -13,16 +13,6 @@
 	background-image: resource("VFX/connectors/float-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typesingle
-{
-	background-image: resource("VFX/connectors/float-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typesingle
-{
-	background-image: resource("VFX/connectors/float-output-selected");
-}
-
 /* Vector2 */
 
 .VFXDataAnchor.connected > #connector.typevector2
@@ -33,16 +23,6 @@
 .VFXDataAnchor.connected.Output > #connector.typevector2
 {
 	background-image: resource("VFX/connectors/vector2-output");
-}
-
-.node.selected .VFXDataAnchor.connected > #connector.typevector2
-{
-	background-image: resource("VFX/connectors/vector2-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typevector2
-{
-	background-image: resource("VFX/connectors/vector2-output-selected");
 }
 
 
@@ -61,16 +41,6 @@
 	background-image: resource("VFX/connectors/vector3-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typevector3
-{
-	background-image: resource("VFX/connectors/vector3-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typevector3
-{
-	background-image: resource("VFX/connectors/vector3-output-selected");
-}
-
 .VFXDataAnchor.connected > #connector.typepoint
 {
 	background-image: resource("VFX/connectors/vector3-input");
@@ -81,16 +51,6 @@
 	background-image: resource("VFX/connectors/vector3-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typepoint
-{
-	background-image: resource("VFX/connectors/vector3-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typepoint
-{
-	background-image: resource("VFX/connectors/vector3-output-selected");
-}
-
 .VFXDataAnchor.connected > #connector.typevector
 {
 	background-image: resource("VFX/connectors/vector3-input");
@@ -99,16 +59,6 @@
 .VFXDataAnchor.connected.Output > #connector.typevector
 {
 	background-image: resource("VFX/connectors/vector3-output");
-}
-
-.node.selected .VFXDataAnchor.connected > #connector.typevector
-{
-	background-image: resource("VFX/connectors/vector3-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typevector
-{
-	background-image: resource("VFX/connectors/vector3-output-selected");
 }
 
 /* vector4 Color */
@@ -123,16 +73,6 @@
 	background-image: resource("VFX/connectors/vector4-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typevector4
-{
-	background-image: resource("VFX/connectors/vector4-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typevector4
-{
-	background-image: resource("VFX/connectors/vector4-output-selected");
-}
-
 .VFXDataAnchor.connected > #connector.typecolor
 {
 	background-image: resource("VFX/connectors/vector4-input");
@@ -143,15 +83,6 @@
 	background-image: resource("VFX/connectors/vector4-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typecolor
-{
-	background-image: resource("VFX/connectors/vector4-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typecolor
-{
-	background-image: resource("VFX/connectors/vector4-output-selected");
-}
 /* texture2d */
 
 .VFXDataAnchor.connected > #connector.typetexture2d
@@ -163,17 +94,6 @@
 {
 	background-image: resource("VFX/connectors/texture2d-output");
 }
-
-.node.selected .VFXDataAnchor.connected > #connector.typetexture2d
-{
-	background-image: resource("VFX/connectors/texture2d-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture2d
-{
-	background-image: resource("VFX/connectors/texture2d-output-selected");
-}
-
 
 /* texture3d */
 
@@ -187,16 +107,6 @@
 	background-image: resource("VFX/connectors/texture3d-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typetexture3d
-{
-	background-image: resource("VFX/connectors/texture3d-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture3d
-{
-	background-image: resource("VFX/connectors/texture3d-output-selected");
-}
-
 /* boolean */
 
 .VFXDataAnchor.connected > #connector.typeboolean
@@ -207,16 +117,6 @@
 .VFXDataAnchor.connected.Output > #connector.typeboolean
 {
 	background-image: resource("VFX/connectors/int-output");
-}
-
-.node.selected .VFXDataAnchor.connected > #connector.typeboolean
-{
-	background-image: resource("VFX/connectors/int-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typeboolean
-{
-	background-image: resource("VFX/connectors/int-output-selected");
 }
 
 
@@ -232,16 +132,6 @@
 	background-image: resource("VFX/connectors/int-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typeint32
-{
-	background-image: resource("VFX/connectors/int-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typeint32
-{
-	background-image: resource("VFX/connectors/int-output-selected");
-}
-
 .VFXDataAnchor.connected > #connector.typeuint32
 {
 	background-image: resource("VFX/connectors/int-input");
@@ -250,16 +140,6 @@
 .VFXDataAnchor.connected.Output > #connector.typeuint32
 {
 	background-image: resource("VFX/connectors/int-output");
-}
-
-.node.selected .VFXDataAnchor.connected > #connector.typeuint32
-{
-	background-image: resource("VFX/connectors/int-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typeuint32
-{
-	background-image: resource("VFX/connectors/int-output-selected");
 }
 
 /* flipbook */
@@ -274,16 +154,6 @@
 	background-image: resource("VFX/connectors/int-output");
 }
 
-.node.selected .VFXDataAnchor.connected > #connector.typeflipbook
-{
-	background-image: resource("VFX/connectors/int-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typeflipbook
-{
-	background-image: resource("VFX/connectors/int-output-selected");
-}
-
 /* mesh */
 
 .VFXDataAnchor.connected > #connector.typemesh
@@ -294,16 +164,6 @@
 .VFXDataAnchor.connected.Output > #connector.typemesh
 {
 	background-image: resource("VFX/connectors/mesh-output");
-}
-
-.node.selected .VFXDataAnchor.connected > #connector.typemesh
-{
-	background-image: resource("VFX/connectors/mesh-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typemesh
-{
-	background-image: resource("VFX/connectors/mesh-output-selected");
 }
 
 /* animationcurve */
@@ -317,17 +177,6 @@
 {
 	background-image: resource("VFX/connectors/curve-output");
 }
-
-.node.selected .VFXDataAnchor.connected > #connector.typeanimationcurve
-{
-	background-image: resource("VFX/connectors/curve-input-selected");
-}
-
-.node.selected .VFXDataAnchor.connected.Output > #connector.typeanimationcurve
-{
-	background-image: resource("VFX/connectors/curve-output-selected");
-}
-
 
 
 

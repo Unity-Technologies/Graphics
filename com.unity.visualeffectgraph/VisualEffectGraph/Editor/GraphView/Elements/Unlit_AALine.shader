@@ -53,12 +53,13 @@ Shader "Unlit/AALine"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                float distance = abs(i.uv.x * _ZoomFactor);
 
-                float distance = (i.uv.y * _ZoomFactor - abs(i.uv.x * _ZoomFactor));
+                distance = (i.uv.y * _ZoomFactor - distance ) + 0.5;
 
 
             float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
-                return fixed4(_Color.rgb, _Color.a * distance * clipA);
+                return fixed4(_Color.rgb, _Color.a * saturate(distance) * clipA);
             }
             ENDCG
         }

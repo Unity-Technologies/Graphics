@@ -171,7 +171,7 @@ namespace UnityEditor.VFX
         {
             return (attrib.Equals(VFXAttribute.Seed)
                     || attrib.Equals(VFXAttribute.ParticleId)
-                    || attrib.Equals(VFXAttribute.Alive));
+                    || attrib.Equals(VFXAttribute.Phase));
         }
 
         private void ProcessAttributes()
@@ -193,7 +193,8 @@ namespace UnityEditor.VFX
                 bool onlyOutput = true;
                 bool onlyUpdateRead = true;
                 bool onlyUpdateWrite = true;
-                bool writtenInInit = HasImplicitInit(attribute);
+                bool needsSpecialInit = HasImplicitInit(attribute);
+                bool writtenInInit = needsSpecialInit;
 
                 foreach (var kvp2 in kvp.Value)
                 {
@@ -220,16 +221,18 @@ namespace UnityEditor.VFX
                         int shift = m_Owners.IndexOf(context) << 1;
                         int value = 0;
                         if ((kvp2.Value & VFXAttributeMode.Read) != 0)
-                            value = 0x01;
+                            value |= 0x01;
                         if (((kvp2.Value & VFXAttributeMode.Write) != 0) && context.contextType == VFXContextType.kUpdate)
-                            value = 0x02;
+                            value |= 0x02;
                         key |= (value << shift);
                     }
                     else if ((kvp2.Value & VFXAttributeMode.Write) != 0)
                         writtenInInit = true;
                 }
 
-                if (onlyInit || onlyOutput || onlyUpdateRead || onlyUpdateWrite)
+                if ((key & ~0xAAAAAAAA) == 0) // no read
+                    local = true;
+                if (onlyUpdateWrite || onlyInit || (!needsSpecialInit && (onlyUpdateRead || onlyOutput))) // no shared atributes
                     local = true;
                 if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
                     local = true;

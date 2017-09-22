@@ -79,11 +79,9 @@ namespace UnityEditor.VFX
             int bucketId = 0;
             foreach (var bucket in attributeBuckets)
             {
-                int bucketSize = GenerateBucketLayout(bucket.Value, bucketId);
-                m_BucketSizes.Add(bucketSize);
-                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)m_Capacity * m_BucketSizes[bucketId];
-                bucketOffset = (bucketOffset + 3) & ~3; // align on dword;
-                m_BucketOffsets.Add(bucketOffset);
+                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)m_Capacity * m_BucketSizes[bucketId - 1];
+                m_BucketOffsets.Add((bucketOffset + 3) & ~3); // align on dword;
+                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId));
                 ++bucketId;
             }
 
@@ -218,7 +216,7 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.IndirectArguments, 1, 4));
+                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, 1, 4));
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
