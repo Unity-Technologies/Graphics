@@ -245,18 +245,15 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_CachedValue;
+                return parameter.GetOutputSlot(0).value;
             }
             set
             {
-                object b = value;
+                Undo.RecordObject(parameter, "Change Value");
 
-                if (!object.Equals(m_CachedValue, b))
-                {
-                    m_CachedValue = value;
-                    Undo.RecordObject(parameter, "Change Value");
-                    parameter.GetOutputSlot(0).value = value;
-                }
+                VFXSlot slot = parameter.GetOutputSlot(0);
+
+                slot.value = value;
             }
         }
 
