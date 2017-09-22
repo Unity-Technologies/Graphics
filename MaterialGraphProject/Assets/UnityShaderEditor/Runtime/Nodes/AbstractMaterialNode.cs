@@ -452,5 +452,10 @@ namespace UnityEngine.MaterialGraph
             // preserve the old current value.
             addingSlot.currentValue = foundSlot.currentValue;
         }
+
+        public virtual ShaderGraphRequirements GetNodeSpecificRequirements()
+        {
+            return ShaderGraphRequirements.none;
+        }
     }
 }

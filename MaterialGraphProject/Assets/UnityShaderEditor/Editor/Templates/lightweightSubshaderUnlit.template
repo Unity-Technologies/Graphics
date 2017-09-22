@@ -53,8 +53,9 @@ SubShader
             ${SurfaceInputs}
 
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-            ${SurfaceOutputRemap}
-
+            float3 Color = 0;
+			${SurfaceOutputRemap}
+			
 			#ifdef _ALPHABLEND_ON
 				return fixed4(Color, Alpha);
 			#else

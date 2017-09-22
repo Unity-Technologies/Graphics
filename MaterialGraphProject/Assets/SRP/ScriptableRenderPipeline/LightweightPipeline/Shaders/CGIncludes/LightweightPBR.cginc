@@ -55,7 +55,7 @@ half3 SpecularSetup(float2 uv, half3 albedo, half3 specColor, out half3 specular
 	return albedo * (half3(1, 1, 1) - specColor);
 }
 
-half4 FragmentLightingPBR(float4 uv, float4 posWS, float3 normal, float3 tangent, float3 binormal, float4 viewDir, float4 fogCoord,
+half4 FragmentLightingPBR(float4 uv, float3 posWS, float3 normal, float3 tangent, float3 binormal, float3 viewDir, float4 fogCoord,
 	float3 albedo, float metallic, float3 specular, float smoothness, float3 normalMap, float occlusion, float3 emission, float alpha)
 {
 	float2 lightmapUV = uv.zw;

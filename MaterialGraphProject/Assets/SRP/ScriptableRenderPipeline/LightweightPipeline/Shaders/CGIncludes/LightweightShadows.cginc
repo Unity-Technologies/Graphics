@@ -55,7 +55,7 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(half3 vertexNormal, half4 posWS, half3 shadowDir)
+inline half ComputeShadowAttenuation(half3 vertexNormal, half3 posWS, half3 shadowDir)
 {
     half NdotL = dot(vertexNormal, shadowDir);
     half bias = saturate(1.0 - NdotL) * _ShadowData.z;

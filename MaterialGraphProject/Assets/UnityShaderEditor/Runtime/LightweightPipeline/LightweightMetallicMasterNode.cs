@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-/*    [Serializable]
+    [Serializable]
     [Title("Master/Lightweight/PBR Metallic")]
     public class LightweightMetallicMasterNode : AbstractLightweightPBRMasterNode
     {
@@ -33,19 +35,30 @@ namespace UnityEngine.MaterialGraph
             // we support
             RemoveSlotsNameNotMatching(
                 new[]
-            {
-                AlbedoSlotId,
-                NormalSlotId,
-                EmissionSlotId,
-                MetallicSlotId,
-                SmoothnessSlotId,
-                OcclusionSlotId,
-                AlphaSlotId,
-                VertexOffsetId
-            });
+                {
+                    AlbedoSlotId,
+                    NormalSlotId,
+                    EmissionSlotId,
+                    MetallicSlotId,
+                    SmoothnessSlotId,
+                    OcclusionSlotId,
+                    AlphaSlotId,
+                    VertexOffsetId
+                });
         }
 
-        protected override int[] surfaceInputs
+        protected override string GetTemplateName()
+        {
+            return "lightweightSubshaderPBR.template";
+        }
+
+        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap)
+        {
+            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap);
+            defines.AddShaderChunk("#define _METALLIC_SETUP 1", true);
+        }
+
+        protected override IEnumerable<int> masterSurfaceInputs
         {
             get
             {
@@ -62,7 +75,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        protected override int[] vertexInputs
+        protected override IEnumerable<int> masterVertexInputs
         {
             get
             {
@@ -72,10 +85,5 @@ namespace UnityEngine.MaterialGraph
                 };
             }
         }
-
-        public override string GetWorkflowName()
-        {
-            return WorkflowName;
-        }
-    }*/
+    }
 }

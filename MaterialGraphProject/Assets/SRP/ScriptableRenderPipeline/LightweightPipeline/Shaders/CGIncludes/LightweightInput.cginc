@@ -84,9 +84,6 @@ struct VertInput
     float4 tangent : TANGENT;
     float4 texcoord0 : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
-#ifdef VERTINPUT_CUSTOM
-	VERTINPUT_CUSTOM;
-#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -97,9 +94,8 @@ struct VertOutput
 	half4 fogCoord : TEXCOORD2; // x: fogCoord, yzw: vertexColor
 	half3 normal : TEXCOORD3;
 	half4 meshUV0 : TEXCOORD4; // uv01.xy: uv0, uv01.zw: uv1
-#ifdef VERTOUTPUT_CUSTOM
-	VERTOUTPUT_CUSTOM
-#endif
+    half3 tangent : TEXCOORD5; 
+    half3 binormal : TEXCOORD6;
 	float4 hpos : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };

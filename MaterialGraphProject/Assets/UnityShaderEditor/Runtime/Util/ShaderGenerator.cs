@@ -20,13 +20,13 @@ namespace UnityEngine.MaterialGraph
 
         public const string ObjectSpaceBiTangent = "objectSpaceBiTangent";
         public const string ViewSpaceBiTangent = "viewSpaceBiTangent";
-        public const string WorldSpaceSpaceBiTangent = "worldSpaceSpaceBiTangent";
+        public const string WorldSpaceBiTangent = "worldSpaceBiTangent";
         public const string TangentSpaceBiTangent = "TangentSpaceBitangent";
 
         public const string ObjectSpaceTangent = "objectSpaceTangent";
         public const string ViewSpaceTangent = "viewSpaceTangent";
-        public const string WorldSpaceTangent = "worldSpaceSpaceTangent";
-        public const string TangentSpaceTangent = "tangentSpaceSpaceTangent";
+        public const string WorldSpaceTangent = "worldSpaceTangent";
+        public const string TangentSpaceTangent = "tangentSpaceTangent";
 
         public const string ObjectSpaceViewDirection = "objectSpaceViewDirection";
         public const string ViewSpaceViewDirection = "viewSpaceViewDirection";
@@ -333,7 +333,7 @@ namespace UnityEngine.MaterialGraph
 
             GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresBitangent, pixelShader,
                 ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ViewSpaceBiTangent,
-                ShaderGeneratorNames.WorldSpaceSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
+                ShaderGeneratorNames.WorldSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
 
             GenerateSpaceTranslationPixelShader(shaderGraphRequirements.requiresViewDir, pixelShader,
                 ShaderGeneratorNames.ObjectSpaceViewDirection, ShaderGeneratorNames.ViewSpaceViewDirection,
@@ -364,7 +364,7 @@ namespace UnityEngine.MaterialGraph
                 if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
                 {
                     interpolators.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, interpolatorIndex), false);
-                    vertexShader.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), false);
+                    vertexShader.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex), false);
                     pixelShader.AddShaderChunk(string.Format("surfaceInput.{0}  = IN.meshUV{1};", channel.GetUVName(), uvIndex), false);
                     interpolatorIndex++;
                 }

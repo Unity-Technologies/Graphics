@@ -26,35 +26,107 @@ SubShader
 		#pragma multi_compile_fog
 		#pragma multi_compile_instancing
 
-        #pragma vertex Vertex
-		#pragma fragment LightweightFragmentPBR
+        #pragma vertex vert
+		#pragma fragment frag
 		#pragma glsl
 		#pragma debug
 		
-${Defines}
-		
+		${Defines}
+
 		#include "UnityCG.cginc"
-		
-		//#define UNITY_SAMPLE_TEX2D(tex, coord) LIGHTWEIGHT_GAMMA_TO_LINEAR4(tex.Sample (sampler##tex,coord)) 
-		
-#define VERTEX_CUSTOM \
-	${VertexShaderBody}
-	
-//#define VERTINPUT_CUSTOM \
-	//${VertexInputs}
-
-#define VERTOUTPUT_CUSTOM \
-	${VertexOutputs}
-	
 		#include "CGIncludes/LightweightPBR.cginc"
-
-${ShaderPropertyUsages}
-${ShaderFunctions}
 		
-		void DefineSurface(VertOutput i, inout SurfacePBR o)
+		struct GraphVertexOutput
+        {
+            float4 position : POSITION;
+            float4 lwCustom : TEXCOORD0;
+			float4 fogCoord : TEXCOORD1; // x: fogCoord, yzw: vertexColor
+            ${Interpolators}
+			UNITY_VERTEX_OUTPUT_STEREO
+        };
+		
+        GraphVertexOutput vert (GraphVertexInput v)
 		{
-${PixelShaderBody}		
+		    v = PopulateVertexData(v);
+			
+			UNITY_SETUP_INSTANCE_ID(v);
+
+            GraphVertexOutput o = (GraphVertexOutput)0;
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+            o.position = UnityObjectToClipPos(v.vertex);
+            ${VertexShader}
+
+		#ifdef LIGHTMAP_ON
+			o.lwCustom.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+		#endif
+
+			float3 lwWNormal = normalize(UnityObjectToWorldNormal(v.normal));
+			float3 lwWorldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+
+			// TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
+		#if defined(_VERTEX_LIGHTS) && defined(_MULTIPLE_LIGHTS)
+			half3 diffuse = half3(1.0, 1.0, 1.0);
+			// pixel lights shaded = min(pixelLights, perObjectLights)
+			// vertex lights shaded = min(vertexLights, perObjectLights) - pixel lights shaded
+			// Therefore vertexStartIndex = pixelLightCount;  vertexEndIndex = min(vertexLights, perObjectLights)
+			int vertexLightStart = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+			int vertexLightEnd = min(globalLightCount.y, unity_LightIndicesOffsetAndCount.y);
+			for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+			{
+				int lightIndex = unity_4LightIndices0[lightIter];
+				LightInput lightInput;
+				INITIALIZE_LIGHT(lightInput, lightIndex);
+
+				half3 lightDirection;
+				half atten = ComputeLightAttenuationVertex(lightInput, lwWNormal, lwWorldPos, lightDirection);
+				o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, lwWNormal, atten);
+			}
+		#endif
+
+		#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
+			o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(lwWNormal, 1)));
+		#endif
+
+			UNITY_TRANSFER_FOG(o, o.position);
+			return o;
 		}
+	
+		fixed4 frag (GraphVertexOutput IN) : SV_Target
+        {
+            SurfaceInputs surfaceInput = (SurfaceInputs)0;
+            ${SurfaceInputs}
+
+            SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+
+			float3 Albedo = float3(0.5, 0.5, 0.5);
+			float3 Specular = float3(0, 0, 0);
+			float Metallic = 0;
+			float3 Normal = float3(.5, .5, 1);
+			float3 Emission = 0;
+			float Smoothness = 0;
+			float Occlusion = 1;
+			float Alpha = 1;
+
+            ${SurfaceOutputRemap}
+
+			return FragmentLightingPBR(
+				IN.lwCustom,
+				surfaceInput.worldSpacePosition,
+				surfaceInput.worldSpaceNormal,
+				surfaceInput.worldSpaceTangent,
+				surfaceInput.worldSpaceBiTangent,
+				surfaceInput.worldSpaceViewDirection,
+				IN.fogCoord, 
+				
+				Albedo,
+				Metallic,
+				Specular,
+				Smoothness,
+				Normal,
+				Occlusion,
+				Emission,
+				Alpha);
+        }
 	
 		ENDCG
 	}

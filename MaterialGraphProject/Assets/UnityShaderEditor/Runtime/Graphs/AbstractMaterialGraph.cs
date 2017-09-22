@@ -139,6 +139,8 @@ namespace UnityEngine.MaterialGraph
                 requiresVertexColor = requiresVertexColor,
                 requiresMeshUVs = meshUV
             };
+
+            reqs = reqs.Union(nodeForRequirements.GetNodeSpecificRequirements());
             ListPool<INode>.Release(activeNodeList);
             return reqs;
         }
@@ -184,7 +186,7 @@ struct GraphVertexInput
      float4 vertex : POSITION;
      float3 normal : NORMAL;
      float4 tangent : TANGENT;
-     float4 texcoord : TEXCOORD0;
+     float4 texcoord0 : TEXCOORD0;
      float4 lightmapUV : TEXCOORD1;
      UNITY_VERTEX_INPUT_INSTANCE_ID
 };";
@@ -202,7 +204,7 @@ struct GraphVertexInput
 
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, surfaceInputs,
                 ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ViewSpaceBiTangent,
-                ShaderGeneratorNames.WorldSpaceSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
+                ShaderGeneratorNames.WorldSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
 
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, surfaceInputs,
                 ShaderGeneratorNames.ObjectSpaceViewDirection, ShaderGeneratorNames.ViewSpaceViewDirection,
@@ -284,7 +286,7 @@ struct GraphVertexInput
             if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceBiTangent), false);
             if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceSpaceBiTangent), false);
+                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceBiTangent), false);
             if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceBiTangent), false);
 
@@ -327,7 +329,7 @@ struct GraphVertexInput
                 activeNode.CollectShaderProperties(shaderProperties, mode);
             }
 
-            pixelShader.AddShaderChunk("SurfaceDescription surface;", false);
+            pixelShader.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
             if (mode == GenerationMode.Preview)
             {
                 foreach (var slot in node.GetOutputSlots<MaterialSlot>())
@@ -342,10 +344,6 @@ struct GraphVertexInput
                         var outputRef = edge.outputSlot;
                         var fromNode = GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                         if (fromNode == null)
-                            continue;
-
-                        var remapper = fromNode as INodeGroupRemapper;
-                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                             continue;
 
                         pixelShader.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);

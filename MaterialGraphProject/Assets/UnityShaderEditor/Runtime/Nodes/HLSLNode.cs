@@ -103,7 +103,7 @@ namespace UnityEngine.MaterialGraph
                 case Binding.WorldSpaceTangent:
                     return ShaderGeneratorNames.WorldSpaceTangent;
                 case Binding.WorldSpaceBitangent:
-                    return ShaderGeneratorNames.WorldSpaceSpaceBiTangent;
+                    return ShaderGeneratorNames.WorldSpaceBiTangent;
                 case Binding.WorldSpacePosition:
                     return ShaderGeneratorNames.WorldSpacePosition;
                 case Binding.TangentSpaceNormal:
