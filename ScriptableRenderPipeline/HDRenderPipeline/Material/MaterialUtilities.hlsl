@@ -33,13 +33,19 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 
     float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
+#ifdef UNITY_LIGHTMAP_FULL_HDR
+    bool useRGBMLightmap = false;
+#else
+    bool useRGBMLightmap = true;
+#endif
+
     #ifdef LIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
         bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
                                                         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
-                                                        uvStaticLightmap, unity_LightmapST, normalWS, true);
+                                                        uvStaticLightmap, unity_LightmapST, normalWS, useRGBMLightmap);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, true);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap);
         #endif
     #endif
 
@@ -56,6 +62,28 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     return bakeDiffuseLighting;
 
 #endif
+}
+
+float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS not use for now
+{
+#if defined(LIGHTMAP_ON)
+    float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_Lightmap, uv); // Reuse sampler from Lightmap
+#else
+    float4 rawOcclusionMask;        
+    if (unity_ProbeVolumeParams.x == 1.0)
+    {
+        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), unity_ProbeVolumeWorldToObject,
+                                                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
+    }
+    else
+    {
+        rawOcclusionMask = unity_ProbesOcclusion;
+    }
+#endif
+
+    return rawOcclusionMask;
 }
 
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
