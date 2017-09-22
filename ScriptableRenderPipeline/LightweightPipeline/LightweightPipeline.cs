@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
         private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit");
 
-        private RenderTextureFormat m_ColorFormat = RenderTextureFormat.ARGB32;
+        private RenderTextureFormat m_ColorFormat;
         private PostProcessRenderContext m_PostProcessRenderContext;
 
         private CameraComparer m_CameraComparer = new CameraComparer();
@@ -288,6 +288,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 renderingConfig |= RenderingConfiguration.IntermediateTextureArray;
 
+            m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
+
             postProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
             bool intermediateTexture = false;
             if (postProcessLayer != null && postProcessLayer.enabled)
@@ -309,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 renderingConfig |= RenderingConfiguration.DefaultViewport;
 
-            intermediateTexture |= (m_CurrCamera.targetTexture != null || m_Asset.RenderScale < 1.0f);
+            intermediateTexture |= (m_CurrCamera.targetTexture != null || m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR);
             if (intermediateTexture && !LightweightUtils.HasFlag(renderingConfig, RenderingConfiguration.IntermediateTextureArray))
                 renderingConfig |= RenderingConfiguration.IntermediateTexture;
 
