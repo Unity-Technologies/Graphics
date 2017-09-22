@@ -260,25 +260,13 @@ namespace UnityEditor.VFX
                             {
                                 throw new InvalidCastException("Unexpected block type in spawnerContext");
                             }
-                            if (spawnerBlock.spawnerType == VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior == null)
+                            if (spawnerBlock.spawnerType == VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior == null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
                             }
-                            if (spawnerBlock.spawnerType != VFXSpawnerType.kCustomCallback && spawnerBlock.customBehavior != null)
+                            if (spawnerBlock.spawnerType != VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior != null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
-                            }
-
-                            /* TODOPAUL : should not have to use two enum */
-                            VFXTaskType taskType = VFXTaskType.kNone;
-                            switch (spawnerBlock.spawnerType)
-                            {
-                                case VFXSpawnerType.kBurst: taskType = VFXTaskType.kSpawnerBurst; break;
-                                case VFXSpawnerType.kConstantRate: taskType = VFXTaskType.kSpawnerConstantRate; break;
-                                case VFXSpawnerType.kCustomCallback: taskType = VFXTaskType.kSpawnerCustomCallback; break;
-                                case VFXSpawnerType.kPeriodicBurst: taskType = VFXTaskType.kSpawnerPeriodicBurst; break;
-                                case VFXSpawnerType.kVariableRate: taskType = VFXTaskType.kSpawnerVariableRate; break;
-                                default: throw new InvalidCastException("Unexpected spawner type");
                             }
 
                             var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
@@ -305,7 +293,7 @@ namespace UnityEditor.VFX
 
                             return new VFXTaskDesc
                             {
-                                type = taskType,
+                                type = spawnerBlock.spawnerType,
                                 buffers = Enumerable.Empty<VFXBufferMapping>().ToArray(),
                                 processor = processor,
                                 values = cpuExpression.ToArray()
