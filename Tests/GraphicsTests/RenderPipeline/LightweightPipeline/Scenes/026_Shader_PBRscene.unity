@@ -51,7 +51,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 0
+    m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 9
@@ -1274,6 +1274,7 @@ MonoBehaviour:
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 1751559077}
   hdr: 0
+  msaaSamples: 1
   width: 1280
   height: 720
 --- !u!20 &1751559077
@@ -1312,7 +1313,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &1751559078
 Transform:
   m_ObjectHideFlags: 0
@@ -1419,6 +1419,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1971611382}
   - component: {fileID: 1971611381}
+  - component: {fileID: 1971611384}
+  - component: {fileID: 1971611383}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -1475,6 +1477,62 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: -214.549, y: -238.25, z: -0.02999878}
+--- !u!114 &1971611383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1971611380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  shadowFadeDistance: 10000
+  shadowCascadeCount: 4
+  shadowCascadeRatios:
+  - 0.05
+  - 0.2
+  - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
+  shadowAlgorithm: 0
+  shadowVariant: 0
+  shadowPrecision: 0
+  shadowData:
+    format: 0
+    data: 
+  shadowDatas: []
+--- !u!114 &1971611384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1971611380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_InnerSpotPercent: 0
+  lightDimmer: 1
+  fadeDistance: 10000
+  affectDiffuse: 1
+  affectSpecular: 1
+  lightTypeExtent: 0
+  spotLightShape: 0
+  shapeLength: 0.5
+  shapeWidth: 0.5
+  shapeRadius: 0
+  maxSmoothness: 1
+  applyRangeAttenuation: 1
+  useOldInspector: 0
+  showAdditionalSettings: 1
 --- !u!1 &2024053722
 GameObject:
   m_ObjectHideFlags: 0
