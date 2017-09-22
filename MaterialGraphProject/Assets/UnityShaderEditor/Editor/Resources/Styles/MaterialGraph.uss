@@ -21,9 +21,29 @@ GraphEditorView > #content > #inspector {
     width: 400;
 }
 
-MaterialNodeView > .mainContainer > #left > #preview > Image {
+MaterialNodeView > .mainContainer > #left > #preview.active {
+    width: 200;
+}
+
+MaterialNodeView > .mainContainer > #left > #preview.visible {
 	height: 200;
-	width: 200;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle {
+    text-color: rgb(153, 153, 153);
+    text-alignment: middle-center;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle.inactive {
+    height: 0;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle:hover {
+	background-color: rgba(0, 0, 0, 0.33);
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle:active {
+	background-color: rgba(0, 0, 0, 0.66);
 }
 
 GridBackground {
