@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialNodePresenter : NodePresenter, IDisposable
     {
-        public INode node { get; private set; }
+        public AbstractMaterialNode node { get; private set; }
 
         [SerializeField]
         protected List<GraphControlPresenter> m_Controls = new List<GraphControlPresenter>();
@@ -102,7 +102,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public virtual void Initialize(INode inNode, PreviewSystem previewSystem)
         {
-            node = inNode;
+            node = inNode as AbstractMaterialNode;
 
             if (node == null)
                 return;

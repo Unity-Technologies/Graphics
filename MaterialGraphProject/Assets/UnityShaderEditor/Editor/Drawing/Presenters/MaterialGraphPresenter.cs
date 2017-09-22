@@ -218,7 +218,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
         {
-            graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
+            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.edge));
             graph.ValidateGraph();
         }
 
@@ -269,7 +269,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var addedNodes = new List<INode>();
-
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in copyGraph.GetNodes<INode>())
             {
@@ -289,8 +288,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             // only connect edges within pasted elements, discard
             // external edges.
-            var addedEdges = new List<IEdge>();
-
             foreach (var edge in copyGraph.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -303,14 +300,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                 {
                     var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    addedEdges.Add(graph.Connect(outputSlotRef, inputSlotRef));
+                    graph.Connect(outputSlotRef, inputSlotRef);
                 }
             }
 
             graph.ValidateGraph();
-
-            //TODO: Fix this
-            //drawingData.selection = addedNodes.Select(n => n.guid);
+            if (onSelectionChanged != null)
+                onSelectionChanged(addedNodes);
         }
 
         public bool canCopy
@@ -381,7 +377,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
             if (onSelectionChanged != null)
-                onSelectionChanged(presenters.Select(x => x.node));
+                onSelectionChanged(presenters.Select(x => x.node as INode));
         }
 
         public override void AddElement(GraphElementPresenter element)
