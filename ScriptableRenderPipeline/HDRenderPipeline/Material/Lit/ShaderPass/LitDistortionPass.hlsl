@@ -17,6 +17,10 @@
 #define ATTRIBUTES_NEED_TANGENT
 #endif
 
+#ifdef _VERTEX_WIND
+#define ATTRIBUTES_NEED_COLOR
+#endif
+
 // About UV
 // If we have a lit shader, only the UV0 is available for opacity or heightmap
 // If we have a layered shader, any UV can be use for this. To reduce the number of variant we groupt UV0/UV1 and UV2/UV3 instead of having variant for UV0/UV1/UV2/UV3
