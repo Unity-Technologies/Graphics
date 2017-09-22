@@ -316,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sliceIndex = m_LocatorInSliceArray[texId];
                 bFoundAvailOrExistingSlice = true;
-                //assert(m_SliceArray[sliceIndex].TexID==TexID);
+                Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
             }
 
             // If no existing copy found in the array
@@ -352,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering
 
 
             // wrap up
-            //assert(bFoundAvailOrExistingSlice);
+            Debug.Assert(bFoundAvailOrExistingSlice);   // if this fails either increase the size of the texture cache or reduce number of unique cached textures in use.
             if (bFoundAvailOrExistingSlice)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
