@@ -129,10 +129,9 @@ namespace UnityEditor.VFX.UI
         {
             if (m_graphUndoStack.IsDirtyState())
             {
-                var newAsset = new VFXAsset();
-                newAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
+                m_VFXAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
                 m_reentrant = true;
-                SetVFXAsset(newAsset, true);
+                SetVFXAsset(m_VFXAsset, true);
                 m_reentrant = false;
                 m_graphUndoStack.CleanDirtyState();
             }
