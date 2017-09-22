@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
-        public override string name { get { return "SetAttribute (" + attribute +")"; } }
+        public override string name { get { return "SetAttribute"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
