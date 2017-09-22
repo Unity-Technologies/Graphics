@@ -43,7 +43,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -223,7 +223,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 64132547}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &64132549
 Behaviour:
   m_ObjectHideFlags: 0
