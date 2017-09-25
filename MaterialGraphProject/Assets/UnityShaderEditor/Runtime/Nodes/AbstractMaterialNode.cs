@@ -38,7 +38,7 @@ namespace UnityEngine.MaterialGraph
         private OutputPrecision m_OutputPrecision = OutputPrecision.@float;
 
         [SerializeField]
-        bool m_PreviewExpanded;
+        bool m_PreviewExpanded = true;
 
         public bool previewExpanded
         {
