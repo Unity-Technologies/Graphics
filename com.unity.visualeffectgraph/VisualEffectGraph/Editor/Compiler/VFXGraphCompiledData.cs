@@ -249,7 +249,7 @@ namespace UnityEditor.VFX
                     buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.kVFXSystemDefault,
-                    tasks = spawnContext.childrenWithImplicit.Select((b, index) =>
+                    tasks = spawnContext.activeChildrenWithImplicit.Select((b, index) =>
                         {
                             var spawnerBlock = b as VFXAbstractSpawner;
                             if (spawnerBlock == null)
