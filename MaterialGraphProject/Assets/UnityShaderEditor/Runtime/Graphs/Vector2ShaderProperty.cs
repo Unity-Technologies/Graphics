@@ -10,6 +10,11 @@ namespace UnityEngine.MaterialGraph
             get { return PropertyType.Vector2; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(value.x, value.y, 0, 0); }
+        }
+
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty()

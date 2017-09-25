@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
- /*   [Serializable]
+    [Serializable]
     [Title("Master/Lightweight/PBR Specular")]
     public class LightweightSpecularMasterNode : AbstractLightweightPBRMasterNode
     {
@@ -44,8 +45,12 @@ namespace UnityEngine.MaterialGraph
                 VertexOffsetId
             });
         }
+        protected override string GetTemplateName()
+        {
+            return "lightweightSubshaderPBR.template";
+        }
 
-        protected override int[] surfaceInputs
+        protected override IEnumerable<int> masterSurfaceInputs
         {
             get
             {
@@ -62,7 +67,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        protected override int[] vertexInputs
+        protected override IEnumerable<int> masterVertexInputs
         {
             get
             {
@@ -72,10 +77,5 @@ namespace UnityEngine.MaterialGraph
                 };
             }
         }
-
-        public override string GetWorkflowName()
-        {
-            return WorkflowName;
-        }
-    }*/
+    }
 }

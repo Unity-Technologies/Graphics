@@ -11,6 +11,11 @@ namespace UnityEngine.MaterialGraph
             get { return PropertyType.Float; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(value, value, value, value);}
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();

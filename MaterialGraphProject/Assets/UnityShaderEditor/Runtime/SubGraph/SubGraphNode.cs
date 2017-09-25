@@ -133,11 +133,48 @@ namespace UnityEngine.MaterialGraph
                 return;
             }
 
-            var subGraphInputNode = subGraphAsset.subGraph.inputNode;
-            foreach (var slot in subGraphInputNode.GetOutputSlots<MaterialSlot>())
+            var props = subGraph.properties;
+            foreach (var prop in props)
             {
-                AddSlot(new MaterialSlot(slot.id, slot.displayName, slot.shaderOutputName, SlotType.Input, slot.valueType, slot.defaultValue));
-                validNames.Add(slot.id);
+                var propType = prop.propertyType;
+                SlotValueType slotType;
+
+                switch (propType)
+                {
+                    case PropertyType.Color:
+                        slotType = SlotValueType.Vector4;
+                        break;
+                    case PropertyType.Texture:
+                        slotType = SlotValueType.Texture2D;
+                        break;
+                    case PropertyType.Float:
+                        slotType = SlotValueType.Vector1;
+                        break;
+                    case PropertyType.Vector2:
+                        slotType = SlotValueType.Vector2;
+                        break;
+                    case PropertyType.Vector3:
+                        slotType = SlotValueType.Vector3;
+                        break;
+                    case PropertyType.Vector4:
+                        slotType = SlotValueType.Vector4;
+                        break;
+                    case PropertyType.Matrix2:
+                        slotType = SlotValueType.Matrix2;
+                        break;
+                    case PropertyType.Matrix3:
+                        slotType = SlotValueType.Matrix3;
+                        break;
+                    case PropertyType.Matrix4:
+                        slotType = SlotValueType.Matrix4;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                var id = prop.guid.GetHashCode();
+                AddSlot(new MaterialSlot(id, prop.name, prop.name, SlotType.Input, slotType, prop.defaultValue));
+                validNames.Add(id);
             }
 
             var subGraphOutputNode = subGraphAsset.subGraph.outputNode;
@@ -182,17 +219,19 @@ namespace UnityEngine.MaterialGraph
             // Step 3...
             // For each input that is used and connects through we want to generate code.
             // First we assign the input variables to the subgraph
-            var subGraphInputNode = subGraphAsset.subGraph.inputNode;
+            var subGraphInputs = subGraphAsset.subGraph.properties;
 
-            foreach (var slot in GetInputSlots<MaterialSlot>())
+            var propertyGen = new PropertyCollector();
+            subGraphAsset.subGraph.CollectShaderProperties(propertyGen, GenerationMode.ForReals);
+            foreach (var prop in subGraphInputs)
             {
-                var varName = subGraphInputNode.GetVariableNameForSlot(slot.id);
-                var varValue = GetSlotValue(slot.id, generationMode);
+                var varName = prop.name;
+                var slotId = prop.guid.GetHashCode();
+                var slot = FindInputSlot<MaterialSlot>(slotId);
+                var varValue = GetSlotValue(slotId, generationMode);
 
-                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
                 outputString.AddShaderChunk(
-                    "float"
-                    + outDimension
+                    ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)
                     + " "
                     + varName
                     + " = "

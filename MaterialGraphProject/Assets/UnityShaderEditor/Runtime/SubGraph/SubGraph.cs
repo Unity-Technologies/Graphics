@@ -9,25 +9,9 @@ namespace UnityEngine.MaterialGraph
     public class SubGraph : AbstractMaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
-        , IGenerateProperties
     {
         [NonSerialized]
-        private SubGraphInputNode m_InputNode;
-
-        [NonSerialized]
         private SubGraphOutputNode m_OutputNode;
-
-        public SubGraphInputNode inputNode
-        {
-            get
-            {
-                // find existing node
-                if (m_InputNode == null)
-                    m_InputNode = GetNodes<SubGraphInputNode>().FirstOrDefault();
-
-                return m_InputNode;
-            }
-        }
 
         public SubGraphOutputNode outputNode
         {
@@ -57,18 +41,11 @@ namespace UnityEngine.MaterialGraph
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            m_InputNode = null;
             m_OutputNode = null;
         }
 
         public override void AddNode(INode node)
         {
-            if (inputNode != null && node is SubGraphInputNode)
-            {
-                Debug.LogWarning("Attempting to add second SubGraphInputNode to SubGraph. This is not allowed.");
-                return;
-            }
-
             if (outputNode != null && node is SubGraphOutputNode)
             {
                 Debug.LogWarning("Attempting to add second SubGraphOutputNode to SubGraph. This is not allowed.");
@@ -122,7 +99,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
         {
             foreach (var node in usedNodes)
             {

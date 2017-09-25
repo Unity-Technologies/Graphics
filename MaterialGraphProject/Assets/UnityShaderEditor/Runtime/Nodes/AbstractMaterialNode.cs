@@ -57,11 +57,6 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        protected virtual bool generateDefaultInputs
-        {
-            get { return true; }
-        }
-
         public override bool hasError
         {
             get { return m_HasError; }
@@ -75,9 +70,6 @@ namespace UnityEngine.MaterialGraph
 
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (!generateDefaultInputs)
-                return;
-
             if (!generationMode.IsPreview())
                 return;
 
