@@ -65,10 +65,10 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
             CGPROGRAM
             #pragma target 3.0
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
-            #pragma shader_feature _ _SPECGLOSSMAP _SPECGLOSSMAP_BASE_ALPHA _SPECULAR_COLOR
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION
-            #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
             #pragma multi_compile _ _LIGHTWEIGHT_FORCE_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
