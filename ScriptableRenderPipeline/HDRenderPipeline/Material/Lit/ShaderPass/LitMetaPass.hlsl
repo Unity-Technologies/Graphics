@@ -1,4 +1,4 @@
-#ifndef SHADERPASS
+﻿#ifndef SHADERPASS
 #error Undefine_SHADERPASS
 #endif
 
@@ -8,6 +8,7 @@
 
 #ifdef _VERTEX_WIND
 #define ATTRIBUTES_NEED_COLOR
+#define ATTRIBUTES_NEED_NORMAL
 #endif
 
 #if defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))

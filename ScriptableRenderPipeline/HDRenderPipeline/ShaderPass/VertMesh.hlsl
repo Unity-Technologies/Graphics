@@ -98,13 +98,11 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     VaryingsMeshType output;
 
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-    float3 normalWS = float3(0.0, 0.0, 0.0);
+#if defined(ATTRIBUTES_NEED_NORMAL)
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+#endif
     float4 tangentWS = float4(0.0, 0.0, 0.0, 0.0);
     float4 vertexColor = float4(0.0, 0.0, 0.0, 0.0);
-
-#if (defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(TESSELLATION_ON)) && (SHADERPASS != SHADERPASS_VELOCITY)
-    normalWS = TransformObjectToWorldNormal(input.normalOS);
-#endif
 
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);

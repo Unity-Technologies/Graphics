@@ -11,6 +11,9 @@
 #define REQUIRE_TANGENT_TO_WORLD 0 /* (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)) */
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
+#if defined(_VERTEX_WIND)
+#define ATTRIBUTES_NEED_NORMAL
+#endif
 
 // Tesselation require normal
 #if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD
