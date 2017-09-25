@@ -148,3 +148,36 @@ IMGUISlotEditorView {
     flex-direction: column;
     padding-bottom: 2;
 }
+
+
+ToolbarView {
+    flex-direction: row;
+    border-color: rgb(32, 32, 32);
+    border-bottom-width: 1;
+}
+
+ToolbarSeparatorView {
+    background-color: rgb(32, 32, 32);
+    width: 1;
+}
+
+ToolbarSpaceView {
+    width: 5;
+}
+
+ToolbarButtonView {
+    font-size: 10;
+    text-color: rgb(180, 180, 180);
+    padding-top: 3;
+    padding-bottom: 3;
+    padding-left: 4;
+    padding-right: 4;
+}
+
+ToolbarButtonView:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+ToolbarButtonView:active {
+    background-color: rgba(0, 0, 0, 0.25);
+}

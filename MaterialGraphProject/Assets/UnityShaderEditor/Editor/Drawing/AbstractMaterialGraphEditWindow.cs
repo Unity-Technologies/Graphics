@@ -109,6 +109,10 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnEnable()
         {
             graphEditorView = new GraphEditorView();
+            graphEditorView.onUpdateAssetClick += UpdateAsset;
+            graphEditorView.onConvertToSubgraphClick += ToSubGraph;
+            graphEditorView.onShowInProjectClick += PingAsset;
+            graphEditorView.onTimeClick += ToggleRequiresTime;
             rootVisualContainer.Add(graphEditorView);
         }
 
