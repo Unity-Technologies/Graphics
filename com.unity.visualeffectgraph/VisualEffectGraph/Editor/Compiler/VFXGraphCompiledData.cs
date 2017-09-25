@@ -189,42 +189,38 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
+        private static List<VFXContext> CollectContextParentRecursively(List<VFXContext> inputList)
         {
-            var allSpawner = vfxContext.Where(o => o.contextType == VFXContextType.kSpawner);
-            var spawnerToResolve = new HashSet<VFXContext>(vfxContext.Where(o => o.contextType == VFXContextType.kInit).SelectMany(o => o.inputContexts));
-
-            var spawnerProcessed = new List<VFXContext>();
-            while (spawnerToResolve.Count != 0)
+            var contextList = inputList.SelectMany(o => o.inputContexts).Distinct().ToList();
+            if (contextList.Any(o => o.inputContexts.Any()))
             {
-                var currentSpawnerToResolve = spawnerToResolve.ToArray();
-                foreach (var spawner in currentSpawnerToResolve)
+                var parentContextList = CollectContextParentRecursively(contextList);
+                foreach (var context in parentContextList)
                 {
-                    var dependencyNeeded = spawner.inputContexts.Where(o => spawnerProcessed.Contains(o)).ToArray();
-                    if (dependencyNeeded.Length != 0)
+                    if (!contextList.Contains(context))
                     {
-                        foreach (var dependency in dependencyNeeded)
-                        {
-                            spawnerToResolve.Add(dependency);
-                        }
-                    }
-                    else
-                    {
-                        spawnerProcessed.Add(spawner);
-                        spawnerToResolve.Remove(spawner);
+                        contextList.Add(context);
                     }
                 }
             }
-            return spawnerProcessed.ToArray();
+            return contextList;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, int> contextSpawnToBufferIndex, List<VFXCPUBufferDesc> cpuBufferDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> eventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, List<VFXSystemDesc> systemDescs)
+        private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
+        {
+            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.kInit).ToList();
+            var spawnerList = CollectContextParentRecursively(initContext);
+            spawnerList.Reverse();
+            return spawnerList.ToArray();
+        }
+
+        private static void FillSpawner(Dictionary<VFXContext, int> outContextSpawnToBufferIndex, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> eventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
             foreach (var spawnContext in spawners)
             {
-                contextSpawnToBufferIndex.Add(spawnContext, cpuBufferDescs.Count);
-                cpuBufferDescs.Add(new VFXCPUBufferDesc()
+                outContextSpawnToBufferIndex.Add(spawnContext, outCpuBufferDescs.Count);
+                outCpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1,
                     layout = eventAttributeDescs.ToArray()
@@ -234,7 +230,7 @@ namespace UnityEditor.VFX
             {
                 var buffers = spawnContext.inputContexts.Select(o => new VFXBufferMapping()
                 {
-                    bufferIndex = contextSpawnToBufferIndex[o],
+                    bufferIndex = outContextSpawnToBufferIndex[o],
                     name = "spawner_input"
                 }).ToList();
 
@@ -243,12 +239,12 @@ namespace UnityEditor.VFX
 
                 buffers.Add(new VFXBufferMapping()
                 {
-                    bufferIndex = contextSpawnToBufferIndex[spawnContext],
+                    bufferIndex = outContextSpawnToBufferIndex[spawnContext],
                     name = "spawner_output"
                 });
 
                 var contextData = contextToCompiledData[spawnContext];
-                systemDescs.Add(new VFXSystemDesc()
+                outSystemDescs.Add(new VFXSystemDesc()
                 {
                     buffers = buffers.ToArray(),
                     capacity = 0u,
@@ -471,8 +467,10 @@ namespace UnityEditor.VFX
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
+
                 var contextSpawnToBufferIndex = new Dictionary<VFXContext, int>();
-                FillSpawner(contextSpawnToBufferIndex, cpuBufferDescs, models, m_ExpressionGraph, eventAttributeDescs, contextToCompiledData, systemDescs);
+                FillSpawner(contextSpawnToBufferIndex, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, eventAttributeDescs, contextToCompiledData);
 
                 foreach (var data in models.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
