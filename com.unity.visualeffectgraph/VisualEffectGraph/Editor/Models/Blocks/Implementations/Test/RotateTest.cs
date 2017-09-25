@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.BlockLibrary.Test
 {
     [VFXInfo(category = "Tests")]
-    class VFXRotate : VFXBlock
+    class RotateTest : VFXBlock
     {
         public override string name                         { get { return "Rotate"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kInitAndUpdate; } }

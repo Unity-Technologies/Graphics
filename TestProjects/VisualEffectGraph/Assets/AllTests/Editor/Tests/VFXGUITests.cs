@@ -1,10 +1,10 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
+using UnityEditor.VFX.BlockLibrary.Test;
 using System.IO;
 
 namespace UnityEditor.VFX.Test
@@ -258,7 +258,7 @@ namespace UnityEditor.VFX.Test
             var newBlock = block.CreateInstance();
             contextPresenter.AddBlock(0, newBlock);
 
-            Assert.IsTrue(newBlock is VFXAllType);
+            Assert.IsTrue(newBlock is AllType);
 
             Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 

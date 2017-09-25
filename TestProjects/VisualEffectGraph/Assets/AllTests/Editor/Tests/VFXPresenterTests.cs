@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
+using UnityEditor.VFX.BlockLibrary.Test;
 
 namespace UnityEditor.VFX.Test
 {
@@ -158,7 +159,7 @@ namespace UnityEditor.VFX.Test
             var newBlock = block.CreateInstance();
             contextPresenter.AddBlock(0, newBlock);
 
-            Assert.IsTrue(newBlock is VFXAllType);
+            Assert.IsTrue(newBlock is AllType);
 
             Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
@@ -720,7 +721,7 @@ namespace UnityEditor.VFX.Test
             CreateTestAsset();
 
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
-            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(VFXAllType));
+            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
 
             var contextUpdate = m_ViewPresenter.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextPresenter> fnContextPresenter = delegate()
@@ -747,7 +748,7 @@ namespace UnityEditor.VFX.Test
             Undo.PerformUndo();
             Assert.IsNotNull(fnContextPresenter());
             Assert.AreEqual(1, fnContextPresenter().context.children.Count());
-            Assert.IsInstanceOf(typeof(VFXAllType), fnContextPresenter().context.children.First());
+            Assert.IsInstanceOf(typeof(AllType), fnContextPresenter().context.children.First());
 
             DestroyTestAsset();
         }

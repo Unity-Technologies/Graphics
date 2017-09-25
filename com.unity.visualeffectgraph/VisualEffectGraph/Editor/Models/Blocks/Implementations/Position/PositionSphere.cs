@@ -3,10 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.BlockLibrary
 {
     [VFXInfo(category = "Position")]
-    class VFXPositionSphere : VFXBlock
+    class PositionSphere : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
         public enum PrimitivePositionMode
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this)) 
+                foreach (var p in GetExpressionsFromSlots(this))
                     yield return p;
 
                 VFXExpression factor = VFXValue.Constant(0.0f);
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
                 string outSource = @"
 float u1 = 2.0 * RAND - 1.0;
 float u2 = UNITY_TWO_PI * RAND;
-float u3 = pow(surfaceFactor + (1 - surfaceFactor) * RAND,1.0f/3.0f); 
+float u3 = pow(surfaceFactor + (1 - surfaceFactor) * RAND,1.0f/3.0f);
 float3 pos = VFXPositionOnSphere(Sphere,u1,u2,u3);
 position += pos;
 ";
@@ -97,6 +97,6 @@ position += pos;
             }
         }
 
-        
+
     }
 }
