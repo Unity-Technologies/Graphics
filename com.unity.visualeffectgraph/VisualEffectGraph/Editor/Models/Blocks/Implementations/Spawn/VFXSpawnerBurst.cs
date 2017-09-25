@@ -11,8 +11,8 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerBurst; } }
         public class InputProperties
         {
-            public Vector2 Count = new Vector2(10, 10);
-            public Vector2 Delay = new Vector2(1, 1);
+            public Vector2 Count = new Vector2(0, 10);
+            public Vector2 Delay = new Vector2(0, 1);
         }
     }
 }

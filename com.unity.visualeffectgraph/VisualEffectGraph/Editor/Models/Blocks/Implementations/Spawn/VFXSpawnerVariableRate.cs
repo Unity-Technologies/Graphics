@@ -11,8 +11,8 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerVariableRate; } }
         public class InputProperties
         {
-            public float nb = 10;
-            public float period = 1;
+            public Vector2 nb = new Vector2(0, 10);
+            public Vector2 period = new Vector2(0, 1);
         }
     }
 }
