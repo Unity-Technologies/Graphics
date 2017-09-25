@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
         sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
         {
             var inputExpression = base.GetInputExpressions();
-            return VFXOperatorUtility.UnifyFloatLevel(inputExpression, m_FallbackValue);
+            return VFXOperatorUtility.UpcastAllFloatN(inputExpression, m_FallbackValue);
         }
     }
 
