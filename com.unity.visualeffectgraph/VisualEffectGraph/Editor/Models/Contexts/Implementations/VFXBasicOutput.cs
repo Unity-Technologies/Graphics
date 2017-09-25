@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
         {
             if (target == VFXDeviceTarget.GPU)
             {
-                var gpuMapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
+                var gpuMapper = VFXExpressionMapper.FromBlocks(activeChildrenWithImplicit);
                 if (useSoftParticle)
                 {
                     var softParticleFade = GetExpressionsFromSlots(this).First(o => o.name == "softParticlesFadeDistance");
