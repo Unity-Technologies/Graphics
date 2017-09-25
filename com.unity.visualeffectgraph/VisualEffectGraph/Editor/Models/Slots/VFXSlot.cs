@@ -638,16 +638,15 @@ namespace UnityEditor.VFX
 
         public void UnlinkAll(bool recursive = false, bool notify = true)
         {
-            var currentSlots = new List<VFXSlot>(m_LinkedSlots);
-            foreach (var slot in currentSlots)
-                Unlink(slot, notify);
-
             if (recursive)
             {
-                foreach (var child in children)
-                {
-                    child.UnlinkAll(recursive, notify);
-                }
+                PropagateToChildren(o => o.UnlinkAll(false, notify));
+            }
+            else
+            {
+                var currentSlots = new List<VFXSlot>(m_LinkedSlots);
+                foreach (var slot in currentSlots)
+                    Unlink(slot, notify);
             }
         }
 
