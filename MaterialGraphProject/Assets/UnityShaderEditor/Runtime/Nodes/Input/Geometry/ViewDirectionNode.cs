@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
 
         public NeededCoordinateSpace RequiresViewDirection()
         {
-            return NeededCoordinateSpace.Object;
+            return NeededCoordinateSpace.World;
         }
     }
 }

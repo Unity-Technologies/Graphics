@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -11,8 +10,6 @@ namespace UnityEngine.MaterialGraph
     {
         public const string MetallicSlotName = "Metallic";
         public const int MetallicSlotId = 2;
-
-        public const string WorkflowName = "Metallic";
 
         public LightweightMetallicMasterNode()
         {

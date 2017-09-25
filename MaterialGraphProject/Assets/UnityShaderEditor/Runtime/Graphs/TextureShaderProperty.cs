@@ -25,6 +25,11 @@ namespace UnityEngine.MaterialGraph
             set { m_Modifiable = value; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(); }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();

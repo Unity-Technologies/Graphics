@@ -30,7 +30,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
                 collector.AddShaderProperty(prop);

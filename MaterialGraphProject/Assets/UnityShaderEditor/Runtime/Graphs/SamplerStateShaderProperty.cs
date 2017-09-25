@@ -9,6 +9,11 @@ namespace UnityEngine.MaterialGraph
             get { return PropertyType.SamplerState; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(); }
+        }
+
         public override string GetPropertyBlockString()
         {
             return string.Empty;

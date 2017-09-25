@@ -9,6 +9,7 @@ namespace UnityEngine.MaterialGraph
         PropertyType propertyType { get; }
         Guid guid { get; }
         bool generatePropertyBlock { get; set; }
+        Vector4 defaultValue { get; }
 
         string GetPropertyBlockString();
         string GetPropertyDeclarationString();

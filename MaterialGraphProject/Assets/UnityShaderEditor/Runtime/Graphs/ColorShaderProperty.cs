@@ -26,6 +26,11 @@ namespace UnityEngine.MaterialGraph
             get { return PropertyType.Color; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(value.r, value.g, value.b, value.a); }
+        }
+
         public override string GetPropertyBlockString()
         {
             if (!generatePropertyBlock)

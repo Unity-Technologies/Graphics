@@ -67,6 +67,7 @@ namespace UnityEngine.MaterialGraph
             set { m_GeneratePropertyBlock = value; }
         }
 
+        public abstract Vector4 defaultValue { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString();
         public abstract PreviewProperty GetPreviewMaterialProperty();
