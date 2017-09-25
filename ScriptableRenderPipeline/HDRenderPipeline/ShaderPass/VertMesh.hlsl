@@ -114,9 +114,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     vertexColor = input.color;
 #endif
 
-#if _VERTEX_WIND
+#ifdef _VERTEX_WIND
     float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
-    ApplyWind(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, vertexColor.a, _Time);
+    ApplyWind(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, _Time);
 #endif
 
     positionWS = GetCameraRelativePositionWS(positionWS);

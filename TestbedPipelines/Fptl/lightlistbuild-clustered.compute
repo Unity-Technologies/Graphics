@@ -396,7 +396,7 @@ float4 FetchPlane(int l, int p)
 	const float radius = lgtDat.radius;
 	const float2 scaleXY = lgtDat.scaleXY;
 
-	return GetPlaneEq(boxX, boxY, boxZ, center, scaleXY, p);
+	return GetHullPlaneEq(boxX, boxY, boxZ, center, scaleXY, p);
 }
 
 
