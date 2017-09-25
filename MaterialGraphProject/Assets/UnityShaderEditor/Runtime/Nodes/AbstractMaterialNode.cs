@@ -43,7 +43,14 @@ namespace UnityEngine.MaterialGraph
         public bool previewExpanded
         {
             get { return m_PreviewExpanded; }
-            set { m_PreviewExpanded = value; }
+            set
+            {
+                if (previewExpanded == value)
+                    return;
+                m_PreviewExpanded = value;
+                if (onModified != null)
+                    onModified(this, ModificationScope.Node);
+            }
         }
 
         // Nodes that want to have a preview area can override this and return true
