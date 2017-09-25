@@ -189,11 +189,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 
 #endif // _MULTIPLE_LIGHTS
 
-#ifdef _EMISSION
-    color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;
-#else
-    color += _EmissionColor;
-#endif
+    color += EmissionLW(i.uv01.xy);
 
 #if defined(LIGHTMAP_ON)
     color += DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
