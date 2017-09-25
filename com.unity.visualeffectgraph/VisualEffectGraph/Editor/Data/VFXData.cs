@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
                 {
                     var attributes = Enumerable.Empty<VFXAttributeInfo>();
                     attributes = attributes.Concat(context.attributes);
-                    foreach (var block in context.childrenWithImplicit)
+                    foreach (var block in context.activeChildrenWithImplicit)
                         attributes = attributes.Concat(block.attributes);
 
                     var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);

@@ -65,7 +65,9 @@ namespace UnityEditor.VFX
                 else if (exp.Is(VFXExpression.Flags.PerElement))
                     dotNode.attributes[DotAttribute.Color] = DotColor.Yellow;
                 else if (exp.Is(VFXExpression.Flags.Constant))
-                    dotNode.attributes[DotAttribute.Color] = DotColor.LightGrey;
+                    dotNode.attributes[DotAttribute.Color] = DotColor.SlateGray;
+                else if (exp.Is(VFXExpression.Flags.Foldable))
+                    dotNode.attributes[DotAttribute.Color] = DotColor.LightGray;
 
                 if (dotNode.attributes.ContainsKey(DotAttribute.Color))
                     dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;

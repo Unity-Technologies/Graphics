@@ -187,6 +187,17 @@ namespace UnityEditor.VFX
         {
         }
 
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            if (zero.Equals(reducedParents[0]))
+                return reducedParents[1];
+            if (zero.Equals(reducedParents[1]))
+                return reducedParents[0];
+
+            return base.Reduce(reducedParents);
+        }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("{0} + {1}", left, right);
@@ -206,6 +217,21 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMulOp)
         {
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var zero  = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            if (zero.Equals(reducedParents[0]) || zero.Equals(reducedParents[1]))
+                return zero;
+
+            var one = VFXOperatorUtility.OneExpression[TypeToSize(reducedParents[0].valueType)];
+            if (one.Equals(reducedParents[0]))
+                return reducedParents[1];
+            if (one.Equals(reducedParents[1]))
+                return reducedParents[0];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override float ProcessBinaryOperation(float left, float right)
@@ -229,6 +255,19 @@ namespace UnityEditor.VFX
         {
         }
 
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            if (zero.Equals(reducedParents[0]))
+                return zero;
+
+            var one = VFXOperatorUtility.OneExpression[TypeToSize(reducedParents[0].valueType)];
+            if (one.Equals(reducedParents[1]))
+                return reducedParents[0];
+
+            return base.Reduce(reducedParents);
+        }
+
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
             return left / right;
@@ -248,6 +287,15 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp)
         {
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            if (zero.Equals(reducedParents[1]))
+                return reducedParents[0];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override float ProcessBinaryOperation(float left, float right)
