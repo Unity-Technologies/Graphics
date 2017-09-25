@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         {
             // GPU
             if (target == VFXDeviceTarget.GPU)
-                return VFXExpressionMapper.FromBlocks(childrenWithImplicit);
+                return VFXExpressionMapper.FromBlocks(activeChildrenWithImplicit);
 
             // CPU
             var cpuMapper = new VFXExpressionMapper();
