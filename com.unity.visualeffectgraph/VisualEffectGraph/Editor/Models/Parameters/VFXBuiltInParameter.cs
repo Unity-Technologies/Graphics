@@ -9,6 +9,13 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXExpressionOp m_expressionOp;
 
+        public override T Clone<T>()
+        {
+            var copy = base.Clone<T>() as VFXBuiltInParameter;
+            copy.Init(m_expressionOp);
+            return copy as T;
+        }
+
         public VFXExpressionOp expressionOp
         {
             get
