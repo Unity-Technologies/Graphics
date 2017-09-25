@@ -277,21 +277,15 @@ namespace UnityEditor.VFX.UI
                 VFXContext context = ((VFXContextPresenter)element).context;
 
                 // Remove connections from context
-                foreach (var slot in context.inputSlots)
-                    slot.UnlinkAll();
-                foreach (var slot in context.outputSlots)
-                    slot.UnlinkAll();
+                foreach (var slot in context.inputSlots.Concat(context.outputSlots))
+                    slot.UnlinkAll(true, true);
 
                 // Remove connections from blocks
                 foreach (VFXBlockPresenter blockPres in (element as VFXContextPresenter).blockPresenters)
                 {
-                    foreach (var slot in blockPres.slotContainer.outputSlots)
+                    foreach (var slot in blockPres.slotContainer.outputSlots.Concat(blockPres.slotContainer.inputSlots))
                     {
-                        slot.UnlinkAll();
-                    }
-                    foreach (var slot in blockPres.slotContainer.inputSlots)
-                    {
-                        slot.UnlinkAll();
+                        slot.UnlinkAll(true, true);
                     }
                 }
 
@@ -313,10 +307,10 @@ namespace UnityEditor.VFX.UI
                 do
                 {
                     slotToClean = operatorPresenter.slotContainer.inputSlots.Concat(operatorPresenter.slotContainer.outputSlots)
-                        .FirstOrDefault(o => o.HasLink());
+                        .FirstOrDefault(o => o.HasLink(true));
                     if (slotToClean)
                     {
-                        slotToClean.UnlinkAll();
+                        slotToClean.UnlinkAll(true, true);
                     }
                 }
                 while (slotToClean != null);

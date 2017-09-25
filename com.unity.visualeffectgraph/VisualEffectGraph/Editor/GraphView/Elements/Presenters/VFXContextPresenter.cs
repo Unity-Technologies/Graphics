@@ -122,11 +122,10 @@ namespace UnityEditor.VFX.UI
             VFXSlot slotToClean = null;
             do
             {
-                slotToClean = block.inputSlots.Concat(block.outputSlots)
-                    .FirstOrDefault(o => o.HasLink());
+                slotToClean = block.inputSlots.Concat(block.outputSlots).FirstOrDefault(o => o.HasLink(true));
                 if (slotToClean)
                 {
-                    slotToClean.UnlinkAll();
+                    slotToClean.UnlinkAll(true, true);
                 }
             }
             while (slotToClean != null);

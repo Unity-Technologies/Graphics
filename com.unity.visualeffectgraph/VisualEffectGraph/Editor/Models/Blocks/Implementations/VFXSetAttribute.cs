@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
             {
                 //Remove previous deprecated slot (attribute may have changed) and restore link
                 CopyLink(inputSlots[0], inputSlots[1]);
-                inputSlots[0].UnlinkAll(false);
+                inputSlots[0].UnlinkAll(true, false);
                 RemoveSlot(inputSlots[0]);
             }
 

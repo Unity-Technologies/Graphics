@@ -845,5 +845,30 @@ namespace UnityEditor.VFX.Test
 
             DestroyTestAsset();
         }
+
+        [Test]
+        public void DeleteSubSlotWithLink()
+        {
+            CreateTestAsset();
+
+            var crossProductDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
+            var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Sin"));
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cos"));
+
+            var crossProduct = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), crossProductDesc);
+            var sin = m_ViewPresenter.AddVFXOperator(new Vector2(8, 8), sinDesc);
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(-8, 8), cosDesc);
+
+            crossProduct.outputSlots[0].children.ElementAt(1).Link(sin.inputSlots[0]);
+            crossProduct.outputSlots[0].children.ElementAt(1).Link(cos.inputSlots[0]);
+
+            var crossPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().First(o => o.model.name.Contains("Cross"));
+            m_ViewPresenter.RemoveElement(crossPresenter);
+
+            Assert.IsFalse(cos.inputSlots[0].HasLink(true));
+            Assert.IsFalse(sin.inputSlots[0].HasLink(true));
+
+            DestroyTestAsset();
+        }
     }
 }
