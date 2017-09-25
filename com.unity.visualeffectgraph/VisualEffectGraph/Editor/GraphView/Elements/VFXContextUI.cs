@@ -174,7 +174,6 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay.AddToClassList("dragdisplay");
 
             Add(new VisualElement() { name = "icon" });
-            clipChildren = false;
 
             m_EdgeDrawer = new VFXContextEdgeDrawer();
 
