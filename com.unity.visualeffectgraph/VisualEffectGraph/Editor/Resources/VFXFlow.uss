@@ -9,10 +9,10 @@
 	height:16;
 }
 .FlowContainer.Input{
-	position-top:-8;
+	position-top:8;
 }
 .FlowContainer.Output{
-	position-bottom:-8;
+	position-bottom:8;
 }
 
 VFXFlowAnchor.EdgeConnector {

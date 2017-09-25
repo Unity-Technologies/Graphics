@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
             m_HeaderContainer.Add(m_HeaderIcon);
             m_HeaderContainer.Add(m_HeaderTitle);
 
-            m_Header.shadow.Add(m_FlowInputConnectorContainer);
+            Add(m_FlowInputConnectorContainer);
 
             m_HeaderSpace = new VisualElement();
             m_HeaderSpace.name = "HeaderSpace";
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.UI
             m_Footer.Add(m_FooterTitle);
             m_Footer.AddToClassList("Extremity");
 
-            m_Footer.Add(m_FlowOutputConnectorContainer);
+            Add(m_FlowOutputConnectorContainer);
 
             m_InsideContainer.Add(m_Footer);
             /*

@@ -105,7 +105,7 @@ Shader "Hidden/VFX/ParticleQuads"
 					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 					o.color.a *= fade;
 #endif
-					clip(o.color.a - 1e-10);
+					clip(o.color.a - 0.5f);
 
 					return o;
 				}

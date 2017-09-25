@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
             var expression = AllExpressions.FirstOrDefault(e => e.operation == op);
             if (expression == null)
             {
-                Debug.LogErrorFormat("Unable to find BuiltIn Parameter from op : {0}", op);
+                throw new InvalidOperationException(string.Format("Unable to find BuiltIn Parameter from op : {0}", op));
             }
             return expression;
         }

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
-            return new UnityEngine.Object[] { this, m_Model };
+            return new UnityEngine.Object[] { this, m_Model, m_Model.GetMasterSlot() };
         }
 
         private VFXSlotContainerPresenter m_SourceNode;
