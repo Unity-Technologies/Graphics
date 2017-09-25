@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 
-public class LightweightPipelineMaterialEditor : ShaderGUI
+public class LightweightStandardSimpleLightingGUI : ShaderGUI
 {
     private const float kMinShininessValue = 0.01f;
     private MaterialProperty blendModeProp = null;
