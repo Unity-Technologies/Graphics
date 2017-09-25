@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.VFX.BlockLibrary;
 
 namespace UnityEditor.VFX.Test
 {
@@ -15,7 +16,7 @@ namespace UnityEditor.VFX.Test
         {
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var blockSetVelocity = ScriptableObject.CreateInstance<VFXSetAttribute>();
+            var blockSetVelocity = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetVelocity.SetSettingValue("attribute", "velocity");
 
             var attributeParameter = ScriptableObject.CreateInstance<VFXCurrentAttributeParameter>();
@@ -77,9 +78,9 @@ namespace UnityEditor.VFX.Test
         {
             var testCasesGraphWithImplicitBehavior = new[]
             {
-                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() },
-                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() },
-                new[] { ScriptableObject.CreateInstance<VFXSetAttribute>() as VFXBlock, ScriptableObject.CreateInstance<VFXSetAttribute>() as VFXBlock },
+                new[] { ScriptableObject.CreateInstance<SetAttribute>() },
+                new[] { ScriptableObject.CreateInstance<SetAttribute>() },
+                new[] { ScriptableObject.CreateInstance<SetAttribute>() as VFXBlock, ScriptableObject.CreateInstance<SetAttribute>() as VFXBlock },
                 new VFXBlock[] {},
             };
 

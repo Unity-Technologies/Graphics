@@ -2,16 +2,16 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.BlockLibrary
 {
     [VFXInfo(category = "Attribute")]
-    class VFXSetAttribute : VFXBlock
+    class SetAttribute : VFXBlock
     {
         [VFXSetting]
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
-        public override string name { get { return "SetAttribute"; } }
+        public override string name { get { return "Set Attribute"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
