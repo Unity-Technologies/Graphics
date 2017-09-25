@@ -126,7 +126,12 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 {
     half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
     half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    half alpha = _Color.a;
+#else
     half alpha = diffuseAlpha.a * _Color.a;
+#endif
 
     // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
     // due overdraw performance impact.

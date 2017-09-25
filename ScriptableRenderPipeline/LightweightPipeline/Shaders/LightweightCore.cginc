@@ -5,7 +5,7 @@
 #include "LightweightLighting.cginc"
 #include "LightweightShadows.cginc"
 
-#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
 #define LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
 #endif
 
