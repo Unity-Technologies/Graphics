@@ -149,7 +149,7 @@ inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 l
 
     half3 halfVec = normalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
-    half3 specular = specularGloss.rgb * (pow(NdotH, _Shininess * 128.0) * specularGloss.a);
+    half3 specular = specularGloss.rgb * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
     return (diffuse + specular) * atten;
 }
 

@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
@@ -10,7 +10,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Opaque,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams specularOpaque = new UpgradeParams()
@@ -18,7 +17,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Opaque,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams diffuseAlpha = new UpgradeParams()
@@ -26,7 +24,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Alpha,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams specularAlpha = new UpgradeParams()
@@ -34,7 +31,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Alpha,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
@@ -42,7 +38,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Cutout,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams specularAlphaCutout = new UpgradeParams()
@@ -50,7 +45,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Cutout,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
-            reflectionSource = ReflectionSource.NoReflection
         };
 
         static public UpgradeParams diffuseCubemap = new UpgradeParams()
@@ -58,7 +52,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Opaque,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.Cubemap
         };
 
         static public UpgradeParams specularCubemap = new UpgradeParams()
@@ -66,7 +59,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Opaque,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.Cubemap
         };
 
         static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
@@ -74,7 +66,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Alpha,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.Cubemap
         };
 
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
@@ -82,7 +73,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             blendMode = UpgradeBlendMode.Alpha,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
-            reflectionSource = ReflectionSource.Cubemap
         };
     }
 
@@ -90,11 +80,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public LegacyBlinnPhongUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
-            RenameShader(oldShaderName, "ScriptableRenderPipeline/LightweightPipeline/NonPBR", UpdateMaterialKeywords);
+            RenameShader(oldShaderName, LightweightPipelineAsset.m_SimpleLightShaderPath, UpdateMaterialKeywords);
             SetFloat("_Mode", (float)upgradeParams.blendMode);
             SetFloat("_SpecSource", (float)upgradeParams.specularSource);
             SetFloat("_GlossinessSource", (float)upgradeParams.glosinessSource);
-            SetFloat("_ReflectionSource", (float)upgradeParams.reflectionSource);
 
             if (oldShaderName.Contains("Legacy Shaders/Self-Illumin"))
             {
@@ -106,11 +95,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public static void UpdateMaterialKeywords(Material material)
         {
+            material.shaderKeywords = null;
             LightweightShaderHelper.SetMaterialBlendMode(material);
             UpdateMaterialSpecularSource(material);
-            UpdateMaterialReflectionSource(material);
             LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-            LightweightShaderHelper.SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
             LightweightShaderHelper.SetKeyword(material, "_EMISSION", material.GetTexture("_EmissionMap"));
         }
 
@@ -120,46 +108,16 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (specSource == SpecularSource.NoSpecular)
             {
                 LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
-                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
                 LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", false);
-            }
-            else if (specSource == SpecularSource.SpecularTextureAndColor && material.GetTexture("_SpecGlossMap"))
-            {
-                GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
-                if (glossSource == GlossinessSource.BaseAlpha)
-                {
-                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
-                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", true);
-                }
-                else
-                {
-                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", true);
-                    LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
-                }
-
-                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", false);
+                LightweightShaderHelper.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
             }
             else
             {
-                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", false);
-                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
-                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", true);
-            }
-        }
-
-        private static void UpdateMaterialReflectionSource(Material material)
-        {
-            LightweightShaderHelper.SetKeyword(material, "_REFLECTION_CUBEMAP", false);
-            LightweightShaderHelper.SetKeyword(material, "_REFLECTION_PROBE", false);
-
-            ReflectionSource reflectionSource = (ReflectionSource)material.GetFloat("_ReflectionSource");
-            if (reflectionSource == ReflectionSource.Cubemap && material.GetTexture("_Cube"))
-            {
-                LightweightShaderHelper.SetKeyword(material, "_REFLECTION_CUBEMAP", true);
-            }
-            else if (reflectionSource == ReflectionSource.ReflectionProbe)
-            {
-                LightweightShaderHelper.SetKeyword(material, "_REFLECTION_PROBE", true);
+                GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
+                bool hasGlossMap = material.GetTexture("_SpecGlossMap");
+                LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap);
+                LightweightShaderHelper.SetKeyword(material, "_SPECULAR_COLOR", !hasGlossMap);
+                LightweightShaderHelper.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == GlossinessSource.BaseAlpha);
             }
         }
     }
@@ -168,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public StandardUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "ScriptableRenderPipeline/LightweightPipeline/NonPBR");
+            RenameShader(oldShaderName, LightweightPipelineAsset.m_PBSShaderPath);
         }
     }
 
@@ -176,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public TerrainUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "ScriptableRenderPipeline/LightweightPipeline/NonPBR");
+            RenameShader(oldShaderName, LightweightPipelineAsset.m_PBSShaderPath);
             SetFloat("_Shininess", 1.0f);
         }
     }

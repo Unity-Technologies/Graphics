@@ -69,12 +69,7 @@ float4 _LightAttenuationParams;
 half4 _LightSpotDir;
 #endif
 
-sampler2D _MetallicSpecGlossMap;
-
-half4 _DieletricSpec;
 half _Shininess;
-samplerCUBE _Cube;
-half4 _ReflectColor;
 half4 _GlossyEnvironmentColor;
 
 struct LightweightVertexInput
@@ -156,16 +151,16 @@ inline half3 Normal(LightweightVertexOutput i)
 
 inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 {
+    specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = tex2D(_SpecGlossMap, uv);
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(_LIGHTWEIGHT_FORCE_LINEAR)
     specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
-#endif
-#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, uv).rgb) * _SpecColor.rgb;
-    specularGloss.a = alpha;
-#else
+#elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
+#endif
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.a = alpha;
 #endif
 }
 
