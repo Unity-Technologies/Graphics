@@ -1,10 +1,5 @@
 ﻿Shader "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit"
 {
-    Properties
-    {
-        _BlitTex("Texture", 2D) = "" {}
-    }
-    
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}

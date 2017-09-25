@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: ca3d57f8671b14009bdd2faa22197660
-timeCreated: 1505147983
+timeCreated: 1506084543
 licenseType: Pro
 SubstanceImporter:
   externalObjects: {}
@@ -385,7 +385,7 @@ SubstanceImporter:
       textureWidth: 1024
       textureHeight: 1024
       textureFormat: 0
-      loadingBehavior: 1
+      loadingBehavior: 2
   deletedPrototypes: []
   userData: 
   assetBundleName: 
