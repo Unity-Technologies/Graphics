@@ -141,6 +141,6 @@
         }
     }
     FallBack "Standard"
-    CustomEditor "LightweightStandardShaderGUI"
+    CustomEditor "LightweightStandardGUI"
 }
 
