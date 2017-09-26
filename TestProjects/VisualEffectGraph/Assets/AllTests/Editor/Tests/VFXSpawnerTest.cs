@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
 {
@@ -112,7 +113,7 @@ namespace UnityEditor.VFX.Test
             blockCustomSpawner.Init(typeof(VFXCustomSpawnerTest));
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var blockSetAttribute = ScriptableObject.CreateInstance<VFXSetAttribute>();
+            var blockSetAttribute = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
 
