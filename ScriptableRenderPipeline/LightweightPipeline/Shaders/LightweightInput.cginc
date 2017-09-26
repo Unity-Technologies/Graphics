@@ -17,8 +17,8 @@
                             light.atten = globalLightAtten[lightIndex]; \
                             light.spotDir = globalLightSpotDir[lightIndex]
 
-#if !(defined(_SINGLE_DIRECTIONAL_LIGHT) || defined(_SINGLE_SPOT_LIGHT) || defined(_SINGLE_POINT_LIGHT))
-#define _MULTIPLE_LIGHTS
+#if (defined(_MAIN_DIRECTIONAL_LIGHT) || defined(_MAIN_SPOT_LIGHT) || defined(_MAIN_POINT_LIGHT))
+#define _MAIN_LIGHT
 #endif
 
 #ifdef _SPECULAR_SETUP
@@ -50,7 +50,6 @@ struct LightInput
 sampler2D _AttenuationTexture;
 
 // Per object light list data
-#ifdef _MULTIPLE_LIGHTS
 half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
 
@@ -62,12 +61,10 @@ half4 globalLightColor[MAX_VISIBLE_LIGHTS];
 float4 globalLightPos[MAX_VISIBLE_LIGHTS];
 half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
 float4 globalLightAtten[MAX_VISIBLE_LIGHTS];
-#else
 float4 _LightPosition;
 half4 _LightColor;
 float4 _LightAttenuationParams;
 half4 _LightSpotDir;
-#endif
 
 half _Shininess;
 half4 _GlossyEnvironmentColor;
