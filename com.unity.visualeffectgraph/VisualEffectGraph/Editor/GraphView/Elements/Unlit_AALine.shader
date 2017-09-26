@@ -3,6 +3,7 @@ Shader "Unlit/AALine"
     Properties
     {
         _ZoomFactor ("Zoom Factor", float )  = 1
+        _ZoomCorrection("Zoom correction", float) = 1
         _Color ("Color", Color ) = (1,1,1,1)
     }
     SubShader
@@ -25,6 +26,7 @@ Shader "Unlit/AALine"
             struct appdata
             {
                 float4 vertex : POSITION;
+                float3 normal : NORMAL;
                 float3 uv : TEXCOORD0;
             };
 
@@ -35,12 +37,14 @@ Shader "Unlit/AALine"
                 float2 clipUV : TEXCOORD1;
             };
             uniform float4x4 unity_GUIClipTextureMatrix;
+            float _ZoomCorrection;
 
             v2f vert (appdata v)
             {
+                float3 vertex = v.vertex + v.normal * _ZoomCorrection;
                 v2f o;
-                float3 eyePos = UnityObjectToViewPos(v.vertex);
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                float3 eyePos = UnityObjectToViewPos(vertex);
+                o.vertex = UnityObjectToClipPos(vertex);
                 o.uv = v.uv;
                 o.clipUV = mul(unity_GUIClipTextureMatrix, float4(eyePos.xy, 0, 1.0));
                 return o;

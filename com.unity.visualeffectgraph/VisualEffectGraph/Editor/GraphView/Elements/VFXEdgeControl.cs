@@ -157,6 +157,18 @@ namespace UnityEditor.VFX.UI
 
         const float MinEdgeWidth = 1.75f;
 
+
+        // This method should feed m_CurvePoints list with the wanted points. It will only be called if one of the control points changed.
+        public virtual void ComputePolyLine()
+        {
+            Vector3 start = controlPoints[0];
+            Vector3 tStart = controlPoints[1];
+            Vector3 end = controlPoints[3];
+            Vector3 tEnd = controlPoints[2];
+
+            BezierSubdiv.GetBezierSubDiv(m_CurvePoints, start, end, tStart, tEnd);
+        }
+
         protected override void DrawEdge()
         {
             Vector3[] points = controlPoints;
@@ -178,7 +190,7 @@ namespace UnityEditor.VFX.UI
                 || (m_PrevControlPoints[1] - points[1]).sqrMagnitude > 0.25
                 || (m_PrevControlPoints[2] - points[2]).sqrMagnitude > 0.25
                 || (m_PrevControlPoints[3] - points[3]).sqrMagnitude > 0.25
-                || realWidth != m_PrevRealWidth
+                || edgeWidth != m_PrevRealWidth
                 || m_Mesh == null)
             {
                 m_PrevControlPoints = (Vector3[])points.Clone();
@@ -189,7 +201,7 @@ namespace UnityEditor.VFX.UI
                 Vector3 end = points[3];
                 Vector3 tEnd = points[2];
 
-                BezierSubdiv.GetBezierSubDiv(m_CurvePoints, start, end, tStart, tEnd);
+                ComputePolyLine();
 
                 int cpt = m_CurvePoints.Count;
 
@@ -202,19 +214,21 @@ namespace UnityEditor.VFX.UI
 
                 Vector3[] vertices = m_Mesh.vertices;
                 Vector2[] uvs = m_Mesh.uv;
+                Vector3[] normals = m_Mesh.normals;
                 bool newIndices = false;
                 int wantedLength = (cpt) * 2;
                 if (vertices == null || vertices.Length != wantedLength)
                 {
                     vertices = new Vector3[wantedLength];
                     uvs = new Vector2[wantedLength];
+                    normals = new Vector3[wantedLength];
                     newIndices = true;
                     m_Mesh.triangles = new int[] {};
                 }
 
                 float halfWidth = realWidth * 0.5f;
 
-                float vertexHalfWidth = halfWidth + 2;
+                float vertexHalfWidth = edgeWidth + 2;
 
                 for (int i = 0; i < cpt; ++i)
                 {
@@ -240,13 +254,16 @@ namespace UnityEditor.VFX.UI
                     Vector2 border = -norm * vertexHalfWidth;
 
                     uvs[i * 2] = new Vector2(-vertexHalfWidth, halfWidth);
-                    vertices[i * 2] = m_CurvePoints[i] - border;
+                    vertices[i * 2] = m_CurvePoints[i];
+                    normals[i * 2] = -border;
 
                     uvs[i * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
-                    vertices[i * 2 + 1] = m_CurvePoints[i] + border;
+                    vertices[i * 2 + 1] = m_CurvePoints[i];
+                    normals[i * 2 + 1] = border;
                 }
 
                 m_Mesh.vertices = vertices;
+                m_Mesh.normals = normals;
                 m_Mesh.uv = uvs;
 
                 if (newIndices)
@@ -278,16 +295,12 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            VFXEdgeUtils.lineMat.SetFloat("_ZoomFactor", view.scale);
+            VFXEdgeUtils.lineMat.SetFloat("_ZoomFactor", view.scale * realWidth / edgeWidth);
+            VFXEdgeUtils.lineMat.SetFloat("_ZoomCorrection", realWidth / edgeWidth);
             VFXEdgeUtils.lineMat.SetColor("_Color", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? edgeColor.gamma : edgeColor);
             VFXEdgeUtils.lineMat.SetPass(0);
 
-
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
-        }
-
-        protected override void DrawEndpoint(Vector2 pos, bool start)
-        {
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
