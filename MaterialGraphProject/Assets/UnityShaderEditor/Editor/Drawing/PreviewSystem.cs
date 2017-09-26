@@ -23,6 +23,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         MaterialPropertyBlock m_PreviewPropertyBlock;
         MaterialGraphPreviewGenerator m_PreviewGenerator = new MaterialGraphPreviewGenerator();
         Texture2D m_ErrorTexture;
+        DateTime m_LastUpdate;
+
+        public PreviewRate previewRate { get; set; }
 
         public PreviewSystem(AbstractMaterialGraph graph)
         {
@@ -131,6 +134,15 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Update()
         {
+            if (previewRate == PreviewRate.Off)
+                return;
+
+            var updateTime = DateTime.Now;
+            if (previewRate == PreviewRate.Throttled && (updateTime - m_LastUpdate) < TimeSpan.FromSeconds(1.0 / 10.0))
+                return;
+
+            m_LastUpdate = updateTime;
+
             PropagateNodeSet(m_DirtyShaders);
             foreach (var nodeGuid in m_DirtyShaders)
             {

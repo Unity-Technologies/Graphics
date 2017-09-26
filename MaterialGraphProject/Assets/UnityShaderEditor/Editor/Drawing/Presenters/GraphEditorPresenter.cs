@@ -16,6 +16,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         PreviewSystem m_PreviewSystem;
 
+        public PreviewRate previewRate
+        {
+            get { return m_PreviewSystem.previewRate; }
+            set { m_PreviewSystem.previewRate = value; }
+        }
+
         public MaterialGraphPresenter graphPresenter
         {
             get { return m_GraphPresenter; }

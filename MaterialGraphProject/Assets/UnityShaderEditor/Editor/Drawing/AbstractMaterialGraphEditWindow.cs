@@ -21,7 +21,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Repaint();
 
-        void ToggleRequiresTime();
         void ToSubGraph();
 
         void Show();
@@ -35,7 +34,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public abstract AbstractMaterialGraph GetMaterialGraph();
         public abstract void PingAsset();
         public abstract void UpdateAsset();
-        public abstract void ToggleRequiresTime();
         public abstract void ToSubGraph();
         public abstract Object selected { get; set; }
         public abstract void ChangeSelection(Object newSelection);
@@ -112,7 +110,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphEditorView.onUpdateAssetClick += UpdateAsset;
             graphEditorView.onConvertToSubgraphClick += ToSubGraph;
             graphEditorView.onShowInProjectClick += PingAsset;
-            graphEditorView.onTimeClick += ToggleRequiresTime;
             rootVisualContainer.Add(graphEditorView);
         }
 
@@ -365,11 +362,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
-        }
-
-        public override void ToggleRequiresTime()
-        {
-            allowAlwaysRepaint = !allowAlwaysRepaint;
         }
 
         public override void ChangeSelection(Object newSelection)
