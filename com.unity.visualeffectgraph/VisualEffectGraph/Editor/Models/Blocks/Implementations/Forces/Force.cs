@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -51,16 +51,14 @@ namespace UnityEditor.VFX.BlockLibrary
             {
                 string forceVector = "0.0";
 
-                switch(Mode)
+                switch (Mode)
                 {
-                    case ForceMode.Absolute: forceVector = "Force_vector" ; break;
+                    case ForceMode.Absolute: forceVector = "Force_vector"; break;
                     case ForceMode.Relative: forceVector = "(Force_vector - velocity)"; break;
                 }
 
                 return "velocity += " + forceVector + " * deltaTime;";
             }
         }
-
-
     }
 }

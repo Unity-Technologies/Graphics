@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -52,25 +52,23 @@ namespace UnityEditor.VFX.BlockLibrary
         {
             get
             {
-
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
 float3 dir = Sphere_center - nextPos;
 float sqrLength = dot(dir,dir);
 if ( sign * sqrLength <= sign * Sphere_radius * Sphere_radius)
 {
-	float dist = sqrt(sqrLength);
-	float3 n = sign * dir / dist;
-	float projVelocity = dot(n,velocity);
+    float dist = sqrt(sqrLength);
+    float3 n = sign * dir / dist;
+    float projVelocity = dot(n,velocity);
 
-	if (projVelocity > 0)
-		velocity -= ((1 + Elasticity) * projVelocity) * n;
+    if (projVelocity > 0)
+        velocity -= ((1 + Elasticity) * projVelocity) * n;
 
-	position += sign * n * (dist - Sphere_radius);
+    position += sign * n * (dist - Sphere_radius);
 }";
                 return Source;
             }
         }
-
     }
 }
