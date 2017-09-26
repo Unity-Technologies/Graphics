@@ -183,6 +183,8 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
             m_InsideContainer.Add(m_EdgeDrawer);
+
+            clippingOptions = VisualElement.ClippingOptions.NoClipping;
         }
 
         public void DirtyDrawer()
