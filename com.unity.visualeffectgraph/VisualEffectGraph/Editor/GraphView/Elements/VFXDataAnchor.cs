@@ -72,6 +72,38 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
+        const string AnchorColorProperty = "anchor-color";
+        StyleValue<Color> m_AnchorColor;
+
+
+        public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
+        public override void OnStyleResolved(ICustomStyle styles)
+        {
+            base.OnStyleResolved(styles);
+
+
+            Color prevColor = m_AnchorColor.value;
+            styles.ApplyCustomProperty(AnchorColorProperty, ref m_AnchorColor);
+            if (m_AnchorColor.value != prevColor)
+            {
+                foreach (var edge in GetAllEdges())
+                {
+                    edge.OnAnchorChanged();
+                }
+            }
+        }
+
+        IEnumerable<VFXDataEdge> GetAllEdges()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            foreach (var edgePresenter in GetPresenter<VFXDataAnchorPresenter>().connections)
+            {
+                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
+                yield return edge;
+            }
+        }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -90,9 +122,14 @@ namespace UnityEditor.VFX.UI
 
             // update the css type of the class
             foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+            {
                 m_ConnectorBox.RemoveFromClassList(cls);
+                RemoveFromClassList(cls);
+            }
 
-            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType);
+            AddToClassList(className);
+            m_ConnectorBox.AddToClassList(className);
 
 
             if (presenter.connections.FirstOrDefault(t => t.selected) != null)

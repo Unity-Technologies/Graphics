@@ -333,6 +333,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
+        {
+            if (presenter == null)
+                return null;
+            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+        }
+
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
         {
             foreach (var layer in GetAllLayers())

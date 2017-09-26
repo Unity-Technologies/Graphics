@@ -102,13 +102,38 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected new virtual Color edgeColor
+        Color m_InputColor = Color.grey;
+        Color m_OutputColor = Color.grey;
+
+        public Color inputColor
         {
             get
             {
-                Edge edge = this.GetFirstAncestorOfType<Edge>();
+                return m_InputColor;
+            }
+            set
+            {
+                if (m_InputColor != value)
+                {
+                    m_InputColor = value;
+                    Dirty(ChangeType.Repaint);
+                }
+            }
+        }
 
-                return edge.style.borderColor;
+        public Color outputColor
+        {
+            get
+            {
+                return m_OutputColor;
+            }
+            set
+            {
+                if (m_OutputColor != value)
+                {
+                    m_OutputColor = value;
+                    Dirty(ChangeType.Repaint);
+                }
             }
         }
 
@@ -173,7 +198,8 @@ namespace UnityEditor.VFX.UI
         {
             Vector3[] points = controlPoints;
 
-            Color edgeColor = this.edgeColor;
+            Color inputColor = this.inputColor;
+            Color outputColor = this.outputColor;
 
             GraphView view = this.GetFirstAncestorOfType<GraphView>();
 
@@ -182,7 +208,7 @@ namespace UnityEditor.VFX.UI
             {
                 realWidth = MinEdgeWidth / view.scale;
 
-                edgeColor.a = edgeWidth / realWidth;
+                inputColor.a = outputColor.a = edgeWidth / realWidth;
             }
 
             if (m_PrevControlPoints == null
@@ -204,6 +230,14 @@ namespace UnityEditor.VFX.UI
                 ComputePolyLine();
 
                 int cpt = m_CurvePoints.Count;
+
+
+                float polyLineLength = 0;
+
+                for (int i = 1; i < cpt; ++i)
+                {
+                    polyLineLength += (m_CurvePoints[i - 1] - m_CurvePoints[i]).magnitude;
+                }
 
                 if (m_Mesh == null)
                 {
@@ -230,6 +264,9 @@ namespace UnityEditor.VFX.UI
 
                 float vertexHalfWidth = halfWidth + 2;
 
+
+                float currentLength = 0;
+
                 for (int i = 0; i < cpt; ++i)
                 {
                     Vector2 dir;
@@ -255,11 +292,21 @@ namespace UnityEditor.VFX.UI
 
                     uvs[i * 2] = new Vector2(-vertexHalfWidth, halfWidth);
                     vertices[i * 2] = m_CurvePoints[i];
-                    normals[i * 2] = -border;
+                    normals[i * 2] = new Vector3(-border.x, -border.y, currentLength / polyLineLength);
 
                     uvs[i * 2 + 1] = new Vector2(vertexHalfWidth, halfWidth);
                     vertices[i * 2 + 1] = m_CurvePoints[i];
-                    normals[i * 2 + 1] = border;
+                    normals[i * 2 + 1] = new Vector3(border.x, border.y, currentLength / polyLineLength);
+
+
+                    if (i < cpt - 2)
+                    {
+                        currentLength += (m_CurvePoints[i + 1] - m_CurvePoints[i]).magnitude;
+                    }
+                    else
+                    {
+                        currentLength = polyLineLength;
+                    }
                 }
 
                 m_Mesh.vertices = vertices;
@@ -297,7 +344,8 @@ namespace UnityEditor.VFX.UI
 
             VFXEdgeUtils.lineMat.SetFloat("_ZoomFactor", view.scale * realWidth / edgeWidth);
             VFXEdgeUtils.lineMat.SetFloat("_ZoomCorrection", realWidth / edgeWidth);
-            VFXEdgeUtils.lineMat.SetColor("_Color", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? edgeColor.gamma : edgeColor);
+            VFXEdgeUtils.lineMat.SetColor("_InputColor", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? inputColor.gamma : inputColor);
+            VFXEdgeUtils.lineMat.SetColor("_OutputColor", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? outputColor.gamma : outputColor);
             VFXEdgeUtils.lineMat.SetPass(0);
 
             Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
