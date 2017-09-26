@@ -13,9 +13,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scatteringDistance: {r: 0.758, g: 0.321, b: 0.201, a: 1}
   transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
-  texturingMode: 1
-  transmissionMode: 0
-  thicknessRemap: {x: 0, y: 12.031147}
+  texturingMode: 0
+  transmissionMode: 2
+  thicknessRemap: {x: 0, y: 8.152544}
   worldScale: 1
   settingsIndex: 0
   m_ShapeParam: {x: 1.3192612, y: 3.1152647, z: 4.9751244}
