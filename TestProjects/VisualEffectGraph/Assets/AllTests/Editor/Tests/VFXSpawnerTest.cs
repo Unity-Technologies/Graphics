@@ -9,7 +9,6 @@ using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-/*
 namespace UnityEditor.VFX.Test
 {
     public class VFXSpawnerTest
@@ -22,16 +21,18 @@ namespace UnityEditor.VFX.Test
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
-            var blockBurst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
+            var blockBurst = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
             var slotCount = blockBurst.GetInputSlot(0);
-            var slotDelay = blockBurst.GetInputSlot(1);
+
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
 
             var spawnCountValue = 753.0f;
-            slotCount.value = new Vector2(spawnCountValue, spawnCountValue);
-            slotDelay.value = new Vector2(0.0f, 0.0f);
+            slotCount.value = spawnCountValue;
 
             spawnerContext.AddChild(blockBurst);
             graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            spawnerInit.LinkFrom(spawnerContext);
 
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
@@ -49,12 +50,14 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.GetSpawnerState(0);
-            Assert.AreEqual(spawnCountValue, spawnerState.spawnCount);
+            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
 
+            var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
 
+        /*
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateEventAttributeAndStart()
@@ -95,6 +98,7 @@ namespace UnityEditor.VFX.Test
 
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
+        */
 
         [UnityTest]
         [Timeout(1000 * 10)]
@@ -107,11 +111,23 @@ namespace UnityEditor.VFX.Test
             var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
             blockCustomSpawner.Init(typeof(VFXCustomSpawnerTest));
 
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var blockSetAttribute = ScriptableObject.CreateInstance<VFXSetAttribute>();
+            blockSetAttribute.SetSettingValue("attribute", "lifetime");
+            spawnerInit.AddChild(blockSetAttribute);
+
+            var blockAttributeSource = ScriptableObject.CreateInstance<VFXSourceAttributeParameter>();
+            blockAttributeSource.SetSettingValue("attribute", "lifetime");
+
             spawnerContext.AddChild(blockCustomSpawner);
             graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            graph.AddChild(blockAttributeSource);
+            blockAttributeSource.outputSlots[0].Link(blockSetAttribute.inputSlots[0]);
+
+            spawnerInit.LinkFrom(spawnerContext);
 
             var valueTotalTime = 187.0f;
-
             blockCustomSpawner.GetInputSlot(0).value = valueTotalTime;
 
             graph.vfxAsset = new VFXAsset();
@@ -130,12 +146,13 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.GetSpawnerState(0);
+            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
-            Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifeTime"));
+            Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifetime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);
         }
 
+        /*
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerLinkedWithSourceAttribute()
@@ -179,6 +196,6 @@ namespace UnityEditor.VFX.Test
             var vfxEventAttribute = vfxComponent.CreateVFXEventAttribute();
             Assert.IsTrue(vfxEventAttribute.HasVector3("velocity"));
         }
+        */
     }
 }
-*/

@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public IEnumerable<VFXNamedExpression> CollectExpression(int id)
+        public IEnumerable<VFXNamedExpression> CollectExpression(int id, bool fullname = true)
         {
             foreach (var expressionData in m_ExpressionsData)
             {
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX
                 {
                     if (data.id == id)
                     {
-                        yield return new VFXNamedExpression(expressionData.Key, data.fullName);
+                        yield return new VFXNamedExpression(expressionData.Key, fullname ? data.fullName : data.name);
                     }
                 }
             }
