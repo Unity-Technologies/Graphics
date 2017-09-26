@@ -12,6 +12,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
     }
 
+    public class LightComparer : IComparer<VisibleLight>
+    {
+        public int Compare(VisibleLight lhs, VisibleLight rhs)
+        {
+            Light lhsLight = lhs.light;
+            Light rhsLight = rhs.light;
+
+            if (lhs.lightType != rhs.lightType)
+                return (rhs.lightType != LightType.Directional) ? 1 : -1;
+
+            if (lhsLight.shadows != rhsLight.shadows)
+                return (int)rhsLight.shadows - (int)lhsLight.shadows;
+
+            if (lhsLight.lightmapBakeType != rhsLight.lightmapBakeType)
+                return (rhsLight.lightmapBakeType == LightmapBakeType.Realtime) ? 1 : -1;
+
+            return (int)(lhsLight.intensity * 100.0f) - (int)(rhsLight.intensity * 100.0f);
+        }
+    }
+
     [Flags]
     public enum RenderingConfiguration
     {
@@ -32,6 +52,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.EnableShaderKeyword(keyword);
             else
                 cmd.DisableShaderKeyword(keyword);
+        }
+
+        public static bool IsSupportedShadowType(LightType lightType)
+        {
+            return lightType == LightType.Directional || lightType == LightType.Spot;
         }
 
         public static bool PlatformSupportsMSAABackBuffer()
