@@ -54,6 +54,7 @@ namespace UnityEditor.VFX.UIElements
             m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.OnTextChanged = OnTextChanged;
+            m_TextField.RegisterCallback<BlurEvent>(OnLostFocus);
         }
 
         public FloatField(string label) : base(label)
@@ -61,6 +62,12 @@ namespace UnityEditor.VFX.UIElements
             CreateFields();
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
             Add(m_TextField);
+        }
+
+        void OnLostFocus(BlurEvent evt)
+        {
+            // Since we block the control updates when we have the focus we must update once when we loose focus.
+            ValueToGUI();
         }
 
         void OnTextChanged(string str)
