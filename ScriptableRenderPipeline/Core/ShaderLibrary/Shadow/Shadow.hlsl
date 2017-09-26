@@ -16,6 +16,7 @@
 
 
 #define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0 // only on >= sm 5.1
+#define SHADOW_OPTIMIZE_REGISTER_USAGE   0 // redefine this as 1 in your ShadowContext.hlsl to optimize for register usage over instruction count
 
 #include "../../../Core/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
@@ -37,7 +38,6 @@
 #define SHADOW_CONTEXT_INCLUDE
 #include "../../ShadowIncludes.inl"
 #undef SHADOW_CONTEXT_INCLUDE
-//#include "ShadowContext.hlsl"
 
 // helper function to extract shadowmap data from the ShadowData struct
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
@@ -106,7 +106,6 @@ float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float
 #define SHADOW_DISPATCH_INCLUDE
 #include "../../ShadowIncludes.inl"
 #undef SHADOW_DISPATCH_INCLUDE
-//#include "ShadowDispatch.hlsl"
 
 // if shadow dispatch is empty we'll fall back to default shadow sampling implementations
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
