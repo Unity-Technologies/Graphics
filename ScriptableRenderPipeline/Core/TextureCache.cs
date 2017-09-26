@@ -352,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering
 
 
             // wrap up
-            Debug.Assert(bFoundAvailOrExistingSlice);   // if this fails either increase the size of the texture cache or reduce number of unique cached textures in use.
+            Debug.Assert(bFoundAvailOrExistingSlice, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
             if (bFoundAvailOrExistingSlice)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
