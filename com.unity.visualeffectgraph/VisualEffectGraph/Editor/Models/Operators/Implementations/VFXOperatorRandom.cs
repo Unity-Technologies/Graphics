@@ -67,10 +67,10 @@ namespace UnityEditor.VFX
                 {
                     default:
                     case SeedMode.PerParticle:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed | VFXExpressionRandom.RandomFlags.PerElement, maxValueType, inputExpression[2]);
+                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed | VFXExpressionRandom.RandomFlags.PerElement, maxValueType, VFXBuiltInExpression.SystemSeed, inputExpression[2]);
                         break;
                     case SeedMode.PerSystem:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed, maxValueType, VFXBuiltInExpression.Find(VFXExpressionOp.kVFXSystemSeedOp), inputExpression[2]);
+                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed, maxValueType, VFXBuiltInExpression.SystemSeed, inputExpression[2]);
                         break;
                 }
             }
@@ -80,10 +80,10 @@ namespace UnityEditor.VFX
                 {
                     default:
                     case SeedMode.PerParticle:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.PerElement, maxValueType, inputExpression[2]);
+                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.PerElement, maxValueType, null);
                         break;
                     case SeedMode.PerSystem:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.None, maxValueType, VFXBuiltInExpression.GenerateRandom, inputExpression[2]);
+                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.None, maxValueType, null);
                         break;
                 }
             }
