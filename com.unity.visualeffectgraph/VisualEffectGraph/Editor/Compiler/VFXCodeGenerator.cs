@@ -225,7 +225,7 @@ namespace UnityEditor.VFX
                 foreach (var parameter in block.parameters)
                 {
                     var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
-                    if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
+                    if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                     {
                         expressionParameter.Add(expReduced);
                         nameParameter.Add(parameter.name);
