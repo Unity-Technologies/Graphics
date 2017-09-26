@@ -226,9 +226,9 @@ namespace UnityEditor.VFX.UI
                     m_Mesh.triangles = new int[] {};
                 }
 
-                float halfWidth = realWidth * 0.5f;
+                float halfWidth = edgeWidth * 0.5f;
 
-                float vertexHalfWidth = edgeWidth + 2;
+                float vertexHalfWidth = halfWidth + 2;
 
                 for (int i = 0; i < cpt; ++i)
                 {
