@@ -103,11 +103,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool ContainsPoint(Vector2 localPoint)
         {
-            return layout.Contains(localPoint);
-            //return GraphElement.ContainsPoint(localPoint);
-            // Here local point comes without position offset...
-            //localPoint -= position.position;
-            //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
+            return rect.Contains(localPoint);
         }
     }
 }

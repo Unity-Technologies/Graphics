@@ -104,7 +104,8 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_TextField.text = m_Value.ToString("0.###");
+            if (!m_TextField.hasFocus)
+                m_TextField.text = m_Value.ToString("0.###");
         }
     }
 }
