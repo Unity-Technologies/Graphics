@@ -23,7 +23,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public Action onUpdateAssetClick { get; set; }
         public Action onConvertToSubgraphClick { get; set; }
         public Action onShowInProjectClick { get; set; }
-        public Action onTimeClick { get; set; }
 
         public GraphEditorView()
         {
@@ -67,12 +66,20 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_ToolbarView.Add(new ToolbarSpaceView());
                 m_ToolbarView.Add(new ToolbarSeparatorView());
 
-                var timeButton = new ToolbarButtonView { text = "Time" };
-                timeButton.AddManipulator(new Clickable(() =>
+                m_TimeButton = new ToolbarButtonView { text = "" };
+                m_TimeButton.AddManipulator(new Clickable(() =>
                 {
-                    if (onTimeClick != null) onTimeClick();
+                    if (presenter == null)
+                        return;
+                    if (presenter.previewRate == PreviewRate.Full)
+                        presenter.previewRate = PreviewRate.Throttled;
+                    else if (presenter.previewRate == PreviewRate.Throttled)
+                        presenter.previewRate = PreviewRate.Off;
+                    else if (presenter.previewRate == PreviewRate.Off)
+                        presenter.previewRate = PreviewRate.Full;
+                    m_TimeButton.text = "Preview rate: " + presenter.previewRate;
                 }));
-                m_ToolbarView.Add(timeButton);
+                m_ToolbarView.Add(m_TimeButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
             }
@@ -93,9 +100,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             m_GraphView.presenter = m_Presenter.graphPresenter;
             m_GraphInspectorView.presenter = m_Presenter.graphInspectorPresenter;
+            m_TimeButton.text = "Preview rate: " + presenter.previewRate;
         }
 
         GraphEditorPresenter m_Presenter;
+        ToolbarButtonView m_TimeButton;
 
         public GraphEditorPresenter presenter
         {
@@ -122,7 +131,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             onUpdateAssetClick = null;
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
-            onTimeClick = null;
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
         }
     }
