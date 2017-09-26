@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary.Test
+namespace UnityEditor.VFX.Block.Test
 {
     [VFXInfo(category = "Tests")]
     class ColorBlockTest : VFXBlock
