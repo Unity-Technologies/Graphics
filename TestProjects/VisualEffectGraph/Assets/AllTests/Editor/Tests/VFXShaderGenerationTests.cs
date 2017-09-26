@@ -4,7 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEditor.VFX.BlockLibrary;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
 {

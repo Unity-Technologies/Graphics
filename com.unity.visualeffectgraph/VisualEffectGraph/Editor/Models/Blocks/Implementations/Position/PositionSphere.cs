@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Position")]
     class PositionSphere : VFXBlock
@@ -55,16 +55,16 @@ namespace UnityEditor.VFX.BlockLibrary
                         break;
                     case PrimitivePositionMode.ThicknessAbsolute:
                     case PrimitivePositionMode.ThicknessRelative:
+                    {
+                        var thickness = GetInputSlot(2).GetExpression();
+                        if (mode == PrimitivePositionMode.ThicknessAbsolute)
                         {
-                            var thickness = GetInputSlot(2).GetExpression();
-                            if (mode == PrimitivePositionMode.ThicknessAbsolute)
-                            {
-                                var radius = GetInputSlot(0)[1].GetExpression();
-                                thickness = thickness / radius;
-                            }
-                            factor = VFXOperatorUtility.Clamp(thickness, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
-                            break;
+                            var radius = GetInputSlot(0)[1].GetExpression();
+                            thickness = thickness / radius;
                         }
+                        factor = VFXOperatorUtility.Clamp(thickness, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+                        break;
+                    }
                 }
 
                 yield return new VFXNamedExpression(new VFXExpressionPow(VFXValue.Constant(1.0f) - factor, VFXValue.Constant(3.0f)), "surfaceFactor");
@@ -96,7 +96,5 @@ position += pos;
                 return outSource;
             }
         }
-
-
     }
 }

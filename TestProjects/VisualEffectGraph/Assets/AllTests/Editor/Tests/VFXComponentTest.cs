@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.VFX.BlockLibrary.Test;
+using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
 {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
-using UnityEditor.VFX.BlockLibrary.Test;
+using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
 {

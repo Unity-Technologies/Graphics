@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary.Test
+namespace UnityEditor.VFX.Block.Test
 {
     [VFXInfo(category = "Tests")]
     class UpdateBlockTest : VFXBlock
