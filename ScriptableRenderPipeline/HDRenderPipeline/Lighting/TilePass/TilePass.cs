@@ -302,8 +302,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static Texture2DArray m_DefaultTexture2DArray;
 
             TextureCacheCubemap m_CubeReflTexArray;
+            int m_CubeReflTexArraySize = 128;
             TextureCache2D m_CookieTexArray;
+            int m_CookieTexArraySize = 16;
             TextureCacheCubemap m_CubeCookieTexArray;
+            int m_CubeCookieTexArraySize = 16;
 
             public class LightList
             {
@@ -490,11 +493,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
                 m_CookieTexArray = new TextureCache2D();
-                m_CookieTexArray.AllocTextureArray(8, textureSettings.spotCookieSize, textureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+                m_CookieTexArray.AllocTextureArray(m_CookieTexArraySize, textureSettings.spotCookieSize, textureSettings.spotCookieSize, TextureFormat.RGBA32, true);
                 m_CubeCookieTexArray = new TextureCacheCubemap();
-                m_CubeCookieTexArray.AllocTextureArray(4, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+                m_CubeCookieTexArray.AllocTextureArray(m_CubeCookieTexArraySize, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
                 m_CubeReflTexArray = new TextureCacheCubemap();
-                m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+                m_CubeReflTexArray.AllocTextureArray(m_CubeReflTexArraySize, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -1430,6 +1433,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // probe.texture can be null when we are adding a reflection probe in the editor
                         if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
                             continue;
+
+                        // Work around the culling issues. TODO: fix culling in C++.
+                        if (probe.probe == null || !probe.probe.isActiveAndEnabled)
+                            continue;
+
+                        // Work around the data issues.
+                        if (probe.localToWorld.determinant == 0)
+                        {
+                            Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
+                            continue;
+                        }
 
                         // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume
                         LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
