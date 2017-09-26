@@ -290,10 +290,10 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 	uint orig_payloadOffset = payloadOffset;
 	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );
 
-    /* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */
-    float border = borders[shadowSplitIndex];
+	/* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */
+	float border = borders[shadowSplitIndex];
 	float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
-    float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];
+	float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];
 	float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[min(3,shadowSplitIndex+1)].xyz );
 	float3 wposDir     = normalize( -splitSphere.xyz + positionWS );
 	float  cascDot     = dot( cascadeDir, wposDir );
@@ -354,17 +354,17 @@ float EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, float3 positi
 		float3 orig_pos = positionWS;                                                                                                                                                           \
 		uint orig_payloadOffset = payloadOffset;		                                                                                                                                        \
 		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), scales[shadowSplitIndex] * sd.texelSizeRcp.zw, sd.normalBias );									        \
-                                                                                                                                                                                                \
-        /* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */                                     \
+																																																\
+		/* Be careful of this code, we need it here before the if statement otherwise the compiler screws up optimizing dirShadowSplitSpheres VGPRs away */                                     \
 		float border = borders[shadowSplitIndex];                                                                                                                                               \
 		float alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                               \
-        float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];                                                                                                                           \
+		float4 splitSphere = dirShadowSplitSpheres[shadowSplitIndex];                                                                                                                           \
 		float3 cascadeDir  = normalize( -splitSphere.xyz + dirShadowSplitSpheres[min(kMaxShadowCascades-1,shadowSplitIndex+1)].xyz );                                                           \
 		float3 wposDir     = normalize( -splitSphere.xyz + positionWS );                                                                                                                        \
 		float  cascDot     = dot( cascadeDir, wposDir );                                                                                                                                        \
-        alpha = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );                                                                                                         \
-                                                                                                                                                                                                \
-        /* get shadowmap texcoords */																																					        \
+		alpha = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );                                                                                                         \
+																																																\
+		/* get shadowmap texcoords */																																					        \
 		float3 posNDC;                                                                                                                                                                          \
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true );																											        \
 		/* sample the texture */																																						        \
