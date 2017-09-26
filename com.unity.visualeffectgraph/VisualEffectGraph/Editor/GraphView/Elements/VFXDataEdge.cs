@@ -129,6 +129,11 @@ namespace UnityEditor.VFX.UI
             };
         }
 
+        protected override void DrawEdge()
+        {
+            UpdateEdgeControl();
+        }
+
 #if false
         protected override void DrawEdge()
         {
