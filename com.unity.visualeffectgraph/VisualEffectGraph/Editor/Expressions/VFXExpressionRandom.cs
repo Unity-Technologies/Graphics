@@ -63,16 +63,18 @@ namespace UnityEditor.VFX
         {
             if ((m_RandomFlags & RandomFlags.Fixed) != 0)
             {
-                return string.Format("FIXEDRAND({0})", (parents.Length > 0) ? parents[0] : "0");
+                return string.Format("FIXED_RAND({0})", (parents.Length > 0) ? parents[0] : "0");
             }
             else
             {
-                return string.Format("RAND({0})", (parents.Length > 0) ? parents[0] : "0");
+                return string.Format("RAND");
             }
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
+            if ((m_RandomFlags & (RandomFlags.Fixed | RandomFlags.PerElement)) == (RandomFlags.Fixed | RandomFlags.PerElement))
+                yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
             if ((m_RandomFlags & (RandomFlags.Fixed | RandomFlags.PerElement)) == RandomFlags.PerElement)
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
         }

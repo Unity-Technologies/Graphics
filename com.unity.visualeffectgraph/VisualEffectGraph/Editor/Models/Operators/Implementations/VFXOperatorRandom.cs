@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             [Tooltip("The maximum value to be generated.")]
             public FloatN max = new FloatN(1.0f);
             [Tooltip("An optional additional custom seed.")]
-            public uint customSeed = 0;
+            public uint customSeed = 0; // TODO - hide this from UI when constant==false
         }
 
         [VFXSetting, Tooltip("Generate a random number for each particle, or one that is shared by the whole system.")]
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
                 {
                     default:
                     case SeedMode.PerParticle:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed | VFXExpressionRandom.RandomFlags.PerElement, maxValueType, VFXBuiltInExpression.SystemSeed, inputExpression[2]);
+                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed | VFXExpressionRandom.RandomFlags.PerElement, maxValueType, inputExpression[2]);
                         break;
                     case SeedMode.PerSystem:
                         rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed, maxValueType, VFXBuiltInExpression.SystemSeed, inputExpression[2]);

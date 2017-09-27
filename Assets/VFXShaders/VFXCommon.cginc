@@ -14,10 +14,10 @@
 #endif
 
 // Special semantics for VFX blocks
-#define RAND(s) randLcg(seed, s)
-#define RAND2(s) float2(RAND(s),RAND(s))
-#define RAND3(s) float3(RAND(s),RAND(s),RAND(s))
-#define RAND4(s) float4(RAND(s),RAND(s),RAND(s),RAND(s))
+#define RAND randLcg(seed)
+#define RAND2 float2(RAND,RAND)
+#define RAND3 float3(RAND,RAND,RAND)
+#define RAND4 float4(RAND,RAND,RAND,RAND)
 #define FIXED_RAND(s) FixedRand4(particleId, s).x
 #define FIXED_RAND2(s) FixedRand4(particleId, s).xy
 #define FIXED_RAND3(s) FixedRand4(particleId, s).xyz
@@ -162,25 +162,23 @@ uint WangHash(uint seed)
     return seed;
 }
 
-float randLcg(inout uint seed, uint userSeed)
+float randLcg(inout uint seed)
 {
     uint multiplier = 0x0019660d;
     uint increment = 0x3c6ef35f;
 #if 1
     seed = multiplier * seed + increment;
-    uint finalSeed = seed ^ userSeed;
-    return asfloat((finalSeed >> 9) | 0x3f800000) - 1.0f;
+    return asfloat((seed >> 9) | 0x3f800000) - 1.0f;
 #else //Using mad24 keeping consitency between platform
     #if defined(SHADER_API_PSSL)
         seed = mad24(multiplier, seed, increment);
     #else
         seed = multiplier * seed + increment;
     #endif
-    uint finalSeed = seed ^ userSeed;
     //Using >> 9 instead of &0x007fffff seems to lead to a better random, but with this way, the result is the same between PS4 & PC
     //We need to find a LCG considering the mul24 operation instead of mul32
     //possible variant : return float(seed & 0x007fffff) / float(0x007fffff)
-    return asfloat((finalSeed & 0x007fffff) | 0x3f800000) - 1.0f;
+    return asfloat((seed & 0x007fffff) | 0x3f800000) - 1.0f;
 #endif
 }
 
@@ -191,7 +189,7 @@ float4 FixedRand4(uint baseSeed, uint userSeed)
     [unroll(4)]
     for (uint i=0; i<4; ++i)
     {
-        r[i] = randLcg(currentSeed, 0);
+        r[i] = randLcg(currentSeed);
     }
     return r;
 }
