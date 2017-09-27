@@ -42,15 +42,16 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 
     // Apply tiling options
     ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
+    // Detail map tiling option inherit from the tiling of the base
+    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(TRANSFORM_TEX(uvDetails, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
 
     ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));
-
-    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_DetailMap));
+    
+    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
 
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
