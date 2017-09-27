@@ -373,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                    RenderSettings.skybox = IsSkyValid() ? m_StandardSkyboxMaterial : null; // Setup this material as the default to be use in RenderSettings
                     RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
                     RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
                     RenderSettings.reflectionIntensity = 1.0f;
