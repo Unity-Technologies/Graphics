@@ -3,7 +3,9 @@ Shader "Unlit/AALine"
     Properties
     {
         _ZoomFactor ("Zoom Factor", float )  = 1
-        _Color ("Color", Color ) = (1,1,1,1)
+        _ZoomCorrection("Zoom correction", float) = 1
+        _InputColor("Input Color", Color) = (1,1,1,1)
+        _OutputColor("Output Color", Color) = (1,1,1,1)
     }
     SubShader
     {
@@ -25,6 +27,7 @@ Shader "Unlit/AALine"
             struct appdata
             {
                 float4 vertex : POSITION;
+                float3 normal : NORMAL;
                 float3 uv : TEXCOORD0;
             };
 
@@ -33,23 +36,27 @@ Shader "Unlit/AALine"
                 float4 vertex : SV_POSITION;
                 float3 uv : TEXCOORD0;
                 float2 clipUV : TEXCOORD1;
+                fixed4 color : COLOR;
             };
             uniform float4x4 unity_GUIClipTextureMatrix;
+            float _ZoomCorrection;
+            fixed4 _InputColor;
+            fixed4 _OutputColor;
 
             v2f vert (appdata v)
             {
+                float3 vertex = v.vertex + float3(v.normal.xy,0) * _ZoomCorrection;
                 v2f o;
-                float3 eyePos = UnityObjectToViewPos(v.vertex);
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                float3 eyePos = UnityObjectToViewPos(vertex);
+                o.vertex = UnityObjectToClipPos(vertex);
                 o.uv = v.uv;
+                o.color = lerp(_OutputColor, _InputColor, v.normal.z);
                 o.clipUV = mul(unity_GUIClipTextureMatrix, float4(eyePos.xy, 0, 1.0));
                 return o;
             }
 
             float _ZoomFactor;
-            fixed4 _Color;
             sampler2D _GUIClipTexture;
-
 
             fixed4 frag (v2f i) : SV_Target
             {
@@ -59,7 +66,7 @@ Shader "Unlit/AALine"
 
 
             float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
-                return fixed4(_Color.rgb, _Color.a * saturate(distance) * clipA);
+                return fixed4(i.color.rgb, i.color.a * saturate(distance) * clipA);
             }
             ENDCG
         }

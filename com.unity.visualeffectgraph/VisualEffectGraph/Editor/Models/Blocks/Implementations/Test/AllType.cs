@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Block.Test
 {
     [VFXInfo(category = "Tests")]
-    class VFXAllType : VFXBlock
+    class AllType : VFXBlock
     {
         public override string name                         { get { return "Test"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }

@@ -74,6 +74,50 @@ namespace UnityEditor.VFX.UI
             System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
 
             AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
+            OnAnchorChanged();
+        }
+
+        public void OnAnchorChanged()
+        {
+            var edgePresenter = GetPresenter<EdgePresenter>();
+
+            NodeAnchorPresenter outputPresenter = edgePresenter.output;
+            NodeAnchorPresenter inputPresenter = edgePresenter.input;
+
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            if (view != null)
+            {
+                VFXDataAnchor outputAnchor = view.GetDataAnchorByPresenter(outputPresenter as VFXDataAnchorPresenter);
+                VFXDataAnchor inputAnchor = view.GetDataAnchorByPresenter(inputPresenter as VFXDataAnchorPresenter);
+
+                VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
+
+                if (GetPresenter<EdgePresenter>().selected)
+                {
+                    edgeControl.inputColor = edgeControl.outputColor = selectedColor;
+                }
+                else
+                {
+                    if (inputAnchor != null)
+                    {
+                        edgeControl.inputColor = inputAnchor.anchorColor;
+                    }
+                    else if (outputAnchor != null)
+                    {
+                        edgeControl.inputColor = outputAnchor.anchorColor;
+                    }
+
+                    if (outputAnchor != null)
+                    {
+                        edgeControl.outputColor = outputAnchor.anchorColor;
+                    }
+                    else if (inputAnchor != null)
+                    {
+                        edgeControl.outputColor = inputAnchor.anchorColor;
+                    }
+                }
+            }
         }
 
         protected override EdgeControl CreateEdgeControl()
@@ -83,6 +127,11 @@ namespace UnityEditor.VFX.UI
                 capRadius = 4,
                 interceptWidth = 3
             };
+        }
+
+        protected override void DrawEdge()
+        {
+            UpdateEdgeControl();
         }
 
 #if false

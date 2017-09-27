@@ -109,7 +109,6 @@ namespace UnityEditor.VFX.UI
             exposed = parameter.exposed;
             exposedName = parameter.exposedName;
 
-            m_CachedValue = parameter.value;
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
@@ -234,7 +233,6 @@ namespace UnityEditor.VFX.UI
         }
 
         // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the presenter (or, in the case of serialization, before the presenter is created)
-        object m_CachedValue;
         object m_CachedMinValue;
         object m_CachedMaxValue;
 

@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Block.Test
 {
     [VFXInfo(category = "Tests")]
-    class VFXOutputBlockTest : VFXBlock
+    class OutputBlockTest : VFXBlock
     {
         public override string name                         { get { return "Output Block"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kOutput; } }

@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
 {
@@ -116,7 +117,7 @@ namespace UnityEditor.VFX.Test
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var allType = ScriptableObject.CreateInstance<VFXAllType>();
+            var allType = ScriptableObject.CreateInstance<AllType>();
 
             contextInitialize.AddChild(allType);
             graph.AddChild(contextInitialize);

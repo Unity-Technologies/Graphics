@@ -430,7 +430,25 @@ namespace UnityEditor.VFX
         }
 
         public int GetNbLinks() { return m_LinkedSlots.Count; }
-        public bool HasLink() { return GetNbLinks() != 0; }
+        public bool HasLink(bool rescursive = false)
+        {
+            if (GetNbLinks() != 0)
+            {
+                return true;
+            }
+
+            if (rescursive)
+            {
+                foreach (var child in children)
+                {
+                    if (child.HasLink(rescursive))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         public bool CanLink(VFXSlot other)
         {
@@ -618,17 +636,24 @@ namespace UnityEditor.VFX
                 owner.Invalidate(InvalidationCause.kExpressionInvalidated);
         }
 
-        public void UnlinkAll(bool notify = true)
+        public void UnlinkAll(bool recursive = false, bool notify = true)
         {
-            var currentSlots = new List<VFXSlot>(m_LinkedSlots);
-            foreach (var slot in currentSlots)
-                Unlink(slot, notify);
+            if (recursive)
+            {
+                PropagateToChildren(o => o.UnlinkAll(false, notify));
+            }
+            else
+            {
+                var currentSlots = new List<VFXSlot>(m_LinkedSlots);
+                foreach (var slot in currentSlots)
+                    Unlink(slot, notify);
+            }
         }
 
         private static void InnerLink(VFXSlot output, VFXSlot input)
         {
-            input.UnlinkAll(true); // First disconnect any other linked slot
-            input.PropagateToTree(s => s.UnlinkAll(true)); // Unlink other links in tree
+            input.UnlinkAll(); // First disconnect any other linked slot
+            input.PropagateToTree(s => s.UnlinkAll()); // Unlink other links in tree
 
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);

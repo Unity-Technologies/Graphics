@@ -314,11 +314,20 @@ namespace UnityEditor.VFX
 
         private void PropagateParentsFlags()
         {
-            foreach (var parent in m_Parents)
+            if (m_Parents.Length > 0)
             {
-                m_Flags |= (parent.m_Flags & (Flags.PerElement | Flags.InvalidOnCPU));
-                if (parent.Is(Flags.PerElement | Flags.InvalidOnGPU))
-                    m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+                bool foldable = true;
+                foreach (var parent in m_Parents)
+                {
+                    foldable &= parent.Is(Flags.Foldable);
+                    m_Flags |= (parent.m_Flags & (Flags.PerElement | Flags.InvalidOnCPU));
+                    if (parent.Is(Flags.PerElement | Flags.InvalidOnGPU))
+                        m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+                }
+                if (foldable)
+                    m_Flags |= Flags.Foldable;
+                else
+                    m_Flags &= ~Flags.Foldable;
             }
         }
 

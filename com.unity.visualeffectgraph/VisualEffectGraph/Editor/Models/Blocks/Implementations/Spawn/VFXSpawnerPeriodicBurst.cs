@@ -8,11 +8,11 @@ namespace UnityEditor.VFX
     class VFXSpawnerPeriodicBurst : VFXAbstractSpawner
     {
         public override string name { get { return "PeriodicBurst"; } }
-        public override VFXSpawnerType spawnerType { get { return VFXSpawnerType.kPeriodicBurst; } }
+        public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerPeriodicBurst; } }
         public class InputProperties
         {
-            public float nb = 10;
-            public float period = 1;
+            public Vector2 nb = new Vector2(0, 10);
+            public Vector2 period = new Vector2(0, 1);
         }
     }
 }

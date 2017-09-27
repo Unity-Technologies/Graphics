@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
 {
@@ -31,10 +32,10 @@ namespace UnityEditor.VFX
                 var data = GetData();
 
                 if (integration != VFXIntegrationMode.None && data.IsAttributeWritten(VFXAttribute.Velocity))
-                    yield return CreateInstance<VFXEulerIntegration>();
+                    yield return CreateInstance<EulerIntegration>();
 
                 if (GetData().IsAttributeWritten(VFXAttribute.Lifetime))
-                    yield return CreateInstance<VFXAgeAndDie>();
+                    yield return CreateInstance<AgeAndDie>();
             }
         }
     }

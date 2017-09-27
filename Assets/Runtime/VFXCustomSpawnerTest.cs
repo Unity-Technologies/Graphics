@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         {
             state.spawnCount = s_SpawnCount;
             state.totalTime = vfxValues.GetFloat("totalTime");
-            state.vfxEventAttribute.SetFloat("lifeTime", s_LifeTime);
+            state.vfxEventAttribute.SetFloat("lifetime", s_LifeTime);
         }
 
         public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues)

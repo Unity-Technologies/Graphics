@@ -207,7 +207,7 @@ namespace UnityEditor.VFX
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
             expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
 
-            foreach (var current in context.childrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
+            foreach (var current in context.activeChildrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {
                 var block = current.block;
                 var blockIndex = current.blockIndex;
@@ -225,7 +225,7 @@ namespace UnityEditor.VFX
                 foreach (var parameter in block.parameters)
                 {
                     var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
-                    if (!expReduced.Is(VFXExpression.Flags.InvalidOnGPU))
+                    if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                     {
                         expressionParameter.Add(expReduced);
                         nameParameter.Add(parameter.name);

@@ -24,6 +24,6 @@ namespace UnityEditor.VFX
 
         public override sealed string name { get { return m_customType == null ? "" : ((Type)m_customType).Name; } }
         public override sealed Type customBehavior { get { return m_customType; } }
-        public override sealed VFXSpawnerType spawnerType { get { return VFXSpawnerType.kCustomCallback; } }
+        public override sealed VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerCustomCallback; } }
     }
 }

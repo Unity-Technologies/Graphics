@@ -16,8 +16,8 @@ namespace UnityEditor.VFX.UI
             m_CollapseButton.visible = false;
 
             Insert(0, titleContainer);
-            rightContainer.Insert(0, new VisualElement() { name = "rightBackground" });
-            leftContainer.Insert(0, new VisualElement() { name = "leftBackground" });
+            rightContainer.Insert(0, new VisualElement() { name = "rightBackground", pickingMode = PickingMode.Ignore });
+            leftContainer.Insert(0, new VisualElement() { name = "leftBackground", pickingMode = PickingMode.Ignore });
             AddToClassList("VFXNodeUI");
         }
 

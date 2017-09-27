@@ -17,8 +17,6 @@ namespace UnityEngine.Experimental.UIElements
 
         public Element3D()
         {
-            clipChildren = true;
-
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
 
             m_Mesh = go.GetComponent<MeshFilter>().sharedMesh;

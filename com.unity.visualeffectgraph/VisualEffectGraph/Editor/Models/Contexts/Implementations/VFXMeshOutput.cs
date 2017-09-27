@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.GPU:
                 {
-                    var mapper = VFXExpressionMapper.FromBlocks(childrenWithImplicit);
+                    var mapper = VFXExpressionMapper.FromBlocks(activeChildrenWithImplicit);
                     return mapper;
                 }
 

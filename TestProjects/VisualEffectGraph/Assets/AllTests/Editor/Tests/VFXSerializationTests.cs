@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEditor.VFX;
+using UnityEditor.VFX.Block.Test;
 using UnityEngine.VFX;
+
 
 using Object = UnityEngine.Object;
 
@@ -85,9 +85,9 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(output1);
 
             // Add some block
-            var block0 = ScriptableObject.CreateInstance<VFXInitBlockTest>();
-            var block1 = ScriptableObject.CreateInstance<VFXUpdateBlockTest>();
-            var block2 = ScriptableObject.CreateInstance<VFXOutputBlockTest>();
+            var block0 = ScriptableObject.CreateInstance<InitBlockTest>();
+            var block1 = ScriptableObject.CreateInstance<UpdateBlockTest>();
+            var block2 = ScriptableObject.CreateInstance<OutputBlockTest>();
 
             // Add some operator
             VFXOperator add = ScriptableObject.CreateInstance<VFXOperatorAdd>();

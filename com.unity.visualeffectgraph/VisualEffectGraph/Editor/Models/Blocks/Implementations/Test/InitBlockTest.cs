@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Block.Test
 {
     [VFXInfo(category = "Tests")]
-    class VFXInitBlockTest : VFXBlock
+    class InitBlockTest : VFXBlock
     {
         public override string name                         { get { return "Init Block"; }}
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kInit; } }

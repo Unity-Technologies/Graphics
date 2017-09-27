@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
+using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
 {
@@ -158,7 +159,7 @@ namespace UnityEditor.VFX.Test
             var newBlock = block.CreateInstance();
             contextPresenter.AddBlock(0, newBlock);
 
-            Assert.IsTrue(newBlock is VFXAllType);
+            Assert.IsTrue(newBlock is AllType);
 
             Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
@@ -720,7 +721,7 @@ namespace UnityEditor.VFX.Test
             CreateTestAsset();
 
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
-            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(VFXAllType));
+            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
 
             var contextUpdate = m_ViewPresenter.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextPresenter> fnContextPresenter = delegate()
@@ -747,7 +748,7 @@ namespace UnityEditor.VFX.Test
             Undo.PerformUndo();
             Assert.IsNotNull(fnContextPresenter());
             Assert.AreEqual(1, fnContextPresenter().context.children.Count());
-            Assert.IsInstanceOf(typeof(VFXAllType), fnContextPresenter().context.children.First());
+            Assert.IsInstanceOf(typeof(AllType), fnContextPresenter().context.children.First());
 
             DestroyTestAsset();
         }
@@ -842,6 +843,31 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.AreEqual(1, fnFlowEdgeCount(), "Fail undo Delete");
+
+            DestroyTestAsset();
+        }
+
+        [Test]
+        public void DeleteSubSlotWithLink()
+        {
+            CreateTestAsset();
+
+            var crossProductDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
+            var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Sin"));
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cos"));
+
+            var crossProduct = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), crossProductDesc);
+            var sin = m_ViewPresenter.AddVFXOperator(new Vector2(8, 8), sinDesc);
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(-8, 8), cosDesc);
+
+            crossProduct.outputSlots[0].children.ElementAt(1).Link(sin.inputSlots[0]);
+            crossProduct.outputSlots[0].children.ElementAt(1).Link(cos.inputSlots[0]);
+
+            var crossPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().First(o => o.model.name.Contains("Cross"));
+            m_ViewPresenter.RemoveElement(crossPresenter);
+
+            Assert.IsFalse(cos.inputSlots[0].HasLink(true));
+            Assert.IsFalse(sin.inputSlots[0].HasLink(true));
 
             DestroyTestAsset();
         }

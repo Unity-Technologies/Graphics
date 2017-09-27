@@ -207,6 +207,16 @@ namespace UnityEditor.VFX.UI
             };
         }
 
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+
+
+            VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
+
+            edgeControl.outputColor = edgeControl.inputColor = GetPresenter<EdgePresenter>().selected ? selectedColor : defaultColor;
+        }
+
 #if false
         protected override void DrawEdge()
         {

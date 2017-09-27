@@ -314,11 +314,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public IEnumerable<VFXBlock> childrenWithImplicit
+        public IEnumerable<VFXBlock> activeChildrenWithImplicit
         {
             get
             {
-                return implicitPreBlock.Concat(children).Concat(implicitPostBlock);
+                return implicitPreBlock.Concat(children).Concat(implicitPostBlock).Where(o => o.enabled);
             }
         }
 

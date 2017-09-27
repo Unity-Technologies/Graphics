@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Test")]
-    class VFXAgeAndDie : VFXBlock
+    class AgeAndDie : VFXBlock
     {
         public override string name { get { return "AgeAndDie"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
