@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(Light))]
+    [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     public class HDLightEditor : Editor
     {
@@ -50,13 +50,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_SpotLightShape;
         SerializedProperty m_ShapeLength;
         SerializedProperty m_ShapeWidth;
-        SerializedProperty m_ShapeRadius;        
+        SerializedProperty m_ShapeRadius;
         SerializedProperty m_MaxSmoothness;
         SerializedProperty m_ApplyRangeAttenuation;
 
         // Extra data for GUI only
         SerializedProperty m_UseOldInspector;
-        SerializedProperty m_ShowAdditionalSettings;        
+        SerializedProperty m_ShowAdditionalSettings;
 
         SerializedProperty m_ShadowDimmer;
         SerializedProperty m_ShadowFadeDistance;
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //Area, <= offline type of Unity not dispay in our case but reuse for GI of our area light
             Rectangle,
             Line,
-            // Sphere, 
+            // Sphere,
             // Disc,
         }
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Note: There is no Lightmapping enum, the code C# side must use int
         // Light.h file: int m_Lightmapping; ///< enum { Dynamic=4, Stationary=1, Static=2 }
-        // Lighting.h file: 
+        // Lighting.h file:
         // enum LightmapBakeType (not accessible in C#)
         //{
         //    kLightRealtime  = 1 << 2,   // Light is realtime
@@ -254,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FadeDistance = additionalDataSerializedObject.FindProperty("fadeDistance");
             m_AffectDiffuse = additionalDataSerializedObject.FindProperty("affectDiffuse");
             m_AffectSpecular = additionalDataSerializedObject.FindProperty("affectSpecular");
-            m_LightTypeExtent = additionalDataSerializedObject.FindProperty("lightTypeExtent");     
+            m_LightTypeExtent = additionalDataSerializedObject.FindProperty("lightTypeExtent");
             m_SpotLightShape = additionalDataSerializedObject.FindProperty("spotLightShape");
             m_ShapeLength = additionalDataSerializedObject.FindProperty("shapeLength");
             m_ShapeWidth = additionalDataSerializedObject.FindProperty("shapeWidth");
@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowCascadeCount = shadowDataSerializedObject.FindProperty("shadowCascadeCount");
             m_ShadowCascadeRatios = shadowDataSerializedObject.FindProperty("shadowCascadeRatios");
             m_ShadowCascadeBorders = shadowDataSerializedObject.FindProperty("shadowCascadeBorders");
-            m_ShadowResolution = shadowDataSerializedObject.FindProperty("shadowResolution");                        
+            m_ShadowResolution = shadowDataSerializedObject.FindProperty("shadowResolution");
         }
 
         void ResolveLightShape()
@@ -404,7 +404,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // We need to overwrite the name of the default enum that doesn't make any sense
             // EditorGUILayout.PropertyField(m_Lightmapping, Styles.LightmappingMode);
-            m_Lightmapping.enumValueIndex = EditorGUILayout.Popup(Styles.lightmappingModeText, (int)m_Lightmapping.enumValueIndex, Styles.lightmappingModeNames);     
+            m_Lightmapping.enumValueIndex = EditorGUILayout.Popup(Styles.lightmappingModeText, (int)m_Lightmapping.enumValueIndex, Styles.lightmappingModeNames);
 
             // Warning if GI Baking disabled and m_Lightmapping isn't realtime
             if (bakingWarningValue)
@@ -449,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                     }
                 }
-                else 
+                else
                 {
                     EditorGUILayout.PropertyField(m_ShadowResolution, Styles.ShadowResolution);
                     EditorGUILayout.Slider(m_ShadowsBias, 0.001f, 1, Styles.ShadowBias);
@@ -532,7 +532,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Light features
             EditorGUI.indentLevel++;
             EditorGUILayout.LabelField(new GUIContent("Light features"), EditorStyles.boldLabel);
-            
+
             // Do not display option for shadow if we are fully bake
             if (m_Lightmapping.enumValueIndex != (int)LightMappingType.Baked)
             {
@@ -568,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 LightGUI();
             }
-    
+
             // Shadows
             if (m_ShadowsType.enumValueIndex != (int)LightShadows.None)
             {

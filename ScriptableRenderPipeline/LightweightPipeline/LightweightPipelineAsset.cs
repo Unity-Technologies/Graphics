@@ -31,6 +31,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
+        public static readonly string m_SimpleLightShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
+        public static readonly string m_PBSShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
+        public static readonly string m_BlitShaderPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit";
         private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
@@ -78,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
         [SerializeField] private bool m_LinearRendering = true;
         [SerializeField] private Texture2D m_AttenuationTexture;
-        
+
         [SerializeField] private Material m_DefaultDiffuseMaterial;
         [SerializeField] private Material m_DefaultParticleMaterial;
         [SerializeField] private Material m_DefaultLineMaterial;
@@ -210,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Shader BlitShader
         {
-            get { return Shader.Find("Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit"); }
+            get { return Shader.Find(LightweightPipelineAsset.m_BlitShaderPath); }
         }
     }
 }

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 78812a35d939745618c9f35ce5599253
-timeCreated: 1505144532
+timeCreated: 1506084283
 licenseType: Pro
 SubstanceImporter:
   externalObjects: {}
@@ -14,7 +14,95 @@ SubstanceImporter:
     shaderKeywords: 
     renderQueue: -1
     lightmapFlags: 4
-    inputs: []
+    inputs:
+    - name: $outputsize
+      value:
+        scalar[0]: 8
+        scalar[1]: 8
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: $randomseed
+      value:
+        scalar[0]: 0
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Tile_X
+      value:
+        scalar[0]: 4
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Tile_Y
+      value:
+        scalar[0]: 2
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Scale
+      value:
+        scalar[0]: 1.6
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Height_Range
+      value:
+        scalar[0]: 0.5
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Height_Position
+      value:
+        scalar[0]: 0.5
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Colour_value
+      value:
+        scalar[0]: 0.5
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Colour_Highpass
+      value:
+        scalar[0]: 64
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Rougness
+      value:
+        scalar[0]: 0.55
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
+    - name: Roughness_Contrast
+      value:
+        scalar[0]: 0.4
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+        stringvalue: 
     materialInformation:
       serializedVersion: 5
       offset: {x: 0, y: 0}
@@ -24,9 +112,63 @@ SubstanceImporter:
       animationUpdateRate: 0
     materialProperties:
       serializedVersion: 3
-      texEnvs: []
-      floats: []
-      colors: []
+      texEnvs:
+      - _BumpMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _DetailAlbedoMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _DetailMask:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _DetailNormalMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _EmissionMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _MainTex:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _MetallicGlossMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _OcclusionMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      - _ParallaxMap:
+          texture: {instanceID: 0}
+          scale: {x: 1, y: 1}
+          offset: {x: 0, y: 0}
+      floats:
+      - _BumpScale: 1
+      - _Cutoff: 0.5
+      - _DetailNormalMapScale: 1
+      - _DstBlend: 0
+      - _GlossMapScale: 1
+      - _Glossiness: 0.5
+      - _GlossyReflections: 1
+      - _Metallic: 0
+      - _Mode: 0
+      - _OcclusionStrength: 1
+      - _Parallax: 0.02
+      - _SmoothnessTextureChannel: 0
+      - _SpecularHighlights: 1
+      - _SrcBlend: 1
+      - _UVSec: 0
+      - _ZWrite: 1
+      colors:
+      - _Color: {r: 1, g: 1, b: 1, a: 1}
+      - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     textureParameters:
     - name: PW_WoodLog_basecolor
       alphaSource: 6
@@ -67,7 +209,7 @@ SubstanceImporter:
       textureWidth: 512
       textureHeight: 512
       textureFormat: 0
-      loadingBehavior: 1
+      loadingBehavior: 2
   deletedPrototypes: []
   userData: 
   assetBundleName: 

@@ -69,12 +69,8 @@ float4 _LightAttenuationParams;
 half4 _LightSpotDir;
 #endif
 
-sampler2D _MetallicSpecGlossMap;
-
-half4 _DieletricSpec;
 half _Shininess;
-samplerCUBE _Cube;
-half4 _ReflectColor;
+half4 _GlossyEnvironmentColor;
 
 struct LightweightVertexInput
 {
@@ -103,32 +99,68 @@ struct LightweightVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-inline void NormalMap(LightweightVertexOutput i, out half3 normal)
+struct SurfaceData
 {
-#if _NORMALMAP
-    half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
+    half3 albedo;
+    half  alpha;
+    half4 metallicSpecGloss;
+    half3 normalWorld;
+    half  ao;
+    half3 emission;
+};
+
+struct BRDFData
+{
+    half3 diffuse;
+    half3 specular;
+    half perceptualRoughness;
+    half roughness;
+    half grazingTerm;
+};
+
+inline half Alpha(half albedoAlpha)
+{
+#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
+    half alpha = _Color.a;
+#else
+    half alpha = albedoAlpha * _Color.a;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    clip(alpha - _Cutoff);
+#endif
+
+    return alpha;
+}
+
+inline half3 Normal(LightweightVertexOutput i)
+{
+    #if _NORMALMAP
+    half3 normalTangent = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
 
     // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
     // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
     // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    normal = normalize(half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2)));
+    half3 normalWorld = normalize(half3(dot(normalTangent, i.tangentToWorld0), dot(normalTangent, i.tangentToWorld1), dot(normalTangent, i.tangentToWorld2)));
 #else
-    normal = normalize(i.normal);
+    half3 normalWorld = normalize(i.normal);
 #endif
+
+    return normalWorld;
 }
 
 inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 {
+    specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = tex2D(_SpecGlossMap, uv);
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(_LIGHTWEIGHT_FORCE_LINEAR)
     specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
-#endif
-#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_SpecGlossMap, uv).rgb) * _SpecColor.rgb;
-    specularGloss.a = alpha;
-#else
+#elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
+#endif
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.a = alpha;
 #endif
 }
 
@@ -137,7 +169,7 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
-    specGloss = SAMPLE_METALLICSPECULAR(uv);
+    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     specGloss.a = albedoAlpha * _GlossMapScale;
 #else
@@ -146,7 +178,7 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 
 #else // _METALLICSPECGLOSSMAP
 #if _METALLIC_SETUP
-    specGloss.r = _Metallic;
+    specGloss.rgb = _Metallic.rrr;
 #else
     specGloss.rgb = _SpecColor.rgb;
 #endif
@@ -159,6 +191,31 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 #endif
 
     return specGloss;
+}
+
+half OcclusionLW(float2 uv)
+{
+#ifdef _OCCLUSIONMAP
+    #if (SHADER_TARGET < 30)
+    // SM20: instruction count limitation
+    // SM20: simpler occlusion
+    return tex2D(_OcclusionMap, uv).g;
+#else
+    half occ = tex2D(_OcclusionMap, uv).g;
+    return LerpOneTo(occ, _OcclusionStrength);
+#endif
+#else
+    return 1.0;
+#endif
+}
+
+half3 EmissionLW(float2 uv)
+{
+#ifndef _EMISSION
+    return 0;
+#else
+    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
 }
 
 #endif
