@@ -5,20 +5,20 @@
 
 // Main light initialized without indexing
 #define INITIALIZE_MAIN_LIGHT(light) \
-    light.pos = _LightPosition; \
-    light.color = _LightColor; \
-    light.atten = _LightAttenuationParams; \
-    light.spotDir = _LightSpotDir;
+    light.pos = _MainLightPosition; \
+    light.color = _MainLightColor; \
+    light.atten = _MainLightAttenuationParams; \
+    light.spotDir = _MainLightSpotDir;
 
 // Indexing might have a performance hit for old mobile hardware
 #define INITIALIZE_LIGHT(light, lightIndex) \
-                            light.pos = globalLightPos[lightIndex]; \
-                            light.color = globalLightColor[lightIndex]; \
-                            light.atten = globalLightAtten[lightIndex]; \
-                            light.spotDir = globalLightSpotDir[lightIndex]
+                            light.pos = _AdditionalLightPosition[lightIndex]; \
+                            light.color = _AdditionalLightColor[lightIndex]; \
+                            light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
+                            light.spotDir = _AdditionalLightSpotDir[lightIndex]
 
-#if !(defined(_SINGLE_DIRECTIONAL_LIGHT) || defined(_SINGLE_SPOT_LIGHT) || defined(_SINGLE_POINT_LIGHT))
-#define _MULTIPLE_LIGHTS
+#if (defined(_MAIN_DIRECTIONAL_LIGHT) || defined(_MAIN_SPOT_LIGHT) || defined(_MAIN_POINT_LIGHT))
+#define _MAIN_LIGHT
 #endif
 
 #ifdef _SPECULAR_SETUP
@@ -28,16 +28,12 @@
 #endif
 
 #if defined(UNITY_COLORSPACE_GAMMA) && defined(_LIGHTWEIGHT_FORCE_LINEAR)
-// Ideally we want an approximation of gamma curve 2.0 to save ALU on GPU but as off now it won't match the GammaToLinear conversion of props in engine
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
-//#define LIGHTWEIGHT_GAMMA_TO_LINEAR(sRGB) sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h)
-//#define LIGHTWEIGHT_LINEAR_TO_GAMMA(linRGB) max(1.055h * pow(max(linRGB, 0.h), 0.416666667h) - 0.055h, 0.h)
 #else
 #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
 #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
 #endif
-
 
 struct LightInput
 {
@@ -47,30 +43,29 @@ struct LightInput
     half4 spotDir;
 };
 
-sampler2D _AttenuationTexture;
-
-// Per object light list data
-#ifdef _MULTIPLE_LIGHTS
+CBUFFER_START(_PerObject)
 half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
-
-// The variables are very similar to built-in unity_LightColor, unity_LightPosition,
-// unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
-// we use world space positions instead of view space.
-half4 globalLightCount;
-half4 globalLightColor[MAX_VISIBLE_LIGHTS];
-float4 globalLightPos[MAX_VISIBLE_LIGHTS];
-half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
-float4 globalLightAtten[MAX_VISIBLE_LIGHTS];
-#else
-float4 _LightPosition;
-half4 _LightColor;
-float4 _LightAttenuationParams;
-half4 _LightSpotDir;
-#endif
-
 half _Shininess;
+CBUFFER_END
+
+CBUFFER_START(_PerCamera)
+float4 _MainLightPosition;
+half4 _MainLightColor;
+float4 _MainLightAttenuationParams;
+half4 _MainLightSpotDir;
+
+half4 _AdditionalLightCount;
+float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightAttenuationParams[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
+CBUFFER_END
+
+CBUFFER_START(_PerFrame)
 half4 _GlossyEnvironmentColor;
+sampler2D _AttenuationTexture;
+CBUFFER_END
 
 struct LightweightVertexInput
 {
