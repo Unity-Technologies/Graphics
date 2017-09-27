@@ -34,6 +34,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.DisableShaderKeyword(keyword);
         }
 
+        public static bool IsSupportedShadowType(LightType lightType)
+        {
+            return lightType == LightType.Directional || lightType == LightType.Spot;
+        }
+
         public static bool PlatformSupportsMSAABackBuffer()
         {
 #if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SAMSUNGTV
