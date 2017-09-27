@@ -43,11 +43,6 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
         public static GUIContent emissionMapLabel = new GUIContent("Emission Map", "Emission Map");
 
-        public static GUIContent alphaCutoutWarning =
-            new GUIContent(
-                "This material has alpha cutout enabled. Alpha cutout has severe performance impact on mobile!");
-
-        public static GUIStyle warningStyle = new GUIStyle();
         public static readonly string[] blendNames = Enum.GetNames(typeof(UpgradeBlendMode));
         public static readonly string[] glossinessSourceNames = Enum.GetNames(typeof(GlossinessSource));
 
@@ -89,17 +84,23 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
         FindMaterialProperties(properties);
 
         EditorGUI.BeginChangeCheck();
-        DoBlendMode();
+        {
+            DoBlendMode();
 
-        EditorGUILayout.Space();
-        DoSpecular();
+            EditorGUILayout.Space();
+            DoSpecular();
 
-        EditorGUILayout.Space();
-        m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMapProp);
+            EditorGUILayout.Space();
+            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMapProp);
 
-        EditorGUILayout.Space();
-        DoEmissionArea(material);
+            EditorGUILayout.Space();
+            DoEmissionArea(material);
 
+            EditorGUI.BeginChangeCheck();
+            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
+            if (EditorGUI.EndChangeCheck())
+                emissionMapProp.textureScaleAndOffset = albedoMapProp.textureScaleAndOffset; // Apply the main texture scale and offset to the emission texture as well, for Enlighten's sake
+        }
         if (EditorGUI.EndChangeCheck())
             LegacyBlinnPhongUpgrader.UpdateMaterialKeywords(material);
 
@@ -110,12 +111,6 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
 
         EditorGUILayout.Space();
         EditorGUILayout.Space();
-
-        if ((UpgradeBlendMode)blendModeProp.floatValue == UpgradeBlendMode.Cutout)
-        {
-            Styles.warningStyle.normal.textColor = Color.yellow;
-            EditorGUILayout.LabelField(Styles.alphaCutoutWarning, Styles.warningStyle);
-        }
     }
 
     public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -154,12 +149,10 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
             int glossSource = (int)glossinessSourceProp.floatValue;
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMapProp,
                 albedoColorProp);
-            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
-        }
+            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);}
         else
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMapProp, albedoColorProp);
-            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
             if (mode == UpgradeBlendMode.Cutout)
                 m_MaterialEditor.RangeProperty(alphaCutoffProp, "Cutoff");
         }
