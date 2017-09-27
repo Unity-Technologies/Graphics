@@ -1,0 +1,356 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!2058629509 &8926484042661614526
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: DefaultParticleSystem
+  m_Graph: {fileID: 0}
+  m_Expressions:
+    m_Expressions:
+    - op: 0
+      valueIndex: 0
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 11
+    - op: 0
+      valueIndex: 1
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 10
+    - op: 0
+      valueIndex: 2
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 3
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 4
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 10
+    - op: 39
+      valueIndex: 5
+      data[0]: 0
+      data[1]: -1
+      data[2]: -1
+      data[3]: 0
+    - op: 0
+      valueIndex: 6
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 7
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 8
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 38
+      valueIndex: 9
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 0
+    - op: 0
+      valueIndex: 13
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 38
+      valueIndex: 14
+      data[0]: 4
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 18
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 7
+    - op: 13
+      valueIndex: 20
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 21
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 2
+      valueIndex: 22
+      data[0]: 6
+      data[1]: 2
+      data[2]: 3
+      data[3]: -1
+    - op: 0
+      valueIndex: 25
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 26
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 2
+      valueIndex: 27
+      data[0]: 8
+      data[1]: 7
+      data[2]: 10
+      data[3]: -1
+    - op: 0
+      valueIndex: 30
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 31
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 32
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 33
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    m_SemanticToExpressionIndex:
+      1409375635: 17
+    m_NeedsLocalToWorld: 0
+    m_NeedsWorldToLocal: 0
+  m_ExposedExpressions: []
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_ExpressionIndex: 2
+        m_Value: 0
+      - m_ExpressionIndex: 3
+        m_Value: 0
+      - m_ExpressionIndex: 6
+        m_Value: 0
+      - m_ExpressionIndex: 7
+        m_Value: 0.25
+      - m_ExpressionIndex: 8
+        m_Value: 0
+      - m_ExpressionIndex: 10
+        m_Value: 0
+      - m_ExpressionIndex: 14
+        m_Value: 3
+      - m_ExpressionIndex: 16
+        m_Value: 0.20000002
+      - m_ExpressionIndex: 17
+        m_Value: 10
+      - m_ExpressionIndex: 19
+        m_Value: 1
+      - m_ExpressionIndex: 20
+        m_Value: 1
+      - m_ExpressionIndex: 21
+        m_Value: 0.2
+      - m_ExpressionIndex: 22
+        m_Value: 0.1
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array:
+      - m_ExpressionIndex: 1
+        m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 2
+            time: 0
+            value: 0
+            inSlope: 0.49624252
+            outSlope: 0.49624252
+            tangentMode: 34
+          - serializedVersion: 2
+            time: 1
+            value: 0.49624252
+            inSlope: 0.49624252
+            outSlope: 0.49624252
+            tangentMode: 34
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      - m_ExpressionIndex: 4
+        m_Value:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+    m_Gradient:
+      m_Array:
+      - m_ExpressionIndex: 0
+        m_Value:
+          serializedVersion: 2
+          key0: {r: 1, g: 0.06861055, b: 0, a: 1}
+          key1: {r: 1, g: 0.54480493, b: 0, a: 1}
+          key2: {r: 1, g: 1, b: 0, a: 0}
+          key3: {r: 0.6315848, g: 0.8014706, b: 0.15322232, a: 0}
+          key4: {r: 0, g: 0.7103448, b: 1, a: 0}
+          key5: {r: 0, g: 0.08965492, b: 1, a: 0}
+          key6: {r: 0.786744, g: 0.22229022, b: 0.81970483, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 8799
+          ctime2: 18521
+          ctime3: 28829
+          ctime4: 41232
+          ctime5: 53802
+          ctime6: 65535
+          ctime7: 0
+          atime0: 0
+          atime1: 65535
+          atime2: 0
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_NumColorKeys: 7
+          m_NumAlphaKeys: 2
+    m_NamedObject:
+      m_Array:
+      - m_ExpressionIndex: 12
+        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
+    m_Bool:
+      m_Array: []
+  m_Buffers:
+  - type: 1
+    stride: 4
+    capacity: 851968
+  - type: 2
+    stride: 4
+    capacity: 65536
+  - type: 1
+    stride: 4
+    capacity: 1
+  m_CPUBuffers:
+  - capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+  m_Systems:
+  - type: 0
+    flags: 0
+    capacity: 0
+    buffers:
+    - bufferIndex: 0
+      nameId: spawner_output
+    values: []
+    tasks:
+    - type: 268435457
+      buffers: []
+      values:
+      - expressionIndex: 17
+        nameId: Rate
+      processor: {fileID: 0}
+  - type: 1
+    flags: 1
+    capacity: 65536
+    buffers:
+    - bufferIndex: 0
+      nameId: attributeBuffer
+    - bufferIndex: 1
+      nameId: deadList
+    - bufferIndex: 2
+      nameId: deadListCount
+    - bufferIndex: 0
+      nameId: spawner_input
+    values: []
+    tasks:
+    - type: 536870912
+      buffers:
+      - bufferIndex: 0
+        nameId: attributeBuffer
+      - bufferIndex: 1
+        nameId: deadListIn
+      - bufferIndex: 2
+        nameId: deadListCount
+      values:
+      - expressionIndex: 18
+        nameId: uniform_Velocity_b
+      - expressionIndex: 15
+        nameId: uniform_Sphere_center_c
+      - expressionIndex: 16
+        nameId: uniform_Sphere_radius_c
+      - expressionIndex: 21
+        nameId: uniform_Speed_c
+      - expressionIndex: 22
+        nameId: uniform_Thickness_c
+      - expressionIndex: 20
+        nameId: uniform_Value_d
+      - expressionIndex: 14
+        nameId: uniform_Other_d
+      - expressionIndex: 11
+        nameId: uniform_Curve_d
+      processor: {fileID: 7200000, guid: 746fcee6c4e88ab40bed4ca9c3607a24, type: 3}
+    - type: 805306368
+      buffers:
+      - bufferIndex: 0
+        nameId: attributeBuffer
+      - bufferIndex: 1
+        nameId: deadListOut
+      values:
+      - expressionIndex: 13
+        nameId: uniform_deltaTime_b
+      processor: {fileID: 7200000, guid: 25276e2f04801684b9b2c7a93f0f0836, type: 3}
+    - type: 1073741826
+      buffers:
+      - bufferIndex: 0
+        nameId: attributeBuffer
+      values:
+      - expressionIndex: 5
+        nameId: uniform_b
+      - expressionIndex: 9
+        nameId: uniform_c
+      - expressionIndex: 12
+        nameId: texture_texture
+      processor: {fileID: 4800000, guid: b5d210a52b860444a9583bc397b340a3, type: 3}
