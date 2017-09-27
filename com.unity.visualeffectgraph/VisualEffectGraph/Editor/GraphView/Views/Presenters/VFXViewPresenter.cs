@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
             if (m_DataInputAnchorPresenters == null)
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
-            SetVFXAsset(m_VFXAsset != null ? m_VFXAsset : new VFXAsset(), true);
+            SetVFXAsset(m_VFXAsset, true);
             InitializeUndoStack();
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
@@ -82,6 +82,7 @@ namespace UnityEditor.VFX.UI
         {
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+            SetVFXAsset(null, true);
             s_ViewPresenter = null;
         }
 
