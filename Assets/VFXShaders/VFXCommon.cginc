@@ -244,7 +244,7 @@ float HalfTexelOffset(float f)
 
 float4 SampleGradient(float v,float u)
 {
-    float uv = float2(HalfTexelOffset(saturate(u)),v);
+    float2 uv = float2(HalfTexelOffset(saturate(u)),v);
     return bakedTexture.SampleLevel(samplerbakedTexture,uv,0);
 }
 
