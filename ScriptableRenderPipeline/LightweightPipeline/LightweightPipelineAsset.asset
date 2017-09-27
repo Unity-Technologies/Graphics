@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: LightweightPipelineAsset
   m_EditorClassIdentifier: 
-  m_MaxPixelLights: 4
+  m_MaxPixelLights: 5
   m_SupportsVertexLight: 1
   m_MSAA: 4
   m_RenderScale: 1
