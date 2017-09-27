@@ -141,28 +141,24 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             if (m_InputSlots == null)
-            {
                 m_InputSlots = new List<VFXSlot>();
-                InitSlotsFromProperties(inputProperties, VFXSlot.Direction.kInput);
-            }
             else
             {
                 int nbRemoved = m_InputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
+            SyncSlots(VFXSlot.Direction.kInput);
 
             if (m_OutputSlots == null)
-            {
                 m_OutputSlots = new List<VFXSlot>();
-                InitSlotsFromProperties(outputProperties, VFXSlot.Direction.kOutput);
-            }
             else
             {
                 int nbRemoved = m_OutputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
+            SyncSlots(VFXSlot.Direction.kOutput);
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -237,6 +233,40 @@ namespace UnityEditor.VFX
             {
                 var slot = VFXSlot.Create(p, direction);
                 InnerAddSlot(slot, false);
+            }
+        }
+
+        private void SyncSlots(VFXSlot.Direction direction)
+        {
+            bool isInput = direction == VFXSlot.Direction.kInput;
+
+            var expectedProperties = (isInput ? inputProperties : outputProperties).ToArray();
+            int nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+            var currentSlots = isInput ? inputSlots : outputSlots;
+
+            bool recreate = false;
+            if (nbSlots != expectedProperties.Length)
+                recreate = true;
+            else
+            {
+                for (int i = 0; i < nbSlots; ++i)
+                    if (!currentSlots[i].property.Equals(expectedProperties[i].property))
+                    {
+                        recreate = true;
+                        break;
+                    }
+            }
+
+            if (recreate)
+            {
+                Debug.Log(string.Format("Recreate {0} slots for slots container {1}", direction, name));
+                for (int i = nbSlots - 1; i > 0; --i)
+                {
+                    currentSlots[i].UnlinkAll(true, false);
+                    InnerRemoveSlot(currentSlots[i], false);
+                }
+                InitSlotsFromProperties(expectedProperties, direction);
+                Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 
