@@ -68,7 +68,7 @@ Shader "Hidden/VFX/ParticlePoints"
 #if VFX_USE_COLOR_CURRENT
 							o.color.rgb = color;
 #endif
-#if VFX_USE_COLOR_ALPHA
+#if VFX_USE_ALPHA_CURRENT
 							o.color.a = alpha;
 #endif
 #endif
