@@ -84,10 +84,10 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
     half3 lightDirection;
 
-#ifndef _MULTIPLE_LIGHTS
+#ifdef _MAIN_LIGHT
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
-    half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
+    half lightAtten = ComputeMainLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
 #ifdef _SHADOWS
     lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
@@ -96,21 +96,17 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     half NdotL = saturate(dot(normal, lightDirection));
     half3 radiance = light.color * (lightAtten * NdotL);
     color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
-#else
-
-#ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
-    int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+
+#ifdef _ADDITIONAL_PIXEL_LIGHTS
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput light;
         int lightIndex = unity_4LightIndices0[lightIter];
         INITIALIZE_LIGHT(light, lightIndex);
         half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-#ifdef _SHADOWS
-        lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
-#endif
+
         half NdotL = saturate(dot(normal, lightDirection));
         half3 radiance = light.color * (lightAtten * NdotL);
         color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
@@ -149,36 +145,36 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 
     half3 lightDirection;
 
-#ifndef _MULTIPLE_LIGHTS
+#if defined(LIGHTMAP_ON)
+    half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
+#else
+    half3 color = (SHEvalLinearL0L1(half4(normal, 1.0)) + i.fogCoord.yzw) * diffuse;
+#endif
+
+#ifdef _MAIN_LIGHT
     LightInput lightInput;
     INITIALIZE_MAIN_LIGHT(lightInput);
-    half lightAtten = ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
+    half lightAtten = ComputeMainLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #ifdef _SHADOWS
     lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-    half3 color = LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
+    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
 #else
-    half3 color = LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
+    color += LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
 #endif
 
-#else
-    half3 color = half3(0, 0, 0);
-
-#ifdef _SHADOWS
-    half shadowAttenuation = ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
 #endif
-    int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+
+#ifdef _ADDITIONAL_PIXEL_LIGHTS
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput lightData;
         int lightIndex = unity_4LightIndices0[lightIter];
         INITIALIZE_LIGHT(lightData, lightIndex);
         half lightAtten = ComputeLightAttenuation(lightData, normal, worldPos, lightDirection);
-#ifdef _SHADOWS
-        lightAtten *= max(shadowAttenuation, half(lightIndex != _ShadowData.x));
-#endif
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
         color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
@@ -187,32 +183,10 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #endif
     }
 
-#endif // _MULTIPLE_LIGHTS
+#endif // _ADDITIONAL_PIXEL_LIGHTS
 
-#ifdef _EMISSION
-    color += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor;
-#else
-    color += _EmissionColor;
-#endif
-
-#if defined(LIGHTMAP_ON)
-    color += DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
-#else
-    color += (SHEvalLinearL0L1(half4(normal, 1.0)) + i.fogCoord.yzw) * diffuse;
-#endif
-
-#if _REFLECTION_CUBEMAP
-    // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
-    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    color += texCUBE(_Cube, reflectVec).rgb * specularGloss.rgb;
-#elif defined(_REFLECTION_PROBE)
-    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    half4 reflectionProbe = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectVec);
-    color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * specularGloss.rgb;
-#endif
-
+    color += EmissionLW(i.uv01.xy);
     UNITY_APPLY_FOG(i.fogCoord, color);
-
     return OutputColor(color, alpha);
 };
 
