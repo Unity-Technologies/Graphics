@@ -203,7 +203,10 @@ namespace UnityEditor.VFX.UI
             {
                 Event.current.Use();
                 if (s_FilterWindow == null)
+                {
                     s_FilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();
+                    s_FilterWindow.hideFlags = HideFlags.HideAndDontSave;
+                }
                 s_FilterWindow.Init(position, provider);
                 return true;
             }
