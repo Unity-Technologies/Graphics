@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.BlockLibrary
             Alpha,
         }
         [VFXSetting]
-        public ColorApplicationMode Mode;
+        public ColorApplicationMode mode;
 
         public override string name { get { return "Color over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.BlockLibrary
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
-                if (Mode == ColorApplicationMode.Color || Mode == ColorApplicationMode.ColorAndAlpha)
+                if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.ReadWrite);
-                if (Mode == ColorApplicationMode.Alpha || Mode == ColorApplicationMode.ColorAndAlpha)
+                if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
                     yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
             }
         }
@@ -56,9 +56,9 @@ namespace UnityEditor.VFX.BlockLibrary
             {
                 string outSource = @"";
 
-                if (Mode == ColorApplicationMode.Color || Mode == ColorApplicationMode.ColorAndAlpha)
+                if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
                     outSource += "color = sampledColor.rgb;\n";
-                if (Mode == ColorApplicationMode.Alpha || Mode == ColorApplicationMode.ColorAndAlpha)
+                if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
                     outSource += "alpha = sampledColor.a;\n";
 
                 return outSource;
