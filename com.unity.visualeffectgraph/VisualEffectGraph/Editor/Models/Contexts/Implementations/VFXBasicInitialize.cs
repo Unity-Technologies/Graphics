@@ -22,10 +22,5 @@ namespace UnityEditor.VFX
             cpuMapper.AddExpressionFromSlotContainer(this, -1);
             return cpuMapper;
         }
-
-        public class InputProperties
-        {
-            public float SpawnRate_tmp = 1.0f;
-        }
     }
 }

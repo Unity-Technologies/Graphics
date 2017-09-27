@@ -72,6 +72,38 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
+        const string AnchorColorProperty = "anchor-color";
+        StyleValue<Color> m_AnchorColor;
+
+
+        public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
+        public override void OnStyleResolved(ICustomStyle styles)
+        {
+            base.OnStyleResolved(styles);
+
+
+            Color prevColor = m_AnchorColor.value;
+            styles.ApplyCustomProperty(AnchorColorProperty, ref m_AnchorColor);
+            if (m_AnchorColor.value != prevColor)
+            {
+                foreach (var edge in GetAllEdges())
+                {
+                    edge.OnAnchorChanged();
+                }
+            }
+        }
+
+        IEnumerable<VFXDataEdge> GetAllEdges()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            foreach (var edgePresenter in GetPresenter<VFXDataAnchorPresenter>().connections)
+            {
+                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
+                yield return edge;
+            }
+        }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -90,9 +122,14 @@ namespace UnityEditor.VFX.UI
 
             // update the css type of the class
             foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+            {
                 m_ConnectorBox.RemoveFromClassList(cls);
+                RemoveFromClassList(cls);
+            }
 
-            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType);
+            AddToClassList(className);
+            m_ConnectorBox.AddToClassList(className);
 
 
             if (presenter.connections.FirstOrDefault(t => t.selected) != null)
@@ -134,21 +171,6 @@ namespace UnityEditor.VFX.UI
 
             if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
-        }
-
-        public Vector3 GetLocalCenter()
-        {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-
-            var center = m_ConnectorBox.layout.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.layout.width - 1, m_ConnectorBox.layout.height * 0.5f - 0.5f);
-            center = m_ConnectorBox.transform.matrix.MultiplyPoint3x4(center);
-
-            return center;
-        }
-
-        public override Vector3 GetGlobalCenter()
-        {
-            return m_ConnectorBox.BoundToGlobal(GetLocalCenter());
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)

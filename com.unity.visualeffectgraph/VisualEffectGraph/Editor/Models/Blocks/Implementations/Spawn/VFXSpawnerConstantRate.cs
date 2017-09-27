@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     class VFXSpawnerConstantRate : VFXAbstractSpawner
     {
         public override string name { get { return "ConstantRate"; } }
-        public override VFXSpawnerType spawnerType { get { return VFXSpawnerType.kConstantRate; } }
+        public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerConstantRate; } }
         public class InputProperties
         {
             public float Rate = 10;

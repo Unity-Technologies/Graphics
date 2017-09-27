@@ -264,3 +264,73 @@ VFXDataEdge.typeanimationcurve
 {
 	border-color : #84e4e7;
 }
+
+.VFXDataAnchor.typesingle
+{
+	anchor-color : #6be6b0;
+}
+.VFXDataAnchor.typevector2
+{
+	anchor-color : #9aef92;
+}
+.VFXDataAnchor.typevector3
+{
+	anchor-color : #c9f774;
+}
+.VFXDataAnchor.typevector
+{
+	anchor-color : #c9f774;
+}
+.VFXDataAnchor.typeposition
+{
+	anchor-color : #c9f774;
+}
+.VFXDataAnchor.typevector4
+{
+	anchor-color : #effe5c;
+}
+.VFXDataAnchor.typecolor
+{
+	anchor-color : #effe5c;
+}
+.VFXDataAnchor.typegradient
+{
+	anchor-color : #effe5c;
+}
+
+.VFXDataAnchor.typeobject
+{
+	anchor-color : #787878;
+}
+.VFXDataAnchor.typetexture2d
+{
+	anchor-color : #e681ba;
+}
+.VFXDataAnchor.typetexture3d
+{
+	anchor-color : #f7add7;
+}
+.VFXDataAnchor.typeboolean
+{
+	anchor-color : #a081e6;
+}
+.VFXDataAnchor.typeint32
+{
+	anchor-color : #a081e6;
+}
+.VFXDataAnchor.typeuint32
+{
+	anchor-color : #a081e6;
+}
+.VFXDataAnchor.typeflipbook
+{
+	anchor-color : #c2a8ff;
+}
+.VFXDataAnchor.typemesh
+{
+	anchor-color : #7aa3ea;
+}
+.VFXDataAnchor.typeanimationcurve
+{
+	anchor-color : #84e4e7;
+}

@@ -14,7 +14,6 @@ namespace UnityEditor.VFX.UI
     {
         protected VFXBlockDataAnchor()
         {
-            clipChildren = false;
         }
 
         public static new VFXBlockDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
