@@ -249,6 +249,31 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
+        private static string GetFunctionParameterType(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kTexture2D: return "VFXSampler2D";
+                case VFXValueType.kTexture3D: return "VFXSampler3D";
+
+                default:
+                    return VFXExpression.TypeToCode(type);
+            }
+        }
+
+        private static string GetFunctionParameterName(VFXExpression expression, Dictionary<VFXExpression, string> names)
+        {
+            var expressionName = names[expression];
+            switch (expression.valueType)
+            {
+                case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture3D: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+
+                default:
+                    return expressionName;
+            }
+        }
+
         public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, string commentMethod)
         {
             var parameters = new List<string>();
@@ -257,7 +282,7 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", VFXExpression.TypeToCode(expression.valueType), parameter));
+                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", GetFunctionParameterType(expression.valueType), parameter));
             }
 
             WriteFormat("void {0}({1})", functionName, AggregateParameters(parameters));
@@ -280,7 +305,7 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{1}{0}", variableNames[expression], (mode & VFXAttributeMode.Write) != 0 ? "/*inout*/" : ""));
+                parameters.Add(string.Format("{1}{0}", GetFunctionParameterName(expression, variableNames), (mode & VFXAttributeMode.Write) != 0 ? "/*inout*/" : ""));
             }
 
             WriteLineFormat("{0}({1});", functionName, AggregateParameters(parameters));

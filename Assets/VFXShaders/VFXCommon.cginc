@@ -117,7 +117,7 @@ float4 SampleTexture(VFXSampler3D s,float3 coords)
     return s.t.SampleLevel(s.s,coords,0.0f);
 }
 
-VFXSampler2D InitSampler(Texture2D t,SamplerState s)
+VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
 {
     VFXSampler2D vfxSampler;
     vfxSampler.t = t;
@@ -125,7 +125,7 @@ VFXSampler2D InitSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler3D InitSampler(Texture3D t,SamplerState s)
+VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
 {
     VFXSampler3D vfxSampler;
     vfxSampler.t = t;
@@ -244,7 +244,7 @@ float HalfTexelOffset(float f)
 
 float4 SampleGradient(float v,float u)
 {
-    float uv = float2(HalfTexelOffset(saturate(u)),v);
+    float2 uv = float2(HalfTexelOffset(saturate(u)),v);
     return bakedTexture.SampleLevel(samplerbakedTexture,uv,0);
 }
 
