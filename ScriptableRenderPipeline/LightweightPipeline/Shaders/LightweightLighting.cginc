@@ -90,10 +90,8 @@ inline half ComputeLightAttenuationVertex(LightInput lightInput, half3 normal, f
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-#if  !(defined(_SINGLE_POINT_LIGHT) || defined(_SINGLE_DIRECTIONAL_LIGHT))
     half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
     lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-#endif
 
     return half(lightAtten);
 }
@@ -101,16 +99,10 @@ inline half ComputeLightAttenuationVertex(LightInput lightInput, half3 normal, f
 inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float4 attenuationParams = lightInput.atten;
-#ifdef _SINGLE_DIRECTIONAL_LIGHT
-    // Light pos holds normalized light dir
-    lightDirection = lightInput.pos;
-    return 1.0;
 
-#else
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
-    // TODO: Test separating dir lights into diff loop by sorting on the pipe and setting -1 on LightIndexMap.
 #ifdef _ATTENUATION_TEXTURE
     float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
     float lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
@@ -127,13 +119,20 @@ inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-#ifndef _SINGLE_POINT_LIGHT
     half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
     lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-#endif
     return half(lightAtten);
+}
 
-#endif // _SINGLE_DIRECTIONAL_LIGHT
+inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+{
+#ifdef _MAIN_DIRECTIONAL_LIGHT
+    // Light pos holds normalized light dir
+    lightDirection = lightInput.pos;
+    return 1.0;
+#else
+    return ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
+#endif
 }
 
 inline half3 LightingLambert(half3 diffuseColor, half3 lightDir, half3 normal, half atten)

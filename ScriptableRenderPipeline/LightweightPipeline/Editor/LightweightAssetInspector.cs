@@ -59,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent attenuationTextureLabel = new GUIContent("Attenuation Texture", "Light attenuation falloff texture");
         }
 
+        private int kMaxSupportedPixelLights = 5;
         private SerializedProperty m_LinearRenderingProperty;
         private SerializedProperty m_RenderScale;
         private SerializedProperty m_MaxPixelLights;
@@ -116,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.maxPixelLights);
-            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, 4);
+            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, kMaxSupportedPixelLights);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);

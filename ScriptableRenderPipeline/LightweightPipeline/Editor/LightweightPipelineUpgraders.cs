@@ -99,7 +99,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             LightweightShaderHelper.SetMaterialBlendMode(material);
             UpdateMaterialSpecularSource(material);
             LightweightShaderHelper.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-            LightweightShaderHelper.SetKeyword(material, "_EMISSION", material.GetTexture("_EmissionMap"));
+
+            // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
+            // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
+            // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
+            MaterialEditor.FixupEmissiveFlag(material);
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+            LightweightShaderHelper.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
