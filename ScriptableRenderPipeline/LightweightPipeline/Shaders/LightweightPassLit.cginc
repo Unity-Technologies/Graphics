@@ -99,7 +99,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 #endif
 
 #ifdef _ADDITIONAL_PIXEL_LIGHTS
-    int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput light;
@@ -168,7 +168,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #endif
 
 #ifdef _ADDITIONAL_PIXEL_LIGHTS
-    int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput lightData;

@@ -112,6 +112,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             BuildShadowSettings();
+
+            PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
+            PerFrameBuffer._AttenuationTexture = Shader.PropertyToID("_AttenuationTexture");
+
+            PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
+            PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
+            PerCameraBuffer._MainLightAttenuationParams = Shader.PropertyToID("_MainLightAttenuationParams");
+            PerCameraBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
+            PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
+            PerCameraBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
+            PerCameraBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
+            PerCameraBuffer._AdditionalLightAttenuationParams = Shader.PropertyToID("_AdditionalLightAttenuationParams");
+            PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
+
             m_ShadowMapTexture = Shader.PropertyToID("_ShadowMap");
             m_CameraColorTexture = Shader.PropertyToID("_CameraRT");
             m_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
@@ -157,6 +171,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
+
+            SetupPerFrameShaderConstants(ref context);
 
             // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
@@ -448,15 +464,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        private void SetupPerFrameShaderConstants(ref ScriptableRenderContext context)
         {
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
 
-            cmd.SetGlobalVector("_GlossyEnvironmentColor", glossyEnvColor);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
+            CommandBuffer cmd = CommandBufferPool.Get("SetupPerFrameConstants");
+            cmd.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
+            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture(PerFrameBuffer._AttenuationTexture, m_Asset.AttenuationTexture);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release (cmd);
+        }
 
+        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             if (lightData.mainLightIndex != -1) 
@@ -475,10 +497,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
 
-            cmd.SetGlobalVector("_LightPosition", lightPos);
-            cmd.SetGlobalColor("_LightColor", lightColor);
-            cmd.SetGlobalVector("_LightSpotDir", lightSpotDir);
-            cmd.SetGlobalVector("_LightAttenuationParams", lightAttenuationParams);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
+            cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightAttenuationParams, lightAttenuationParams);
         }
 
         private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
@@ -502,11 +524,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             m_CullResults.SetLightIndexMap(lightIndexMap);
 
-            cmd.SetGlobalVector("globalLightCount", new Vector4 (lightData.additionalPixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
-            cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
-            cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
-            cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
+            cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4 (lightData.additionalPixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightColor, m_LightColors);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightAttenuationParams, m_LightAttenuations);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
         }
 
         private void SetupShadowShaderConstants(CommandBuffer cmd, ref ScriptableRenderContext context, ref VisibleLight shadowLight, int cascadeCount)
