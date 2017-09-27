@@ -44,6 +44,40 @@ namespace UnityEditor.VFX
         public virtual VFXSlot GetInputSlot(int index)  { return m_InputSlots[index]; }
         public virtual VFXSlot GetOutputSlot(int index) { return m_OutputSlots[index]; }
 
+        public virtual IEnumerable<VFXPropertyWithValue> inputProperties    { get { return PropertiesFromType(GetInputPropertiesTypeName()); } }
+        public virtual IEnumerable<VFXPropertyWithValue> outputProperties   { get { return PropertiesFromType(GetOutputPropertiesTypeName()); } }
+
+        protected IEnumerable<VFXPropertyWithValue> PropertiesFromType(string typeName)
+        {
+            return PropertiesFromType(GetType().GetNestedType(typeName));
+        }
+
+        protected static IEnumerable<VFXPropertyWithValue> PropertiesFromType(Type type)
+        {
+            if (type == null)
+                return Enumerable.Empty<VFXPropertyWithValue>();
+
+            var instance = System.Activator.CreateInstance(type);
+            return type.GetFields()
+                .Where(f => !f.IsStatic)
+                .Select(f => {
+                    var p = new VFXPropertyWithValue();
+                    p.property = new VFXProperty(f);
+                    p.value = f.GetValue(instance);
+                    return p;
+                });
+        }
+
+        protected static string GetInputPropertiesTypeName()
+        {
+            return "InputProperties";
+        }
+
+        protected static string GetOutputPropertiesTypeName()
+        {
+            return "OutputProperties";
+        }
+
         public virtual void AddSlot(VFXSlot slot) { InnerAddSlot(slot, true); }
         private void InnerAddSlot(VFXSlot slot, bool notify)
         {
@@ -99,16 +133,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected string GetInputPropertiesTypeName()
-        {
-            return "InputProperties";
-        }
-
-        protected string GetOutputPropertiesTypeName()
-        {
-            return "OutputProperties";
-        }
-
         protected VFXSlotContainerModel()
         {}
 
@@ -119,7 +143,7 @@ namespace UnityEditor.VFX
             if (m_InputSlots == null)
             {
                 m_InputSlots = new List<VFXSlot>();
-                InitSlotsFromProperties(GetInputPropertiesTypeName(), VFXSlot.Direction.kInput);
+                InitSlotsFromProperties(inputProperties, VFXSlot.Direction.kInput);
             }
             else
             {
@@ -131,7 +155,7 @@ namespace UnityEditor.VFX
             if (m_OutputSlots == null)
             {
                 m_OutputSlots = new List<VFXSlot>();
-                InitSlotsFromProperties(GetOutputPropertiesTypeName(), VFXSlot.Direction.kOutput);
+                InitSlotsFromProperties(outputProperties, VFXSlot.Direction.kOutput);
             }
             else
             {
@@ -207,44 +231,11 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        static protected VFXSlot[] GenerateSlotFromField(Type type, VFXSlot.Direction direction)
+        protected void InitSlotsFromProperties(IEnumerable<VFXPropertyWithValue> properties, VFXSlot.Direction direction)
         {
-            if (type == null)
+            foreach (var p in properties)
             {
-                return new VFXSlot[] {};
-            }
-
-            var slotList = new List<VFXSlot>();
-            var fields = type.GetFields().Where(f => !f.IsStatic).ToArray();
-            var properties = new VFXProperty[fields.Length];
-            var values = new object[fields.Length];
-
-            var defaultBuffer = System.Activator.CreateInstance(type);
-            for (int i = 0; i < fields.Length; ++i)
-            {
-                properties[i] = new VFXProperty(fields[i]);
-                values[i] = fields[i].GetValue(defaultBuffer);
-            }
-
-            for (int i = 0; i < fields.Length; ++i)
-            {
-                var property = properties[i];
-                var value = values[i];
-                var slot = VFXSlot.Create(property, direction, value);
-                if (slot != null)
-                {
-                    slotList.Add(slot);
-                }
-            }
-            return slotList.ToArray();
-        }
-
-        private void InitSlotsFromProperties(string className, VFXSlot.Direction direction)
-        {
-            var type = GetType().GetRecursiveNestedType(className);
-            var slots = GenerateSlotFromField(type, direction);
-            foreach (var slot in slots)
-            {
+                var slot = VFXSlot.Create(p, direction);
                 InnerAddSlot(slot, false);
             }
         }
