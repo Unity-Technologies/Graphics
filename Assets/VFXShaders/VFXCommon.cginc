@@ -18,10 +18,10 @@
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
-#define FIXED_RAND(s) FixedRand4(particleId, s).x
-#define FIXED_RAND2(s) FixedRand4(particleId, s).xy
-#define FIXED_RAND3(s) FixedRand4(particleId, s).xyz
-#define FIXED_RAND4(s) FixedRand4(particleId, s).xyzw
+#define FIXED_RAND(s) FixedRand4(particleId ^ s).x
+#define FIXED_RAND2(s) FixedRand4(particleId ^ s).xy
+#define FIXED_RAND3(s) FixedRand4(particleId ^ s).xyz
+#define FIXED_RAND4(s) FixedRand4(particleId ^ s).xyzw
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -182,9 +182,9 @@ float randLcg(inout uint seed)
 #endif
 }
 
-float4 FixedRand4(uint baseSeed, uint userSeed)
+float4 FixedRand4(uint baseSeed)
 {
-    uint currentSeed = WangHash(baseSeed ^ userSeed);
+    uint currentSeed = WangHash(baseSeed);
     float4 r;
     [unroll(4)]
     for (uint i=0; i<4; ++i)
