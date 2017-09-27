@@ -10,7 +10,7 @@
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
 
 // Tesselation require normal
-#if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD
+#if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_WIND)
 #define ATTRIBUTES_NEED_NORMAL
 #endif
 #if REQUIRE_TANGENT_TO_WORLD

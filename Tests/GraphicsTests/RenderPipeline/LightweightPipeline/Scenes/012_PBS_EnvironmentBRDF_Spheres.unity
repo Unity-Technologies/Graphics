@@ -1147,7 +1147,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1008298672}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &1008298674
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1198,7 +1197,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &1008298677
 Transform:
   m_ObjectHideFlags: 0
@@ -1226,6 +1224,7 @@ MonoBehaviour:
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 1008298676}
   hdr: 0
+  msaaSamples: 1
   width: 1280
   height: 720
 --- !u!1 &1013363655

@@ -58,7 +58,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 //#endif
 
 #if !defined(LIGHTMAP_ON)
-    o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+    o.fogCoord.yzw = SHEvalLinearL2(half4(normal, 1.0));
 #endif
 
     UNITY_TRANSFER_FOG(o, o.hpos);
@@ -67,50 +67,21 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
 half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 {
-    float2 uv = i.uv01.xy;
+    SurfaceData surfaceData;
+    InitializeSurfaceData(i, surfaceData);
+
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData, brdfData);
+
     float2 lightmapUV = i.uv01.zw;
-
-    half4 albedoTex = tex2D(_MainTex, i.uv01.xy);
-    half3 albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoTex.rgb) * _Color.rgb;
-
-#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
-    half alpha = _Color.a;
-#else
-    half alpha = albedoTex.a * _Color.a;
-#endif
-
-#if defined(_ALPHATEST_ON)
-    clip(alpha - _Cutoff);
-#endif
-
-    half3 specColor;
-    half smoothness;
-    half oneMinusReflectivity;
-#ifdef _METALLIC_SETUP
-    half3 diffColor = MetallicSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
-#else
-    half3 diffColor = SpecularSetup(uv, albedo, alpha, specColor, smoothness, oneMinusReflectivity);
-#endif
-
-    diffColor = PreMultiplyAlpha(diffColor, alpha, oneMinusReflectivity, /*out*/ alpha);
-
-    // Roughness is (1.0 - smoothness)²
-    half perceptualRoughness = 1.0h - smoothness;
-
-    half3 normal;
-    NormalMap(i, normal);
-
-    // TODO: shader keyword for occlusion
-    // TODO: Reflection Probe blend support.
+    half3 normal = surfaceData.normalWorld;
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    half occlusion = Occlusion(uv);
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, reflectVec, occlusion, perceptualRoughness);
+    half roughness2 = brdfData.roughness * brdfData.roughness;
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, surfaceData.ao, brdfData.perceptualRoughness);
 
     // PBS
-    // grazingTerm = F90
-    half grazingTerm = saturate(smoothness + (1 - oneMinusReflectivity));
     half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
-    half3 color = LightweightBRDFIndirect(diffColor, specColor, indirectLight, perceptualRoughness * perceptualRoughness, grazingTerm, fresnelTerm);
+    half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
     half3 lightDirection;
 
 #ifndef _MULTIPLE_LIGHTS
@@ -124,7 +95,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 
     half NdotL = saturate(dot(normal, lightDirection));
     half3 radiance = light.color * (lightAtten * NdotL);
-    color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
+    color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
 #else
 
 #ifdef _SHADOWS
@@ -142,21 +113,25 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
 #endif
         half NdotL = saturate(dot(normal, lightDirection));
         half3 radiance = light.color * (lightAtten * NdotL);
-
-        color += LightweightBDRF(diffColor, specColor, oneMinusReflectivity, perceptualRoughness, normal, lightDirection, i.viewDir.xyz) * radiance;
+        color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
     }
 #endif
 
-    color += Emission(uv);
+    color += surfaceData.emission;
     UNITY_APPLY_FOG(i.fogCoord, color);
-    return OutputColor(color, alpha);
+    return OutputColor(color, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 {
     half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
     half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    half alpha = _Color.a;
+#else
     half alpha = diffuseAlpha.a * _Color.a;
+#endif
 
     // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
     // due overdraw performance impact.
@@ -164,8 +139,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     clip(alpha - _Cutoff);
 #endif
 
-    half3 normal;
-    NormalMap(i, normal);
+    half3 normal = Normal(i);
 
     half4 specularGloss;
     SpecularGloss(i.uv01.xy, alpha, specularGloss);
@@ -222,11 +196,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #endif
 
 #if defined(LIGHTMAP_ON)
-    color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#endif
-
-#if defined(_VERTEX_LIGHTS) || !defined(LIGHTMAP_ON)
-    color += i.fogCoord.yzw * diffuse;
+    color += DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
+#else
+    color += (SHEvalLinearL0L1(half4(normal, 1.0)) + i.fogCoord.yzw) * diffuse;
 #endif
 
 #if _REFLECTION_CUBEMAP
