@@ -388,6 +388,33 @@ Shader "HDRenderPipeline/LayeredLit"
             ENDHLSL
         }
 
+       Pass
+        {
+            Name "GBufferWithPrepass"  // Name is not used
+            Tags { "LightMode" = "GBufferWithPrepass" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #define _BYPASS_ALPHA_TEST
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
         Pass
         {
             Name "GBufferDebugDisplay"  // Name is not used

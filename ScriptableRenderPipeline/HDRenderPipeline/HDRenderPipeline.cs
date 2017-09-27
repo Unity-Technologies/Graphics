@@ -358,6 +358,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             All      = 255                   // 0xFF - 8 bit
         }
 
+        RenderStateBlock m_DepthStateOpaque;
+        RenderStateBlock m_DepthStateOpaqueWithPrepass;
+
         // Detect when windows size is changing
         int m_CurrentWidth;
         int m_CurrentHeight;
@@ -502,6 +505,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
+
+            InitializeRenderStateBlocks();
         }
 
         void InitializeDebugMaterials()
@@ -532,6 +537,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SssHorizontalFilterAndCombinePass.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssHorizontalFilterAndCombinePass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.One);
             // <<< Old SSS Model
+        }
+
+        void InitializeRenderStateBlocks()
+        {
+            m_DepthStateOpaque.depthState = new DepthState(true, CompareFunction.LessEqual);
+            m_DepthStateOpaque.mask = RenderStateMask.Depth;
+            // When doing a prepass, we don't need to write the depth anymore.
+            // Moreover, we need to use DepthEqual because for alpha tested materials we don't do the clip in the shader anymore (otherwise HiZ does not work on PS4)
+            m_DepthStateOpaqueWithPrepass.depthState = new DepthState(false, CompareFunction.Equal);
+            m_DepthStateOpaqueWithPrepass.mask = RenderStateMask.Depth;
         }
 
         public void OnSceneLoad()
@@ -1006,12 +1021,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.Submit();
         }
 
-        void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName passName, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
+        void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName passName, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null, RenderStateBlock? stateBlock = null)
         {
-            RenderOpaqueRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, overrideMaterial);
+            RenderOpaqueRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, overrideMaterial, stateBlock);
         }
 
-        void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
+        void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null, RenderStateBlock? stateBlock = null)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayOpaqueObjects)
                 return;
@@ -1037,14 +1052,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
-            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
-        }
-        void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName passName, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
-        {
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, overrideMaterial);
+            if(stateBlock == null)
+                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+            else
+                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
-        void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null)
+        void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName passName, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null, RenderStateBlock? stateBlock = null)
+        {
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, overrideMaterial, stateBlock);
+        }
+
+        void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ShaderPassName[] passNames, RendererConfiguration rendererConfiguration = 0, Material overrideMaterial = null, RenderStateBlock? stateBlock = null)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
@@ -1070,7 +1089,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
-            renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+            if(stateBlock == null)
+                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+            else
+                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -1109,7 +1131,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // setup GBuffer for rendering
                 Utilities.SetRenderTarget(cmd, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 // render opaque objects into GBuffer
-                RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? HDShaderPassNames.m_GBufferDebugDisplayName : HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting);
+                ShaderPassName passName = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? HDShaderPassNames.m_GBufferDebugDisplayName : m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering ? HDShaderPassNames.m_GBufferWithPrepassName :HDShaderPassNames.m_GBufferName;
+                RenderOpaqueRenderList(cull, camera, renderContext, cmd, passName, Utilities.kRendererConfigurationBakedLighting, null, m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering ? m_DepthStateOpaqueWithPrepass : m_DepthStateOpaque);
             }
         }
 
@@ -1284,7 +1307,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (renderOpaque)
                 {
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, arrayNames, Utilities.kRendererConfigurationBakedLighting);
+                    // Forward opaque material always have a prepass (whether or not we use deferred) so we pass the right depth state here.
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, arrayNames, Utilities.kRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
                 }
                 else
                 {
