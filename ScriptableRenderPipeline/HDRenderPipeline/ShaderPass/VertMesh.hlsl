@@ -112,7 +112,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     vertexColor = input.color;
 #endif
 
-#ifdef _VERTEX_WIND
+#if defined(_VERTEX_WIND) && (SHADERPASS != SHADERPASS_VELOCITY)
     float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
     ApplyWind(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, _Time);
 #endif
