@@ -112,7 +112,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     vertexColor = input.color;
 #endif
 
-#ifdef _VERTEX_WIND
+    // This code is disabled for velocity pass for now because at the moment we cannot have Normals with the velocity pass (this attributes holds last frame data)
+    // TODO: Remove the velocity pass test when velocity is properly handled.
+#if defined(_VERTEX_WIND) && (SHADERPASS != SHADERPASS_VELOCITY)
     float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
     ApplyWind(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, _Time);
 #endif
