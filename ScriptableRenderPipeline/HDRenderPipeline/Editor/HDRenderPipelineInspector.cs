@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
+            public readonly GUIContent useDepthPrepassWithDeferredRenderingAlphaTestOnly = new GUIContent("Alpha Test only");
 
             // Texture Settings
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
@@ -85,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
         SerializedProperty m_RenderingUseDepthPrepass = null;
+        SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly = null;
 
         // Subsurface Scattering Settings
         // Old SSS Model >>>
@@ -130,6 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRenderingAlphaTestOnly);
 
             // Subsurface Scattering Settings
             // Old SSS Model >>>
@@ -269,6 +272,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
             {
                 EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, styles.useDepthPrepassWithDeferredRendering);
+                if(m_RenderingUseDepthPrepass.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, styles.useDepthPrepassWithDeferredRenderingAlphaTestOnly);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             EditorGUI.indentLevel--;
