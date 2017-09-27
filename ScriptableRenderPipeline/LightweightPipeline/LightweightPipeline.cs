@@ -187,9 +187,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
                     m_CurrCamera.farClipPlane);
 
+#if UNITY_EDITOR
                 // Emit scene view UI
                 if (camera.cameraType == CameraType.SceneView)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
 
                 CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
                 VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
