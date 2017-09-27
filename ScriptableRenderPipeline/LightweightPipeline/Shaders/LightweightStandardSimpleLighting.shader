@@ -68,7 +68,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
 
             #pragma multi_compile _ _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_PIXEL_LIGHTS
             #pragma multi_compile _ _LIGHTWEIGHT_FORCE_LINEAR
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON

@@ -98,7 +98,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
 #endif
 
-#ifdef _ADDITIONAL_LIGHTS
+#ifdef _ADDITIONAL_PIXEL_LIGHTS
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
@@ -167,7 +167,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 
 #endif
 
-#ifdef _ADDITIONAL_LIGHTS
+#ifdef _ADDITIONAL_PIXEL_LIGHTS
     int pixelLightCount = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
@@ -183,7 +183,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #endif
     }
 
-#endif // _ADDITIONAL_LIGHTS
+#endif // _ADDITIONAL_PIXEL_LIGHTS
 
     color += EmissionLW(i.uv01.xy);
     UNITY_APPLY_FOG(i.fogCoord, color);
