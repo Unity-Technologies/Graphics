@@ -4,6 +4,17 @@
 #include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+void DoAlphaTest(float alpha, float alphaCutoff)
+{
+    // For Deferred:
+    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
+    // For Forward (Full forward or ForwardOnlyOpaque in deferred):
+    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    #if ((SHADER_PASS == SHADERPASS_GBUFFER) && !defined(_BYPASS_ALPHA_TEST)) || (SHADER_PASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_TRANSPARENT))
+        clip(alpha - alphaCutoff);
+    #endif
+}
+
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
 {
@@ -207,7 +218,7 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 #if defined(_HEIGHTMAP)
-    maxDisplacement = _HeightAmplitude;
+    maxDisplacement = abs(_HeightAmplitude); // _HeightAmplitude can be negative if min and max are inverted, but the max displacement must be positive
 #endif
     return maxDisplacement;
 }
@@ -827,23 +838,24 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 
+    // _HeightAmplitudeX can be negative if min and max are inverted, but the max displacement must be positive, take abs()
 #if defined(_HEIGHTMAP0)
-    maxDisplacement = _HeightAmplitude0;
+    maxDisplacement = abs(_HeightAmplitude0);
 #endif
 
 #if defined(_HEIGHTMAP1)
-    maxDisplacement = max(  _HeightAmplitude1
+    maxDisplacement = max(  abs(_HeightAmplitude1)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight1
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    maxDisplacement = max(  _HeightAmplitude2
+    maxDisplacement = max(  abs(_HeightAmplitude2)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight2
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -851,9 +863,9 @@ float GetMaxDisplacement()
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    maxDisplacement = max(  _HeightAmplitude3
+    maxDisplacement = max(  abs(_HeightAmplitude3)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight3
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
@@ -1126,7 +1138,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float verticalDisplacement = maxHeight - height * maxHeight;
         // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
         float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
-        return tilingScale * verticalDisplacement / NdotV;
+        return tilingScale * verticalDisplacement / max(NdotV, 0.001);
     }
 
     return 0.0;
@@ -1290,7 +1302,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
     // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
     // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / meanColor - baseColor);
+    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
     return influenceFactor * factor + baseColor;
 }
 
@@ -1334,7 +1346,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
 #ifdef _ALPHATEST_ON
-    clip(alpha - _AlphaCutoff);
+    DoAlphaTest(alpha, _AlphaCutoff);
 #endif
 
     float3 normalTS;
