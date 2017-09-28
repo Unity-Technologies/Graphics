@@ -71,6 +71,34 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ProcessOperatorSaturate()
+        {
+            var a = -1.5f;
+            var b = 0.2f;
+            var c = 1.3f;
+            var resultA = Mathf.Clamp(a, 0.0f, 1.0f);
+            var resultB = Mathf.Clamp(b, 0.0f, 1.0f);
+            var resultC = Mathf.Clamp(c, 0.0f, 1.0f);
+
+            var value_a = new VFXValue<float>(a);
+            var value_b = new VFXValue<float>(b);
+            var value_c = new VFXValue<float>(c);
+
+            var expressionA = VFXOperatorUtility.Saturate(value_a);
+            var expressionB = VFXOperatorUtility.Saturate(value_b);
+            var expressionC = VFXOperatorUtility.Saturate(value_c);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpressionA = context.Compile(expressionA);
+            var resultExpressionB = context.Compile(expressionB);
+            var resultExpressionC = context.Compile(expressionC);
+
+            Assert.AreEqual(resultA, resultExpressionA.Get<float>());
+            Assert.AreEqual(resultB, resultExpressionB.Get<float>());
+            Assert.AreEqual(resultC, resultExpressionC.Get<float>());
+        }
+
+        [Test]
         public void ProcessOperatorColorLuma()
         {
             Color a = new Color(0.2f, 0.5f, 0.3f);
