@@ -37,7 +37,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXViewPresenter()
         {
-            Debug.Log("Constructor of VFXViewPresenter with instanceID:" + this.GetInstanceID());
         }
 
         static public VFXViewPresenter viewPresenter
