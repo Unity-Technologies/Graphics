@@ -675,7 +675,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var lightData = new SFiniteLightData[numVolumes];
             var boundData = new SFiniteLightBound[numVolumes];
             var worldToView = WorldToCamera(camera);
-            bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2))) < 0.0f;      // 3x3 Determinant.
 
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
