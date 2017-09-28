@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
+            public readonly GUIContent renderAlphaTestOnlyInDeferredPrepass = new GUIContent("Alpha Test only");
 
             // Texture Settings
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
@@ -44,14 +45,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
-            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered", "Toggle");
-            public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
-            public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants", "Toggle");
-            public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants", "Toggle");
-            public readonly GUIContent enableClustered = new GUIContent("Enable clustered", "Toggle");
-            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered", "Toggle");
-            public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
-            public readonly GUIContent tileDebugByCategory = new GUIContent("Enable Debug By Category", "Toggle");
+            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered");
+            public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation");
+            public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants");
+            public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants");
+            public readonly GUIContent enableClustered = new GUIContent("Enable clustered");
+            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered");
+            public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass");
+            public readonly GUIContent tileDebugByCategory = new GUIContent("Enable Debug By Category");
 
             // Sky Settings
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
@@ -85,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
         SerializedProperty m_RenderingUseDepthPrepass = null;
+        SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly = null;
 
         // Subsurface Scattering Settings
         // Old SSS Model >>>
@@ -130,6 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = FindProperty(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             // Old SSS Model >>>
@@ -269,6 +272,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
             {
                 EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, styles.useDepthPrepassWithDeferredRendering);
+                if(m_RenderingUseDepthPrepass.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, styles.renderAlphaTestOnlyInDeferredPrepass);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             EditorGUI.indentLevel--;
