@@ -1045,11 +1045,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     CommandBuffer           cmd, 
                                     ShaderPassName          passName,
                                     RendererConfiguration   rendererConfiguration = 0,
-                                    RenderQueueRange?       renderQueueRange = null,
+                                    RenderQueueRange? inRenderQueueRange = null,
                                     RenderStateBlock?       stateBlock = null,
                                     Material                overrideMaterial = null)
         {
-            RenderOpaqueRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, renderQueueRange, stateBlock, overrideMaterial);
+            RenderOpaqueRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
         void RenderOpaqueRenderList(CullResults             cull,
@@ -1058,7 +1058,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     CommandBuffer           cmd,
                                     ShaderPassName[]        passNames, 
                                     RendererConfiguration   rendererConfiguration = 0,
-                                    RenderQueueRange?       renderQueueRange = null, 
+                                    RenderQueueRange?       inRenderQueueRange = null, 
                                     RenderStateBlock?       stateBlock = null, 
                                     Material                overrideMaterial = null)
         {
@@ -1085,7 +1085,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 drawSettings.SetOverrideMaterial(overrideMaterial, 0);
             }
 
-            var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = renderQueueRange == null ? RenderQueueRange.opaque : renderQueueRange.Value };
+            var filterSettings = new FilterRenderersSettings(true) { renderQueueRange = inRenderQueueRange == null ? RenderQueueRange.opaque : inRenderQueueRange.Value };
             if(stateBlock == null)
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
             else
@@ -1143,6 +1143,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
+        // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
+        // Forward only renderer: We always render everything
+        // Deferred renderer: We render a depth prepass only if engine request it. We can decide if we render everything or only opaque alpha tested object.
+        // Forward opaque with deferred renderer (ForwardOnlyOpaqueDepthOnly pass): We always render everything 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // Guidelines: To be able to switch from deferred to forward renderer we need to have forward opaque material with both DepthOnly and ForwardOnlyOpaqueDepthOnly pass.
@@ -1168,13 +1172,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass)
                     renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
 
-                // TODO: We should sort the Material by opaque then alpha masked Must do opaque then alpha masked for performance
+                // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
+                // This is handeled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
                 Utilities.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
                 // Note: addDepthPrepass and addForwardOnlyOpaqueDepthPrepass can't be both true at the same time. And if we are here both are not false
-                RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyName, 0, renderQueueRange);
+                RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyName, 0, renderQueueRange);               
             }
         }
 
+        // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
+        // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
         void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
@@ -1184,25 +1191,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 Utilities.SetRenderTarget(cmd, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
-                // render opaque objects into GBuffer
-                if(m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+
+                // Render opaque objects into GBuffer
+                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
                     // When doing debug display, the shader has the clip instruction regardless of the depth prepass so we can use regular depth test.
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferDebugDisplayName, Utilities.kRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                 }
                 else
                 {
-                    if(m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering)
+                    if (m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering)
                     {
                         RenderQueueRange rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
                         RenderQueueRange rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
 
-                        // When using depth prepass for alpha test only we need to use regular depth test for normal opaque objects.
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferWithPrepassName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueNoAlphaTest, m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
+                        // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueNoAlphaTest, m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
+                        // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferWithPrepassName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
                     }
                     else
                     {
+                        // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                     }
                 }
