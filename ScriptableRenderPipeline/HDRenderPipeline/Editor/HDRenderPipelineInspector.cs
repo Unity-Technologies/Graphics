@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
-            public readonly GUIContent useDepthPrepassWithDeferredRenderingAlphaTestOnly = new GUIContent("Alpha Test only");
+            public readonly GUIContent renderAlphaTestOnlyInDeferredPrepass = new GUIContent("Alpha Test only");
 
             // Texture Settings
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRenderingAlphaTestOnly);
+            m_RenderingUseDepthPrepassAlphaTestOnly = FindProperty(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             // Old SSS Model >>>
@@ -275,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(m_RenderingUseDepthPrepass.boolValue)
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, styles.useDepthPrepassWithDeferredRenderingAlphaTestOnly);
+                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, styles.renderAlphaTestOnlyInDeferredPrepass);
                     EditorGUI.indentLevel--;
                 }
             }
