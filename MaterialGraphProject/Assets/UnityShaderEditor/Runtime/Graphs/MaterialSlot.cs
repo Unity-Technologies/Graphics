@@ -235,6 +235,9 @@ namespace UnityEngine.MaterialGraph
                 return;
             }
 
+            if (concreteValueType == ConcreteSlotValueType.SamplerState)
+                return;
+
             if (!generationMode.IsPreview())
                 return;
 
