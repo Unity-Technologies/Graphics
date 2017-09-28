@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly ShaderPassName m_ForwardOnlyOpaqueName = new ShaderPassName("ForwardOnlyOpaque");
         internal static readonly ShaderPassName m_ForwardOnlyOpaqueDisplayDebugName = new ShaderPassName("ForwardOnlyOpaqueDisplayDebug");
         internal static readonly ShaderPassName m_GBufferName = new ShaderPassName("GBuffer");
+        internal static readonly ShaderPassName m_GBufferWithPrepassName = new ShaderPassName("GBufferWithPrepass");
         internal static readonly ShaderPassName m_GBufferDebugDisplayName = new ShaderPassName("GBufferDebugDisplay");
         internal static readonly ShaderPassName m_SRPDefaultUnlitName = new ShaderPassName("SRPDefaultUnlit");
         internal static readonly ShaderPassName m_MotionVectorsName = new ShaderPassName("MotionVectors");
