@@ -68,6 +68,12 @@ namespace UnityEditor.VFX
             return new VFXExpressionMin(maxExp, max);
         }
 
+        static public VFXExpression Saturate(VFXExpression input)
+        {
+            //Max(Min(x, 1.0f), 0.0f))
+            return Clamp(input, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+        }
+
         static public VFXExpression Frac(VFXExpression input)
         {
             //x - floor(x)
