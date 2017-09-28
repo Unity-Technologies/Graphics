@@ -35,11 +35,11 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override IEnumerable<VFXPropertyWithValue> inputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)));
+                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent());
             }
         }
 

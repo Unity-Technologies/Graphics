@@ -44,8 +44,8 @@ namespace UnityEditor.VFX
         public virtual VFXSlot GetInputSlot(int index)  { return m_InputSlots[index]; }
         public virtual VFXSlot GetOutputSlot(int index) { return m_OutputSlots[index]; }
 
-        public virtual IEnumerable<VFXPropertyWithValue> inputProperties    { get { return PropertiesFromType(GetInputPropertiesTypeName()); } }
-        public virtual IEnumerable<VFXPropertyWithValue> outputProperties   { get { return PropertiesFromType(GetOutputPropertiesTypeName()); } }
+        protected virtual IEnumerable<VFXPropertyWithValue> inputProperties { get { return PropertiesFromType(GetInputPropertiesTypeName()); } }
+        protected virtual IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromType(GetOutputPropertiesTypeName()); } }
 
         // Get properties with value from nested class fields
         protected IEnumerable<VFXPropertyWithValue> PropertiesFromType(string typeName)
@@ -221,8 +221,11 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
             if (model == this && cause == InvalidationCause.kSettingChanged)
             {
-                SyncSlots(VFXSlot.Direction.kInput, true);
-                SyncSlots(VFXSlot.Direction.kOutput, true);
+                bool notify = false;
+                notify |= SyncSlots(VFXSlot.Direction.kInput, false);
+                notify |= SyncSlots(VFXSlot.Direction.kOutput, false);
+                if (notify)
+                    Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 
@@ -271,7 +274,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void SyncSlots(VFXSlot.Direction direction, bool notify)
+        protected bool SyncSlots(VFXSlot.Direction direction, bool notify)
         {
             bool isInput = direction == VFXSlot.Direction.kInput;
 
@@ -295,15 +298,34 @@ namespace UnityEditor.VFX
             if (recreate)
             {
                 Debug.Log(string.Format("Recreate {0} slots for slots container {1}", direction, name));
+                var existingSlots = new List<VFXSlot>(nbSlots);
+
+                // First remove and register all existing slots
                 for (int i = nbSlots - 1; i >= 0; --i)
                 {
-                    currentSlots[i].UnlinkAll(true, false);
+                    existingSlots.Add(currentSlots[i]);
                     InnerRemoveSlot(currentSlots[i], false);
                 }
-                InitSlotsFromProperties(expectedProperties, direction);
+
+                // Reuse slots that already exists or create a new one if not
+                foreach (var p in expectedProperties)
+                {
+                    var slot = existingSlots.Find(s => p.property.Equals(s.property));
+                    if (slot != null)
+                        existingSlots.Remove(slot);
+                    else
+                        slot = VFXSlot.Create(p, direction);
+                    InnerAddSlot(slot, false);
+                }
+
+                // Finally remove links for all slots that are no longer needed
+                foreach (var slot in existingSlots)
+                    slot.UnlinkAll(true, false);
+
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
             }
+            return recreate;
         }
 
         public void ExpandPath(string fieldPath)

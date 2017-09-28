@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
             return copy as T;
         }
 
-        public override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
 
         public VFXExpressionOp expressionOp
         {
