@@ -218,7 +218,7 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 #if defined(_HEIGHTMAP)
-    maxDisplacement = _HeightAmplitude;
+    maxDisplacement = abs(_HeightAmplitude); // _HeightAmplitude can be negative if min and max are inverted, but the max displacement must be positive
 #endif
     return maxDisplacement;
 }
@@ -838,23 +838,24 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 
+    // _HeightAmplitudeX can be negative if min and max are inverted, but the max displacement must be positive, take abs()
 #if defined(_HEIGHTMAP0)
-    maxDisplacement = _HeightAmplitude0;
+    maxDisplacement = abs(_HeightAmplitude0);
 #endif
 
 #if defined(_HEIGHTMAP1)
-    maxDisplacement = max(  _HeightAmplitude1
+    maxDisplacement = max(  abs(_HeightAmplitude1)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight1
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    maxDisplacement = max(  _HeightAmplitude2
+    maxDisplacement = max(  abs(_HeightAmplitude2)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight2
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -862,9 +863,9 @@ float GetMaxDisplacement()
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    maxDisplacement = max(  _HeightAmplitude3
+    maxDisplacement = max(  abs(_HeightAmplitude3)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight3
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
@@ -1301,7 +1302,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
     // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
     // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / meanColor - baseColor);
+    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
     return influenceFactor * factor + baseColor;
 }
 

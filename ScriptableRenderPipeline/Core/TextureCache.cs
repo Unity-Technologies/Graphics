@@ -312,9 +312,10 @@ namespace UnityEngine.Experimental.Rendering
             var bFoundAvailOrExistingSlice = false;
 
             // search for existing copy
-            if (m_LocatorInSliceArray.ContainsKey(texId))
+            int cachedSlice;
+            if (m_LocatorInSliceArray.TryGetValue(texId, out cachedSlice))
             {
-                sliceIndex = m_LocatorInSliceArray[texId];
+                sliceIndex = cachedSlice;
                 bFoundAvailOrExistingSlice = true;
                 Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
             }
