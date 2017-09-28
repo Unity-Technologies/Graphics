@@ -28,6 +28,9 @@ namespace UnityEngine.Experimental.Rendering
         public abstract bool OnEditorGUIImpl();
         public void OnEditorGUI()
         {
+            if (m_DebugItem.runtimeOnly)
+                return;
+
             if(OnEditorGUIImpl())
             {
                 DebugMenuUI.changed = true;

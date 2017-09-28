@@ -508,6 +508,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
             InitializeRenderStateBlocks();
+
+            RegisterDebug();
+        }
+
+        void RegisterDebug()
+        {
+            // These need to be Runtime Only because those values are hold by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => (bool)m_Asset.renderingSettings.useForwardRenderingOnly, (value) => m_Asset.renderingSettings.useForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => (bool)m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering, (value) => m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => (bool)m_Asset.renderingSettings.useDepthPrepassWithDeferredRenderingAlphaTestOnly, (value) => m_Asset.renderingSettings.useDepthPrepassWithDeferredRenderingAlphaTestOnly = (bool)value, DebugItemFlag.RuntimeOnly);
+
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => (bool)m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => (bool)m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Cluster", () => (bool)m_Asset.tileSettings.enableClustered, (value) => m_Asset.tileSettings.enableClustered = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => (bool)m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => (bool)m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => (bool)m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
         }
 
         void InitializeDebugMaterials()
