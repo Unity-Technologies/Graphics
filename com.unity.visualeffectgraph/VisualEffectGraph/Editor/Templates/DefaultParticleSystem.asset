@@ -814,7 +814,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114421384271978552}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114786610386776684}
   m_OutputSlots: []
@@ -896,13 +896,13 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 10
+      data[3]: 1
     - op: 0
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 1
     - op: 0
       valueIndex: 2
       data[0]: -1
@@ -914,67 +914,67 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
+      data[3]: 10
     - op: 0
       valueIndex: 4
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 10
-    - op: 38
+    - op: 0
       valueIndex: 5
-      data[0]: 0
+      data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 0
+      data[3]: 1
+    - op: 0
+      valueIndex: 6
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 11
+    - op: 0
+      valueIndex: 7
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 8
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 0
       valueIndex: 9
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 10
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
+      data[3]: 7
+    - op: 38
       valueIndex: 11
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 39
-      valueIndex: 12
-      data[0]: 1
+      data[0]: 3
       data[1]: -1
       data[2]: -1
       data[3]: 0
-    - op: 0
-      valueIndex: 13
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 38
-      valueIndex: 14
-      data[0]: 4
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 18
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 7
     - op: 13
-      valueIndex: 20
+      valueIndex: 15
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
+    - op: 39
+      valueIndex: 16
+      data[0]: 6
+      data[1]: -1
+      data[2]: -1
+      data[3]: 0
+    - op: 38
+      valueIndex: 17
+      data[0]: 4
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 0
       valueIndex: 21
       data[0]: -1
@@ -983,9 +983,9 @@ VFXAsset:
       data[3]: 1
     - op: 2
       valueIndex: 22
-      data[0]: 6
-      data[1]: 2
-      data[2]: 3
+      data[0]: 1
+      data[1]: 0
+      data[2]: 2
       data[3]: -1
     - op: 0
       valueIndex: 25
@@ -1001,9 +1001,9 @@ VFXAsset:
       data[3]: 1
     - op: 2
       valueIndex: 27
-      data[0]: 8
+      data[0]: 5
       data[1]: 7
-      data[2]: 10
+      data[2]: 8
       data[3]: -1
     - op: 0
       valueIndex: 30
@@ -1040,17 +1040,17 @@ VFXAsset:
   m_PropertySheet:
     m_Float:
       m_Array:
+      - m_ExpressionIndex: 0
+        m_Value: 0
+      - m_ExpressionIndex: 1
+        m_Value: 0
       - m_ExpressionIndex: 2
         m_Value: 0
-      - m_ExpressionIndex: 3
-        m_Value: 0
-      - m_ExpressionIndex: 6
+      - m_ExpressionIndex: 5
         m_Value: 0
       - m_ExpressionIndex: 7
         m_Value: 0.70000005
       - m_ExpressionIndex: 8
-        m_Value: 0
-      - m_ExpressionIndex: 10
         m_Value: 0
       - m_ExpressionIndex: 14
         m_Value: 2
@@ -1080,7 +1080,14 @@ VFXAsset:
       m_Array: []
     m_AnimationCurve:
       m_Array:
-      - m_ExpressionIndex: 0
+      - m_ExpressionIndex: 3
+        m_Value:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      - m_ExpressionIndex: 4
         m_Value:
           serializedVersion: 2
           m_Curve:
@@ -1105,16 +1112,9 @@ VFXAsset:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
-      - m_ExpressionIndex: 4
-        m_Value:
-          serializedVersion: 2
-          m_Curve: []
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
     m_Gradient:
       m_Array:
-      - m_ExpressionIndex: 1
+      - m_ExpressionIndex: 6
         m_Value:
           serializedVersion: 2
           key0: {r: 1, g: 0.06861055, b: 0, a: 1}
@@ -1146,7 +1146,7 @@ VFXAsset:
           m_NumAlphaKeys: 2
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 12
+      - m_ExpressionIndex: 9
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
@@ -1217,7 +1217,7 @@ VFXAsset:
         nameId: uniform_Value_d
       - expressionIndex: 14
         nameId: uniform_Other_d
-      - expressionIndex: 11
+      - expressionIndex: 10
         nameId: uniform_Curve_d
       processor: {fileID: 7200000, guid: 746fcee6c4e88ab40bed4ca9c3607a24, type: 3}
     - type: 805306368
@@ -1227,7 +1227,7 @@ VFXAsset:
       - bufferIndex: 1
         nameId: deadListOut
       values:
-      - expressionIndex: 13
+      - expressionIndex: 11
         nameId: uniform_deltaTime_b
       processor: {fileID: 7200000, guid: 25276e2f04801684b9b2c7a93f0f0836, type: 3}
     - type: 1073741826
@@ -1235,10 +1235,10 @@ VFXAsset:
       - bufferIndex: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 5
-        nameId: uniform_b
-      - expressionIndex: 9
-        nameId: uniform_c
+      - expressionIndex: 13
+        nameId: uniform_curve_b
       - expressionIndex: 12
+        nameId: uniform_gradient_c
+      - expressionIndex: 9
         nameId: texture_texture
       processor: {fileID: 4800000, guid: b5d210a52b860444a9583bc397b340a3, type: 3}

@@ -34,17 +34,6 @@ namespace UnityEditor.VFX.BlockLibrary
             }
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var curve = GetExpressionsFromSlots(this).First(o => o.name == "curve");
-                var t = new VFXAttributeExpression(VFXAttribute.Age) / new VFXAttributeExpression(VFXAttribute.Lifetime);
-                var sampled = new VFXExpressionSampleCurve(curve.exp, t);
-                yield return new VFXNamedExpression(sampled, "sampledCurve");
-            }
-        }
-
         public class InputProperties
         {
             public AnimationCurve curve;
@@ -54,12 +43,15 @@ namespace UnityEditor.VFX.BlockLibrary
         {
             get
             {
+                string outSource = @"
+float sampledCurve = SampleCurve(curve, age/lifetime);
+";
                 switch (composition)
                 {
-                    case Composition.Overwrite: return "size = sampledCurve;";
-                    case Composition.Scale: return "size *= sampledCurve;";
+                    case Composition.Overwrite: outSource += "size = sampledCurve;";    break;
+                    case Composition.Scale:     outSource += "size *= sampledCurve;";   break;
                 }
-                return "";
+                return outSource;
             }
         }
     }

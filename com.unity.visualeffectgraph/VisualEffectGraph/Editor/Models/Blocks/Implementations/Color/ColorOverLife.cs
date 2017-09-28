@@ -28,20 +28,9 @@ namespace UnityEditor.VFX.BlockLibrary
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
                 if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
                 if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
-            }
-        }
-
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var gradient = GetExpressionsFromSlots(this).First(o => o.name == "gradient");
-                var t = new VFXAttributeExpression(VFXAttribute.Age) / new VFXAttributeExpression(VFXAttribute.Lifetime);
-                var sampled = new VFXExpressionSampleGradient(gradient.exp, t);
-                yield return new VFXNamedExpression(sampled, "sampledColor");
+                    yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Write);
             }
         }
 
@@ -54,8 +43,9 @@ namespace UnityEditor.VFX.BlockLibrary
         {
             get
             {
-                string outSource = @"";
-
+                string outSource = @"
+float4 sampledColor = SampleGradient(gradient, age/lifetime);
+";
                 if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
                     outSource += "color = sampledColor.rgb;\n";
                 if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
