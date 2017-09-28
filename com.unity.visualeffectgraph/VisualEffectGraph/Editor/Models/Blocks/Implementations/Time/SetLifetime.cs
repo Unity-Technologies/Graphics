@@ -22,12 +22,14 @@ namespace UnityEditor.VFX.Block
         public override string name { get { return "Set Lifetime"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInit; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                if (mode != SetMode.Constant)
+                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -52,8 +54,8 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesRandom
         {
-            public float MinValue = 1.0f;
-            public float MaxValue = 0.2f;
+            public float MinValue = 0.5f;
+            public float MaxValue = 1.0f;
         }
 
         public class InputPropertiesCurve
