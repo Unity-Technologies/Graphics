@@ -166,6 +166,7 @@ namespace UnityEditor.VFX.UIElements
             this.AddManipulator(new ObjectDropper());
 
             m_Reciever = Receiver.CreateInstance<Receiver>();
+            m_Reciever.hideFlags = HideFlags.HideAndDontSave;
             m_Reciever.m_ObjectField = this;
 
             style.flexDirection = FlexDirection.Row;
