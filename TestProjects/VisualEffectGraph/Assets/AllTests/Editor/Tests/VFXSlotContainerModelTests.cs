@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Test
         {
             public class InputProperties
             {
-                public Vector3 v;
+                public Vector4 v;
                 public float f;
             }
 
