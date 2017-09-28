@@ -4778,7 +4778,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114159891410750456}
   m_Children:
   - {fileID: 114623519806529784}
-  m_UIPosition: {x: 80.60685, y: 438.989}
+  m_UIPosition: {x: 145.60684, y: 385.989}
   m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114974967299500954}
@@ -5321,7 +5321,7 @@ VFXAsset:
         nameId: uniform_e
       - expressionIndex: 44
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: 9cdf39e29a85ca241858e8ea89d834ab, type: 3}
+      processor: {fileID: 7200000, guid: 87dd773e003cd5a4c82ab60de33c5122, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -5331,7 +5331,7 @@ VFXAsset:
       values:
       - expressionIndex: 45
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: e231abcf85605ca42a675931809c35d2, type: 3}
+      processor: {fileID: 7200000, guid: d5d5aafc242ee83459d382a472924f85, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5355,7 +5355,7 @@ VFXAsset:
         nameId: uniform_i
       - expressionIndex: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 96e386d4d5ad99c418613b4d06fd0cfe, type: 3}
+      processor: {fileID: 4800000, guid: 9789509223b3ceb4883ab0801cb11545, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5379,4 +5379,11 @@ VFXAsset:
         nameId: uniform_i
       - expressionIndex: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 1f48444cb8d004346897e6ff7748fb73, type: 3}
+      processor: {fileID: 4800000, guid: dfd5e43cd3ac70941b3c196d8904872e, type: 3}
+  m_Events:
+  - eventName: OnStart
+    startSystems: 00000000
+    stopSystems: 
+  - eventName: OnStop
+    startSystems: 
+    stopSystems: 00000000

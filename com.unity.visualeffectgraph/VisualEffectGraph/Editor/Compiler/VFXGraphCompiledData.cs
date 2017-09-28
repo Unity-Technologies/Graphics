@@ -472,10 +472,29 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = new Dictionary<VFXContext, int>();
                 FillSpawner(contextSpawnToBufferIndex, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, eventAttributeDescs, contextToCompiledData);
 
+                //Fill Event *WIP*
+                var eventDescs = new List<VFXEventDesc>();
+                var allSpawnerIndex = systemDescs.Select((o, i) => (uint)i).ToArray();
+
+                eventDescs.Add(new VFXEventDesc()
+                {
+                    eventName = "OnStart",
+                    startSystems = allSpawnerIndex,
+                    stopSystems = new uint[] {}
+                });
+
+                eventDescs.Add(new VFXEventDesc()
+                {
+                    eventName = "OnStop",
+                    startSystems = new uint[] {},
+                    stopSystems = allSpawnerIndex
+                });
+                //Fill Event *End WIP*
+
                 foreach (var data in models.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
-                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
             }
             catch (Exception e)
@@ -486,7 +505,7 @@ namespace UnityEditor.VFX
                 if (m_Graph.vfxAsset != null)
                 {
                     m_Graph.vfxAsset.ClearPropertyData();
-                    m_Graph.vfxAsset.SetSystem(null, null, null);
+                    m_Graph.vfxAsset.SetSystem(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
