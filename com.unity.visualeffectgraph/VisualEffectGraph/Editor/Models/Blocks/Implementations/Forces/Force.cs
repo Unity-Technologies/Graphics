@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.BlockLibrary
         public ForceMode Mode = ForceMode.Absolute;
 
         public override string name { get { return "Force"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
         public override IEnumerable<VFXNamedExpression> parameters

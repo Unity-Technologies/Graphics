@@ -10,12 +10,12 @@ namespace UnityEditor.VFX.BlockLibrary
     {
         public enum ColorApplicationMode
         {
-            ColorAndAlpha,
-            Color,
-            Alpha,
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha,
         }
         [VFXSetting]
-        public ColorApplicationMode mode;
+        public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
 
         public override string name { get { return "Color over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.BlockLibrary
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
-                if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
+                if ((mode & ColorApplicationMode.Color) != 0)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
-                if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
+                if ((mode & ColorApplicationMode.Alpha) != 0)
                     yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Write);
             }
         }
@@ -46,10 +46,8 @@ namespace UnityEditor.VFX.BlockLibrary
                 string outSource = @"
 float4 sampledColor = SampleGradient(gradient, age/lifetime);
 ";
-                if (mode == ColorApplicationMode.Color || mode == ColorApplicationMode.ColorAndAlpha)
-                    outSource += "color = sampledColor.rgb;\n";
-                if (mode == ColorApplicationMode.Alpha || mode == ColorApplicationMode.ColorAndAlpha)
-                    outSource += "alpha = sampledColor.a;\n";
+                if ((mode & ColorApplicationMode.Color) != 0) outSource += "color = sampledColor.rgb;\n";
+                if ((mode & ColorApplicationMode.Alpha) != 0) outSource += "alpha = sampledColor.a;\n";
 
                 return outSource;
             }

@@ -419,7 +419,7 @@ MonoBehaviour:
   - {fileID: 114137599570688364}
   m_OutputSlots: []
   m_Disabled: 0
-  mode: 0
+  mode: 3
 --- !u!114 &114378104080370812
 MonoBehaviour:
   m_ObjectHideFlags: 0
