@@ -70,7 +70,12 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
                 DebugItem item = m_DebugPanel.GetDebugItem(i);
-                if(!((item.flags & DebugItemFlag.EditorOnly) != 0))
+#if UNITY_EDITOR
+                // We don't want runtime only items even in the "player" debug menu if we are in the editor.
+                if (item.runtimeOnly)
+                    continue;
+#endif
+                if(!item.editorOnly)
                 {
                     DebugItemHandler handler = item.handler; // Should never be null, we have at least the default handler
                     m_ItemsUI.Add(handler.BuildGUI(parent));

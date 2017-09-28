@@ -241,6 +241,38 @@ Shader "HDRenderPipeline/LitTessellation"
             ENDHLSL
         }
 
+        // This pass is the same as GBuffer only it does not do alpha test (the clip instruction is removed)
+        // This is due to the fact that on GCN, any shader with a clip instruction cannot benefit from HiZ so when we do a prepass, in order to get the most performance, we need to make a special case in the subsequent GBuffer pass.
+        Pass
+        {
+            Name "GBufferWithPrepass"  // Name is not used
+            Tags { "LightMode" = "GBufferWithPrepass" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #define _BYPASS_ALPHA_TEST
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
         Pass
         {
             Name "GBufferDebugDisplay"  // Name is not used
