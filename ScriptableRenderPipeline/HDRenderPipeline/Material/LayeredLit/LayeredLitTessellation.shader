@@ -409,6 +409,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             ENDHLSL
         }
 
+        // This pass is the same as GBuffer only it does not do alpha test (the clip instruction is removed)
+        // This is due to the fact that on GCN, any shader with a clip instruction cannot benefit from HiZ so when we do a prepass, in order to get the most performance, we need to make a special case in the subsequent GBuffer pass.
         Pass
         {
             Name "GBufferWithPrepass"  // Name is not used
