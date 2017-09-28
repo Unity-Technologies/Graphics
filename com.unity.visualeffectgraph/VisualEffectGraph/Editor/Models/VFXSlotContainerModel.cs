@@ -297,7 +297,6 @@ namespace UnityEditor.VFX
 
             if (recreate)
             {
-                Debug.Log(string.Format("Recreate {0} slots for slots container {1}", direction, name));
                 var existingSlots = new List<VFXSlot>(nbSlots);
 
                 // First remove and register all existing slots
