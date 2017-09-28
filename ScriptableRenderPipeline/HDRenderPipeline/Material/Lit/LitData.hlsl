@@ -1291,7 +1291,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
     // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
     // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / meanColor - baseColor);
+    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
     return influenceFactor * factor + baseColor;
 }
 
