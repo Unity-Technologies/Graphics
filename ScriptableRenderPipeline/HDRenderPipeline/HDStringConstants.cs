@@ -6,10 +6,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly ShaderPassName s_EmptyName = new ShaderPassName("");
         internal static readonly ShaderPassName m_ForwardName = new ShaderPassName("Forward");
         internal static readonly ShaderPassName m_ForwardDisplayDebugName = new ShaderPassName("ForwardDisplayDebug");
-        internal static readonly ShaderPassName m_DepthOnlyOpaqueName = new ShaderPassName("DepthOnlyOpaque");
-        internal static readonly ShaderPassName m_DepthOnlyOpaqueAlphaTestName = new ShaderPassName("DepthOnlyOpaqueAlphaTest");
-        internal static readonly ShaderPassName m_ForwardOnlyOpaqueDepthOnlyOpaqueName = new ShaderPassName("ForwardOnlyOpaqueDepthOnlyOpaque");        
-        internal static readonly ShaderPassName m_ForwardOnlyOpaqueDepthOnlyOpaqueAlphaTestName = new ShaderPassName("ForwardOnlyOpaqueDepthOnlyOpaqueAlphaTest");
+        internal static readonly ShaderPassName m_DepthOnlyName = new ShaderPassName("DepthOnly");
+        internal static readonly ShaderPassName m_ForwardOnlyOpaqueDepthOnlyName = new ShaderPassName("ForwardOnlyOpaqueDepthOnly");
         internal static readonly ShaderPassName m_ForwardOnlyOpaqueName = new ShaderPassName("ForwardOnlyOpaque");
         internal static readonly ShaderPassName m_ForwardOnlyOpaqueDisplayDebugName = new ShaderPassName("ForwardOnlyOpaqueDisplayDebug");
         internal static readonly ShaderPassName m_GBufferName = new ShaderPassName("GBuffer");

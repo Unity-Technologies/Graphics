@@ -18,6 +18,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool useDepthPrepassWithDeferredRendering = false;
         public bool renderAlphaTestOnlyInDeferredPrepass = false;
 
+        // TMEP
+        public bool TempSplitPass = false;
+
         // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode --
         // as rendering everything in wireframe + deferred do not play well together
         public bool ShouldUseForwardRenderingOnly()
@@ -518,6 +521,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => (bool)m_Asset.renderingSettings.useForwardRenderingOnly, (value) => m_Asset.renderingSettings.useForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => (bool)m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering, (value) => m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => (bool)m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass, (value) => m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
+
+            // TEMP
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => (bool)m_Asset.renderingSettings.TempSplitPass, (value) => m_Asset.renderingSettings.TempSplitPass = (bool)value, DebugItemFlag.RuntimeOnly);
 
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => (bool)m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => (bool)m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
@@ -1166,7 +1172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new Utilities.ProfilingSample(addDepthPrepass ? "Depth Prepass" : "Depth Prepass forward opaque ", cmd))
             {
-                if (false)
+                if (!m_Asset.renderingSettings.TempSplitPass)
                 {
                     // Default depth prepass (forward and deferred) will render all opaque geometry.
                     RenderQueueRange renderQueueRange = RenderQueueRange.opaque;
@@ -1177,7 +1183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: We should sort the Material by opaque then alpha masked Must do opaque then alpha masked for performance
                     Utilities.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
                     // Note: addDepthPrepass and addForwardOnlyOpaqueDepthPrepass can't be both true at the same time. And if we are here both are not false
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyOpaqueName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyOpaqueName, 0, renderQueueRange);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyName, 0, renderQueueRange);
 
                 }
                 else
@@ -1189,15 +1195,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Render opaque first
                     // In case of deferred we only render pure opaque if requested by the engine
-                    if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass)
+                    if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() || (m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering && !m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass))
                     {
-                        RenderQueueRange rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyOpaqueName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyOpaqueName, 0, rangeOpaqueNoAlphaTest);
+                        using (new Utilities.ProfilingSample("Depth Prepass Opaque", cmd))
+                        {
+                            RenderQueueRange rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
+                            RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyName, 0, rangeOpaqueNoAlphaTest);
+                        }
                     }
 
-                    // Then Render alpha tested object
-                    RenderQueueRange rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyOpaqueAlphaTestName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyOpaqueAlphaTestName, 0, rangeOpaqueAlphaTest);
+                    using (new Utilities.ProfilingSample("Depth Prepass Opaque alpha test", cmd))
+                    {
+                        // Then Render alpha tested object
+                        RenderQueueRange rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.m_DepthOnlyName : HDShaderPassNames.m_ForwardOnlyOpaqueDepthOnlyName, 0, rangeOpaqueAlphaTest);
+                    }
                 }                
             }
         }
@@ -1222,11 +1234,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    RenderQueueRange rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
+                    RenderQueueRange rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
+
                     if (m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering)
                     {
-                        RenderQueueRange rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
-                        RenderQueueRange rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-
                         // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueNoAlphaTest, m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
                         // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
@@ -1234,8 +1246,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        // No depth prepass, use regular depth test
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
+                        if (!m_Asset.renderingSettings.TempSplitPass)
+                        {
+                            // No depth prepass, use regular depth test
+                            RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
+                        }
+                        else
+                        {
+                            RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueNoAlphaTest, m_DepthStateOpaque);
+
+                            // No depth prepass, use regular depth test
+                            RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.m_GBufferName, Utilities.kRendererConfigurationBakedLighting, rangeOpaqueAlphaTest, m_DepthStateOpaque);
+                        }
+
                     }
                 }
             }
