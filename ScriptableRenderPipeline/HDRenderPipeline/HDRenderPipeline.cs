@@ -375,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
-        static DebugDisplaySettings s_NeutraDebugDisplaySettings = new DebugDisplaySettings();
+        static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings = null;
 
         private int m_DebugFullScreenTempRT;
@@ -825,7 +825,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
             {
                 // Neutral allow to disable all debug settings
-                m_CurrentDebugDisplaySettings = s_NeutraDebugDisplaySettings;
+                m_CurrentDebugDisplaySettings = s_NeutralDebugDisplaySettings;
             }
             else
             {
