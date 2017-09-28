@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
         public string GetPropertiesBlock(int baseIndentLevel)
         {
             var sb = new StringBuilder();
-            foreach (var prop in m_Properties)
+            foreach (var prop in m_Properties.Where(x => x.generatePropertyBlock))
             {
                 for (var i = 0; i < baseIndentLevel; i++)
                     sb.Append("\t");

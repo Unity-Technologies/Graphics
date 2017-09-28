@@ -247,15 +247,17 @@ struct GraphVertexInput
 
             surfaceDescription.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescription.Indent();
-            if (mode == GenerationMode.Preview)
-            {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescription.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
-            }
-            else
+            if (node is MasterNode)
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
                     surfaceDescription.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
+
+            }
+            else
+            {
+                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
+                    surfaceDescription.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
+
             }
             surfaceDescription.Deindent();
             surfaceDescription.AddShaderChunk("};", false);
@@ -330,12 +332,7 @@ struct GraphVertexInput
             }
 
             pixelShader.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
-            if (mode == GenerationMode.Preview)
-            {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    pixelShader.AddShaderChunk(string.Format("surface.{0} = {0};", node.GetVariableNameForSlot(slot.id)), true);
-            }
-            else
+            if (node is MasterNode)
             {
                 foreach (var input in node.GetInputSlots<MaterialSlot>())
                 {
@@ -350,6 +347,12 @@ struct GraphVertexInput
                     }
                 }
             }
+            else
+            {
+                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
+                    pixelShader.AddShaderChunk(string.Format("surface.{0} = {0};", node.GetVariableNameForSlot(slot.id)), true);
+            }
+
             pixelShader.AddShaderChunk("return surface;", false);
             pixelShader.Deindent();
             pixelShader.AddShaderChunk("}", false);
@@ -378,12 +381,14 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(pixelShader.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
-            if (mode == GenerationMode.Preview)
-                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
-            else
+            if (node is MasterNode)
             {
                 var master = (MasterNode) node;
                 finalShader.AddShaderChunk(master.GetSubShader(requirements), false);
+            }
+            else
+            {
+                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
             }
 
             finalShader.Deindent();

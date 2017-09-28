@@ -13,10 +13,10 @@ namespace UnityEngine.MaterialGraph
             get { return GetNodes<MasterNode>().FirstOrDefault(); }
         }
 
-        public string GetShader(string name, out List<PropertyCollector.TextureInfo> configuredTextures)
+        public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            PreviewMode mode;
-            return GetShader(masterNode, GenerationMode.ForReals, name, out configuredTextures, out mode);
+            PreviewMode pmode;
+            return GetShader(masterNode, mode, name, out configuredTextures, out pmode);
         }
 
     }

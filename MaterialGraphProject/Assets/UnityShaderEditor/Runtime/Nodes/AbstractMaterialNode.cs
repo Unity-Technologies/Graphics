@@ -79,7 +79,7 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                inputSlot.AddProperty(properties, generationMode);
+                inputSlot.AddDefaultProperty(properties, generationMode);
             }
         }
 
