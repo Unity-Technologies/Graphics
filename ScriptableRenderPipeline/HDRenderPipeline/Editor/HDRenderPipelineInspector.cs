@@ -45,14 +45,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
-            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered", "Toggle");
-            public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
-            public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants", "Toggle");
-            public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants", "Toggle");
-            public readonly GUIContent enableClustered = new GUIContent("Enable clustered", "Toggle");
-            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered", "Toggle");
-            public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
-            public readonly GUIContent tileDebugByCategory = new GUIContent("Enable Debug By Category", "Toggle");
+            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered");
+            public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation");
+            public readonly GUIContent enableComputeLightVariants = new GUIContent("Enable Compute Light Variants");
+            public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Enable Compute Material Variants");
+            public readonly GUIContent enableClustered = new GUIContent("Enable clustered");
+            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered");
+            public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass");
+            public readonly GUIContent tileDebugByCategory = new GUIContent("Enable Debug By Category");
 
             // Sky Settings
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
