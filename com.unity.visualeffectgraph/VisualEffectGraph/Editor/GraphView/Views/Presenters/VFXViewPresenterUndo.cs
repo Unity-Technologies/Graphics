@@ -19,6 +19,9 @@ namespace UnityEditor.VFX.UI
         public VFXGraphUndoStack(VFXGraph initialState)
         {
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
+
+            m_graphUndoCursor.hideFlags = HideFlags.HideAndDontSave;
+
             m_undoStack = new SortedDictionary<int, VFXGraph>();
 
             m_graphUndoCursor.index = 0;
@@ -86,7 +89,7 @@ namespace UnityEditor.VFX.UI
 
         private void IncremenentGraphState()
         {
-            if (!m_reentrant && m_graphUndoStack != null)
+            if (!m_reentrant)
             {
                 m_graphUndoStack.IncrementGraphState();
             }

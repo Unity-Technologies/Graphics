@@ -3685,7 +3685,8 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
-  m_LinkedSlots: []
+  m_LinkedSlots:
+  - {fileID: 114918073048036726}
 --- !u!114 &114728016219313826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4156,7 +4157,6 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 114930687436740184}
-  - {fileID: 114918073048036726}
 --- !u!114 &114826340411728548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4518,7 +4518,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114807295340996872}
+  - {fileID: 114724174331323752}
 --- !u!114 &114926366187128538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5321,7 +5321,7 @@ VFXAsset:
         nameId: uniform_e
       - expressionIndex: 44
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: 9cdf39e29a85ca241858e8ea89d834ab, type: 3}
+      processor: {fileID: 7200000, guid: 9f391cc779e314f499344fa0c65df6ea, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -5331,7 +5331,7 @@ VFXAsset:
       values:
       - expressionIndex: 45
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: e231abcf85605ca42a675931809c35d2, type: 3}
+      processor: {fileID: 7200000, guid: f4f0eb1303bcbae499e780a3b5d9f162, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5355,7 +5355,7 @@ VFXAsset:
         nameId: uniform_i
       - expressionIndex: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 96e386d4d5ad99c418613b4d06fd0cfe, type: 3}
+      processor: {fileID: 4800000, guid: 50bc084fc0f88cf44958e2bc6ea54cd9, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5379,4 +5379,4 @@ VFXAsset:
         nameId: uniform_i
       - expressionIndex: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 1f48444cb8d004346897e6ff7748fb73, type: 3}
+      processor: {fileID: 4800000, guid: 3aec98c45bcec2f4eaa0c8f0e224d0f6, type: 3}

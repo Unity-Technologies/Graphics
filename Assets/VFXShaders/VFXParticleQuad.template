@@ -74,7 +74,7 @@ Shader "Hidden/VFX/ParticleQuads"
 #if VFX_USE_COLOR_CURRENT
 							o.color.rgb = color;
 #endif
-#if VFX_USE_COLOR_ALPHA
+#if VFX_USE_ALPHA_CURRENT
 							o.color.a = alpha;
 #endif
 #endif
@@ -95,7 +95,7 @@ Shader "Hidden/VFX/ParticleQuads"
 					
 					o.color = 1.0f;
 #if VFX_NEEDS_COLOR_INTERPOLATOR
-					o.color.rgb *= i.color.rgb;
+					o.color *= i.color;
 #endif
 					o.color *= texture_texture.Sample(samplertexture_texture,i.uv);
 
