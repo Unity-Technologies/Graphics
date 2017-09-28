@@ -203,6 +203,18 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The vector.")]
         public Vector3 vector;
+
+        public Vector(float x, float y, float z)
+        {
+            vector = new Vector3(x, y, z);
+            space = CoordinateSpace.Local;
+        }
+
+        public Vector(Vector3 v)
+        {
+            vector = v;
+            space = CoordinateSpace.Local;
+        }
     }
 
     [VFXType]
