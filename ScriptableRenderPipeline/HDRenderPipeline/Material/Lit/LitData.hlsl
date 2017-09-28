@@ -1127,7 +1127,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float verticalDisplacement = maxHeight - height * maxHeight;
         // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
         float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
-        return tilingScale * verticalDisplacement / NdotV;
+        return tilingScale * verticalDisplacement / max(NdotV, 0.001);
     }
 
     return 0.0;
