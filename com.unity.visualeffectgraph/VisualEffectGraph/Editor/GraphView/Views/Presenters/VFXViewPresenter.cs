@@ -37,11 +37,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXViewPresenter()
         {
-            m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
-            m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
-            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
-            m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
-            m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
+            Debug.Log("Constructor of VFXViewPresenter with instanceID:" + this.GetInstanceID());
         }
 
         static public VFXViewPresenter viewPresenter
@@ -49,7 +45,19 @@ namespace UnityEditor.VFX.UI
             get
             {
                 if (s_ViewPresenter == null)
-                    CreateInstance<VFXViewPresenter>();
+                {
+                    VFXViewPresenter[] objects = Resources.FindObjectsOfTypeAll<VFXViewPresenter>();
+                    if (objects.Length == 0)
+                    {
+                        Debug.Log("Before CreateInstance<VFXViewPresenter>");
+                        CreateInstance<VFXViewPresenter>();
+                        Debug.Log("After CreateInstance<VFXViewPresenter>");
+                    }
+                    else
+                    {
+                        s_ViewPresenter = objects[0];
+                    }
+                }
                 return s_ViewPresenter;
             }
         }
@@ -58,9 +66,18 @@ namespace UnityEditor.VFX.UI
 
         protected void OnEnable()
         {
+            Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
+
             base.OnEnable();
-            if (s_ViewPresenter != null)
-                Debug.Log("Only one instance of VFXViewPresenter should exist");
+
+            m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
+            m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
+            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
+            m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
+            m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
+
+            if (s_ViewPresenter != null && s_ViewPresenter != this)
+                Debug.LogError("Only one instance of VFXViewPresenter should exist");
             s_ViewPresenter = this;
 
             if (m_FlowAnchorPresenters == null)
@@ -80,6 +97,8 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDisable()
         {
+            Debug.Log("OnDisable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
+
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
             SetVFXAsset(null, true);
@@ -708,9 +727,8 @@ namespace UnityEditor.VFX.UI
             syncedModels[model] = newPresenter;
             if (newPresenter != null)
             {
-                var presenter = (GraphElementPresenter)newPresenter;
                 newPresenter.Init(model, this);
-                AddElement(presenter);
+                AddElement(newPresenter);
             }
             RecreateNodeEdges();
             RecreateFlowEdges();
