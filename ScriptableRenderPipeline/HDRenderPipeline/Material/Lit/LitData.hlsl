@@ -4,6 +4,17 @@
 #include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+void DoAlphaTest(float alpha, float alphaCutoff)
+{
+    // For Deferred:
+    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
+    // For Forward (Full forward or ForwardOnlyOpaque in deferred):
+    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    #if ((SHADER_PASS == SHADERPASS_GBUFFER) && !defined(_BYPASS_ALPHA_TEST)) || (SHADER_PASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_TRANSPARENT))
+        clip(alpha - alphaCutoff);
+    #endif
+}
+
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
 {
@@ -1335,7 +1346,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
 #ifdef _ALPHATEST_ON
-    clip(alpha - _AlphaCutoff);
+    DoAlphaTest(alpha, _AlphaCutoff);
 #endif
 
     float3 normalTS;
