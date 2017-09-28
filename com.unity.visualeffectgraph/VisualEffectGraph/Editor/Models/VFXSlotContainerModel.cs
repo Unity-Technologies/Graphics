@@ -47,11 +47,13 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<VFXPropertyWithValue> inputProperties    { get { return PropertiesFromType(GetInputPropertiesTypeName()); } }
         public virtual IEnumerable<VFXPropertyWithValue> outputProperties   { get { return PropertiesFromType(GetOutputPropertiesTypeName()); } }
 
+        // Get properties with value from nested class fields
         protected IEnumerable<VFXPropertyWithValue> PropertiesFromType(string typeName)
         {
             return PropertiesFromType(GetType().GetNestedType(typeName));
         }
 
+        // Get properties with value from type fields
         protected static IEnumerable<VFXPropertyWithValue> PropertiesFromType(Type type)
         {
             if (type == null)
@@ -66,6 +68,29 @@ namespace UnityEditor.VFX
                     p.value = f.GetValue(instance);
                     return p;
                 });
+        }
+
+        // Get properties with values from slots
+        protected static IEnumerable<VFXPropertyWithValue> PropertiesFromSlots(IEnumerable<VFXSlot> slots)
+        {
+            return slots.Select(s =>
+                {
+                    var p = new VFXPropertyWithValue();
+                    p.property = s.property;
+                    p.value = s.value;
+                    return p;
+                });
+        }
+
+        // Get properties with values from slots if any or initialize from default inner class name
+        protected IEnumerable<VFXPropertyWithValue> PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction direction)
+        {
+            bool isInput = direction == VFXSlot.Direction.kInput;
+            var slots = isInput ? inputSlots : outputSlots;
+            if (slots.Count() == 0)
+                return PropertiesFromType(isInput ? GetInputPropertiesTypeName() : GetOutputPropertiesTypeName());
+            else
+                return PropertiesFromSlots(slots);
         }
 
         protected static string GetInputPropertiesTypeName()
@@ -148,7 +173,7 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kInput);
+            SyncSlots(VFXSlot.Direction.kInput, false);
 
             if (m_OutputSlots == null)
                 m_OutputSlots = new List<VFXSlot>();
@@ -158,7 +183,7 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kOutput);
+            SyncSlots(VFXSlot.Direction.kOutput, false);
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -189,6 +214,16 @@ namespace UnityEditor.VFX
                 clone.InnerAddSlot(cloneSlot, false);
             }
             return clone as T;
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (model == this && cause == InvalidationCause.kSettingChanged)
+            {
+                SyncSlots(VFXSlot.Direction.kInput, true);
+                SyncSlots(VFXSlot.Direction.kOutput, true);
+            }
         }
 
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
@@ -236,7 +271,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void SyncSlots(VFXSlot.Direction direction)
+        private void SyncSlots(VFXSlot.Direction direction, bool notify)
         {
             bool isInput = direction == VFXSlot.Direction.kInput;
 
@@ -260,13 +295,14 @@ namespace UnityEditor.VFX
             if (recreate)
             {
                 Debug.Log(string.Format("Recreate {0} slots for slots container {1}", direction, name));
-                for (int i = nbSlots - 1; i > 0; --i)
+                for (int i = nbSlots - 1; i >= 0; --i)
                 {
                     currentSlots[i].UnlinkAll(true, false);
                     InnerRemoveSlot(currentSlots[i], false);
                 }
                 InitSlotsFromProperties(expectedProperties, direction);
-                Invalidate(InvalidationCause.kStructureChanged);
+                if (notify)
+                    Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 

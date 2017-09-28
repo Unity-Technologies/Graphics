@@ -21,6 +21,9 @@ namespace UnityEditor.VFX
                 UpdateOutputs();
         }
 
+        public override IEnumerable<VFXPropertyWithValue> inputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kInput); } }
+        public override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
+
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
             List<VFXExpression> results = new List<VFXExpression>();
