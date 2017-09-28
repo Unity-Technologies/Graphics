@@ -835,7 +835,7 @@ float GetMaxDisplacement()
 #if defined(_HEIGHTMAP1)
     maxDisplacement = max(  abs(_HeightAmplitude1)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_abs(HeightAmplitude0) * _InheritBaseHeight1
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
@@ -844,7 +844,7 @@ float GetMaxDisplacement()
 #if defined(_HEIGHTMAP2)
     maxDisplacement = max(  abs(_HeightAmplitude2)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            + abs(HeightAmplitude0) * _InheritBaseHeight2
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -854,7 +854,7 @@ float GetMaxDisplacement()
 #if defined(_HEIGHTMAP3)
     maxDisplacement = max(  abs(_HeightAmplitude3)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            + abs(HeightAmplitude0) * _InheritBaseHeight3
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
