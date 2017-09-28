@@ -31,11 +31,33 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        // TODO : Remove InputProperties and process yielding of VFXSlots depending on VFXSettings once available
-        public class InputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                switch (mode)
+                {
+                    case SetMode.Constant: return PropertiesFromType("InputPropertiesConstant");
+                    case SetMode.Random: return PropertiesFromType("InputPropertiesRandom");
+                    case SetMode.FromCurve: return PropertiesFromType("InputPropertiesCurve");
+                    default: throw new InvalidOperationException();
+                }
+            }
+        }
+
+        public class InputPropertiesConstant
         {
             public float Value = 1.0f;
-            public float Other = 0.2f;
+        }
+
+        public class InputPropertiesRandom
+        {
+            public float MinValue = 1.0f;
+            public float MaxValue = 0.2f;
+        }
+
+        public class InputPropertiesCurve
+        {
             public AnimationCurve Curve;
         }
 
@@ -43,14 +65,13 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string outSource = "";
                 switch (mode)
                 {
-                    case SetMode.Constant: outSource = "lifetime = Value;"; break;
-                    case SetMode.Random: outSource = "lifetime = lerp(Value,Other,RAND);"; break;
-                    case SetMode.FromCurve: outSource = "lifetime = SampleCurve(Curve, RAND);"; break;
+                    case SetMode.Constant:  return "lifetime = Value;";
+                    case SetMode.Random:    return "lifetime = lerp(MinValue,MaxValue,RAND);";
+                    case SetMode.FromCurve: return "lifetime = SampleCurve(Curve, RAND);";
+                    default: throw new InvalidOperationException();
                 }
-                return outSource;
             }
         }
     }
