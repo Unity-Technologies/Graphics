@@ -219,31 +219,62 @@ namespace UnityEngine.MaterialGraph
             // Step 3...
             // For each input that is used and connects through we want to generate code.
             // First we assign the input variables to the subgraph
-            var subGraphInputs = subGraphAsset.subGraph.properties;
+            // we do this by renaming the properties to be the names of where the variables come from
+            // weird, but works.
+            var sSubGraph = SerializationHelper.Serialize<SubGraph>(subGraphAsset.subGraph);
+            var subGraph = SerializationHelper.Deserialize<SubGraph>(sSubGraph, null);
 
+            var subGraphInputs = subGraph.properties;
+
+
+            //todo:
+            // copy whole subgraph
+            // rename properties to match what we want (external scope)
+            // then generate graph
             var propertyGen = new PropertyCollector();
-            subGraphAsset.subGraph.CollectShaderProperties(propertyGen, GenerationMode.ForReals);
+            subGraph.CollectShaderProperties(propertyGen, GenerationMode.ForReals);
+
             foreach (var prop in subGraphInputs)
             {
-                var varName = prop.name;
-                var slotId = prop.guid.GetHashCode();
-                var slot = FindInputSlot<MaterialSlot>(slotId);
-                var varValue = GetSlotValue(slotId, generationMode);
+                var inSlotId = prop.guid.GetHashCode();
+                var inSlot = FindInputSlot<MaterialSlot>(inSlotId);
 
-                outputString.AddShaderChunk(
-                    ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)
-                    + " "
-                    + varName
-                    + " = "
-                    + varValue
-                    + ";", false);
+                var edges = owner.GetEdges(inSlot.slotReference).ToArray();
+
+                string varValue = inSlot.GetDefaultValue(generationMode);
+                if (edges.Any())
+                {
+                    var fromSocketRef = edges[0].outputSlot;
+                    var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+                    if (fromNode != null)
+                    {
+                        var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+                        if (slot != null)
+                            prop.name = fromNode.GetSlotValue(slot.id, generationMode);
+                    }
+                }
+                else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
+                {
+                    prop.name = MaterialSlot.DefaultTextureName;
+                }
+                else
+                {
+                    var varName = prop.name;
+                    outputString.AddShaderChunk(
+                        ConvertConcreteSlotValueTypeToString(precision, inSlot.concreteValueType)
+                        + " "
+                        + varName
+                        + " = "
+                        + varValue
+                        + ";", false);
+                }
             }
 
             // Step 4...
             // Using the inputs we can now generate the shader body :)
             var bodyGenerator = new ShaderGenerator();
             subGraph.GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
-            var subGraphOutputNode = subGraphAsset.subGraph.outputNode;
+            var subGraphOutputNode = subGraph.outputNode;
             outputString.AddShaderChunk(bodyGenerator.GetShaderString(0), false);
 
             // Step 5...

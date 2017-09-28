@@ -99,12 +99,23 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            // if we are previewing the graph we need to
+            // export 'exposed props' if we are 'for real'
+            // then we are outputting the graph in the
+            // nested context and the needed values will
+            // be copied into scope.
+            if (generationMode == GenerationMode.Preview)
+            {
+                foreach (var prop in properties)
+                    collector.AddShaderProperty(prop);
+            }
+
             foreach (var node in usedNodes)
             {
                 if (node is IGenerateProperties)
-                    (node as IGenerateProperties).CollectShaderProperties(visitor, generationMode);
+                    (node as IGenerateProperties).CollectShaderProperties(collector, generationMode);
             }
         }
 

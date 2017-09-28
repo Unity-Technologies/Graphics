@@ -220,7 +220,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var materialGraph = (UnityEngine.MaterialGraph.MaterialGraph) node.owner;
 
                 List<PropertyCollector.TextureInfo> defaultTextures;
-                previewData.shaderString = materialGraph.GetShader(node.guid + "_preview", out defaultTextures);
+                previewData.shaderString = materialGraph.GetShader(node.guid + "_preview", GenerationMode.Preview, out defaultTextures);
                 previewData.previewMode = masterNode.has3DPreview() ? PreviewMode.Preview3D : PreviewMode.Preview2D;
             }
             else if (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex)
