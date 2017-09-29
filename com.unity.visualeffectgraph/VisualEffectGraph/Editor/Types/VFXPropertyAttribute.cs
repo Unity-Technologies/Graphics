@@ -1,16 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Graphing;
-using System.Reflection;
 
 namespace UnityEditor.VFX
 {
     // Attribute used to normalize a FloatN
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public sealed class NormalizeAttribute : PropertyAttribute
+    {
+    }
+
+    // Attribute used to display a float in degrees in the UI
+    [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public sealed class AngleAttribute : PropertyAttribute
     {
     }
 
@@ -38,6 +40,10 @@ namespace UnityEditor.VFX
                 TooltipAttribute tooltipAttribute = attribute as TooltipAttribute;
                 if (tooltipAttribute != null)
                     results.Add(new VFXPropertyAttribute(tooltipAttribute.tooltip));
+
+                AngleAttribute angleAttribute = attribute as AngleAttribute;
+                if (angleAttribute != null)
+                    results.Add(new VFXPropertyAttribute(Type.kAngle));
             }
 
             return results.ToArray();
@@ -61,6 +67,7 @@ namespace UnityEditor.VFX
                             exp = VFXOperatorUtility.Normalize(exp);
                             break;
                         case Type.kTooltip:
+                        case Type.kAngle:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -90,6 +97,8 @@ namespace UnityEditor.VFX
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
+                        case Type.kAngle:
+                            break;
                         default:
                             throw new NotImplementedException();
                     }
@@ -111,12 +120,27 @@ namespace UnityEditor.VFX
             return Vector2.zero;
         }
 
+        public static bool IsAngle(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+            {
+                foreach (VFXPropertyAttribute attribute in attributes)
+                {
+                    if (attribute.m_Type == Type.kAngle)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         private enum Type
         {
             kRange,
             kMin,
             kNormalize,
-            kTooltip
+            kTooltip,
+            kAngle
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
