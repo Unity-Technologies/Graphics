@@ -58,7 +58,7 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
     VaryingsToDS varying = InterpolateWithBaryCoordsToDS(varying0, varying1, varying2, baryCoords);
 
     // We have Phong tessellation in all case where we don't have displacement only
-#ifndef _TESSELLATION_DISPLACEMENT
+#ifdef _TESSELLATION_PHONG
 
     float3 p0 = varying0.vmesh.positionWS;
     float3 p1 = varying1.vmesh.positionWS;
@@ -73,8 +73,15 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
                                                     baryCoords, _TessellationShapeFactor);
 #endif
 
-#if defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)
-    varying.vmesh.positionWS += GetTessellationDisplacement(varying.vmesh);
+#ifdef HAVE_TESSELLATION_MODIFICATION
+    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
+    // Extract scaling from world transform
+    #ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
+    float3 objectScale = varying.vmesh.objectScale; 
+    #else
+    float3 objectScale = float3(1.0, 1.0, 1.0);
+    #endif
+    ApplyTessellationModification(varying.vmesh, varying.vmesh.normalWS, objectScale, varying.vmesh.positionWS);
 #endif
 
     return VertTesselation(varying);

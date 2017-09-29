@@ -165,7 +165,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightAmplitude: 1
-    - _HeightCenter: 0.5
+    - _HeightCenter: 1
     - _HeightMax: 100
     - _HeightMin: 0
     - _HorizonFade: 1
