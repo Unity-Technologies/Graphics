@@ -17,6 +17,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private class StylesLayer
         {
+            public readonly Color[] layerColors = 
+            {
+                Color.white,
+                Color.red,
+                Color.green,
+                Color.blue
+            };
+
             public readonly GUIContent[] layerLabels =
             {
                 new GUIContent("Main layer"),
@@ -64,10 +72,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public StylesLayer()
             {
-                layerLabelColors[0].normal.textColor = Color.white;
-                layerLabelColors[1].normal.textColor = Color.red;
-                layerLabelColors[2].normal.textColor = Color.green;
-                layerLabelColors[3].normal.textColor = Color.blue;
+                layerLabelColors[0].normal.textColor = layerColors[0];
+                layerLabelColors[1].normal.textColor = layerColors[1];
+                layerLabelColors[2].normal.textColor = layerColors[2];
+                layerLabelColors[3].normal.textColor = layerColors[3];
             }
         }
 
@@ -441,16 +449,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool layersChanged = false;
             Material material = m_MaterialEditor.target as Material;
 
+            Color originalContentColor = GUI.contentColor;
+
             for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
             {
                 EditorGUI.BeginChangeCheck();
+                GUI.contentColor = styles.layerColors[layerIndex];
+
                 m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
                 if (EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
+                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
                     layersChanged = true;
                 }
+
+                GUI.contentColor = originalContentColor;
 
                 GUILayout.BeginHorizontal();
                 {
