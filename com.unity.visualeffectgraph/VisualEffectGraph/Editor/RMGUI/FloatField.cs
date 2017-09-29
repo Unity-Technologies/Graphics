@@ -5,6 +5,59 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
+    class LabeledField<T, U> : VisualElement, IControl<U> where T : VisualElement, IControl<U>, new()
+    {
+        protected VisualElement m_Label;
+        protected T m_Control;
+        public LabeledField(VisualElement existingLabel)
+        {
+            m_Label = existingLabel;
+
+            CreateControl();
+        }
+
+        void CreateControl()
+        {
+            m_Control = new T();
+            Add(m_Control);
+        }
+
+        public T control
+        {
+            get { return m_Control; }
+        }
+
+        LabeledField(string label)
+        {
+            if (!string.IsNullOrEmpty(label))
+            {
+                m_Label = new VisualElement() { text = label };
+                m_Label.AddToClassList("label");
+
+                Add(m_Label);
+            }
+            style.flexDirection = FlexDirection.Row;
+
+            CreateControl();
+        }
+
+        public void OnChange(EventCallback<ChangeEvent<U>> callback)
+        {
+            (m_Control as IControl<U> ).OnChange(callback);
+        }
+
+        public void UpdateValue(U newValue)
+        {
+            (m_Control as IControl<U>).UpdateValue(newValue);
+        }
+
+        public U value
+        {
+            get { return m_Control.value; }
+            set { m_Control.value = value; }
+        }
+    }
+
     abstract class ValueControl<T> : VisualElement
     {
         protected VisualElement m_Label;
@@ -35,6 +88,12 @@ namespace UnityEditor.VFX.UIElements
         {
             m_Value = value;
             ValueToGUI();
+        }
+
+        public T value
+        {
+            get { return GetValue(); }
+            set { SetValue(value); }
         }
 
         protected T m_Value;

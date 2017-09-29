@@ -90,18 +90,38 @@ namespace UnityEditor.VFX.UIElements
             eyeDropper.style.width = eyeDropperIcon.width;
             eyeDropper.style.height = eyeDropperIcon.height;
 
-            eyeDropper.AddManipulator(new Clickable(() => EyeDropper.Start(OnColorChanged)));
+            eyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
 
             return eyeDropper;
         }
+
+        IScheduledItem m_EyeDroppperScheduler;
+        bool m_FirstUpAfterEyeDropper = false;
+        void OnEyeDropperStart(MouseDownEvent e)
+        {
+            EyeDropper.Start(OnColorChanged);
+            m_EyeDroppperScheduler = (panel as BaseVisualElementPanel).scheduler.ScheduleUntil(OnEyeDropperMove, 10, 10, () => false);
+            m_EyeDropper.UnregisterCallback<MouseDownEvent>(OnEyeDropperStart);
+        }
+
+        void OnEyeDropperMove(TimerState state)
+        {
+            Color pickerColor = EyeDropper.GetPickedColor();
+            if (pickerColor != GetValue())
+            {
+                SetValue(pickerColor);
+            }
+        }
+
+        VisualElement m_EyeDropper;
 
         public ColorField(string label) : base(label)
         {
             VisualElement container = CreateColorContainer();
             Add(container);
 
-
-            Add(CreateEyeDropper());
+            m_EyeDropper = CreateEyeDropper();
+            Add(m_EyeDropper);
         }
 
         public ColorField(VisualElement existingLabel) : base(existingLabel)
@@ -109,17 +129,23 @@ namespace UnityEditor.VFX.UIElements
             VisualElement container = CreateColorContainer();
             Add(container);
 
-            Add(CreateEyeDropper());
+            m_EyeDropper = CreateEyeDropper();
+            Add(m_EyeDropper);
         }
 
         void OnColorChanged(Color color)
         {
             SetValue(color);
 
+            if (m_EyeDroppperScheduler != null)
+            {
+                (panel as BaseVisualElementPanel).scheduler.Unschedule(m_EyeDroppperScheduler);
+                m_EyeDroppperScheduler = null;
+                m_EyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
+            }
+
             if (OnValueChanged != null)
                 OnValueChanged();
-
-            Dirty(ChangeType.Repaint);
         }
 
         protected override void ValueToGUI()

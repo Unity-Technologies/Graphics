@@ -10,7 +10,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using CurveField = UnityEditor.VFX.UIElements.CurveField;
+//using CurveField = UnityEditor.VFX.UIElements.CurveField;
 
 namespace UnityEditor.VFX
 {
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<AnimationCurve> CreateField()
         {
-            return new CurveField(m_Label);
+            return new VFX.UIElements.CurveField(m_Label);//LabeledField<UnityEditor.Experimental.UIElements.CurveField,AnimationCurve>(m_Label);
         }
     }
 
