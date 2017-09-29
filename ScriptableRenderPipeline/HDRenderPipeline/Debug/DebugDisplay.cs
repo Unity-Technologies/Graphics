@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -378,6 +378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None = 0,
             Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
             PerPixelDisplacement,
+            VertexDisplacement,
             DepthOffset,
             Lightmap,
         }
