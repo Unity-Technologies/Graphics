@@ -9,7 +9,7 @@ Material:
   m_Name: Tessellation - Wood
   m_Shader: {fileID: 4800000, guid: 756bac9090102564582875f4c7e30202, type: 3}
   m_ShaderKeywords: _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT
-    _TESSELLATION_TILING_SCALE
+    _TESSELLATION_OBJECT_SCALE _TESSELLATION_TILING_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -165,7 +165,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightAmplitude: 1
-    - _HeightCenter: 0.5
+    - _HeightCenter: 1
     - _HeightMax: 100
     - _HeightMin: 0
     - _HorizonFade: 1
@@ -199,7 +199,7 @@ Material:
     - _TessellationFactorMinDistance: 20
     - _TessellationFactorTriangleSize: 100
     - _TessellationMode: 1
-    - _TessellationObjectScale: 0
+    - _TessellationObjectScale: 1
     - _TessellationShapeFactor: 0.75
     - _TessellationTilingScale: 1
     - _TexWorldScale: 1
