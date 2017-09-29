@@ -25,6 +25,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
 
+            // Vertex displacement
+            public static string vertexDisplacementText = "Vertex displacement";
+
+            public static GUIContent enableVertexDisplacementText = new GUIContent("Enable vertex displacement", "Use heightmap as a displacement map. Displacement map is use to move vertex position in local space");
+            public static GUIContent vertexDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Vertex displacement will take into account the object scale - Only work with uniform positive scale");
+            public static GUIContent vertexDisplacementTilingScaleText = new GUIContent("Lock with heightmap tiling", "Vertex displacement will take into account the tiling scale - Only work with uniform positive scale");
+
             // Tessellation
             public static string tessellationModeText = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
@@ -36,8 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
-            public static GUIContent tessellationObjectScaleText = new GUIContent("Lock with object scale", "Tessellation displacement will take into account the object scale - Only work with uniform positive scale");
-            public static GUIContent tessellationTilingScaleText = new GUIContent("Lock with heightmap tiling", "Tessellation displacement will take into account the tiling scale - Only work with uniform positive scale");
+
+            // Vertex animation
+            public static string vertexAnimation = "Vertex animation";
 
             // Wind
             public static GUIContent windText = new GUIContent("Enable Wind");
@@ -46,8 +54,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
-
-            public static string vertexAnimation = "Vertex Animation";
         }
 
         public enum DoubleSidedNormalMode
@@ -59,9 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum TessellationMode
         {
-            Phong,
-            Displacement,
-            DisplacementPhong,
+            None,
+            Phong
         }
 
         protected MaterialProperty doubleSidedNormalMode = null;
@@ -76,6 +81,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string     kStencilRef = "_StencilRef";
 
+        // Per pixel displacement params
+        protected MaterialProperty enablePerPixelDisplacement = null;
+        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
+        protected MaterialProperty ppdMinSamples = null;
+        protected const string kPpdMinSamples = "_PPDMinSamples";
+        protected MaterialProperty ppdMaxSamples = null;
+        protected const string kPpdMaxSamples = "_PPDMaxSamples";
+        protected MaterialProperty ppdLodThreshold = null;
+        protected const string kPpdLodThreshold = "_PPDLodThreshold";
+
+        // Vertex displacement
+        protected MaterialProperty enableVertexDisplacement = null;
+        protected const string kEnableVertexDisplacement = "_EnableVertexDisplacement";
+        protected MaterialProperty vertexDisplacementObjectScale = null;
+        protected const string kVertexDisplacementObjectScale = "_VertexDisplacementObjectScale";
+        protected MaterialProperty vertexDisplacementTilingScale = null;
+        protected const string kVertexDisplacementTilingScale = "_VertexDisplacementTilingScale";
+
         // Wind
         protected MaterialProperty windEnable = null;
         protected const string kWindEnabled = "_EnableWind";
@@ -89,16 +112,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kWindShiverDrag = "_ShiverDrag";
         protected MaterialProperty windShiverDirectionality = null;
         protected const string kWindShiverDirectionality = "_ShiverDirectionality";
-
-        // Per pixel displacement params
-        protected MaterialProperty enablePerPixelDisplacement = null;
-        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
-        protected MaterialProperty ppdMinSamples = null;
-        protected const string kPpdMinSamples = "_PPDMinSamples";
-        protected MaterialProperty ppdMaxSamples = null;
-        protected const string kPpdMaxSamples = "_PPDMaxSamples";
-        protected MaterialProperty ppdLodThreshold = null;
-        protected const string kPpdLodThreshold = "_PPDLodThreshold";
 
         // tessellation params
         protected MaterialProperty tessellationMode = null;
@@ -115,10 +128,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTessellationShapeFactor = "_TessellationShapeFactor";
         protected MaterialProperty tessellationBackFaceCullEpsilon = null;
         protected const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
-        protected MaterialProperty tessellationObjectScale = null;
-        protected const string kTessellationObjectScale = "_TessellationObjectScale";
-        protected MaterialProperty tessellationTilingScale = null;
-        protected const string kTessellationTilingScale = "_TessellationTilingScale";
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -136,6 +145,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
 
+            // vertex displacement
+            enableVertexDisplacement = FindProperty(kEnableVertexDisplacement, props);
+            vertexDisplacementObjectScale = FindProperty(kVertexDisplacementObjectScale, props);
+            vertexDisplacementTilingScale = FindProperty(kVertexDisplacementTilingScale, props);
+
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
             tessellationFactor = FindProperty(kTessellationFactor, props, false);
@@ -144,8 +158,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
-            tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
-            tessellationTilingScale = FindProperty(kTessellationTilingScale, props, false);
 
             // Wind
             windEnable = FindProperty(kWindEnabled, props);
@@ -203,6 +215,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel--;
 
+            // Vertex displacement options
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(StylesBaseLit.vertexDisplacementText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+
+            m_MaterialEditor.ShaderProperty(enableVertexDisplacement, StylesBaseLit.enableVertexDisplacementText);
+            if (enableVertexDisplacement.floatValue > 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(vertexDisplacementObjectScale, StylesBaseLit.vertexDisplacementObjectScaleText);
+                m_MaterialEditor.ShaderProperty(vertexDisplacementTilingScale, StylesBaseLit.vertexDisplacementTilingScaleText);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUI.indentLevel--;
+
             // Display tessellation option if it exist
             if (tessellationMode != null)
             {
@@ -216,8 +244,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // clamp min distance to be below max distance
                 tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                 m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, StylesBaseLit.tessellationFactorTriangleSizeText);
-                if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong ||
-                    (TessellationMode)tessellationMode.floatValue == TessellationMode.DisplacementPhong)
+                if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong)
                 {
                     m_MaterialEditor.ShaderProperty(tessellationShapeFactor, StylesBaseLit.tessellationShapeFactorText);
                 }
@@ -225,8 +252,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, StylesBaseLit.tessellationBackFaceCullEpsilonText);
                 }
-                m_MaterialEditor.ShaderProperty(tessellationObjectScale, StylesBaseLit.tessellationObjectScaleText);
-                m_MaterialEditor.ShaderProperty(tessellationTilingScale, StylesBaseLit.tessellationTilingScaleText);
                 EditorGUI.indentLevel--;
             }
         }
@@ -296,35 +321,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
 
-            if (material.HasProperty(kTessellationMode))
-            {
-                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+            bool enableVertexDisplacement = material.GetFloat(kEnableVertexDisplacement) > 0.0f;
+            SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
 
-                if (tessMode == TessellationMode.Phong)
-                {
-                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
-                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
-                }
-                else if (tessMode == TessellationMode.Displacement)
-                {
-                    material.EnableKeyword("_TESSELLATION_DISPLACEMENT");
-                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
-                }
-                else
-                {
-                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
-                    material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
-                }
+            bool vertexDisplacementObjectScaleEnable = material.GetFloat(kVertexDisplacementObjectScale) > 0.0;
+            SetKeyword(material, "_DISPLACEMENT_OBJECT_SCALE", vertexDisplacementObjectScaleEnable && enableVertexDisplacement);
 
-                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) > 0.0;
-                SetKeyword(material, "_TESSELLATION_OBJECT_SCALE", tessellationObjectScaleEnable);
-
-                bool tessellationTilingScaleEnable = material.GetFloat(kTessellationTilingScale) > 0.0;
-                SetKeyword(material, "_TESSELLATION_TILING_SCALE", tessellationTilingScaleEnable);
-            }
+            bool vertexDisplacementTilingScaleEnable = material.GetFloat(kVertexDisplacementTilingScale) > 0.0;
+            SetKeyword(material, "_DISPLACEMENT_TILING_SCALE", vertexDisplacementTilingScaleEnable && enableVertexDisplacement);
 
             bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
             SetKeyword(material, "_VERTEX_WIND", windEnabled);
+
+            if (material.HasProperty(kTessellationMode))
+            {
+                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+                SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
+            }
         }
 
         static public void SetupBaseLitMaterialPass(Material material)
