@@ -13,7 +13,7 @@
 
 #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	    // enables hardcoded resources and algorithm for directional lights
 #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		    // enables hardcoded resources and algorithm for punctual lights
-#define SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS  // enables separate cascade sampling variants for each cascade
+//#define SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS  // enables separate cascade sampling variants for each cascade
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
 // directional
