@@ -24,8 +24,9 @@ void BuildDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
 	uint tileY = (dispatchThreadId + 0.5f) / (float)g_NumTilesX;	// Integer division is extremely expensive, so we better avoid it
 	uint tileX = dispatchThreadId - tileY * g_NumTilesX;
 
-    // Check if there is no light or no material (mean we are sky/background pixel) / Both test as we can enable/disable light/material classification
-    if ((featureFlags & LIGHT_FEATURE_MASK_FLAGS) != 0 && (featureFlags & MATERIAL_FEATURE_MASK_FLAGS) != 0)
+    // Check if there is no material (means it is a sky/background pixel).
+    // Note that we can have no lights, yet we still need to render geometry with precomputed illumination.
+    if ((featureFlags & MATERIAL_FEATURE_MASK_FLAGS) != 0)
     {
         uint variant = FeatureFlagsToTileVariant(featureFlags);
         uint offset;
