@@ -10,6 +10,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+using CurveField = UnityEditor.VFX.UIElements.CurveField;
+
 namespace UnityEditor.VFX
 {
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]

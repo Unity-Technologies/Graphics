@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IDropTarget
+    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerOwner
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";

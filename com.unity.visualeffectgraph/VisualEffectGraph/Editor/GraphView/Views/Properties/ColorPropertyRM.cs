@@ -8,6 +8,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using ColorField = UnityEditor.VFX.UIElements.ColorField;
 
 namespace UnityEditor.VFX.UI
 {

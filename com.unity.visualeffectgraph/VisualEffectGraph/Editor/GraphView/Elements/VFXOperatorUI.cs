@@ -9,6 +9,11 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
+    interface IEdgeDrawerOwner
+    {
+        void DirtyDrawer();
+    }
+
     class Collapser : Manipulator
     {
         public Collapser()
@@ -35,7 +40,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
+    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
     {
         public VFXStandaloneSlotContainerUI()
         {

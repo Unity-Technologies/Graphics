@@ -8,6 +8,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using ObjectField = UnityEditor.VFX.UIElements.ObjectField;
 
 namespace UnityEditor.VFX.UI
 {
