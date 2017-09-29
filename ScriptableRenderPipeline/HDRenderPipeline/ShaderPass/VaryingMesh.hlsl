@@ -224,7 +224,7 @@ struct VaryingsMeshToDS
 #ifdef VARYINGS_DS_NEED_COLOR
     float4 color;
 #endif
-#ifdef _TESSELLATION_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
     float3 objectScale;
 #endif
 };
@@ -255,7 +255,7 @@ struct PackedVaryingsMeshToDS
     float4 interpolators5 : TEXCOORD2;
 #endif
 
-#ifdef _TESSELLATION_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
     float3 interpolators6 : TEXCOORD3;
 #endif
 };
@@ -285,7 +285,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_COLOR
     output.interpolators5 = input.color;
 #endif
-#ifdef _TESSELLATION_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
     output.interpolators6 = input.objectScale;
 #endif
 
@@ -316,7 +316,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_COLOR
     output.color = input.interpolators5;
 #endif
-#ifdef _TESSELLATION_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
     output.objectScale = input.interpolators6;
 #endif
     return output;
@@ -348,7 +348,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
 
-#ifdef _TESSELLATION_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
     // objectScale doesn't change for the whole object.
     ouput.objectScale = input0.objectScale;
 #endif
