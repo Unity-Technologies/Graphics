@@ -138,7 +138,7 @@
 #ifndef _EMISSION
 				s.Emission = 0;
 #else
-				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv01.xy).rgb) * _EmissionColor.rgb;
+				s.Emission = LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.meshUV0.xy).rgb) * _EmissionColor.rgb;
 #endif
 				// Alpha
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A

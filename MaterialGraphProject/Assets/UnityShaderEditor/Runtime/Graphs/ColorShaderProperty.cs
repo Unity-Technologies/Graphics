@@ -39,9 +39,9 @@ namespace UnityEngine.MaterialGraph
             var result = new StringBuilder();
             if (HDR)
                 result.Append("[HDR]");
-            result.Append(name);
+            result.Append(referenceName);
             result.Append("(\"");
-            result.Append(description);
+            result.Append(displayName);
             result.Append("\", Color) = (");
             result.Append(value.r);
             result.Append(",");
@@ -56,14 +56,14 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "float4 " + name + ";";
+            return "float4 " + referenceName + ";";
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty
             {
-                m_Name = name,
+                m_Name = referenceName,
                 m_PropType = PropertyType.Color,
                 m_Color = value
             };

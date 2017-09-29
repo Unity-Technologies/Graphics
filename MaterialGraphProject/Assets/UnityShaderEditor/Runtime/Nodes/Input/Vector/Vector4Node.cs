@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
 
             properties.AddShaderProperty(new Vector4ShaderProperty()
             {
-                name = GetVariableNameForNode(),
+                overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = value
             });
