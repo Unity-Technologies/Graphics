@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
+            public static GUIContent perPixelDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Per Pixel displacement will take into account the tiling scale - Only work with uniform positive scale");            
 
             // Vertex displacement
             public static string vertexDisplacementText = "Vertex displacement";
@@ -90,6 +91,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kPpdMaxSamples = "_PPDMaxSamples";
         protected MaterialProperty ppdLodThreshold = null;
         protected const string kPpdLodThreshold = "_PPDLodThreshold";
+        protected MaterialProperty perPixelDisplacementObjectScale = null;
+        protected const string kPerPixelDisplacementObjectScale = "_PerPixelDisplacementObjectScale";
 
         // Vertex displacement
         protected MaterialProperty enableVertexDisplacement = null;
@@ -144,6 +147,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
+            perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);            
 
             // vertex displacement
             enableVertexDisplacement = FindProperty(kEnableVertexDisplacement, props);
@@ -209,7 +213,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
                 ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
                 m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
+                //m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.perPixelDisplacementObjectScaleText);
+                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                
                 EditorGUI.indentLevel--;
             }
 
@@ -321,14 +326,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
 
+            bool perPixelDisplacementObjectScale = material.GetFloat(kPerPixelDisplacementObjectScale) > 0.0;
+            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT_OBJECT_SCALE", perPixelDisplacementObjectScale && enablePerPixelDisplacement);
+
             bool enableVertexDisplacement = material.GetFloat(kEnableVertexDisplacement) > 0.0f;
             SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
 
             bool vertexDisplacementObjectScaleEnable = material.GetFloat(kVertexDisplacementObjectScale) > 0.0;
-            SetKeyword(material, "_DISPLACEMENT_OBJECT_SCALE", vertexDisplacementObjectScaleEnable && enableVertexDisplacement);
+            SetKeyword(material, "_VERTEX_DISPLACEMENT_OBJECT_SCALE", vertexDisplacementObjectScaleEnable && enableVertexDisplacement);
 
             bool vertexDisplacementTilingScaleEnable = material.GetFloat(kVertexDisplacementTilingScale) > 0.0;
-            SetKeyword(material, "_DISPLACEMENT_TILING_SCALE", vertexDisplacementTilingScaleEnable && enableVertexDisplacement);
+            SetKeyword(material, "_VERTEX_DISPLACEMENT_TILING_SCALE", vertexDisplacementTilingScaleEnable && enableVertexDisplacement);
 
             bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
             SetKeyword(material, "_VERTEX_WIND", windEnabled);
