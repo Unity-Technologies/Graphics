@@ -279,6 +279,18 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float2 minUvSize = GetMinUvSize(layerTexCoord);
         float lod = ComputeTextureLOD(minUvSize);
 
+        // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
+        // Extract scaling from world transform
+#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+        // To handle object scaling with PPD we need to multiply the view vector by the inverse scale. 
+        // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
+        float3 objectScale;
+        float4x4 worldTransform = GetObjectToWorldMatrix();
+        objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+        objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+        objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+#endif
+
         PerPixelHeightDisplacementParam ppdParam;
 
         float height; // final height processed
@@ -336,8 +348,16 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             float3x3 worldToTangent = input.worldToTangent;
 
+#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+            //V *= objectScale;
+#endif
+
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+
+#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+            viewDirTS *= 1.0 / objectScale;
+#endif
 
             NdotV = viewDirTS.z;
 
