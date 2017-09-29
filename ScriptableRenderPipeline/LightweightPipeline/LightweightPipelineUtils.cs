@@ -19,9 +19,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Stereo = (1 << 0),
         Msaa = (1 << 1),
         PostProcess = (1 << 2),
-        DefaultViewport = (1 << 3),
-        IntermediateTexture = (1 << 4),
-        IntermediateTextureArray = (1 << 5),
+        RequireDepth = (1 << 3),
+        DefaultViewport = (1 << 4),
+        IntermediateTexture = (1 << 5),
+        IntermediateTextureArray = (1 << 6),
     }
 
     public static class LightweightUtils

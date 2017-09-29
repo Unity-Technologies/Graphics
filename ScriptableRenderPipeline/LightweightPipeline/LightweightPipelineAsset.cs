@@ -39,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField] private int m_MaxPixelLights = 1;
         [SerializeField] private bool m_SupportsVertexLight = true;
+        [SerializeField] private bool m_SupportSoftParticles = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -97,13 +98,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int MaxSupportedPixelLights
         {
             get { return m_MaxPixelLights; }
-            private set { m_MaxPixelLights = value; }
         }
 
         public bool SupportsVertexLight
         {
             get { return m_SupportsVertexLight; }
-            private set { m_SupportsVertexLight = value; }
+        }
+
+        public bool SupportsSoftParticles
+        {
+            get { return m_SupportSoftParticles; }
         }
 
         public int MSAASampleCount
