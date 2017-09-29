@@ -13,6 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MaxPixelLights: 5
   m_SupportsVertexLight: 1
+  m_SupportSoftParticles: 1
   m_MSAA: 4
   m_RenderScale: 1
   m_ShadowType: 1
