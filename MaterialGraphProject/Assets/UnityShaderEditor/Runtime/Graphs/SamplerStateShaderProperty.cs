@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetPropertyDeclarationString()
         {
-            string ss = name + "_"
+            string ss = referenceName + "_"
                         + Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter) + "_"
                         + Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap) + "_sampler;";
 

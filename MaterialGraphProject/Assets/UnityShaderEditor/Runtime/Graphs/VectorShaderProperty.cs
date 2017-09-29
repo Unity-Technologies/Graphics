@@ -9,9 +9,9 @@ namespace UnityEngine.MaterialGraph
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
-            result.Append(name);
+            result.Append(referenceName);
             result.Append("(\"");
-            result.Append(description);
+            result.Append(displayName);
             result.Append("\", Vector) = (");
             result.Append(value.x);
             result.Append(",");
@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "float4 " + name + ";";
+            return "float4 " + referenceName + ";";
         }
     }
 }

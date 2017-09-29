@@ -23,9 +23,9 @@ namespace UnityEngine.MaterialGraph
            //     result.Append("[Toggle]");
           //  else if (m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
           //      result.Append("[PowerSlider(" + m_rangeValues.z + ")]");
-            result.Append(name);
+            result.Append(referenceName);
             result.Append("(\"");
-            result.Append(description);
+            result.Append(displayName);
 
             //if (m_FloatType == FloatPropertyChunk.FloatType.Float || m_FloatType == FloatPropertyChunk.FloatType.Toggle)
             //{
@@ -43,14 +43,14 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "float " + name + ";";
+            return "float " + referenceName + ";";
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty()
             {
-                m_Name = name,
+                m_Name = referenceName,
                 m_PropType = PropertyType.Float,
                 m_Float = value
             };

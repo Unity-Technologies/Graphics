@@ -84,7 +84,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0} {1} = {2};"
                     , precision
                     , GetVariableNameForSlot(OutputSlotId)
-                    , property.name);
+                    , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector2ShaderProperty)
@@ -92,7 +92,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0}2 {1} = {2};"
                     , precision
                     , GetVariableNameForSlot(OutputSlotId)
-                    , property.name);
+                    , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector3ShaderProperty)
@@ -100,7 +100,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0}3 {1} = {2};"
                     , precision
                     , GetVariableNameForSlot(OutputSlotId)
-                    , property.name);
+                    , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector4ShaderProperty)
@@ -108,7 +108,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0}4 {1} = {2};"
                     , precision
                     , GetVariableNameForSlot(OutputSlotId)
-                    , property.name);
+                    , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is ColorShaderProperty)
@@ -116,7 +116,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0}4 {1} = {2};"
                     , precision
                     , GetVariableNameForSlot(OutputSlotId)
-                    , property.name);
+                    , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is TextureShaderProperty)
@@ -132,7 +132,7 @@ namespace UnityEngine.MaterialGraph
                 var result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
-                        , property.name
+                        , property.referenceName
                         , uvName);
                 visitor.AddShaderChunk(result, true);
                 visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(ROutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
@@ -191,7 +191,7 @@ namespace UnityEngine.MaterialGraph
 
             var graph = owner as AbstractMaterialGraph;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            return property.name;
+            return property.referenceName;
         }
 
         protected override bool CalculateNodeHasError()

@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
         {
             return new PreviewProperty()
             {
-                m_Name = name,
+                m_Name = referenceName,
                 m_PropType = PropertyType.Vector3,
                 m_Vector4 = value
             };

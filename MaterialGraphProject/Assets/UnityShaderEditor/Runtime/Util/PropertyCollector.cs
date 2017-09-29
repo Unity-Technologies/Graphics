@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
 
         public void AddShaderProperty(IShaderProperty chunk)
         {
-            if (m_Properties.Any(x => x.name == chunk.name))
+            if (m_Properties.Any(x => x.referenceName == chunk.referenceName))
                 return;
             m_Properties.Add(chunk);
         }
@@ -52,11 +52,11 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var prop in m_Properties.OfType<TextureShaderProperty>())
             {
-                if (prop.name != null)
+                if (prop.referenceName != null)
                 {
                     var textureInfo = new TextureInfo
                     {
-                        name = prop.name,
+                        name = prop.referenceName,
                         textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
                         modifiable = prop.modifiable
                     };

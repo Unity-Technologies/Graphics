@@ -109,6 +109,11 @@ SubShader
 
             ${SurfaceOutputRemap}
 
+#if defined(UNITY_COLORSPACE_GAMMA) 
+           	Albedo = Albedo * Albedo;
+           	Emission = Emission * Emission;
+#endif
+
 			return FragmentLightingPBR(
 				IN.lwCustom,
 				surfaceInput.worldSpacePosition,

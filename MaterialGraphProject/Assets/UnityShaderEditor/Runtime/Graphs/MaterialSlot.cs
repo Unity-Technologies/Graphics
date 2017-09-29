@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -228,7 +227,7 @@ namespace UnityEngine.MaterialGraph
             if (concreteValueType == ConcreteSlotValueType.Texture2D)
             {
                 var prop = new TextureShaderProperty();
-                prop.name = DefaultTextureName;
+                prop.overrideReferenceName = DefaultTextureName;
                 prop.modifiable = false;
                 prop.generatePropertyBlock = true;
                 properties.AddShaderProperty(prop);
@@ -264,7 +263,7 @@ namespace UnityEngine.MaterialGraph
                     throw new ArgumentOutOfRangeException();
             }
 
-            property.name = matOwner.GetVariableNameForSlot(id);
+            property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             property.generatePropertyBlock = false;
 
             properties.AddShaderProperty(property);

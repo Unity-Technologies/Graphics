@@ -1,14 +1,12 @@
 ﻿﻿using System;
 using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.Graphing.Util;
+ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
  using UnityEngine.Experimental.UIElements.StyleEnums;
  using UnityEngine.Experimental.UIElements.StyleSheets;
  using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
@@ -130,8 +128,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             EditorGUI.BeginChangeCheck();
             foreach (var property in m_Presenter.graph.properties.ToArray())
             {
-                property.name = EditorGUILayout.DelayedTextField("Name", property.name);
-                property.description = EditorGUILayout.DelayedTextField("Description", property.description);
+                property.displayName = EditorGUILayout.DelayedTextField("Display Name", property.displayName);
 
                 if (property is FloatShaderProperty)
                 {
@@ -162,6 +159,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 {
                     var fProp = property as TextureShaderProperty;
                     fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
+                    fProp.modifiable = EditorGUILayout.Toggle("Modifiable", fProp.modifiable);
                 }
 
                 if (GUILayout.Button("Remove"))

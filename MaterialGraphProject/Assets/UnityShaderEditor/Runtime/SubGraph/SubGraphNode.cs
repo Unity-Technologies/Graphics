@@ -173,7 +173,7 @@ namespace UnityEngine.MaterialGraph
                 }
 
                 var id = prop.guid.GetHashCode();
-                AddSlot(new MaterialSlot(id, prop.name, prop.name, SlotType.Input, slotType, prop.defaultValue));
+                AddSlot(new MaterialSlot(id, prop.referenceName, prop.referenceName, SlotType.Input, slotType, prop.defaultValue));
                 validNames.Add(id);
             }
 
@@ -221,16 +221,11 @@ namespace UnityEngine.MaterialGraph
             // First we assign the input variables to the subgraph
             // we do this by renaming the properties to be the names of where the variables come from
             // weird, but works.
-            var sSubGraph = SerializationHelper.Serialize<SubGraph>(subGraphAsset.subGraph);
+            var sSubGraph = SerializationHelper.Serialize(subGraphAsset.subGraph);
             var subGraph = SerializationHelper.Deserialize<SubGraph>(sSubGraph, null);
 
             var subGraphInputs = subGraph.properties;
 
-
-            //todo:
-            // copy whole subgraph
-            // rename properties to match what we want (external scope)
-            // then generate graph
             var propertyGen = new PropertyCollector();
             subGraph.CollectShaderProperties(propertyGen, GenerationMode.ForReals);
 
@@ -250,16 +245,16 @@ namespace UnityEngine.MaterialGraph
                     {
                         var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
                         if (slot != null)
-                            prop.name = fromNode.GetSlotValue(slot.id, generationMode);
+                            prop.overrideReferenceName = fromNode.GetSlotValue(slot.id, generationMode);
                     }
                 }
                 else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
                 {
-                    prop.name = MaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName = MaterialSlot.DefaultTextureName;
                 }
                 else
                 {
-                    var varName = prop.name;
+                    var varName = prop.referenceName;
                     outputString.AddShaderChunk(
                         ConvertConcreteSlotValueTypeToString(precision, inSlot.concreteValueType)
                         + " "
