@@ -50,14 +50,6 @@ Shader "HDRenderPipeline/Lit"
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
-        // Wind
-        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
-        _InitialBend("Initial Bend", float) = 1.0
-        _Stiffness("Stiffness", float) = 1.0
-        _Drag("Drag", float) = 1.0
-        _ShiverDrag("Shiver Drag", float) = 0.2
-        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
-
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         // Following options are for the GUI inspector and different from the input parameters above
@@ -108,6 +100,19 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
+        // Displacement map
+        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
+        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
+        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
+
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -130,6 +135,10 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT
+    #pragma shader_feature _DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
@@ -147,7 +156,6 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
-    #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
@@ -170,6 +178,8 @@ Shader "HDRenderPipeline/Lit"
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
+    // This shader support vertex modification
+    #define HAVE_VERTEX_MODIFICATION
 
     //-------------------------------------------------------------------------------------
     // Include

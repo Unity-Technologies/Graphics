@@ -364,7 +364,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    #ifdef _TESSELLATION_TILING_SCALE
+    #ifdef _DISPLACEMENT_TILING_SCALE
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
     // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
     float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
@@ -731,10 +731,10 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
-void ApplyTessellationTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
+void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-#ifdef _TESSELLATION_TILING_SCALE
+#ifdef _DISPLACEMENT_TILING_SCALE
     float tileObjectScale = 1.0;
     #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     // Extract scaling from world transform
@@ -1196,7 +1196,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
-    ApplyTessellationTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+    ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     float4 resultBlendMasks = inputBlendMasks;
@@ -1402,6 +1402,4 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #endif // #ifndef LAYERED_LIT_SHADER
 
-#ifdef TESSELLATION_ON
 #include "LitTessellation.hlsl" // Must be after GetLayerTexCoord() declaration
-#endif
