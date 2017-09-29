@@ -370,10 +370,12 @@ float SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadO
 	float2 fetchesUV[9];
 
 	SampleShadow_ComputeSamples_Tent_5x5(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	for (int i = 0; i < 9; i++)
+
+	for( int i = 0; i < 9; i++ )
 	{
 		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
 	}
+
 	return shadow;
 }
 
