@@ -1272,7 +1272,12 @@ float3 ComputeMainNormalInfluence(float influenceMask, FragInputs input, float3 
     float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights) * influenceMask;
     // We will add smoothly the contribution of the normal map by lerping between vertex normal ( (0,0,1) in tangent space) and the actual normal from the main layer depending on the influence factor.
     // Note: that we don't take details map into account here.
-    float3 mainNormalTS = lerp(float3(0.0, 0.0, 1.0), normalTS0, influenceFactor);
+    #ifdef SURFACE_GRADIENT
+    float3 neutralNormalTS = float3(0.0, 0.0, 0.0);
+    #else
+    float3 neutralNormalTS = float3(0.0, 0.0, 1.0);
+    #endif
+    float3 mainNormalTS = lerp(neutralNormalTS, normalTS0, influenceFactor);
 
     // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
     #ifdef SURFACE_GRADIENT
