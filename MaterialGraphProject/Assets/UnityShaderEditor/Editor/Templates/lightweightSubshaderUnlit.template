@@ -49,6 +49,8 @@ SubShader
 
         fixed4 frag (GraphVertexOutput IN) : SV_Target
         {
+        	${LocalPixelShader}
+        	
             SurfaceInputs surfaceInput;
             ${SurfaceInputs}
 

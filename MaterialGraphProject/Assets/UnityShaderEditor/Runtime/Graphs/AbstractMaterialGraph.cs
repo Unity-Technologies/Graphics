@@ -140,7 +140,6 @@ namespace UnityEngine.MaterialGraph
                 requiresMeshUVs = meshUV
             };
 
-            reqs = reqs.Union(nodeForRequirements.GetNodeSpecificRequirements());
             ListPool<INode>.Release(activeNodeList);
             return reqs;
         }
@@ -175,8 +174,8 @@ namespace UnityEngine.MaterialGraph
         protected string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
         {
             var vertexShader = new ShaderGenerator();
-            var pixelShader = new ShaderGenerator();
-            var surfaceDescription = new ShaderGenerator();
+            var sufraceDescriptionFunction = new ShaderGenerator();
+            var surfaceDescriptionStruct = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
             var surfaceInputs = new ShaderGenerator();
 
@@ -245,78 +244,78 @@ struct GraphVertexInput
             vertexShader.Deindent();
             vertexShader.AddShaderChunk("}", false);
 
-            surfaceDescription.AddShaderChunk("struct SurfaceDescription{", false);
-            surfaceDescription.Indent();
+            surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
+            surfaceDescriptionStruct.Indent();
             if (node is MasterNode)
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
-                    surfaceDescription.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
+                    surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
 
             }
             else
             {
                 foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescription.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
+                    surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
 
             }
-            surfaceDescription.Deindent();
-            surfaceDescription.AddShaderChunk("};", false);
+            surfaceDescriptionStruct.Deindent();
+            surfaceDescriptionStruct.AddShaderChunk("};", false);
 
-            pixelShader.AddShaderChunk("SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {", false);
-            pixelShader.Indent();
+            sufraceDescriptionFunction.AddShaderChunk("SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {", false);
+            sufraceDescriptionFunction.Indent();
 
             if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceNormal), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceNormal), false);
             if ((requirements.requiresNormal & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceNormal), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceNormal), false);
             if ((requirements.requiresNormal & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceNormal), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceNormal), false);
             if ((requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceNormal), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceNormal), false);
 
             if ((requirements.requiresTangent & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceTangent), false);
             if ((requirements.requiresTangent & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceTangent), false);
             if ((requirements.requiresTangent & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceTangent), false);
             if ((requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceTangent), false);
 
             if ((requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceBiTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceBiTangent), false);
             if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceBiTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceBiTangent), false);
             if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceBiTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceBiTangent), false);
             if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceBiTangent), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceBiTangent), false);
 
             if ((requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceViewDirection), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpaceViewDirection), false);
             if ((requirements.requiresViewDir & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceViewDirection), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpaceViewDirection), false);
             if ((requirements.requiresViewDir & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceViewDirection), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpaceViewDirection), false);
             if ((requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceViewDirection), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpaceViewDirection), false);
 
             if ((requirements.requiresPosition & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpacePosition), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ObjectSpacePosition), false);
             if ((requirements.requiresPosition & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpacePosition), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.ViewSpacePosition), false);
             if ((requirements.requiresPosition & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpacePosition), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.WorldSpacePosition), false);
             if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpacePosition), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", ShaderGeneratorNames.TangentSpacePosition), false);
 
             if (requirements.requiresScreenPosition)
-                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
             if (requirements.requiresVertexColor)
-                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                pixelShader.AddShaderChunk(string.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
+                sufraceDescriptionFunction.AddShaderChunk(string.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
 
             var shaderProperties = new PropertyCollector();
             CollectShaderProperties(shaderProperties, mode);
@@ -326,12 +325,12 @@ struct GraphVertexInput
                 if (activeNode is IGeneratesFunction)
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, mode);
                 if (activeNode is IGeneratesBodyCode)
-                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(pixelShader, mode);
+                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(sufraceDescriptionFunction, mode);
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);
             }
 
-            pixelShader.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
+            sufraceDescriptionFunction.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
             if (node is MasterNode)
             {
                 foreach (var input in node.GetInputSlots<MaterialSlot>())
@@ -343,19 +342,19 @@ struct GraphVertexInput
                         if (fromNode == null)
                             continue;
 
-                        pixelShader.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                        sufraceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
                     }
                 }
             }
             else
             {
                 foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    pixelShader.AddShaderChunk(string.Format("surface.{0} = {0};", node.GetVariableNameForSlot(slot.id)), true);
+                    sufraceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {0};", node.GetVariableNameForSlot(slot.id)), true);
             }
 
-            pixelShader.AddShaderChunk("return surface;", false);
-            pixelShader.Deindent();
-            pixelShader.AddShaderChunk("}", false);
+            sufraceDescriptionFunction.AddShaderChunk("return surface;", false);
+            sufraceDescriptionFunction.Deindent();
+            sufraceDescriptionFunction.AddShaderChunk("}", false);
             ListPool<INode>.Release(activeNodeList);
 
             var finalShader = new ShaderGenerator();
@@ -375,10 +374,10 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
             finalShader.AddShaderChunk(graphVertexInput, false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
-            finalShader.AddShaderChunk(surfaceDescription.GetShaderString(2), false);
+            finalShader.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             finalShader.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             finalShader.AddShaderChunk(vertexShader.GetShaderString(2), false);
-            finalShader.AddShaderChunk(pixelShader.GetShaderString(2), false);
+            finalShader.AddShaderChunk(sufraceDescriptionFunction.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
             if (node is MasterNode)
