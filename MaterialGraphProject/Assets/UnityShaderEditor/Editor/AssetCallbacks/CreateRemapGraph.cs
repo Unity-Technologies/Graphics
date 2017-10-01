@@ -6,18 +6,18 @@ namespace UnityEditor.MaterialGraph
 {
     public class CreateRemapGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Remap Graph", false, 209)]
+        [MenuItem("Assets/Create/Shader Remap Graph", false, 209)]
         public static void CreateMaterialRemapGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateRemapGraph>(),
-                "New Remap-Graph.remapGraph", null, null);
+                "New Remap-Graph.ShaderRemapGraph", null, null);
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            /* var graph = CreateInstance<MaterialRemapAsset>();
-             graph.name = Path.GetFileName(pathName);
-             AssetDatabase.CreateAsset(graph, pathName);*/
+            var graph = new MasterRemapGraph();
+            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            AssetDatabase.Refresh();
         }
     }
 }

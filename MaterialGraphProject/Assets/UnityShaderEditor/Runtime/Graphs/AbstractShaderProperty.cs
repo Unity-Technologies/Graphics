@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
             }
             set { m_Name = value; }
         }
-        
+
         public string referenceName
         {
             get
@@ -73,6 +73,12 @@ namespace UnityEngine.MaterialGraph
         public abstract Vector4 defaultValue { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString();
+
+        public virtual string GetInlinePropertyDeclarationString()
+        {
+            return GetPropertyDeclarationString();
+        }
+
         public abstract PreviewProperty GetPreviewMaterialProperty();
 
         public virtual void OnBeforeSerialize()

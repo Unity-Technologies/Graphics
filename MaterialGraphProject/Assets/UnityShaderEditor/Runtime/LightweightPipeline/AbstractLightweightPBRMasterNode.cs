@@ -24,11 +24,10 @@ namespace UnityEngine.MaterialGraph
         public const int SmoothnessSlotId = 4;
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
-        public const int VertexOffsetId = 7;
 
-        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap)
+        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap, MasterRemapGraph remapper)
         {
-            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap);
+            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap, remapper);
 
             defines.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
             defines.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);

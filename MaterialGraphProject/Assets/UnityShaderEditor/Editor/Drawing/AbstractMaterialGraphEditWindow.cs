@@ -375,7 +375,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
-
         private void UpdateShaderGraphOnDisk(string path)
         {
             var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
