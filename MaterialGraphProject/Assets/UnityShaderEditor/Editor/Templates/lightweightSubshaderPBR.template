@@ -93,6 +93,8 @@ SubShader
 	
 		fixed4 frag (GraphVertexOutput IN) : SV_Target
         {
+        	${LocalPixelShader}
+
             SurfaceInputs surfaceInput = (SurfaceInputs)0;
             ${SurfaceInputs}
 
@@ -116,11 +118,11 @@ SubShader
 
 			return FragmentLightingPBR(
 				IN.lwCustom,
-				surfaceInput.worldSpacePosition,
-				surfaceInput.worldSpaceNormal,
-				surfaceInput.worldSpaceTangent,
-				surfaceInput.worldSpaceBiTangent,
-				surfaceInput.worldSpaceViewDirection,
+				worldSpacePosition,
+				worldSpaceNormal,
+				worldSpaceTangent,
+				worldSpaceBiTangent,
+				worldSpaceViewDirection,
 				IN.fogCoord, 
 				
 				Albedo,

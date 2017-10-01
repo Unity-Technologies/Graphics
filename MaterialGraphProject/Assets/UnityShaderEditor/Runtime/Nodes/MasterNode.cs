@@ -39,5 +39,10 @@ namespace UnityEngine.MaterialGraph
         }
 
         public abstract string GetSubShader(ShaderGraphRequirements shaderGraphRequirements);
+
+        public virtual ShaderGraphRequirements GetNodeSpecificRequirements()
+        {
+            return ShaderGraphRequirements.none;
+        }
     }
 }
