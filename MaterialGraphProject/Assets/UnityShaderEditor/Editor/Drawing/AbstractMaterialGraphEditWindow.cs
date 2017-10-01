@@ -57,6 +57,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+    public class MasterReampGraphEditWindow : AbstractMaterialGraphEditWindow<MasterRemapGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return inMemoryAsset;
+        }
+    }
+
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         public static bool allowAlwaysRepaint = true;
@@ -191,7 +199,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                     UpdateShaderGraphOnDisk(path);
 
                 if (typeof(TGraphType) == typeof(SubGraph))
-                    UpdateShaderSubGraphOnDisk(path);
+                    UpdateAbstractSubgraphOnDisk<SubGraph>(path);
+
+                if (typeof(TGraphType) == typeof(MasterRemapGraph))
+                    UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
             }
         }
 
@@ -354,15 +365,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphPresenter.RemoveElements(toDelete, new List<GraphEdgePresenter>());
         }
 
-        private void UpdateShaderSubGraphOnDisk(string path)
+        private void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
         {
-            var graph = inMemoryAsset as SubGraph;
+            var graph = inMemoryAsset as T;
             if (graph == null)
                 return;
 
             File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             AssetDatabase.ImportAsset(path);
         }
+
 
         private void UpdateShaderGraphOnDisk(string path)
         {

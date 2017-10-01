@@ -4,19 +4,16 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    /* public class MaterialRemapAsset : AbstractMaterialGraphAsset
+     public class MasterRemapGraphAsset : ScriptableObject
      {
          [SerializeField]
-         private MasterRemapGraph m_MasterRemapGraph = new MasterRemapGraph();
+         private MasterRemapGraph m_RemapGraph = new MasterRemapGraph();
 
-         public override IGraph graph
+         public MasterRemapGraph remapGraph
          {
-             get { return m_MasterRemapGraph; }
+             get { return m_RemapGraph; }
+             set { m_RemapGraph = value; }
          }
+     }
 
-         public MasterRemapGraph masterRemapGraph
-         {
-             get { return m_MasterRemapGraph; }
-         }
-     }*/
 }
