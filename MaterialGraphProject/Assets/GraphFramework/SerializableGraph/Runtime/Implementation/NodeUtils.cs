@@ -87,13 +87,6 @@ namespace UnityEngine.Graphing
                     if (nodeList.Contains(fromNode))
                         continue;
 
-                    var remapper = fromNode as INodeGroupRemapper;
-                    if (remapper != null)
-                    {
-                        remapper.DepthFirstCollectNodesFromNodeSlotList(nodeList, includeSelf);
-                        continue;
-                    }
-
                     foreach (var slot in fromNode.GetInputSlots<ISlot>())
                     {
                         if (slotIds != null && !slotIds.Contains(slot.id))

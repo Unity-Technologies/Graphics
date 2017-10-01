@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
                 collector.AddShaderProperty(prop);
         }
 
-        public void AddShaderProperty(IShaderProperty property)
+        public virtual void AddShaderProperty(IShaderProperty property)
         {
             if (property == null)
                 return;
