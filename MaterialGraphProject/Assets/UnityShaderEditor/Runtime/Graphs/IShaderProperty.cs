@@ -16,6 +16,7 @@ namespace UnityEngine.MaterialGraph
 
         string GetPropertyBlockString();
         string GetPropertyDeclarationString();
+        string GetInlinePropertyDeclarationString();
         PreviewProperty GetPreviewMaterialProperty();
     }
 }

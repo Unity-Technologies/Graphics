@@ -4,7 +4,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
 
-[ScriptedImporter(1, "ShaderReampGraph")]
+[ScriptedImporter(1, "ShaderRemapGraph")]
 public class MasterRemapGraphImporter : ScriptedImporter
 {
     public override void OnImportAsset(AssetImportContext ctx)

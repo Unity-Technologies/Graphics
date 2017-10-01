@@ -171,8 +171,11 @@ namespace UnityEngine.MaterialGraph
             return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode);
         }
 
-        protected string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
+        public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
         {
+            if (node == null)
+                throw new ArgumentNullException(nameof(node));
+
             var vertexShader = new ShaderGenerator();
             var sufraceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
@@ -246,7 +249,7 @@ struct GraphVertexInput
 
             surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
-            if (node is MasterNode)
+            if (node is IMasterNode)
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
                     surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
@@ -331,7 +334,7 @@ struct GraphVertexInput
             }
 
             sufraceDescriptionFunction.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
-            if (node is MasterNode)
+            if (node is IMasterNode)
             {
                 foreach (var input in node.GetInputSlots<MaterialSlot>())
                 {
@@ -380,10 +383,12 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(sufraceDescriptionFunction.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
-            if (node is MasterNode)
+            var masterNode = node as IMasterNode;
+            if (masterNode != null)
             {
-                var master = (MasterNode) node;
-                finalShader.AddShaderChunk(master.GetSubShader(requirements), false);
+                var subShaders = masterNode.GetSubshader(requirements, null);
+                foreach (var ss in subShaders)
+                    finalShader.AddShaderChunk(ss, false);
             }
             else
             {

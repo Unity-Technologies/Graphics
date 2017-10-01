@@ -11,22 +11,72 @@ namespace UnityEngine.MaterialGraph
         protected abstract IEnumerable<int> masterVertexInputs { get; }
         protected abstract string GetTemplateName();
 
-        protected virtual void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap)
+        protected virtual void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap, MasterRemapGraph remapper)
         {
+            // Step 1: configure slot defaults
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
-                var edge = owner.GetEdges(slot.slotReference).FirstOrDefault();
-                if (edge == null)
-                    continue;
-
-                surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
-                                                  + " = surf."
-                                                  + slot.shaderOutputName + ";", true);
+                surfaceOutputRemap.AddShaderChunk( slot.shaderOutputName
+                                                  + " = "
+                                                  + slot.GetDefaultValue(GenerationMode.ForReals)
+                                                  + ";", true);
 
             }
+
+            // Step 2: no remapper, working with raw master node..
+            if (remapper == null)
+            {
+                foreach (var slot in GetInputSlots<MaterialSlot>())
+                {
+                    var edge = owner.GetEdges(slot.slotReference).FirstOrDefault();
+                    if (edge == null)
+                        continue;
+
+                    surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
+                                                      + " = surf."
+                                                      + slot.shaderOutputName + ";", true);
+                }
+            }
+            // Step 3: remapper present... complex workflow time
+            else
+            {
+                surfaceOutputRemap.AddShaderChunk("{", false);
+                surfaceOutputRemap.Indent();
+
+                foreach (var prop in remapper.properties)
+                {
+                    surfaceOutputRemap.AddShaderChunk(prop.GetInlinePropertyDeclarationString(), true);
+                    surfaceOutputRemap.AddShaderChunk(string.Format("{0} = surf.{0};", prop.referenceName), true);
+                }
+
+                List<INode> nodes = new List<INode>();
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
+                foreach (var activeNode in nodes.OfType<AbstractMaterialNode>())
+                {
+                    if (activeNode is IGeneratesBodyCode)
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap, GenerationMode.ForReals);
+                }
+
+                foreach (var input in GetInputSlots<MaterialSlot>())
+                {
+                    foreach (var edge in owner.GetEdges(input.slotReference))
+                    {
+                        var outputRef = edge.outputSlot;
+                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                        if (fromNode == null)
+                            continue;
+
+                        surfaceOutputRemap.AddShaderChunk(string.Format("{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                    }
+                }
+
+                surfaceOutputRemap.Deindent();
+                surfaceOutputRemap.AddShaderChunk("}", false);
+            }
+
         }
 
-        public override string GetSubShader(ShaderGraphRequirements externalGraphRequiements)
+        public override IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper)
         {
             var tagsVisitor = new ShaderGenerator();
             var blendingVisitor = new ShaderGenerator();
@@ -51,17 +101,17 @@ namespace UnityEngine.MaterialGraph
                 vertexShader,
                 localPixelShader,
                 surfaceInputs,
-                externalGraphRequiements,
+                graphRequirements,
                 GetNodeSpecificRequirements());
 
             ShaderGenerator defines = new ShaderGenerator();
             ShaderGenerator surfaceOutputRemap = new ShaderGenerator();
-            GetLightweightDefinesAndRemap(defines, surfaceOutputRemap);
+            GetLightweightDefinesAndRemap(defines, surfaceOutputRemap, remapper);
 
             var templateLocation = ShaderGenerator.GetTemplatePath(GetTemplateName());
 
             if (!File.Exists(templateLocation))
-                return string.Empty;
+                return new string[] {};
 
             var subShaderTemplate = File.ReadAllText(templateLocation);
             var resultShader = subShaderTemplate.Replace("${Defines}", defines.GetShaderString(3));
@@ -77,7 +127,7 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${LOD}", "" + m_MaterialOptions.lod);
-            return resultShader;
+            return new[] {resultShader};
         }
 
         protected abstract int GetInterpolatorStartIndex();

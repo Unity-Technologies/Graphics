@@ -20,7 +20,7 @@ namespace UnityEngine.MaterialGraph
             public MaterialSubGraphAsset subGraph;
         }
 
-        protected override AbstractSubGraph subGraph
+        protected override AbstractSubGraph referencedGraph
         {
             get
             {
@@ -78,7 +78,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator shaderBodyVisitor, GenerationMode generationMode)
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return;
 
             var outputString = new ShaderGenerator();
@@ -86,7 +86,6 @@ namespace UnityEngine.MaterialGraph
 
             // Step 1...
             // find out which output slots are actually used
-            //TODO: Be smarter about this and only output ones that are actually USED, not just connected
             //var validOutputSlots = NodeUtils.GetSlotsThatOutputToNodeRecurse(this, (graph as BaseMaterialGraph).masterNode);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {

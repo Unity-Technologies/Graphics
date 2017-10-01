@@ -5,9 +5,14 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    public interface IMasterNode
+    {
+        SurfaceMaterialOptions options { get; }
+        IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper);
+    }
+
     [Serializable]
-    [Title("Master/Master")]
-    public abstract class MasterNode : AbstractMaterialNode
+    public abstract class MasterNode : AbstractMaterialNode, IMasterNode
     {
         [SerializeField]
         protected SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
@@ -33,16 +38,22 @@ namespace UnityEngine.MaterialGraph
             get { return false; }
         }
 
-        public virtual bool has3DPreview()
+        public override PreviewMode previewMode
         {
-            return true;
+            get { return PreviewMode.Preview3D; }
         }
-
-        public abstract string GetSubShader(ShaderGraphRequirements shaderGraphRequirements);
 
         public virtual ShaderGraphRequirements GetNodeSpecificRequirements()
         {
             return ShaderGraphRequirements.none;
         }
+
+        public SurfaceMaterialOptions options
+        {
+            get { return m_MaterialOptions; }
+
+        }
+
+        public abstract IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper);
     }
 }

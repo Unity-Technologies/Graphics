@@ -19,18 +19,18 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireTime
     {
 
-        protected virtual AbstractSubGraph subGraph { get; }
+        protected virtual AbstractSubGraph referencedGraph { get; }
 
         public override bool hasPreview
         {
-            get { return subGraph != null; }
+            get { return referencedGraph != null; }
         }
 
         public override PreviewMode previewMode
         {
             get
             {
-                if (subGraph == null)
+                if (referencedGraph == null)
                     return PreviewMode.Preview2D;
 
                 return PreviewMode.Preview3D;
@@ -42,13 +42,13 @@ namespace UnityEngine.MaterialGraph
         public virtual void OnEnable()
         {
             var validNames = new List<int>();
-            if (subGraph == null)
+            if (referencedGraph == null)
             {
                 RemoveSlotsNameNotMatching(validNames);
                 return;
             }
 
-            var props = subGraph.properties;
+            var props = referencedGraph.properties;
             foreach (var prop in props)
             {
                 var propType = prop.propertyType;
@@ -109,36 +109,36 @@ namespace UnityEngine.MaterialGraph
         {
             base.CollectShaderProperties(visitor, generationMode);
 
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return;
 
-            subGraph.CollectShaderProperties(visitor, GenerationMode.ForReals);
+            referencedGraph.CollectShaderProperties(visitor, GenerationMode.ForReals);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return;
 
-            properties.AddRange(subGraph.GetPreviewProperties());
+            properties.AddRange(referencedGraph.GetPreviewProperties());
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return;
 
-            subGraph.GenerateNodeFunction(visitor, GenerationMode.ForReals);
+            referencedGraph.GenerateNodeFunction(visitor, GenerationMode.ForReals);
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            return referencedGraph.activeNodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
             {
                 mask |= node.RequiresNormal();
                 return mask;
@@ -147,26 +147,26 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel));
+            return referencedGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel));
         }
 
         public bool RequiresScreenPosition()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+            return referencedGraph.activeNodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
         }
 
         public NeededCoordinateSpace RequiresViewDirection()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            return referencedGraph.activeNodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
             {
                 mask |= node.RequiresViewDirection();
                 return mask;
@@ -176,10 +176,10 @@ namespace UnityEngine.MaterialGraph
 
         public NeededCoordinateSpace RequiresPosition()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            return referencedGraph.activeNodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
             {
                 mask |= node.RequiresPosition();
                 return mask;
@@ -188,10 +188,10 @@ namespace UnityEngine.MaterialGraph
 
         public NeededCoordinateSpace RequiresTangent()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            return referencedGraph.activeNodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
             {
                 mask |= node.RequiresTangent();
                 return mask;
@@ -200,18 +200,18 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresTime()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
+            return referencedGraph.activeNodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return NeededCoordinateSpace.None;
 
-            return subGraph.activeNodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
+            return referencedGraph.activeNodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
             {
                 mask |= node.RequiresBitangent();
                 return mask;
@@ -220,10 +220,10 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresVertexColor()
         {
-            if (subGraph == null)
+            if (referencedGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
+            return referencedGraph.activeNodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
         }
     }
 }
