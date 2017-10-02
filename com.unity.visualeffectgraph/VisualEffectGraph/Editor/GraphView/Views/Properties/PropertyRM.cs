@@ -307,9 +307,9 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    abstract class SimpleUIPropertyRM<T> : PropertyRM<T>
+    abstract class SimpleUIPropertyRM<T, U> : PropertyRM<T>
     {
-        public abstract IControl<T> CreateField();
+        public abstract IControl<U> CreateField();
 
         public SimpleUIPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
@@ -317,13 +317,13 @@ namespace UnityEditor.VFX.UI
 
             VisualElement fieldElement = m_Field as VisualElement;
             fieldElement.AddToClassList("fieldContainer");
-            fieldElement.RegisterCallback<ChangeEvent<T>>(OnValueChanged);
+            fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
             Add(fieldElement);
         }
 
-        public void OnValueChanged(ChangeEvent<T> e)
+        public void OnValueChanged(ChangeEvent<U> e)
         {
-            T newValue = m_Field.value;
+            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
             if (!newValue.Equals(m_Value))
             {
                 m_Value = newValue;
@@ -336,10 +336,10 @@ namespace UnityEditor.VFX.UI
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
         }
 
-        IControl<T> m_Field;
+        IControl<U> m_Field;
         public override void UpdateGUI()
         {
-            m_Field.value = m_Value;
+            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
         }
 
         public override bool showsEverything { get { return true; } }

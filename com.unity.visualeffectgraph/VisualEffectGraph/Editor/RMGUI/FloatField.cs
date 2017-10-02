@@ -14,6 +14,27 @@ namespace UnityEditor.VFX.UIElements
             m_Label = existingLabel;
 
             CreateControl();
+            SetupLabel();
+        }
+
+        void SetupLabel()
+        {
+            if (typeof(U) == typeof(double))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<double>((IControl<double> )m_Control));
+            }/*
+            else if (typeof(U) == typeof(float))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<float>(m_Control));
+            }*/
+            else if (typeof(U) == typeof(long))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<long>((IControl<long>)m_Control));
+            }/*
+            else if (typeof(U) == typeof(int))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<int>(m_Control));
+            }*/
         }
 
         void CreateControl()
@@ -39,6 +60,7 @@ namespace UnityEditor.VFX.UIElements
             style.flexDirection = FlexDirection.Row;
 
             CreateControl();
+            SetupLabel();
         }
 
         public void OnChange(EventCallback<ChangeEvent<U>> callback)
