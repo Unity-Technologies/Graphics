@@ -23,12 +23,14 @@ namespace UnityEditor.VFX.UI
 
 
         const float handleSize = 0.1f;
+        const float arcHandleSizeMultiplier = 1.25f;
 
         static VFXValueGizmo()
         {
             s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
 
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
+            s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
             s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
             s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
@@ -188,6 +190,105 @@ namespace UnityEditor.VFX.UI
                 }
                 EditorGUI.EndChangeCheck();
             }
+        }
+
+        static void OnDrawArcSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcSphere sphere = (ArcSphere)anchor.value;
+
+            Vector3 center = sphere.center;
+            float radius = sphere.radius;
+            float arc = sphere.arc * Mathf.Rad2Deg;
+            if (sphere.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            // Draw semi-circles at 90 degree angles
+            for (int i = 0; i < 4; i++)
+            {
+                float currentArc = (float)(i * 90);
+                if (currentArc <= arc)
+                    Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, currentArc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+            }
+
+            // Draw an extra semi-circle at the arc angle
+            if (sphere.arc < Mathf.PI * 2.0f)
+                Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, arc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+
+            // Draw 3rd cirlce around the arc
+            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
+
+            if (PositionGizmo(component, sphere.space, ref sphere.center))
+            {
+                anchor.value = sphere;
+            }
+
+            // Radius controls
+            foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.forward })
+            {
+                EditorGUI.BeginChangeCheck();
+                Vector3 sliderPos = center + dist * radius;
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    sphere.radius = (result - center).magnitude;
+
+                    if (float.IsNaN(sphere.radius))
+                    {
+                        sphere.radius = 0;
+                    }
+
+                    anchor.value = sphere;
+                }
+                EditorGUI.EndChangeCheck();
+            }
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    sphere.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = sphere;
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
+        private static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            Handles.DrawLine(Vector3.zero, position);
+
+            // draw a cylindrical "hammer head" to indicate the direction the handle will move
+            Vector3 worldPosition = Handles.matrix.MultiplyPoint3x4(position);
+            Vector3 normal = worldPosition - Handles.matrix.MultiplyPoint3x4(Vector3.zero);
+            Vector3 tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
+            rotation = Quaternion.LookRotation(tangent, normal);
+            Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
+            using (new Handles.DrawingScope(matrix))
+                Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
 
         static void OnDrawAABoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)

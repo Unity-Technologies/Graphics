@@ -51,6 +51,20 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct ArcSphere : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the sphere.")]
+        public Vector3 center;
+        [Tooltip("The radius of the sphere.")]
+        public float radius;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
+        public float arc;
+    }
+
+    [VFXType]
     struct OrientedBox : ISpaceable
     {
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
@@ -189,6 +203,18 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The vector.")]
         public Vector3 vector;
+
+        public Vector(float x, float y, float z)
+        {
+            vector = new Vector3(x, y, z);
+            space = CoordinateSpace.Local;
+        }
+
+        public Vector(Vector3 v)
+        {
+            vector = v;
+            space = CoordinateSpace.Local;
+        }
     }
 
     [VFXType]

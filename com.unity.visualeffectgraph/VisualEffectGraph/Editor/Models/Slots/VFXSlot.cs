@@ -201,6 +201,11 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException();
         }
 
+        public static VFXSlot Create(VFXPropertyWithValue property, Direction direction)
+        {
+            return Create(property.property, direction, property.value);
+        }
+
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {

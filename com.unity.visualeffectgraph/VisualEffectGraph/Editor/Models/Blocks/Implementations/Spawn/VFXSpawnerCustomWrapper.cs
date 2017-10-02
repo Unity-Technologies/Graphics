@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -13,14 +14,10 @@ namespace UnityEditor.VFX
         public void Init(Type customType)
         {
             m_customType = customType;
-            var inputPropertiesType = customType.GetRecursiveNestedType("InputProperties");
-
-            var slots = GenerateSlotFromField(inputPropertiesType, VFXSlot.Direction.kInput);
-            foreach (var slot in slots)
-            {
-                AddSlot(slot);
-            }
+            InitSlotsFromProperties(PropertiesFromType(customType.GetRecursiveNestedType("InputProperties")), VFXSlot.Direction.kInput);
         }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kInput); } }
 
         public override sealed string name { get { return m_customType == null ? "" : ((Type)m_customType).Name; } }
         public override sealed Type customBehavior { get { return m_customType; } }

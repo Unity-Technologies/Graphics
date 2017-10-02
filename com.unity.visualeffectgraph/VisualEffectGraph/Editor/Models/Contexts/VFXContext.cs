@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
 
         kInitAndUpdate = kInit | kUpdate,
         kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
+        kUpdateAndOutput = kUpdate | kOutput,
         kAll = kInit | kUpdate | kOutput | kSpawner,
     };
 

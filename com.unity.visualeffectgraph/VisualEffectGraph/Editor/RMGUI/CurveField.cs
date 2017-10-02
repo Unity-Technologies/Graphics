@@ -76,23 +76,36 @@ namespace UnityEditor.VFX.UIElements
             ValueToGUI();
         }
 
+        public bool m_Dirty;
+
         protected override void ValueToGUI()
         {
-            int previewWidth = (int)m_Curve.layout.width;
-            int previewHeight = (int)m_Curve.layout.height;
+            m_Dirty = true;
+        }
 
-            if (previewHeight > 0 && previewWidth > 0)
+        public override void DoRepaint()
+        {
+            if (m_Dirty)
             {
-                Rect range = new Rect(0, 0, 1, 1);
-                // Instantiate because AnimationCurvePreviewCache returns a temporary;
-                m_Curve.style.backgroundImage = Texture2D.Instantiate(AnimationCurvePreviewCache.GetPreview(previewWidth,
-                            previewHeight,
-                            m_Value,
-                            Color.green,
-                            Color.clear,
-                            Color.clear,
-                            range));
+                m_Dirty = false;
+                int previewWidth = (int)m_Curve.layout.width;
+                int previewHeight = (int)m_Curve.layout.height;
+
+                if (previewHeight > 0 && previewWidth > 0)
+                {
+                    Rect range = new Rect(0, 0, 1, 1);
+                    // Instantiate because AnimationCurvePreviewCache returns a temporary;
+                    m_Curve.style.backgroundImage = Texture2D.Instantiate(AnimationCurvePreviewCache.GetPreview(previewWidth,
+                                previewHeight,
+                                m_Value,
+                                Color.green,
+                                Color.clear,
+                                Color.clear,
+                                range));
+                }
             }
+
+            base.DoRepaint();
         }
     }
 }

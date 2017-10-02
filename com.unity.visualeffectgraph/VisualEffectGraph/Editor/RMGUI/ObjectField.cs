@@ -106,8 +106,6 @@ namespace UnityEditor.VFX.UIElements
 
             Object value = GetValue();
 
-            if (value != null) ;
-
             Selection.activeObject = value;
             EditorGUIUtility.PingObject(value);
         }
@@ -166,6 +164,7 @@ namespace UnityEditor.VFX.UIElements
             this.AddManipulator(new ObjectDropper());
 
             m_Reciever = Receiver.CreateInstance<Receiver>();
+            m_Reciever.hideFlags = HideFlags.HideAndDontSave;
             m_Reciever.m_ObjectField = this;
 
             style.flexDirection = FlexDirection.Row;
