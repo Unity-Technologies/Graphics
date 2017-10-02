@@ -284,11 +284,11 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
         // To handle object scaling with PPD we need to multiply the view vector by the inverse scale. 
         // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-        float3 objectScale;
-        float4x4 worldTransform = GetWorldToObjectMatrix();
-        objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-        objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-        objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+        float3 invObjectScale;
+        float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
+        invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+        invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+        invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
 #endif
 
         PerPixelHeightDisplacementParam ppdParam;
@@ -352,8 +352,9 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
 
 #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-            viewDirTS *= objectScale.xzy; // Switch from Y-up to Z-up
+            viewDirTS *= invObjectScale.xyz; // Switch from Y-up to Z-up
 #endif
+
             NdotV = viewDirTS.z;
 
             int    numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, saturate(viewDirTS.z));
