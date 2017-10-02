@@ -39,6 +39,20 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct ArcCircle : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the circle.")]
+        public Vector3 center;
+        [Tooltip("The radius of the circle.")]
+        public float radius;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used.")]
+        public float arc;
+    }
+
+    [VFXType]
     struct Sphere : ISpaceable
     {
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }

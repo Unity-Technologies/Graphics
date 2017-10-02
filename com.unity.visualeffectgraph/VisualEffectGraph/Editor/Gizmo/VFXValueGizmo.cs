@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
         {
             s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
 
+            s_DrawFunctions[typeof(ArcCircle)] = OnDrawArcCircleDataAnchorGizmo;
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
@@ -151,6 +152,81 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static void OnDrawArcCircleDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcCircle circle = (ArcCircle)anchor.value;
+
+            Vector3 center = circle.center;
+            float radius = circle.radius;
+            float arc = circle.arc * Mathf.Rad2Deg;
+            if (circle.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            // Draw circle around the arc
+            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
+
+            if (PositionGizmo(component, circle.space, ref circle.center))
+            {
+                anchor.value = circle;
+            }
+
+            // Radius controls
+            foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
+            {
+                EditorGUI.BeginChangeCheck();
+                Vector3 sliderPos = center + dist * radius;
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    circle.radius = (result - center).magnitude;
+
+                    if (float.IsNaN(circle.radius))
+                    {
+                        circle.radius = 0;
+                    }
+
+                    anchor.value = circle;
+                }
+                EditorGUI.EndChangeCheck();
+            }
+
+            Handles.DrawLine(Vector3.zero, Vector3.up * radius);
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    circle.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = circle;
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
         static void OnDrawSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Sphere sphere = (Sphere)anchor.value;
@@ -218,7 +294,7 @@ namespace UnityEditor.VFX.UI
             if (sphere.arc < Mathf.PI * 2.0f)
                 Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, arc)) * Vector3.right, Vector3.forward, 180.0f, radius);
 
-            // Draw 3rd cirlce around the arc
+            // Draw 3rd circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
             if (PositionGizmo(component, sphere.space, ref sphere.center))
