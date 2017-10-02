@@ -62,11 +62,13 @@ Shader "Hidden/VFX/ParticleQuads"
 							${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 							${VFXProcessBlocks}
 							
-							float2 offsets = (float2)0;
 							o.uv.x = float(id & 1);
 							o.uv.y = float((id & 2) >> 1);
-							position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
 							
+							float2 offsets = size.xy * (o.uv - 0.5f);
+							position += side * offsets.x;
+							position +=	up * offsets.y;						
+
 							o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
 
 #if VFX_NEEDS_COLOR_INTERPOLATOR

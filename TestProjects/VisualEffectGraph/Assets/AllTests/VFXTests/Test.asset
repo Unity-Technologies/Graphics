@@ -1196,6 +1196,25 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
+--- !u!114 &114178904536501266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16c6aeaef944094b9a1633041804207, type: 3}
+  m_Name: Orient
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114971225480136666}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
+  mode: 0
 --- !u!114 &114185343414935278
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1210,6 +1229,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114159891410750456}
   m_Children:
   - {fileID: 114247984387211228}
+  - {fileID: 114375318184737464}
   m_UIPosition: {x: -370.00253, y: 171.31404}
   m_UICollapsed: 0
   m_InputSlots:
@@ -2035,6 +2055,25 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114375318184737464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16c6aeaef944094b9a1633041804207, type: 3}
+  m_Name: Orient
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114185343414935278}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
+  mode: 0
 --- !u!114 &114377376848635892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4778,6 +4817,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114159891410750456}
   m_Children:
   - {fileID: 114623519806529784}
+  - {fileID: 114178904536501266}
   m_UIPosition: {x: 80.60685, y: 438.989}
   m_UICollapsed: 0
   m_InputSlots:
