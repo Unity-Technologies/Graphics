@@ -977,13 +977,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
-                // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
-                // If Deferred nothing needs copying anymore.
-                if (m_Asset.renderingSettings.useForwardRenderingOnly)
-                {
-                    CopyDepthBufferIfNeeded(cmd);
-                }
-
                 RenderSky(hdCamera, cmd);
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
