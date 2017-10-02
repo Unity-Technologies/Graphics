@@ -170,6 +170,24 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ProcessOperatorDiscretize()
+        {
+            var a = 1.5f;
+            var b = 0.2f;
+            var result = Mathf.Floor(a / b) * b;
+
+            var value_a = new VFXValue<float>(a);
+            var value_b = new VFXValue<float>(b);
+
+            var expression = VFXOperatorUtility.Discretize(value_a, value_b);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+
+            Assert.AreEqual(result, resultExpression.Get<float>(), 0.001f);
+        }
+
+        [Test]
         public void ProcessOperatorDistance()
         {
             var a = new Vector3(0.2f, 0.3f, 0.4f);

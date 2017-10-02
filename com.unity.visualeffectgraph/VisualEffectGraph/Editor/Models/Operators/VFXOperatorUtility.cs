@@ -178,6 +178,11 @@ namespace UnityEditor.VFX
             return result;
         }
 
+        static public VFXExpression Discretize(VFXExpression value, VFXExpression granularity)
+        {
+            return new VFXExpressionFloor(value / granularity) * granularity;
+        }
+
         static public VFXExpression ColorLuma(VFXExpression color)
         {
             //(0.299*R + 0.587*G + 0.114*B)
