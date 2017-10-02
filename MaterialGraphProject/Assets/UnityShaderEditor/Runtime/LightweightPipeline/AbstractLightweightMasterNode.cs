@@ -13,17 +13,7 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap, MasterRemapGraph remapper)
         {
-            // Step 1: configure slot defaults
-            foreach (var slot in GetInputSlots<MaterialSlot>())
-            {
-                surfaceOutputRemap.AddShaderChunk( slot.shaderOutputName
-                                                  + " = "
-                                                  + slot.GetDefaultValue(GenerationMode.ForReals)
-                                                  + ";", true);
-
-            }
-
-            // Step 2: no remapper, working with raw master node..
+            // Step 1: no remapper, working with raw master node..
             if (remapper == null)
             {
                 foreach (var slot in GetInputSlots<MaterialSlot>())
@@ -37,7 +27,7 @@ namespace UnityEngine.MaterialGraph
                                                       + slot.shaderOutputName + ";", true);
                 }
             }
-            // Step 3: remapper present... complex workflow time
+            // Step 2: remapper present... complex workflow time
             else
             {
                 surfaceOutputRemap.AddShaderChunk("{", false);
