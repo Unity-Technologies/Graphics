@@ -16,7 +16,7 @@
 }
 
 VFXFlowAnchor.EdgeConnector {
-	margin-left:-6;
+	-margin-left:6;
 	width:12;
 	height:12;
 	background-image:resource("VFX/flow-anchor");

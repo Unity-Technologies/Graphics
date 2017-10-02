@@ -163,6 +163,9 @@ namespace UnityEditor.VFX
             if (from.outputType == VFXDataType.kNone || to.inputType == VFXDataType.kNone || from.outputType != to.inputType)
                 return false;
 
+            if (fromIndex >= from.outputFlowSlot.Length || toIndex >= to.inputFlowSlot.Length)
+                return false;
+
             if (from.m_Outputs[fromIndex].link.Any(o => o.context == to) || to.m_Inputs[toIndex].link.Any(o => o.context == from))
                 return false;
 
@@ -186,7 +189,7 @@ namespace UnityEditor.VFX
 
         public void UnlinkFrom(VFXContext context, int fromIndex = 0, int toIndex = 0)
         {
-            InnerUnlink(context, this);
+            InnerUnlink(context, this, fromIndex, toIndex);
         }
 
         public void UnlinkAll()
@@ -207,14 +210,14 @@ namespace UnityEditor.VFX
                 while (m_Inputs[slot].link.Count > 0)
                 {
                     var clean = m_Outputs[slot].link.Last();
-                    InnerUnlink(clean.context, this , clean.slotIndex, slot);
+                    InnerUnlink(clean.context, this, clean.slotIndex, slot);
                 }
             }
         }
 
         private bool CanLinkFromMany()
         {
-            return contextType == VFXContextType.kSpawner;
+            return contextType == VFXContextType.kSpawner || contextType == VFXContextType.kEvent;
         }
 
         private bool CanLinkToMany()
@@ -366,16 +369,15 @@ namespace UnityEditor.VFX
                 var to = toArray[i] as VFXContext;
                 if (from != null)
                 {
-                    //foreach (var input in from.m_Inputs)
-                    for (int slotFromIndex = 0; slotFromIndex < from.m_Inputs.Length; ++slotFromIndex)
+                    for (int slotIndex = 0; slotIndex < from.m_Inputs.Length; ++slotIndex)
                     {
-                        var slotInputFrom = from.m_Inputs[slotFromIndex];
-                        foreach (var input in slotInputFrom.link)
+                        var slotInputFrom = from.m_Inputs[slotIndex];
+                        foreach (var link in slotInputFrom.link)
                         {
-                            var refContext = associativeContext.FirstOrDefault(o => o.Key == input.context);
+                            var refContext = associativeContext.FirstOrDefault(o => o.Key == link.context);
                             if (refContext.Value == null)
-                                throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
-                            InnerLink(refContext.Value, to, slotFromIndex, input.slotIndex, false);
+                                throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + link);
+                            InnerLink(refContext.Value, to, link.slotIndex, slotIndex, false);
                         }
                     }
                 }

@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
         private int m_SlotIndex;
         public int slotIndex { get { return m_SlotIndex; } }
 
-        public void Init(VFXContext owner, int slotIndex = 0)
+        public void Init(VFXContext owner, int slotIndex)
         {
             m_Owner = owner;
             m_SlotIndex = slotIndex;

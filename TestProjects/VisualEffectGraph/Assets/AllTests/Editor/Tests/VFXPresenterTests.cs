@@ -786,6 +786,106 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UndoRedoContextLinkMultiSlot()
+        {
+            CreateTestAsset();
+            Func<VFXContextPresenter[]> fnContextPresenter = delegate()
+                {
+                    return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().Cast<VFXContextPresenter>().ToArray();
+                };
+
+            Func<VFXContextPresenter> fnSpawner = delegate()
+                {
+                    var presenter = fnContextPresenter();
+                    return presenter.FirstOrDefault(o => o.model.name.Contains("Spawner"));
+                };
+
+            Func<string, VFXContextPresenter> fnEvent = delegate(string name)
+                {
+                    var presenter = fnContextPresenter();
+                    var allEvent = presenter.Where(o => o.model.name.Contains("Event"));
+                    return allEvent.FirstOrDefault(o => (o.model as VFXBasicEvent).eventName == name) as VFXContextPresenter;
+                };
+
+            Func<VFXContextPresenter> fnStart = delegate()
+                {
+                    return fnEvent("Start");
+                };
+
+            Func<VFXContextPresenter> fnStop = delegate()
+                {
+                    return fnEvent("Stop");
+                };
+
+            Func<int> fnFlowEdgeCount = delegate()
+                {
+                    return m_ViewPresenter.allChildren.OfType<VFXFlowEdgePresenter>().Count();
+                };
+
+            var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawner"));
+            var contextEvent = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Event"));
+
+            m_ViewPresenter.AddVFXContext(new Vector2(1, 1), contextSpawner);
+            var eventStartPresenter = m_ViewPresenter.AddVFXContext(new Vector2(2, 2), contextEvent) as VFXBasicEvent;
+            var eventStopPresenter = m_ViewPresenter.AddVFXContext(new Vector2(3, 3), contextEvent) as VFXBasicEvent;
+            eventStartPresenter.SetSettingValue("eventName", "Start");
+            eventStopPresenter.SetSettingValue("eventName", "Stop");
+
+            //Creation
+            var flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+            flowEdge.input = fnSpawner().flowInputAnchors.ElementAt(0);
+            flowEdge.output = fnStart().flowOutputAnchors.FirstOrDefault();
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.AddElement(flowEdge);
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+            flowEdge.input = fnSpawner().flowInputAnchors.ElementAt(1);
+            flowEdge.output = fnStop().flowOutputAnchors.FirstOrDefault();
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.AddElement(flowEdge);
+            Assert.AreEqual(2, fnFlowEdgeCount());
+
+            //Test a single deletion
+            var allFlowEdge = m_ViewPresenter.allChildren.OfType<VFXFlowEdgePresenter>().ToArray();
+
+            // Integrity test...
+            var inputSlotIndex = allFlowEdge.Select(o => (o.input as VFXFlowAnchorPresenter).slotIndex).OrderBy(o => o).ToArray();
+            var outputSlotIndex = allFlowEdge.Select(o => (o.output as VFXFlowAnchorPresenter).slotIndex).OrderBy(o => o).ToArray();
+
+            Assert.AreEqual(inputSlotIndex[0], 0);
+            Assert.AreEqual(inputSlotIndex[1], 1);
+            Assert.AreEqual(outputSlotIndex[0], 0);
+            Assert.AreEqual(outputSlotIndex[1], 0);
+
+            var edge = allFlowEdge.First(o => o.input == fnSpawner().flowInputAnchors.ElementAt(1) && o.output == fnStop().flowOutputAnchors.FirstOrDefault());
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.RemoveElement(edge);
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(2, fnFlowEdgeCount());
+
+            Undo.PerformRedo();
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(2, fnFlowEdgeCount());
+
+            //Global Deletion
+            Undo.PerformUndo();
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(0, fnFlowEdgeCount());
+
+            DestroyTestAsset();
+        }
+
+        [Test]
         public void UndoRedoContextLink()
         {
             CreateTestAsset();
