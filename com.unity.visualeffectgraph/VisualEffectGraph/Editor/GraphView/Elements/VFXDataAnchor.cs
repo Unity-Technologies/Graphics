@@ -100,7 +100,8 @@ namespace UnityEditor.VFX.UI
             foreach (var edgePresenter in GetPresenter<VFXDataAnchorPresenter>().connections)
             {
                 VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
-                yield return edge;
+                if (edge != null)
+                    yield return edge;
             }
         }
 

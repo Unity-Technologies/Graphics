@@ -97,8 +97,11 @@ namespace  UnityEditor.VFX.UI
 
         protected new void OnDisable()
         {
-            graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            if (graphView != null)
+            {
+                graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
+                graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            }
             VFXViewPresenter.viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
             currentWindow = null;
