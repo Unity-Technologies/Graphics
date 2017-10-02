@@ -1,4 +1,4 @@
-﻿#ifndef SHADOW_HLSL
+#ifndef SHADOW_HLSL
 #define SHADOW_HLSL
 //
 // Shadow master include header.
@@ -36,7 +36,7 @@
 
 // Shadow context definition and initialization, i.e. resource binding (project header, must be kept in sync with C# runtime)
 #define SHADOW_CONTEXT_INCLUDE
-#include "../../ShadowIncludes.inl"
+#include "../../ShadowIncludes.hlsl"
 #undef SHADOW_CONTEXT_INCLUDE
 
 // helper function to extract shadowmap data from the ShadowData struct
@@ -104,7 +104,7 @@ float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float
 
 // include project specific shadow dispatcher. If this file is not empty, it MUST define which default shadows it's overriding
 #define SHADOW_DISPATCH_INCLUDE
-#include "../../ShadowIncludes.inl"
+#include "../../ShadowIncludes.hlsl"
 #undef SHADOW_DISPATCH_INCLUDE
 
 // if shadow dispatch is empty we'll fall back to default shadow sampling implementations
