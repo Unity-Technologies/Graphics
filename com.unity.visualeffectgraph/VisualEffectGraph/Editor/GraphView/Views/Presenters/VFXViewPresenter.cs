@@ -326,7 +326,7 @@ namespace UnityEditor.VFX.UI
                 var context0 = ((VFXFlowAnchorPresenter)(flowEdge.input)).Owner as VFXContext;
                 var context1 = ((VFXFlowAnchorPresenter)(flowEdge.output)).Owner as VFXContext;
 
-                context0.Unlink(context1);
+                context0.UnlinkFrom(context1);
             }
             else if (element is VFXDataEdgePresenter)
             {

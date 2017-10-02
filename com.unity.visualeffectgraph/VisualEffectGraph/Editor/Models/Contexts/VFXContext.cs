@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
         kInit = 1 << 1,
         kUpdate = 1 << 2,
         kOutput = 1 << 3,
+        kEvent = 1 << 4,
 
         kInitAndUpdate = kInit | kUpdate,
         kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
@@ -30,7 +31,19 @@ namespace UnityEditor.VFX
         kNone =         0,
         kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
+        kEvent =        1 << 2
     };
+
+    struct VFXContextLink
+    {
+        public VFXContext context;
+        public int slotIndex;
+    }
+
+    class VFXContextSlot
+    {
+        public List<VFXContextLink> link = new List<VFXContextLink>();
+    }
 
     class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
     {
@@ -59,10 +72,10 @@ namespace UnityEditor.VFX
             }
 
             if (m_Inputs == null)
-                m_Inputs = new List<VFXContext>();
+                m_Inputs = Enumerable.Range(0, inputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
 
             if (m_Outputs == null)
-                m_Outputs = new List<VFXContext>();
+                m_Outputs = Enumerable.Range(0, outputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
 
             if (m_Data == null)
                 SetDefaultData(false);
@@ -73,8 +86,8 @@ namespace UnityEditor.VFX
         public override T Clone<T>()
         {
             var clone = base.Clone<T>() as VFXContext;
-            clone.m_Inputs.Clear();
-            clone.m_Outputs.Clear();
+            clone.m_Inputs = Enumerable.Range(0, m_Inputs.Count()).Select(_ => new VFXContextSlot()).ToArray();
+            clone.m_Outputs = Enumerable.Range(0, m_Outputs.Count()).Select(_ => new VFXContextSlot()).ToArray();
             clone.SetDefaultData(false);
             return clone as T;
         }
@@ -141,7 +154,7 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
-        public static bool CanLink(VFXContext from, VFXContext to)
+        public static bool CanLink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0)
         {
             if (from == to || from == null || to == null)
                 return false;
@@ -149,36 +162,53 @@ namespace UnityEditor.VFX
             if (from.outputType == VFXDataType.kNone || to.inputType == VFXDataType.kNone || from.outputType != to.inputType)
                 return false;
 
-            if (from.m_Outputs.Contains(to) || to.m_Inputs.Contains(from))
+            if (from.m_Outputs[fromIndex].link.Any(o => o.context == to) || to.m_Inputs[toIndex].link.Any(o => o.context == from))
                 return false;
 
             return true;
         }
 
-        public void LinkTo(VFXContext context)
+        public void LinkTo(VFXContext context, int fromIndex = 0, int toIndex = 0)
         {
-            InnerLink(this, context);
+            InnerLink(this, context, fromIndex, toIndex);
         }
 
-        public void LinkFrom(VFXContext context)
+        public void LinkFrom(VFXContext context, int fromIndex = 0, int toIndex = 0)
         {
-            InnerLink(context, this);
+            InnerLink(context, this, fromIndex, toIndex);
         }
 
-        public void Unlink(VFXContext context)
+        public void UnlinkTo(VFXContext context, int fromIndex = 0, int toIndex = 0)
         {
-            if (m_Outputs.Contains(context))
-                InnerUnlink(this, context);
-            if (m_Inputs.Contains(context))
-                InnerUnlink(context, this);
+            InnerUnlink(this, context, fromIndex, toIndex);
+        }
+
+        public void UnlinkFrom(VFXContext context, int fromIndex = 0, int toIndex = 0)
+        {
+            InnerUnlink(context, this);
         }
 
         public void UnlinkAll()
         {
-            foreach (var context in m_Outputs.ToArray())
-                InnerUnlink(this, context);
-            foreach (var context in m_Inputs.ToArray())
-                InnerUnlink(context, this);
+            for (int slot = 0; slot < m_Outputs.Length; slot++)
+            {
+                var slotsList = m_Outputs[slot].link;
+                while (m_Outputs[slot].link.Count > 0)
+                {
+                    var clean = m_Outputs[slot].link.Last();
+                    InnerUnlink(this, clean.context, slot, clean.slotIndex);
+                }
+            }
+
+            for (int slot = 0; slot < m_Inputs.Length; slot++)
+            {
+                var slotsList = m_Inputs[slot].link;
+                while (m_Inputs[slot].link.Count > 0)
+                {
+                    var clean = m_Outputs[slot].link.Last();
+                    InnerUnlink(clean.context, this , clean.slotIndex, slot);
+                }
+            }
         }
 
         private bool CanLinkFromMany()
@@ -191,25 +221,33 @@ namespace UnityEditor.VFX
             return contextType == VFXContextType.kOutput || contextType == VFXContextType.kInit;
         }
 
-        private static void InnerLink(VFXContext from, VFXContext to, bool notify = true)
+        private static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
         {
-            if (!CanLink(from, to))
+            if (!CanLink(from, to, fromIndex, toIndex))
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
 
             // Handle constraints on connections
-            foreach (var context in from.m_Outputs.ToArray())
-                if (!context.CanLinkToMany() || context.contextType != to.contextType)
-                    InnerUnlink(from, context);
+            foreach (var link in from.m_Outputs[fromIndex].link.ToArray())
+            {
+                if (!link.context.CanLinkToMany() || link.context.contextType != to.contextType)
+                {
+                    InnerUnlink(from, link.context, fromIndex, toIndex);
+                }
+            }
 
-            foreach (var context in to.m_Inputs.ToArray())
-                if (!context.CanLinkFromMany() || context.contextType != from.contextType)
-                    InnerUnlink(context, to);
+            foreach (var link in to.m_Inputs[toIndex].link.ToArray())
+            {
+                if (!link.context.CanLinkFromMany() || link.context.contextType != from.contextType)
+                {
+                    InnerUnlink(link.context, to, fromIndex, toIndex);
+                }
+            }
 
             if (from.ownedType == to.ownedType)
                 to.InnerSetData(from.GetData(), false);
 
-            from.m_Outputs.Add(to);
-            to.m_Inputs.Add(from);
+            from.m_Outputs[fromIndex].link.Add(new VFXContextLink() { context = to, slotIndex = toIndex });
+            to.m_Inputs[toIndex].link.Add(new VFXContextLink() { context = from, slotIndex = fromIndex });
 
             if (notify)
             {
@@ -219,37 +257,26 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void InnerUnlink(VFXContext from, VFXContext to)
+        private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0)
         {
             if (from.ownedType == to.ownedType)
                 to.SetDefaultData(false);
 
-            from.m_Outputs.Remove(to);
-            to.m_Inputs.Remove(from);
+            from.m_Outputs[fromIndex].link.RemoveAll(o => o.context == to && o.slotIndex == toIndex);
+            to.m_Inputs[toIndex].link.RemoveAll(o => o.context == from && o.slotIndex == fromIndex);
 
             // TODO Might need a specific event ?
             from.Invalidate(InvalidationCause.kStructureChanged);
             to.Invalidate(InvalidationCause.kStructureChanged);
         }
 
-        public int GetNbInputs()                        { return m_Inputs.Count; }
-        public int GetNbOutputs()                       { return m_Outputs.Count; }
+        public VFXContextSlot[] inputFlowSlot { get { return m_Inputs; } }
+        public VFXContextSlot[] outputFlowSlot { get { return m_Outputs; } }
+        protected virtual int inputFlowCount { get { return 1; } }
+        protected virtual int outputFlowCount { get { return 1; } }
 
-        public VFXContext GetInput(int index)           { return m_Inputs[index]; }
-        public VFXContext GetOutput(int index)          { return m_Outputs[index]; }
-
-        public IEnumerable<VFXContext> inputContexts    { get { return m_Inputs; } }
-        public IEnumerable<VFXContext> outputContexts   { get { return m_Outputs; } }
-
-        private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
-        {
-            int nbSlots = slotContainer.GetNbInputSlots();
-            for (int i = 0; i < nbSlots; ++i)
-            {
-                var slot = slotContainer.GetInputSlot(i);
-                slot.GetExpressions(expressions);
-            }
-        }
+        public IEnumerable<VFXContext> inputContexts    { get { return m_Inputs.SelectMany(l => l.link.Select(o => o.context)); } }
+        public IEnumerable<VFXContext> outputContexts   { get { return m_Outputs.SelectMany(l => l.link.Select(o => o.context)); } }
 
         public virtual VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
@@ -262,11 +289,6 @@ namespace UnityEditor.VFX
         private void SetDefaultData(bool notify)
         {
             InnerSetData(VFXData.CreateDataType(ownedType), notify);
-        }
-
-        public void SetData(VFXData data)
-        {
-            InnerSetData(data, true);
         }
 
         private void InnerSetData(VFXData data, bool notify)
@@ -287,7 +309,7 @@ namespace UnityEditor.VFX
                     Invalidate(InvalidationCause.kStructureChanged);
 
                 // Propagate data downwards
-                foreach (var output in m_Outputs)
+                foreach (var output in m_Outputs.SelectMany(o => o.link.Select(l => l.context)))
                     if (output.ownedType == ownedType)
                         output.InnerSetData(data, notify);
             }
@@ -343,12 +365,17 @@ namespace UnityEditor.VFX
                 var to = toArray[i] as VFXContext;
                 if (from != null)
                 {
-                    foreach (var input in from.m_Inputs)
+                    //foreach (var input in from.m_Inputs)
+                    for (int slotFromIndex = 0; slotFromIndex < from.m_Inputs.Length; ++slotFromIndex)
                     {
-                        var refContext = associativeContext.FirstOrDefault(o => o.Key == input);
-                        if (refContext.Value == null)
-                            throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
-                        InnerLink(refContext.Value, to, false);
+                        var slotInputFrom = from.m_Inputs[slotFromIndex];
+                        foreach (var input in slotInputFrom.link)
+                        {
+                            var refContext = associativeContext.FirstOrDefault(o => o.Key == input.context);
+                            if (refContext.Value == null)
+                                throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + input);
+                            InnerLink(refContext.Value, to, slotFromIndex, input.slotIndex, false);
+                        }
                     }
                 }
             }
@@ -366,9 +393,9 @@ namespace UnityEditor.VFX
         private CoordinateSpace m_Space;
 
         [SerializeField]
-        private List<VFXContext> m_Inputs;
+        private VFXContextSlot[] m_Inputs;
         [SerializeField]
-        private List<VFXContext> m_Outputs;
+        private VFXContextSlot[] m_Outputs;
 
         public CoordinateSpace space
         {
