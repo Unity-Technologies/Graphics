@@ -84,6 +84,26 @@ float3 PositionOnSphereSurface(float3 center,float radius,float cosPhi,float the
     return PositionOnSphere(center,radius,cosPhi,theta,1.0f);
 }
 
+// Macros to use Circle semantic type directly
+#define VFXPositionOnCircle(CircleName,theta,rNorm)   PositionOnCircle(CircleName##_center,CircleName##_radius,theta,rNorm)
+#define VFXPositionOnCircleEdge(CircleName,theta)     PositionOnCircleEdge(CircleName##_center,CircleName##_radius,theta)
+
+// pos,radius: Circle description
+// theta: theta angle
+// rNorm: normalise radius for the point
+float2 PositionOnCircle(float3 pos, float radius, float theta, float rNorm)
+{
+    float2 sincosTheta;
+    sincos(theta, sincosTheta.x, sincosTheta.y);
+    sincosTheta *= rNorm * radius;
+    return sincosTheta + pos;
+}
+
+float2 PositionOnCircleEdge(float3 pos, float radius, float hNorm, float theta)
+{
+    return PositionOnCircleEdge(pos, radius, theta, 1.0f);
+}
+
 // Macros to use Cylinder semantic type directly
 #define VFXPositionOnCylinder(CylinderName,hNorm,theta,rNorm)   PositionOnCylinder(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta,rNorm)
 #define VFXPositionOnCylinderSurface(CylinderName,hNorm,theta)  PositionOnCylinderSurface(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta)
