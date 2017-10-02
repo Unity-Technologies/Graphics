@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -57,35 +53,5 @@ namespace UnityEngine.MaterialGraph
             var nm = FindSlot<MaterialSlot>(NormalSlotId);
             return owner.GetEdges(nm.slotReference).Any();
         }
-
-       /* public void GenerateNodeCode(ShaderGenerator shaderBody, ShaderGenerator propertyUsages, GenerationMode generationMode)
-        {
-
-            foreach (var slot in GetInputSlots<MaterialSlot>())
-            {
-                if (surfaceInputs.Contains(slot.id))
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var outputRef = edge.outputSlot;
-                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                        if (fromNode == null)
-                            continue;
-
-                        var remapper = fromNode as INodeGroupRemapper;
-                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                            continue;
-
-                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-
-                        if (slot.id == NormalSlotId)
-                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
-
-                        if (slot.id == AlphaSlotId)
-                            propertyUsages.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON", true);
-                    }
-                }
-            }
-        }*/
     }
 }

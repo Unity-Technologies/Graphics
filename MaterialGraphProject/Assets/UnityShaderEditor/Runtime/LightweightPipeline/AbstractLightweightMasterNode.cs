@@ -18,10 +18,6 @@ namespace UnityEngine.MaterialGraph
             {
                 foreach (var slot in GetInputSlots<MaterialSlot>())
                 {
-                    var edge = owner.GetEdges(slot.slotReference).FirstOrDefault();
-                    if (edge == null)
-                        continue;
-
                     surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
                                                       + " = surf."
                                                       + slot.shaderOutputName + ";", true);
@@ -44,7 +40,8 @@ namespace UnityEngine.MaterialGraph
                 foreach (var activeNode in nodes.OfType<AbstractMaterialNode>())
                 {
                     if (activeNode is IGeneratesBodyCode)
-                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap, GenerationMode.ForReals);
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap,
+                            GenerationMode.ForReals);
                 }
 
                 foreach (var input in GetInputSlots<MaterialSlot>())
@@ -56,7 +53,9 @@ namespace UnityEngine.MaterialGraph
                         if (fromNode == null)
                             continue;
 
-                        surfaceOutputRemap.AddShaderChunk(string.Format("{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                        surfaceOutputRemap.AddShaderChunk(
+                            string.Format("{0} = {1};", input.shaderOutputName,
+                                fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
                     }
                 }
 

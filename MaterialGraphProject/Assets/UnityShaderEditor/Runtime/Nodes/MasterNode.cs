@@ -1,16 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IMasterNode
-    {
-        SurfaceMaterialOptions options { get; }
-        IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper);
-    }
-
     [Serializable]
     public abstract class MasterNode : AbstractMaterialNode, IMasterNode
     {
@@ -21,11 +13,6 @@ namespace UnityEngine.MaterialGraph
         {
             name = "MasterNode";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override IEnumerable<ISlot> GetInputsWithNoConnection()
-        {
-            return new List<ISlot>();
         }
 
         public override bool hasPreview
