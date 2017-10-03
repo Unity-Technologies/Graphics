@@ -141,6 +141,8 @@ Shader "HDRenderPipeline/ExperimentalEye"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
+	
+	#pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED

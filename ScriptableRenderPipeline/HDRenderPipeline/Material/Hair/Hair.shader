@@ -116,6 +116,8 @@ Shader "HDRenderPipeline/ExperimentalHair"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _VERTEX_WIND
 
+	#pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+	
     // Can we force a shader to not support lightmap ?
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
