@@ -1501,39 +1501,33 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     weight = float2(0.0, 0.0);
 
 #if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
-    /*
-    * Refraction process:
-    *  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
-    *  2. We calculate the screen space position of the refracted point
-    *  3. If this point is available (ie: in color GBuffer and point is not in front of the object)
-    *    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
-    *    b. Multiply by the transmittance for absorption (depends on the optical depth)
-    */
+    // Refraction process:
+    //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
+    //  2. We calculate the screen space position of the refracted point
+    //  3. If this point is available (ie: in color GBuffer and point is not in front of the object)
+    //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
+    //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
     weight.x = 1.0;
 
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;
 
-    /*
-    * For all refraction approximation, to calculate the refracted point in world space,
-    *   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
-    *   (We avoid to raymarch the depth texture to get the refracted point.)
-    */
+    // For all refraction approximation, to calculate the refracted point in world space,
+    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
+    //   (We avoid to raymarch the depth texture to get the refracted point.)
 #if defined(_REFRACTION_THICKPLANE)
-    /*
-    * Thick plane shape model:
-    *  We approximate locally the shape of the object as halfspace defined by the normal {bsdfData.normallWS} at {bsdfData.positionWS}
-    *  Thus, the light is refracted once.
-    *  It approximate cubic filled shapes
-    *
-    * However, we can't approximate the optical depth of the object, so we use a constant as parameter ({bsdfData.thickness})
-    */
+    // Thick plane shape model:
+    //  We approximate locally the shape of the object as halfspace defined by the normal {bsdfData.normallWS} at {bsdfData.positionWS}
+    //  Thus, the light is refracted once.
+    //  It approximate cubic filled shapes
+    //
+    // However, we can't approximate the optical depth of the object, so we use a constant as parameter ({bsdfData.thickness})
+    
     // Refracted ray
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
     // Get the depth of the approximated back plane
-
     float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
@@ -1545,14 +1539,13 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     opticalDepth = bsdfData.thickness;
 
 #elif defined(_REFRACTION_THICKSPHERE)
-    /*
-    * Thick sphere shape model:
-    *  We approximate locally the shape of the object as sphere, that is tangent to the shape.
-    *  The sphere has a diameter of {bsdfData.thickness}
-    *  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
-    *
-    *  So the light is refracted twice: in and out of the tangent sphere
-    */
+    // Thick sphere shape model:
+    //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
+    //  The sphere has a diameter of {bsdfData.thickness}
+    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
+    //
+    //  So the light is refracted twice: in and out of the tangent sphere
+
     // Get the depth of the approximated back plane
     float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
@@ -1583,11 +1576,10 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
 
 #elif defined(_REFRACTION_THINPLANE)
-    /*
-    * Thin plane shape model:
-    *  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
-    *  with a thickness {bsdfData.thickness}
-    */
+    // Thin plane shape model:
+    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
+    //  with a thickness {bsdfData.thickness}
+
     // Refracted ray
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
