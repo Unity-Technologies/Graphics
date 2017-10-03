@@ -28,12 +28,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return RenderTextureFormat.Default;
         }
 
-        public ScreenSpaceAmbientOcclusionEffect()
-        {}
-
         public void Build(RenderPipelineResources renderPipelineResources)
         {
-            m_Material = Utilities.CreateEngineMaterial(renderPipelineResources.screenSpaceAmbientOcclusionShader);
+            m_Material = CoreUtils.CreateEngineMaterial(renderPipelineResources.screenSpaceAmbientOcclusionShader);
             m_Material.hideFlags = HideFlags.DontSave;
         }
 
@@ -62,29 +59,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Material.SetFloat(Uniforms._Downsample, 1.0f / downsize);
             m_Material.SetFloat(Uniforms._SampleCount, settings.sampleCount);
 
-            using (new Utilities.ProfilingSample("Screenspace ambient occlusion", cmd))
+            using (new ProfilingSample("Screenspace ambient occlusion", cmd))
             {
                 // AO estimation.
                 cmd.GetTemporaryRT(Uniforms._TempTex1, width / downsize, height / downsize, 0, kFilter, kTempFormat, kRWMode);
-                Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 0);
+                CoreUtils.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 0);
                 hdRP.PushFullScreenDebugTexture(cmd, Uniforms._TempTex1, hdCamera.camera, renderContext, FullScreenDebugMode.SSAOBeforeFiltering);
 
                 // Denoising (horizontal pass).
                 cmd.GetTemporaryRT(Uniforms._TempTex2, width, height, 0, kFilter, kTempFormat, kRWMode);
                 cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-                Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex2, null, 1);
+                CoreUtils.DrawFullScreen(cmd, m_Material, Uniforms._TempTex2, null, 1);
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
                 // Denoising (vertical pass).
                 cmd.GetTemporaryRT(Uniforms._TempTex1, width, height, 0, kFilter, kTempFormat, kRWMode);
                 cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex2);
-                Utilities.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 2);
+                CoreUtils.DrawFullScreen(cmd, m_Material, Uniforms._TempTex1, null, 2);
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex2);
 
                 // Final filtering
                 cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, width, height, 0, kFilter, GetAOBufferFormat(), kRWMode);
                 cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
-                Utilities.DrawFullScreen(cmd, m_Material, HDShaderIDs._AmbientOcclusionTexture, null, 3);
+                CoreUtils.DrawFullScreen(cmd, m_Material, HDShaderIDs._AmbientOcclusionTexture, null, 3);
                 cmd.ReleaseTemporaryRT(Uniforms._TempTex1);
 
                 // Setup texture for lighting pass (automatic of unity)
@@ -96,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-            Utilities.Destroy(m_Material);
+            CoreUtils.Destroy(m_Material);
         }
     }
 }

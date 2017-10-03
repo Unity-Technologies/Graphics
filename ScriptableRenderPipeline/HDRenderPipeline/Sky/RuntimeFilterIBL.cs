@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_GgxConvolveMaterial)
             {
-                m_GgxConvolveMaterial = Utilities.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
+                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
             }
 
             if (!m_GgxIblSampleData)
@@ -69,9 +69,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
 
-                using (new Utilities.ProfilingSample("Compute GGX IBL Sample Data", cmd))
+                using (new ProfilingSample("Compute GGX IBL Sample Data", cmd))
                 {
-                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
+                    cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
                 }
             }
         }
@@ -102,8 +102,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     props.SetFloat("_Level", mip);
                     props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
-                    Utilities.SetRenderTarget(cmd, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
-                    Utilities.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
+                    CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                    CoreUtils.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
                 }
                 cmd.EndSample(sampleName);
             }
@@ -135,10 +135,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int numRows = conditionalCdf.height;
 
-            using (new Utilities.ProfilingSample("Build Probability Tables", cmd))
+            using (new ProfilingSample("Build Probability Tables", cmd))
             {
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
+                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
+                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
             }
 
             m_GgxConvolveMaterial.EnableKeyword("USE_MIS");
