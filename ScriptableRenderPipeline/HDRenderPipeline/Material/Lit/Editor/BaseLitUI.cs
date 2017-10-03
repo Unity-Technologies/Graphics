@@ -19,19 +19,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
+            // Displacement mapping (POM, tessellation, per vertex)
+            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale",           "Displacement mapping will take the absolute value of the scale of the object into account.");            
+            public static GUIContent lockWithTilingRateText  = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
+
             // Per pixel displacement
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "Per pixel displacement work best with flat surfaces. This is an expensive features and should be enable wisely. Typical use case is paved road.");
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
-            public static GUIContent perPixelDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Per Pixel displacement will take into account the tiling scale - Only work with uniform positive scale");            
+            public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive length", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
+            public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive width", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
             // Vertex displacement
             public static string vertexDisplacementText = "Vertex displacement";
-
             public static GUIContent enableVertexDisplacementText = new GUIContent("Enable vertex displacement", "Use heightmap as a displacement map. Displacement map is use to move vertex position in local space");
-            public static GUIContent vertexDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Vertex displacement will take into account the object scale - Only work with uniform positive scale");
-            public static GUIContent vertexDisplacementTilingScaleText = new GUIContent("Lock with heightmap tiling", "Vertex displacement will take into account the tiling scale - Only work with uniform positive scale");
 
             // Tessellation
             public static string tessellationModeText = "Tessellation Mode";
@@ -91,8 +93,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kPpdMaxSamples = "_PPDMaxSamples";
         protected MaterialProperty ppdLodThreshold = null;
         protected const string kPpdLodThreshold = "_PPDLodThreshold";
+        protected MaterialProperty ppdPrimitiveLength = null;
+        protected const string kPpdPrimitiveLength = "_PPDPrimitiveLength";
+        protected MaterialProperty ppdPrimitiveWidth = null;
+        protected const string kPpdPrimitiveWidth = "_PPDPrimitiveWidth";
         protected MaterialProperty perPixelDisplacementObjectScale = null;
         protected const string kPerPixelDisplacementObjectScale = "_PerPixelDisplacementObjectScale";
+        protected MaterialProperty perPixelDisplacementTilingScale = null;
+        protected const string kPerPixelDisplacementTilingScale = "_PerPixelDisplacementTilingScale";
 
         // Vertex displacement
         protected MaterialProperty enableVertexDisplacement = null;
@@ -147,7 +155,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
+            ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
+            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
             perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);            
+            perPixelDisplacementTilingScale = FindProperty(kPerPixelDisplacementTilingScale, props);            
 
             // vertex displacement
             enableVertexDisplacement = FindProperty(kEnableVertexDisplacement, props);
@@ -213,7 +224,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
                 ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
                 m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
-                m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.perPixelDisplacementObjectScaleText);
+                m_MaterialEditor.ShaderProperty(ppdPrimitiveLength, StylesBaseLit.ppdPrimitiveLength);
+                ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
+                ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.lockWithObjectScaleText);
+                m_MaterialEditor.ShaderProperty(perPixelDisplacementTilingScale, StylesBaseLit.lockWithTilingRateText);
                 m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                
                 EditorGUI.indentLevel--;
             }
@@ -229,8 +245,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (enableVertexDisplacement.floatValue > 0.0f)
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(vertexDisplacementObjectScale, StylesBaseLit.vertexDisplacementObjectScaleText);
-                m_MaterialEditor.ShaderProperty(vertexDisplacementTilingScale, StylesBaseLit.vertexDisplacementTilingScaleText);
+                m_MaterialEditor.ShaderProperty(vertexDisplacementObjectScale, StylesBaseLit.lockWithObjectScaleText);
+                m_MaterialEditor.ShaderProperty(vertexDisplacementTilingScale, StylesBaseLit.lockWithTilingRateText);
                 EditorGUI.indentLevel--;
             }
 
@@ -328,6 +344,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool perPixelDisplacementObjectScale = material.GetFloat(kPerPixelDisplacementObjectScale) > 0.0;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT_OBJECT_SCALE", perPixelDisplacementObjectScale && enablePerPixelDisplacement);
+
+            bool perPixelDisplacementTilingScale = material.GetFloat(kPerPixelDisplacementTilingScale) > 0.0;
+            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT_TILING_SCALE", perPixelDisplacementTilingScale && enablePerPixelDisplacement);
 
             bool enableVertexDisplacement = material.GetFloat(kEnableVertexDisplacement) > 0.0f;
             SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);

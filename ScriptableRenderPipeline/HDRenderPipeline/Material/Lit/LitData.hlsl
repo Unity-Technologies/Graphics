@@ -279,16 +279,30 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float2 minUvSize = GetMinUvSize(layerTexCoord);
         float lod = ComputeTextureLOD(minUvSize);
 
+#ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
+        float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
+        maxHeight *= tilingScale;
+#endif
+
         // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
         // Extract scaling from world transform
 #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
         // To handle object scaling with PPD we need to multiply the view vector by the inverse scale. 
         // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-        float3 invObjectScale;
         float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
-        invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+        float3   invObjectScale;
+
         invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-        invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+
+        if (isPlanar)
+        {
+            invObjectScale.xz = 1;
+        }
+        else
+        {
+            invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+            invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+        }
 #endif
 
         PerPixelHeightDisplacementParam ppdParam;
@@ -352,13 +366,18 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
 
 #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-            viewDirTS *= invObjectScale.xyz; // Switch from Y-up to Z-up
+            viewDirTS *= invObjectScale.xzy; // Switch from Y-up to Z-up
 #endif
-
             NdotV = viewDirTS.z;
 
-            int    numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, saturate(viewDirTS.z));
-            float2 offset   = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
+            // Transform the view vector into the UV space.
+            float2 primitiveSize  = float2(_PPDPrimitiveLength, _PPDPrimitiveWidth);
+            float2 primitiveScale = rcp(primitiveSize);
+            float2 uvSpaceScale   = primitiveScale * _BaseColorMap_ST.xy; // This could be precomputed
+            float3 viewDirUV      = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z / maxHeight));
+
+            int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, saturate(FastACos(viewDirUV.z) * INV_HALF_PI));
+            float2 offset   = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
 
             // Apply offset to all UVSet0 / planar
             layerTexCoord.base.uv += offset;
@@ -368,9 +387,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
         float verticalDisplacement = maxHeight - height * maxHeight;
-        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
-        float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
-        return tilingScale * verticalDisplacement / NdotV;
+        return verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -381,10 +398,9 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
     #ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
-    // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-    // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
-    float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
-    height *= tilingScale;
+    // TODO: precompute this scaling factor!
+    float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
+    height *= tilingScale * _TexWorldScale;
     #endif
     return height;
 }
@@ -759,13 +775,14 @@ void ApplyDisplacementTileScale(inout float height0, inout float height1, inout 
     tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
     #endif
 
-    height0 /= max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y);
+    // TODO: precompute all these scaling factors!
+    height0 /= max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y) * _TexWorldScale0;
     #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
     height0 *= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
     #endif
-    height1 /= tileObjectScale * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y);
-    height2 /= tileObjectScale * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y);
-    height3 /= tileObjectScale * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y);
+    height1 /= tileObjectScale * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y) * _TexWorldScale1;
+    height2 /= tileObjectScale * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y) * _TexWorldScale2;
+    height3 /= tileObjectScale * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y) * _TexWorldScale3;
 #endif
 }
 

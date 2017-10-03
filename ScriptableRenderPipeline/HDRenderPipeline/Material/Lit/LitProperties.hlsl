@@ -103,6 +103,9 @@ float _EnableSpecularOcclusion;
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
 
+float _PPDPrimitiveLength;
+float _PPDPrimitiveWidth;
+
 // Wind
 float _InitialBend;
 float _Stiffness;
