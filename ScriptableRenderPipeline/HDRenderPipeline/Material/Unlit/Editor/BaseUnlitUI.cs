@@ -21,6 +21,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
+            public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff");
+            public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff");
+            public static GUIContent alphaCutoffOpacityThresholdText = new GUIContent("Alpha Cutoff Opacity Threshold", "Threshold for alpha cutoff");
+            public static GUIContent transparentDepthWritePrepassEnableText = new GUIContent("Enable transparent depth write prepass", "Threshold for alpha cutoff");
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
@@ -53,6 +57,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         protected MaterialProperty alphaCutoff = null;
         protected const string kAlphaCutoff = "_AlphaCutoff";
+
+        protected MaterialProperty alphaCutoffShadow = null;
+        protected const string kAlphaCutoffShadow = "_AlphaCutoffShadow";
+        protected MaterialProperty alphaCutoffPrepass = null;
+        protected const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
+        protected MaterialProperty alphaCutoffOpacityThreshold = null;
+        protected const string kAlphaCutoffOpacityThreshold = "_AlphaCutoffOpacityThreshold";
+        protected MaterialProperty transparentDepthWritePrepassEnable = null;
+        protected const string kTransparentDepthWritePrepassEnable = "_TransparentDepthWritePrepassEnable";
         protected MaterialProperty doubleSidedEnable = null;
         protected const string kDoubleSidedEnable = "_DoubleSidedEnable";
         protected MaterialProperty blendMode = null;
@@ -79,8 +92,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             surfaceType = FindProperty(kSurfaceType, props);
-            alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
+            alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props, false);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
+            alphaCutoffShadow = FindProperty(kAlphaCutoffShadow, props, false);
+            alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass, props, false);
+            alphaCutoffOpacityThreshold = FindProperty(kAlphaCutoffOpacityThreshold, props, false);
+            transparentDepthWritePrepassEnable = FindProperty(kTransparentDepthWritePrepassEnable, props, false);
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, props);
             blendMode = FindProperty(kBlendMode, props);
             distortionEnable = FindProperty(kDistortionEnable, props, false);
@@ -142,11 +159,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-            m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
-            if (alphaCutoffEnable.floatValue == 1.0f)
+
+            if (alphaCutoffEnable != null)
             {
-                m_MaterialEditor.ShaderProperty(alphaCutoff, StylesBaseUnlit.alphaCutoffText);
+                m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
+                if (alphaCutoffEnable.floatValue == 1.0f)
+                {
+                    m_MaterialEditor.ShaderProperty(alphaCutoff, StylesBaseUnlit.alphaCutoffText);
+                }
             }
+ 
             // This function must finish with double sided option (see LitUI.cs)
             m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
 
@@ -164,7 +186,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if ocde change
         static public void SetupBaseUnlitKeywords(Material material)
         {
-            bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool alphaTestEnable = false;
+            if (material.HasProperty(kAlphaCutoffEnabled))
+            {
+                alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            }
+            
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
@@ -181,12 +208,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-
-                SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
-                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
-                SetKeyword(material, "_BLENDMODE_SOFT_ADD", BlendMode.SoftAdd == blendMode);
-                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiply == blendMode);
-                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
 
                 switch (blendMode)
                 {
@@ -253,6 +274,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 SetKeyword(material, "_DISTORTION_ON", distortionEnable);
+            }
+
+            if (material.HasProperty(kTransparentDepthWritePrepassEnable))
+            {
+                bool depthWriteEnable = (material.GetFloat(kTransparentDepthWritePrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
+                if (depthWriteEnable)
+                {
+                    material.SetShaderPassEnabled("TransparentDepthWrite", true);
+                }
+                else
+                {
+                    material.SetShaderPassEnabled("TransparentDepthWrite", false);
+                }
             }
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect

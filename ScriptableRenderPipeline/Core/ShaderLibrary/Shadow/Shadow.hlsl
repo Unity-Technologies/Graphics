@@ -1,4 +1,4 @@
-#ifndef SHADOW_HLSL
+﻿#ifndef SHADOW_HLSL
 #define SHADOW_HLSL
 //
 // Shadow master include header.
@@ -16,7 +16,6 @@
 
 
 #define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0 // only on >= sm 5.1
-#define SHADOW_OPTIMIZE_REGISTER_USAGE   0 // redefine this as 1 in your ShadowContext.hlsl to optimize for register usage over instruction count
 
 #include "../../../Core/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
@@ -36,8 +35,9 @@
 
 // Shadow context definition and initialization, i.e. resource binding (project header, must be kept in sync with C# runtime)
 #define SHADOW_CONTEXT_INCLUDE
-#include "../../ShadowIncludes.hlsl"
+#include "../../ShadowIncludes.inl"
 #undef SHADOW_CONTEXT_INCLUDE
+//#include "ShadowContext.hlsl"
 
 // helper function to extract shadowmap data from the ShadowData struct
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
@@ -104,8 +104,9 @@ float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float
 
 // include project specific shadow dispatcher. If this file is not empty, it MUST define which default shadows it's overriding
 #define SHADOW_DISPATCH_INCLUDE
-#include "../../ShadowIncludes.hlsl"
+#include "../../ShadowIncludes.inl"
 #undef SHADOW_DISPATCH_INCLUDE
+//#include "ShadowDispatch.hlsl"
 
 // if shadow dispatch is empty we'll fall back to default shadow sampling implementations
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL

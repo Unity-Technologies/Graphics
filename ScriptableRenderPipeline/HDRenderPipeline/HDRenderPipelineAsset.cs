@@ -14,14 +14,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRenderPipelineAsset : RenderPipelineAsset
     {
 #if UNITY_EDITOR
+        const string k_HDRenderPipelinePath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/HDRenderPipelineAsset.asset";
+
         [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset", false, 16)]
         static void CreateHDRenderPipeline()
         {
             var instance = CreateInstance<HDRenderPipelineAsset>();
-            AssetDatabase.CreateAsset(instance, Utilities.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
+            AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
 
             // If it exist, load renderPipelineResources
-            instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.GetRenderPipelineResourcesPath());
+            instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.renderPipelineResourcesPath);
         }
 #endif
 

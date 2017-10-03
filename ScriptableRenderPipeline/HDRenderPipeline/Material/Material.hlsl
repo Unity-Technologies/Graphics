@@ -11,16 +11,6 @@
 #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 //-----------------------------------------------------------------------------
-// Blending
-//-----------------------------------------------------------------------------
-// This should match the possible blending modes in any material .shader file (lit/layeredlit/unlit etc)
-#if defined(_BLENDMODE_LERP) || defined(_BLENDMODE_ADD) || defined(_BLENDMODE_SOFT_ADD) || defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
-#   define SURFACE_TYPE_TRANSPARENT
-#else
-#   define SURFACE_TYPE_OPAQUE
-#endif
-
-//-----------------------------------------------------------------------------
 // BuiltinData
 //-----------------------------------------------------------------------------
 
@@ -39,6 +29,12 @@
 #include "Unlit/Unlit.hlsl"
 #elif defined(UNITY_MATERIAL_IRIDESCENCE)
 //#include "Iridescence/Iridescence.hlsl"
+#elif defined(UNITY_MATERIAL_HAIR)
+#include "Hair/Hair.hlsl"
+#elif defined(UNITY_MATERIAL_EYE)
+#include "Eye/Eye.hlsl"
+#elif defined(UNITY_MATERIAL_FABRIC)
+#include "Fabric/Fabric.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------

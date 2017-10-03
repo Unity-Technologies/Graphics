@@ -8,10 +8,9 @@ namespace UnityEngine.Experimental.Rendering
     [Flags]
     public enum DebugItemFlag
     {
-        None = 0,
-        DynamicDisplay = 1 << 0,
-        EditorOnly = 1 << 1,
-        RuntimeOnly = 1 << 2
+        None,
+        DynamicDisplay,
+        EditorOnly
     }
 
     public class DebugItem
@@ -24,8 +23,6 @@ namespace UnityEngine.Experimental.Rendering
         public DebugItemHandler handler         { get { return m_Handler; } }
         public DebugItemFlag    flags           { get { return m_Flags; } }
         public bool             readOnly        { get { return m_Setter == null; } }
-        public bool             editorOnly      { get { return (flags & DebugItemFlag.EditorOnly) != 0; } }
-        public bool             runtimeOnly     { get { return (flags & DebugItemFlag.RuntimeOnly) != 0; } }
 
         public DebugItem(string name, string panelName, Type type, Func<object> getter, Action<object> setter, DebugItemFlag flags = DebugItemFlag.None, DebugItemHandler handler = null)
         {
