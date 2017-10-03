@@ -109,16 +109,14 @@ namespace UnityEditor.VFX.Test
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
             vfxComponent.SendEvent("Custom_Start");
-            yield return null; //First : Consume
-            yield return null; //Second : Update
+            for (int i = 0; i < 16; ++i) yield return null;
 
             spawnerState = vfxComponent.DebugGetSpawnerState(0);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
 
             vfxComponent.SendEvent("Custom_Stop");
-            yield return null; //First : Consume
-            yield return null; //Second : Update
+            for (int i = 0; i < 16; ++i) yield return null;
 
             spawnerState = vfxComponent.DebugGetSpawnerState(0);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
