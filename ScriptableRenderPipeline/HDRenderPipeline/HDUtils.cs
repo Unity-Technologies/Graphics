@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System.IO;
 using UnityEditor;
 #endif
@@ -18,6 +18,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
 
             return path;
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
         }
 #endif
 
