@@ -6,12 +6,12 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // This enum extent the original LightType enum with new light type from HD
-    public enum LightTypeExtent 
-    { 
+    public enum LightTypeExtent
+    {
         Punctual, // Fallback on LightShape type
         Rectangle,
         Line,
-        // Sphere, 
+        // Sphere,
         // Disc,
     };
 
@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Mathf.Clamp(m_InnerSpotPercent, 0.0f, 100.0f) / 100.0f;
         }
 
-        [Range(0.0f, 1.0f)]        
+        [Range(0.0f, 1.0f)]
         public float lightDimmer = 1.0f;
 
         // Not used for directional lights.
@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FormerlySerializedAs("lightWidth")]
         public float shapeWidth = 0.5f;
 
-        // Only for Sphere/Disc        
+        // Only for Sphere/Disc
         public float shapeRadius = 0.0f;
 
         // Only for Spot/Point - use to cheaply fake specular spherical area light
@@ -68,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // This is specific for the LightEditor GUI and not use at runtime
         public bool useOldInspector = false;
+        public bool featuresFoldout = true;
         public bool showAdditionalSettings = true; // TODO: Maybe we can remove if if we decide to always show additional settings
 
 #if UNITY_EDITOR
