@@ -305,4 +305,43 @@ namespace UnityEditor.VFX.UI
         }*/
         public override bool showsEverything { get { return true; } }
     }
+
+
+    abstract class SimpleUIPropertyRM<T, U> : PropertyRM<T>
+    {
+        public abstract IControl<U> CreateField();
+
+        public SimpleUIPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+            m_Field = CreateField();
+
+            VisualElement fieldElement = m_Field as VisualElement;
+            fieldElement.AddToClassList("fieldContainer");
+            fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
+            Add(fieldElement);
+        }
+
+        public void OnValueChanged(ChangeEvent<U> e)
+        {
+            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+            if (!newValue.Equals(m_Value))
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        protected override void UpdateEnabled()
+        {
+            (m_Field as VisualElement).SetEnabled(propertyEnabled);
+        }
+
+        IControl<U> m_Field;
+        public override void UpdateGUI()
+        {
+            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
 }

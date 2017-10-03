@@ -77,6 +77,38 @@ namespace UnityEditor.VFX.UI
             OnAnchorChanged();
         }
 
+        public override void OnSelected()
+        {
+            DirtyAnchors();
+        }
+
+        public override void OnUnselected()
+        {
+            DirtyAnchors();
+        }
+
+        void DirtyAnchors()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            var edgePresenter = GetPresenter<EdgePresenter>();
+
+            NodeAnchorPresenter outputPresenter = edgePresenter.output;
+            NodeAnchorPresenter inputPresenter = edgePresenter.input;
+
+            VFXDataAnchor outputAnchor = view.GetDataAnchorByPresenter(outputPresenter as VFXDataAnchorPresenter);
+            VFXDataAnchor inputAnchor = view.GetDataAnchorByPresenter(inputPresenter as VFXDataAnchorPresenter);
+
+            if (outputAnchor != null && outputAnchor.node is IEdgeDrawerOwner)
+            {
+                (outputAnchor.node as IEdgeDrawerOwner).DirtyDrawer();
+            }
+            if (inputAnchor != null && inputAnchor.node is IEdgeDrawerOwner)
+            {
+                (inputAnchor.node as IEdgeDrawerOwner).DirtyDrawer();
+            }
+        }
+
         public void OnAnchorChanged()
         {
             var edgePresenter = GetPresenter<EdgePresenter>();

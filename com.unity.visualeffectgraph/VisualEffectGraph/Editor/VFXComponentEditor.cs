@@ -469,6 +469,8 @@ public class VFXComponentEditor : Editor
             m_Styles = new Styles();
     }
 
+    public static bool s_IsEditingAsset = false;
+
     protected virtual void OnSceneGUI()
     {
         if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
@@ -627,6 +629,8 @@ public class VFXComponentEditor : Editor
             this
             );
         GUI.enabled = true;
+
+        s_IsEditingAsset = EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this);
     }
 
     private void SetPlayRate(object rate)

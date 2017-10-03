@@ -28,7 +28,8 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent evt)
         {
-            Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
+            if (!VFXComponentEditor.s_IsEditingAsset)
+                Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
         }
     }
 
@@ -455,15 +456,18 @@ namespace UnityEditor.VFX.UI
 
         void SelectionUpdated()
         {
-            var contextSelected = selection.OfType<VFXContextUI>();
+            if (!VFXComponentEditor.s_IsEditingAsset)
+            {
+                var contextSelected = selection.OfType<VFXContextUI>();
 
-            if (contextSelected.Count() > 0)
-            {
-                Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
-            }
-            else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
-            {
-                Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                if (contextSelected.Count() > 0)
+                {
+                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                }
+                else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+                {
+                    Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                }
             }
         }
 

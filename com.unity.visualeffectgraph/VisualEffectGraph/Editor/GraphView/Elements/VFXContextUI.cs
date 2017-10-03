@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IDropTarget
+    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerOwner
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -323,8 +323,8 @@ namespace UnityEditor.VFX.UI
         public override void OnSelected()
         {
             //this.SendToFront();
-
-            Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
+            if (!VFXComponentEditor.s_IsEditingAsset)
+                Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
 
         public EventPropagation DeleteSelection()
