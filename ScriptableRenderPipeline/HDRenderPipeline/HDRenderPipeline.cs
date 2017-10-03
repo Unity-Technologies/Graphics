@@ -925,12 +925,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderGBuffer(m_CullResults, camera, renderContext, cmd);
 
-            // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
-            // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
-            if (!m_Asset.renderingSettings.useForwardRenderingOnly)
-            {
-                CopyDepthBufferIfNeeded(cmd);
-            }
+            // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
+            CopyDepthBufferIfNeeded(cmd);
 
             // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
@@ -980,13 +976,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
-
-                // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
-                // If Deferred nothing needs copying anymore.
-                if (m_Asset.renderingSettings.useForwardRenderingOnly)
-                {
-                    CopyDepthBufferIfNeeded(cmd);
-                }
 
                 RenderSky(hdCamera, cmd);
 
