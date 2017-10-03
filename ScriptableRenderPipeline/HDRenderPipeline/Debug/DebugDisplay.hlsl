@@ -29,6 +29,14 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 #endif
             break;
 
+        case DEBUGVIEWPROPERTIES_VERTEX_DISPLACEMENT:
+#ifdef _VERTEX_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD
+            result = float3(1.0, 0.0, 0.0);
+#else
+            result = float3(0.0, 0.0, 0.0);
+#endif
+            break;
+
         case DEBUGVIEWPROPERTIES_DEPTH_OFFSET:
 #ifdef _DEPTHOFFSET_ON  // Caution: This define is related to a shader features (But it may become a standard features for HD
             result = float3(1.0, 0.0, 0.0);

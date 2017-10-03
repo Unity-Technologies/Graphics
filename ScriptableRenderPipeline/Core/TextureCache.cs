@@ -312,11 +312,12 @@ namespace UnityEngine.Experimental.Rendering
             var bFoundAvailOrExistingSlice = false;
 
             // search for existing copy
-            if (m_LocatorInSliceArray.ContainsKey(texId))
+            int cachedSlice;
+            if (m_LocatorInSliceArray.TryGetValue(texId, out cachedSlice))
             {
-                sliceIndex = m_LocatorInSliceArray[texId];
+                sliceIndex = cachedSlice;
                 bFoundAvailOrExistingSlice = true;
-                //assert(m_SliceArray[sliceIndex].TexID==TexID);
+                Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
             }
 
             // If no existing copy found in the array
@@ -352,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering
 
 
             // wrap up
-            //assert(bFoundAvailOrExistingSlice);
+            Debug.Assert(bFoundAvailOrExistingSlice, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
             if (bFoundAvailOrExistingSlice)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame

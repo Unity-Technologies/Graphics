@@ -9,16 +9,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LitSSS          = 0,
             LitStandard     = 1,
-            LitClearCoat    = 2,
-            LitUnused       = 3,
-            // We don't store any materialId for aniso but instead deduce it from LitStandard + value of specular + anisotropy parameters
-            // Consequence is that when querying materialId alone, it will read 2 RT and not only one. This may be a performance hit when only materialId is desired (like in material classification pass)
-            // Alternative is to use a materialId slot, if any are available.
-            LitAniso        = 4,
+            LitAniso        = 2,
+            LitClearCoat    = 3,
             // LitSpecular (DiffuseColor/SpecularColor) is an alternate parametrization for LitStandard (BaseColor/Metal/Specular), but it is the same shading model
             // We don't want any specific materialId for it, instead we use LitStandard as materialId. However for UI purpose we still define this value here.
             // For material classification we will use LitStandard too
-            LitSpecular     = 5,
+            LitSpecular     = 4,
         };
 
         // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
@@ -28,9 +24,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LitSSS          = 1 << MaterialId.LitSSS,
             LitStandard     = 1 << MaterialId.LitStandard,
-            LitClearCoat    = 1 << MaterialId.LitClearCoat,
-            LitUnused       = 1 << MaterialId.LitUnused,
             LitAniso        = 1 << MaterialId.LitAniso,
+            LitClearCoat    = 1 << MaterialId.LitClearCoat,
         };
 
         [GenerateHLSL]
@@ -38,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public static int s_GBufferLitStandardRegularId = 0;
             public static int s_GBufferLitStandardSpecularColorId = 1;
-            public static int s_GBufferLitStandardAnisotropicId = 2;
 
             public static float s_DefaultSpecularValue = 0.04f;
             public static float s_SkinSpecularValue = 0.028f;

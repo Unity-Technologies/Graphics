@@ -25,6 +25,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(PackedVaryingsToPS packedInput,
+// YIBING BEGIN
         #ifdef FORWARD_SPLIT_LIGHTING
             out float4 outColor : SV_Target0, // this is outSpecular
             out float4 outDiffuse : SV_Target1,
@@ -34,6 +35,8 @@ void Frag(PackedVaryingsToPS packedInput,
             out float4 outColor : SV_Target0
         #endif
 
+          //out float4 outColor : SV_Target0
+// YIBING END		  
       #ifdef _DEPTHOFFSET_ON
           , out float outputDepth : SV_Depth
       #endif
@@ -67,14 +70,17 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
+	// YIBING BEGIN
 #ifdef FORWARD_SPLIT_LIGHTING
     outColor = float4(specularLighting, 1.0);
     outDiffuse = float4(diffuseLighting, 1.0);
     outGbuffer0 = EncodeSplitLightingGBuffer0(surfaceData);
     outGbuffer2 = EncodeSplitLightingGBuffer1(surfaceData);
-#else
-    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+#else	
+   outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 #endif
+	// outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+	// YIBING END    
     }
 
 #ifdef _DEPTHOFFSET_ON

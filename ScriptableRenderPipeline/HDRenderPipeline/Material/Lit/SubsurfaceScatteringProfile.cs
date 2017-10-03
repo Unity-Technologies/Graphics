@@ -638,34 +638,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 #if UNITY_EDITOR
-    public class SubsurfaceScatteringProfileFactory
-    {
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
-        static void MenuCreateSubsurfaceScatteringProfile()
-        {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0,
-                ScriptableObject.CreateInstance<DoCreateSubsurfaceScatteringProfile>(),
-                "New SSS Profile.asset", icon, null);
-        }
-
-        public static SubsurfaceScatteringProfile CreateSssProfileAtPath(string path)
-        {
-            var profile  = ScriptableObject.CreateInstance<SubsurfaceScatteringProfile>();
-            profile.name = System.IO.Path.GetFileName(path);
-            AssetDatabase.CreateAsset(profile, path);
-            return profile;
-        }
-    }
-
-    class DoCreateSubsurfaceScatteringProfile : UnityEditor.ProjectWindowCallback.EndNameEditAction
-    {
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            var profiles = SubsurfaceScatteringProfileFactory.CreateSssProfileAtPath(pathName);
-            ProjectWindowUtil.ShowCreatedAsset(profiles);
-        }
-    }
 
     [CustomEditor(typeof(SubsurfaceScatteringProfile))]
     public class SubsurfaceScatteringProfileEditor : Editor

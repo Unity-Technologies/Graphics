@@ -13,8 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Settings:
     m_Enable: 1
-    m_AffectDirectLigthingStrenght: 0
     m_Intensity: 1
-    m_Radius: 1
+    m_Radius: 0.2
     m_SampleCount: 8
     m_Downsampling: 1
