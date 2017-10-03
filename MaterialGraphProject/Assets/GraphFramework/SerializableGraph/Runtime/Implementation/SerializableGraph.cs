@@ -263,7 +263,7 @@ namespace UnityEngine.Graphing
 
         public OnGraphChange onChange { get; set; }
 
-        void NotifyChange(GraphChange change)
+        protected void NotifyChange(GraphChange change)
         {
             if (onChange != null)
                 onChange(change);
