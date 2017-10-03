@@ -4,6 +4,17 @@
 #include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+void DoAlphaTest(float alpha, float alphaCutoff)
+{
+    // For Deferred:
+    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
+    // For Forward (Full forward or ForwardOnlyOpaque in deferred):
+    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    #if ((SHADER_PASS == SHADERPASS_GBUFFER) && !defined(_BYPASS_ALPHA_TEST)) || (SHADER_PASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_TRANSPARENT))
+        clip(alpha - alphaCutoff);
+    #endif
+}
+
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
 {
@@ -41,7 +52,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
 
-    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(1.0, surfaceData.baseColor, _AlbedoAffectEmissive);
+    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb;
 #endif
@@ -207,7 +218,7 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 #if defined(_HEIGHTMAP)
-    maxDisplacement = _HeightAmplitude;
+    maxDisplacement = abs(_HeightAmplitude); // _HeightAmplitude can be negative if min and max are inverted, but the max displacement must be positive
 #endif
     return maxDisplacement;
 }
@@ -327,6 +338,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+
             NdotV = viewDirTS.z;
 
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
@@ -353,7 +365,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    #ifdef _TESSELLATION_TILING_SCALE
+    #ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
     // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
     float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
@@ -720,10 +732,10 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
-void ApplyTessellationTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
+void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-#ifdef _TESSELLATION_TILING_SCALE
+#ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
     float tileObjectScale = 1.0;
     #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     // Extract scaling from world transform
@@ -827,23 +839,24 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 
+    // _HeightAmplitudeX can be negative if min and max are inverted, but the max displacement must be positive, take abs()
 #if defined(_HEIGHTMAP0)
-    maxDisplacement = _HeightAmplitude0;
+    maxDisplacement = abs(_HeightAmplitude0);
 #endif
 
 #if defined(_HEIGHTMAP1)
-    maxDisplacement = max(  _HeightAmplitude1
+    maxDisplacement = max(  abs(_HeightAmplitude1)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight1
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    maxDisplacement = max(  _HeightAmplitude2
+    maxDisplacement = max(  abs(_HeightAmplitude2)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight2
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -851,9 +864,9 @@ float GetMaxDisplacement()
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    maxDisplacement = max(  _HeightAmplitude3
+    maxDisplacement = max(  abs(_HeightAmplitude3)
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            +_HeightAmplitude0 * _InheritBaseHeight3
+                            + abs(_HeightAmplitude0) * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
@@ -1126,7 +1139,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float verticalDisplacement = maxHeight - height * maxHeight;
         // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
         float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
-        return tilingScale * verticalDisplacement / NdotV;
+        return tilingScale * verticalDisplacement / max(NdotV, 0.001);
     }
 
     return 0.0;
@@ -1184,7 +1197,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
-    ApplyTessellationTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+    ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     float4 resultBlendMasks = inputBlendMasks;
@@ -1260,7 +1273,12 @@ float3 ComputeMainNormalInfluence(float influenceMask, FragInputs input, float3 
     float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights) * influenceMask;
     // We will add smoothly the contribution of the normal map by lerping between vertex normal ( (0,0,1) in tangent space) and the actual normal from the main layer depending on the influence factor.
     // Note: that we don't take details map into account here.
-    float3 mainNormalTS = lerp(float3(0.0, 0.0, 1.0), normalTS0, influenceFactor);
+    #ifdef SURFACE_GRADIENT
+    float3 neutralNormalTS = float3(0.0, 0.0, 0.0);
+    #else
+    float3 neutralNormalTS = float3(0.0, 0.0, 1.0);
+    #endif
+    float3 mainNormalTS = lerp(neutralNormalTS, normalTS0, influenceFactor);
 
     // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
     #ifdef SURFACE_GRADIENT
@@ -1290,7 +1308,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
     // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
     // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / meanColor - baseColor);
+    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
     return influenceFactor * factor + baseColor;
 }
 
@@ -1334,7 +1352,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
 #ifdef _ALPHATEST_ON
-    clip(alpha - _AlphaCutoff);
+    DoAlphaTest(alpha, _AlphaCutoff);
 #endif
 
     float3 normalTS;
@@ -1390,6 +1408,4 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #endif // #ifndef LAYERED_LIT_SHADER
 
-#ifdef TESSELLATION_ON
 #include "LitTessellation.hlsl" // Must be after GetLayerTexCoord() declaration
-#endif

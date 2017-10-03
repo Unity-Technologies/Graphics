@@ -29,7 +29,7 @@ void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0,
     vE0 = p1-p0;
 }
 
-void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
+void GetHullQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
     //const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
     const int iAbsSide = min(sideIndex>>1, 2);
@@ -56,7 +56,7 @@ void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const f
     p3 = center + (vA2 + vB2 + vC);
 }
 
-void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
+void GetHullPlane(out float3 p0, out float3 n0, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
     //const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
     const int iAbsSide = min(sideIndex>>1, 2);
@@ -76,20 +76,16 @@ void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY
 
     if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
 
-    p0 = center + (vA + vB - vC);       // center + vA is center of face when scaleXY is 1.0
-    float3 vNout = cross( vB2, 0.5*(vA-vA2) - vC );
-
-#if USE_LEFT_HAND_CAMERA_SPACE
-    vNout = -vNout;
-#endif
-
-    vN = vNout;
+	float3 vN = cross(vB2, 0.5 * (vA - vA2) - vC);	// +/- normal
+    float3 v0 = vA + vB - vC;   // vector from center to p0
+    p0 = center + v0;           // center + vA is center of face when scaleXY is 1.0
+    n0 = dot(vN,v0) < 0.0 ? (-vN) : vN;
 }
 
-float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
+float4 GetHullPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
     float3 p0, vN;
-    GetPlane(p0, vN, boxX, boxY, boxZ, center, scaleXY, sideIndex);
+    GetHullPlane(p0, vN, boxX, boxY, boxZ, center, scaleXY, sideIndex);
 
     return float4(vN, -dot(vN,p0));
 }

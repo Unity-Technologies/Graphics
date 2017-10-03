@@ -178,6 +178,11 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     return float4(color + d.xxx, 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEFERRED_SHADOWS)
+                {
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+                    return float4(color.rgb, 0.0);
+                }
 
                 return float4(0.0, 0.0, 0.0, 0.0);
             }

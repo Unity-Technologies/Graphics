@@ -50,14 +50,6 @@ Shader "HDRenderPipeline/LitTessellation"
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
-        // Wind
-        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
-        _InitialBend("Initial Bend", float) = 1.0
-        _Stiffness("Stiffness", float) = 1.0
-        _Drag("Drag", float) = 1.0
-        _ShiverDrag("Shiver Drag", float) = 0.2
-        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
-
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         // Following options are for the GUI inspector and different from the input parameters above
@@ -98,16 +90,30 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        // Note: 2 and 3 are currently unused
-        [Enum(Subsurface Scattering, 0, Standard, 1, ClearCoat, 2, Anisotropy, 4, Specular Color, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
+        [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+        // Displacement map
+        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
+        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
+        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
+
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -116,15 +122,13 @@ Shader "HDRenderPipeline/LitTessellation"
         _EmissionColor("Color", Color) = (1, 1, 1)
 
         // Tessellation specific
-        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
+        [Enum(None, 0, Phong, 1)] _TessellationMode("Tessellation mode", Float) = 0
         _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
         _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
         _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
-        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
-        [ToggleOff] _TessellationTilingScale("Tessellation tiling height scale", Float) = 1.0
          // TODO: Handle culling mode for backface culling
     }
 
@@ -143,10 +147,12 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    // Default is _TESSELLATION_PHONG
-    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
-    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
-    #pragma shader_feature _TESSELLATION_TILING_SCALE
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _VERTEX_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _VERTEX_WIND
+    #pragma shader_feature _TESSELLATION_PHONG
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
@@ -164,7 +170,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
-    #pragma shader_feature _VERTEX_WIND
+
+    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
@@ -186,6 +193,9 @@ Shader "HDRenderPipeline/LitTessellation"
     #define TESSELLATION_ON
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
+    // This shader support vertex modification
+    #define HAVE_VERTEX_MODIFICATION
+    #define HAVE_TESSELLATION_MODIFICATION
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -231,6 +241,38 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
+        // This pass is the same as GBuffer only it does not do alpha test (the clip instruction is removed)
+        // This is due to the fact that on GCN, any shader with a clip instruction cannot benefit from HiZ so when we do a prepass, in order to get the most performance, we need to make a special case in the subsequent GBuffer pass.
+        Pass
+        {
+            Name "GBufferWithPrepass"  // Name is not used
+            Tags { "LightMode" = "GBufferWithPrepass" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #define _BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"

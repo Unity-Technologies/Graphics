@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering
         [HideInInspector, SerializeField]
         private int shadowCascadeCount = 4;
         [HideInInspector, SerializeField]
-        public float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
+        private float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
         [HideInInspector, SerializeField]
         private float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
         [HideInInspector, SerializeField]
@@ -46,6 +46,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public int cascadeCount { get { return shadowCascadeCount; } }
         public void GetShadowCascades(out int cascadeCount, out float[] cascadeRatios, out float[] cascadeBorders) { cascadeCount = shadowCascadeCount; cascadeRatios = shadowCascadeRatios; cascadeBorders = shadowCascadeBorders; }
+        public void SetShadowCascades(int cascadeCount, float[] cascadeRatios, float[] cascadeBorders) { shadowCascadeCount = cascadeCount; shadowCascadeRatios = cascadeRatios; shadowCascadeBorders = cascadeBorders; }
         public void GetShadowAlgorithm(out int algorithm, out int variant, out int precision) { algorithm = shadowAlgorithm; variant = shadowVariant; precision = shadowPrecision; }
         public void SetShadowAlgorithm(int algorithm, int variant, int precision, int format, int[] data)
         {

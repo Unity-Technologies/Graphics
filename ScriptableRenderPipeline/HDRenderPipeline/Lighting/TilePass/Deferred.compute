@@ -30,10 +30,6 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant24              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant24                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Fptl_Variant25              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant25                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=25
 #pragma kernel Deferred_Indirect_Fptl_Variant26              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant26                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=26
-#pragma kernel Deferred_Indirect_Fptl_Variant27              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant27                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=27
-#pragma kernel Deferred_Indirect_Fptl_Variant28              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=28
-#pragma kernel Deferred_Indirect_Fptl_Variant29              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant29                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=29
-#pragma kernel Deferred_Indirect_Fptl_Variant30              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant30                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=30
 
 /* Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
 #pragma kernel Deferred_Indirect_Clustered_Variant0          SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant0              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=0
@@ -63,10 +59,6 @@
 #pragma kernel Deferred_Indirect_Clustered_Variant24         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant24             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Clustered_Variant25         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant25             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=25
 #pragma kernel Deferred_Indirect_Clustered_Variant26         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant26             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=26
-#pragma kernel Deferred_Indirect_Clustered_Variant27         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant27             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=27
-#pragma kernel Deferred_Indirect_Clustered_Variant28         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant28             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=28
-#pragma kernel Deferred_Indirect_Clustered_Variant29         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant29             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=29
-#pragma kernel Deferred_Indirect_Clustered_Variant30         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant30             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=30
 */
 
 #define LIGHTLOOP_TILE_PASS 1
@@ -152,7 +144,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-    if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS)
+    if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
         // We SSSSS is enabled with use split lighting.
         // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS

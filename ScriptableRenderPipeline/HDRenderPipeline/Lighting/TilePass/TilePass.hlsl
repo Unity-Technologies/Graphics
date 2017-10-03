@@ -54,6 +54,8 @@ SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvT
 
 TEXTURE2D(_AmbientOcclusionTexture);
 
+TEXTURE2D(_DeferredShadowTexture);
+
 CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;

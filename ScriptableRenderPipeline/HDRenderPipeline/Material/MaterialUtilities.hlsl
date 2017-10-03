@@ -33,13 +33,19 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 
     float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
+#ifdef UNITY_LIGHTMAP_FULL_HDR
+    bool useRGBMLightmap = false;
+#else
+    bool useRGBMLightmap = true;
+#endif
+
     #ifdef LIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
         bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
                                                         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
-                                                        uvStaticLightmap, unity_LightmapST, normalWS, true);
+                                                        uvStaticLightmap, unity_LightmapST, normalWS, useRGBMLightmap);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, true);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap);
         #endif
     #endif
 

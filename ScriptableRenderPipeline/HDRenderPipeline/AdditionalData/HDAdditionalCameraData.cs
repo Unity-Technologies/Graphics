@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // This struct allow to add specialized path in HDRenderPipeline (can be use to render mini map or planar reflection etc...)
     public enum RenderingPathHDRP { Default, Unlit };

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/TilePass.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/TilePass.cs.  Please don't edit by hand.
 //
 
 #ifndef TILEPASS_CS_HLSL
@@ -38,7 +38,7 @@
 #define USE_LEFT_HAND_CAMERA_SPACE (1)
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
-#define NUM_FEATURE_VARIANTS (31)
+#define NUM_FEATURE_VARIANTS (27)
 #define LIGHT_FEATURE_MASK_FLAGS (65280)
 #define MATERIAL_FEATURE_MASK_FLAGS (255)
 

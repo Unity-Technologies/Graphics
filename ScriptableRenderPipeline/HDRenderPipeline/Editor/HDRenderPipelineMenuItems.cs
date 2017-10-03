@@ -176,5 +176,68 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AssetDatabase.Refresh();
             }
         }
+
+        [MenuItem("GameObject/HD Render Pipeline/Scene Settings", false, 10)]
+        static void CreateCustomGameObject(MenuCommand menuCommand)
+        {
+            GameObject sceneSettings = new GameObject("Scene Settings");
+            GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
+            Selection.activeObject = sceneSettings;
+            sceneSettings.AddComponent<SceneSettings>();
+        }
+
+        class DoCreateNewAsset<AssetType> : UnityEditor.ProjectWindowCallback.EndNameEditAction where AssetType : ScriptableObject
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var newAsset  = ScriptableObject.CreateInstance<AssetType>();
+                newAsset.name = System.IO.Path.GetFileName(pathName);
+                AssetDatabase.CreateAsset(newAsset, pathName);
+                ProjectWindowUtil.ShowCreatedAsset(newAsset);
+            }
+        }
+
+        class DoCreateNewAssetSSSProfile : DoCreateNewAsset<SubsurfaceScatteringProfile> {}
+        class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
+        class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
+        class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
+        class DoCreateNewAssetSSAOSettings : DoCreateNewAsset<ScreenSpaceAmbientOcclusionSettings> {}
+
+
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
+        static void MenuCreateSubsurfaceScatteringProfile()
+        {
+            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSSProfile>(), "New SSS Profile.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 677)]
+        static void MenuCreateCommonSettings()
+        {
+            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 678)]
+        static void MenuCreateHDRISkySettings()
+        {
+            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 679)]
+        static void MenuCreateProceduralSkySettings()
+        {
+            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/Ambient Occlusion Settings", priority = 680)]
+        static void MenuCreateSSAOSettings()
+        {
+            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSAOSettings>(), "New AmbientOcclusionSettings.asset", icon, null);
+        }
     }
 }

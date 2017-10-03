@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/LightDefinition.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Lighting/LightDefinition.cs.  Please don't edit by hand.
 //
 
 #ifndef LIGHTDEFINITION_CS_HLSL
@@ -14,10 +14,6 @@
 #define GPULIGHTTYPE_PROJECTOR_PYRAMID (4)
 #define GPULIGHTTYPE_LINE (5)
 #define GPULIGHTTYPE_RECTANGLE (6)
-#define GPULIGHTTYPE_SPHERE (7)
-#define GPULIGHTTYPE_DISK (8)
-#define GPULIGHTTYPE_HEMISPHERE (9)
-#define GPULIGHTTYPE_CYLINDER (10)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.EnvShapeType:  static fields

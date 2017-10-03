@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VelocityInGBuffer = 0, // Change to 1 to enable the feature, then regenerate hlsl headers.
         // TODO: not working yet, waiting for UINT16 RT format support
         PackGBufferInU16 = 0,
-        CameraRelativeRendering = 0 // Rendering sets the origin of the world to the position of the primary (scene view) camera
+        CameraRelativeRendering = 1 // Rendering sets the origin of the world to the position of the primary (scene view) camera
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
