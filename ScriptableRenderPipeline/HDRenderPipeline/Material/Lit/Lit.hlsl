@@ -1615,8 +1615,8 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
     if (refractedBackPointDepth < posInput.depthVS
-        || refractedBackPointSS.x < 0.0 || refractedBackPointSS.x > 1.0
-        || refractedBackPointSS.y < 0.0 || refractedBackPointSS.y > 1.0)
+        || any(refractedBackPointSS < 0.0)
+        || any(refractedBackPointSS > 1.0))
     {
         diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, 0.0).rgb;
         return;
