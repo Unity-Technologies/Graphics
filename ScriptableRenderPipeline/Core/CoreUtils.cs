@@ -96,6 +96,15 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
         }
 
+        public static void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size, RenderPipelineResources resources)
+        {
+            var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);
+            cmd.SetComputeVectorParam(resources.copyChannelCS, HDShaderIDs._Size, s);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Source4, source);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Result1, target);
+            cmd.DispatchCompute(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, (int)(size.x) / 8, (int)(size.y) / 8, 1);
+        }
+
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
             for(int i = 0; i < 6; ++i)
