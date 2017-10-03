@@ -1,3 +1,5 @@
+#define USE_MY_COLOR_FIELD
+
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -9,6 +11,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+
 namespace UnityEditor.VFX.UI
 {
     class ColorPropertyRM : PropertyRM<Color>
@@ -18,8 +21,16 @@ namespace UnityEditor.VFX.UI
         {
             m_MainContainer = new VisualElement();
 
-            m_ColorField = new ColorField(m_Label);
+#if USE_MY_COLOR_FIELD
+            m_ColorField = new UnityEditor.VFX.UIElements.ColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
+#else
+            m_ColorField = new LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color>(m_Label);
+            m_ColorField.RegisterCallback<ChangeEvent<Color>>(OnValueChanged);
+            // todo : get it from a slot attribute
+            //m_ColorField.control.hdrConfig = new ColorPickerHDRConfig(-1, 5, 0, 3);
+#endif
+
 
             m_MainContainer.Add(m_ColorField);
             m_MainContainer.AddToClassList("maincontainer");
@@ -56,6 +67,11 @@ namespace UnityEditor.VFX.UI
             m_MainContainer.SetEnabled(propertyEnabled);
         }
 
+        public void OnValueChanged(ChangeEvent<Color> e)
+        {
+            OnValueChanged();
+        }
+
         public void OnValueChanged()
         {
             Color newValue = new Color(m_RFloatField.GetValue(), m_GFloatField.GetValue(), m_BFloatField.GetValue(), m_AFloatField.GetValue());
@@ -66,7 +82,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                newValue = m_ColorField.GetValue();
+                newValue = m_ColorField.value;
                 if (newValue != m_Value)
                 {
                     m_Value = newValue;
@@ -79,11 +95,16 @@ namespace UnityEditor.VFX.UI
         FloatField m_GFloatField;
         FloatField m_BFloatField;
         FloatField m_AFloatField;
-        ColorField m_ColorField;
+
+#if USE_MY_COLOR_FIELD
+        UnityEditor.VFX.UIElements.ColorField m_ColorField;
+#else
+        LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color> m_ColorField;
+#endif
 
         public override void UpdateGUI()
         {
-            m_ColorField.SetValue(m_Value);
+            m_ColorField.value = m_Value;
             m_RFloatField.SetValue(m_Value.r);
             m_GFloatField.SetValue(m_Value.g);
             m_BFloatField.SetValue(m_Value.b);

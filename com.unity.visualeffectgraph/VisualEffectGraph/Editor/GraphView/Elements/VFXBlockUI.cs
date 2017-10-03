@@ -9,9 +9,18 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
+    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget, IEdgeDrawerOwner
     {
         Toggle m_EnableToggle;
+
+
+        public void DirtyDrawer()
+        {
+            VFXContextUI contextUI = GetFirstAncestorOfType<VFXContextUI>();
+
+            if (contextUI != null)
+                contextUI.DirtyDrawer();
+        }
 
         public VFXBlockUI()
         {
@@ -27,10 +36,6 @@ namespace UnityEditor.VFX.UI
             var presenter = GetPresenter<VFXBlockPresenter>();
 
             presenter.block.enabled = !presenter.block.enabled;
-        }
-
-        public override void OnSelected()
-        {
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target

@@ -10,6 +10,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+//using CurveField = UnityEditor.VFX.UIElements.CurveField;
+
 namespace UnityEditor.VFX
 {
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
@@ -38,15 +40,15 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class IntPropertyRM : SimplePropertyRM<int>
+    class IntPropertyRM : SimpleUIPropertyRM<int, long>
     {
         public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<int> CreateField()
+        public override IControl<long> CreateField()
         {
-            return new IntField(m_Label);
+            return new LabeledField<IntegerField, long>(m_Label);
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
@@ -61,19 +63,20 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class FloatPropertyRM : SimplePropertyRM<float>
+    class FloatPropertyRM : SimpleUIPropertyRM<float, double>
     {
         public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<float> CreateField()
+        public override IControl<double> CreateField()
         {
-            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero)
-                return new FloatField(m_Label);
+            //Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+
+            //if (range == Vector2.zero)
+            return new LabeledField<DoubleField, double>(m_Label);   /*
             else
-                return new SliderField(m_Label, range);
+                return new SliderField(m_Label, range);*/
         }
     }
 
@@ -85,7 +88,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<AnimationCurve> CreateField()
         {
-            return new CurveField(m_Label);
+            return new VFX.UIElements.CurveField(m_Label);//LabeledField<UnityEditor.Experimental.UIElements.CurveField,AnimationCurve>(m_Label);
         }
     }
 
