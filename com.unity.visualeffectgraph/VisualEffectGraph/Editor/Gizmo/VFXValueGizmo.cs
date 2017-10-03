@@ -37,6 +37,7 @@ namespace UnityEditor.VFX.UI
             s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
             s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
             s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
+            s_DrawFunctions[typeof(ArcTorus)] = OnDrawArcTorusDataAnchorGizmo;
 
             foreach (Type type in typeof(VFXValueGizmo).Assembly.GetTypes())
             {
@@ -347,6 +348,125 @@ namespace UnityEditor.VFX.UI
                     sphere.arc = arc * Mathf.Deg2Rad;
 
                     anchor.value = sphere;
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
+        static void OnDrawArcTorusDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcTorus torus = (ArcTorus)anchor.value;
+
+            Vector3 center = torus.center;
+            float majorRadius = torus.majorRadius;
+            float minorRadius = torus.minorRadius;
+            float arc = torus.arc * Mathf.Rad2Deg;
+            if (torus.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            if (PositionGizmo(component, torus.space, ref torus.center))
+            {
+                anchor.value = torus;
+            }
+
+            Handles.DrawLine(Vector3.zero, Vector3.up * majorRadius);
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * majorRadius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    torus.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = torus;
+                }
+            }
+
+            // Donut extents
+            float excessAngle = arc % 360f;
+            float angle = Mathf.Abs(arc) >= 360f ? 360f : excessAngle;
+
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Handles.DrawWireArc(new Vector3(0.0f, minorRadius, 0.0f), Vector3.up, Vector3.forward, angle, majorRadius);
+                Handles.DrawWireArc(new Vector3(0.0f, -minorRadius, 0.0f), Vector3.up, Vector3.forward, angle, majorRadius);
+                Handles.DrawWireArc(Vector3.zero, Vector3.up, Vector3.forward, angle, majorRadius + minorRadius);
+                Handles.DrawWireArc(Vector3.zero, Vector3.up, Vector3.forward, angle, majorRadius - minorRadius);
+
+                foreach (var arcAngle in new float[] { 0.0f, 90.0f, 180.0f, 270.0f, arc }.Where(a => a <= arc))
+                {
+                    Quaternion arcRotation = Quaternion.AngleAxis(arcAngle, Vector3.up);
+                    Vector3 capCenter = arcRotation * Vector3.forward * majorRadius;
+                    Handles.DrawWireDisc(capCenter, arcRotation * Vector3.right, minorRadius);
+
+                    if (arcAngle != arc)
+                    {
+                        // Minor radius
+                        foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
+                        {
+                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * dist;
+
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 sliderPos = capCenter + distRotated * minorRadius;
+                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                            if (GUI.changed)
+                            {
+                                torus.minorRadius = (result - capCenter).magnitude;
+
+                                if (float.IsNaN(torus.minorRadius))
+                                {
+                                    torus.minorRadius = 0;
+                                }
+
+                                anchor.value = torus;
+                            }
+                            EditorGUI.EndChangeCheck();
+                        }
+
+                        // Major radius
+                        {
+                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * Vector3.left;
+
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 sliderPos = center + distRotated * majorRadius;
+                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                            if (GUI.changed)
+                            {
+                                torus.majorRadius = (result - center).magnitude;
+
+                                if (float.IsNaN(torus.majorRadius))
+                                {
+                                    torus.majorRadius = 0;
+                                }
+
+                                anchor.value = torus;
+                            }
+                            EditorGUI.EndChangeCheck();
+                        }
+                    }
                 }
             }
 
