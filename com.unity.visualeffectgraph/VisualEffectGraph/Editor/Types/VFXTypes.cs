@@ -199,7 +199,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The transform position.")]
         public Vector3 position;
-        [Tooltip("The eulter angles of the transform.")]
+        [Angle, Tooltip("The euler angles of the transform.")]
         public Vector3 angles;
         [Tooltip("The scale of the transform along each axis.")]
         public Vector3 scale;
