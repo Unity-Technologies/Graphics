@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var nearDiscDistance = Mathf.Cos(Mathf.Deg2Rad * spotlight.spotAngle / 2) * spotlight.shadowNearPlane;
             var nearDiscRadius = spotlight.shadowNearPlane * Mathf.Sin(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f);
 
-            
+
             //Draw Range disc
             Handles.Disc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * rangeDiscDistance, spotlight.gameObject.transform.forward, rangeDiscRadius, false, 1);
             //Draw Lines
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void DrawArealightGizmo(Light arealight)
         {
-            
+
             var RectangleSize = new Vector3(arealight.areaSize.x, arealight.areaSize.y, 0);
             Gizmos.matrix = arealight.transform.localToWorldMatrix;
             Gizmos.DrawWireCube(Vector3.zero, RectangleSize);
@@ -209,7 +209,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void DrawSplitter()
         {
-            EditorGUILayout.Space();
             var rect = GUILayoutUtility.GetRect(1f, 1f);
 
             // Splitter rect should be full-width

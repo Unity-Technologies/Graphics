@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build(RenderPipelineResources renderPipelineResources)
         {
-            m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
+            m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
             // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
             m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
@@ -288,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Cleanup()
         {
-            Utilities.Destroy(m_InitPreFGD);
+            CoreUtils.Destroy(m_InitPreFGD);
 
             // TODO: how to delete RenderTexture ? or do we need to do it ?
             m_isInit = false;
@@ -299,9 +299,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_isInit)
                 return;
 
-            using (new Utilities.ProfilingSample("Init PreFGD", cmd))
+            using (new ProfilingSample("Init PreFGD", cmd))
             {
-                Utilities.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
+                CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
             m_isInit = true;
         }
