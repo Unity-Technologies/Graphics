@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static void CreateHDRenderPipeline()
         {
             var instance = CreateInstance<HDRenderPipelineAsset>();
-            AssetDatabase.CreateAsset(instance, Utilities.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
+            AssetDatabase.CreateAsset(instance, HDUtils.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
 
             // If it exist, load renderPipelineResources
             instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.GetRenderPipelineResourcesPath());
