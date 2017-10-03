@@ -88,6 +88,79 @@ GraphInspectorView > #bottom > #preview {
     background-color: rgb(79, 79, 79);
 }
 
+GraphInspectorView > #bottom > #properties {
+    border-color: rgb(41, 41, 41);
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    margin-top: 8;
+    margin-bottom: 8;
+    margin-left: 8;
+    margin-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #header {
+    border-color: rgb(41, 41, 41);
+    border-bottom-width: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+GraphInspectorView > #bottom > #properties > #header > #title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #header > #addButton {
+    height: 24;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #items {
+    padding-bottom: 4;
+}
+
+ShaderPropertyView {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8;
+    padding-bottom: 4;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+ShaderPropertyView > #displayName {
+    flex: 1;
+    margin-right: 8;
+}
+
+ShaderPropertyView > #value {
+    flex: 2;
+    margin-right: 8;
+}
+
+ShaderPropertyView > #remove {
+    font-size: 9;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 1;
+    padding-right: 1;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .nodeEditor {
     border-color: rgb(79, 79, 79);
     border-bottom-width: 1;
