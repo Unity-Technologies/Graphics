@@ -724,8 +724,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // <<< Old SSS Model
 
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
-            m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
-            m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
+            m_ProfileMaterial       = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
+            m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
 
             m_ProfileImage          = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
             m_TransmittanceImage    = new RenderTexture( 16, 256, 0, RenderTextureFormat.DefaultHDR);
@@ -787,7 +787,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
             // Old SSS Model >>>
-            Utilities.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
+            CoreUtils.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
             // Apply the three-sigma rule, and rescale.
             float   s       = (1.0f / 3.0f) * SssConstants.SSS_BASIC_DISTANCE_SCALE;
             float   rMax    = Mathf.Max(m_ScatterDistance1.colorValue.r, m_ScatterDistance1.colorValue.g, m_ScatterDistance1.colorValue.b,
