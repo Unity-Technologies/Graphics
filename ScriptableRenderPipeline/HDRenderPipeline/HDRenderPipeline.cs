@@ -1404,7 +1404,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             string passName = "ForwardOnlyOpaqueSplitLighting";
 
-            using (new Utilities.ProfilingSample(passName, cmd))
+            using (new ProfilingSample(passName, cmd))
             {
                 RenderTargetIdentifier[] colorMRTs = new RenderTargetIdentifier[4];
                 colorMRTs[0] = m_CameraColorBufferRT;
@@ -1412,20 +1412,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 colorMRTs[2] = m_gbufferManager.GetGBuffers()[0];
                 colorMRTs[3] = m_gbufferManager.GetGBuffers()[2];
 
-                Utilities.SetRenderTarget(cmd, colorMRTs, m_CameraDepthStencilBufferRT);
+                CoreUtils.SetRenderTarget(cmd, colorMRTs, m_CameraDepthStencilBufferRT);
 
                 m_LightLoop.RenderForward(camera, cmd, true);
 
-                RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName), Utilities.kRendererConfigurationBakedLighting);
+                RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName), HDUtils.k_RendererConfigurationBakedLighting);
             }
         }	
 		
 		void RenderForwardTransparentDepthWrite(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
 		{
 			string passName = "TransparentDepthWrite";
-            using (new Utilities.ProfilingSample("Forward transparent depth", cmd))
+            using (new ProfilingSample("Forward transparent depth", cmd))
 			{
-                Utilities.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
+                CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName));
 			}
 		}
