@@ -72,7 +72,11 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0)
     {
+#ifdef SURFACE_TYPE_TRANSPARENT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+        shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.unPositionSS).x;
+#endif
         illuminance *= shadow;
     }
 

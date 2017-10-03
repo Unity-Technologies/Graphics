@@ -1416,7 +1416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.RenderForward(camera, cmd, true);
 
-                RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passName, Utilities.kRendererConfigurationBakedLighting);
+                RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName), Utilities.kRendererConfigurationBakedLighting);
             }
         }	
 		
@@ -1426,7 +1426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("Forward transparent depth", cmd))
 			{
                 Utilities.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passName);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName));
 			}
 		}
 		// YIBING END		
