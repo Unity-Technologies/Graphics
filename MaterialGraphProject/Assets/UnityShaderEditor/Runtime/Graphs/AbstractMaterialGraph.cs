@@ -45,11 +45,13 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             m_Properties.Add(property);
+            NotifyChange(new ShaderPropertyAdded(property));
         }
 
         public void RemoveShaderProperty(Guid guid)
         {
-            m_Properties.RemoveAll(x => x.guid == guid);
+            if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
+                NotifyChange(new ShaderPropertyRemoved(guid));
         }
 
         public override Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
