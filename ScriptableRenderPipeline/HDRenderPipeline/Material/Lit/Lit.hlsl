@@ -1541,7 +1541,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     float distFromP = depth - posInput.depthVS;
 
     float VoR = dot(-V, R);
-    refractedBackPointWS = posInput.positionWS + R*distFromP / VoR;
+    refractedBackPointWS = posInput.positionWS + R * distFromP / VoR;
     opticalDepth = bsdfData.thickness;
 
 #elif defined(_REFRACTION_THICKSPHERE)
@@ -1564,14 +1564,14 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Refracted ray
     float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
     // Center of the tangent sphere
-    float3 C = posInput.positionWS - bsdfData.normalWS*bsdfData.thickness*0.5;
+    float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
 
     // Second refraction (tangent sphere out)
     float NoR1 = dot(bsdfData.normalWS, R1);
     // Optical depth within the sphere
-    opticalDepth = -NoR1*bsdfData.thickness;
+    opticalDepth = -NoR1 * bsdfData.thickness;
     // Out hit point in the tangent sphere
-    float3 P1 = posInput.positionWS + R1*opticalDepth;
+    float3 P1 = posInput.positionWS + R1 * opticalDepth;
     // Out normal
     float3 N1 = normalize(C - P1);
     // Out refracted ray
@@ -1580,7 +1580,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     float VoR1 = dot(V, R1);
 
     // Refracted source point
-    refractedBackPointWS = P1 - R2*(depthFromPosition - NoR1*VoR1*bsdfData.thickness) / N1oR2;
+    refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
 
 #elif defined(_REFRACTION_THINPLANE)
     /*
@@ -1604,7 +1604,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior)
     float VoR = dot(-V, R);
     float VoN = dot(V, bsdfData.normalWS);
-    refractedBackPointWS = posInput.positionWS + R*opticalDepth - V*(distFromP - VoR*opticalDepth);
+    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
 #endif
 
     // Calculate screen space coordinates of refracted point in back plane
