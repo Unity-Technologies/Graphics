@@ -193,7 +193,7 @@ public partial class HDRenderPipeline : RenderPipeline
         return (globalFogComponent != null);
     }
 
-    void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd)
+    void VolumetricLightingPass(CommandBuffer cmd, HDCamera hdCamera)
     {
         if (!SetGlobalVolumeProperties(m_VolumetricLightingEnabled, cmd, m_VolumetricLightingCS)) { return; }
 

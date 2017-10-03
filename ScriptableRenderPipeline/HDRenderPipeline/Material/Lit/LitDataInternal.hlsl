@@ -42,16 +42,15 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 
     // Apply tiling options
     ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
-    // Detail map tiling option inherit from the tiling of the base
-    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(TRANSFORM_TEX(uvDetails, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
 
     ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));
-    
-    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+
+    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_DetailMap));
 
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
@@ -164,7 +163,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
 #if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
-    DoAlphaTest(alpha, _AlphaCutoff);
+    clip(alpha - _AlphaCutoff);
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
@@ -184,7 +183,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.baseColor *= LerpWhiteTo(2.0 * saturate(detailAlbedo * ADD_IDX(_DetailAlbedoScale)), detailMask);
+    surfaceData.baseColor *= LerpWhiteTo(lerp(1, detailAlbedo, ADD_IDX(_DetailAlbedoScale)), detailMask);
 #endif
 
     surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function

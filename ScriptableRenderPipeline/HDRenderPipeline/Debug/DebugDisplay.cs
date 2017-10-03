@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -378,7 +378,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None = 0,
             Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
             PerPixelDisplacement,
-            VertexDisplacement,
             DepthOffset,
             Lightmap,
         }
@@ -486,7 +485,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MinLightingFullScreenDebug, 
         SSAO,
         SSAOBeforeFiltering,
-        DeferredShadows,
         MaxLightingFullScreenDebug,
 
         // Rendering

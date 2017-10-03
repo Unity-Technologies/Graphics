@@ -1,19 +1,6 @@
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using UnityEngine.Serialization;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿namespace UnityEngine.Experimental.Rendering
 {
-    // This enum extent the original LightType enum with new light type from HD
-    public enum LightTypeExtent 
-    { 
-        Punctual, // Fallback on LightShape type
-        Rectangle,
-        Line,
-        // Sphere, 
-        // Disc,
-    };
+    public enum LightArchetype { Punctual, Area };
 
     public enum SpotLightShape { Cone, Pyramid, Box };
 
@@ -22,16 +9,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Light))]
     public class HDAdditionalLightData : MonoBehaviour
     {
-        [Range(0.0f, 100.0f)]
-        [FormerlySerializedAs("m_innerSpotPercent")]
-        public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
+        [Range(0.0F, 100.0F)]
+        public float m_innerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
         public float GetInnerSpotPercent01()
         {
-            return Mathf.Clamp(m_InnerSpotPercent, 0.0f, 100.0f) / 100.0f;
+            return Mathf.Clamp(m_innerSpotPercent, 0.0f, 100.0f) / 100.0f;
         }
 
-        [Range(0.0f, 1.0f)]        
+        [Range(0.0F, 1.0F)]
         public float lightDimmer = 1.0f;
 
         // Not used for directional lights.
@@ -40,89 +26,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
 
-        [FormerlySerializedAs("archetype")]
-        public LightTypeExtent lightTypeExtent = LightTypeExtent.Punctual;
+        public LightArchetype archetype = LightArchetype.Punctual;
+        public SpotLightShape spotLightShape = SpotLightShape.Cone; // Note: Only for Spotlight, should be hide for other light
 
-        // Only for Spotlight, should be hide for other light
-        public SpotLightShape spotLightShape = SpotLightShape.Cone;
-
-        // Only for Rectangle/Line/projector lights
         [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightLength")]
-        public float shapeLength = 0.5f;
+        public float lightLength = 0.0f; // Area & projector lights
 
-        // Only for Rectangle/projector lights
         [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightWidth")]
-        public float shapeWidth = 0.5f;
+        public float lightWidth  = 0.0f; // Area & projector lights
 
-        // Only for Sphere/Disc        
-        public float shapeRadius = 0.0f;
-
-        // Only for Spot/Point - use to cheaply fake specular spherical area light
         [Range(0.0f, 1.0f)]
-        public float maxSmoothness = 1.0f;
+        public float maxSmoothness = 1.0f; // this is use with punctual light to fake an area lights
 
-        // If true, we apply the smooth attenuation factor on the range attenuation to get 0 value, else the attenuation is just inverse square and never reach 0
-        public bool applyRangeAttenuation = true;
-
-        // This is specific for the LightEditor GUI and not use at runtime
-        public bool useOldInspector = false;
-        public bool showAdditionalSettings = true; // TODO: Maybe we can remove if if we decide to always show additional settings
-
-#if UNITY_EDITOR
-
-        private void DrawGizmos(bool selected)
-        {
-            var light = gameObject.GetComponent<Light>();
-            var gizmoColor = light.color;
-            gizmoColor.a = selected ? 1.0f : 0.3f; // Fade for the gizmo
-            Gizmos.color = Handles.color = gizmoColor;
-
-            if (lightTypeExtent == LightTypeExtent.Punctual)
-            {
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        EditorLightUtilities.DrawDirectionalLightGizmo(light);
-                        break;
-                    case LightType.Point:
-                        EditorLightUtilities.DrawPointlightGizmo(light, selected);
-                        break;
-                    case LightType.Spot:
-                        if (spotLightShape == SpotLightShape.Cone)
-                            EditorLightUtilities.DrawSpotlightGizmo(light, selected);
-                        else if (spotLightShape == SpotLightShape.Pyramid)
-                            EditorLightUtilities.DrawFrustumlightGizmo(light);
-                        else if (spotLightShape == SpotLightShape.Box) // TODO
-                            EditorLightUtilities.DrawFrustumlightGizmo(light);
-                        break;
-                }
-            }
-            else
-            {
-                switch (lightTypeExtent)
-                {
-                    case LightTypeExtent.Rectangle:
-                        EditorLightUtilities.DrawArealightGizmo(light);
-                        break;
-                    case LightTypeExtent.Line:
-                        EditorLightUtilities.DrawArealightGizmo(light);
-                        break;
-                }
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            // DrawGizmos(false);
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            DrawGizmos(true);
-        }
-#endif
-
+        public bool applyRangeAttenuation = true; // If true, we apply the smooth attenuation factor on the range attenuation to get 0 value, else the attenuation is juste inverse square and never reach 0
     }
 }

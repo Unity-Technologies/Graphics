@@ -19,8 +19,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Line, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
         Rectangle,
         // Currently not supported in real time (just use for reference)
-        // Sphere,
-        // Disk,
+        Sphere,
+        Disk,
+        Hemisphere,
+        Cylinder
     };
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
@@ -36,10 +38,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 forward;
         public int cookieIndex; // -1 if unused
 
-        public Vector3 right;   // Rescaled by (2 / shapeLenght)
+        public Vector3 right;   // Rescaled by (2 / lightLength)
         public float specularScale;
 
-        public Vector3 up;      // Rescaled by (2 / shapeWidth)
+        public Vector3 up;      // Rescaled by (2 / lightWidth)
         public float diffuseScale;
     };
 
@@ -55,10 +57,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 forward;
         public int cookieIndex; // -1 if unused
 
-        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeLenght)
+        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / lightLength)
         public float specularScale;
 
-        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by * (2 / shapeWidth)
+        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by * (2 / lightWidth)
         public float diffuseScale;
 
         public float angleScale;  // Spot light
