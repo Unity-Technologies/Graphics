@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!isDebugViewMaterialInit)
             {
-                List<RenderPipelineMaterial> materialList = Utilities.GetRenderPipelineMaterialList();
+                List<RenderPipelineMaterial> materialList = CoreUtils.GetRenderPipelineMaterialList();
 
                 // TODO: Share this code to retrieve deferred material with HDRenderPipeline
                 // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
@@ -483,7 +483,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         // Lighting
-        MinLightingFullScreenDebug, 
+        MinLightingFullScreenDebug,
         SSAO,
         SSAOBeforeFiltering,
         DeferredShadows,

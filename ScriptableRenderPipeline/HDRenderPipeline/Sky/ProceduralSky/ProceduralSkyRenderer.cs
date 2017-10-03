@@ -15,12 +15,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build()
         {
-            m_ProceduralSkyMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyProcedural");
+            m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyProcedural");
         }
 
         public override void Cleanup()
         {
-            Utilities.Destroy(m_ProceduralSkyMaterial);
+            CoreUtils.Destroy(m_ProceduralSkyMaterial);
         }
 
         public override bool IsSkyValid()
@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // We do not bind the depth buffer as a depth-stencil target since it is
             // bound as a color texture which is then sampled from within the shader.
-            Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
+            CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
         }
 
         void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkySettings param, bool renderForCubemap)
@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set shader constants.
             SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
-            Utilities.DrawFullScreen(builtinParams.commandBuffer, m_ProceduralSkyMaterial, properties);
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_ProceduralSkyMaterial, properties);
         }
     }
 }
