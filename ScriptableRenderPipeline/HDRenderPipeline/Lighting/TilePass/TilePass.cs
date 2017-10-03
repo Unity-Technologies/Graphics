@@ -186,7 +186,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Area        = 1 << 9,
             Directional = 1 << 10,
             Env         = 1 << 11,
-            Sky         = 1 << 12  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
+            Sky         = 1 << 12,
+            SSL         = 1 << 13  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
         }
 
         [GenerateHLSL]

@@ -16,6 +16,7 @@ MonoBehaviour:
   renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepassWithDeferredRendering: 0
+    renderAlphaTestOnlyInDeferredPrepass: 0
   sssSettings:
     numProfiles: 2
     profiles:
