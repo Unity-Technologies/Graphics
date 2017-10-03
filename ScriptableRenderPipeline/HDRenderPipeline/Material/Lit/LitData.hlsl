@@ -279,14 +279,15 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float2 minUvSize = GetMinUvSize(layerTexCoord);
         float lod = ComputeTextureLOD(minUvSize);
 
-#ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
+    #ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
         float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
         maxHeight *= tilingScale;
-#endif
+    #else
+        if (isPlanar) maxHeight *= _TexWorldScale;
+    #endif
 
         // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
         // Extract scaling from world transform
-#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
         // To handle object scaling with PPD we need to multiply the view vector by the inverse scale. 
         // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
         float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
@@ -303,7 +304,6 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
             invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
         }
-#endif
 
         PerPixelHeightDisplacementParam ppdParam;
 
@@ -365,13 +365,14 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
 
-#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-            viewDirTS *= invObjectScale.xzy; // Switch from Y-up to Z-up
-#endif
+            viewDirTS.xy *= invObjectScale.xz; // Switch from Y-up to Z-up
+        #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+            viewDirTS.z  *= invObjectScale.y;  // Switch from Y-up to Z-up
+        #endif
             NdotV = viewDirTS.z;
 
             // Transform the view vector into the UV space.
-            float2 primitiveSize  = float2(_PPDPrimitiveLength, _PPDPrimitiveWidth);
+            float2 primitiveSize  = isPlanar ? 1 : float2(_PPDPrimitiveLength, _PPDPrimitiveWidth);
             float2 primitiveScale = rcp(primitiveSize);
             float2 uvSpaceScale   = primitiveScale * _BaseColorMap_ST.xy; // This could be precomputed
             float3 viewDirUV      = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z / maxHeight));
@@ -383,6 +384,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
         }
+
+        if (isPlanar) maxHeight *= rcp(_TexWorldScale);
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
@@ -397,11 +400,14 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    #ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
-    // TODO: precompute this scaling factor!
+#ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
+    // TODO: precompute these scaling factors!
     float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
-    height *= tilingScale * _TexWorldScale;
+    height *= tilingScale;
+    #if _MAPPING_PLANAR
+        height *= rcp(_TexWorldScale);
     #endif
+#endif
     return height;
 }
 
