@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UIElements
             Gradient gradient = GetValue();
 
             // Instantiate because GetGradientPreview returns a temporary;
-            Texture2D gradientTexture = Texture2D.Instantiate(UnityEditorInternal.GradientPreviewCache.GetGradientPreview(gradient));
+            Texture2D gradientTexture = UnityEditorInternal.GradientPreviewCache.GenerateGradientPreview(gradient, style.backgroundImage.value);
 
             style.backgroundImage = gradientTexture;
         }
