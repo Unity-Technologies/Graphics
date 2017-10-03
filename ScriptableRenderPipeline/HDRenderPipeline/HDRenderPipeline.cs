@@ -306,7 +306,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_GaussianPyramidKernel;
         ComputeShader m_DepthPyramidCS { get { return m_Asset.renderPipelineResources.depthPyramidCS; } }
         int m_DepthPyramidKernel;
-        int m_DepthPyramidCopyKernel;
 
         Material m_CameraMotionVectorsMaterial;
 
@@ -502,6 +501,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
+            m_GaussianPyramidKernel = m_GaussianPyramidCS.FindKernel("KMain");
             m_GaussianPyramidColorBuffer = HDShaderIDs._GaussianPyramidColorTexture;
             m_GaussianPyramidColorBufferRT = new RenderTargetIdentifier(m_GaussianPyramidColorBuffer);
             m_GaussianPyramidColorBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.ARGBHalf, 0)
@@ -510,6 +510,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autoGenerateMips = false
             };
 
+            m_DepthPyramidKernel = m_DepthPyramidCS.FindKernel("KMain");
             m_DepthPyramidBuffer = HDShaderIDs._DepthPyramidTexture;
             m_DepthPyramidBufferRT = new RenderTargetIdentifier(m_DepthPyramidBuffer);
             m_DepthPyramidBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.RFloat, 0)
@@ -1548,10 +1549,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(size, size, lodCount, 0));
 
                 cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
-                cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidCopyKernel, "_SourceDepthStencil", GetDepthTexture());
-                cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidCopyKernel, "_Result", HDShaderIDs._DepthPyramidMips[0]);
-                cmd.SetComputeVectorParam(m_DepthPyramidCS, "_Size", new Vector4(size, size, 1f / size, 1f / size));
-                cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidCopyKernel, size / 8, size / 8, 1);
+                Utilities.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size), m_Asset.renderPipelineResources);
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
 
                 for (int i = 0; i < lodCount; i++)

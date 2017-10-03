@@ -251,5 +251,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _GlobalFog_Extinction = Shader.PropertyToID("_GlobalFog_Extinction");
         internal static readonly int _GlobalFog_Asymmetry  = Shader.PropertyToID("_GlobalFog_Asymmetry");
         internal static readonly int _GlobalFog_Scattering = Shader.PropertyToID("_GlobalFog_Scattering");
+
+        internal static readonly int _Size = Shader.PropertyToID("_Size");
+        internal static readonly int _Source4 = Shader.PropertyToID("_Source4");
+        internal static readonly int _Result1 = Shader.PropertyToID("_Result1");
     }
 }
