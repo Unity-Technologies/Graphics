@@ -203,7 +203,10 @@ Shader "HDRenderPipeline/LayeredLit"
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
+        _PPDPrimitiveLength("Primitive length for POM", Float) = 1
+        _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
         [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+        [ToggleOff] _PerPixelDisplacementTilingScale("Per pixel displacement tiling scale", Float) = 1.0
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
@@ -269,7 +272,8 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE    
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_TILING_SCALE
     #pragma shader_feature _VERTEX_DISPLACEMENT    
     #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
     #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE

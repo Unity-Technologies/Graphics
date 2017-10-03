@@ -27,7 +27,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
         m_Texture: {fileID: 2800000, guid: 927434958f610214aa6a4179f134f5fd, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 3, y: 2}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
         m_Texture: {fileID: 0}
@@ -181,8 +181,11 @@ Material:
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 64
     - _PPDMinSamples: 1
+    - _PPDPrimitiveLength: 1
+    - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
     - _PerPixelDisplacementObjectScale: 1
+    - _PerPixelDisplacementTilingScale: 1
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
