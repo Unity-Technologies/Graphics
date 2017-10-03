@@ -118,7 +118,13 @@ namespace UnityEditor.VFX.UIElements
             set { SetValue(value); }
         }
 
+        public void SetMultiplier(T multiplier)
+        {
+            m_Multiplier = multiplier;
+        }
+
         protected T m_Value;
+        protected T m_Multiplier;
 
         public System.Action OnValueChanged;
 
@@ -144,6 +150,8 @@ namespace UnityEditor.VFX.UIElements
             CreateFields();
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
             Add(m_TextField);
+
+            m_Multiplier = 1.0f;
         }
 
         void OnLostFocus(BlurEvent evt)
@@ -156,6 +164,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_Value = 0;
             float.TryParse(m_TextField.text, out m_Value);
+            m_Value *= m_Multiplier;
 
             if (OnValueChanged != null)
             {
@@ -169,6 +178,8 @@ namespace UnityEditor.VFX.UIElements
             Add(m_TextField);
 
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
+
+            m_Multiplier = 1.0f;
         }
 
         float IValueChangeListener<float>.GetValue(object userData)
@@ -194,7 +205,10 @@ namespace UnityEditor.VFX.UIElements
         protected override void ValueToGUI()
         {
             if (!m_TextField.hasFocus)
-                m_TextField.text = m_Value.ToString("0.###");
+            {
+                float value = m_Value / m_Multiplier;
+                m_TextField.text = value.ToString("0.###");
+            }
         }
     }
 }
