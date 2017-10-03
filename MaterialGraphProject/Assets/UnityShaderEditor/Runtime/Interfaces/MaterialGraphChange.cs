@@ -20,7 +20,7 @@ namespace UnityEngine.MaterialGraph
     {
         public ShaderPropertyRemoved(Guid guid)
         {
-            this.guid = this.guid;
+            this.guid = guid;
         }
 
         public Guid guid { get; private set; }
