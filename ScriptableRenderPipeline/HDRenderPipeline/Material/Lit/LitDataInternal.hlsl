@@ -184,7 +184,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.baseColor *= LerpWhiteTo(2.0 * saturate(detailAlbedo * ADD_IDX(_DetailAlbedoScale)), detailMask);
+    surfaceData.baseColor *= LerpWhiteTo(2.0 * detailAlbedo, detailMask * ADD_IDX(_DetailAlbedoScale));
+    // we saturate to avoid to have a smoothness value above 1
+    surfaceData.baseColor = saturate(surfaceData.baseColor);
 #endif
 
     surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
@@ -202,7 +204,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale)), detailMask);
+    surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * detailSmoothness, detailMask * ADD_IDX(_DetailSmoothnessScale));
+    // we saturate to avoid to have a smoothness value above 1
+    surfaceData.perceptualSmoothness = saturate(surfaceData.perceptualSmoothness);
 #endif
 
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), emissive Mask (Optional), Smoothness
