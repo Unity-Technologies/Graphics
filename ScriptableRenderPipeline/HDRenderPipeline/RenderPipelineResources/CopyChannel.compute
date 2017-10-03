@@ -23,7 +23,7 @@ CBUFFER_END
 #define KERNEL_SAMPLECOPY(sourceN, resultN, subscript) [numthreads(8, 8, 1)]\
 void KSampleCopy##sourceN##_##resultN##_##subscript(uint2 dispatchThreadId : SV_DispatchThreadID)\
 {\
-    RESULT(resultN)[dispatchThreadId] = SOURCE(sourceN).SampleLevel(sampler_LinearClamp, float2(dispatchThreadId)*_Size.zw, 0.0).subscript;\
+    RESULT(resultN)[dispatchThreadId] = SOURCE(sourceN).SampleLevel(sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).subscript;\
 }
 
 // Source R
