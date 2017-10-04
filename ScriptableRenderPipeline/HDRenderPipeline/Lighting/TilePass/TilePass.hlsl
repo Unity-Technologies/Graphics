@@ -94,6 +94,8 @@ struct LightLoopAccumulatedLighting
 
     float3 envDiffuseLighting;
     float3 envSpecularLighting;
+
+    float envDiffuseLightingWeight;
 };
 
 //-----------------------------------------------------------------------------

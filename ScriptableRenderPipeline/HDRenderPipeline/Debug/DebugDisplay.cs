@@ -468,6 +468,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
+        public bool enableGaussianPyramid = true;
         public bool enableSSSAndTransmission = true;
     }
 
