@@ -183,13 +183,14 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographic = true;
             }
 
+            var ambientProbe = RenderSettings.ambientProbe;
             Unsupported.SetOverrideRenderSettings(m_Scene);
+            RenderSettings.ambientProbe = ambientProbe;
 
             m_Camera.targetTexture = renderTexture;
             RenderTexture.active = renderTexture;
             GL.Clear(true, true, Color.black);
             Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
-
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_Camera, time);
             Light0.enabled = true;
