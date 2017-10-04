@@ -29,6 +29,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
             return relativePath.Replace("\\", "/") + "/";
         }
+
+        public static string GetCorePath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../Core");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
+        }
 #endif
 
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
@@ -56,15 +64,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
-        }
-
-        public static void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size, RenderPipelineResources resources)
-        {
-            var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);
-            cmd.SetComputeVectorParam(resources.copyChannelCS, HDShaderIDs._Size, s);
-            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Source4, source);
-            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Result1, target);
-            cmd.DispatchCompute(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, (int)(size.x) / 8, (int)(size.y) / 8, 1);
         }
     }
 }
