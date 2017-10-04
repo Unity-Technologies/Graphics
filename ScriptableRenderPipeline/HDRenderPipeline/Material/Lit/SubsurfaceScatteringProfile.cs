@@ -1,7 +1,4 @@
 using System;
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -78,6 +75,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BuildKernel();
         }
 
+        public void Validate()
+        {
+            thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
+            thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
+            worldScale       = Mathf.Max(worldScale, 0.001f);
+
+            // Old SSS Model >>>
+            var c = new Color();
+            c.r = Mathf.Max(0.05f, scatterDistance1.r);
+            c.g = Mathf.Max(0.05f, scatterDistance1.g);
+            c.b = Mathf.Max(0.05f, scatterDistance1.b);
+            c.a = 0.0f;
+
+            scatterDistance1 = c;
+
+            c.r = Mathf.Max(0.05f, scatterDistance2.r);
+            c.g = Mathf.Max(0.05f, scatterDistance2.g);
+            c.b = Mathf.Max(0.05f, scatterDistance2.b);
+            c.a = 0.0f;
+
+            scatterDistance2 = c;
+            // <<< Old SSS Model
+
+            BuildKernel();
+        }
+
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
         public void BuildKernel()
         {
@@ -92,7 +115,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Clamp to avoid artifacts.
-            m_ShapeParam   = new Vector3();
             m_ShapeParam.x = 1.0f / Mathf.Max(0.001f, scatteringDistance.r);
             m_ShapeParam.y = 1.0f / Mathf.Max(0.001f, scatteringDistance.g);
             m_ShapeParam.z = 1.0f / Mathf.Max(0.001f, scatteringDistance.b);
@@ -439,34 +461,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            for (int i = 0; i < numProfiles; i++)
+            foreach (var profile in profiles)
             {
-                // Skip unassigned profiles.
-                if (profiles[i] == null) continue;
-
-                profiles[i].thicknessRemap.y = Mathf.Max(profiles[i].thicknessRemap.y, 0);
-                profiles[i].thicknessRemap.x = Mathf.Clamp(profiles[i].thicknessRemap.x, 0, profiles[i].thicknessRemap.y);
-                profiles[i].worldScale       = Mathf.Max(profiles[i].worldScale, 0.001f);
-
-                // Old SSS Model >>>
-                Color c = new Color();
-
-                c.r = Mathf.Max(0.05f, profiles[i].scatterDistance1.r);
-                c.g = Mathf.Max(0.05f, profiles[i].scatterDistance1.g);
-                c.b = Mathf.Max(0.05f, profiles[i].scatterDistance1.b);
-                c.a = 0.0f;
-
-                profiles[i].scatterDistance1 = c;
-
-                c.r = Mathf.Max(0.05f, profiles[i].scatterDistance2.r);
-                c.g = Mathf.Max(0.05f, profiles[i].scatterDistance2.g);
-                c.b = Mathf.Max(0.05f, profiles[i].scatterDistance2.b);
-                c.a = 0.0f;
-
-                profiles[i].scatterDistance2 = c;
-                // <<< Old SSS Model
-
-                profiles[i].BuildKernel();
+                if (profile != null)
+                    profile.Validate();
             }
 
             UpdateCache();
@@ -636,203 +634,4 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // UpdateCache();
         }
     }
-
-#if UNITY_EDITOR
-
-    [CustomEditor(typeof(SubsurfaceScatteringProfile))]
-    public class SubsurfaceScatteringProfileEditor : Editor
-    {
-        private class Styles
-        {
-            public readonly GUIContent   sssProfilePreview0           = new GUIContent("Profile Preview");
-            public readonly GUIContent   sssProfilePreview1           = new GUIContent("Shows the fraction of light scattered from the source (center).");
-            public readonly GUIContent   sssProfilePreview2           = new GUIContent("The distance to the boundary of the image corresponds to the Max Radius.");
-            public readonly GUIContent   sssProfilePreview3           = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
-            public readonly GUIContent   sssTransmittancePreview0     = new GUIContent("Transmittance Preview");
-            public readonly GUIContent   sssTransmittancePreview1     = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
-            public readonly GUIContent   sssTransmittancePreview2     = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
-            public readonly GUIContent   sssProfileScatteringDistance = new GUIContent("Scattering Distance", "Determines the shape of the profile, and the blur radius of the filter per color channel. Alpha is ignored.");
-            public readonly GUIContent   sssProfileTransmissionTint   = new GUIContent("Transmission tint", "Color which tints transmitted light. Alpha is ignored.");
-            public readonly GUIContent   sssProfileMaxRadius          = new GUIContent("Max Radius", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
-            public readonly GUIContent   sssTexturingMode             = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions      = new GUIContent[2]
-            {
-                new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
-                new GUIContent("Post-scatter",          "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
-            };
-            public readonly GUIContent   sssProfileTransmissionMode = new GUIContent("Transmission Mode", "Configures the simulation of light passing through thin objects. Depends on the thickness value (which is applied in the normal direction).");
-            public readonly GUIContent[] sssTransmissionModeOptions = new GUIContent[3]
-            {
-                new GUIContent("None",         "Disables transmission. Choose this mode for completely opaque, or very thick translucent objects."),
-                new GUIContent("Thin Object",  "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface."),
-                new GUIContent("Regular",      "Choose this mode for moderately thick objects. For performance reasons, transmitted light ignores occlusion (shadows).")
-            };
-            public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below (in millimeters).");
-            public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
-            public readonly GUIContent   sssProfileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
-            // Old SSS Model >>>
-            public readonly GUIContent   sssProfileScatterDistance1 = new GUIContent("Scattering Distance #1", "The radius (in centimeters) of the 1st Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
-            public readonly GUIContent   sssProfileScatterDistance2 = new GUIContent("Scattering Distance #2", "The radius (in centimeters) of the 2nd Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
-            public readonly GUIContent   sssProfileLerpWeight       = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            // <<< Old SSS Model
-            public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
-
-            public Styles()
-            {
-                centeredMiniBoldLabel.alignment = TextAnchor.MiddleCenter;
-                centeredMiniBoldLabel.fontSize  = 10;
-                centeredMiniBoldLabel.fontStyle = FontStyle.Bold;
-            }
-        }
-
-        private static Styles styles
-        {
-            get
-            {
-                if (s_Styles == null)
-                {
-                    s_Styles = new Styles();
-                }
-                return s_Styles;
-            }
-        }
-
-        private static Styles      s_Styles = null;
-
-        private RenderTexture      m_ProfileImage, m_TransmittanceImage;
-        private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_ScatteringDistance, m_MaxRadius, m_ShapeParam, m_TransmissionTint,
-                                   m_TexturingMode, m_TransmissionMode, m_ThicknessRemap, m_WorldScale;
-        // Old SSS Model >>>
-        private SerializedProperty m_ScatterDistance1, m_ScatterDistance2, m_LerpWeight;
-        // <<< Old SSS Model
-
-        void OnEnable()
-        {
-            m_ScatteringDistance    = serializedObject.FindProperty("scatteringDistance");
-            m_MaxRadius             = serializedObject.FindProperty("m_MaxRadius");
-            m_ShapeParam            = serializedObject.FindProperty("m_ShapeParam");
-            m_TransmissionTint      = serializedObject.FindProperty("transmissionTint");
-            m_TexturingMode         = serializedObject.FindProperty("texturingMode");
-            m_TransmissionMode      = serializedObject.FindProperty("transmissionMode");
-            m_ThicknessRemap        = serializedObject.FindProperty("thicknessRemap");
-            m_WorldScale            = serializedObject.FindProperty("worldScale");
-            // Old SSS Model >>>
-            m_ScatterDistance1      = serializedObject.FindProperty("scatterDistance1");
-            m_ScatterDistance2      = serializedObject.FindProperty("scatterDistance2");
-            m_LerpWeight            = serializedObject.FindProperty("lerpWeight");
-            // <<< Old SSS Model
-
-            // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
-            m_ProfileMaterial       = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
-            m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
-
-            m_ProfileImage          = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
-            m_TransmittanceImage    = new RenderTexture( 16, 256, 0, RenderTextureFormat.DefaultHDR);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-
-            // Old SSS Model >>>
-            bool useDisneySSS;
-            {
-                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                useDisneySSS = hdPipeline.sssSettings.useDisneySSS;
-            }
-            // <<< Old SSS Model
-
-            EditorGUI.BeginChangeCheck();
-            {
-                if (useDisneySSS)
-                {
-                    EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
-
-                    GUI.enabled = false;
-                    EditorGUILayout.PropertyField(m_MaxRadius, styles.sssProfileMaxRadius);
-                    GUI.enabled = true;
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(m_ScatterDistance1, styles.sssProfileScatterDistance1);
-                    EditorGUILayout.PropertyField(m_ScatterDistance2, styles.sssProfileScatterDistance2);
-                    EditorGUILayout.PropertyField(m_LerpWeight,       styles.sssProfileLerpWeight);
-                }
-
-                m_TexturingMode.intValue    = EditorGUILayout.Popup(styles.sssTexturingMode,           m_TexturingMode.intValue,    styles.sssTexturingModeOptions);
-                m_TransmissionMode.intValue = EditorGUILayout.Popup(styles.sssProfileTransmissionMode, m_TransmissionMode.intValue, styles.sssTransmissionModeOptions);
-
-                EditorGUILayout.PropertyField(m_TransmissionTint,   styles.sssProfileTransmissionTint);
-                EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
-                Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
-                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0.0f, 50.0f);
-                m_ThicknessRemap.vector2Value = thicknessRemap;
-                EditorGUILayout.PropertyField(m_WorldScale, styles.sssProfileWorldScale);
-
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
-                EditorGUILayout.LabelField(styles.sssProfilePreview1, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.LabelField(styles.sssProfilePreview2, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.LabelField(styles.sssProfilePreview3, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.Space();
-            }
-
-            float   r = m_MaxRadius.floatValue;
-            Vector3 S = m_ShapeParam.vector3Value;
-            Vector4 T = m_TransmissionTint.colorValue;
-            Vector2 R = m_ThicknessRemap.vector2Value;
-            bool transmissionEnabled = m_TransmissionMode.intValue != (int)SubsurfaceScatteringProfile.TransmissionMode.None;
-
-            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
-            m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
-            // Old SSS Model >>>
-            CoreUtils.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
-            // Apply the three-sigma rule, and rescale.
-            float   s       = (1.0f / 3.0f) * SssConstants.SSS_BASIC_DISTANCE_SCALE;
-            float   rMax    = Mathf.Max(m_ScatterDistance1.colorValue.r, m_ScatterDistance1.colorValue.g, m_ScatterDistance1.colorValue.b,
-                                        m_ScatterDistance2.colorValue.r, m_ScatterDistance2.colorValue.g, m_ScatterDistance2.colorValue.b);
-            Vector4 stdDev1 = s * m_ScatterDistance1.colorValue;
-            Vector4 stdDev2 = s * m_ScatterDistance2.colorValue;
-            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1,   stdDev1);
-            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev2,   stdDev2);
-            m_ProfileMaterial.SetFloat(HDShaderIDs._LerpWeight, m_LerpWeight.floatValue);
-            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  rMax);
-            // <<< Old SSS Model
-
-            // Draw the profile.
-            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
-            EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
-            EditorGUILayout.LabelField(styles.sssTransmittancePreview2, EditorStyles.centeredGreyMiniLabel);
-            EditorGUILayout.Space();
-
-            // Old SSS Model >>>
-            // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
-            float a = 0.1f * SssConstants.SSS_BASIC_DISTANCE_SCALE;
-            Vector4 halfRcpVarianceAndWeight1 = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4 * (1.0f - m_LerpWeight.floatValue));
-            Vector4 halfRcpVarianceAndWeight2 = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4 * m_LerpWeight.floatValue);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight1, halfRcpVarianceAndWeight1);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight2, halfRcpVarianceAndWeight2);
-            // <<< Old SSS Model
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam,       S);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, transmissionEnabled ? T : Vector4.zero);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap,   R);
-
-            // Draw the transmittance graph.
-            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
-
-            serializedObject.ApplyModifiedProperties();
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                // Validate each individual asset and update caches.
-                hdPipeline.sssSettings.OnValidate();
-            }
-        }
-    }
-#endif
 }
