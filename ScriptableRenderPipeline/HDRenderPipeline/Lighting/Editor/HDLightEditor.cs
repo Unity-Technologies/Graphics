@@ -218,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_BaseData.shadowsType.enumValueIndex != (int)LightShadows.None)
                 DrawFoldout(m_BaseData.shadowsType, "Shadows", DrawShadows);
 
-            EditorLightUtilities.DrawSplitter();
+            CoreEditorUtils.DrawSplitter();
             EditorGUILayout.Space();
 
             m_SerializedAdditionalShadowData.ApplyModifiedProperties();
@@ -228,10 +228,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
         {
-            EditorLightUtilities.DrawSplitter();
+            CoreEditorUtils.DrawSplitter();
 
             bool state = foldoutProperty.isExpanded;
-            state = EditorLightUtilities.DrawHeaderFoldout(title, state);
+            state = CoreEditorUtils.DrawHeaderFoldout(title, state);
 
             if (state)
             {
