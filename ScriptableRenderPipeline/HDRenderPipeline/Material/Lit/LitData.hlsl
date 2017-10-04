@@ -259,6 +259,28 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
+float3 GetInverseObjectScale(bool isPlanar)
+{
+    float3 invObjectScale = 1;
+
+    if (!isPlanar)
+    {
+        // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
+        // Extract scaling from world transform
+        // To handle object scaling with PPD we need to multiply the view vector by the inverse scale.
+        // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
+        float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
+
+        invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+        invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+    #endif
+        invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+    }
+
+    return invObjectScale;
+}
+
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
@@ -285,24 +307,6 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
         maxHeight *= tilingScale;
     #endif
-
-        // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-        // Extract scaling from world transform
-        // To handle object scaling with PPD we need to multiply the view vector by the inverse scale. 
-        // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-        float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
-        float3   invObjectScale;
-
-        if (isPlanar)
-        {
-            invObjectScale.xyz = 1;
-        }
-        else
-        {
-            invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-            invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-            invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-        }
 
         PerPixelHeightDisplacementParam ppdParam;
 
@@ -364,10 +368,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
 
-            viewDirTS.xy *= invObjectScale.xz; // Switch from Y-up to Z-up
-        #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-            viewDirTS.z  *= invObjectScale.y;  // Switch from Y-up to Z-up
-        #endif
+            viewDirTS *= GetInverseObjectScale(isPlanar).xzy; // Switch from Y-up to Z-up
             NdotV = viewDirTS.z;
 
             // Transform the view vector into the UV space.
