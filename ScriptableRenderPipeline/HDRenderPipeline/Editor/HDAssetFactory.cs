@@ -72,6 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AssetDatabase.Refresh();
         }
 
+        // Note: move this to a static using once we can target C#6+
         static T Load<T>(string path)
             where T : UnityObject
         {
