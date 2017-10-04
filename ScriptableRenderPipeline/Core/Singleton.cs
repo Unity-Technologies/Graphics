@@ -1,5 +1,3 @@
-using UnityEngine.SceneManagement;
-
 namespace UnityEngine.Experimental.Rendering
 {
     [ExecuteInEditMode]
