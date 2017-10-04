@@ -4,7 +4,25 @@ using System.Text;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [CreateAssetMenu(fileName = "GPUCopy")]
+    /// <summary>
+    /// Declares what should be generated in utility code.
+    /// It will generate a compute shader and a C# class to use the compute shader with a ComputeBuffer
+    /// 
+    /// Exemple:
+    ///  - I add a CopyOperation { sourceChannel = 4, targetChannel = 2, subscript = "zx" }
+    ///  => a Kernel will be generated to copy from a TextureRGBA the AR channels into a TextureRG
+    ///  => A method will be added to call the kernel in the C# class GPUCopy (SampleCopy_xyzw2zx)
+    /// 
+    /// C# Exemple:
+    ///  // Initialize the gpucopy
+    ///  var gpuCopy = new CPUCopy(generatedComputeShaderAsset);
+    /// 
+    ///  CommandBuffer cmb = ...
+    ///   gpuCopy.SampleCopyChannel_xyzw2x(cmb, _SourceTexture, _TargetTexture, new Vector2(targetWidth, targetHeight));
+    /// 
+    /// Initialization:
+    ///  - You must set the generated ComputeShader as argument of the constructor of the generated GPUCopy C# class
+    /// </summary>
     public class GPUCopyAsset : ScriptableObject
     {
         static string[] k_ChannelIDS = { "x", "xy", "xyz", "xyzw" };
