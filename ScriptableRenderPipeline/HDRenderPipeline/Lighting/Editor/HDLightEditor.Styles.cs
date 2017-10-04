@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     // TODO: Missing UI tooltips
     partial class HDLightEditor
