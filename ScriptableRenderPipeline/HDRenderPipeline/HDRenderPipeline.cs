@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
-using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 
