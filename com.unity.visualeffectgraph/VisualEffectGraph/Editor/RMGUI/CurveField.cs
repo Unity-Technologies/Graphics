@@ -11,23 +11,20 @@ namespace UnityEditor.VFX.UIElements
     {
         VisualElement m_Curve;
 
+        static readonly Color kCurveColor = Color.green;
 
         void CreateCurve()
         {
-            m_Curve = new VisualElement();
-            m_Curve.style.minWidth = 4; m_Curve.style.minHeight = 4;
-            m_Curve.AddToClassList("curve");
-
-            m_Curve.AddManipulator(new Clickable(OnCurveClick));
-            m_Curve.RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            this.AddManipulator(new Clickable(OnCurveClick));
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
         }
 
         void OnDetach(DetachFromPanelEvent e)
         {
-            if (m_Curve.style.backgroundImage.value != null)
+            if (style.backgroundImage.value != null)
             {
-                Object.DestroyImmediate(m_Curve.style.backgroundImage.value);
-                m_Curve.style.backgroundImage = null;
+                Object.DestroyImmediate(style.backgroundImage.value);
+                style.backgroundImage = null;
             }
         }
 
@@ -41,7 +38,7 @@ namespace UnityEditor.VFX.UIElements
                 m_Value = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1) });
             CurveEditorWindow.curve = m_Value;
 
-            CurveEditorWindow.color = Color.green;
+            CurveEditorWindow.color = kCurveColor;
             CurveEditorWindow.instance.Show(OnCurveChanged, settings);
         }
 
@@ -101,7 +98,7 @@ namespace UnityEditor.VFX.UIElements
                             previewHeight,
                             range,
                             m_Value,
-                            Color.green,
+                            kCurveColor,
                             m_Curve.style.backgroundImage.value);
                 }
             }
