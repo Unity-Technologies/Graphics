@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
@@ -1270,7 +1270,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
                 return;
 
-            using (new ProfilingSample("Gaussian Pyramid Color", cmd))
+            using (new ProfilingSample(cmd, "Gaussian Pyramid Color"))
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
@@ -1317,7 +1317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
                 return;
 
-            using (new ProfilingSample("Pyramid Depth", cmd))
+            using (new ProfilingSample(cmd, "Pyramid Depth"))
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
