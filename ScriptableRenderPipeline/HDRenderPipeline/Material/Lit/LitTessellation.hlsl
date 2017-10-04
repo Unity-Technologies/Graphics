@@ -12,7 +12,10 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     float3 displ = height * normalWS;
 
     // Applying scaling of the object if requested
+    // Note: In case of planar mapping there is no object scale as we do world space planar mapping (not object space planar mapping)
+#ifndef _MAPPING_PLANAR
     displ *= objectScale;
+#endif
 
     return displ;
 }

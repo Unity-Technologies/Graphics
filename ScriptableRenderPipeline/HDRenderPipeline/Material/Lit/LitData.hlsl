@@ -404,9 +404,6 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     // TODO: precompute these scaling factors!
     float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
     height *= tilingScale;
-    #if _MAPPING_PLANAR
-        height *= rcp(_TexWorldScale);
-    #endif
 #endif
     return height;
 }
