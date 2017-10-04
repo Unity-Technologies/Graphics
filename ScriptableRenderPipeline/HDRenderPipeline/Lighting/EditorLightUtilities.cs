@@ -1,11 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using Object = UnityEngine.Object;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -133,52 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.up * -gizmoSize / m_transform.localScale.y));
             Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.right * gizmoSize / m_transform.localScale.x));
             Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.right * -gizmoSize / m_transform.localScale.x));
-        }
-
-        public static bool DrawHeader(string title, bool activeField)
-        {
-            var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
-
-            var labelRect = backgroundRect;
-            labelRect.xMin += 16f;
-            labelRect.xMax -= 20f;
-
-            var toggleRect = backgroundRect;
-            toggleRect.y += 2f;
-            toggleRect.width = 13f;
-            toggleRect.height = 13f;
-
-            var menuIcon = EditorGUIUtility.isProSkin
-                ? (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png")
-                : (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
-
-            var menuRect = new Rect(labelRect.xMax + 4f, labelRect.y + 4f, menuIcon.width, menuIcon.height);
-
-            // Background rect should be full-width
-            backgroundRect.xMin = 0f;
-            backgroundRect.width += 4f;
-
-            // Background
-            float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;
-            EditorGUI.DrawRect(backgroundRect, new Color(backgroundTint, backgroundTint, backgroundTint, 0.2f));
-
-            // Title
-            using (new EditorGUI.DisabledScope(!activeField))
-                EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
-
-            // Active checkbox
-            activeField = GUI.Toggle(toggleRect, activeField, GUIContent.none, new GUIStyle("ShurikenCheckMark"));
-
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && backgroundRect.Contains(e.mousePosition) && e.button == 0)
-            {
-                activeField = !activeField;
-                e.Use();
-            }
-
-            EditorGUILayout.Space();
-
-            return activeField;
         }
     }
 #endif
