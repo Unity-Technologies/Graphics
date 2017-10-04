@@ -283,8 +283,9 @@ namespace UnityEngine.Experimental.Rendering
 
         private struct SSliceEntry
         {
-            public uint texId;
-            public uint countLRU;
+            public uint    texId;
+            public uint    countLRU;
+            public Hash128 hash;
         };
 
         private int m_NumTextures;
@@ -304,6 +305,7 @@ namespace UnityEngine.Experimental.Rendering
                 return sliceIndex;
 
             var texId = (uint)texture.GetInstanceID();
+            var hash  = texture.imageContentsHash;
 
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
@@ -316,8 +318,10 @@ namespace UnityEngine.Experimental.Rendering
             if (m_LocatorInSliceArray.TryGetValue(texId, out cachedSlice))
             {
                 sliceIndex = cachedSlice;
-                bFoundAvailOrExistingSlice = true;
                 Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
+
+                bFoundAvailOrExistingSlice = true;
+                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].hash != hash);
             }
 
             // If no existing copy found in the array
@@ -351,12 +355,12 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-
             // wrap up
             Debug.Assert(bFoundAvailOrExistingSlice, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
             if (bFoundAvailOrExistingSlice)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
+                m_SliceArray[sliceIndex].hash     = hash;
 
                 if (bSwapSlice) // if this was a miss
                 {
