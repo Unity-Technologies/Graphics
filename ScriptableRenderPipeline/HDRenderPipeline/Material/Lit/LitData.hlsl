@@ -259,26 +259,36 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
-float3 GetInverseObjectScale(bool isPlanar)
+// TODO: share this function with tessellation code.
+float3 GetInverseObjectScale()
 {
     float3 invObjectScale = 1;
 
-    if (!isPlanar)
-    {
-        // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-        // Extract scaling from world transform
-        // To handle object scaling with PPD we need to multiply the view vector by the inverse scale.
-        // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-        float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
+#ifndef _MAPPING_PLANAR
+    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
+    // Extract scaling from world transform
+    // To handle object scaling with PPD we need to multiply the view vector by the inverse scale.
+    // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
+    float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
 
-        invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    #ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-        invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-    #endif
-        invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-    }
+    invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+#endif // _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+#endif // _MAPPING_PLANAR
 
     return invObjectScale;
+}
+
+// TODO: share this function with tessellation code.
+float GetInverseTilingScale()
+{
+#ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
+    return rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));                      // TODO: precompute
+#else
+    return 1;
+#endif
 }
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
@@ -297,16 +307,11 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     if (ppdEnable)
     {
         // See comment in layered version for details
-        float maxHeight = GetMaxDisplacement();
-        float2 minUvSize = GetMinUvSize(layerTexCoord);
-        float lod = ComputeTextureLOD(minUvSize);
-
-        if (isPlanar) maxHeight *= _TexWorldScale;
-
-    #ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
-        float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
-        maxHeight *= tilingScale;
-    #endif
+        float2 worldScales  = isPlanar ? float2(_TexWorldScale, rcp(_TexWorldScale)) : 1;           // TODO: precompute
+        float2 invPrimScale = isPlanar ? 1 : rcp(float2(_PPDPrimitiveLength, _PPDPrimitiveWidth));  // TODO: precompute
+        float  maxHeight    = GetMaxDisplacement() * GetInverseTilingScale() * worldScales.x;
+        float2 minUvSize    = GetMinUvSize(layerTexCoord);
+        float  lod          = ComputeTextureLOD(minUvSize);
 
         PerPixelHeightDisplacementParam ppdParam;
 
@@ -363,29 +368,28 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         {
             ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
-            float3x3 worldToTangent = input.worldToTangent;
-
             // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-            float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+            float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent);
+            viewDirTS *= GetInverseObjectScale().xzy; // Switch from Y-up to Z-up
 
-            viewDirTS *= GetInverseObjectScale(isPlanar).xzy; // Switch from Y-up to Z-up
             NdotV = viewDirTS.z;
 
             // Transform the view vector into the UV space.
-            float2 primitiveSize  = isPlanar ? 1 : float2(_PPDPrimitiveLength, _PPDPrimitiveWidth);
-            float2 primitiveScale = rcp(primitiveSize);
-            float2 uvSpaceScale   = primitiveScale * _BaseColorMap_ST.xy; // This could be precomputed
-            float3 viewDirUV      = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z / maxHeight));
+            float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy;
+            float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z / maxHeight));
 
-            int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, saturate(FastACos(viewDirUV.z) * INV_HALF_PI));
-            float2 offset   = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
+            float  unitAngle = saturate(FastACos(viewDirUV.z) * INV_HALF_PI);                       // TODO: optimize
+            int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+
+            // POM uses a normalized view vector in the UV space to intersect the heightmap within a 1x1x1 box.
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
 
             // Apply offset to all UVSet0 / planar
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
         }
 
-        if (isPlanar) maxHeight *= rcp(_TexWorldScale);
+        maxHeight *= worldScales.y;
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
