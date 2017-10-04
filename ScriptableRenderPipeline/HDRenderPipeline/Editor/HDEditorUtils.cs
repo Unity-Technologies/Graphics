@@ -16,11 +16,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return path;
         }
 
-        // TODO: Currently depends on HDRP, should be made generic
+        // TODO: The two following functions depend on HDRP, they should be made generic
         public static string GetPostProcessingPath()
         {
             var hdrpPath = GetHDRenderPipelinePath();
             var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
+        }
+
+        public static string GetCorePath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../Core");
             var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
             return relativePath.Replace("\\", "/") + "/";
         }

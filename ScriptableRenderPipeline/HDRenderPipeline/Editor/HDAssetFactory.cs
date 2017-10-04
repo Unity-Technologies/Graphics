@@ -29,6 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
             string PostProcessingPath = HDEditorUtils.GetPostProcessingPath();
+            string CorePath = HDEditorUtils.GetCorePath();
 
             var instance = ScriptableObject.CreateInstance<RenderPipelineResources>();
 
@@ -43,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/Resources/VolumetricLighting.compute");
             instance.gaussianPyramidCS = Load<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
             instance.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
-            instance.copyChannelCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/CopyChannel.compute");
+            instance.copyChannelCS = Load<ComputeShader>(CorePath + "Resources/GPUCopy.compute");
 
             instance.clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/builddispatchindirect.compute");
