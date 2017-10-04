@@ -785,9 +785,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
 
                 RenderForward(m_CullResults, camera, renderContext, cmd, true);
-#if UNITY_EDITOR
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, true);
-#endif
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
@@ -797,9 +795,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, false);
-#if UNITY_EDITOR
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, false);
-#endif
+
                 // Render volumetric lighting
                 VolumetricLightingPass(hdCamera, cmd);
 
