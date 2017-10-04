@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Linq.Expressions;
 using UnityEditor;
+using UnityEditor.Experimental.Rendering;
 
 //using EditorGUIUtility=UnityEditor.EditorGUIUtility;
 
@@ -104,48 +105,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_PointCookieSize = null;
         SerializedProperty m_ReflectionCubemapSize = null;
 
-        private void InitializeProperties()
+        void InitializeProperties()
         {
-            m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
-            m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
+            using (var p = new PropertyFetcher<HDRenderPipelineAsset>(serializedObject))
+            {
+                m_DefaultDiffuseMaterial = p.FindProperty("m_DefaultDiffuseMaterial");
+                m_DefaultShader = p.FindProperty("m_DefaultShader");
 
-            // Following way of getting property allow to handle change of properties name with serializations
+                // Tile settings
+                m_enableTileAndCluster = p.FindProperty(x => x.tileSettings.enableTileAndCluster);
+                m_enableComputeLightEvaluation = p.FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
+                m_enableComputeLightVariants = p.FindProperty(x => x.tileSettings.enableComputeLightVariants);
+                m_enableComputeMaterialVariants = p.FindProperty(x => x.tileSettings.enableComputeMaterialVariants);
+                m_enableClustered = p.FindProperty(x => x.tileSettings.enableClustered);
+                m_enableFptlForOpaqueWhenClustered = p.FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
+                m_enableBigTilePrepass = p.FindProperty(x => x.tileSettings.enableBigTilePrepass);
 
-            // Tile settings
-            m_enableTileAndCluster = FindProperty(x => x.tileSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = FindProperty(x => x.tileSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = FindProperty(x => x.tileSettings.enableComputeMaterialVariants);
-            m_enableClustered = FindProperty(x => x.tileSettings.enableClustered);
-            m_enableFptlForOpaqueWhenClustered = FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
-            m_enableBigTilePrepass = FindProperty(x => x.tileSettings.enableBigTilePrepass);
+                // Shadow settings
+                m_ShadowAtlasWidth = p.FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
+                m_ShadowAtlasHeight = p.FindProperty(x => x.shadowInitParams.shadowAtlasHeight);
 
-            // Shadow settings
-            m_ShadowAtlasWidth = FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
-            m_ShadowAtlasHeight = FindProperty(x => x.shadowInitParams.shadowAtlasHeight);
+                // Texture settings
+                m_SpotCookieSize = p.FindProperty(x => x.textureSettings.spotCookieSize);
+                m_PointCookieSize = p.FindProperty(x => x.textureSettings.pointCookieSize);
+                m_ReflectionCubemapSize = p.FindProperty(x => x.textureSettings.reflectionCubemapSize);
 
-            // Texture settings
-            m_SpotCookieSize = FindProperty(x => x.textureSettings.spotCookieSize);
-            m_PointCookieSize = FindProperty(x => x.textureSettings.pointCookieSize);
-            m_ReflectionCubemapSize = FindProperty(x => x.textureSettings.reflectionCubemapSize);
+                // Rendering settings
+                m_RenderingUseForwardOnly = p.FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
+                m_RenderingUseDepthPrepass = p.FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
+                m_RenderingUseDepthPrepassAlphaTestOnly = p.FindProperty(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
 
-            // Rendering settings
-            m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = FindProperty(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
-
-            // Subsurface Scattering Settings
-            // Old SSS Model >>>
-            m_UseDisneySSS = FindProperty(x => x.sssSettings.useDisneySSS);
-            // <<< Old SSS Model
-            m_Profiles    = FindProperty(x => x.sssSettings.profiles);
-            m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
-        }
-
-        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipelineAsset, TValue>> expr)
-        {
-            var path = Utilities.GetFieldPath(expr);
-            return serializedObject.FindProperty(path);
+                // Subsurface Scattering Settings
+                // Old SSS Model >>>
+                m_UseDisneySSS = p.FindProperty(x => x.sssSettings.useDisneySSS);
+                // <<< Old SSS Model
+                m_Profiles    = p.FindProperty(x => x.sssSettings.profiles);
+                m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
+            }
         }
 
         static void HackSetDirty(RenderPipelineAsset asset)
