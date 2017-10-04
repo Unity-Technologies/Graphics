@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -10,10 +10,29 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_Disposed;
 
-        public ProfilingSample(string name, CommandBuffer cmd)
+        public ProfilingSample(CommandBuffer cmd, string name)
         {
             this.cmd = cmd;
             this.name = name;
+            m_Disposed = false;
+            cmd.BeginSample(name);
+        }
+
+        // Shortcut to string.Format() using only one argument (reduces Gen0 GC pressure)
+        public ProfilingSample(CommandBuffer cmd, string format, object arg)
+        {
+            this.cmd = cmd;
+            name = string.Format(format, arg);
+            m_Disposed = false;
+            cmd.BeginSample(name);
+        }
+
+        // Shortcut to string.Format() with variable amount of arguments - for performance critical
+        // code you should pre-build & cache the marker name instead of using this
+        public ProfilingSample(CommandBuffer cmd, string format, params object[] args)
+        {
+            this.cmd = cmd;
+            name = string.Format(format, args);
             m_Disposed = false;
             cmd.BeginSample(name);
         }
