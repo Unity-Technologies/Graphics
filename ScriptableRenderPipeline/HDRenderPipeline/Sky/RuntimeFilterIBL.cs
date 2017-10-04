@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
 
-                using (new ProfilingSample("Compute GGX IBL Sample Data", cmd))
+                using (new ProfilingSample(cmd, "Compute GGX IBL Sample Data"))
                 {
                     cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
                 }
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int numRows = conditionalCdf.height;
 
-            using (new ProfilingSample("Build Probability Tables", cmd))
+            using (new ProfilingSample(cmd, "Build Probability Tables"))
             {
                 cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
                 cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
