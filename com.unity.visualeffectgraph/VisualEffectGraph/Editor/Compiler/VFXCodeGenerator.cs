@@ -144,12 +144,12 @@ namespace UnityEditor.VFX
 
         static public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXContextCompiledData contextData, string templateName)
         {
-            var fallbackTemplate = string.Format("Assets/VFXShaders/{0}.template", templateName);
+            var fallbackTemplate = string.Format("Assets/{0}.template", templateName);
             var processedFile = new Dictionary<string, StringBuilder>();
             for (int i = 0; i < modes.Length; ++i)
             {
                 var mode = modes[i];
-                var currentTemplate = string.Format("Assets/VFXShaders/{0}_{1}.template", templateName, mode.ToString().ToLower());
+                var currentTemplate = string.Format("Assets/{0}_{1}.template", templateName, mode.ToString().ToLower());
                 if (!System.IO.File.Exists(currentTemplate))
                 {
                     currentTemplate = fallbackTemplate;
