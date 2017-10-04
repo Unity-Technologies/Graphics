@@ -299,7 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_isInit)
                 return;
 
-            using (new ProfilingSample("Init PreFGD", cmd))
+            using (new ProfilingSample(cmd, "Init PreFGD"))
             {
                 CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
