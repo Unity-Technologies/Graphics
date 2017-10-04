@@ -1,6 +1,8 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System.IO;
 using UnityEditor;
+using UnityEngine.Rendering;
+
 #endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -18,6 +20,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
 
             return path;
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
         }
 #endif
 
@@ -46,6 +56,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
+        }
+
+        public static void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size, RenderPipelineResources resources)
+        {
+            var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);
+            cmd.SetComputeVectorParam(resources.copyChannelCS, HDShaderIDs._Size, s);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Source4, source);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Result1, target);
+            cmd.DispatchCompute(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, (int)(size.x) / 8, (int)(size.y) / 8, 1);
         }
     }
 }
