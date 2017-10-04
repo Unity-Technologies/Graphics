@@ -17,6 +17,7 @@
 
             string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath();
             string PostProcessingPath = HDUtils.GetPostProcessingPath();
+            string CorePath = HDUtils.GetCorePath();
 
             instance.debugDisplayLatlongShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
             instance.debugViewMaterialGBufferShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");
@@ -29,7 +30,7 @@
             instance.volumetricLightingCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/Resources/VolumetricLighting.compute");
             instance.gaussianPyramidCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
             instance.depthPyramidCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
-            instance.copyChannelCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/CopyChannel.compute");
+            instance.copyChannelCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(CorePath + "Resources/GPUCopy.compute");
 
             instance.clearDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/builddispatchindirect.compute");
@@ -103,17 +104,5 @@
         public Shader GGXConvolve;
 
         public Shader skyboxCubemap;
-
-        public int copyChannelKernel_xyzw2x { get; private set; }
-
-        public void OnEnable()
-        {
-            copyChannelKernel_xyzw2x = -1;
-
-            if (copyChannelCS != null)
-            {
-                copyChannelKernel_xyzw2x = copyChannelCS.FindKernel("KSampleCopy4_1_x");
-            }
-        }
     }
 }
