@@ -42,17 +42,5 @@
         public Shader GGXConvolve;
 
         public Shader skyboxCubemap;
-
-        public int copyChannelKernel_xyzw2x { get; private set; }
-
-        public void OnEnable()
-        {
-            copyChannelKernel_xyzw2x = -1;
-
-            if (copyChannelCS != null)
-            {
-                copyChannelKernel_xyzw2x = copyChannelCS.FindKernel("KSampleCopy4_1_x");
-            }
-        }
     }
 }
