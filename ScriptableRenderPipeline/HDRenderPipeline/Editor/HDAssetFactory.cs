@@ -9,14 +9,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static string s_RenderPipelineResourcesPath
         {
-            get { return HDUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
+            get { return HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
         }
 
         [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset", false, 16)]
         static void CreateHDRenderPipeline()
         {
             var instance = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
-            AssetDatabase.CreateAsset(instance, HDUtils.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
+            AssetDatabase.CreateAsset(instance, HDEditorUtils.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
 
             // If it exist, load renderPipelineResources
             instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset", false, 15)]
         static void CreateRenderPipelineResources()
         {
-            string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath();
+            string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
             var instance = ScriptableObject.CreateInstance<RenderPipelineResources>();
 
             instance.debugDisplayLatlongShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
