@@ -16,6 +16,7 @@
             var instance = CreateInstance<RenderPipelineResources>();
 
             string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath();
+            string PostProcessingPath = HDUtils.GetPostProcessingPath();
 
             instance.debugDisplayLatlongShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
             instance.debugViewMaterialGBufferShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");
@@ -26,6 +27,9 @@
             instance.screenSpaceAmbientOcclusionShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Lighting/AmbientOcclusion/ScreenSpaceAmbientOcclusion.Shader");
             instance.subsurfaceScatteringCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Material/Lit/Resources/SubsurfaceScattering.compute");
             instance.volumetricLightingCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/Resources/VolumetricLighting.compute");
+            instance.gaussianPyramidCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
+            instance.depthPyramidCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
+            instance.copyChannelCS = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/CopyChannel.compute");
 
             instance.clearDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/builddispatchindirect.compute");
@@ -70,6 +74,9 @@
         public Shader screenSpaceAmbientOcclusionShader;
         public ComputeShader subsurfaceScatteringCS;
         public ComputeShader volumetricLightingCS;
+        public ComputeShader gaussianPyramidCS;
+        public ComputeShader depthPyramidCS;
+        public ComputeShader copyChannelCS;
 
         // Lighting tile pass resources
         public ComputeShader clearDispatchIndirectShader;
@@ -96,5 +103,17 @@
         public Shader GGXConvolve;
 
         public Shader skyboxCubemap;
+
+        public int copyChannelKernel_xyzw2x { get; private set; }
+
+        public void OnEnable()
+        {
+            copyChannelKernel_xyzw2x = -1;
+
+            if (copyChannelCS != null)
+            {
+                copyChannelKernel_xyzw2x = copyChannelCS.FindKernel("KSampleCopy4_1_x");
+            }
+        }
     }
 }

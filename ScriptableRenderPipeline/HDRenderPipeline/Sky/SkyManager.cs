@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
         {
-            using (new ProfilingSample("Update Env: GGX Convolution", cmd))
+            using (new ProfilingSample(cmd, "Update Env: GGX Convolution"))
             {
                 int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
                 if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Copy the first mip
-                using (new ProfilingSample("Copy Original Mip", cmd))
+                using (new ProfilingSample(cmd, "Copy Original Mip"))
                 {
                     for (int f = 0; f < 6; f++)
                     {
@@ -345,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                using (new ProfilingSample("GGX Convolution", cmd))
+                using (new ProfilingSample(cmd, "GGX Convolution"))
                 {
                     if (m_useMIS && m_iblFilterGgx.SupportMIS)
                     {
@@ -369,7 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
             if (m_NeedLowLevelUpdateEnvironment)
             {
-                using (new ProfilingSample("DynamicGI.UpdateEnvironment", cmd))
+                using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
@@ -399,9 +399,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod)
                     )
                 {
-                    using (new ProfilingSample("Sky Environment Pass", cmd))
+                    using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {
-                        using (new ProfilingSample("Update Env: Generate Lighting Cubemap", cmd))
+                        using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
                         {
                             // Render sky into a cubemap - doesn't happen every frame, can be controlled
                             // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
@@ -431,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_SkyParametersHash != 0)
                 {
-                    using (new ProfilingSample("Reset Sky Environment", cmd))
+                    using (new ProfilingSample(cmd, "Reset Sky Environment"))
                     {
                         // Clear temp cubemap and redo GGX from black and then feed it to enlighten for default light probe.
                         CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
-            using (new ProfilingSample("Sky Pass", cmd))
+            using (new ProfilingSample(cmd, "Sky Pass"))
             {
                 if (IsSkyValid())
                 {
