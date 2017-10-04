@@ -4,31 +4,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // ShaderPass name
         internal static readonly ShaderPassName s_EmptyName = new ShaderPassName("");
-        internal static readonly ShaderPassName m_ForwardName = new ShaderPassName("Forward");
-        internal static readonly ShaderPassName m_ForwardDisplayDebugName = new ShaderPassName("ForwardDisplayDebug");
-        internal static readonly ShaderPassName m_DepthOnlyName = new ShaderPassName("DepthOnly");
-        internal static readonly ShaderPassName m_ForwardOnlyOpaqueDepthOnlyName = new ShaderPassName("ForwardOnlyOpaqueDepthOnly");
-        internal static readonly ShaderPassName m_ForwardOnlyOpaqueName = new ShaderPassName("ForwardOnlyOpaque");
-        internal static readonly ShaderPassName m_ForwardOnlyOpaqueDisplayDebugName = new ShaderPassName("ForwardOnlyOpaqueDisplayDebug");
-        internal static readonly ShaderPassName m_GBufferName = new ShaderPassName("GBuffer");
-        internal static readonly ShaderPassName m_GBufferWithPrepassName = new ShaderPassName("GBufferWithPrepass");
-        internal static readonly ShaderPassName m_GBufferDebugDisplayName = new ShaderPassName("GBufferDebugDisplay");
-        internal static readonly ShaderPassName m_SRPDefaultUnlitName = new ShaderPassName("SRPDefaultUnlit");
-        internal static readonly ShaderPassName m_MotionVectorsName = new ShaderPassName("MotionVectors");
-        internal static readonly ShaderPassName m_DistortionVectorsName = new ShaderPassName("DistortionVectors");
+        internal static readonly ShaderPassName s_ForwardName = new ShaderPassName("Forward");
+        internal static readonly ShaderPassName s_ForwardDisplayDebugName = new ShaderPassName("ForwardDisplayDebug");
+        internal static readonly ShaderPassName s_DepthOnlyName = new ShaderPassName("DepthOnly");
+        internal static readonly ShaderPassName s_ForwardOnlyOpaqueDepthOnlyName = new ShaderPassName("ForwardOnlyOpaqueDepthOnly");
+        internal static readonly ShaderPassName s_ForwardOnlyOpaqueName = new ShaderPassName("ForwardOnlyOpaque");
+        internal static readonly ShaderPassName s_ForwardOnlyOpaqueDisplayDebugName = new ShaderPassName("ForwardOnlyOpaqueDisplayDebug");
+        internal static readonly ShaderPassName s_GBufferName = new ShaderPassName("GBuffer");
+        internal static readonly ShaderPassName s_GBufferWithPrepassName = new ShaderPassName("GBufferWithPrepass");
+        internal static readonly ShaderPassName s_GBufferDebugDisplayName = new ShaderPassName("GBufferDebugDisplay");
+        internal static readonly ShaderPassName s_SRPDefaultUnlitName = new ShaderPassName("SRPDefaultUnlit");
+        internal static readonly ShaderPassName s_MotionVectorsName = new ShaderPassName("MotionVectors");
+        internal static readonly ShaderPassName s_DistortionVectorsName = new ShaderPassName("DistortionVectors");
 
         // Legacy name
-        internal static readonly ShaderPassName m_AlwaysName = new ShaderPassName("Always");
-        internal static readonly ShaderPassName m_ForwardBaseName = new ShaderPassName("ForwardBase");
-        internal static readonly ShaderPassName m_DeferredName = new ShaderPassName("Deferred");
-        internal static readonly ShaderPassName m_PrepassBaseName = new ShaderPassName("PrepassBase");
-        internal static readonly ShaderPassName m_VertexName = new ShaderPassName("Vertex");
-        internal static readonly ShaderPassName m_VertexLMRGBMName = new ShaderPassName("VertexLMRGBM");
-        internal static readonly ShaderPassName m_VertexLMName = new ShaderPassName("VertexLM");
+        internal static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
+        internal static readonly ShaderPassName s_ForwardBaseName = new ShaderPassName("ForwardBase");
+        internal static readonly ShaderPassName s_DeferredName = new ShaderPassName("Deferred");
+        internal static readonly ShaderPassName s_PrepassBaseName = new ShaderPassName("PrepassBase");
+        internal static readonly ShaderPassName s_VertexName = new ShaderPassName("Vertex");
+        internal static readonly ShaderPassName s_VertexLMRGBMName = new ShaderPassName("VertexLMRGBM");
+        internal static readonly ShaderPassName s_VertexLMName = new ShaderPassName("VertexLM");
     }
+
     // Pre-hashed shader ids - naming conventions are a bit off in this file as we use the same
-    // fields names as in the shaders for ease of use... Would be nice to clean this up at some
-    // point.
+    // fields names as in the shaders for ease of use...
+    // TODO: Would be nice to clean this up at some point
     static class HDShaderIDs
     {
         internal static readonly int _ShadowDatasExp = Shader.PropertyToID("_ShadowDatasExp");
