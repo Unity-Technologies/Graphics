@@ -1,0 +1,30 @@
+﻿#include "../../Core/ShaderLibrary/Common.hlsl"
+
+Texture2D<float> _Source;
+RWTexture2D<float> _Result;
+
+SamplerState sampler_LinearClamp;
+
+CBUFFER_START(cb)
+    float4 _Size;
+CBUFFER_END
+
+#pragma kernel KMain
+[numthreads(8, 8, 1)]
+void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Upper-left pixel coordinate of quad that this thread will read
+    int2 threadUL = dispatchThreadId;
+
+    // Downsample the block
+    float2 offset = float2(threadUL);
+    float p00 = _Source.SampleLevel(sampler_LinearClamp, (offset                   ) * _Size.zw, 0.0).x;
+    float p10 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 0.0)) * _Size.zw, 0.0).x;
+    float p01 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(0.0, 1.0)) * _Size.zw, 0.0).x;
+    float p11 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 1.0)) * _Size.zw, 0.0).x;
+
+    float depth = min(min(min(p00, p01), p10), p11);
+
+    // Write to the final target
+    _Result[dispatchThreadId] = depth;
+}

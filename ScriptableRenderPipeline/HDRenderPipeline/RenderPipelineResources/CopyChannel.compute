@@ -1,0 +1,58 @@
+﻿#include "../../Core/ShaderLibrary/Common.hlsl"
+
+#define SOURCE(n) _Source##n
+#define RESULT(n) _Result##n
+#define SOURCE_DECLARATION(n) Texture2D<float##n> SOURCE(n)
+#define RESULT_DECLARATION(n) RWTexture2D<float##n> RESULT(n)
+
+SOURCE_DECLARATION(1);
+SOURCE_DECLARATION(2);
+SOURCE_DECLARATION(3);
+SOURCE_DECLARATION(4);
+RESULT_DECLARATION(1);
+RESULT_DECLARATION(2);
+RESULT_DECLARATION(3);
+RESULT_DECLARATION(4);
+
+SamplerState sampler_LinearClamp;
+
+CBUFFER_START(cb)
+    float4 _Size;
+CBUFFER_END
+
+#define KERNEL_SAMPLECOPY(sourceN, resultN, subscript) [numthreads(8, 8, 1)]\
+void KSampleCopy##sourceN##_##resultN##_##subscript(uint2 dispatchThreadId : SV_DispatchThreadID)\
+{\
+    RESULT(resultN)[dispatchThreadId] = SOURCE(sourceN).SampleLevel(sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).subscript;\
+}
+
+// Source R
+#pragma kernel KSampleCopy1_1_x
+KERNEL_SAMPLECOPY(1, 1, x);
+
+// Source RG
+// Result R
+#pragma kernel KSampleCopy2_1_x
+KERNEL_SAMPLECOPY(2, 1, x);
+#pragma kernel KSampleCopy2_1_y
+KERNEL_SAMPLECOPY(2, 1, y);
+// Result RG
+#pragma kernel KSampleCopy2_2_xx
+KERNEL_SAMPLECOPY(2, 2, xx);
+#pragma kernel KSampleCopy2_2_xy
+KERNEL_SAMPLECOPY(2, 2, xy);
+#pragma kernel KSampleCopy2_2_yx
+KERNEL_SAMPLECOPY(2, 2, yx);
+#pragma kernel KSampleCopy2_2_yy
+KERNEL_SAMPLECOPY(2, 2, yy);
+
+// Source RGBA
+// Result R
+#pragma kernel KSampleCopy4_1_x
+KERNEL_SAMPLECOPY(4, 1, x);
+#pragma kernel KSampleCopy4_1_y
+KERNEL_SAMPLECOPY(4, 1, y);
+#pragma kernel KSampleCopy4_1_z
+KERNEL_SAMPLECOPY(4, 1, z);
+#pragma kernel KSampleCopy4_1_w
+KERNEL_SAMPLECOPY(4, 1, w);

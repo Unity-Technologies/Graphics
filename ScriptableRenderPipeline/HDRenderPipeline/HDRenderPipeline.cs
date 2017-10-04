@@ -88,6 +88,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_SssHorizontalFilterAndCombinePass;
         // <<< Old SSS Model
 
+        ComputeShader m_GaussianPyramidCS { get { return m_Asset.renderPipelineResources.gaussianPyramidCS; } }
+        int m_GaussianPyramidKernel;
+        ComputeShader m_DepthPyramidCS { get { return m_Asset.renderPipelineResources.depthPyramidCS; } }
+        int m_DepthPyramidKernel;
+
         Material m_CameraMotionVectorsMaterial;
 
         // Debug material
@@ -106,6 +111,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
         readonly int m_VelocityBuffer;
         readonly int m_DistortionBuffer;
+        readonly int m_GaussianPyramidColorBuffer;
+        readonly int m_DepthPyramidBuffer;
 
         readonly int m_DeferredShadowBuffer;
 
@@ -117,6 +124,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
+        readonly RenderTargetIdentifier m_GaussianPyramidColorBufferRT;
+        readonly RenderTargetIdentifier m_DepthPyramidBufferRT;
+        RenderTextureDescriptor m_GaussianPyramidColorBufferDesc;
+        RenderTextureDescriptor m_DepthPyramidBufferDesc;
 
         readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
 
@@ -272,6 +283,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_gbufferManager.gbufferCount++;
             }
             m_VelocityBufferRT = new RenderTargetIdentifier(m_VelocityBuffer);
+
+            m_DistortionBuffer = HDShaderIDs._DistortionTexture;
+            m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
+
+            m_GaussianPyramidKernel = m_GaussianPyramidCS.FindKernel("KMain");
+            m_GaussianPyramidColorBuffer = HDShaderIDs._GaussianPyramidColorTexture;
+            m_GaussianPyramidColorBufferRT = new RenderTargetIdentifier(m_GaussianPyramidColorBuffer);
+            m_GaussianPyramidColorBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.ARGBHalf, 0)
+            {
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+
+            m_DepthPyramidKernel = m_DepthPyramidCS.FindKernel("KMain");
+            m_DepthPyramidBuffer = HDShaderIDs._DepthPyramidTexture;
+            m_DepthPyramidBufferRT = new RenderTargetIdentifier(m_DepthPyramidBuffer);
+            m_DepthPyramidBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.RFloat, 0)
+            {
+                useMipMap = true,
+                autoGenerateMips = false
+            };
 
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
@@ -481,7 +513,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
         {
-            using (new ProfilingSample("Push Global Parameters", cmd))
+            using (new ProfilingSample(cmd, "Push Global Parameters"))
             {
                 hdCamera.SetupGlobalParams(cmd);
 
@@ -549,11 +581,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void CopyDepthBufferIfNeeded(CommandBuffer cmd)
         {
-            using (new ProfilingSample(NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer", cmd))
+            using (new ProfilingSample(cmd, NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer"))
             {
                 if (NeedDepthBufferCopy())
                 {
-                    using (new ProfilingSample("Copy depth-stencil buffer", cmd))
+                    using (new ProfilingSample(cmd, "Copy depth-stencil buffer"))
                     {
                         cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraDepthBufferCopyRT);
                     }
@@ -567,7 +599,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (NeedStencilBufferCopy())
             {
-                using (new ProfilingSample("Copy StencilBuffer", cmd))
+                using (new ProfilingSample(cmd, "Copy StencilBuffer"))
                 {
                     cmd.SetRandomWriteTarget(1, GetHTile());
                     // Our method of exporting the stencil requires one pass per unique stencil value.
@@ -691,7 +723,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
                 // It is up to the users to only send unlit object for this camera path
 
-                using (new ProfilingSample("Forward", cmd))
+                using (new ProfilingSample(cmd, "Forward"))
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color | ClearFlag.Depth);
                     ShaderPassName[] arrayShaderPassName = { HDShaderPassNames.m_ForwardName };
@@ -714,6 +746,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             CopyDepthBufferIfNeeded(cmd);
 
+            RenderPyramidDepth(camera, cmd);
+
             // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
 
@@ -723,7 +757,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                using (new ProfilingSample("Build Light list and render shadows", cmd))
+                using (new ProfilingSample(cmd, "Build Light list and render shadows"))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, deffered shadow, material and light classification can be parallelize with Async compute)
                     m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
@@ -765,6 +799,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderSky(hdCamera, cmd);
 
+                RenderGaussianPyramidColor(camera, cmd);
+
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, false);
 #if UNITY_EDITOR
@@ -778,7 +814,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Planar and real time cubemap doesn't need post process and render in FP16
                 if (camera.cameraType == CameraType.Reflection)
                 {
-                    using (new ProfilingSample("Blit to final RT", cmd))
+                    using (new ProfilingSample(cmd, "Blit to final RT"))
                     {
                         // Simple blit
                         cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
@@ -939,7 +975,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (addDepthPrepass == false && addForwardOnlyOpaqueDepthPrepass == false)
                 return;
 
-            using (new ProfilingSample(addDepthPrepass ? "Depth Prepass" : "Depth Prepass forward opaque ", cmd))
+            using (new ProfilingSample(cmd, addDepthPrepass ? "Depth Prepass" : "Depth Prepass forward opaque"))
             {
                 // Default depth prepass (forward and deferred) will render all opaque geometry.
                 RenderQueueRange renderQueueRange = RenderQueueRange.opaque;
@@ -962,7 +998,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 return;
 
-            using (new ProfilingSample(m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", cmd))
+            using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer"))
             {
                 // setup GBuffer for rendering
                 CoreUtils.SetRenderTarget(cmd, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
@@ -996,11 +1032,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample("DisplayDebug ViewMaterial", cmd))
+            using (new ProfilingSample(cmd, "DisplayDebug ViewMaterial"))
             {
                 if (m_CurrentDebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
-                    using (new ProfilingSample("DebugViewMaterialGBuffer", cmd))
+                    using (new ProfilingSample(cmd, "DebugViewMaterialGBuffer"))
                     {
                         CoreUtils.DrawFullScreen(cmd, m_DebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
@@ -1018,7 +1054,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Last blit
             {
-                using (new ProfilingSample("Blit DebugView Material Debug", cmd))
+                using (new ProfilingSample(cmd, "Blit DebugView Material Debug"))
                 {
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
@@ -1059,7 +1095,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 return;
 
-            using (new ProfilingSample("Subsurface Scattering", cmd))
+            using (new ProfilingSample(cmd, "Subsurface Scattering"))
             {
                 if (sssSettings.useDisneySSS)
                 {
@@ -1154,7 +1190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 profileName = addForwardPass ? (renderOpaque ? "Forward Opaque" : "Forward Transparent") :  "Forward Only Opaque";
             }
 
-            using (new ProfilingSample(profileName, cmd))
+            using (new ProfilingSample(cmd, profileName))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
@@ -1179,7 +1215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is use to Display legacy shader with an error shader
         void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
         {
-            using (new ProfilingSample("Render Forward Error", cmd))
+            using (new ProfilingSample(cmd, "Render Forward Error"))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
@@ -1199,7 +1235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample("Velocity", cmd))
+            using (new ProfilingSample(cmd, "Velocity"))
             {
                 // If opaque velocity have been render during GBuffer no need to render it here
                 // TODO: Currently we can't render velocity vector into GBuffer, neither during forward pass (in case of forward opaque), so it is always a separate pass
@@ -1229,12 +1265,104 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd)
+        {
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
+                return;
+
+            using (new ProfilingSample(cmd, "Gaussian Pyramid Color"))
+            {
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+
+                // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
+                // minimum size of 8x8
+                int lodCount = Mathf.FloorToInt(Mathf.Log(size, 2f) - 3f);
+                if (lodCount > HDShaderIDs._GaussianPyramidColorMips.Length)
+                {
+                    Debug.LogWarningFormat("Cannot compute all mipmaps of the color pyramid, max texture size supported: {0}", (2 << HDShaderIDs._GaussianPyramidColorMips.Length).ToString());
+                    lodCount = HDShaderIDs._GaussianPyramidColorMips.Length;
+                }
+
+                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(size, size, lodCount, 0));
+
+                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBuffer);
+
+                var last = m_GaussianPyramidColorBuffer;
+
+                for (int i = 0; i < lodCount; i++)
+                {
+                    size >>= 1;
+
+                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
+                    cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", HDShaderIDs._GaussianPyramidColorMips[i + 1]);
+                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(size, size, 1f / size, 1f / size));
+                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, size / 8, size / 8, 1);
+                    cmd.CopyTexture(HDShaderIDs._GaussianPyramidColorMips[i + 1], 0, 0, m_GaussianPyramidColorBufferRT, 0, i + 1);
+
+                    last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
+                }
+
+                cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
+
+                for (int i = 0; i < lodCount; i++)
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1]);
+            }
+        }
+
+        void RenderPyramidDepth(Camera camera, CommandBuffer cmd)
+        {
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
+                return;
+
+            using (new ProfilingSample(cmd, "Pyramid Depth"))
+            {
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+
+                // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
+                // minimum size of 8x8
+                int lodCount = Mathf.FloorToInt(Mathf.Log(size, 2f) - 3f);
+                if (lodCount > HDShaderIDs._DepthPyramidMips.Length)
+                {
+                    Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << HDShaderIDs._DepthPyramidMips.Length).ToString());
+                    lodCount = HDShaderIDs._DepthPyramidMips.Length;
+                }
+
+                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(size, size, lodCount, 0));
+
+                cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
+                HDUtils.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size), m_Asset.renderPipelineResources);
+                cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
+
+                for (int i = 0; i < lodCount; i++)
+                {
+                    size >>= 1;
+
+                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", HDShaderIDs._DepthPyramidMips[i]);
+                    cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
+                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_Size", new Vector4(size, size, 1f / size, 1f / size));
+                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, size / 8, size / 8, 1);
+                    cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
+                }
+
+                cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
+
+                for (int i = 0; i < lodCount + 1; i++)
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
+            }
+        }
+
         void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
                 return;
 
-            using (new ProfilingSample("Distortion", cmd))
+            using (new ProfilingSample(cmd, "Distortion"))
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
@@ -1250,7 +1378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderPostProcesses(Camera camera, CommandBuffer cmd, PostProcessLayer layer)
         {
-            using (new ProfilingSample("Post-processing", cmd))
+            using (new ProfilingSample(cmd, "Post-processing"))
             {
                 if (CoreUtils.IsPostProcessingActive(layer))
                 {
@@ -1310,7 +1438,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.camera.cameraType == CameraType.Reflection || camera.camera.cameraType == CameraType.Preview)
                 return;
 
-            using (new ProfilingSample("Render Debug", cmd))
+            using (new ProfilingSample(cmd, "Render Debug"))
             {
                 // We make sure the depth buffer is bound because we need it to write depth at near plane for overlays otherwise the editor grid end up visible in them.
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
@@ -1348,11 +1476,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitAndClearBuffer(HDCamera camera, CommandBuffer cmd)
         {
-            using (new ProfilingSample("InitAndClearBuffer", cmd))
+            using (new ProfilingSample(cmd, "InitAndClearBuffer"))
             {
                 // We clear only the depth buffer, no need to clear the various color buffer as we overwrite them.
                 // Clear depth/stencil and init buffers
-                using (new ProfilingSample("InitGBuffers and clear Depth/Stencil", cmd))
+                using (new ProfilingSample(cmd, "InitGBuffers and clear Depth/Stencil"))
                 {
                     // Init buffer
                     // With scriptable render loop we must allocate ourself depth and color buffer (We must be independent of backbuffer for now, hope to fix that later).
@@ -1366,6 +1494,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_CameraSssDiffuseLightingBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     cmd.GetTemporaryRT(m_CameraFilteringBuffer,          w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
+                    // Color and depth pyramids
+                    int s = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                    m_GaussianPyramidColorBufferDesc.width = s;
+                    m_GaussianPyramidColorBufferDesc.height = s;
+                    cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
+
+                    m_DepthPyramidBufferDesc.width = s;
+                    m_DepthPyramidBufferDesc.height = s;
+                    cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
+                    // End
+
                     if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                     {
                         m_gbufferManager.InitGBuffers(w, h, cmd);
@@ -1375,7 +1514,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear the diffuse SSS lighting target
-                using (new ProfilingSample("Clear SSS diffuse target", cmd))
+                using (new ProfilingSample(cmd, "Clear SSS diffuse target"))
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraSssDiffuseLightingBufferRT, ClearFlag.Color, Color.black);
                 }
@@ -1384,7 +1523,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!sssSettings.useDisneySSS)
                 {
                     // Clear the SSS filtering target
-                    using (new ProfilingSample("Clear SSS filtering target", cmd))
+                    using (new ProfilingSample(cmd, "Clear SSS filtering target"))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBuffer, ClearFlag.Color, Color.black);
                     }
@@ -1393,7 +1532,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (NeedStencilBufferCopy())
                 {
-                    using (new ProfilingSample("Clear stencil texture", cmd))
+                    using (new ProfilingSample(cmd, "Clear stencil texture"))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.Color, Color.black);
                     }
@@ -1401,7 +1540,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (NeedHTileCopy())
                 {
-                    using (new ProfilingSample("Clear HTile", cmd))
+                    using (new ProfilingSample(cmd, "Clear HTile"))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, Color.black);
                     }
@@ -1415,7 +1554,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
                 // Clear the HDR target
-                using (new ProfilingSample("Clear HDR target", cmd))
+                using (new ProfilingSample(cmd, "Clear HDR target"))
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color, Color.black);
                 }
@@ -1423,7 +1562,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear GBuffers
                 if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
-                    using (new ProfilingSample("Clear GBuffer", cmd))
+                    using (new ProfilingSample(cmd, "Clear GBuffer"))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, Color.black);
                     }
