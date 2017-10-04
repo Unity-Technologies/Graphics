@@ -1549,7 +1549,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(size, size, lodCount, 0));
 
                 cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
-                Utilities.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size), m_Asset.renderPipelineResources);
+                HDUtils.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size), m_Asset.renderPipelineResources);
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
 
                 for (int i = 0; i < lodCount; i++)
