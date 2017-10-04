@@ -279,11 +279,11 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float2 minUvSize = GetMinUvSize(layerTexCoord);
         float lod = ComputeTextureLOD(minUvSize);
 
+        if (isPlanar) maxHeight *= _TexWorldScale;
+
     #ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
         float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
         maxHeight *= tilingScale;
-    #else
-        if (isPlanar) maxHeight *= _TexWorldScale;
     #endif
 
         // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
@@ -293,15 +293,14 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
         float3   invObjectScale;
 
-        invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-
         if (isPlanar)
         {
-            invObjectScale.xz = 1;
+            invObjectScale.xyz = 1;
         }
         else
         {
             invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+            invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
             invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
         }
 
