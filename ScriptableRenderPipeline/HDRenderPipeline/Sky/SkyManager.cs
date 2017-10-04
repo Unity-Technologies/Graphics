@@ -108,10 +108,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if ((m_SkyboxCubemapRT != null) && (m_SkyboxCubemapRT.width != resolution))
             {
-                Utilities.Destroy(m_SkyboxCubemapRT);
-                Utilities.Destroy(m_SkyboxGGXCubemapRT);
-                Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
-                Utilities.Destroy(m_SkyboxConditionalCdfRT);
+                CoreUtils.Destroy(m_SkyboxCubemapRT);
+                CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
+                CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
+                CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
 
                 m_SkyboxCubemapRT = null;
                 m_SkyboxGGXCubemapRT = null;
@@ -198,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_faceWorldToViewMatrixMatrices[i]     = worldToView;
                 m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
-                m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
+                m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
         }
 
@@ -260,20 +260,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_iblFilterGgx = new IBLFilterGGX(renderPipelinesResources);
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
 
-            m_BlitCubemapMaterial = Utilities.CreateEngineMaterial(renderPipelinesResources.blitCubemap);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.blitCubemap);
 
             m_CurrentUpdateTime = 0.0f;
         }
 
         public void Cleanup()
         {
-            Utilities.Destroy(m_StandardSkyboxMaterial);
-            Utilities.Destroy(m_SkyboxCubemapRT);
-            Utilities.Destroy(m_SkyboxGGXCubemapRT);
-            Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
-            Utilities.Destroy(m_SkyboxConditionalCdfRT);
+            CoreUtils.Destroy(m_StandardSkyboxMaterial);
+            CoreUtils.Destroy(m_SkyboxCubemapRT);
+            CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
+            CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
+            CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
 
             if (m_Renderer != null)
                 m_Renderer.Cleanup();
@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 builtinParams.colorBuffer = target;
                 builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
 
-                Utilities.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.None, 0, (CubemapFace)i);
                 m_Renderer.RenderSky(builtinParams, skySettings, true);
             }
 
@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < 6; ++i)
             {
-                Utilities.SetRenderTarget(cmd, dest, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                CoreUtils.SetRenderTarget(cmd, dest, ClearFlag.None, 0, (CubemapFace)i);
                 propertyBlock.SetTexture("_MainTex", source);
                 propertyBlock.SetFloat("_faceIndex", (float)i);
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
         {
-            using (new Utilities.ProfilingSample("Update Env: GGX Convolution", cmd))
+            using (new ProfilingSample("Update Env: GGX Convolution", cmd))
             {
                 int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
                 if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Copy the first mip
-                using (new Utilities.ProfilingSample("Copy Original Mip", cmd))
+                using (new ProfilingSample("Copy Original Mip", cmd))
                 {
                     for (int f = 0; f < 6; f++)
                     {
@@ -345,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                using (new Utilities.ProfilingSample("GGX Convolution", cmd))
+                using (new ProfilingSample("GGX Convolution", cmd))
                 {
                     if (m_useMIS && m_iblFilterGgx.SupportMIS)
                     {
@@ -369,7 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
             if (m_NeedLowLevelUpdateEnvironment)
             {
-                using (new Utilities.ProfilingSample("DynamicGI.UpdateEnvironment", cmd))
+                using (new ProfilingSample("DynamicGI.UpdateEnvironment", cmd))
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
@@ -399,9 +399,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod)
                     )
                 {
-                    using (new Utilities.ProfilingSample("Sky Environment Pass", cmd))
+                    using (new ProfilingSample("Sky Environment Pass", cmd))
                     {
-                        using (new Utilities.ProfilingSample("Update Env: Generate Lighting Cubemap", cmd))
+                        using (new ProfilingSample("Update Env: Generate Lighting Cubemap", cmd))
                         {
                             // Render sky into a cubemap - doesn't happen every frame, can be controlled
                             // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
@@ -431,10 +431,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_SkyParametersHash != 0)
                 {
-                    using (new Utilities.ProfilingSample("Reset Sky Environment", cmd))
+                    using (new ProfilingSample("Reset Sky Environment", cmd))
                     {
                         // Clear temp cubemap and redo GGX from black and then feed it to enlighten for default light probe.
-                        Utilities.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
+                        CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
                         RenderCubemapGGXConvolution(cmd, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_SkyParametersHash = 0;
@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
-            using (new Utilities.ProfilingSample("Sky Pass", cmd))
+            using (new ProfilingSample("Sky Pass", cmd))
             {
                 if (IsSkyValid())
                 {

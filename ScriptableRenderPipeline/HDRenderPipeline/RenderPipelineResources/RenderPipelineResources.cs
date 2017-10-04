@@ -5,7 +5,7 @@
 #if UNITY_EDITOR
         public static string GetRenderPipelineResourcesPath()
         {
-            return Utilities.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset";
+            return HDUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset";
         }
 
         // TODO skybox/cubemap
@@ -15,7 +15,7 @@
         {
             var instance = CreateInstance<RenderPipelineResources>();
 
-            string HDRenderPipelinePath = Utilities.GetHDRenderPipelinePath();
+            string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath();
 
             instance.debugDisplayLatlongShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
             instance.debugViewMaterialGBufferShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");
@@ -35,7 +35,7 @@
             instance.buildPerVoxelLightListShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/lightlistbuild-clustered.compute");
             instance.buildMaterialFlagsShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/materialflags.compute");
             instance.deferredComputeShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/Deferred.compute");
-            
+
             instance.deferredDirectionalShadowComputeShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/DeferredDirectionalShadow.compute");
 
             // SceneSettings
