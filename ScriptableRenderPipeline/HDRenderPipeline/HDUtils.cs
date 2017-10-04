@@ -1,7 +1,36 @@
+﻿#if UNITY_EDITOR
+using System.IO;
+using UnityEditor;
+using UnityEngine.Rendering;
+
+#endif
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDUtils
     {
+#if UNITY_EDITOR
+        public static string GetHDRenderPipelinePath()
+        {
+            // User can create their own directory for SRP, so we need to find the current path that they use.
+            // We know that DefaultHDMaterial exist and we know where it is, let's use that to find the current directory.
+            var guid = AssetDatabase.FindAssets("DefaultHDMaterial t:material");
+            string path = AssetDatabase.GUIDToAssetPath(guid[0]);
+            path = Path.GetDirectoryName(path); // Asset is in HDRenderPipeline/RenderPipelineResources/DefaultHDMaterial.mat
+            path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
+
+            return path;
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
+        }
+#endif
+
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
         public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
@@ -27,6 +56,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
+        }
+
+        public static void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size, RenderPipelineResources resources)
+        {
+            var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);
+            cmd.SetComputeVectorParam(resources.copyChannelCS, HDShaderIDs._Size, s);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Source4, source);
+            cmd.SetComputeTextureParam(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, HDShaderIDs._Result1, target);
+            cmd.DispatchCompute(resources.copyChannelCS, resources.copyChannelKernel_xyzw2x, (int)(size.x) / 8, (int)(size.y) / 8, 1);
         }
     }
 }

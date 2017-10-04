@@ -13,6 +13,9 @@
         public Shader screenSpaceAmbientOcclusionShader;
         public ComputeShader subsurfaceScatteringCS;
         public ComputeShader volumetricLightingCS;
+        public ComputeShader gaussianPyramidCS;
+        public ComputeShader depthPyramidCS;
+        public ComputeShader copyChannelCS;
 
         // Lighting tile pass resources
         public ComputeShader clearDispatchIndirectShader;
@@ -39,5 +42,17 @@
         public Shader GGXConvolve;
 
         public Shader skyboxCubemap;
+
+        public int copyChannelKernel_xyzw2x { get; private set; }
+
+        public void OnEnable()
+        {
+            copyChannelKernel_xyzw2x = -1;
+
+            if (copyChannelCS != null)
+            {
+                copyChannelKernel_xyzw2x = copyChannelCS.FindKernel("KSampleCopy4_1_x");
+            }
+        }
     }
 }
