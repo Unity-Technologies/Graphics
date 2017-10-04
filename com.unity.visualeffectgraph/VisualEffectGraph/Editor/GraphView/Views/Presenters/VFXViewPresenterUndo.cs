@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
 
         private void IncremenentGraphState()
         {
-            if (!m_reentrant)
+            if (!m_reentrant && m_graphUndoStack != null)
             {
                 m_graphUndoStack.IncrementGraphState();
             }
