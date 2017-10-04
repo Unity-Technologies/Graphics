@@ -28,6 +28,7 @@
 #define LIGHTFEATUREFLAGS_DIRECTIONAL (1024)
 #define LIGHTFEATUREFLAGS_ENV (2048)
 #define LIGHTFEATUREFLAGS_SKY (4096)
+#define LIGHTFEATUREFLAGS_SSL (8192)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields

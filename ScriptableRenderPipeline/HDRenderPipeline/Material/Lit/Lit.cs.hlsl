@@ -30,6 +30,14 @@
 #define SKIN_SPECULAR_VALUE (0.028)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+RefractionMode:  static fields
+//
+#define REFRACTIONMODE_NONE (0)
+#define REFRACTIONMODE_THICK_PLANE (1)
+#define REFRACTIONMODE_THICK_SPHERE (2)
+#define REFRACTIONMODE_THIN_PLANE (3)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
@@ -48,6 +56,9 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS (1013)
 #define DEBUGVIEW_LIT_SURFACEDATA_COAT_COVERAGE (1014)
 #define DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR (1015)
+#define DEBUGVIEW_LIT_SURFACEDATA_IOR (1016)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1017)
+#define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1018)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+TransmissionType:  static fields
@@ -80,6 +91,8 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1048)
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE (1049)
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1051)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1052)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -106,6 +119,9 @@ struct SurfaceData
     float3 coatNormalWS;
     float coatCoverage;
     float coatIOR;
+    float ior;
+    float3 transmittanceColor;
+    float atDistance;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
@@ -133,6 +149,8 @@ struct BSDFData
     float3 coatNormalWS;
     float coatCoverage;
     float coatIOR;
+    float ior;
+    float3 absorptionCoefficient;
 };
 
 //
@@ -191,6 +209,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR:
             result = surfacedata.coatIOR.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_IOR:
+            result = surfacedata.ior.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR:
+            result = surfacedata.transmittanceColor;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE:
+            result = surfacedata.atDistance.xxx;
             break;
     }
 }
@@ -265,6 +292,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_COAT_IOR:
             result = bsdfdata.coatIOR.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_IOR:
+            result = bsdfdata.ior.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
+            result = bsdfdata.absorptionCoefficient;
             break;
     }
 }
