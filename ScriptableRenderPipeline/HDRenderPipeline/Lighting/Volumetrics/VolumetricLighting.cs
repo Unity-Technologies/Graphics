@@ -144,7 +144,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
     void ClearVolumetricLightingBuffers(CommandBuffer cmd, bool isFirstFrame)
     {
-        using (new ProfilingSample("Clear volumetric lighting buffers", cmd))
+        using (new ProfilingSample(cmd, "Clear volumetric lighting buffers"))
         {
             CoreUtils.SetRenderTarget(cmd, m_VolumetricLightingBufferCurrentFrameRT, ClearFlag.Color, Color.black);
 
@@ -197,7 +197,7 @@ public partial class HDRenderPipeline : RenderPipeline
     {
         if (!SetGlobalVolumeProperties(m_VolumetricLightingEnabled, cmd, m_VolumetricLightingCS)) { return; }
 
-        using (new ProfilingSample("VolumetricLighting", cmd))
+        using (new ProfilingSample(cmd, "VolumetricLighting"))
         {
             bool enableClustered = m_Asset.tileSettings.enableClustered && m_Asset.tileSettings.enableTileAndCluster;
 
