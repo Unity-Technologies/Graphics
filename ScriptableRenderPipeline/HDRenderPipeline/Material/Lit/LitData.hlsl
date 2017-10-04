@@ -1388,6 +1388,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatCoverage = 0.0f;
     surfaceData.coatIOR = 0.5;
 
+    // Transparency parameters
+    // Use thickness from SSS
+    surfaceData.ior = 1.0;
+    surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+    surfaceData.atDistance = 1000000.0;
+
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)

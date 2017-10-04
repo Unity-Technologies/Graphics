@@ -177,6 +177,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         internal static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
+        internal static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
+        internal static readonly int _DepthPyramidTexture = Shader.PropertyToID("_PyramidDepthTexture");
+        internal static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
+        internal static readonly int[] _GaussianPyramidColorMips =
+        {
+            Shader.PropertyToID("_GaussianColorMip0"),
+            Shader.PropertyToID("_GaussianColorMip1"),
+            Shader.PropertyToID("_GaussianColorMip2"),
+            Shader.PropertyToID("_GaussianColorMip3"),
+            Shader.PropertyToID("_GaussianColorMip4"),
+            Shader.PropertyToID("_GaussianColorMip5"),
+            Shader.PropertyToID("_GaussianColorMip6"),
+            Shader.PropertyToID("_GaussianColorMip7"),
+            Shader.PropertyToID("_GaussianColorMip8"),
+            Shader.PropertyToID("_GaussianColorMip9"),
+            Shader.PropertyToID("_GaussianColorMip10"),
+            Shader.PropertyToID("_GaussianColorMip11"),
+            Shader.PropertyToID("_GaussianColorMip12"),
+            Shader.PropertyToID("_GaussianColorMip13"),
+            Shader.PropertyToID("_GaussianColorMip14"),
+        };
+        internal static readonly int _DepthPyramidMipSize = Shader.PropertyToID("_PyramidDepthMipSize");
+        internal static readonly int[] _DepthPyramidMips =
+        {
+            Shader.PropertyToID("_DepthPyramidMip0"),
+            Shader.PropertyToID("_DepthPyramidMip1"),
+            Shader.PropertyToID("_DepthPyramidMip2"),
+            Shader.PropertyToID("_DepthPyramidMip3"),
+            Shader.PropertyToID("_DepthPyramidMip4"),
+            Shader.PropertyToID("_DepthPyramidMip5"),
+            Shader.PropertyToID("_DepthPyramidMip6"),
+            Shader.PropertyToID("_DepthPyramidMip7"),
+            Shader.PropertyToID("_DepthPyramidMip8"),
+            Shader.PropertyToID("_DepthPyramidMip9"),
+            Shader.PropertyToID("_DepthPyramidMip10"),
+            Shader.PropertyToID("_DepthPyramidMip11"),
+            Shader.PropertyToID("_DepthPyramidMip12"),
+            Shader.PropertyToID("_DepthPyramidMip13"),
+            Shader.PropertyToID("_DepthPyramidMip14"),
+        };
         internal static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
 
         internal static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
@@ -211,5 +251,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static readonly int _GlobalFog_Extinction = Shader.PropertyToID("_GlobalFog_Extinction");
         internal static readonly int _GlobalFog_Asymmetry  = Shader.PropertyToID("_GlobalFog_Asymmetry");
         internal static readonly int _GlobalFog_Scattering = Shader.PropertyToID("_GlobalFog_Scattering");
+
+        internal static readonly int _Size = Shader.PropertyToID("_Size");
+        internal static readonly int _Source4 = Shader.PropertyToID("_Source4");
+        internal static readonly int _Result1 = Shader.PropertyToID("_Result1");
     }
 }
