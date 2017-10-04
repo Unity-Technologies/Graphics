@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     // TODO: Simplify this editor once we can target 2018.1
     [CanEditMultipleObjects]
@@ -79,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_IsRealtime { get { return m_BaseData.lightmapping.intValue == 4; } }
         Light light { get { return serializedObject.targetObject as Light; } }
         Texture m_Cookie { get { return m_BaseData.cookie.objectReferenceValue as Texture; } }
-        bool m_BakingWarningValue { get { return !Lightmapping.bakedGI && m_LightmappingTypeIsSame && !m_IsRealtime; } }
+        bool m_BakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && m_LightmappingTypeIsSame && !m_IsRealtime; } }
         bool m_BounceWarningValue
         {
             get
