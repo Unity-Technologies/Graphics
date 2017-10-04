@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Material.SetFloat(Uniforms._Downsample, 1.0f / downsize);
             m_Material.SetFloat(Uniforms._SampleCount, settings.sampleCount);
 
-            using (new ProfilingSample("Screenspace ambient occlusion", cmd))
+            using (new ProfilingSample(cmd, "Screenspace ambient occlusion"))
             {
                 // AO estimation.
                 cmd.GetTemporaryRT(Uniforms._TempTex1, width / downsize, height / downsize, 0, kFilter, kTempFormat, kRWMode);
