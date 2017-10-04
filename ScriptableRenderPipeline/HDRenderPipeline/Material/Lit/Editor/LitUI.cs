@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -555,13 +555,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
 
-                    if (thicknessMap.textureValue == null)
-                        m_MaterialEditor.ShaderProperty(thickness, Styles.refractionThicknessText);
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap);
+                    if (mode != Lit.RefractionMode.ThinPlane)
+                    {
+                        if (thicknessMap.textureValue == null)
+                            m_MaterialEditor.ShaderProperty(thickness, Styles.refractionThicknessText);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap);
 
-                    ++EditorGUI.indentLevel;
-                    m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
-                    --EditorGUI.indentLevel;
+                        ++EditorGUI.indentLevel;
+                        m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                        --EditorGUI.indentLevel;
+                    }
 
                     m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
                     ++EditorGUI.indentLevel;

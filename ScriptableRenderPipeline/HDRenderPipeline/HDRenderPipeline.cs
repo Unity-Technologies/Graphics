@@ -78,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material m_CopyStencilForSplitLighting;
         Material m_CopyStencilForRegularLighting;
+        GPUCopy m_GPUCopy;
 
         // Various set of material use in render loop
         ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
@@ -225,6 +226,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
+            m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
 
             // Scan material list and assign it
             m_MaterialList = CoreUtils.GetRenderPipelineMaterialList();
@@ -1325,7 +1327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(size, size, lodCount, 0));
 
                 cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
-                HDUtils.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size), m_Asset.renderPipelineResources);
+                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size));
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
 
                 for (int i = 0; i < lodCount; i++)
