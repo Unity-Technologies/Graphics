@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -24,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
-            public static GUIContent perPixelDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Per Pixel displacement will take into account the tiling scale - Only work with uniform positive scale");            
+            public static GUIContent perPixelDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Per Pixel displacement will take into account the tiling scale - Only work with uniform positive scale");
 
             // Vertex displacement
             public static string vertexDisplacementText = "Vertex displacement";
@@ -147,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
-            perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);            
+            perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);
 
             // vertex displacement
             enableVertexDisplacement = FindProperty(kEnableVertexDisplacement, props);
@@ -214,7 +213,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
                 m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
                 //m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.perPixelDisplacementObjectScaleText);
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                
+                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                 EditorGUI.indentLevel--;
             }
 

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 using System.Linq;
 
@@ -17,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private class StylesLayer
         {
-            public readonly Color[] layerColors = 
+            public readonly Color[] layerColors =
             {
                 Color.white,
                 Color.red,
