@@ -542,14 +542,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.TransparencyInputsText, EditorStyles.boldLabel);
-
-            ++EditorGUI.indentLevel;
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent
                 && refractionMode != null)
             {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(Styles.TransparencyInputsText, EditorStyles.boldLabel);
+                ++EditorGUI.indentLevel;
+
                 m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
                 var mode = (Lit.RefractionMode)refractionMode.floatValue;
                 if (mode != Lit.RefractionMode.None)
@@ -569,8 +569,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
                     --EditorGUI.indentLevel;
                 }
+                --EditorGUI.indentLevel;
             }
-            --EditorGUI.indentLevel;
         }
 
         private void DoEmissiveGUI(Material material)
