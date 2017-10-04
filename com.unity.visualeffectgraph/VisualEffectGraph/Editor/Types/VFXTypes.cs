@@ -139,14 +139,32 @@ namespace UnityEditor.VFX
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
-        [Tooltip("The position of the cone.")]
-        public Vector3 position;
+        [Tooltip("The center of the cone.")]
+        public Vector3 center;
         [Tooltip("The first radius of the cone.")]
         public float radius0;
         [Tooltip("The second radius of the cone.")]
         public float radius1;
         [Tooltip("The height of the cone.")]
         public float height;
+    }
+
+    [VFXType]
+    struct ArcCone : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The center of the cone.")]
+        public Vector3 center;
+        [Tooltip("The first radius of the cone.")]
+        public float radius0;
+        [Tooltip("The second radius of the cone.")]
+        public float radius1;
+        [Tooltip("The height of the cone.")]
+        public float height;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used.")]
+        public float arc;
     }
 
     [VFXType]
