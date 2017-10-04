@@ -13,6 +13,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
+            m_TextField.dynamicUpdate = true;
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
         }
 
