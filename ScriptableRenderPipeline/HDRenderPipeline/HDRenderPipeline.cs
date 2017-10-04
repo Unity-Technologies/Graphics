@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
+using System.Diagnostics;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 
@@ -98,9 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_DebugViewMaterialGBuffer;
         Material m_DebugDisplayLatlong;
         Material m_DebugFullScreen;
-#if UNITY_EDITOR
         Material m_ErrorMaterial;
-#endif
 
         // Various buffer
         readonly int m_CameraColorBuffer;
@@ -349,9 +348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugViewMaterialGBufferShader);
             m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugDisplayLatlongShader);
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
-#if UNITY_EDITOR
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
-#endif
         }
 
         public void CreateSssMaterials(bool useDisneySSS)
@@ -401,9 +398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
             CoreUtils.Destroy(m_DebugDisplayLatlong);
             CoreUtils.Destroy(m_DebugFullScreen);
-#if UNITY_EDITOR
             CoreUtils.Destroy(m_ErrorMaterial);
-#endif
 
             m_SkyManager.Cleanup();
 
@@ -1210,8 +1205,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-#if UNITY_EDITOR
         // This is use to Display legacy shader with an error shader
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
         {
             using (new ProfilingSample(cmd, "Render Forward Error"))
@@ -1230,7 +1225,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-#endif
 
         void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
