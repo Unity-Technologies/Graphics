@@ -28,6 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void CreateRenderPipelineResources()
         {
             string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
+            string PostProcessingPath = HDEditorUtils.GetPostProcessingPath();
+
             var instance = ScriptableObject.CreateInstance<RenderPipelineResources>();
 
             instance.debugDisplayLatlongShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
@@ -39,6 +41,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.screenSpaceAmbientOcclusionShader = Load<Shader>(HDRenderPipelinePath + "Lighting/AmbientOcclusion/ScreenSpaceAmbientOcclusion.Shader");
             instance.subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/Lit/Resources/SubsurfaceScattering.compute");
             instance.volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/Resources/VolumetricLighting.compute");
+            instance.gaussianPyramidCS = Load<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
+            instance.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
+            instance.copyChannelCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/CopyChannel.compute");
 
             instance.clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/builddispatchindirect.compute");

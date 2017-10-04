@@ -1,36 +1,9 @@
-﻿#if UNITY_EDITOR
-using System.IO;
-using UnityEditor;
-using UnityEngine.Rendering;
-
-#endif
+﻿using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDUtils
     {
-#if UNITY_EDITOR
-        public static string GetHDRenderPipelinePath()
-        {
-            // User can create their own directory for SRP, so we need to find the current path that they use.
-            // We know that DefaultHDMaterial exist and we know where it is, let's use that to find the current directory.
-            var guid = AssetDatabase.FindAssets("DefaultHDMaterial t:material");
-            string path = AssetDatabase.GUIDToAssetPath(guid[0]);
-            path = Path.GetDirectoryName(path); // Asset is in HDRenderPipeline/RenderPipelineResources/DefaultHDMaterial.mat
-            path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
-
-            return path;
-        }
-
-        public static string GetPostProcessingPath()
-        {
-            var hdrpPath = GetHDRenderPipelinePath();
-            var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
-            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
-            return relativePath.Replace("\\", "/") + "/";
-        }
-#endif
-
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
         public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
