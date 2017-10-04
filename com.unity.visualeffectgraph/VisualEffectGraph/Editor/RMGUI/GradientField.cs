@@ -15,6 +15,16 @@ namespace UnityEditor.VFX.UIElements
         public GradientField(VisualElement existingLabel) : base(existingLabel)
         {
             this.AddManipulator(new Clickable(OnClick));
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
+        }
+
+        void OnDetach(DetachFromPanelEvent e)
+        {
+            if (style.backgroundImage.value != null)
+            {
+                Object.DestroyImmediate(style.backgroundImage.value);
+                style.backgroundImage = null;
+            }
         }
 
         void OnClick()
