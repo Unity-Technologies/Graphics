@@ -15,6 +15,16 @@ namespace UnityEditor.VFX.UIElements
         public GradientField(VisualElement existingLabel) : base(existingLabel)
         {
             this.AddManipulator(new Clickable(OnClick));
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
+        }
+
+        void OnDetach(DetachFromPanelEvent e)
+        {
+            if (style.backgroundImage.value != null)
+            {
+                Object.DestroyImmediate(style.backgroundImage.value);
+                style.backgroundImage = null;
+            }
         }
 
         void OnClick()
@@ -45,7 +55,7 @@ namespace UnityEditor.VFX.UIElements
             Gradient gradient = GetValue();
 
             // Instantiate because GetGradientPreview returns a temporary;
-            Texture2D gradientTexture = Texture2D.Instantiate(UnityEditorInternal.GradientPreviewCache.GetGradientPreview(gradient));
+            Texture2D gradientTexture = UnityEditorInternal.GradientPreviewCache.GenerateGradientPreview(gradient, style.backgroundImage.value);
 
             style.backgroundImage = gradientTexture;
         }

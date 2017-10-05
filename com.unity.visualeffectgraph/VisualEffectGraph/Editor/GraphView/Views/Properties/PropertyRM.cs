@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
+        public virtual void SetMultiplier(object obj) {}
 
         public VisualElement m_Icon;
 
@@ -57,6 +58,9 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
+            if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
+
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
@@ -104,6 +108,9 @@ namespace UnityEditor.VFX.UI
             }
 
             m_Icon.style.backgroundImage = m_IconStates[0];
+
+            if (VFXPropertyAttribute.IsAngle(provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
 
             string labelText = provider.name;
             string labelTooltip = null;
@@ -248,6 +255,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
             UpdateGUI();
         }
 
@@ -304,6 +312,17 @@ namespace UnityEditor.VFX.UI
                 m_Field.SetEnabled(value);
         }*/
         public override bool showsEverything { get { return true; } }
+
+        public override void SetMultiplier(object obj)
+        {
+            try
+            {
+                m_Field.SetMultiplier((T)obj);
+            }
+            catch (System.Exception)
+            {
+            }
+        }
     }
 
 
