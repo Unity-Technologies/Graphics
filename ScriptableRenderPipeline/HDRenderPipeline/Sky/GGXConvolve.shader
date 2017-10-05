@@ -4,10 +4,10 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
     {
         Pass
         {
+            Cull   Off
+            ZTest  Always
             ZWrite Off
-            ZTest Always
-            Blend One Zero
-            Cull Off
+            Blend  Off
 
             HLSLPROGRAM
             #pragma target 4.5

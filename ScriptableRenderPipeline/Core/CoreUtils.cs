@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -21,31 +18,6 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
-        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
-        {
-            var baseType = typeof(RenderPipelineMaterial);
-            var assembly = baseType.Assembly;
-
-            var types = assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(baseType))
-                .Select(Activator.CreateInstance)
-                .Cast<RenderPipelineMaterial>()
-                .ToList();
-
-            // Note: If there is a need for an optimization in the future of this function, user can
-            // simply fill the materialList manually by commenting the code abode and returning a
-            // custom list of materials they use in their game.
-            //
-            // return new List<RenderPipelineMaterial>
-            // {
-            //    new Lit(),
-            //    new Unlit(),
-            //    ...
-            // };
-
-            return types;
-        }
-
         // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
@@ -216,6 +188,15 @@ namespace UnityEngine.Experimental.Rendering
                 UnityObject.Destroy(obj);
 #endif
             }
+        }
+
+        public static void Destroy(params UnityObject[] objs)
+        {
+            if (objs == null)
+                return;
+
+            foreach (var o in objs)
+                Destroy(o);
         }
 
         public static void SafeRelease(ComputeBuffer buffer)

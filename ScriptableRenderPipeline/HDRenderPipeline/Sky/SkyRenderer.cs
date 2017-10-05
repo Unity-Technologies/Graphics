@@ -1,9 +1,6 @@
-using System;
-
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    abstract public class SkyRenderer
+    public abstract class SkyRenderer
     {
         public abstract void Build();
         public abstract void Cleanup();

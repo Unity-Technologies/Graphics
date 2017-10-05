@@ -120,5 +120,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return new ProceduralSkyRenderer(this);
         }
+
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                hash = hash * 23 + worldMieColorIntensity.GetHashCode();
+                hash = worldMieColorRamp != null ? hash * 23 + worldMieColorRamp.GetHashCode() : hash;
+                hash = hash * 23 + worldMieDensity.GetHashCode();
+                hash = hash * 23 + worldMieExtinctionFactor.GetHashCode();
+                hash = hash * 23 + worldMieNearScatterPush.GetHashCode();
+                hash = hash * 23 + worldMiePhaseAnisotropy.GetHashCode();
+                hash = hash * 23 + worldNormalDistance.GetHashCode();
+                hash = hash * 23 + worldRayleighColorIntensity.GetHashCode();
+                hash = worldRayleighColorRamp != null ? hash * 23 + worldRayleighColorRamp.GetHashCode() : hash;
+                hash = hash * 23 + worldRayleighDensity.GetHashCode();
+                hash = hash * 23 + worldRayleighExtinctionFactor.GetHashCode();
+                hash = hash * 23 + worldRayleighIndirectScatter.GetHashCode();
+                hash = hash * 23 + worldRayleighNearScatterPush.GetHashCode();
+                hash = hash * 23 + heightDistance.GetHashCode();
+                hash = hash * 23 + heightExtinctionFactor.GetHashCode();
+                hash = hash * 23 + heightMieDensity.GetHashCode();
+                hash = hash * 23 + heightMieNearScatterPush.GetHashCode();
+                hash = hash * 23 + heightNormalDistance.GetHashCode();
+                hash = hash * 23 + heightPlaneShift.GetHashCode();
+                hash = hash * 23 + heightRayleighColor.GetHashCode();
+                hash = hash * 23 + heightRayleighDensity.GetHashCode();
+                hash = hash * 23 + heightRayleighIntensity.GetHashCode();
+                hash = hash * 23 + heightRayleighNearScatterPush.GetHashCode();
+                hash = hash * 23 + heightSeaLevel.GetHashCode();
+
+                hash = skyHDRI != null ? hash * 23 + skyHDRI.GetHashCode() : hash;
+
+                hash = hash * 23 + worldScaleExponent.GetHashCode();
+                hash = hash * 23 + maxSkyDistance.GetHashCode();
+                hash = hash * 23 + debugMode.GetHashCode();
+            }
+
+            return hash;
+        }
     }
 }

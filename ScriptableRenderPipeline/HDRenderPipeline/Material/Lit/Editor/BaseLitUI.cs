@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -20,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
             // Displacement mapping (POM, tessellation, per vertex)
-            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale",           "Displacement mapping will take the absolute value of the scale of the object into account.");            
+            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale",           "Displacement mapping will take the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText  = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
 
             // Per pixel displacement
@@ -28,6 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
+            public static GUIContent perPixelDisplacementObjectScaleText = new GUIContent("Lock with object scale", "Per Pixel displacement will take into account the tiling scale - Only work with uniform positive scale");
+
             public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive length", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
             public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive width", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
@@ -157,8 +158,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
             ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
-            perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);            
-            perPixelDisplacementTilingScale = FindProperty(kPerPixelDisplacementTilingScale, props);            
+            perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);
+            perPixelDisplacementTilingScale = FindProperty(kPerPixelDisplacementTilingScale, props);
 
             // vertex displacement
             enableVertexDisplacement = FindProperty(kEnableVertexDisplacement, props);
@@ -230,7 +231,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.lockWithObjectScaleText);
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementTilingScale, StylesBaseLit.lockWithTilingRateText);
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                
+                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                 EditorGUI.indentLevel--;
             }
 
