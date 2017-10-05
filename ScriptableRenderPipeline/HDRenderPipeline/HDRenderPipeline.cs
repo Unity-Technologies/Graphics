@@ -839,7 +839,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     RenderStateBlock?       stateBlock = null,
                                     Material                overrideMaterial = null)
         {
-            RenderOpaqueRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
+            m_SinglePassName[0] = passName;
+            RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_SinglePassName, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
         void RenderOpaqueRenderList(CullResults             cull,
