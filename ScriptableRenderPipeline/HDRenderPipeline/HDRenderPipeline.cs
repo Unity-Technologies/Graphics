@@ -28,25 +28,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class GBufferManager
     {
-        public const int MaxGbuffer = 8;
+        public const int k_MaxGbuffer = 8;
+
+        public int gbufferCount { get; set; }
+
+        int[] m_IDs = new int[k_MaxGbuffer];
+        RenderTargetIdentifier[] m_ColorMRTs;
+        RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxGbuffer];
+        RenderTextureFormat[] m_Formats = new RenderTextureFormat[k_MaxGbuffer];
+        RenderTextureReadWrite[] m_sRGBWrites = new RenderTextureReadWrite[k_MaxGbuffer];
 
         public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
         {
-            IDs[index] = Shader.PropertyToID(stringId);
-            RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
-            formats[index] = inFormat;
-            sRGBWrites[index] = inSRGBWrite;
+            m_IDs[index] = Shader.PropertyToID(stringId);
+            m_RTIDs[index] = new RenderTargetIdentifier(m_IDs[index]);
+            m_Formats[index] = inFormat;
+            m_sRGBWrites[index] = inSRGBWrite;
         }
 
         public void InitGBuffers(int width, int height, CommandBuffer cmd)
         {
             for (int index = 0; index < gbufferCount; index++)
             {
-                cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
+                cmd.GetTemporaryRT(m_IDs[index], width, height, 0, FilterMode.Point, m_Formats[index], m_sRGBWrites[index]);
             }
         }
 
-        private RenderTargetIdentifier[] m_ColorMRTs;
         public RenderTargetIdentifier[] GetGBuffers()
         {
             if (m_ColorMRTs == null || m_ColorMRTs.Length != gbufferCount)
@@ -54,17 +61,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int index = 0; index < gbufferCount; index++)
             {
-                m_ColorMRTs[index] = RTIDs[index];
+                m_ColorMRTs[index] = m_RTIDs[index];
             }
 
             return m_ColorMRTs;
         }
-
-        public int gbufferCount { get; set; }
-        int[] IDs = new int[MaxGbuffer];
-        RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
-        RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
-        RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
     }
 
     public partial class HDRenderPipeline : RenderPipeline
@@ -130,15 +131,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
 
-        private RenderTexture m_CameraDepthStencilBuffer = null;
-        private RenderTexture m_CameraDepthBufferCopy = null;
-        private RenderTexture m_CameraStencilBufferCopy = null;
-        private RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
+        RenderTexture m_CameraDepthStencilBuffer = null;
+        RenderTexture m_CameraDepthBufferCopy = null;
+        RenderTexture m_CameraStencilBufferCopy = null;
+        RenderTexture m_HTile = null;                   // If the hardware does not expose it, we compute our own, optimized to only contain the SSS bit
 
-        private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
-        private RenderTargetIdentifier m_CameraDepthBufferCopyRT;
-        private RenderTargetIdentifier m_CameraStencilBufferCopyRT;
-        private RenderTargetIdentifier m_HTileRT;
+        RenderTargetIdentifier m_CameraDepthStencilBufferRT;
+        RenderTargetIdentifier m_CameraDepthBufferCopyRT;
+        RenderTargetIdentifier m_CameraStencilBufferCopyRT;
+        RenderTargetIdentifier m_HTileRT;
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -178,17 +179,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings = null;
 
-        private int m_DebugFullScreenTempRT;
-        private bool m_FullScreenDebugPushed = false;
+        int m_DebugFullScreenTempRT;
+        bool m_FullScreenDebugPushed = false;
 
         public SubsurfaceScatteringSettings sssSettings
         {
             get { return m_Asset.sssSettings; }
         }
 
-        private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-        private SkySettings m_SkySettings = null;
-        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
+        CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
+        SkySettings m_SkySettings = null;
+        ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
 
         public CommonSettings.Settings commonSettingsToUse
         {
@@ -412,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if UNITY_EDITOR
-        private static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
+        static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
         {
             reflectionProbe = SupportedRenderingFeatures.ReflectionProbe.Rotation
         };
@@ -527,8 +528,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Broadcast SSS parameters to all shaders.
                 Shader.SetGlobalInt(     HDShaderIDs._EnableSSSAndTransmission,   m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
-                Shader.SetGlobalInt(     HDShaderIDs._TexturingModeFlags,    (int)sssParameters.texturingModeFlags);
-                Shader.SetGlobalInt(     HDShaderIDs._TransmissionFlags,     (int)sssParameters.transmissionFlags);
+                Shader.SetGlobalInt(     HDShaderIDs._TexturingModeFlags,         sssParameters.texturingModeFlags);
+                Shader.SetGlobalInt(     HDShaderIDs._TransmissionFlags,          sssParameters.transmissionFlags);
                 Shader.SetGlobalInt(     HDShaderIDs._UseDisneySSS,               sssParameters.useDisneySSS ? 1 : 0);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
@@ -575,7 +576,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_HTileRT;
         }
 
-        private void CopyDepthBufferIfNeeded(CommandBuffer cmd)
+        void CopyDepthBufferIfNeeded(CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer"))
             {
@@ -591,7 +592,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void PrepareAndBindStencilTexture(CommandBuffer cmd)
+        void PrepareAndBindStencilTexture(CommandBuffer cmd)
         {
             if (NeedStencilBufferCopy())
             {
