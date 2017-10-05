@@ -218,6 +218,15 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public static void Destroy(params UnityObject[] objs)
+        {
+            if (objs == null)
+                return;
+
+            foreach (var o in objs)
+                Destroy(o);
+        }
+
         public static void SafeRelease(ComputeBuffer buffer)
         {
             if (buffer != null)
