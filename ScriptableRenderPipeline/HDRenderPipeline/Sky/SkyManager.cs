@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
                     RenderSettings.skybox = IsSkyValid() ? m_StandardSkyboxMaterial : null; // Setup this material as the default to be use in RenderSettings
                     RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                    RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
                     RenderSettings.reflectionIntensity = 1.0f;
                     RenderSettings.customReflection = null;
                     DynamicGI.UpdateEnvironment();
@@ -395,11 +395,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
 
-                if (
-                    m_UpdatedFramesRequired > 0 ||
-                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHash() != m_SkyParametersHash) ||
-                    (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod)
-                    )
+                if (m_UpdatedFramesRequired > 0 ||
+                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHashCode() != m_SkyParametersHash) ||
+                    (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {
@@ -419,12 +417,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         m_NeedLowLevelUpdateEnvironment = true;
                         m_UpdatedFramesRequired--;
-                        m_SkyParametersHash = skySettings.GetHash();
+                        m_SkyParametersHash = skySettings.GetHashCode();
                         m_CurrentUpdateTime = 0.0f;
                         #if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
                         // Changing the hash of the rendertarget allow to say that GI is dirty
-                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHash(), 0, 0, 0);
+                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHashCode(), 0, 0, 0);
                         #endif
                     }
                 }

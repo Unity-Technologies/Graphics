@@ -7,7 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public abstract class SkySettings : ScriptableObject
     {
-        protected class Unhashed : Attribute {}
         [Range(0,360)]
         public float                    rotation = 0.0f;
         public float                    exposure = 0.0f;
@@ -17,28 +16,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                    updatePeriod = 0.0f;
         public Cubemap                  lightingOverride = null;
 
-        FieldInfo[] m_Properties;
-
-        protected void OnEnable()
-        {
-            // Enumerate properties in order to compute the hash more quickly later on.
-            m_Properties = GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.Instance)
-                .ToArray();
-        }
-
-        public int GetHash()
+        public override int GetHashCode()
         {
             unchecked
             {
                 int hash = 13;
-                foreach (var p in m_Properties)
-                {
-                    bool unhashedAttribute = p.GetCustomAttributes(typeof(Unhashed), true).Length != 0;
-                    var obj = p.GetValue(this);
-                    if (obj != null && !unhashedAttribute) // Sometimes it can be a null reference.
-                        hash = hash * 23 + obj.GetHashCode();
-                }
+                hash = hash * 23 + rotation.GetHashCode();
+                hash = hash * 23 + exposure.GetHashCode();
+                hash = hash * 23 + multiplier.GetHashCode();
+                hash = hash * 23 + resolution.GetHashCode();
+                hash = hash * 23 + updateMode.GetHashCode();
+                hash = hash * 23 + updatePeriod.GetHashCode();
+                hash = lightingOverride != null ? hash * 23 + rotation.GetHashCode() : hash;
                 return hash;
             }
         }
