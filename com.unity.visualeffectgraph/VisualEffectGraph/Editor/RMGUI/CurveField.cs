@@ -19,21 +19,22 @@ namespace UnityEditor.VFX.UIElements
             m_Curve.AddToClassList("curve");
 
             m_Curve.AddManipulator(new Clickable(OnCurveClick));
+            m_Curve.RegisterCallback<DetachFromPanelEvent>(OnDetach);
+        }
+
+        void OnDetach(DetachFromPanelEvent e)
+        {
+            if (m_Curve.style.backgroundImage.value != null)
+            {
+                Object.DestroyImmediate(m_Curve.style.backgroundImage.value);
+                m_Curve.style.backgroundImage = null;
+            }
         }
 
         void OnCurveClick()
         {
             if (!enabledInHierarchy)
                 return;
-            /*
-            CurveEditorSettings settings = new CurveEditorSettings();
-            if (ranges.width > 0 && ranges.height > 0 && ranges.width != Mathf.Infinity && ranges.height != Mathf.Infinity)
-            {
-                settings.hRangeMin = ranges.xMin;
-                settings.hRangeMax = ranges.xMax;
-                settings.vRangeMin = ranges.yMin;
-                settings.vRangeMax = ranges.yMax;
-            }*/
 
             CurveEditorSettings settings = new CurveEditorSettings();
             if (m_Value == null)
@@ -95,13 +96,13 @@ namespace UnityEditor.VFX.UIElements
                 {
                     Rect range = new Rect(0, 0, 1, 1);
                     // Instantiate because AnimationCurvePreviewCache returns a temporary;
-                    m_Curve.style.backgroundImage = Texture2D.Instantiate(AnimationCurvePreviewCache.GetPreview(previewWidth,
-                                previewHeight,
-                                m_Value,
-                                Color.green,
-                                Color.clear,
-                                Color.clear,
-                                range));
+                    m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
+                            previewWidth,
+                            previewHeight,
+                            range,
+                            m_Value,
+                            Color.green,
+                            m_Curve.style.backgroundImage.value);
                 }
             }
 
