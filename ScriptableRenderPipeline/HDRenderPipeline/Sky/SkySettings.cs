@@ -20,8 +20,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
-                hash = hash * 23 + resolution.GetHashCode();
-                hash = hash * 23 + updateMode.GetHashCode();
+                hash = hash * 23 + ((int)resolution).GetHashCode(); // Enum.GetHashCode generates garbade on .NET 3.5... Works fine on 4.6+. Wtf !?
+                hash = hash * 23 + ((int)updateMode).GetHashCode();
                 hash = hash * 23 + updatePeriod.GetHashCode();
                 hash = lightingOverride != null ? hash * 23 + rotation.GetHashCode() : hash;
                 return hash;
