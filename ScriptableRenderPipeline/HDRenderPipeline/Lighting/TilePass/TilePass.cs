@@ -1571,7 +1571,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var invProjscr = projscr.inverse;
                 bool isOrthographic = camera.orthographic;
 
-                cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
+                cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
                 // generate screen-space AABBs (used for both fptl and clustered).
                 if (m_lightCount != 0)
