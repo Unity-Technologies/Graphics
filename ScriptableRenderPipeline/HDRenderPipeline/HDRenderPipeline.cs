@@ -144,6 +144,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The pass "SRPDefaultUnlit" is a fallback to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_SinglePassName = new ShaderPassName[1];
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
@@ -894,7 +895,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          RenderStateBlock?       stateBlock = null,
                                          Material                overrideMaterial = null)
         {
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, new ShaderPassName[] { passName }, rendererConfiguration, stateBlock, overrideMaterial);
+            m_SinglePassName[0] = passName;
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, rendererConfiguration, stateBlock, overrideMaterial);
         }
 
         void RenderTransparentRenderList(CullResults             cull,
