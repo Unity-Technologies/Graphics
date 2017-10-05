@@ -144,6 +144,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The pass "SRPDefaultUnlit" is a fallback to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderPassName[] m_SinglePassName = new ShaderPassName[1];
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
@@ -1210,15 +1211,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                ShaderPassName[] arrayNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
-
                 if (renderOpaque)
                 {
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, arrayNames, 0, null, null, m_ErrorMaterial);
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, null, m_ErrorMaterial);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, arrayNames, 0, null, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, m_ErrorMaterial);
                 }
             }
         }
