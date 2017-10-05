@@ -646,7 +646,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // we only want to render one camera for now
             // select the most main camera!
-            var camera = cameras.FirstOrDefault(cam => cam == Camera.main);
+            Camera camera = null;
+            foreach (var cam in cameras)
+            {
+                if (cam == Camera.main)
+                {
+                    camera = cam;
+                    break;
+                }
+            }
 
             if (camera == null && cameras.Length > 0)
                 camera = cameras[0];
