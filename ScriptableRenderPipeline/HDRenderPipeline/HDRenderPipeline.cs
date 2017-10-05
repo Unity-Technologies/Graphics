@@ -238,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
 
             // Scan material list and assign it
-            m_MaterialList = CoreUtils.GetRenderPipelineMaterialList();
+            m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
             // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
             m_DeferredMaterial = null;
             foreach (var material in m_MaterialList)
