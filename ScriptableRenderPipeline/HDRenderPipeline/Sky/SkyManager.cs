@@ -319,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.SetRenderTarget(cmd, dest, ClearFlag.None, 0, (CubemapFace)i);
                 propertyBlock.SetTexture("_MainTex", source);
-                propertyBlock.SetFloat("_faceIndex", i);
+                propertyBlock.SetFloat("_faceIndex", (float)i);
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
 
