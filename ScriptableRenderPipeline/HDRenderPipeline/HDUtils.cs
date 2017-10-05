@@ -1,5 +1,3 @@
-﻿using UnityEngine.Rendering;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDUtils
