@@ -640,7 +640,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // This is the main command buffer used for the frame.
             var cmd = CommandBufferPool.Get("");
 
-            m_MaterialList.ForEach(material => material.RenderInit(cmd));
+            foreach (var material in m_MaterialList)
+                material.RenderInit(cmd);
 
             // Do anything we need to do upon a new frame.
             m_LightLoop.NewFrame();
@@ -721,9 +722,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Forward"))
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color | ClearFlag.Depth);
-                    ShaderPassName[] arrayShaderPassName = { HDShaderPassNames.s_ForwardName };
-                    RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, arrayShaderPassName);
-                    RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, arrayShaderPassName);
+                    RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
+                    RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
                 }
 
                 renderContext.ExecuteCommandBuffer(cmd);
