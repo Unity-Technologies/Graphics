@@ -147,6 +147,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ShaderPassName[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderPassName[] m_SinglePassName = new ShaderPassName[1];
 
+        RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
+
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
         readonly ScreenSpaceAmbientOcclusionEffect m_SsaoEffect;
@@ -1057,11 +1059,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
-            {
                 return;
-            }
 
-            var colorRTs     = new [] { m_CameraColorBufferRT, m_CameraSssDiffuseLightingBufferRT };
+            m_MRTCache2[0] = m_CameraColorBufferRT;
+            m_MRTCache2[1] = m_CameraSssDiffuseLightingBufferRT;
             var depthTexture = GetDepthTexture();
 
             var options = new LightLoop.LightingPassOptions();
@@ -1072,13 +1073,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
