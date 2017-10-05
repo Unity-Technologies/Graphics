@@ -29,6 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map", "Vector Map for the distorsion");
 
             public static string advancedText = "Advanced Options";
         }
@@ -73,6 +74,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionOnly = "_DistortionOnly";
         protected MaterialProperty distortionDepthTest = null;
         protected const string kDistortionDepthTest = "_DistortionDepthTest";
+        protected MaterialProperty distortionVectorMap = null;
+        protected const string kDistortionVectorMap = "_DistortionVectorMap";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -101,6 +104,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionEnable = FindProperty(kDistortionEnable, props, false);
             distortionOnly = FindProperty(kDistortionOnly, props, false);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props, false);
+            distortionVectorMap = FindProperty(kDistortionVectorMap, props, false);
         }
 
         void SurfaceTypePopup()
@@ -153,6 +157,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (distortionEnable.floatValue == 1.0f)
                     {
                         EditorGUI.indentLevel++;
+                        m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
                         m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
                         m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
                         EditorGUI.indentLevel--;

@@ -395,7 +395,8 @@ Shader "HDRenderPipeline/Lit"
             Name "Distortion" // Name is not used
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
-            Blend One One
+            Blend One One, One One
+            BlendOp Add, Max
             ZTest [_ZTestMode]
             ZWrite off
             Cull [_CullMode]
