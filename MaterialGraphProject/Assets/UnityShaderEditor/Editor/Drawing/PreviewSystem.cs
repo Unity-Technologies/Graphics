@@ -282,6 +282,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 ShaderUtil.UpdateShaderAsset(previewData.shader, previewData.shaderString);
             }
+
+            if (MaterialGraphAsset.ShaderHasError(previewData.shader))
+                Debug.LogWarningFormat("ShaderHasError: {0}\n{1}", node.GetVariableNameForNode(), previewData.shaderString);
         }
 
         void DestroyPreview(Guid nodeGuid, PreviewData previewData)
