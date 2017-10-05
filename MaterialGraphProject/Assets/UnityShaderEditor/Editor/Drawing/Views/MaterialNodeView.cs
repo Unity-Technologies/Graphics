@@ -7,6 +7,7 @@ using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -15,6 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualElement m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControls;
         VisualElement m_PreviewToggle;
+        VisualElement m_ResizeHandle;
         Image m_PreviewImage;
         bool m_IsScheduled;
 
@@ -44,7 +46,19 @@ namespace UnityEditor.MaterialGraph.Drawing
                 pickingMode = PickingMode.Ignore,
                 image = Texture2D.whiteTexture
             };
+
             leftContainer.Add(m_PreviewImage);
+
+
+            m_ResizeHandle = new VisualElement() { name = "resize", text = "" };
+            m_ResizeHandle.AddManipulator(new Draggable(OnResize));
+            Add(m_ResizeHandle);
+        }
+
+        void OnResize(Vector2 deltaSize)
+        {
+            style.width = layout.width + deltaSize.x;
+            style.height = layout.height + deltaSize.y;
         }
 
         void OnPreviewToggle()
