@@ -64,8 +64,8 @@ namespace UnityEditor.VFX
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
             //Max(Min(x, max), min))
-            var maxExp = new VFXExpressionMax(input, min);
-            return new VFXExpressionMin(maxExp, max);
+            var maxExp = new VFXExpressionMax(input, CastFloat(min, input.valueType));
+            return new VFXExpressionMin(maxExp, CastFloat(max, input.valueType));
         }
 
         static public VFXExpression Saturate(VFXExpression input)
