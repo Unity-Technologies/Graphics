@@ -5,10 +5,12 @@ namespace UnityEngine.MaterialGraph
     [Title("Preview Node")]
     public class PreviewNode : CodeFunctionNode
     {
-        public const int InputSlotId = 0;
-        public const int OutputSlotId = 1;
-
         public override bool hasPreview { get { return true; } }
+
+        public PreviewNode()
+        {
+            name = "Preview";
+        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
