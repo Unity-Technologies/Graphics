@@ -72,7 +72,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("HSVtoRGB{0}", parents[0]);
+            return string.Format("HSVtoRGB({0})", parents[0]);
         }
     }
 }
