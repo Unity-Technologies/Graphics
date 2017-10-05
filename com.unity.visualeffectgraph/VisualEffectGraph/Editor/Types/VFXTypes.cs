@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The centre of the box.")]
         public Vector3 center;
-        [Tooltip("The oritentation of the box.")]
+        [Angle, Tooltip("The orientation of the box.")]
         public Vector3 angles;
         [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
