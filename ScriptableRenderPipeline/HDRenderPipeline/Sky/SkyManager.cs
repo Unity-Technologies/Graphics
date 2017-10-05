@@ -69,6 +69,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool                    m_useMIS = false;
 
+        // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+        readonly Vector3[] m_LookAtList =
+        {
+            new Vector3(1.0f, 0.0f, 0.0f),
+            new Vector3(-1.0f, 0.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, -1.0f, 0.0f),
+            new Vector3(0.0f, 0.0f, 1.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+        };
+
+        readonly Vector3[] m_UpVectorList =
+        {
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+            new Vector3(0.0f, 0.0f, 1.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+        };
+
         SkySettings m_SkySettings;
         public SkySettings skySettings
         {
@@ -177,30 +198,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
-            // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-            var lookAtList = new []
-            {
-                new Vector3(1.0f, 0.0f, 0.0f),
-                new Vector3(-1.0f, 0.0f, 0.0f),
-                new Vector3(0.0f, 1.0f, 0.0f),
-                new Vector3(0.0f, -1.0f, 0.0f),
-                new Vector3(0.0f, 0.0f, 1.0f),
-                new Vector3(0.0f, 0.0f, -1.0f),
-            };
-
-            var upVectorList = new []
-            {
-                new Vector3(0.0f, 1.0f, 0.0f),
-                new Vector3(0.0f, 1.0f, 0.0f),
-                new Vector3(0.0f, 0.0f, -1.0f),
-                new Vector3(0.0f, 0.0f, 1.0f),
-                new Vector3(0.0f, 1.0f, 0.0f),
-                new Vector3(0.0f, 1.0f, 0.0f),
-            };
-
             for (int i = 0; i < 6; ++i)
             {
-                var lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
+                var lookAt      = Matrix4x4.LookAt(Vector3.zero, m_LookAtList[i], m_UpVectorList[i]);
                 var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
                 var screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
