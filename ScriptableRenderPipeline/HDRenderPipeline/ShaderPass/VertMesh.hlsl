@@ -137,7 +137,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.objectScale = objectScale;
     #endif
     // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
-    #if SHADERPASS == SHADERPASS_VELOCITY
+    #if (SHADERPASS == SHADERPASS_VELOCITY)
     output.normalWS = float3(0.0, 0.0, 1.0);
     #else
     output.normalWS = normalWS;

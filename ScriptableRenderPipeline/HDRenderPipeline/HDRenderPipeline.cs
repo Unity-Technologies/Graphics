@@ -795,6 +795,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderGaussianPyramidColor(camera, cmd);
 
+                // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
+                RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
+
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, false);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, false);
@@ -1038,10 +1041,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.All, Color.black);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDisplayDebugName, HDUtils.k_RendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, HDUtils.k_RendererConfigurationBakedLighting);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDisplayDebugName, HDUtils.k_RendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, HDUtils.k_RendererConfigurationBakedLighting);
                 }
             }
 
@@ -1174,8 +1177,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string profileName;
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
-                passName = addForwardPass ? HDShaderPassNames.s_ForwardDisplayDebugName :  HDShaderPassNames.s_ForwardOnlyOpaqueDisplayDebugName;
-                profileName = addForwardPass ? (renderOpaque ? "Forward Opaque Display Debug" : "Forward Transparent Display Debug") :  "ForwardOnlyOpaqueDisplayDebug";
+                passName = addForwardPass ? HDShaderPassNames.s_ForwardDebugDisplayName : HDShaderPassNames.s_ForwardOnlyOpaqueDebugDisplayName;
+                profileName = addForwardPass ? (renderOpaque ? "Forward Opaque Debug Display" : "Forward Transparent Debug Display") : "ForwardOnlyOpaqueDebugDisplay";
             }
             else
             {
@@ -1201,6 +1204,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, arrayNames, HDUtils.k_RendererConfigurationBakedLighting);
                 }
+            }
+        }
+
+        void RenderTransparentDepthPrepass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd,"Forward Transparent Depth Prepass"))
+            {
+                CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName);
             }
         }
 
