@@ -58,7 +58,7 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
 
     // Secant method to affine the search
     // Ref: Faster Relief Mapping Using the Secant Method - Eric Risser
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         // intersectionHeight is the height [0..1] for the intersection between view ray and heightfield line
         float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
