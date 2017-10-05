@@ -370,7 +370,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy * (worldScale * maxHeight);
         float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z));
 
-        float  unitAngle = saturate(FastACos(viewDirUV.z) * INV_HALF_PI); // TODO: optimize
+        float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI); // TODO: optimize
         int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
 
         // POM uses a normalized view vector in the UV space to intersect the heightmap within a 1x1x1 box.

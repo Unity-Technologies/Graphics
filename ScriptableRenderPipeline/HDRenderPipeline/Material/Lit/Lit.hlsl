@@ -726,11 +726,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // Clear coat IBL
 
         // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V);
+        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V); // Use non-clamped NdotV
         preLightData.coatIblDirWS = reflect(-V, coatIblNormalWS);
 
+        float coatNdotV = max(preLightData.coatNdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+
         // Clear coat area light
-        float theta = FastACos(preLightData.coatNdotV);
+        float theta = FastACosPos(coatNdotV);
         float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(0.0, theta * INV_HALF_PI); // Use Roughness of 0.0 for clearCoat roughness
 
                                                                                        // Get the inverse LTC matrix for GGX
@@ -756,13 +758,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
     preLightData.NdotV = dot(bsdfData.normalWS, V); // Store the unaltered (geometric) version
-    float NdotV = preLightData.NdotV;
 
     // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V); // Use non clamped NdotV
+    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
     float3 iblR = reflect(-V, iblNormalWS);
 
-    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+    float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX iso
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
@@ -805,7 +806,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACos(NdotV); // For Area light - UVs for sampling the LUTs
+    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
