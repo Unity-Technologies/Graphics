@@ -299,11 +299,9 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     bool isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
 
     // See comment in layered version for details
-    float2 worldScales  = isPlanar ? float2(_TexWorldScale, rcp(_TexWorldScale)) : 1;           // TODO: precompute
-    float2 invPrimScale = isPlanar ? 1 : rcp(float2(_PPDPrimitiveLength, _PPDPrimitiveWidth));  // TODO: precompute
-    float  maxHeight    = GetMaxDisplacement() * GetInverseTilingScale() * worldScales.x;
-    float2 minUvSize    = GetMinUvSize(layerTexCoord);
-    float  lod          = ComputeTextureLOD(minUvSize);
+    float  maxHeight = GetMaxDisplacement() * GetInverseTilingScale();
+    float2 minUvSize = GetMinUvSize(layerTexCoord);
+    float  lod       = ComputeTextureLOD(minUvSize);
 
     PerPixelHeightDisplacementParam ppdParam;
 
@@ -367,8 +365,10 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
-        float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy;
-        float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z / maxHeight));
+        float2 invPrimScale = isPlanar ? 1 : rcp(float2(_PPDPrimitiveLength, _PPDPrimitiveWidth));  // TODO: precompute
+        float  worldScale   = isPlanar ? _TexWorldScale : 1;
+        float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy * (worldScale * maxHeight);
+        float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z));
 
         float  unitAngle = saturate(FastACos(viewDirUV.z) * INV_HALF_PI); // TODO: optimize
         int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
@@ -380,8 +380,6 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         layerTexCoord.base.uv += offset;
         layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
     }
-
-    maxHeight *= worldScales.y;
 
     // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
     // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
