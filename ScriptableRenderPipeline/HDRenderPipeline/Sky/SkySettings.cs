@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Reflection;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
