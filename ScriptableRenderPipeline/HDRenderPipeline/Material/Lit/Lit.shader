@@ -94,6 +94,7 @@ Shader "HDRenderPipeline/Lit"
 
         [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
@@ -105,6 +106,7 @@ Shader "HDRenderPipeline/Lit"
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
         _PPDPrimitiveLength("Primitive length for POM", Float) = 1
         _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
+        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
         [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
         [ToggleOff] _PerPixelDisplacementTilingScale("Per pixel displacement tiling scale", Float) = 1.0
 

@@ -126,6 +126,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
         protected const string kTexWorldScale = "_TexWorldScale";
+        protected MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
+        protected const string kInvTilingScale = "_InvTilingScale";
         protected MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
         protected const string kUVMappingMask = "_UVMappingMask";
 
@@ -241,6 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 UVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, m_PropertySuffixes[i]), props);
                 TexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, m_PropertySuffixes[i]), props);
+                InvTilingScale[i] = FindProperty(string.Format("{0}{1}", kInvTilingScale, m_PropertySuffixes[i]), props);
                 UVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, m_PropertySuffixes[i]), props);
 
                 baseColor[i] = FindProperty(string.Format("{0}{1}", kBaseColor, m_PropertySuffixes[i]), props);
@@ -506,6 +509,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
+
+            // Precompute.
+            InvTilingScale[layerIndex].floatValue = 2 / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
