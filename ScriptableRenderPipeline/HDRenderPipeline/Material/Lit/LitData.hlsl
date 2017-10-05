@@ -285,7 +285,7 @@ float3 GetInverseObjectScale()
 float GetInverseTilingScale()
 {
 #ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
-    return rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));                  // TODO: precompute
+    return _InvTilingScale;
 #else
     return 1;
 #endif
@@ -365,7 +365,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
-        float2 invPrimScale = isPlanar ? 1 : rcp(float2(_PPDPrimitiveLength, _PPDPrimitiveWidth));  // TODO: precompute
+        float2 invPrimScale = isPlanar ? 1 : _InvPrimScale.xy;
         float  worldScale   = isPlanar ? _TexWorldScale : 1;
         float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy * (worldScale * maxHeight);
         float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z));

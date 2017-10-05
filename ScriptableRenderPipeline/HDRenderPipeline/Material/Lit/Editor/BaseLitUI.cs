@@ -97,6 +97,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kPpdPrimitiveLength = "_PPDPrimitiveLength";
         protected MaterialProperty ppdPrimitiveWidth = null;
         protected const string kPpdPrimitiveWidth = "_PPDPrimitiveWidth";
+        protected MaterialProperty invPrimScale = null;
+        protected const string kInvPrimScale = "_InvPrimScale";
         protected MaterialProperty perPixelDisplacementObjectScale = null;
         protected const string kPerPixelDisplacementObjectScale = "_PerPixelDisplacementObjectScale";
         protected MaterialProperty perPixelDisplacementTilingScale = null;
@@ -157,6 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
             ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
+            invPrimScale = FindProperty(kInvPrimScale, props);
             perPixelDisplacementObjectScale = FindProperty(kPerPixelDisplacementObjectScale, props);            
             perPixelDisplacementTilingScale = FindProperty(kPerPixelDisplacementTilingScale, props);            
 
@@ -228,6 +231,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
                 m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
                 ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.lockWithObjectScaleText);
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementTilingScale, StylesBaseLit.lockWithTilingRateText);
                 m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                

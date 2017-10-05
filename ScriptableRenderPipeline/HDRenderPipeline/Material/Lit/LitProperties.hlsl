@@ -109,8 +109,7 @@ float _ThicknessMultiplier;
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
 
-float _PPDPrimitiveLength;
-float _PPDPrimitiveWidth;
+float4 _InvPrimScale; // Only XY are used
 
 // Wind
 float _InitialBend;
@@ -154,6 +153,7 @@ float _CoatIOR;
 float4 _SpecularColor;
 
 float _TexWorldScale;
+float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 
@@ -206,6 +206,7 @@ float _HeightTransition;
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+PROP_DECL(float, _InvTilingScale);
 float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);

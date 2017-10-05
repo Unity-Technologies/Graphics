@@ -205,6 +205,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
         _PPDPrimitiveLength("Primitive length for POM", Float) = 1
         _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
+        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
         [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
         [ToggleOff] _PerPixelDisplacementTilingScale("Per pixel displacement tiling scale", Float) = 1.0
 
@@ -233,6 +234,8 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
+
+        [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Vector) = (1, 1, 1, 1)
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
