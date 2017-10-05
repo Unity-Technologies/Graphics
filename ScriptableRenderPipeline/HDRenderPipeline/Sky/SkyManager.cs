@@ -45,15 +45,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class SkyManager
     {
-        RenderTexture           m_SkyboxCubemapRT = null;
-        RenderTexture           m_SkyboxGGXCubemapRT = null;
-        RenderTexture           m_SkyboxMarginalRowCdfRT = null;
-        RenderTexture           m_SkyboxConditionalCdfRT = null;
+        RenderTexture           m_SkyboxCubemapRT;
+        RenderTexture           m_SkyboxGGXCubemapRT;
+        RenderTexture           m_SkyboxMarginalRowCdfRT;
+        RenderTexture           m_SkyboxConditionalCdfRT;
 
-        Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
-        Material                m_BlitCubemapMaterial = null;
+        Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material                m_BlitCubemapMaterial;
 
-        IBLFilterGGX            m_iblFilterGgx = null;
+        IBLFilterGGX            m_iblFilterGgx;
 
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
@@ -61,16 +61,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
 
         BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
-        SkyRenderer             m_Renderer = null;
+        SkyRenderer             m_Renderer;
         int                     m_SkyParametersHash = -1;
-        bool                    m_NeedLowLevelUpdateEnvironment = false;
+        bool                    m_NeedLowLevelUpdateEnvironment;
         int                     m_UpdatedFramesRequired = 2; // The first frame after the scene load is currently not rendered correctly
-        float                   m_CurrentUpdateTime = 0.0f;
+        float                   m_CurrentUpdateTime;
 
         bool                    m_useMIS = false;
 
-
-        private SkySettings m_SkySettings;
+        SkySettings m_SkySettings;
         public SkySettings skySettings
         {
             set
@@ -102,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RebuildTextures(SkySettings skySettings)
         {
             int resolution = 256;
+
             // Parameters not set yet. We need them for the resolution.
             if (skySettings != null)
                 resolution = (int)skySettings.resolution;
@@ -121,18 +121,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_SkyboxCubemapRT == null)
             {
-                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
-                m_SkyboxCubemapRT.useMipMap = true;
-                m_SkyboxCubemapRT.autoGenerateMips = false; // We will generate regular mipmap for filtered importance sampling manually
-                m_SkyboxCubemapRT.filterMode = FilterMode.Trilinear;
+                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+                {
+                    dimension = TextureDimension.Cube,
+                    useMipMap = true,
+                    autoGenerateMips = false, // We will generate regular mipmap for filtered importance sampling manually
+                    filterMode = FilterMode.Trilinear
+                };
                 m_SkyboxCubemapRT.Create();
 
-                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
-                m_SkyboxGGXCubemapRT.useMipMap = true;
-                m_SkyboxGGXCubemapRT.autoGenerateMips = false;
-                m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
+                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+                {
+                    dimension = TextureDimension.Cube,
+                    useMipMap = true,
+                    autoGenerateMips = false,
+                    filterMode = FilterMode.Trilinear
+                };
                 m_SkyboxGGXCubemapRT.Create();
 
                 if (m_useMIS)
@@ -141,19 +145,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int height = (int)LightSamplingParameters.TextureHeight;
 
                     // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-                    m_SkyboxMarginalRowCdfRT.useMipMap = false;
-                    m_SkyboxMarginalRowCdfRT.autoGenerateMips = false;
-                    m_SkyboxMarginalRowCdfRT.enableRandomWrite = true;
-                    m_SkyboxMarginalRowCdfRT.filterMode = FilterMode.Point;
+                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
+                    {
+                        useMipMap = false,
+                        autoGenerateMips = false,
+                        enableRandomWrite = true,
+                        filterMode = FilterMode.Point
+                    };
                     m_SkyboxMarginalRowCdfRT.Create();
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-                    m_SkyboxConditionalCdfRT.useMipMap = false;
-                    m_SkyboxConditionalCdfRT.autoGenerateMips = false;
-                    m_SkyboxConditionalCdfRT.enableRandomWrite = true;
-                    m_SkyboxConditionalCdfRT.filterMode = FilterMode.Point;
+                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
+                    {
+                        useMipMap = false,
+                        autoGenerateMips = false,
+                        enableRandomWrite = true,
+                        filterMode = FilterMode.Point
+                    };
                     m_SkyboxConditionalCdfRT.Create();
                 }
 
@@ -167,10 +175,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_SkySettings) return;
 
-            Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
+            var cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
             // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-            Vector3[] lookAtList =
+            var lookAtList = new []
             {
                 new Vector3(1.0f, 0.0f, 0.0f),
                 new Vector3(-1.0f, 0.0f, 0.0f),
@@ -180,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 new Vector3(0.0f, 0.0f, -1.0f),
             };
 
-            Vector3[] upVectorList =
+            var upVectorList = new []
             {
                 new Vector3(0.0f, 1.0f, 0.0f),
                 new Vector3(0.0f, 1.0f, 0.0f),
@@ -192,9 +200,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < 6; ++i)
             {
-                Matrix4x4 lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
-                Matrix4x4 worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
-                Vector4   screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
+                var lookAt      = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], upVectorList[i]);
+                var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+                var screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
                 m_faceWorldToViewMatrixMatrices[i]     = worldToView;
                 m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
@@ -217,20 +225,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float m00 = -2.0f * screenSize.z * m20;
             float m11 = -2.0f * screenSize.w * m21;
             float m33 = -1.0f;
+
             if (renderToCubemap)
             {
                 // Flip Y.
                 m11 = -m11;
                 m21 = -m21;
             }
-            Matrix4x4 viewSpaceRasterTransform = new Matrix4x4(new Vector4( m00, 0.0f, 0.0f, 0.0f),
-                                                               new Vector4(0.0f,  m11, 0.0f, 0.0f),
-                                                               new Vector4( m20,  m21,  m33, 0.0f),
-                                                               new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
+            var viewSpaceRasterTransform = new Matrix4x4(new Vector4( m00, 0.0f, 0.0f, 0.0f),
+                                                         new Vector4(0.0f,  m11, 0.0f, 0.0f),
+                                                         new Vector4( m20,  m21,  m33, 0.0f),
+                                                         new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
             // Remove the translation component.
-            Vector4 homogeneousZero = new Vector4(0, 0, 0, 1);
+            var homogeneousZero = new Vector4(0, 0, 0, 1);
             worldToViewMatrix.SetColumn(3, homogeneousZero);
 
             // Flip the Z to make the coordinate system left-handed.
@@ -284,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_Renderer != null && m_Renderer.IsSkyValid();
         }
 
-        private void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkySettings skySettings, RenderTexture target)
+        void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkySettings skySettings, RenderTexture target)
         {
             for (int i = 0; i < 6; ++i)
             {
@@ -302,16 +311,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             builtinParams.commandBuffer.GenerateMips(target);
         }
 
-        private void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
+        void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
         {
-
-            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            var propertyBlock = new MaterialPropertyBlock();
 
             for (int i = 0; i < 6; ++i)
             {
                 CoreUtils.SetRenderTarget(cmd, dest, ClearFlag.None, 0, (CubemapFace)i);
                 propertyBlock.SetTexture("_MainTex", source);
-                propertyBlock.SetFloat("_faceIndex", (float)i);
+                propertyBlock.SetFloat("_faceIndex", i);
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
 
@@ -320,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.GenerateMips(dest);
         }
 
-        private void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
+        void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
         {
             using (new ProfilingSample(cmd, "Update Env: GGX Convolution"))
             {
@@ -332,9 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 if (!m_iblFilterGgx.IsInitialized())
-                {
                     m_iblFilterGgx.Initialize(cmd);
-                }
 
                 // Copy the first mip
                 using (new ProfilingSample(cmd, "Copy Original Mip"))
@@ -347,14 +353,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "GGX Convolution"))
                 {
-                    if (m_useMIS && m_iblFilterGgx.SupportMIS)
-                    {
+                    if (m_useMIS && m_iblFilterGgx.supportMis)
                         m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_faceWorldToViewMatrixMatrices);
-                    }
                     else
-                    {
                         m_iblFilterGgx.FilterCubemap(cmd, input, target, mipCount, m_faceWorldToViewMatrixMatrices);
-                    }
                 }
             }
         }
@@ -481,15 +483,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int resolution = (int)m_SkySettings.resolution;
 
-            RenderTexture tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-            tempRT.dimension = TextureDimension.Tex2D;
-            tempRT.useMipMap = false;
-            tempRT.autoGenerateMips = false;
-            tempRT.filterMode = FilterMode.Trilinear;
+            var tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+            {
+                dimension = TextureDimension.Tex2D,
+                useMipMap = false,
+                autoGenerateMips = false,
+                filterMode = FilterMode.Trilinear
+            };
             tempRT.Create();
 
-            Texture2D temp = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
-            Texture2D result = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+            var temp = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+            var result = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
 
             // Note: We need to invert in Y the cubemap faces because the current sky cubemap is inverted (because it's a RT)
             // So to invert it again so that it's a proper cubemap image we need to do it in several steps because ReadPixels does not have scale parameters:

@@ -1,12 +1,13 @@
-using System.Reflection;
+using System;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public abstract class SkySettings : ScriptableObject
     {
-        protected class Unhashed : System.Attribute {}
+        protected class Unhashed : Attribute {}
         [Range(0,360)]
         public float                    rotation = 0.0f;
         public float                    exposure = 0.0f;
@@ -16,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                    updatePeriod = 0.0f;
         public Cubemap                  lightingOverride = null;
 
-        private FieldInfo[] m_Properties;
+        FieldInfo[] m_Properties;
 
         protected void OnEnable()
         {
@@ -34,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 foreach (var p in m_Properties)
                 {
                     bool unhashedAttribute = p.GetCustomAttributes(typeof(Unhashed), true).Length != 0;
-                    object obj = p.GetValue(this);
+                    var obj = p.GetValue(this);
                     if (obj != null && !unhashedAttribute) // Sometimes it can be a null reference.
                         hash = hash * 23 + obj.GetHashCode();
                 }
