@@ -48,8 +48,6 @@ namespace UnityEditor.VFX.UIElements
             Dirty(ChangeType.Repaint);
         }
 
-        Mesh m_GradientMesh;
-
         protected override void ValueToGUI()
         {
             Gradient gradient = GetValue();
