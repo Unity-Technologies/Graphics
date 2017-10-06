@@ -6,28 +6,10 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class SubGraph : AbstractMaterialGraph
-        , IGeneratesBodyCode
-        , IGeneratesFunction
-        , IGenerateProperties
+    public class SubGraph : AbstractSubGraph
     {
         [NonSerialized]
-        private SubGraphInputNode m_InputNode;
-
-        [NonSerialized]
         private SubGraphOutputNode m_OutputNode;
-
-        public SubGraphInputNode inputNode
-        {
-            get
-            {
-                // find existing node
-                if (m_InputNode == null)
-                    m_InputNode = GetNodes<SubGraphInputNode>().FirstOrDefault();
-
-                return m_InputNode;
-            }
-        }
 
         public SubGraphOutputNode outputNode
         {
@@ -41,34 +23,14 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        [NonSerialized]
-        private List<INode> m_ActiveNodes = new List<INode>();
-
-        public IEnumerable<AbstractMaterialNode> activeNodes
-        {
-            get
-            {
-                m_ActiveNodes.Clear();
-                NodeUtils.DepthFirstCollectNodesFromNode(m_ActiveNodes, outputNode);
-                return m_ActiveNodes.OfType<AbstractMaterialNode>();
-            }
-        }
-
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            m_InputNode = null;
             m_OutputNode = null;
         }
 
         public override void AddNode(INode node)
         {
-            if (inputNode != null && node is SubGraphInputNode)
-            {
-                Debug.LogWarning("Attempting to add second SubGraphInputNode to SubGraph. This is not allowed.");
-                return;
-            }
-
             if (outputNode != null && node is SubGraphOutputNode)
             {
                 Debug.LogWarning("Attempting to add second SubGraphOutputNode to SubGraph. This is not allowed.");
@@ -88,75 +50,15 @@ namespace UnityEngine.MaterialGraph
             base.AddNode(node);
         }
 
-        private IEnumerable<AbstractMaterialNode> usedNodes
+        public override IEnumerable<AbstractMaterialNode> activeNodes
         {
             get
             {
-                var nodes = new List<INode>();
-                //Get the rest of the nodes for all the other slots
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, NodeUtils.IncludeSelf.Exclude);
+                List<INode> nodes = new List<INode>();
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
                 return nodes.OfType<AbstractMaterialNode>();
             }
         }
 
-        public PreviewMode previewMode
-        {
-            get { return usedNodes.Any(x => x.previewMode == PreviewMode.Preview3D) ? PreviewMode.Preview3D : PreviewMode.Preview2D; }
-        }
-
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, generationMode);
-            }
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                if (node is IGeneratesFunction)
-                    (node as IGeneratesFunction).GenerateNodeFunction(visitor, generationMode);
-            }
-        }
-
-        public void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                if (node is IGenerateProperties)
-                    (node as IGenerateProperties).CollectShaderProperties(visitor, generationMode);
-            }
-        }
-
-        public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                //TODO: Fix
-                //if (node is IGeneratesVertexShaderBlock)
-                //    (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(visitor, generationMode);
-            }
-        }
-
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            foreach (var node in usedNodes)
-            {
-                //TODO: Fix
-                //if (node is IGeneratesVertexToFragmentBlock)
-                //    (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(visitor, generationMode);
-            }
-        }
-
-        public IEnumerable<PreviewProperty> GetPreviewProperties()
-        {
-            List<PreviewProperty> props = new List<PreviewProperty>();
-            foreach (var node in usedNodes)
-                node.CollectPreviewMaterialProperties(props);
-            return props;
-        }
     }
 }

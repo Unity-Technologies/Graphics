@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
- /*   [Serializable]
+    [Serializable]
     [Title("Master/Lightweight/PBR Specular")]
     public class LightweightSpecularMasterNode : AbstractLightweightPBRMasterNode
     {
@@ -20,14 +21,13 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Vertex));
-            AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, new Vector4(0.5f, 0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, new Vector4(0,0,1), ShaderStage.Fragment));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
@@ -40,12 +40,15 @@ namespace UnityEngine.MaterialGraph
                 SpecularSlotId,
                 SmoothnessSlotId,
                 OcclusionSlotId,
-                AlphaSlotId,
-                VertexOffsetId
+                AlphaSlotId
             });
         }
+        protected override string GetTemplateName()
+        {
+            return "lightweightSubshaderPBR.template";
+        }
 
-        protected override int[] surfaceInputs
+        protected override IEnumerable<int> masterSurfaceInputs
         {
             get
             {
@@ -62,20 +65,14 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        protected override int[] vertexInputs
+        protected override IEnumerable<int> masterVertexInputs
         {
             get
             {
-                return new[]
+                return new int[]
                 {
-                    VertexOffsetId
                 };
             }
         }
-
-        public override string GetWorkflowName()
-        {
-            return WorkflowName;
-        }
-    }*/
+    }
 }

@@ -24,7 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var propertiesGUID = properties.Select(x => x.guid).ToList();
             var currentSelectedIndex = propertiesGUID.IndexOf(currentGUID);
 
-            var newIndex = EditorGUILayout.Popup("Property", currentSelectedIndex, properties.Select(x => x.name).ToArray());
+            var newIndex = EditorGUILayout.Popup("Property", currentSelectedIndex, properties.Select(x => x.displayName).ToArray());
 
             if (newIndex != currentSelectedIndex)
                 tNode.propertyGuid = propertiesGUID[newIndex];

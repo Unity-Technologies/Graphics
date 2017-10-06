@@ -52,8 +52,8 @@ namespace UnityEditor.MaterialGraph.Drawing
              typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter*/
             typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
+            typeMapper[typeof(MasterRemapNode)] = typeof(MasterRemapNodePresenter);
 
-            //   typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
             // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
 //            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);

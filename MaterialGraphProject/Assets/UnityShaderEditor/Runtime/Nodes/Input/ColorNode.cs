@@ -72,7 +72,7 @@ namespace UnityEngine.MaterialGraph
 
             properties.AddShaderProperty(new ColorShaderProperty()
             {
-                name = GetVariableNameForNode(),
+                overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = color,
                 HDR = HDR

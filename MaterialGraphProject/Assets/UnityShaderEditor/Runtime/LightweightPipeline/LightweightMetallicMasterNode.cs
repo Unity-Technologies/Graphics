@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -12,8 +11,6 @@ namespace UnityEngine.MaterialGraph
         public const string MetallicSlotName = "Metallic";
         public const int MetallicSlotId = 2;
 
-        public const string WorkflowName = "Metallic";
-
         public LightweightMetallicMasterNode()
         {
             name = "LightweightMetallicMasterNode";
@@ -22,14 +19,13 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Vertex));
-            AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, new Vector4(0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, new Vector4(0,0,1), ShaderStage.Fragment));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
-            AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
@@ -42,8 +38,7 @@ namespace UnityEngine.MaterialGraph
                     MetallicSlotId,
                     SmoothnessSlotId,
                     OcclusionSlotId,
-                    AlphaSlotId,
-                    VertexOffsetId
+                    AlphaSlotId
                 });
         }
 
@@ -52,9 +47,9 @@ namespace UnityEngine.MaterialGraph
             return "lightweightSubshaderPBR.template";
         }
 
-        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap)
+        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap, MasterRemapGraph remapper)
         {
-            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap);
+            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap, remapper);
             defines.AddShaderChunk("#define _METALLIC_SETUP 1", true);
         }
 
@@ -79,9 +74,8 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                return new[]
+                return new int[]
                 {
-                    VertexOffsetId
                 };
             }
         }

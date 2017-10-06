@@ -74,11 +74,6 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        protected virtual bool generateDefaultInputs
-        {
-            get { return true; }
-        }
-
         public override bool hasError
         {
             get { return m_HasError; }
@@ -92,9 +87,6 @@ namespace UnityEngine.MaterialGraph
 
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (!generateDefaultInputs)
-                return;
-
             if (!generationMode.IsPreview())
                 return;
 
@@ -104,7 +96,7 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                inputSlot.AddProperty(properties, generationMode);
+                inputSlot.AddDefaultProperty(properties, generationMode);
             }
         }
 
@@ -468,11 +460,6 @@ namespace UnityEngine.MaterialGraph
 
             // preserve the old current value.
             addingSlot.currentValue = foundSlot.currentValue;
-        }
-
-        public virtual ShaderGraphRequirements GetNodeSpecificRequirements()
-        {
-            return ShaderGraphRequirements.none;
         }
     }
 }

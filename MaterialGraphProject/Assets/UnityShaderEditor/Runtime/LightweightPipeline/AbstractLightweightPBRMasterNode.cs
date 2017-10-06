@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -24,11 +20,10 @@ namespace UnityEngine.MaterialGraph
         public const int SmoothnessSlotId = 4;
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
-        public const int VertexOffsetId = 7;
 
-        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap)
+        protected override void GetLightweightDefinesAndRemap(ShaderGenerator defines, ShaderGenerator surfaceOutputRemap, MasterRemapGraph remapper)
         {
-            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap);
+            base.GetLightweightDefinesAndRemap(defines, surfaceOutputRemap, remapper);
 
             defines.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
             defines.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);
@@ -58,35 +53,5 @@ namespace UnityEngine.MaterialGraph
             var nm = FindSlot<MaterialSlot>(NormalSlotId);
             return owner.GetEdges(nm.slotReference).Any();
         }
-
-       /* public void GenerateNodeCode(ShaderGenerator shaderBody, ShaderGenerator propertyUsages, GenerationMode generationMode)
-        {
-
-            foreach (var slot in GetInputSlots<MaterialSlot>())
-            {
-                if (surfaceInputs.Contains(slot.id))
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var outputRef = edge.outputSlot;
-                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                        if (fromNode == null)
-                            continue;
-
-                        var remapper = fromNode as INodeGroupRemapper;
-                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                            continue;
-
-                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-
-                        if (slot.id == NormalSlotId)
-                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
-
-                        if (slot.id == AlphaSlotId)
-                            propertyUsages.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON", true);
-                    }
-                }
-            }
-        }*/
     }
 }

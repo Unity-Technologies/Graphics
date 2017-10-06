@@ -70,7 +70,7 @@ namespace UnityEngine.MaterialGraph
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                name = GetVariableNameForNode(),
+                overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = new TextureSamplerState()
                 {

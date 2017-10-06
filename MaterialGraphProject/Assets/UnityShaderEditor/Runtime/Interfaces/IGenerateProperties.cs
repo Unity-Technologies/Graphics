@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.MaterialGraph
 {
     public interface IGenerateProperties

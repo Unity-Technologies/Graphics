@@ -25,6 +25,11 @@ namespace UnityEngine.MaterialGraph
             set { m_Modifiable = value; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(); }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
@@ -35,24 +40,28 @@ namespace UnityEngine.MaterialGraph
             }
             result.Append("[NoScaleOffset] ");
 
-            result.Append(name);
+            result.Append(referenceName);
             result.Append("(\"");
-            result.Append(description);
+            result.Append(displayName);
             result.Append("\", 2D) = \"white\" {}");
             return result.ToString();
         }
 
         public override string GetPropertyDeclarationString()
         {
-            return "UNITY_DECLARE_TEX2D(" + name + ");";
+            return "UNITY_DECLARE_TEX2D(" + referenceName + ");";
         }
 
+        public override string GetInlinePropertyDeclarationString()
+        {
+            return "UNITY_DECLARE_TEX2D_NOSAMPLER(" + referenceName + ");";
+        }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty()
             {
-                m_Name = name,
+                m_Name = referenceName,
                 m_PropType = PropertyType.Texture,
                 m_Texture = value.texture
             };

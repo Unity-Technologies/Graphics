@@ -8,15 +8,15 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class MaterialGraph : AbstractMaterialGraph
     {
-        public MasterNode masterNode
+        public IMasterNode masterNode
         {
-            get { return GetNodes<MasterNode>().FirstOrDefault(); }
+            get { return GetNodes<INode>().OfType<IMasterNode>().FirstOrDefault(); }
         }
 
-        public string GetShader(string name, out List<PropertyCollector.TextureInfo> configuredTextures)
+        public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            PreviewMode mode;
-            return GetShader(masterNode, GenerationMode.ForReals, name, out configuredTextures, out mode);
+            PreviewMode pmode;
+            return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
 
     }

@@ -55,6 +55,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+    public class MasterReampGraphEditWindow : AbstractMaterialGraphEditWindow<MasterRemapGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return inMemoryAsset;
+        }
+    }
+
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         public static bool allowAlwaysRepaint = true;
@@ -192,7 +200,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                     UpdateShaderGraphOnDisk(path);
 
                 if (typeof(TGraphType) == typeof(SubGraph))
-                    UpdateShaderSubGraphOnDisk(path);
+                    UpdateAbstractSubgraphOnDisk<SubGraph>(path);
+
+                if (typeof(TGraphType) == typeof(MasterRemapGraph))
+                    UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
             }
         }
 
@@ -204,14 +215,30 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var graphPresenter = graphEditorView.presenter.graphPresenter;
-            var selected = graphPresenter.elements.Where(e => e.selected).ToArray();
-            var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(selected)));
+            var selected = graphPresenter.elements.Where(e => e.selected);
+
+            var filtered = new List<GraphElementPresenter>();
+
+            foreach (var presenter in selected)
+            {
+                var nodePresenter = presenter as MaterialNodePresenter;
+                if (nodePresenter != null)
+                {
+                    if (!(nodePresenter.node is PropertyNode))
+                        filtered.Add(nodePresenter);
+                }
+                else
+                {
+                    filtered.Add(presenter);
+                }
+            }
+
+            var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(filtered)));
 
             if (deserialized == null)
                 return;
 
             var graph = new SubGraph();
-            graph.AddNode(new SubGraphInputNode());
             graph.AddNode(new SubGraphOutputNode());
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
@@ -224,8 +251,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             // remap outputs to the subgraph
-            var inputEdgeNeedsRemap = new List<IEdge>();
-            var outputEdgeNeedsRemap = new List<IEdge>();
+            var onlyInputInternallyConnected = new List<IEdge>();
+            var onlyOutputInternallyConnected = new List<IEdge>();
             foreach (var edge in deserialized.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -246,42 +273,68 @@ namespace UnityEditor.MaterialGraph.Drawing
                 // one edge needs to go to outside world
                 else if (outputRemapExists)
                 {
-                    inputEdgeNeedsRemap.Add(edge);
+                    onlyOutputInternallyConnected.Add(edge);
                 }
                 else if (inputRemapExists)
                 {
-                    outputEdgeNeedsRemap.Add(edge);
+                    onlyInputInternallyConnected.Add(edge);
                 }
             }
 
-            // we do a grouping here as the same output can
-            // point to multiple inputs
-            var uniqueOutputs = outputEdgeNeedsRemap.GroupBy(edge => edge.outputSlot);
+            var uniqueInputEdges = onlyOutputInternallyConnected.GroupBy(
+                edge => edge.outputSlot,
+                edge => edge,
+                (key, edges) => new {slotRef = key, edges = edges.ToList()});
             var inputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
-            foreach (var group in uniqueOutputs)
+            foreach (var group in uniqueInputEdges)
             {
-                var inputNode = graph.inputNode;
-                var slotId = inputNode.AddSlot();
+                var inputNode = new PropertyNode();
 
-                var outputSlotRef = new SlotReference(inputNode.guid, slotId);
+                var sr = group.slotRef;
+                var fromNode = graphPresenter.graph.GetNodeFromGuid(sr.nodeGuid);
+                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
 
-                foreach (var edge in group)
+                switch (fromSlot.concreteValueType)
                 {
-                    var newEdge = graph.Connect(outputSlotRef, new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
-                    inputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
+                    case ConcreteSlotValueType.SamplerState:
+                        break;
+                    case ConcreteSlotValueType.Matrix4:
+                        break;
+                    case ConcreteSlotValueType.Matrix3:
+                        break;
+                    case ConcreteSlotValueType.Matrix2:
+                        break;
+                    case ConcreteSlotValueType.Texture2D:
+                        break;
+                    case ConcreteSlotValueType.Vector4:
+                        break;
+                    case ConcreteSlotValueType.Vector3:
+                        break;
+                    case ConcreteSlotValueType.Vector2:
+                        break;
+                    case ConcreteSlotValueType.Vector1:
+                        break;
+                    case ConcreteSlotValueType.Error:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
-            var uniqueInputs = inputEdgeNeedsRemap.GroupBy(edge => edge.inputSlot);
+            var uniqueOutputEdges = onlyInputInternallyConnected.GroupBy(
+                edge => edge.inputSlot,
+                edge => edge,
+                (key, edges) => new {slot = key, edges = edges.ToList()});
+
             var outputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
-            foreach (var group in uniqueInputs)
+            foreach (var group in uniqueOutputEdges)
             {
                 var outputNode = graph.outputNode;
                 var slotId = outputNode.AddSlot();
 
                 var inputSlotRef = new SlotReference(outputNode.guid, slotId);
 
-                foreach (var edge in group)
+                foreach (var edge in group.edges)
                 {
                     var newEdge = graph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotId), inputSlotRef);
                     outputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
@@ -299,10 +352,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphPresenter.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
-            foreach (var edgeMap in inputsNeedingConnection)
+          /*  foreach (var edgeMap in inputsNeedingConnection)
             {
                 graphPresenter.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
-            }
+            }*/
 
             foreach (var edgeMap in outputsNeedingConnection)
             {
@@ -313,9 +366,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphPresenter.RemoveElements(toDelete, new List<GraphEdgePresenter>());
         }
 
-        private void UpdateShaderSubGraphOnDisk(string path)
+        private void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
         {
-            var graph = inMemoryAsset as SubGraph;
+            var graph = inMemoryAsset as T;
             if (graph == null)
                 return;
 
@@ -330,7 +383,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             List<PropertyCollector.TextureInfo> configuredTextures;
-            graph.GetShader(Path.GetFileNameWithoutExtension(path), out configuredTextures);
+            graph.GetShader(Path.GetFileNameWithoutExtension(path), GenerationMode.ForReals, out configuredTextures);
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)

@@ -23,7 +23,7 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
             var name = Path.GetFileNameWithoutExtension(path);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
-            var shaderString = graph.GetShader(string.Format("graphs/{0}", name), out configuredTextures);
+            var shaderString = graph.GetShader(string.Format("graphs/{0}", name), GenerationMode.ForReals, out configuredTextures);
             Debug.Log(shaderString);
             return shaderString;
         }

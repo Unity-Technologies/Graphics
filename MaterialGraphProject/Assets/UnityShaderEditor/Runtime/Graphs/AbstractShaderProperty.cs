@@ -34,7 +34,7 @@ namespace UnityEngine.MaterialGraph
             set { m_Value = value; }
         }
 
-        public string name
+        public string displayName
         {
             get
             {
@@ -45,14 +45,17 @@ namespace UnityEngine.MaterialGraph
             set { m_Name = value; }
         }
 
-        public string description
+        public string referenceName
         {
             get
             {
-                return string.IsNullOrEmpty(m_Description) ? name : m_Description;
+                return string.IsNullOrEmpty(overrideReferenceName)
+                    ? string.Format("{0}_{1}", propertyType, GuidEncoder.Encode(guid))
+                    : overrideReferenceName;
             }
-            set { m_Description = value; }
         }
+
+        public string overrideReferenceName { get; set; } = string.Empty;
 
         public abstract PropertyType propertyType { get; }
 
@@ -67,8 +70,15 @@ namespace UnityEngine.MaterialGraph
             set { m_GeneratePropertyBlock = value; }
         }
 
+        public abstract Vector4 defaultValue { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString();
+
+        public virtual string GetInlinePropertyDeclarationString()
+        {
+            return GetPropertyDeclarationString();
+        }
+
         public abstract PreviewProperty GetPreviewMaterialProperty();
 
         public virtual void OnBeforeSerialize()
