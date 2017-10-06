@@ -1,7 +1,6 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 
 public class LightweightUnlitGUI : ShaderGUI

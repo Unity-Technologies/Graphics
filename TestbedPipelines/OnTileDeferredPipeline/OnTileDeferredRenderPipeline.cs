@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 {
