@@ -121,6 +121,13 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_Preview = previewSystem.GetPreview(inNode);
             m_Preview.onPreviewChanged += OnPreviewChanged;
+
+            node.onReplaced += OnReplaced;
+        }
+
+        void OnReplaced(INode previous, INode current)
+        {
+            node = current as AbstractMaterialNode;
         }
 
         void OnPreviewChanged()

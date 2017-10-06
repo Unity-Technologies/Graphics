@@ -1,6 +1,8 @@
+using System;
+
 namespace UnityEngine.Graphing
 {
-    public interface ISlot
+    public interface ISlot : IEquatable<ISlot>
     {
         int id { get; }
         string displayName { get; set; }

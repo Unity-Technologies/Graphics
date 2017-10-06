@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Graphing
 {
     [Serializable]
-    public class SlotReference : ISerializationCallbackReceiver
+    public class SlotReference : ISerializationCallbackReceiver, IEquatable<SlotReference>
     {
         [SerializeField]
         private int m_SlotId;
@@ -39,6 +39,29 @@ namespace UnityEngine.Graphing
         public void OnAfterDeserialize()
         {
             m_NodeGUID = new Guid(m_NodeGUIDSerialized);
+        }
+
+        public bool Equals(SlotReference other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return m_SlotId == other.m_SlotId && m_NodeGUID.Equals(other.m_NodeGUID);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SlotReference)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (m_SlotId * 397) ^ m_NodeGUID.GetHashCode();
+            }
         }
     }
 }

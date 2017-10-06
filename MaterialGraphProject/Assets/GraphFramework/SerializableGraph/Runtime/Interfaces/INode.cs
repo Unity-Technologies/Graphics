@@ -12,10 +12,12 @@ namespace UnityEngine.Graphing
     }
 
     public delegate void OnNodeModified(INode node, ModificationScope scope);
+    public delegate void OnNodeReplaced(INode previous, INode current);
 
     public interface INode
     {
         OnNodeModified onModified { get; set; }
+        OnNodeReplaced onReplaced { get; set; }
         IGraph owner { get; set; }
         Guid guid { get; }
         Guid RewriteGuid();
