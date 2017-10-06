@@ -9,7 +9,8 @@ Material:
   m_Name: POM - Rock
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PER_PIXEL_DISPLACEMENT
-    _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE _PER_PIXEL_DISPLACEMENT_TILING_SCALE
+    _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE _PER_PIXEL_DISPLACEMENT_TILING_SCALE _PIXEL_DISPLACEMENT
+    _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE _PIXEL_DISPLACEMENT_LOCK_TILING_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -148,6 +149,9 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DisplacementLockObjectScale: 1
+    - _DisplacementLockTilingScale: 1
+    - _DisplacementMode: 2
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
@@ -166,13 +170,14 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude: 0.02
-    - _HeightCenter: 0.5
-    - _HeightMax: 1
-    - _HeightMin: -1
+    - _HeightAmplitude: 1
+    - _HeightCenter: 1
+    - _HeightMax: 100
+    - _HeightMin: 0
     - _HorizonFade: 1
     - _IOR: 1
     - _InitialBend: 1
+    - _InvTilingScale: 1
     - _MaterialID: 1
     - _Metallic: 0
     - _Mode: 0
@@ -218,6 +223,7 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _InvPrimScale: {r: 0.1, g: 0.1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
