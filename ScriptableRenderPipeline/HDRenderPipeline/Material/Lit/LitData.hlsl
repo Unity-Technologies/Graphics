@@ -259,7 +259,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
-// TODO: share this function with tessellation code.
+// Displacement with lock object scale require to take into account object scaling except for planar and triplanar that are done in world space in Lit and thus are independent of object scale.
 float3 GetInverseObjectScale()
 {
     float3 invObjectScale = 1;
@@ -269,7 +269,7 @@ float3 GetInverseObjectScale()
     // Extract scaling from world transform
     // To handle object scaling with PPD we need to multiply the view vector by the inverse scale.
     // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-    float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
+    float4x4 worldTransform = GetWorldToObjectMatrix();
 
     invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
 #ifdef _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -281,7 +281,6 @@ float3 GetInverseObjectScale()
     return invObjectScale;
 }
 
-// TODO: share this function with tessellation code.
 float GetHeightmapInverseTilingScale()
 {
 #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
@@ -381,17 +380,14 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
         // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent);
-        viewDirTS *= GetInverseObjectScale().xzy; // Switch from Y-up to Z-up
-
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetInverseObjectScale().xzy; // Switch from Y-up to Z-up (as we move to tangent space)
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
-        float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
-        float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
-        int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
-
-        float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
+        float3 viewDirUV    = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+        float  unitAngle    = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+        int    numSteps     = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+        float2 offset       = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
 
         // Apply offset to all UVSet0 / planar
         layerTexCoord.base.uv += offset;
