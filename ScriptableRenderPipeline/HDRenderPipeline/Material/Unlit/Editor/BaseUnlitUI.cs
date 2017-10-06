@@ -162,23 +162,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
             {
+                EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(alphaCutoff, StylesBaseUnlit.alphaCutoffText);
 
-                if (alphaCutoffShadow != null)
+                // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
+                // This allow to get a better sorting (with prepass), better shadow (better silouhette fidelity) etc...
+                if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
                 {
-                    m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
-                }
-
-                if (transparentDepthPrepassEnable != null)
-                {
-                    m_MaterialEditor.ShaderProperty(transparentDepthPrepassEnable, StylesBaseUnlit.transparentDepthPrepassEnableText);
-                    if (transparentDepthPrepassEnable.floatValue == 1.0f)
+                    if (alphaCutoffShadow != null)
                     {
-                        EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);
-                        EditorGUI.indentLevel--;
+                        m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
+                    }
+
+                    if (transparentDepthPrepassEnable != null)
+                    {
+                        m_MaterialEditor.ShaderProperty(transparentDepthPrepassEnable, StylesBaseUnlit.transparentDepthPrepassEnableText);
+                        if (transparentDepthPrepassEnable.floatValue == 1.0f)
+                        {
+                            EditorGUI.indentLevel++;
+                            m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);
+                            EditorGUI.indentLevel--;
+                        }
                     }
                 }
+                EditorGUI.indentLevel--;
             }
             // This function must finish with double sided option (see LitUI.cs)
             m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
