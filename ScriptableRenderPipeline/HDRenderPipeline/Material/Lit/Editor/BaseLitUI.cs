@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -20,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
             // Displacement mapping (POM, tessellation, per vertex)
-            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale",           "Displacement mapping will take the absolute value of the scale of the object into account.");            
+            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale",           "Displacement mapping will take the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText  = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
 
             // Per pixel displacement
@@ -234,7 +233,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementObjectScale, StylesBaseLit.lockWithObjectScaleText);
                 m_MaterialEditor.ShaderProperty(perPixelDisplacementTilingScale, StylesBaseLit.lockWithTilingRateText);
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);                
+                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                 EditorGUI.indentLevel--;
             }
 

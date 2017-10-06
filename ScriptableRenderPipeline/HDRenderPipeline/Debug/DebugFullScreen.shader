@@ -5,8 +5,8 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
         Pass
         {
             ZWrite Off
-            ZTest Off
-            Blend One Zero
+            ZTest Always
+            Blend Off
             Cull Off
 
             HLSLPROGRAM

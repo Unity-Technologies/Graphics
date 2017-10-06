@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
         Pass
         {
             Cull   Off
-            ZTest  Off
+            ZTest  Always
             ZWrite Off
             Blend  Off
 
