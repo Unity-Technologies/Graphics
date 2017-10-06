@@ -20,7 +20,6 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
-            expr[1] = VFXOperatorUtility.DegToRad(expr[1]);
             return new VFXExpressionTRSToMatrix(expr);
         }
 
@@ -29,7 +28,7 @@ namespace UnityEditor.VFX
             return new VFXExpression[3]
             {
                 new VFXExpressionExtractPositionFromMatrix(expr),
-                VFXOperatorUtility.RadToDeg(new VFXExpressionExtractAnglesFromMatrix(expr)),
+                new VFXExpressionExtractAnglesFromMatrix(expr),
                 new VFXExpressionExtractScaleFromMatrix(expr)
             };
         }
