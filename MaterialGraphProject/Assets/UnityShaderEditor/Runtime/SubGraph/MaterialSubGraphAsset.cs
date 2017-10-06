@@ -2,8 +2,7 @@ namespace UnityEngine.MaterialGraph
 {
     public class MaterialSubGraphAsset : ScriptableObject
     {
-        [SerializeField]
-        private SubGraph m_MaterialSubGraph = new SubGraph();
+        [SerializeField] private SubGraph m_MaterialSubGraph = new SubGraph();
 
         public SubGraph subGraph
         {

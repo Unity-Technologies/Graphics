@@ -9,6 +9,11 @@ namespace UnityEngine.MaterialGraph
             get { return PropertyType.SamplerState; }
         }
 
+        public override Vector4 defaultValue
+        {
+            get { return new Vector4(); }
+        }
+
         public override string GetPropertyBlockString()
         {
             return string.Empty;
@@ -16,7 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetPropertyDeclarationString()
         {
-            string ss = name + "_"
+            string ss = referenceName + "_"
                         + Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter) + "_"
                         + Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap) + "_sampler;";
 

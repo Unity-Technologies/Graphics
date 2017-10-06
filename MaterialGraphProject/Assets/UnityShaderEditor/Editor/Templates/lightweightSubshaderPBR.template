@@ -93,6 +93,8 @@ SubShader
 	
 		fixed4 frag (GraphVertexOutput IN) : SV_Target
         {
+        	${LocalPixelShader}
+
             SurfaceInputs surfaceInput = (SurfaceInputs)0;
             ${SurfaceInputs}
 
@@ -101,7 +103,7 @@ SubShader
 			float3 Albedo = float3(0.5, 0.5, 0.5);
 			float3 Specular = float3(0, 0, 0);
 			float Metallic = 0;
-			float3 Normal = float3(.5, .5, 1);
+			float3 Normal = float3(0, 0, 1);
 			float3 Emission = 0;
 			float Smoothness = 0;
 			float Occlusion = 1;
@@ -109,13 +111,18 @@ SubShader
 
             ${SurfaceOutputRemap}
 
+#if defined(UNITY_COLORSPACE_GAMMA) 
+           	Albedo = Albedo * Albedo;
+           	Emission = Emission * Emission;
+#endif
+
 			return FragmentLightingPBR(
 				IN.lwCustom,
-				surfaceInput.worldSpacePosition,
-				surfaceInput.worldSpaceNormal,
-				surfaceInput.worldSpaceTangent,
-				surfaceInput.worldSpaceBiTangent,
-				surfaceInput.worldSpaceViewDirection,
+				worldSpacePosition,
+				worldSpaceNormal,
+				worldSpaceTangent,
+				worldSpaceBiTangent,
+				worldSpaceViewDirection,
 				IN.fogCoord, 
 				
 				Albedo,

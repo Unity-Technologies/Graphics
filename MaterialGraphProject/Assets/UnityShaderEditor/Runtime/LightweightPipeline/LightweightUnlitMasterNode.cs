@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text.RegularExpressions;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -13,11 +10,9 @@ namespace UnityEngine.MaterialGraph
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
-        public const string VertexOffsetName = "VertexPosition";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 1;
-        public const int VertexOffsetId = 2;
 
         public LightweightUnlitMasterNode()
         {
@@ -27,7 +22,6 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Vertex));
             AddSlot(new MaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero, ShaderStage.Fragment));
             AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero, ShaderStage.Fragment));
 
@@ -37,8 +31,7 @@ namespace UnityEngine.MaterialGraph
                 new[]
             {
                 ColorSlotId,
-                AlphaSlotId,
-                VertexOffsetId
+                AlphaSlotId
             });
         }
 
@@ -58,9 +51,8 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                return new[]
+                return new int[]
                 {
-                    VertexOffsetId
                 };
             }
         }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -24,6 +23,8 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         ShaderStage m_ShaderStage;
+
+        public static readonly string DefaultTextureName = "ShaderGraph_DefaultTexture";
 
         public MaterialSlot() { }
 
@@ -193,6 +194,9 @@ namespace UnityEngine.MaterialGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
+            if (concreteValueType == ConcreteSlotValueType.Texture2D)
+                return DefaultTextureName;
+
             if (generationMode.IsPreview())
                 return matOwner.GetVariableNameForSlot(id);
 
@@ -217,13 +221,23 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public void AddProperty(PropertyCollector properties, GenerationMode generationMode)
+        public void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (!generationMode.IsPreview())
+            // share tex2d for all non connected slots :)
+            if (concreteValueType == ConcreteSlotValueType.Texture2D)
+            {
+                var prop = new TextureShaderProperty();
+                prop.overrideReferenceName = DefaultTextureName;
+                prop.modifiable = false;
+                prop.generatePropertyBlock = true;
+                properties.AddShaderProperty(prop);
+                return;
+            }
+
+            if (concreteValueType == ConcreteSlotValueType.SamplerState)
                 return;
 
-            if (concreteValueType == ConcreteSlotValueType.SamplerState ||
-                concreteValueType == ConcreteSlotValueType.Texture2D)
+            if (!generationMode.IsPreview())
                 return;
 
             var matOwner = owner as AbstractMaterialNode;
@@ -249,7 +263,7 @@ namespace UnityEngine.MaterialGraph
                     throw new ArgumentOutOfRangeException();
             }
 
-            property.name = matOwner.GetVariableNameForSlot(id);
+            property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             property.generatePropertyBlock = false;
 
             properties.AddShaderProperty(property);

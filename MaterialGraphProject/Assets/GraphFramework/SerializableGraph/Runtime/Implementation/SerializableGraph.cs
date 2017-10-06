@@ -224,6 +224,7 @@ namespace UnityEngine.Graphing
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
+            OnEnable();
             ValidateGraph();
         }
 

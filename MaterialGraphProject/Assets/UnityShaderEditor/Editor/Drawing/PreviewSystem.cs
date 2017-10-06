@@ -210,7 +210,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
                 var node = m_Graph.GetNodeFromGuid(nodeGuid);
                 m_PreviewMaterial.shader = previewData.shader;
-                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is MasterNode, time, m_PreviewPropertyBlock);
+                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
                 previewData.texture = previewData.renderTexture;
             }
 
@@ -234,14 +234,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                 return;
 
-            if (node is MasterNode && node.owner is UnityEngine.MaterialGraph.MaterialGraph)
+            if (node is IMasterNode)
             {
-                var masterNode = (MasterNode)node;
-                var materialGraph = (UnityEngine.MaterialGraph.MaterialGraph) node.owner;
+                var materialGraph = (AbstractMaterialGraph) node.owner;
 
                 List<PropertyCollector.TextureInfo> defaultTextures;
-                previewData.shaderString = materialGraph.GetShader(node.guid + "_preview", out defaultTextures);
-                previewData.previewMode = masterNode.has3DPreview() ? PreviewMode.Preview3D : PreviewMode.Preview2D;
+                PreviewMode pmode;
+                previewData.shaderString = materialGraph.GetShader(node, GenerationMode.Preview, node.guid + "_preview",  out defaultTextures, out pmode);
+                previewData.previewMode = node.previewMode;
             }
             else if (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex)
             {

@@ -1,6 +1,5 @@
 ﻿﻿using System;
 using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -8,7 +7,6 @@ using UnityEngine.Experimental.UIElements;
  using UnityEngine.Experimental.UIElements.StyleSheets;
  using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
@@ -89,8 +87,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             gm.AddItem(new GUIContent("Vector4"), false, () => m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty()));
             gm.AddItem(new GUIContent("Color"), false, () => m_Presenter.graph.AddShaderProperty(new ColorShaderProperty()));
             gm.AddItem(new GUIContent("Texture"), false, () => m_Presenter.graph.AddShaderProperty(new TextureShaderProperty()));
-            gm.ShowAsContext();
-        }
+                gm.ShowAsContext();
+            }
 
         public void OnChange(GraphInspectorPresenter.ChangeType changeType)
         {
@@ -146,7 +144,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                         m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
                     m_Graph.onChange += OnGraphChange;
                 }
-            }
+        }
         }
 
         void OnGraphChange(GraphChange change)
