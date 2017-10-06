@@ -110,7 +110,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
     // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
     // Extract scaling from world transform
-#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
+#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     float3 objectScale;
     float4x4 worldTransform = GetObjectToWorldMatrix();
     objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
@@ -132,7 +132,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
 #ifdef TESSELLATION_ON
     output.positionWS = positionWS;
-    #ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
+    #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
     output.objectScale = objectScale;
     #endif

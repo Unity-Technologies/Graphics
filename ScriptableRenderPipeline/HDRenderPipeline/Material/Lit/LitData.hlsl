@@ -272,9 +272,9 @@ float3 GetInverseObjectScale()
     float4x4 worldTransform = GetWorldToObjectMatrix(); // Note that we take WorldToObject to get inverse scale
 
     invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-#ifdef _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+#ifdef _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-#endif // _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+#endif // _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
 #endif // _MAPPING_PLANAR
 
@@ -284,16 +284,20 @@ float3 GetInverseObjectScale()
 // TODO: share this function with tessellation code.
 float GetInverseTilingScale()
 {
-#ifdef _PER_PIXEL_DISPLACEMENT_TILING_SCALE
-    return _InvTilingScale;
+#ifdef _PIXEL_DISPLACEMENT_LOCK_TILING_SCALE
+    return _InvTilingScale
+    #if _MAPPING_PLANAR
+        * rcp(_TexWorldScale)
+    #endif
+        ;
 #else
-    return 1;
+    return 1.0;
 #endif
 }
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
-#if defined(_PER_PIXEL_DISPLACEMENT) && defined(_HEIGHTMAP)
+#if defined(_PIXEL_DISPLACEMENT) && defined(_HEIGHTMAP)
     // These variables are known at the compile time.
     bool isPlanar = layerTexCoord.base.mappingType == UV_MAPPING_PLANAR;
     bool isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
@@ -303,8 +307,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     float2 minUvSize = GetMinUvSize(layerTexCoord);
     float  lod       = ComputeTextureLOD(minUvSize);
 
-    float2 invPrimScale = (isPlanar || isTriplanar) ? 1 : _InvPrimScale.xy;
-    float  worldScale   = (isPlanar || isTriplanar) ? _TexWorldScale : 1;
+    float2 invPrimScale = (isPlanar || isTriplanar) ? float2(1.0, 1.0) : _InvPrimScale.xy;
+    float  worldScale   = (isPlanar || isTriplanar) ? _TexWorldScale : 1.0;
     float2 uvSpaceScale = invPrimScale * _BaseColorMap_ST.xy * (worldScale * maxHeight);
 
     PerPixelHeightDisplacementParam ppdParam;
@@ -408,10 +412,13 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-#ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
+#ifdef _VERTEX_DISPLACEMENT_LOCK_TILING_SCALE
     // TODO: precompute these scaling factors!
     float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
     height *= tilingScale;
+    #ifdef _MAPPING_PLANAR
+    height *= rcp(_TexWorldScale);
+    #endif
 #endif
     return height;
 }
@@ -777,7 +784,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-#ifdef _VERTEX_DISPLACEMENT_TILING_SCALE
+#if _VERTEX_DISPLACEMENT_LOCK_TILING_SCALE
     float tileObjectScale = 1.0;
     #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     // Extract scaling from world transform
@@ -1025,7 +1032,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     bool isPlanar = false;
     bool isTriplanar = false;
 
-#ifdef _PER_PIXEL_DISPLACEMENT
+#ifdef _PIXEL_DISPLACEMENT
 
     // To know if we are planar or triplanar just need to check if any of the active heightmap layer is true as they are enforce to be the same mapping
 #if defined(_HEIGHTMAP0)
@@ -1056,7 +1063,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 #endif
 #endif
 
-#endif // _PER_PIXEL_DISPLACEMENT
+#endif // _PIXEL_DISPLACEMENT
 
     if (ppdEnable)
     {
@@ -1294,7 +1301,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     float4 heights = float4(height0, height1, height2, height3);
 
     // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
-    #if !defined(_PER_PIXEL_DISPLACEMENT)
+    #if !defined(_PIXEL_DISPLACEMENT)
     // We don't use height 0 for the height blend based mode
     heights.y += (heights.x * 0.0001);
     #endif

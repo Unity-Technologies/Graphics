@@ -21,8 +21,8 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 #endif
             break;
 
-        case DEBUGVIEWPROPERTIES_PER_PIXEL_DISPLACEMENT:
-#ifdef _PER_PIXEL_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD
+        case DEBUGVIEWPROPERTIES_PIXEL_DISPLACEMENT:
+#ifdef _PIXEL_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD)
             result = float3(1.0, 0.0, 0.0);
 #else
             result = float3(0.0, 0.0, 0.0);
@@ -30,7 +30,15 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
             break;
 
         case DEBUGVIEWPROPERTIES_VERTEX_DISPLACEMENT:
-#ifdef _VERTEX_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD
+#ifdef _VERTEX_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD)
+            result = float3(1.0, 0.0, 0.0);
+#else
+            result = float3(0.0, 0.0, 0.0);
+#endif
+            break;
+
+        case DEBUGVIEWPROPERTIES_TESSELLATION_DISPLACEMENT:
+#ifdef _TESSELLATION_DISPLACEMENT // Caution: This define is related to a shader features (But it may become a standard features for HD)
             result = float3(1.0, 0.0, 0.0);
 #else
             result = float3(0.0, 0.0, 0.0);
@@ -38,7 +46,7 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
             break;
 
         case DEBUGVIEWPROPERTIES_DEPTH_OFFSET:
-#ifdef _DEPTHOFFSET_ON  // Caution: This define is related to a shader features (But it may become a standard features for HD
+#ifdef _DEPTHOFFSET_ON  // Caution: This define is related to a shader features (But it may become a standard features for HD)
             result = float3(1.0, 0.0, 0.0);
 #else
             result = float3(0.0, 0.0, 0.0);
