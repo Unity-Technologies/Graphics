@@ -403,19 +403,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public int                           numProfiles;               // Excluding the neutral profile
         public SubsurfaceScatteringProfile[] profiles;
-        // Below are the cached values.
-        [NonSerialized] public int           texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public int           transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-        [NonSerialized] public Vector4[]     thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public Vector4[]     worldScales;               // Size of the world unit in meters (only the X component is used)
-        [NonSerialized] public Vector4[]     shapeParams;               // RGB = S = 1 / D, A = filter radius
-        [NonSerialized] public Vector4[]     transmissionTints;         // RGB = color, A = unused
-        [NonSerialized] public Vector4[]     filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+        // Below are the cached values. TODO: uncomment when SSS profile asset serialization is fixed.
+        /*[NonSerialized]*/ public int       texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        /*[NonSerialized]*/ public int       transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+        /*[NonSerialized]*/ public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        /*[NonSerialized]*/ public Vector4[] worldScales;               // Size of the world unit in meters (only the X component is used)
+        /*[NonSerialized]*/ public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
+        /*[NonSerialized]*/ public Vector4[] transmissionTints;         // RGB = color, A = unused
+        /*[NonSerialized]*/ public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
         // Old SSS Model >>>
         public bool                          useDisneySSS;
-        [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
-        [NonSerialized] public Vector4[]     halfRcpVariancesAndWeights;
-        [NonSerialized] public Vector4[]     filterKernelsBasic;
+        /*[NonSerialized]*/ public Vector4[] halfRcpWeightedVariances;
+        /*[NonSerialized]*/ public Vector4[] halfRcpVariancesAndWeights;
+        /*[NonSerialized]*/ public Vector4[] filterKernelsBasic;
         // <<< Old SSS Model
 
         // --- Public Methods ---
@@ -630,7 +630,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnAfterDeserialize()
         {
-            UpdateCache();
+            // TODO: uncomment when SSS profile asset serialization is fixed.
+            // UpdateCache();
         }
     }
 }
