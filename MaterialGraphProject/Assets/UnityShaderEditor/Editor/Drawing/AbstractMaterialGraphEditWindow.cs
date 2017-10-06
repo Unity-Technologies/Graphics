@@ -65,8 +65,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
-        public static bool allowAlwaysRepaint = true;
-
         [SerializeField]
         Object m_Selected;
 
@@ -349,7 +347,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var subGraphNode = new SubGraphNode();
-            graphPresenter.AddNode(subGraphNode);
+            graphPresenter.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
           /*  foreach (var edgeMap in inputsNeedingConnection)

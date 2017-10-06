@@ -7,10 +7,18 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Graphing;
-using Debug = System.Diagnostics.Debug;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
+    public class MaterialGraphObject : ScriptableObject
+    {
+        [SerializeField]
+        public string serializedGraph;
+
+        [SerializeField]
+        public int version;
+    }
+
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
@@ -21,6 +29,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         [SerializeField]
         IMaterialGraphEditWindow m_Container;
+
+        [SerializeField]
+        MaterialGraphObject m_GraphObject;
+
+        [SerializeField]
+        int m_GraphVersion;
 
         protected MaterialGraphPresenter()
         {
@@ -154,6 +168,28 @@ namespace UnityEditor.MaterialGraph.Drawing
                 EdgeAdded(new EdgeAddedGraphChange(edge));
 
             this.graph.onChange += OnChange;
+
+            m_GraphObject = CreateInstance<MaterialGraphObject>();
+            Undo.undoRedoPerformed += UndoRedoPerformed;
+
+            RecordState();
+        }
+
+        void UndoRedoPerformed()
+        {
+            if (m_GraphObject.version != m_GraphVersion)
+            {
+                var targetGraph = JsonUtility.FromJson(m_GraphObject.serializedGraph, graph.GetType()) as IGraph;
+                graph.ReplaceWith(targetGraph);
+                m_GraphVersion = m_GraphObject.version;
+            }
+        }
+
+        void RecordState()
+        {
+            m_GraphObject.serializedGraph = JsonUtility.ToJson(graph, false);
+            m_GraphObject.version++;
+            m_GraphVersion = m_GraphObject.version;
         }
 
         void OnChange(GraphChange change)
@@ -184,12 +220,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
             var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
-            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot == sourceSlot);
+            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
 
             var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
             var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
             var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
-            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot == targetSlot);
+            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
 
             var edgePresenter = CreateInstance<GraphEdgePresenter>();
             edgePresenter.Initialize(edge);
@@ -213,7 +249,9 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void AddNode(INode node)
         {
+            Undo.RecordObject(m_GraphObject, "Add " + node.name);
             graph.AddNode(node);
+            RecordState();
         }
 
         public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
@@ -226,7 +264,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             if (left != null && right != null)
             {
+                Undo.RecordObject(m_GraphObject, "Connect Edge");
                 graph.Connect(left.slot.slotReference, right.slot.slotReference);
+                RecordState();
             }
         }
 
@@ -328,7 +368,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Cut()
         {
             Copy();
+            Undo.RecordObject(m_GraphObject, "Cut");
             RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RecordState();
         }
 
         public bool canPaste
@@ -339,7 +381,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Paste()
         {
             var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
+            Undo.RecordObject(m_GraphObject, "Paste");
             InsertCopyPasteGraph(pastedGraph);
+            RecordState();
         }
 
         public bool canDuplicate
@@ -350,7 +394,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Duplicate()
         {
             var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(elements.Where(e => e.selected)), true));
+            Undo.RecordObject(m_GraphObject, "Duplicate");
             InsertCopyPasteGraph(graph);
+            RecordState();
         }
 
         public bool canDelete
@@ -360,7 +406,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Delete()
         {
+            RecordState();
+            Undo.RecordObject(m_GraphObject, "Delete");
             RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RecordState();
         }
 
         public override void AddElement(EdgePresenter edge)

@@ -99,7 +99,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-
             var nodePresenter = GetPresenter<MaterialNodePresenter>();
 
             if (nodePresenter == null)

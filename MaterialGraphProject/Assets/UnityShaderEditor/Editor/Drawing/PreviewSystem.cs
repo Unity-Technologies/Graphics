@@ -230,6 +230,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         void UpdateShader(Guid nodeGuid)
         {
             var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
+            if (node == null)
+                return;
             PreviewData previewData;
             if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                 return;
