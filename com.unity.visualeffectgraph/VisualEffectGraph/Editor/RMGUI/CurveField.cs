@@ -9,11 +9,9 @@ namespace UnityEditor.VFX.UIElements
 {
     class CurveField : ValueControl<AnimationCurve>
     {
-        VisualElement m_Curve;
-
         static readonly Color kCurveColor = Color.green;
 
-        void CreateCurve()
+        void SetupCurve()
         {
             this.AddManipulator(new Clickable(OnCurveClick));
             RegisterCallback<DetachFromPanelEvent>(OnDetach);
@@ -56,16 +54,14 @@ namespace UnityEditor.VFX.UIElements
 
         public CurveField(string label) : base(label)
         {
-            CreateCurve();
+            SetupCurve();
 
             style.flexDirection = FlexDirection.Row;
-            Add(m_Curve);
         }
 
         public CurveField(VisualElement existingLabel) : base(existingLabel)
         {
-            CreateCurve();
-            Add(m_Curve);
+            SetupCurve();
         }
 
         public override void OnPersistentDataReady()
@@ -86,20 +82,20 @@ namespace UnityEditor.VFX.UIElements
             if (m_Dirty)
             {
                 m_Dirty = false;
-                int previewWidth = (int)m_Curve.layout.width;
-                int previewHeight = (int)m_Curve.layout.height;
+                int previewWidth = (int)layout.width;
+                int previewHeight = (int)layout.height;
 
                 if (previewHeight > 0 && previewWidth > 0)
                 {
                     Rect range = new Rect(0, 0, 1, 1);
                     // Instantiate because AnimationCurvePreviewCache returns a temporary;
-                    m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
+                    style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
                             previewWidth,
                             previewHeight,
                             range,
                             m_Value,
                             kCurveColor,
-                            m_Curve.style.backgroundImage.value);
+                            style.backgroundImage.value);
                 }
             }
 
