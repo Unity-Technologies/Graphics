@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4 screenSize;
+        public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
 
@@ -67,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDCamera(Camera cam)
         {
             camera = cam;
+            frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             Reset();
         }
@@ -122,11 +124,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
-            var planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
+            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
             for (int i = 0; i < 6; i++)
             {
-                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, planes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
             }
 
             m_LastFrameActive = Time.frameCount;
