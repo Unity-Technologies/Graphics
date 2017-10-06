@@ -294,12 +294,10 @@ float3 GetDisplacementInverseObjectScale(bool vertexDisplacement)
 
 float GetDisplacementInverseTilingScale()
 {
+    // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
+    // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
 #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
-    return _InvTilingScale
-    #if defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR)
-        * rcp(_TexWorldScale)
-    #endif
-        ;
+    return _InvTilingScale;
 #else
     return 1.0;
 #endif
