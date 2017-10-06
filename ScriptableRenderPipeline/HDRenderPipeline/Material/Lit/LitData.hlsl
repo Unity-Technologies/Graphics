@@ -59,7 +59,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
     builtinData.velocity = float2(0.0, 0.0);
 
-#ifdef _DISTORTION_ON
+#if (SHADERPASS == SHADERPASS_DISTORTION)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     builtinData.distortion = distortion.rg;
     builtinData.distortionBlur = distortion.b;
