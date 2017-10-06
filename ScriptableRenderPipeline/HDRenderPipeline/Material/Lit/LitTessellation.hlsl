@@ -22,8 +22,7 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
 
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, float3 objectScale, inout float3 positionWS)
 {
-// If tessellation is enabled we apply displacement map after tessellation
-#if defined(_VERTEX_DISPLACEMENT) && !defined(TESSELLATION_ON)
+#if defined(_VERTEX_DISPLACEMENT)
     positionWS += GetVertexDisplacement(positionWS, normalWS,
     #ifdef ATTRIBUTES_NEED_TEXCOORD0
         input.uv0,
@@ -137,7 +136,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // w - inside tessellation factor
 void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, float3 objectScale, inout float3 positionWS)
 {
-#if defined(_VERTEX_DISPLACEMENT)
+#if defined(_TESSELLATION_DISPLACEMENT)
     positionWS += GetVertexDisplacement(positionWS, normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
@@ -165,7 +164,7 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, floa
         float4(0.0, 0.0, 0.0, 0.0),
     #endif      
         objectScale);
-#endif // _VERTEX_DISPLACEMENT
+#endif // _TESSELLATION_DISPLACEMENT
 }
 
 #endif // #ifdef TESSELLATION_ON
