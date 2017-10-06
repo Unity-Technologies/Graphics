@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -19,34 +20,19 @@ namespace UnityEditor.VFX
     [Serializable]
     class VFXPropertyAttribute
     {
+        private static readonly Dictionary<System.Type, Func<object, VFXPropertyAttribute>> s_RegisteredAttributes = new Dictionary<System.Type, Func<object, VFXPropertyAttribute>>()
+        {
+            { typeof(RangeAttribute), o => new VFXPropertyAttribute(Type.kRange, (o as RangeAttribute).min, (o as RangeAttribute).max) },
+            { typeof(MinAttribute), o => new VFXPropertyAttribute(Type.kMin, (o as MinAttribute).min) },
+            { typeof(NormalizeAttribute), o => new VFXPropertyAttribute(Type.kNormalize) },
+            { typeof(TooltipAttribute), o => new VFXPropertyAttribute((o as TooltipAttribute).tooltip) },
+            { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
+        };
+
         public static VFXPropertyAttribute[] Create(object[] attributes)
         {
-            List<VFXPropertyAttribute> results = new List<VFXPropertyAttribute>();
-
-            foreach (object attribute in attributes)
-            {
-                RangeAttribute rangeAttribute = attribute as RangeAttribute;
-                if (rangeAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kRange, rangeAttribute.min, rangeAttribute.max));
-
-                MinAttribute minAttribute = attribute as MinAttribute;
-                if (minAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kMin, minAttribute.min));
-
-                NormalizeAttribute normallizeAttribute = attribute as NormalizeAttribute;
-                if (normallizeAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kNormalize));
-
-                TooltipAttribute tooltipAttribute = attribute as TooltipAttribute;
-                if (tooltipAttribute != null)
-                    results.Add(new VFXPropertyAttribute(tooltipAttribute.tooltip));
-
-                AngleAttribute angleAttribute = attribute as AngleAttribute;
-                if (angleAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kAngle));
-            }
-
-            return results.ToArray();
+            return s_RegisteredAttributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+                .Select(o => o.Value(a))).ToArray();
         }
 
         public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
@@ -98,6 +84,7 @@ namespace UnityEditor.VFX
                             tooltip = attribute.m_Tooltip;
                             break;
                         case Type.kAngle:
+                            label += " (Angle)";
                             break;
                         default:
                             throw new NotImplementedException();
@@ -110,11 +97,9 @@ namespace UnityEditor.VFX
         {
             if (attributes != null)
             {
-                foreach (VFXPropertyAttribute attribute in attributes)
-                {
-                    if (attribute.m_Type == Type.kRange)
-                        return new Vector2(attribute.m_Min, attribute.m_Max);
-                }
+                VFXPropertyAttribute attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kRange);
+                if (attribute != null)
+                    return new Vector2(attribute.m_Min, attribute.m_Max);
             }
 
             return Vector2.zero;
@@ -123,14 +108,7 @@ namespace UnityEditor.VFX
         public static bool IsAngle(VFXPropertyAttribute[] attributes)
         {
             if (attributes != null)
-            {
-                foreach (VFXPropertyAttribute attribute in attributes)
-                {
-                    if (attribute.m_Type == Type.kAngle)
-                        return true;
-                }
-            }
-
+                return attributes.Any(o => o.m_Type == Type.kAngle);
             return false;
         }
 

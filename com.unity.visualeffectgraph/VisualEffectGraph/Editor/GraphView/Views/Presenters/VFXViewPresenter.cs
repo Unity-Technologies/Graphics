@@ -45,15 +45,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (s_ViewPresenter == null)
                 {
-                    VFXViewPresenter[] objects = Resources.FindObjectsOfTypeAll<VFXViewPresenter>();
+                    VFXViewPresenter[] objects = FindObjectsOfType<VFXViewPresenter>();
                     if (objects.Length == 0)
                     {
-                        Debug.Log("Before CreateInstance<VFXViewPresenter>");
-                        CreateInstance<VFXViewPresenter>();
+                        Debug.Log("Before CreateInstance<VFXViewPresenter> ");
+                        s_ViewPresenter = CreateInstance<VFXViewPresenter>();
                         Debug.Log("After CreateInstance<VFXViewPresenter>");
                     }
                     else
                     {
+                        if (objects.Length != 1)
+                        {
+                            Debug.LogError("Only one instance of VFXViewPresenter should exist");
+                        }
                         s_ViewPresenter = objects[0];
                     }
                 }
@@ -75,10 +79,6 @@ namespace UnityEditor.VFX.UI
             m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
 
-            if (s_ViewPresenter != null && s_ViewPresenter != this)
-                Debug.LogError("Only one instance of VFXViewPresenter should exist");
-            s_ViewPresenter = this;
-
             if (m_FlowAnchorPresenters == null)
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
@@ -96,12 +96,14 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDisable()
         {
-            Debug.Log("OnDisable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
-
+            Debug.Log("OnDisable of VFXViewPresenter with instanceID :" + this.GetInstanceID());
+            ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
             SetVFXAsset(null, true);
-            s_ViewPresenter = null;
+
+            if (s_ViewPresenter == this)
+                s_ViewPresenter = null;
         }
 
         public VFXView View

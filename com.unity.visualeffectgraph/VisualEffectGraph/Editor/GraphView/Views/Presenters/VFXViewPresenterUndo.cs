@@ -21,12 +21,19 @@ namespace UnityEditor.VFX.UI
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
 
             m_graphUndoCursor.hideFlags = HideFlags.HideAndDontSave;
-
             m_undoStack = new SortedDictionary<int, VFXGraph>();
 
             m_graphUndoCursor.index = 0;
             m_lastGraphUndoCursor = 0;
             m_undoStack.Add(0, initialState.Clone<VFXGraph>());
+        }
+
+        public void ClearUndoStack()
+        {
+            Undo.ClearUndo(m_graphUndoCursor);
+            m_graphUndoCursor.index = 0;
+            m_lastGraphUndoCursor = 0;
+            m_undoStack.Clear();
         }
 
         public void IncrementGraphState()
@@ -87,10 +94,21 @@ namespace UnityEditor.VFX.UI
             m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
         }
 
+        private void ReleaseUndoStack()
+        {
+            m_graphUndoStack = null;
+        }
+
         private void IncremenentGraphState()
         {
             if (!m_reentrant && m_graphUndoStack != null)
             {
+                if (m_graphUndoStack == null)
+                {
+                    Debug.LogError("Unexpected IncrementGraphState (not initialize)");
+                    return;
+                }
+
                 m_graphUndoStack.IncrementGraphState();
             }
         }
@@ -100,14 +118,14 @@ namespace UnityEditor.VFX.UI
         public void BeginLiveModification()
         {
             if (m_InLiveModification == true)
-                throw new System.Exception("BeginLiveModification is not reentrant");
+                throw new InvalidOperationException("BeginLiveModification is not reentrant");
             m_InLiveModification = true;
         }
 
         public void EndLiveModification()
         {
             if (m_InLiveModification == false)
-                throw new System.Exception("EndLiveModification is not reentrant");
+                throw new InvalidOperationException("EndLiveModification is not reentrant");
             m_InLiveModification = false;
             if (m_graphUndoStack.IsDirtyState())
             {
@@ -120,6 +138,12 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_InLiveModification)
             {
+                if (m_graphUndoStack == null)
+                {
+                    Debug.LogError("Unexpected WillFlushUndoRecord (not initialize)");
+                    return;
+                }
+
                 if (m_graphUndoStack.IsDirtyState())
                 {
                     m_graphUndoStack.FlushAndPushGraphState(m_Graph);
@@ -130,13 +154,28 @@ namespace UnityEditor.VFX.UI
 
         private void SynchronizeUndoRedoState()
         {
+            if (m_graphUndoStack == null)
+            {
+                Debug.LogError("Unexpected SynchronizeUndoRedoState (not yet initialize)");
+                return;
+            }
+
             if (m_graphUndoStack.IsDirtyState())
             {
-                m_VFXAsset.graph = m_graphUndoStack.GetCopyCurrentGraphState();
-                m_reentrant = true;
-                SetVFXAsset(m_VFXAsset, true);
-                m_reentrant = false;
-                m_graphUndoStack.CleanDirtyState();
+                try
+                {
+                    var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
+                    m_VFXAsset.graph = cloneGraph;
+                    m_reentrant = true;
+                    SetVFXAsset(m_VFXAsset, true);
+                    m_reentrant = false;
+                    m_graphUndoStack.CleanDirtyState();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                    m_graphUndoStack.ClearUndoStack();
+                }
             }
         }
     }

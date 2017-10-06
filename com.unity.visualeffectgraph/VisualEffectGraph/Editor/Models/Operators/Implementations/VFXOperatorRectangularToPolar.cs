@@ -14,8 +14,8 @@ namespace UnityEditor.VFX
         }
         public class OutputProperties
         {
-            [Tooltip("The angular coordinate (Polar angle).")]
-            public float theta = 45.0f;
+            [Angle, Tooltip("The angular coordinate (Polar angle).")]
+            public float theta = Mathf.PI / 2;
             [Tooltip("The radial coordinate (Radius).")]
             public float distance = 1.0f;
         }
@@ -24,9 +24,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var results = VFXOperatorUtility.RectangularToPolar(inputExpression[0]);
-            results[0] = VFXOperatorUtility.RadToDeg(results[0]);
-            return results;
+            return VFXOperatorUtility.RectangularToPolar(inputExpression[0]);
         }
     }
 }
