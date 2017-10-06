@@ -176,7 +176,7 @@ namespace UnityEngine.MaterialGraph
         public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
         {
             if (node == null)
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
 
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();

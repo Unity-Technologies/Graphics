@@ -47,7 +47,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         void DisplayNameField()
         {
             EditorGUI.BeginChangeCheck();
-            property.description = EditorGUILayout.DelayedTextField(property.description);
+            property.displayName = EditorGUILayout.DelayedTextField(property.displayName);
             if (EditorGUI.EndChangeCheck())
                 NotifyNodes();
         }
