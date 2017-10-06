@@ -351,7 +351,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
             float2 offset    = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
-            layerTexCoord.base.uvXZ += offset;
+            layerTexCoord.base.uvXZ    += offset;
             layerTexCoord.details.uvXZ += offset;
             height += layerTexCoord.triplanarWeights.y * planeHeight;
             NdotV  += layerTexCoord.triplanarWeights.y * viewDirTS.z;
