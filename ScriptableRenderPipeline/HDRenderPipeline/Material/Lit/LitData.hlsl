@@ -259,33 +259,44 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
-// Displacement with lock object scale require to take into account object scaling except for planar and triplanar that are done in world space in Lit and thus are independent of object scale.
-float3 GetInverseObjectScale()
+float3 GetDisplacementInverseObjectScale(bool vertexDisplacement)
 {
-    float3 invObjectScale = 1;
+    float3 objectScale = float3(1.0, 1.0, 1.0);
 
+// Displacement with lock object scale require to take into account object scaling except for planar and triplanar that are done in world space in Lit and thus are independent of object scale.
 #if !defined(_MAPPING_PLANAR) && !defined(_MAPPING_TRIPLANAR)
-    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-    // Extract scaling from world transform
-    // To handle object scaling with PPD we need to multiply the view vector by the inverse scale.
-    // Currently we extract the inverse scale directly by taking worldToObject matrix (instead of ObjectToWorld)
-    float4x4 worldTransform = GetWorldToObjectMatrix();
 
-    invObjectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-#ifdef _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    invObjectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-#endif // _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    invObjectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-#endif // _MAPPING_PLANAR
+    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
+    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
+    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
+    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
+    float4x4 worldTransform;
+    if (vertexDisplacement)
+    {
+        worldTransform = GetObjectToWorldMatrix();
+    }
 
-    return invObjectScale;
+    else
+    {
+        worldTransform = GetWorldToObjectMatrix();
+    }
+
+    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
+#if !defined(_PIXEL_DISPLACEMENT) || (defined(_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE))
+    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+#endif
+    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+#endif
+
+    return objectScale;
 }
 
-float GetHeightmapInverseTilingScale()
+float GetDisplacementInverseTilingScale()
 {
 #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
     return _InvTilingScale
-    #if _MAPPING_PLANAR
+    #if defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR)
         * rcp(_TexWorldScale)
     #endif
         ;
@@ -302,7 +313,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     bool isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
 
     // See comment in layered version for details
-    float  maxHeight = GetMaxDisplacement() * GetHeightmapInverseTilingScale();
+    float  maxHeight = GetMaxDisplacement() * GetDisplacementInverseTilingScale();
     float2 minUvSize = GetMinUvSize(layerTexCoord);
     float  lod       = ComputeTextureLOD(minUvSize);
 
@@ -380,7 +391,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
         // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetInverseObjectScale().xzy; // Switch from Y-up to Z-up (as we move to tangent space)
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementInverseObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
@@ -408,7 +419,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    return height * GetHeightmapInverseTilingScale();
+    return height * GetDisplacementInverseTilingScale();
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)

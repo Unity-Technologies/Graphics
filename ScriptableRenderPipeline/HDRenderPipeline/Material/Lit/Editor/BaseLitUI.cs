@@ -327,12 +327,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
             bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
             bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
-            bool enableTessellationDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation;
+            bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
 
             SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
             SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
             // Only set if tessellation exist
-            SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement && material.HasProperty(kTessellationMode));
+            SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
             bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
             bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
