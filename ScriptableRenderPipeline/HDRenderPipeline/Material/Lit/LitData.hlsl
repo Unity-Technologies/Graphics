@@ -292,14 +292,12 @@ float3 GetDisplacementInverseObjectScale(bool vertexDisplacement)
     return objectScale;
 }
 
-float GetDisplacementInverseTilingScale()
+void ApplyDisplacementTileScale(inout float height)
 {
     // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
     // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
 #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
-    return _InvTilingScale;
-#else
-    return 1.0;
+    height *= _InvTilingScale;
 #endif
 }
 
@@ -311,7 +309,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     bool isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
 
     // See comment in layered version for details
-    float  maxHeight = GetMaxDisplacement() * GetDisplacementInverseTilingScale();
+    float  maxHeight = GetMaxDisplacement();
+    ApplyDisplacementTileScale(maxHeight);
     float2 minUvSize = GetMinUvSize(layerTexCoord);
     float  lod       = ComputeTextureLOD(minUvSize);
 
@@ -417,7 +416,16 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    return height * GetDisplacementInverseTilingScale();
+    ApplyDisplacementTileScale(height);
+
+    // Applying scaling of the object if requested
+#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    float3 objectScale = GetDisplacementInverseObjectScale(true);
+#else
+    float3 objectScale = float3(1.0, 1.0, 1.0);
+#endif
+
+    return height * objectScale;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -778,6 +786,30 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
+float3 GetDisplacementInverseObjectScale()
+{
+    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
+    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
+    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
+    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
+    float4x4 worldTransform;
+    if (vertexDisplacement)
+    {
+        worldTransform = GetObjectToWorldMatrix();
+    }
+
+    else
+    {
+        worldTransform = GetWorldToObjectMatrix();
+    }
+
+    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+
+    return objectScale;
+}
+
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
@@ -791,13 +823,13 @@ void ApplyDisplacementTileScale(inout float height0, inout float height1, inout 
     #endif
 
     // TODO: precompute all these scaling factors!
-    height0 /= max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y) * _TexWorldScale0;
+    height0 *= _InvTilingScale0;
     #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
-    height0 *= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
+    height0 /= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
     #endif
-    height1 /= tileObjectScale * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y) * _TexWorldScale1;
-    height2 /= tileObjectScale * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y) * _TexWorldScale2;
-    height3 /= tileObjectScale * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y) * _TexWorldScale3;
+    height1 = (height1 / tileObjectScale) * _InvTilingScale1;
+    height2 = (height2 / tileObjectScale) * _InvTilingScale2;
+    height3 = (height3 / tileObjectScale) * _InvTilingScale3;
 #endif
 }
 
@@ -1245,6 +1277,24 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
     ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+    // Applying scaling of the object if requested
+#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    float3 objectScale = GetDisplacementInverseObjectScale();
+    #if !defined(_LAYER_MAPPING_PLANAR0) &&  !defined(_LAYER_MAPPING_TRIPLANAR0)
+    height0 *= objectScale;
+    #endif
+    #if !defined(_LAYER_MAPPING_PLANAR1) &&  !defined(_LAYER_MAPPING_TRIPLANAR1)
+    height1 *= objectScale;
+    #endif
+    #if !defined(_LAYER_MAPPING_PLANAR2) &&  !defined(_LAYER_MAPPING_TRIPLANAR2)
+    height2 *= objectScale;
+    #endif
+    #if !defined(_LAYER_MAPPING_PLANAR3) &&  !defined(_LAYER_MAPPING_TRIPLANAR3)
+    height3 *= objectScale;
+    #endif
+#else
+    float3 objectScale = float3(1.0, 1.0, 1.0);
+#endif
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     float4 resultBlendMasks = inputBlendMasks;
