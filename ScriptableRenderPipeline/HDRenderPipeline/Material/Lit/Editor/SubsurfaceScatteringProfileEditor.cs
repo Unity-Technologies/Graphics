@@ -114,6 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     // Validate each individual asset and update caches.
                     ((SubsurfaceScatteringProfile)target).Validate();
+                    hdPipeline.sssSettings.UpdateCache();
                 }
             }
 
