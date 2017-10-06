@@ -55,7 +55,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public string overrideReferenceName { get; set; } = string.Empty;
+        public string overrideReferenceName { get; set; }
 
         public abstract PropertyType propertyType { get; }
 
