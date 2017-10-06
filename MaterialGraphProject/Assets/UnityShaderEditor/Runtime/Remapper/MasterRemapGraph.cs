@@ -8,6 +8,16 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class MasterRemapGraph : AbstractSubGraph
     {
+        public override void AddShaderProperty(IShaderProperty property)
+        {
+            if (property.GetType() == typeof(TextureShaderProperty))
+            {
+                Debug.LogWarning("Can not add Texture properties to remap graphs");
+                return;
+            }
+
+            base.AddShaderProperty(property);
+        }
 
         public override void AddNode(INode node)
         {
