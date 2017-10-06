@@ -155,7 +155,6 @@ Shader "HDRenderPipeline/LitTessellation"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
@@ -485,8 +484,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "ForwardDisplayDebug" // Name is not used
-            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDebugDisplay" // Name is not used
+            Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]

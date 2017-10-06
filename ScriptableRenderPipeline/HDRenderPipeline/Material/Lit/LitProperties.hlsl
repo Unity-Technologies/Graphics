@@ -4,16 +4,16 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
-#ifndef LAYERED_LIT_SHADER
-
-TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
-
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER2D(sampler_DistortionVectorMap);
 
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER2D(sampler_EmissiveColorMap);
+
+#ifndef LAYERED_LIT_SHADER
+
+TEXTURE2D(_DiffuseLightingMap);
+SAMPLER2D(sampler_DiffuseLightingMap);
 
 TEXTURE2D(_BaseColorMap);
 SAMPLER2D(sampler_BaseColorMap);
