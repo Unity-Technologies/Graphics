@@ -7,6 +7,28 @@ namespace UnityEngine.MaterialGraph
     {
         public override bool hasPreview { get { return true; } }
 
+        [SerializeField]
+        float m_Width;
+
+        [SerializeField]
+        float m_Height;
+
+        public void SetDimensions(float width, float height)
+        {
+            m_Width = width;
+            m_Height = height;
+        }
+
+        public float width
+        {
+            get { return m_Width; }
+        }
+
+        public float height
+        {
+            get { return m_Height; }
+        }
+
         public PreviewNode()
         {
             name = "Preview";

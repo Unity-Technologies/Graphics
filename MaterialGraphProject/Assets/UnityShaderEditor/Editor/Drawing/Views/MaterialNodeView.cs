@@ -20,6 +20,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         Image m_PreviewImage;
         bool m_IsScheduled;
 
+        bool m_ResizeHandleAdded;
+
         public MaterialNodeView()
         {
             CreateContainers();
@@ -49,16 +51,21 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             leftContainer.Add(m_PreviewImage);
 
-
-            m_ResizeHandle = new VisualElement() { name = "resize", text = "" };
-            m_ResizeHandle.AddManipulator(new Draggable(OnResize));
-            Add(m_ResizeHandle);
+            m_ResizeHandleAdded = false;
         }
 
         void OnResize(Vector2 deltaSize)
         {
-            style.width = layout.width + deltaSize.x;
-            style.height = layout.height + deltaSize.y;
+            float updatedWidth = Mathf.Min(leftContainer.layout.width + deltaSize.x, 1000f);
+            float updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
+
+            PreviewNode previewNode = GetPresenter<MaterialNodePresenter>().node as PreviewNode;
+
+            if (previewNode != null)
+            {
+                previewNode.SetDimensions(updatedWidth, updatedHeight);
+                UpdateSize();
+            }
         }
 
         void OnPreviewToggle()
@@ -140,6 +147,36 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdateControls(nodePresenter);
 
             UpdatePreviewTexture(nodePresenter.node.previewExpanded ? nodePresenter.previewTexture : null);
+
+            if (GetPresenter<MaterialNodePresenter>().node is PreviewNode)
+            {
+                if (!m_ResizeHandleAdded)
+                {
+                    m_ResizeHandle = new VisualElement() { name = "resize", text = "" };
+                    m_ResizeHandle.AddManipulator(new Draggable(OnResize));
+                    Add(m_ResizeHandle);
+
+                    m_ResizeHandleAdded = true;
+                }
+
+                UpdateSize();
+            }
+        }
+
+        void UpdateSize()
+        {
+            var node = GetPresenter<MaterialNodePresenter>().node as PreviewNode;
+
+            if (node == null)
+            {
+                return;
+            }
+
+            float width = node.width;
+            float height = node.height;
+
+            leftContainer.style.width = width;
+            m_PreviewImage.style.height = height;
         }
     }
 }
