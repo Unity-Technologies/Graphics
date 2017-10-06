@@ -309,8 +309,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
     PerPixelHeightDisplacementParam ppdParam;
 
-    float height; // final height processed
-    float NdotV;
+    float height = 0; // final height processed
+    float NdotV  = 0;
 
     // planar/triplanar
     float2 uvXZ;
@@ -323,49 +323,54 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     // We need to calculate the texture space direction. It depends on the mapping.
     if (isTriplanar)
     {
-        float3 viewDirTS;
-        float3 viewDirUV;
         float planeHeight;
-        float unitAngle;
-        int numSteps;
 
         // Perform a POM in each direction and modify appropriate texture coordinate
-        ppdParam.uv = layerTexCoord.base.uvZY;
-        viewDirTS   = float3(V.x > 0.0 ? uvZY : -uvZY, V.x);
-        viewDirUV   = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
-        unitAngle   = saturate(FastACosPos(abs(viewDirUV.z)) * INV_HALF_PI);       // TODO: optimize
-        numSteps    = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
-        float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+        [branch] if (layerTexCoord.triplanarWeights.x >= 0.001)
+        {
+            ppdParam.uv      = layerTexCoord.base.uvZY;
+            float3 viewDirTS = float3(uvZY, abs(V.x));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset    = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
-        // Apply offset to all triplanar UVSet
-        layerTexCoord.base.uvZY += offsetZY;
-        layerTexCoord.details.uvZY += offsetZY;
-        height = layerTexCoord.triplanarWeights.x * planeHeight;
-        NdotV  = layerTexCoord.triplanarWeights.x * abs(viewDirTS.z);
+            // Apply offset to all triplanar UVSet
+            layerTexCoord.base.uvZY    += offset;
+            layerTexCoord.details.uvZY += offset;
+            height += layerTexCoord.triplanarWeights.x * planeHeight;
+            NdotV  += layerTexCoord.triplanarWeights.x * viewDirTS.z;
+        }
 
-        ppdParam.uv = layerTexCoord.base.uvXZ;
-        viewDirTS   = float3(V.y > 0.0 ? uvXZ : -uvXZ, V.y);
-        viewDirUV   = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
-        unitAngle   = saturate(FastACosPos(abs(viewDirUV.z)) * INV_HALF_PI);       // TODO: optimize
-        numSteps    = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
-        float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+        [branch] if (layerTexCoord.triplanarWeights.y >= 0.001)
+        {
+            ppdParam.uv      = layerTexCoord.base.uvXZ;
+            float3 viewDirTS = float3(uvXZ, abs(V.y));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset    = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
-        layerTexCoord.base.uvXZ += offsetXZ;
-        layerTexCoord.details.uvXZ += offsetXZ;
-        height += layerTexCoord.triplanarWeights.y * planeHeight;
-        NdotV  += layerTexCoord.triplanarWeights.y * abs(viewDirTS.z);
+            layerTexCoord.base.uvXZ += offset;
+            layerTexCoord.details.uvXZ += offset;
+            height += layerTexCoord.triplanarWeights.y * planeHeight;
+            NdotV  += layerTexCoord.triplanarWeights.y * viewDirTS.z;
+        }
 
-        ppdParam.uv = layerTexCoord.base.uvXY;
-        viewDirTS   = float3(V.z > 0.0 ? uvXY : -uvXY, V.z);
-        viewDirUV   = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
-        unitAngle   = saturate(FastACosPos(abs(viewDirUV.z)) * INV_HALF_PI);       // TODO: optimize
-        numSteps    = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
-        float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+        [branch] if (layerTexCoord.triplanarWeights.z >= 0.001)
+        {
+            ppdParam.uv      = layerTexCoord.base.uvXY;
+            float3 viewDirTS = float3(uvXY, abs(V.z));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset    = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
-        layerTexCoord.base.uvXY += offsetXY;
-        layerTexCoord.details.uvXY += offsetXY;
-        height += layerTexCoord.triplanarWeights.z * planeHeight;
-        NdotV  += layerTexCoord.triplanarWeights.z * abs(viewDirTS.z);
+            layerTexCoord.base.uvXY    += offset;
+            layerTexCoord.details.uvXY += offset;
+            height += layerTexCoord.triplanarWeights.z * planeHeight;
+            NdotV  += layerTexCoord.triplanarWeights.z * viewDirTS.z;
+        }
     }
     else
     {
@@ -375,11 +380,11 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent);
         viewDirTS *= GetInverseObjectScale().xzy; // Switch from Y-up to Z-up
 
-        NdotV = abs(viewDirTS.z);
+        NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
         float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
-        float  unitAngle = saturate(FastACosPos(abs(viewDirUV.z)) * INV_HALF_PI);       // TODO: optimize
+        float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
         int    numSteps  = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
 
         float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
