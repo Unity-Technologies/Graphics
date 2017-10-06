@@ -282,9 +282,9 @@ float3 GetInverseObjectScale()
 }
 
 // TODO: share this function with tessellation code.
-float GetInverseTilingScale()
+float GetHeightmapInverseTilingScale()
 {
-#ifdef _PIXEL_DISPLACEMENT_LOCK_TILING_SCALE
+#ifdef _DISPLACEMENT_LOCK_TILING_SCALE
     return _InvTilingScale
     #if _MAPPING_PLANAR
         * rcp(_TexWorldScale)
@@ -303,7 +303,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     bool isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
 
     // See comment in layered version for details
-    float  maxHeight = GetMaxDisplacement() * GetInverseTilingScale();
+    float  maxHeight = GetMaxDisplacement() * GetHeightmapInverseTilingScale();
     float2 minUvSize = GetMinUvSize(layerTexCoord);
     float  lod       = ComputeTextureLOD(minUvSize);
 
@@ -412,15 +412,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-#ifdef _VERTEX_DISPLACEMENT_LOCK_TILING_SCALE
-    // TODO: precompute these scaling factors!
-    float tilingScale = rcp(0.5 * abs(_BaseColorMap_ST.x) + 0.5 * abs(_BaseColorMap_ST.y));
-    height *= tilingScale;
-    #ifdef _MAPPING_PLANAR
-    height *= rcp(_TexWorldScale);
-    #endif
-#endif
-    return height;
+    return height * GetHeightmapInverseTilingScale();
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -784,7 +776,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-#if _VERTEX_DISPLACEMENT_LOCK_TILING_SCALE
+#if _DISPLACEMENT_LOCK_TILING_SCALE
     float tileObjectScale = 1.0;
     #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     // Extract scaling from world transform

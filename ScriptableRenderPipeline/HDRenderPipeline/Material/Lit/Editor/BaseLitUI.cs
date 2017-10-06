@@ -338,9 +338,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
             // Tessellation reuse vertex flag.
             SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-            SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && (enableVertexDisplacement || enableTessellationDisplacement));
             SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
-            SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enablePixelDisplacement);
+            SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
          
             bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
             SetKeyword(material, "_VERTEX_WIND", windEnabled);

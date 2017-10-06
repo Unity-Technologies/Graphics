@@ -155,9 +155,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT _TESSELLATION_DISPLACEMENT
     #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _TESSELLATION_PHONG
 
