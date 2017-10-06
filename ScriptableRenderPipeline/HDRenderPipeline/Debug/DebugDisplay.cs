@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -229,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!isDebugViewMaterialInit)
             {
-                List<RenderPipelineMaterial> materialList = CoreUtils.GetRenderPipelineMaterialList();
+                List<RenderPipelineMaterial> materialList = HDUtils.GetRenderPipelineMaterialList();
 
                 // TODO: Share this code to retrieve deferred material with HDRenderPipeline
                 // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial

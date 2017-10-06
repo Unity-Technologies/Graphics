@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4 screenSize;
+        public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
 
@@ -28,15 +29,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
 
-        public bool isFirstFrame
-        {
-            get { return m_FirstFrame; }
-        }
+        // Always true for cameras that just got added to the pool - needed for previous matrices to
+        // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
+        public bool isFirstFrame { get; private set; }
 
         public Vector4 invProjParam
         {
             // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-            get { var p = projMatrix; return new Vector4(p.m20 / (p.m00 * p.m23), p.m21 / (p.m11 * p.m23), -1.0f / p.m23, (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23); }
+            get
+            {
+                var p = projMatrix;
+                return new Vector4(
+                    p.m20 / (p.m00 * p.m23),
+                    p.m21 / (p.m11 * p.m23),
+                    -1f / p.m23,
+                    (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23
+                );
+            }
         }
 
         // View-projection matrix from the previous frame.
@@ -53,13 +62,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // happen, but you never know...
         int m_LastFrameActive;
 
-        // Always true for cameras that just got added to the pool - needed for previous matrices to
-        // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
-        bool m_FirstFrame;
+        static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
+        static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
         public HDCamera(Camera cam)
         {
             camera = cam;
+            frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             Reset();
         }
@@ -71,18 +80,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool taaEnabled = camera.cameraType == CameraType.Game
                 && CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
 
-            Matrix4x4 nonJitteredCameraProj = camera.projectionMatrix;
-            Matrix4x4 cameraProj = taaEnabled
+            var nonJitteredCameraProj = camera.projectionMatrix;
+            var cameraProj = taaEnabled
                 ? postProcessLayer.temporalAntialiasing.GetJitteredProjectionMatrix(camera)
                 : nonJitteredCameraProj;
 
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(cameraProj, true); // Had to change this from 'false'
-            Matrix4x4 gpuView = camera.worldToCameraMatrix;
-            Matrix4x4 gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
+            var gpuProj = GL.GetGPUProjectionMatrix(cameraProj, true); // Had to change this from 'false'
+            var gpuView = camera.worldToCameraMatrix;
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
-            Vector3 pos = camera.transform.position;
+            var pos = camera.transform.position;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -90,12 +99,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             }
 
-            Matrix4x4 gpuVP = gpuNonJitteredProj * gpuView;
+            var gpuVP = gpuNonJitteredProj * gpuView;
 
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
             if (m_LastFrameActive != Time.frameCount)
             {
-                if (m_FirstFrame)
+                if (isFirstFrame)
                 {
                     prevCameraPos = pos;
                     prevViewProjMatrix = gpuVP;
@@ -106,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     prevViewProjMatrix = nonJitteredViewProjMatrix;
                 }
 
-                m_FirstFrame = false;
+                isFirstFrame = false;
             }
 
             viewMatrix = gpuView;
@@ -115,11 +124,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
-            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(viewProjMatrix);
+            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
             for (int i = 0; i < 6; i++)
             {
-                frustumPlaneEquations[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, planes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
             }
 
             m_LastFrameActive = Time.frameCount;
@@ -128,21 +137,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Reset()
         {
             m_LastFrameActive = -1;
-            m_FirstFrame = true;
+            isFirstFrame = true;
         }
-
-        static Dictionary<Camera, HDCamera> m_Cameras = new Dictionary<Camera, HDCamera>();
-        static List<Camera> m_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
         // Grab the HDCamera tied to a given Camera and update it.
         public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
         {
             HDCamera hdcam;
 
-            if (!m_Cameras.TryGetValue(camera, out hdcam))
+            if (!s_Cameras.TryGetValue(camera, out hdcam))
             {
                 hdcam = new HDCamera(camera);
-                m_Cameras.Add(camera, hdcam);
+                s_Cameras.Add(camera, hdcam);
             }
 
             hdcam.Update(postProcessLayer);
@@ -154,16 +160,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             int frameCheck = Time.frameCount - 1;
 
-            foreach (var kvp in m_Cameras)
+            foreach (var kvp in s_Cameras)
             {
                 if (kvp.Value.m_LastFrameActive != frameCheck)
-                    m_Cleanup.Add(kvp.Key);
+                    s_Cleanup.Add(kvp.Key);
             }
 
-            foreach (var cam in m_Cleanup)
-                m_Cameras.Remove(cam);
+            foreach (var cam in s_Cleanup)
+                s_Cameras.Remove(cam);
 
-            m_Cleanup.Clear();
+            s_Cleanup.Clear();
         }
 
         public void SetupGlobalParams(CommandBuffer cmd)

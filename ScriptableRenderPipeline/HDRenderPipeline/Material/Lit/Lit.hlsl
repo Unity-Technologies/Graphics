@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
@@ -271,7 +271,11 @@ void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float 
     bsdfData.ior = ior;
     // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
     bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
-    bsdfData.thickness = max(0.0001, thickness);
+#if defined(_REFRACTION_THINPLANE)
+    bsdfData.thickness = 0.03;
+#else
+    bsdfData.thickness = max(0.000001, thickness);
+#endif
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
