@@ -57,6 +57,16 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
+        public virtual bool allowedInMainGraph
+        {
+            get { return true; }
+        }
+
+        public virtual bool allowedInLayerGraph
+        {
+            get { return true; }
+        }
+
         public override bool hasError
         {
             get { return m_HasError; }

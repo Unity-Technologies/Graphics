@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var ioNode = node as AbstractSubGraphIONode;
+            var ioNode = node as SubGraphOutputNode;
             if (ioNode == null)
                 return;
 

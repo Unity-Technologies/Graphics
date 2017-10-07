@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class MaterialGraph : AbstractMaterialGraph
+    public class MaterialGraph : AbstractMaterialGraph, IShaderGraph
     {
         public IMasterNode masterNode
         {
