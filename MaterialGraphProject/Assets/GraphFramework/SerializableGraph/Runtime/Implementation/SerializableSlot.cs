@@ -83,5 +83,31 @@ namespace UnityEngine.Graphing
             m_SlotType = slotType;
             m_Hidden = hidden;
         }
+
+        protected bool Equals(SerializableSlot other)
+        {
+            return m_Id == other.m_Id && owner.guid.Equals(other.owner.guid);
+        }
+
+        public bool Equals(ISlot other)
+        {
+            return Equals(other as object);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SerializableSlot)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
+            }
+        }
     }
 }

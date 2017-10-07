@@ -9,9 +9,6 @@ namespace UnityEditor.MaterialGraph.Drawing
     public class GraphEditorPresenter : ScriptableObject, IDisposable
     {
         [SerializeField]
-        TitleBarPresenter m_TitleBarPresenter;
-
-        [SerializeField]
         MaterialGraphPresenter m_GraphPresenter;
 
         [SerializeField]
@@ -19,10 +16,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         PreviewSystem m_PreviewSystem;
 
-        public TitleBarPresenter titleBarPresenter
+        public PreviewRate previewRate
         {
-            get { return m_TitleBarPresenter; }
-            set { m_TitleBarPresenter = value; }
+            get { return m_PreviewSystem.previewRate; }
+            set { m_PreviewSystem.previewRate = value; }
         }
 
         public MaterialGraphPresenter graphPresenter
@@ -40,9 +37,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Initialize(AbstractMaterialGraph graph, HelperMaterialGraphEditWindow container, string assetName)
         {
             m_PreviewSystem = new PreviewSystem(graph);
-
-            m_TitleBarPresenter = CreateInstance<TitleBarPresenter>();
-            m_TitleBarPresenter.Initialize(container);
 
             m_GraphInspectorPresenter = CreateInstance<GraphInspectorPresenter>();
             m_GraphInspectorPresenter.Initialize(assetName, m_PreviewSystem, container);

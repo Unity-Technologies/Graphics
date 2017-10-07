@@ -52,6 +52,10 @@ namespace UnityEngine.MaterialGraph
             return "UNITY_DECLARE_TEX2D(" + referenceName + ");";
         }
 
+        public override string GetInlinePropertyDeclarationString()
+        {
+            return "UNITY_DECLARE_TEX2D_NOSAMPLER(" + referenceName + ");";
+        }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {

@@ -1,6 +1,6 @@
 ﻿﻿using System;
 using System.Linq;
- using UnityEditor.Graphing.Util;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
  using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -18,35 +18,51 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         int m_SelectionHash;
 
         VisualElement m_Title;
-        VisualElement m_PropertiesContainer;
+        VisualElement m_PropertyItems;
         VisualElement m_ContentContainer;
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
         Image m_Preview;
+        VisualElement m_TopContainer;
 
         public GraphInspectorView()
         {
             AddStyleSheetPath("Styles/MaterialGraph");
 
-            var topContainer = new VisualElement { name = "top" };
+            m_TopContainer = new VisualElement { name = "top" };
             {
                 var headerContainer = new VisualElement { name = "header" };
                 {
                     m_Title = new VisualElement() { name = "title" };
                     headerContainer.Add(m_Title);
                 }
-                topContainer.Add(headerContainer);
+                m_TopContainer.Add(headerContainer);
 
                 m_ContentContainer = new VisualElement { name = "content" };
-                topContainer.Add(m_ContentContainer);
+                m_TopContainer.Add(m_ContentContainer);
             }
-            Add(topContainer);
-
-            ReaddProps();
+            Add(m_TopContainer);
 
             var bottomContainer = new VisualElement { name = "bottom" };
             {
+                var propertiesContainer = new VisualElement { name = "properties" };
+                {
+                    var header = new VisualElement { name = "header" };
+                    {
+                        var title = new VisualElement { name = "title", text = "Properties" };
+                        header.Add(title);
+
+                        var addPropertyButton = new Button(OnAddProperty) { text = "Add", name = "addButton" };
+                        header.Add(addPropertyButton);
+                    }
+                    propertiesContainer.Add(header);
+
+                    m_PropertyItems = new VisualContainer { name = "items" };
+                    propertiesContainer.Add(m_PropertyItems);
+                }
+                bottomContainer.Add(propertiesContainer);
+
                 m_Preview = new Image { name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_Preview);
             }
@@ -62,118 +78,17 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             };
         }
 
-        private void ReaddProps()
+        void OnAddProperty()
         {
-            if (m_PropertiesContainer != null)
-                Remove(m_PropertiesContainer);
-
-            m_PropertiesContainer = new VisualElement()
-            {
-                new IMGUIContainer(OnGuiHandler)
-            };
-
-            m_PropertiesContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Column);
-            Add(m_PropertiesContainer);
-        }
-
-
-        private void OnGuiHandler()
-        {
-            if (m_Presenter == null)
-                return;
-
-            if (GUILayout.Button("Add Property"))
-            {
-                var gm = new GenericMenu();
-                gm.AddItem(new GUIContent("Float"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new FloatShaderProperty());
-                    ReaddProps();
-
-                });
-                gm.AddItem(new GUIContent("Vector2"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new Vector2ShaderProperty());
-
-                    ReaddProps();
-
-                });
-                gm.AddItem(new GUIContent("Vector3"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new Vector3ShaderProperty());
-                    ReaddProps();
-
-                });
-                gm.AddItem(new GUIContent("Vector4"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty());
-                    ReaddProps();
-
-                });
-                gm.AddItem(new GUIContent("Color"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new ColorShaderProperty());
-                    ReaddProps();
-
-                });
-                gm.AddItem(new GUIContent("Texture"), false, () =>
-                {
-                    m_Presenter.graph.AddShaderProperty(new TextureShaderProperty());
-                    ReaddProps();
-
-                });
+            var gm = new GenericMenu();
+            gm.AddItem(new GUIContent("Float"), false, () => m_Presenter.graph.AddShaderProperty(new FloatShaderProperty()));
+            gm.AddItem(new GUIContent("Vector2"), false, () => m_Presenter.graph.AddShaderProperty(new Vector2ShaderProperty()));
+            gm.AddItem(new GUIContent("Vector3"), false, () => m_Presenter.graph.AddShaderProperty(new Vector3ShaderProperty()));
+            gm.AddItem(new GUIContent("Vector4"), false, () => m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty()));
+            gm.AddItem(new GUIContent("Color"), false, () => m_Presenter.graph.AddShaderProperty(new ColorShaderProperty()));
+            gm.AddItem(new GUIContent("Texture"), false, () => m_Presenter.graph.AddShaderProperty(new TextureShaderProperty()));
                 gm.ShowAsContext();
             }
-
-            EditorGUI.BeginChangeCheck();
-            foreach (var property in m_Presenter.graph.properties.ToArray())
-            {
-                property.displayName = EditorGUILayout.DelayedTextField("Display Name", property.displayName);
-
-                if (property is FloatShaderProperty)
-                {
-                    var fProp = property as FloatShaderProperty;
-                    fProp.value = EditorGUILayout.FloatField("Value", fProp.value);
-                }
-                else if (property is Vector2ShaderProperty)
-                {
-                    var fProp = property as Vector2ShaderProperty;
-                    fProp.value = EditorGUILayout.Vector2Field("Value", fProp.value);
-                }
-                else if (property is Vector3ShaderProperty)
-                {
-                    var fProp = property as Vector3ShaderProperty;
-                    fProp.value = EditorGUILayout.Vector3Field("Value", fProp.value);
-                }
-                else if (property is Vector4ShaderProperty)
-                {
-                    var fProp = property as Vector4ShaderProperty;
-                    fProp.value = EditorGUILayout.Vector4Field("Value", fProp.value);
-                }
-                else if (property is ColorShaderProperty)
-                {
-                    var fProp = property as ColorShaderProperty;
-                    fProp.value = EditorGUILayout.ColorField("Value", fProp.value);
-                }
-                else if (property is TextureShaderProperty)
-                {
-                    var fProp = property as TextureShaderProperty;
-                    fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
-                    fProp.modifiable = EditorGUILayout.Toggle("Modifiable", fProp.modifiable);
-                }
-
-                if (GUILayout.Button("Remove"))
-                {
-                    m_Presenter.graph.RemoveShaderProperty(property.guid);
-                }
-                EditorGUILayout.Separator();
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var node in m_Presenter.graph.GetNodes<PropertyNode>())
-                    node.onModified(node, ModificationScope.Node);
-            }
-        }
 
         public void OnChange(GraphInspectorPresenter.ChangeType changeType)
         {
@@ -213,7 +128,41 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             {
                 m_Preview.image = presenter.previewTexture ?? Texture2D.blackTexture;
             }
+
+            if ((changeType & GraphInspectorPresenter.ChangeType.Graph) != 0)
+            {
+                if (m_Graph != null)
+                {
+                    m_Graph.onChange -= OnGraphChange;
+                    m_PropertyItems.Clear();
+                    m_Graph = null;
+                }
+                if (m_Presenter.graph != null)
+                {
+                    m_Graph = m_Presenter.graph;
+                    foreach (var property in m_Graph.properties)
+                        m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
+                    m_Graph.onChange += OnGraphChange;
+                }
         }
+        }
+
+        void OnGraphChange(GraphChange change)
+        {
+            var propertyAdded = change as ShaderPropertyAdded;
+            if (propertyAdded != null)
+                m_PropertyItems.Add(new ShaderPropertyView(m_Graph, propertyAdded.shaderProperty));
+
+            var propertyRemoved = change as ShaderPropertyRemoved;
+            if (propertyRemoved != null)
+            {
+                var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyRemoved.guid);
+                if (propertyView != null)
+                    m_PropertyItems.Remove(propertyView);
+            }
+        }
+
+        AbstractMaterialGraph m_Graph;
 
         public GraphInspectorPresenter presenter
         {

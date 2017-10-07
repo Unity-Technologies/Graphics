@@ -38,5 +38,10 @@ namespace UnityEditor.Graphing.Util
             }
             return hashCode;
         }
+
+        public static IEnumerable<T> ToEnumerable<T>(this T item)
+        {
+            yield return item;
+        }
     }
 }

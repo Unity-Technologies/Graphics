@@ -21,9 +21,29 @@ GraphEditorView > #content > #inspector {
     width: 400;
 }
 
-MaterialNodeView > .mainContainer > #left > #preview > Image {
+MaterialNodeView > .mainContainer > #left > #preview.active {
+    width: 200;
+}
+
+MaterialNodeView > .mainContainer > #left > #preview.visible {
 	height: 200;
-	width: 200;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle {
+    text-color: rgb(153, 153, 153);
+    text-alignment: middle-center;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle.inactive {
+    height: 0;
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle:hover {
+	background-color: rgba(0, 0, 0, 0.33);
+}
+
+MaterialNodeView > .mainContainer > #left > #toggle:active {
+	background-color: rgba(0, 0, 0, 0.66);
 }
 
 GridBackground {
@@ -66,6 +86,79 @@ GraphInspectorView > #top > #content > #selectionCount {
 GraphInspectorView > #bottom > #preview {
     height: 400;
     background-color: rgb(79, 79, 79);
+}
+
+GraphInspectorView > #bottom > #properties {
+    border-color: rgb(41, 41, 41);
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    margin-top: 8;
+    margin-bottom: 8;
+    margin-left: 8;
+    margin-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #header {
+    border-color: rgb(41, 41, 41);
+    border-bottom-width: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+GraphInspectorView > #bottom > #properties > #header > #title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #header > #addButton {
+    height: 24;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 8;
+}
+
+GraphInspectorView > #bottom > #properties > #items {
+    padding-bottom: 4;
+}
+
+ShaderPropertyView {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8;
+    padding-bottom: 4;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+ShaderPropertyView > #displayName {
+    flex: 1;
+    margin-right: 8;
+}
+
+ShaderPropertyView > #value {
+    flex: 2;
+    margin-right: 8;
+}
+
+ShaderPropertyView > #remove {
+    font-size: 9;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 1;
+    padding-right: 1;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .nodeEditor {
@@ -127,4 +220,37 @@ NodeEditorHeaderView > #title {
 IMGUISlotEditorView {
     flex-direction: column;
     padding-bottom: 2;
+}
+
+
+ToolbarView {
+    flex-direction: row;
+    border-color: rgb(32, 32, 32);
+    border-bottom-width: 1;
+}
+
+ToolbarSeparatorView {
+    background-color: rgb(32, 32, 32);
+    width: 1;
+}
+
+ToolbarSpaceView {
+    width: 5;
+}
+
+ToolbarButtonView {
+    font-size: 10;
+    text-color: rgb(180, 180, 180);
+    padding-top: 3;
+    padding-bottom: 3;
+    padding-left: 4;
+    padding-right: 4;
+}
+
+ToolbarButtonView:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+ToolbarButtonView:active {
+    background-color: rgba(0, 0, 0, 0.25);
 }
