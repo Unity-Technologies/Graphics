@@ -21,7 +21,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Repaint();
 
-        void ToggleRequiresTime();
         void ToSubGraph();
 
         void Show();
@@ -35,7 +34,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public abstract AbstractMaterialGraph GetMaterialGraph();
         public abstract void PingAsset();
         public abstract void UpdateAsset();
-        public abstract void ToggleRequiresTime();
         public abstract void ToSubGraph();
         public abstract Object selected { get; set; }
         public abstract void ChangeSelection(Object newSelection);
@@ -67,8 +65,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
-        public static bool allowAlwaysRepaint = true;
-
         [SerializeField]
         Object m_Selected;
 
@@ -117,6 +113,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnEnable()
         {
             graphEditorView = new GraphEditorView();
+            graphEditorView.onUpdateAssetClick += UpdateAsset;
+            graphEditorView.onConvertToSubgraphClick += ToSubGraph;
+            graphEditorView.onShowInProjectClick += PingAsset;
             rootVisualContainer.Add(graphEditorView);
         }
 
@@ -348,7 +347,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var subGraphNode = new SubGraphNode();
-            graphPresenter.AddNode(subGraphNode);
+            graphPresenter.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
           /*  foreach (var edgeMap in inputsNeedingConnection)
@@ -414,11 +413,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             File.WriteAllText(path, EditorJsonUtility.ToJson(inMemoryAsset, true));
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
-        }
-
-        public override void ToggleRequiresTime()
-        {
-            allowAlwaysRepaint = !allowAlwaysRepaint;
         }
 
         public override void ChangeSelection(Object newSelection)

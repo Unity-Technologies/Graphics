@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using NUnit.Framework;
 
 namespace UnityEngine.Graphing
 {
@@ -34,10 +36,15 @@ namespace UnityEngine.Graphing
 
         public virtual void AddNode(INode node)
         {
+            AddNodeNoValidate(node);
+            ValidateGraph();
+        }
+
+        void AddNodeNoValidate(INode node)
+        {
             m_Nodes.Add(node.guid, node);
             node.owner = this;
             NotifyChange(new NodeAddedGraphChange(node));
-            ValidateGraph();
         }
 
         public virtual void RemoveNode(INode node)
@@ -126,6 +133,7 @@ namespace UnityEngine.Graphing
 
             var newEdge = new Edge(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
+            NotifyChange(new EdgeAddedGraphChange(newEdge));
             AddEdgeToNodeEdges(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
@@ -152,6 +160,8 @@ namespace UnityEngine.Graphing
 
         void RemoveEdgeNoValidate(IEdge e)
         {
+            e = m_Edges.FirstOrDefault(x => x.Equals(e));
+            Assert.NotNull(e);
             m_Edges.Remove(e);
 
             List<IEdge> inputNodeEdges;
@@ -161,6 +171,8 @@ namespace UnityEngine.Graphing
             List<IEdge> outputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
+
+            NotifyChange(new EdgeRemovedGraphChange(e));
         }
 
         public INode GetNodeFromGuid(Guid guid)
@@ -188,13 +200,23 @@ namespace UnityEngine.Graphing
             if (s == null)
                 return Enumerable.Empty<IEdge>();
 
+            var node = GetNodeFromGuid(s.nodeGuid);
+            if (node == null)
+            {
+                Debug.LogWarning("Node does not exist");
+                return Enumerable.Empty<IEdge>();
+            }
+            ISlot slot = slot = node.FindSlot<ISlot>(s.slotId);
+
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
                 return Enumerable.Empty<IEdge>();
 
-            return candidateEdges.Where(x =>
-                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotId == s.slotId)
-                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId);
+            return candidateEdges.Where(candidateEdge =>
+            {
+                var cs = slot.isInputSlot ? candidateEdge.inputSlot : candidateEdge.outputSlot;
+                return cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId;
+            });
         }
 
         public virtual void OnBeforeSerialize()
@@ -251,6 +273,71 @@ namespace UnityEngine.Graphing
                 node.ValidateNode();
         }
 
+        public virtual void ReplaceWith(IGraph other)
+        {
+            using (var pooledList = ListPool<IEdge>.GetDisposable())
+            {
+                var removedNodeEdges = pooledList.value;
+                foreach (var edge in m_Edges)
+                {
+                    // Remove the edge if it doesn't exist in the other graph.
+                    if (!other.ContainsNodeGuid(edge.inputSlot.nodeGuid) || !other.GetEdges(edge.inputSlot).Any(otherEdge => otherEdge.outputSlot.Equals(edge.outputSlot)))
+                        removedNodeEdges.Add(edge);
+                }
+                foreach (var edge in removedNodeEdges)
+                    RemoveEdge(edge);
+            }
+
+            using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
+            using (var replacedNodesPooledObject = ListPool<INode>.GetDisposable())
+            {
+                var removedNodeGuids = removedNodesPooledObject.value;
+                var replacedNodes = replacedNodesPooledObject.value;
+                foreach (var node in m_Nodes.Values)
+                {
+                    if (!other.ContainsNodeGuid(node.guid))
+                        // Remove the node if it doesn't exist in the other graph.
+                        removedNodeGuids.Add(node.guid);
+                    else
+                        // Replace the node with the one from the other graph otherwise.
+                        replacedNodes.Add(node);
+                }
+
+                foreach (var nodeGuid in removedNodeGuids)
+                    RemoveNode(m_Nodes[nodeGuid]);
+
+                foreach (var node in replacedNodes)
+                {
+                    var currentNode = other.GetNodeFromGuid(node.guid);
+                    currentNode.owner = this;
+                    m_Nodes[node.guid] = currentNode;
+                    currentNode.onModified = node.onModified;
+                    currentNode.onReplaced = node.onReplaced;
+                    // Notify listeners that the reference has changed.
+                    if (node.onReplaced != null)
+                        node.onReplaced(node, currentNode);
+                    if (currentNode.onModified != null)
+                        currentNode.onModified(node, ModificationScope.Node);
+                    node.onModified = null;
+                    node.onReplaced = null;
+                }
+            }
+
+            // Add nodes from other graph which don't exist in this one.
+            foreach (var node in other.GetNodes<INode>())
+            {
+                if (!ContainsNodeGuid(node.guid))
+                    AddNode(node);
+            }
+
+            // Add edges from other graph which don't exist in this one.
+            foreach (var edge in other.edges)
+            {
+                if (!GetEdges(edge.inputSlot).Any(otherEdge => otherEdge.outputSlot.Equals(edge.outputSlot)))
+                    Connect(edge.outputSlot, edge.inputSlot);
+            }
+        }
+
         public void OnEnable()
         {
             foreach (var node in GetNodes<INode>().OfType<IOnAssetEnabled>())
@@ -261,7 +348,7 @@ namespace UnityEngine.Graphing
 
         public OnGraphChange onChange { get; set; }
 
-        void NotifyChange(GraphChange change)
+        protected void NotifyChange(GraphChange change)
         {
             if (onChange != null)
                 onChange(change);

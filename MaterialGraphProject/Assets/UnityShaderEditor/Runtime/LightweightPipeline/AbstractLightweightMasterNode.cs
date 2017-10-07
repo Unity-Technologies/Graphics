@@ -62,7 +62,6 @@ namespace UnityEngine.MaterialGraph
                 surfaceOutputRemap.Deindent();
                 surfaceOutputRemap.AddShaderChunk("}", false);
             }
-
         }
 
         public override IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper)

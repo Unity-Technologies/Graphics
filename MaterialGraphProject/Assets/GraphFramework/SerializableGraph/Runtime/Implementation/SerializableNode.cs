@@ -73,6 +73,8 @@ namespace UnityEngine.Graphing
 
         public OnNodeModified onModified { get; set; }
 
+        public OnNodeReplaced onReplaced { get; set; }
+
         public IEnumerable<T> GetInputSlots<T>() where T : ISlot
         {
             return GetSlots<T>().Where(x => x.isInputSlot);

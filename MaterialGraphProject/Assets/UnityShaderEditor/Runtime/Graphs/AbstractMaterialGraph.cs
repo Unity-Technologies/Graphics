@@ -8,10 +8,11 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public abstract class AbstractMaterialGraph : SerializableGraph, IGenerateProperties
     {
-        [NonSerialized] private List<IShaderProperty> m_Properties = new List<IShaderProperty>();
+        [NonSerialized]
+        List<IShaderProperty> m_Properties = new List<IShaderProperty>();
 
-        [SerializeField] private List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
-
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
         public IEnumerable<IShaderProperty> properties
         {
@@ -45,11 +46,13 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             m_Properties.Add(property);
+            NotifyChange(new ShaderPropertyAdded(property));
         }
 
         public void RemoveShaderProperty(Guid guid)
         {
-            m_Properties.RemoveAll(x => x.guid == guid);
+            if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
+                NotifyChange(new ShaderPropertyRemoved(guid));
         }
 
         public override Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
@@ -76,8 +79,53 @@ namespace UnityEngine.MaterialGraph
             };
             result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(WorldSpacePositionNode));
 
-
             return result;
+        }
+
+        class IndexedProperty
+        {
+            public int index;
+            public IShaderProperty property;
+        }
+
+        public override void ReplaceWith(IGraph other)
+        {
+            var otherMG = other as AbstractMaterialGraph;
+            if (otherMG != null)
+            {
+                using (var removedPropertiesPooledObject = ListPool<Guid>.GetDisposable())
+                using (var replacedPropertiesPooledObject = ListPool<IndexedProperty>.GetDisposable())
+                {
+                    var removedPropertyGuids = removedPropertiesPooledObject.value;
+                    var replacedProperties = replacedPropertiesPooledObject.value;
+                    var index = 0;
+                    foreach (var property in m_Properties)
+                    {
+                        var otherProperty = otherMG.properties.FirstOrDefault(op => op.guid == property.guid);
+                        if (otherProperty == null)
+                            removedPropertyGuids.Add(property.guid);
+                        else
+                            replacedProperties.Add(new IndexedProperty { index = index, property = otherProperty });
+                        index++;
+                    }
+
+                    foreach (var propertyGuid in removedPropertyGuids)
+                        RemoveShaderProperty(propertyGuid);
+
+                    foreach (var indexedProperty in replacedProperties)
+                    {
+                        m_Properties[indexedProperty.index] = indexedProperty.property;
+                        // TODO: Notify of change
+                    }
+
+                    foreach (var otherProperty in otherMG.properties)
+                    {
+                        if (!properties.Any(p => p.guid == otherProperty.guid))
+                            AddShaderProperty(otherProperty);
+                    }
+                }
+            }
+            base.ReplaceWith(other);
         }
 
         public override void OnBeforeSerialize()
@@ -93,7 +141,7 @@ namespace UnityEngine.MaterialGraph
             base.OnAfterDeserialize();
         }
 
-        private static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
+        static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
         {
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, nodeForRequirements);
@@ -117,8 +165,8 @@ namespace UnityEngine.MaterialGraph
             // if anything needs tangentspace we have make
             // sure to have our othonormal basis!
             var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                                 | requiresTangent | requiresViewDir | requiresPosition
-                                 | requiresNormal;
+                | requiresTangent | requiresViewDir | requiresPosition
+                | requiresNormal;
 
             var needsTangentSpace = (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
             if (needsTangentSpace)
@@ -144,7 +192,7 @@ namespace UnityEngine.MaterialGraph
             return reqs;
         }
 
-        private static void GenerateSpaceTranslationSurfaceInputs(
+        static void GenerateSpaceTranslationSurfaceInputs(
             NeededCoordinateSpace neededSpaces,
             ShaderGenerator surfaceInputs,
             string objectSpaceName,
@@ -174,7 +222,7 @@ namespace UnityEngine.MaterialGraph
         public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
         {
             if (node == null)
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
 
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
@@ -253,13 +301,11 @@ struct GraphVertexInput
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
                     surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
-
             }
             else
             {
                 foreach (var slot in node.GetOutputSlots<MaterialSlot>())
                     surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
-
             }
             surfaceDescriptionStruct.Deindent();
             surfaceDescriptionStruct.AddShaderChunk("};", false);
@@ -340,7 +386,7 @@ struct GraphVertexInput
                 {
                     var foundEdges = GetEdges(input.slotReference).ToArray();
                     if (foundEdges.Any())
-                    { 
+                    {
                         var outputRef = foundEdges[0].outputSlot;
                         var fromNode = GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                         surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);

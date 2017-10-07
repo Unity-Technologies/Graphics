@@ -26,6 +26,6 @@ namespace UnityEngine.MaterialGraph
             RemoveSlot(index);
         }
 
-        public override bool allowedInRemapGraph { get; } = false;
+        public override bool allowedInRemapGraph { get { return false; } }
     }
 }

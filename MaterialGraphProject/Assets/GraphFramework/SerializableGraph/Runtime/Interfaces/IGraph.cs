@@ -19,6 +19,7 @@ namespace UnityEngine.Graphing
         T GetNodeFromGuid<T>(Guid guid) where T : INode;
         IEnumerable<IEdge> GetEdges(SlotReference s);
         void ValidateGraph();
+        void ReplaceWith(IGraph other);
         OnGraphChange onChange { get; set; }
     }
 }

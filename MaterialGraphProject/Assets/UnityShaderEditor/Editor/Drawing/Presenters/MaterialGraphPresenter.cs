@@ -10,6 +10,15 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
+    public class MaterialGraphObject : ScriptableObject
+    {
+        [SerializeField]
+        public string serializedGraph;
+
+        [SerializeField]
+        public int version;
+    }
+
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
@@ -20,6 +29,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         [SerializeField]
         IMaterialGraphEditWindow m_Container;
+
+        [SerializeField]
+        MaterialGraphObject m_GraphObject;
+
+        [SerializeField]
+        int m_GraphVersion;
 
         protected MaterialGraphPresenter()
         {
@@ -134,133 +149,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                     drawableNodeData.OnModified(scope);
             }
 
-            if (scope == ModificationScope.Topological)
-                UpdateData();
-        }
-
-        void UpdateData()
-        {
-            var deletedElementPresenters = new List<GraphElementPresenter>();
-
-            // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
-            foreach (var presenter in m_Elements)
-            {
-                var nodePresenter = presenter as MaterialNodePresenter;
-                if (nodePresenter != null && !graph.ContainsNodeGuid(nodePresenter.node.guid))
-                {
-                    nodePresenter.Dispose();
-                    deletedElementPresenters.Add(nodePresenter);
-                }
-            }
-
-            // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
-            var deletedEdgePresenters = m_Elements.OfType<GraphEdgePresenter>()
-                .Where(ed => !graph.edges.Contains(ed.edge));
-            foreach (var edgePresenter in deletedEdgePresenters)
-            {
-                // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
-                edgePresenter.output.Disconnect(edgePresenter);
-                edgePresenter.input.Disconnect(edgePresenter);
-
-                var fromNodeGuid = edgePresenter.edge.outputSlot.nodeGuid;
-                var fromNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(nd => nd.node.guid == fromNodeGuid);
-
-                var toNodeGuid = edgePresenter.edge.inputSlot.nodeGuid;
-                var toNode = graph.GetNodeFromGuid(toNodeGuid);
-
-                if (toNode != null && toNode.onModified != null)
-                    // Make the input node (i.e. right side of the connection) re-render
-                    toNode.onModified(toNode, ModificationScope.Graph);
-
-                deletedElementPresenters.Add(edgePresenter);
-            }
-
-            // Remove all nodes and edges marked for deletion
-            foreach (var elementPresenter in deletedElementPresenters)
-            {
-                m_Elements.Remove(elementPresenter);
-            }
-
-            var addedNodePresenters = new List<MaterialNodePresenter>();
-
-            // Find all new nodes and mark for addition
-            foreach (var node in graph.GetNodes<INode>())
-            {
-                // Check whether node already exists
-                if (m_Elements.OfType<MaterialNodePresenter>().Any(e => e.node == node))
-                    continue;
-
-                var nodePresenter = (MaterialNodePresenter)typeMapper.Create(node);
-                node.onModified += OnNodeChanged;
-                nodePresenter.Initialize(node, m_PreviewSystem);
-                addedNodePresenters.Add(nodePresenter);
-            }
-
-            // Create edge data for nodes marked for addition
-            var edgePresenters = new List<GraphEdgePresenter>();
-            foreach (var addedNodePresenter in addedNodePresenters)
-            {
-                var addedNode = addedNodePresenter.node;
-                foreach (var slot in addedNode.GetOutputSlots<ISlot>())
-                {
-                    var sourceAnchors = addedNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>();
-                    var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == slot);
-
-                    var edges = addedNode.owner.GetEdges(new SlotReference(addedNode.guid, slot.id));
-                    foreach (var edge in edges)
-                    {
-                        var toNode = addedNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                        var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                        var targetNode = addedNodePresenters.FirstOrDefault(x => x.node == toNode);
-                        var targetAnchors = targetNode.inputAnchors.OfType<GraphAnchorPresenter>();
-                        var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-
-                        var edgePresenter = CreateInstance<GraphEdgePresenter>();
-                        edgePresenter.Initialize(edge);
-                        edgePresenter.output = sourceAnchor;
-                        edgePresenter.output.Connect(edgePresenter);
-                        edgePresenter.input = targetAnchor;
-                        edgePresenter.input.Connect(edgePresenter);
-                        edgePresenters.Add(edgePresenter);
-                    }
-                }
-            }
-
-            // Add nodes marked for addition
-            m_Elements.AddRange(addedNodePresenters.OfType<GraphElementPresenter>());
-
-            // Find edges in the graph that are not being drawn and create edge data for them
-            foreach (var edge in graph.edges)
-            {
-                if (m_Elements.OfType<GraphEdgePresenter>().Any(ed => ed.edge == edge))
-                    continue;
-
-                var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-                var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
-                var sourceAnchorPresenters = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>();
-                var sourceAnchorPresenter = sourceAnchorPresenters.FirstOrDefault(x => x.slot == sourceSlot);
-
-                var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
-                var targetAnchors = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>();
-                var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == targetSlot);
-
-                if (targetNodePresenter.node.onModified != null)
-                    targetNodePresenter.node.onModified(targetNodePresenter.node, ModificationScope.Graph);
-
-                var edgePresenter = CreateInstance<GraphEdgePresenter>();
-                edgePresenter.Initialize(edge);
-                edgePresenter.output = sourceAnchorPresenter;
-                edgePresenter.output.Connect(edgePresenter);
-                edgePresenter.input = targetAnchor;
-                edgePresenter.input.Connect(edgePresenter);
-                edgePresenters.Add(edgePresenter);
-            }
-
-            m_Elements.AddRange(edgePresenters.OfType<GraphElementPresenter>());
-            m_PreviewSystem.UpdateTimeDependentPreviews();
+            // We might need to do something here
+//            if (scope == ModificationScope.Topological)
         }
 
         public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
@@ -272,28 +162,111 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
 
-            UpdateData();
+            foreach (var node in graph.GetNodes<INode>())
+                NodeAdded(new NodeAddedGraphChange(node));
+            foreach (var edge in graph.edges)
+                EdgeAdded(new EdgeAddedGraphChange(edge));
+
+            this.graph.onChange += OnChange;
+
+            m_GraphObject = CreateInstance<MaterialGraphObject>();
+            Undo.undoRedoPerformed += UndoRedoPerformed;
+
+            RecordState();
+        }
+
+        void UndoRedoPerformed()
+        {
+            if (m_GraphObject.version != m_GraphVersion)
+            {
+                var targetGraph = JsonUtility.FromJson(m_GraphObject.serializedGraph, graph.GetType()) as IGraph;
+                graph.ReplaceWith(targetGraph);
+                m_GraphVersion = m_GraphObject.version;
+            }
+        }
+
+        void RecordState()
+        {
+            m_GraphObject.serializedGraph = JsonUtility.ToJson(graph, false);
+            m_GraphObject.version++;
+            m_GraphVersion = m_GraphObject.version;
+        }
+
+        void OnChange(GraphChange change)
+        {
+            change.Match(NodeAdded, NodeRemoved, EdgeAdded, EdgeRemoved);
+        }
+
+        void NodeAdded(NodeAddedGraphChange change)
+        {
+            var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
+            change.node.onModified += OnNodeChanged;
+            nodePresenter.Initialize(change.node, m_PreviewSystem);
+            m_Elements.Add(nodePresenter);
+        }
+
+        void NodeRemoved(NodeRemovedGraphChange change)
+        {
+            change.node.onModified -= OnNodeChanged;
+            var nodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == change.node.guid);
+            if (nodePresenter != null)
+                m_Elements.Remove(nodePresenter);
+        }
+
+        void EdgeAdded(EdgeAddedGraphChange change)
+        {
+            var edge = change.edge;
+
+            var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
+            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
+            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
+
+            var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+            var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
+            var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
+            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
+
+            var edgePresenter = CreateInstance<GraphEdgePresenter>();
+            edgePresenter.Initialize(edge);
+            edgePresenter.output = sourceAnchorPresenter;
+            edgePresenter.output.Connect(edgePresenter);
+            edgePresenter.input = targetAnchor;
+            edgePresenter.input.Connect(edgePresenter);
+            m_Elements.Add(edgePresenter);
+        }
+
+        void EdgeRemoved(EdgeRemovedGraphChange change)
+        {
+            var edgePresenter = m_Elements.OfType<GraphEdgePresenter>().FirstOrDefault(p => p.edge == change.edge);
+            if (edgePresenter != null)
+            {
+                edgePresenter.output.Disconnect(edgePresenter);
+                edgePresenter.input.Disconnect(edgePresenter);
+                m_Elements.Remove(edgePresenter);
+            }
         }
 
         public void AddNode(INode node)
         {
+            Undo.RecordObject(m_GraphObject, "Add " + node.name);
             graph.AddNode(node);
-            UpdateData();
+            RecordState();
         }
 
         public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
         {
-            graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
+            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.edge));
             graph.ValidateGraph();
-            UpdateData();
         }
 
         public void Connect(GraphAnchorPresenter left, GraphAnchorPresenter right)
         {
             if (left != null && right != null)
             {
+                Undo.RecordObject(m_GraphObject, "Connect Edge");
                 graph.Connect(left.slot.slotReference, right.slot.slotReference);
-                UpdateData();
+                RecordState();
             }
         }
 
@@ -336,7 +309,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var addedNodes = new List<INode>();
-
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in copyGraph.GetNodes<INode>())
             {
@@ -356,8 +328,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             // only connect edges within pasted elements, discard
             // external edges.
-            var addedEdges = new List<IEdge>();
-
             foreach (var edge in copyGraph.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -370,15 +340,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                 {
                     var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    addedEdges.Add(graph.Connect(outputSlotRef, inputSlotRef));
+                    graph.Connect(outputSlotRef, inputSlotRef);
                 }
             }
 
             graph.ValidateGraph();
-            UpdateData();
-
-            //TODO: Fix this
-            //drawingData.selection = addedNodes.Select(n => n.guid);
+            if (onSelectionChanged != null)
+                onSelectionChanged(addedNodes);
         }
 
         public bool canCopy
@@ -400,7 +368,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Cut()
         {
             Copy();
+            Undo.RecordObject(m_GraphObject, "Cut");
             RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RecordState();
         }
 
         public bool canPaste
@@ -411,7 +381,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Paste()
         {
             var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
+            Undo.RecordObject(m_GraphObject, "Paste");
             InsertCopyPasteGraph(pastedGraph);
+            RecordState();
         }
 
         public bool canDuplicate
@@ -422,7 +394,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Duplicate()
         {
             var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(elements.Where(e => e.selected)), true));
+            Undo.RecordObject(m_GraphObject, "Duplicate");
             InsertCopyPasteGraph(graph);
+            RecordState();
         }
 
         public bool canDelete
@@ -432,7 +406,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Delete()
         {
+            RecordState();
+            Undo.RecordObject(m_GraphObject, "Delete");
             RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RecordState();
         }
 
         public override void AddElement(EdgePresenter edge)
@@ -449,7 +426,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graph == null)
                 return;
             if (onSelectionChanged != null)
-                onSelectionChanged(presenters.Select(x => x.node));
+                onSelectionChanged(presenters.Select(x => x.node as INode));
         }
 
         public override void AddElement(GraphElementPresenter element)

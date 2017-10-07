@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -35,6 +36,22 @@ namespace UnityEngine.MaterialGraph
 
         //[SerializeField]
         private OutputPrecision m_OutputPrecision = OutputPrecision.@float;
+
+        [SerializeField]
+        bool m_PreviewExpanded = true;
+
+        public bool previewExpanded
+        {
+            get { return m_PreviewExpanded; }
+            set
+            {
+                if (previewExpanded == value)
+                    return;
+                m_PreviewExpanded = value;
+                if (onModified != null)
+                    onModified(this, ModificationScope.Node);
+            }
+        }
 
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview

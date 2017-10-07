@@ -75,6 +75,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
+            m_CheckerboardMaterial.SetFloat("_X", 32);
+            m_CheckerboardMaterial.SetFloat("_Y", 32);
 
             if (s_Meshes[0] == null)
             {
@@ -167,14 +169,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             m_Camera.targetTexture = renderTexture;
-
-            Unsupported.SetOverrideRenderSettings(m_Scene);
-
-            RenderTexture.active = renderTexture;
-            GL.Clear(true, true, Color.black);
-            m_CheckerboardMaterial.SetFloat("_X", 32);
-            m_CheckerboardMaterial.SetFloat("_Y", 32);
-            Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
             if (mode == PreviewMode.Preview3D)
             {
                 m_Camera.transform.position = -Vector3.forward * 5;
@@ -189,7 +183,14 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographic = true;
             }
 
+            var ambientProbe = RenderSettings.ambientProbe;
+            Unsupported.SetOverrideRenderSettings(m_Scene);
+            RenderSettings.ambientProbe = ambientProbe;
+
             m_Camera.targetTexture = renderTexture;
+            RenderTexture.active = renderTexture;
+            GL.Clear(true, true, Color.black);
+            Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_Camera, time);
             Light0.enabled = true;

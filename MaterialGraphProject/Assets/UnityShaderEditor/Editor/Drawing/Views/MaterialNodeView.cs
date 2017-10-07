@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -13,7 +14,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         VisualElement m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControls;
-        VisualElement m_PreviewContainer;
+        VisualElement m_PreviewToggle;
         Image m_PreviewImage;
         bool m_IsScheduled;
 
@@ -33,31 +34,44 @@ namespace UnityEditor.MaterialGraph.Drawing
             leftContainer.Add(m_ControlsContainer);
             m_CurrentControls = new List<GraphControlPresenter>();
 
-            m_PreviewContainer = new VisualElement { name = "preview" };
+            m_PreviewToggle = new VisualElement { name = "toggle", text = "" };
+            m_PreviewToggle.AddManipulator(new Clickable(OnPreviewToggle));
+            leftContainer.Add(m_PreviewToggle);
+
+            m_PreviewImage = new Image
             {
-                m_PreviewImage = new Image
-                {
-                    pickingMode = PickingMode.Ignore,
-                    image = Texture2D.whiteTexture
-                };
-            }
-            leftContainer.Add(m_PreviewContainer);
+                name = "preview",
+                pickingMode = PickingMode.Ignore,
+                image = Texture2D.whiteTexture
+            };
+            leftContainer.Add(m_PreviewImage);
+        }
+
+        void OnPreviewToggle()
+        {
+            var node = GetPresenter<MaterialNodePresenter>().node;
+            node.previewExpanded = !node.previewExpanded;
+            m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
         }
 
         void UpdatePreviewTexture(Texture previewTexture)
         {
             if (previewTexture == null)
             {
-                m_PreviewContainer.Clear();
+                m_PreviewImage.visible = false;
+                m_PreviewImage.RemoveFromClassList("visible");
+                m_PreviewImage.AddToClassList("hidden");
                 m_PreviewImage.image = Texture2D.whiteTexture;
             }
             else
             {
-                if (m_PreviewContainer.childCount == 0)
-                    m_PreviewContainer.Add(m_PreviewImage);
+                m_PreviewImage.visible = true;
+                m_PreviewImage.AddToClassList("visible");
+                m_PreviewImage.RemoveFromClassList("hidden");
                 m_PreviewImage.image = previewTexture;
             }
-            Dirty(ChangeType.Repaint | ChangeType.Layout);
+            Dirty(ChangeType.Repaint);
+
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)
@@ -85,25 +99,25 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-
             var nodePresenter = GetPresenter<MaterialNodePresenter>();
 
             if (nodePresenter == null)
             {
                 m_ControlsContainer.Clear();
                 m_CurrentControls.Clear();
-                m_PreviewContainer.Clear();
                 UpdatePreviewTexture(null);
                 return;
             }
 
+            m_PreviewToggle.text = nodePresenter.node.previewExpanded ? "▲" : "▼";
+            if (nodePresenter.node.hasPreview)
+                m_PreviewToggle.RemoveFromClassList("inactive");
+            else
+                m_PreviewToggle.AddToClassList("inactive");
+
             UpdateControls(nodePresenter);
 
-//            if (nodePresenter.expanded)
-            UpdatePreviewTexture(nodePresenter.previewTexture);
-
-//            else
-//                m_PreviewContainer.Clear();
+            UpdatePreviewTexture(nodePresenter.node.previewExpanded ? nodePresenter.previewTexture : null);
         }
     }
 }

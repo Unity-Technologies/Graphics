@@ -37,7 +37,10 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public virtual INode outputNode { get; } = null;
+        public virtual INode outputNode
+        {
+            get { return null; }
+        }
 
         public virtual void OnEnable()
         {
