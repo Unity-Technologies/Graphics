@@ -64,6 +64,8 @@ class ShaderGraphTextGenerator : ICustomShaderImporter
             windowType = typeof(MaterialGraphEditWindow);
         else if (extension == ".ShaderSubGraph")
             windowType = typeof(SubGraphEditWindow);
+        else if (extension == ".ShaderRemapGraph")
+            windowType = typeof(MasterRemapGraph);
         else
             return;
         var windows = Resources.FindObjectsOfTypeAll(windowType);
