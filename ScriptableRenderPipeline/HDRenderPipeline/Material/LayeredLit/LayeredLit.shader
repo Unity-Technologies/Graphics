@@ -152,8 +152,6 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
         [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
-        _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
-
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
@@ -268,8 +266,8 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE    
-    #pragma shader_feature _VERTEX_DISPLACEMENT    
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _VERTEX_DISPLACEMENT
     #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
     #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
     #pragma shader_feature _VERTEX_WIND
