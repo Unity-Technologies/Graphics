@@ -1262,7 +1262,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     ApplyDisplacementTileScale(height0, height1, height2, height3);
 
     float4 blendMask = GetBlendMask(layerTexCoord, vertexColor, true, lod);
-    #if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
     // Add main layer influence if any (simply add main layer add on other layer)
     // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
     // is not actually underneath any visible layer so we don't want to inherit its height.
