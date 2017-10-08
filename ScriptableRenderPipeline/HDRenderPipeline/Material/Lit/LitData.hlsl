@@ -259,7 +259,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
-float3 GetDisplacementInverseObjectScale(bool vertexDisplacement)
+float3 GetDisplacementObjectScale(bool vertexDisplacement)
 {
     float3 objectScale = float3(1.0, 1.0, 1.0);
 
@@ -388,7 +388,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
         // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementInverseObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
@@ -413,19 +413,21 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 }
 
 // Calculate displacement for per vertex displacement mapping
-float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
+float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
-    ApplyDisplacementTileScale(height);
 
+    // Height is affected by tiling property and by object scale (depends on option).
+    // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
+    ApplyDisplacementTileScale(height);
     // Applying scaling of the object if requested
 #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementInverseObjectScale(true);
+    float3 objectScale = GetDisplacementObjectScale(true);
 #else
     float3 objectScale = float3(1.0, 1.0, 1.0);
 #endif
 
-    return height * objectScale;
+    return height.xxx * objectScale;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -786,8 +788,10 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
-float3 GetDisplacementInverseObjectScale()
+float3 GetDisplacementObjectScale(bool vertexDisplacement)
 {
+    float3 objectScale = float3(1.0, 1.0, 1.0);
+
     // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
     // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
     // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
@@ -1265,7 +1269,7 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 }
 
 // Calculate displacement for per vertex displacement mapping
-float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
+float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
     float4 inputBlendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
 
@@ -1276,10 +1280,13 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
-    ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+    // Height is affected by tiling property and by object scale (depends on option).
+    // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
+    ApplyDisplacementTileScale(height0, height1, height2, height3);
     // Applying scaling of the object if requested
+    /*
 #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementInverseObjectScale();
+    float3 objectScale = GetDisplacementObjectScale(true);
     #if !defined(_LAYER_MAPPING_PLANAR0) &&  !defined(_LAYER_MAPPING_TRIPLANAR0)
     height0 *= objectScale;
     #endif
@@ -1292,9 +1299,8 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     #if !defined(_LAYER_MAPPING_PLANAR3) &&  !defined(_LAYER_MAPPING_TRIPLANAR3)
     height3 *= objectScale;
     #endif
-#else
-    float3 objectScale = float3(1.0, 1.0, 1.0);
 #endif
+    */
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     float4 resultBlendMasks = inputBlendMasks;
@@ -1310,13 +1316,13 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float influenceMask = GetInfluenceMask(layerTexCoord, true, lod);
     float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
     return heightResult + height0 * inheritBaseHeight * inputBlendMasks.a * influenceMask; // We multiply by the input mask for the first layer because if the mask here is black it means that the layer is not actually underneath any visible layer so we don't want to inherit its height.
+#else
+    return heightResult.xxx;
 #endif
-
 
 #else
-    float heightResult = 0.0;
+    return float3(0.0, 0.0, 0.0);
 #endif
-    return heightResult;
 }
 
 // Calculate weights to apply to each layer
