@@ -496,6 +496,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
@@ -508,7 +510,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
-            EditorGUI.BeginChangeCheck();
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
