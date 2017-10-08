@@ -198,7 +198,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, float4(1.0, 0.0, 0.0, 0.0), _UVDetailsMappingMask,
-                            positionWS, mappingType, _TexWorldScale, layerTexCoord);
+                            _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0,
+                            positionWS, _TexWorldScale,
+                            mappingType, layerTexCoord);
 }
 
 // This is call only in this file
@@ -720,7 +722,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
-                            positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
+                            _LayerMaskMap_ST.xy, _LayerMaskMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0,
+                            positionWS, _TexWorldScaleBlendMask,
+                            mappingType, layerTexCoord);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -742,11 +746,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask0, _UVDetailsMappingMask0,
-                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, 1.0
+                            _BaseColorMap0_ST.xy, _BaseColorMap0_ST.zw, _DetailMap0_ST.xy, _DetailMap0_ST.zw, 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
-                            );
+                            , positionWS, _TexWorldScale0,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR1)
@@ -755,7 +760,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask1, _UVDetailsMappingMask1,
-                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, tileObjectScale);
+                            _BaseColorMap1_ST.xy, _BaseColorMap1_ST.zw, _DetailMap1_ST.xy, _DetailMap1_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale1,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR2)
@@ -764,7 +771,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask2, _UVDetailsMappingMask2,
-                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, tileObjectScale);
+                            _BaseColorMap2_ST.xy, _BaseColorMap2_ST.zw, _DetailMap2_ST.xy, _DetailMap2_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale2,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR3)
@@ -773,7 +782,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask3, _UVDetailsMappingMask3,
-                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, tileObjectScale);
+                            _BaseColorMap3_ST.xy, _BaseColorMap3_ST.zw, _DetailMap3_ST.xy, _DetailMap3_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale3,
+                            mappingType, layerTexCoord);
 }
 
 // This is call only in this file

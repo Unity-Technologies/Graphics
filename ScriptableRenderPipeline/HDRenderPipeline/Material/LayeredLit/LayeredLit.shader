@@ -152,8 +152,6 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
         [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
-        _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
-
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
