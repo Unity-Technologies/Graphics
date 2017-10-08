@@ -208,7 +208,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             var layerRemoved = change as LayerRemoved;
             if (layerRemoved != null)
             {
-                var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.layer == layerRemoved.id);
+                var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.guid == layerRemoved.id);
                 if (view != null)
                     m_LayerItems.Remove(view);
             }

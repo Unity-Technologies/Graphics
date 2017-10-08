@@ -24,8 +24,8 @@ namespace UnityEngine.MaterialGraph
             var goodSlots =  new List<int>();
             foreach (var layer in layeredGraph.layers)
             {
-                AddSlot(new MaterialSlot(layer.layer, "" + layer.layer, "" + layer.layer, SlotType.Input, SlotValueType.Vector1, new Vector4(0, 0, 0, 0)));
-                goodSlots.Add(layer.layer);
+                AddSlot(new MaterialSlot(layer.guid.GetHashCode(), LayeredShaderGraph.LayerToFunctionName(layer.guid), LayeredShaderGraph.LayerToFunctionName(layer.guid), SlotType.Input, SlotValueType.Vector1, new Vector4(0, 0, 0, 0)));
+                goodSlots.Add(layer.guid.GetHashCode());
             }
 
             RemoveSlotsNameNotMatching(goodSlots);
