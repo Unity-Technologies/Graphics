@@ -24,7 +24,7 @@ namespace UnityEngine.MaterialGraph
             var goodSlots =  new List<int>();
             foreach (var layer in layeredGraph.layers)
             {
-                AddSlot(new MaterialSlot(layer.layer, "" + layer.layer, "" + layer.layer, SlotType.Input, SlotValueType.Vector1, new Vector4(1, 0, 0, 0)));
+                AddSlot(new MaterialSlot(layer.layer, "" + layer.layer, "" + layer.layer, SlotType.Input, SlotValueType.Vector1, new Vector4(0, 0, 0, 0)));
                 goodSlots.Add(layer.layer);
             }
 
