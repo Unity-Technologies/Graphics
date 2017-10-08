@@ -7,8 +7,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class ShaderLayerView : VisualElement
     {
-        public LayeredShaderGraph graph { get; private set; }
-        public LayeredShaderGraph.Layer layer { get; private set; }
+        public LayeredShaderGraph graph { get; }
+        public LayeredShaderGraph.Layer layer { get; }
 
         public ShaderLayerView(LayeredShaderGraph graph, LayeredShaderGraph.Layer layer)
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         void OnClickRemove()
         {
-            graph.RemoveLayer(layer.layer);
+            graph.RemoveLayer(layer.guid);
             NotifyNodes();
         }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             var newShader = EditorGUILayout.ObjectField("Shader", layer.shader, typeof(Shader), false) as Shader;
             if (newShader != layer.shader)
             {
-                if (graph.SetLayer(layer.layer, newShader))
+                if (graph.SetLayer(layer.guid, newShader))
                     NotifyNodes();
             }
         }

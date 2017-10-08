@@ -15,19 +15,17 @@ namespace UnityEngine.MaterialGraph
         public class Layer
         {
             [SerializeField]
-            private int m_Layer;
+            private SerializableGuid m_Guid = new SerializableGuid();
 
             [SerializeField]
             private Shader m_Shader;
 
             public Layer()
-            {
-                m_Layer = Guid.NewGuid().GetHashCode();
-            }
+            {}
 
-            public int layer
+            public Guid guid
             {
-                get { return m_Layer; }
+                get { return m_Guid.guid; }
             }
 
             public Shader shader
@@ -84,7 +82,7 @@ namespace UnityEngine.MaterialGraph
                 outputNode.onModified(outputNode, ModificationScope.Graph);
         }
 
-        public bool SetLayer(int layerId, Shader newShader)
+        public bool SetLayer(Guid layerId, Shader newShader)
         {
             try
             {
@@ -99,7 +97,7 @@ namespace UnityEngine.MaterialGraph
                 if (graph == null)
                     return false;
 
-                var layer = layers.FirstOrDefault(x => x.layer == layerId);
+                var layer = layers.FirstOrDefault(x => x.guid == layerId);
                 if (layer == null)
                     return false;
 
@@ -120,9 +118,9 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        public void RemoveLayer(int id)
+        public void RemoveLayer(Guid id)
         {
-            var num = m_Layers.RemoveAll(x => x.layer == id);
+            var num = m_Layers.RemoveAll(x => x.guid == id);
 
             if (num > 0)
             {
@@ -148,12 +146,17 @@ namespace UnityEngine.MaterialGraph
             base.OnAfterDeserialize();
         }
 
+        public static string LayerToFunctionName(Guid id)
+        {
+            return string.Format("Layer_{0}", GuidEncoder.Encode(id));
+        }
+
         public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
            if (outputNode == null)
                 throw new InvalidOperationException();
 
-            var layerMap = new Dictionary<int,MaterialGraph>();
+            var layerMap = new Dictionary<Guid, MaterialGraph>();
 
             foreach (var layer in layers)
             {
@@ -167,7 +170,7 @@ namespace UnityEngine.MaterialGraph
                 if (graph == null)
                     continue;
 
-                layerMap[layer.layer] = graph;
+                layerMap[layer.guid] = graph;
             }
 
             if (layerMap.Count == 0)
@@ -244,7 +247,15 @@ struct GraphVertexInput
 
             var shaderProperties = new PropertyCollector();
 
-            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, layerMap[0].masterNode as AbstractMaterialNode, true);
+            var baseGraph = layerMap.Values.FirstOrDefault();
+            if (baseGraph == null)
+            {
+                configuredTextures = new List<PropertyCollector.TextureInfo>();
+                return string.Empty;
+            }
+
+            var masterNode = baseGraph.masterNode;
+            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, masterNode as AbstractMaterialNode, true);
 
             foreach (var layer in layerMap)
             {
@@ -256,10 +267,8 @@ struct GraphVertexInput
                     requirements,
                     mode,
                     true,
-                    "Layer_" + Mathf.Abs(layer.Key));
+                    LayerToFunctionName(layer.Key));
             }
-
-
 
             surfaceDescriptionStruct.AddShaderChunk("struct WeightsSurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
@@ -281,10 +290,35 @@ struct GraphVertexInput
                 "PopulateWeightsGraph",
                 "WeightsSurfaceDescription");
 
+
+            string functionName = "PopulateSurfaceData";
+            string surfaceDescriptionName = "SurfaceDescription";
+            layerShaders.AddShaderChunk(string.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
+            layerShaders.Indent();
+
+            layerShaders.AddShaderChunk("WeightsSurfaceDescription weights = PopulateWeightsGraph(IN);", false);
+            layerShaders.AddShaderChunk("SurfaceDescription result = (SurfaceDescription)0;", false);
+
             foreach (var layer in layerMap)
             {
+                layerShaders.AddShaderChunk(
+                    string.Format(
+                        "{0} {1} = {2}({3});",
+                        surfaceDescriptionName,
+                        LayerToFunctionName(layer.Key) + "_surface",
+                        LayerToFunctionName(layer.Key),
+                        "IN"), false);
 
+                layerShaders.AddShaderChunk(
+                    string.Format("ScaleSurfaceDescription({0}_surface, weights.{0});", LayerToFunctionName(layer.Key)), false);
+
+
+                layerShaders.AddShaderChunk(string.Format("AddSurfaceDescription(result, {0}_surface);", LayerToFunctionName(layer.Key)), false);
             }
+            layerShaders.AddShaderChunk("return result;", false);
+
+            layerShaders.Deindent();
+            layerShaders.AddShaderChunk("}", false);
 
             var finalShader = new ShaderGenerator();
             finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
@@ -307,19 +341,15 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             finalShader.AddShaderChunk(vertexShader.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
+            finalShader.AddShaderChunk(layerShaders.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
-/*            var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
                 var subShaders = masterNode.GetSubshader(requirements, null);
                 foreach (var ss in subShaders)
                     finalShader.AddShaderChunk(ss, false);
             }
-            else
-            {
-                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
-            }*/
 
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);

@@ -222,25 +222,61 @@ namespace UnityEngine.MaterialGraph
             return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode);
         }
 
-        protected void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, AbstractMaterialNode node, bool isMasterNode)
+        protected static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, AbstractMaterialNode node, bool isMasterNode)
         {
             surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
             if (isMasterNode)
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), slot.shaderOutputName), false);
             }
             else
             {
                 foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + node.GetVariableNameForSlot(slot.id) + ";", false);
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), node.GetVariableNameForSlot(slot.id)), false);
+            }
+            surfaceDescriptionStruct.Deindent();
+            surfaceDescriptionStruct.AddShaderChunk("};", false);
+
+            surfaceDescriptionStruct.AddShaderChunk("void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){", false);
+            surfaceDescriptionStruct.Indent();
+            if (isMasterNode)
+            {
+                foreach (var slot in node.GetInputSlots<MaterialSlot>())
+                    surfaceDescriptionStruct.AddShaderChunk( string.Format("surface.{0} = scale * surface.{0};", slot.shaderOutputName), false);
+            }
+            else
+            {
+                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", node.GetVariableNameForSlot(slot.id)), false);
+            }
+            surfaceDescriptionStruct.Deindent();
+            surfaceDescriptionStruct.AddShaderChunk("};", false);
+
+            surfaceDescriptionStruct.AddShaderChunk("void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){", false);
+            surfaceDescriptionStruct.Indent();
+            if (isMasterNode)
+            {
+                foreach (var slot in node.GetInputSlots<MaterialSlot>())
+                {
+                    var str = string.Format("base.{0} = base.{0} + add.{0};", slot.shaderOutputName);
+                    surfaceDescriptionStruct.AddShaderChunk(str, false);
+                }
+            }
+            else
+            {
+                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
+                {
+                    var str = string.Format("base.{0} = base.{0} + add.{0};", node.GetVariableNameForSlot(slot.id));
+                    surfaceDescriptionStruct.AddShaderChunk(str, false);
+                }
             }
             surfaceDescriptionStruct.Deindent();
             surfaceDescriptionStruct.AddShaderChunk("};", false);
         }
 
-        protected void GenerateSurfaceDescription(
+        protected static void GenerateSurfaceDescription(
             AbstractMaterialNode node,
             ShaderGenerator surfaceDescriptionFunction,
             ShaderGenerator shaderFunctionVisitor,
@@ -251,6 +287,10 @@ namespace UnityEngine.MaterialGraph
             string functionName = "PopulateSurfaceData",
             string surfaceDescriptionName = "SurfaceDescription")
         {
+            var graph = node.owner as AbstractMaterialGraph;
+            if (graph == null)
+                return;
+
             surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
             surfaceDescriptionFunction.Indent();
 
@@ -307,7 +347,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
                 surfaceDescriptionFunction.AddShaderChunk(string.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
 
-            CollectShaderProperties(shaderProperties, mode);
+            graph.CollectShaderProperties(shaderProperties, mode);
 
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
@@ -326,11 +366,11 @@ namespace UnityEngine.MaterialGraph
             {
                 foreach (var input in node.GetInputSlots<MaterialSlot>())
                 {
-                    var foundEdges = GetEdges(input.slotReference).ToArray();
+                    var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                     if (foundEdges.Any())
                     {
                         var outputRef = foundEdges[0].outputSlot;
-                        var fromNode = GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                        var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                         surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
                     }
                     else

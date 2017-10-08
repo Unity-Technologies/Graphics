@@ -38,11 +38,11 @@ namespace UnityEngine.MaterialGraph
 
     public class LayerRemoved : GraphChange
     {
-        public LayerRemoved(int id)
+        public LayerRemoved(Guid id)
         {
             this.id = id;
         }
 
-        public int id { get; private set; }
+        public Guid id { get; private set; }
     }
 }
