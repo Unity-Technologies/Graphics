@@ -19,6 +19,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         VisualElement m_Title;
         VisualElement m_PropertyItems;
+        VisualElement m_LayerItems;
         VisualElement m_ContentContainer;
         AbstractNodeEditorView m_EditorView;
 
@@ -63,6 +64,26 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
+                //if (m_Presenter.graph is LayeredShaderGraph)
+                {
+                    var layersContainer = new VisualElement {name = "properties"};
+                    {
+                        var header = new VisualElement {name = "header"};
+                        {
+                            var title = new VisualElement {name = "title", text = "Layers"};
+                            header.Add(title);
+
+                            var addLayerButton = new Button(OnAddLayer) {text = "Add", name = "addButton"};
+                            header.Add(addLayerButton);
+                        }
+                        propertiesContainer.Add(header);
+
+                        m_LayerItems = new VisualContainer {name = "items"};
+                        propertiesContainer.Add(m_LayerItems);
+                    }
+                    bottomContainer.Add(layersContainer);
+                }
+
                 m_Preview = new Image { name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_Preview);
             }
@@ -87,8 +108,17 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             gm.AddItem(new GUIContent("Vector4"), false, () => m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty()));
             gm.AddItem(new GUIContent("Color"), false, () => m_Presenter.graph.AddShaderProperty(new ColorShaderProperty()));
             gm.AddItem(new GUIContent("Texture"), false, () => m_Presenter.graph.AddShaderProperty(new TextureShaderProperty()));
-                gm.ShowAsContext();
-            }
+            gm.ShowAsContext();
+        }
+
+        void OnAddLayer()
+        {
+            var layerGraph = m_Presenter.graph as LayeredShaderGraph;
+            if (layerGraph == null)
+                return;
+
+            layerGraph.AddLayer();
+        }
 
         public void OnChange(GraphInspectorPresenter.ChangeType changeType)
         {
@@ -111,13 +141,13 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                     m_ContentContainer.Clear();
                     if (presenter.selectedNodes.Count > 1)
                     {
-                        var element = new VisualElement { name = "selectionCount", text = string.Format("{0} nodes selected.", presenter.selectedNodes.Count) };
+                        var element = new VisualElement {name = "selectionCount", text = string.Format("{0} nodes selected.", presenter.selectedNodes.Count)};
                         m_ContentContainer.Add(element);
                     }
                     else if (presenter.selectedNodes.Count == 1)
                     {
                         var node = presenter.selectedNodes.First();
-                        var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
+                        var view = (AbstractNodeEditorView) Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
                         view.node = node;
                         m_ContentContainer.Add(view);
                     }
@@ -135,6 +165,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 {
                     m_Graph.onChange -= OnGraphChange;
                     m_PropertyItems.Clear();
+                    m_LayerItems.Clear();
                     m_Graph = null;
                 }
                 if (m_Presenter.graph != null)
@@ -142,9 +173,14 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                     m_Graph = m_Presenter.graph;
                     foreach (var property in m_Graph.properties)
                         m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
+
+                    var layerGraph = m_Presenter.graph as LayeredShaderGraph;
+                    if (layerGraph != null)
+                        foreach (var layer in layerGraph.layers)
+                            m_LayerItems.Add(new ShaderLayerView(layerGraph, layer));
                     m_Graph.onChange += OnGraphChange;
                 }
-        }
+            }
         }
 
         void OnGraphChange(GraphChange change)
@@ -159,6 +195,22 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyRemoved.guid);
                 if (propertyView != null)
                     m_PropertyItems.Remove(propertyView);
+            }
+
+            var layerGraph = m_Graph as LayeredShaderGraph;
+            if (layerGraph == null)
+                return;
+
+            var layerAdded = change as LayerAdded;
+            if (layerAdded != null)
+                    m_LayerItems.Add(new ShaderLayerView(layerGraph, layerAdded.layer));
+
+            var layerRemoved = change as LayerRemoved;
+            if (layerRemoved != null)
+            {
+                var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.layer == layerRemoved.id);
+                if (view != null)
+                    m_LayerItems.Remove(view);
             }
         }
 

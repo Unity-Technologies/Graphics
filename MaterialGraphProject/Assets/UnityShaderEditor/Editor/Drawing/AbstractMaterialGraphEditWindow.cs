@@ -63,6 +63,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+    public class LayeredGraphEditWindow : AbstractMaterialGraphEditWindow<LayeredShaderGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return inMemoryAsset;
+        }
+    }
+
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         [SerializeField]
@@ -195,6 +203,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
 
                 if (typeof(TGraphType) == typeof(UnityEngine.MaterialGraph.MaterialGraph))
+                    UpdateShaderGraphOnDisk(path);
+
+                if (typeof(TGraphType) == typeof(LayeredShaderGraph))
                     UpdateShaderGraphOnDisk(path);
 
                 if (typeof(TGraphType) == typeof(SubGraph))
@@ -376,7 +387,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UpdateShaderGraphOnDisk(string path)
         {
-            var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
+            var graph = inMemoryAsset as IShaderGraph;
             if (graph == null)
                 return;
 

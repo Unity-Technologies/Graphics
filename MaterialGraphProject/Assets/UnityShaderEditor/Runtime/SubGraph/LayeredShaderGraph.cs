@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using UnityEditor;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -73,12 +76,62 @@ namespace UnityEngine.MaterialGraph
 
         public void AddLayer()
         {
-            m_Layers.Add(new Layer());
+            var layer = new Layer();
+            m_Layers.Add(layer);
+            NotifyChange(new LayerAdded(layer));
+
+            if (outputNode != null)
+                outputNode.onModified(outputNode, ModificationScope.Graph);
         }
 
-        public void RemoveLayer()
+        public bool SetLayer(int layerId, Shader newShader)
         {
-            m_Layers.Remove(m_Layers.Last());
+            try
+            {
+                var path = AssetDatabase.GetAssetPath(newShader);
+
+                if (!path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase))
+                    return false;
+
+                var name = Path.GetFileNameWithoutExtension(path);
+                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+                if (graph == null)
+                    return false;
+
+                var layer = layers.FirstOrDefault(x => x.layer == layerId);
+                if (layer == null)
+                    return false;
+
+                layer.shader = newShader;
+
+                if (outputNode != null)
+                {
+                    outputNode.OnEnable();
+                    outputNode.onModified(outputNode, ModificationScope.Graph);
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+            return false;
+        }
+
+        public void RemoveLayer(int id)
+        {
+            var num = m_Layers.RemoveAll(x => x.layer == id);
+
+            if (num > 0)
+            {
+                NotifyChange(new LayerRemoved(id));
+
+                if (outputNode != null)
+                    outputNode.onModified(outputNode, ModificationScope.Graph);
+            }
+
         }
 
         public override void OnBeforeSerialize()
@@ -97,8 +150,10 @@ namespace UnityEngine.MaterialGraph
 
         public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            PreviewMode pmode;
-            return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
+            configuredTextures = new List<PropertyCollector.TextureInfo>();
+            return string.Empty;
+            //PreviewMode pmode;
+            //return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
     }
 }
