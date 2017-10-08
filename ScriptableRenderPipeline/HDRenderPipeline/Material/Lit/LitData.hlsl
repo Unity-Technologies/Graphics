@@ -136,7 +136,35 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 }
 #endif
 
+// Share by Lit and LayeredLit. Return object scaling for displacement map depends if it is vertex (affect vertex displacement) or pixel displacement (affect tiling)
+float3 GetDisplacementObjectScale(bool vertexDisplacement)
+{
+    float3 objectScale = float3(1.0, 1.0, 1.0);
 
+    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
+    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
+    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
+    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
+    float4x4 worldTransform;
+    if (vertexDisplacement)
+    {
+        worldTransform = GetObjectToWorldMatrix();
+    }
+
+    else
+    {
+        worldTransform = GetWorldToObjectMatrix();
+    }
+
+    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
+#if !defined(_PIXEL_DISPLACEMENT) || (defined(_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE))
+    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+#endif
+    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+
+    return objectScale;
+}
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -260,39 +288,6 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 }
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
-
-float3 GetDisplacementObjectScale(bool vertexDisplacement)
-{
-    float3 objectScale = float3(1.0, 1.0, 1.0);
-
-// Displacement with lock object scale require to take into account object scaling except for planar and triplanar that are done in world space in Lit and thus are independent of object scale.
-#if !defined(_MAPPING_PLANAR) && !defined(_MAPPING_TRIPLANAR)
-
-    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
-    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
-    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
-    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
-    float4x4 worldTransform;
-    if (vertexDisplacement)
-    {
-        worldTransform = GetObjectToWorldMatrix();
-    }
-
-    else
-    {
-        worldTransform = GetWorldToObjectMatrix();
-    }
-
-    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
-#if !defined(_PIXEL_DISPLACEMENT) || (defined(_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE))
-    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-#endif
-    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-#endif
-
-    return objectScale;
-}
 
 void ApplyDisplacementTileScale(inout float height)
 {
@@ -425,11 +420,12 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Applying scaling of the object if requested
 #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     float3 objectScale = GetDisplacementObjectScale(true);
+    // Reminder: mappingType is know statically, so code below is optimize by the compiler
+    // Planar and Triplanar are in world space thus it is independent of object scale
+    return height.xxx * ((layerTexCoord.base.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0));
 #else
-    float3 objectScale = float3(1.0, 1.0, 1.0);
+    return height.xxx;
 #endif
-
-    return height.xxx * objectScale;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -797,32 +793,6 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 
     GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
-}
-
-float3 GetDisplacementObjectScale(bool vertexDisplacement)
-{
-    float3 objectScale = float3(1.0, 1.0, 1.0);
-
-    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
-    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
-    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
-    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
-    float4x4 worldTransform;
-    if (vertexDisplacement)
-    {
-        worldTransform = GetObjectToWorldMatrix();
-    }
-
-    else
-    {
-        worldTransform = GetWorldToObjectMatrix();
-    }
-
-    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-
-    return objectScale;
 }
 
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
@@ -1282,10 +1252,6 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 // Calculate displacement for per vertex displacement mapping
 float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    float4 inputBlendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
-
-    float weights[_MAX_LAYER];
-
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
@@ -1294,43 +1260,40 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height0, height1, height2, height3);
-    // Applying scaling of the object if requested
-    /*
-#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementObjectScale(true);
-    #if !defined(_LAYER_MAPPING_PLANAR0) &&  !defined(_LAYER_MAPPING_TRIPLANAR0)
-    height0 *= objectScale;
+
+    float4 blendMask = GetBlendMask(layerTexCoord, vertexColor, true, lod);
+    #if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    // Add main layer influence if any (simply add main layer add on other layer)
+    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
+    // is not actually underneath any visible layer so we don't want to inherit its height.
+    float influenceMask = blendMask.a * GetInfluenceMask(layerTexCoord, true, lod);
+    height1 += height0 * _InheritBaseHeight1 * influenceMask;
+    height2 += height0 * _InheritBaseHeight2 * influenceMask;
+    height3 += height0 * _InheritBaseHeight3 * influenceMask;
     #endif
-    #if !defined(_LAYER_MAPPING_PLANAR1) &&  !defined(_LAYER_MAPPING_TRIPLANAR1)
-    height1 *= objectScale;
-    #endif
-    #if !defined(_LAYER_MAPPING_PLANAR2) &&  !defined(_LAYER_MAPPING_TRIPLANAR2)
-    height2 *= objectScale;
-    #endif
-    #if !defined(_LAYER_MAPPING_PLANAR3) &&  !defined(_LAYER_MAPPING_TRIPLANAR3)
-    height3 *= objectScale;
-    #endif
-#endif
-    */
+
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
-    float4 resultBlendMasks = inputBlendMasks;
-#if defined(_HEIGHT_BASED_BLEND)
-    resultBlendMasks = ApplyHeightBlend(float4(height0, height1, height2, height3), inputBlendMasks);
-#endif
+    #if defined(_HEIGHT_BASED_BLEND)
+    // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
+    blendMask = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMask);
+    #endif
 
-    ComputeMaskWeights(resultBlendMasks, weights);
-    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(blendMask, weights);
 
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
-    float influenceMask = GetInfluenceMask(layerTexCoord, true, lod);
-    float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
-    return heightResult + height0 * inheritBaseHeight * inputBlendMasks.a * influenceMask; // We multiply by the input mask for the first layer because if the mask here is black it means that the layer is not actually underneath any visible layer so we don't want to inherit its height.
-#else
-    return heightResult.xxx;
-#endif
-
+   // Applying scaling of the object if requested
+    #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    float3 objectScale = GetDisplacementObjectScale(true);
+    // Reminder: mappingType is know statically, so code below is optimize by the compiler
+    // Planar and Triplanar are in world space thus it is independent of object scale
+    return BlendLayeredVector3( height0.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                height1.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                height2.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                height3.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)), weights);
+    #else
+    return BlendLayeredScalar(height0, height1, height2, height3, weights).xxx;
+    #endif
 #else
     return float3(0.0, 0.0, 0.0);
 #endif
