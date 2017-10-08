@@ -1199,38 +1199,36 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    float4 inputBlendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
-
-    float weights[_MAX_LAYER];
-
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
     ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+
+    float4 blendMask = GetBlendMask(layerTexCoord, vertexColor, true, lod);
+    #if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    // Add main layer influence if any (simply add main layer add on other layer)
+    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
+    // is not actually underneath any visible layer so we don't want to inherit its height.
+    float influenceMask = blendMask.a * GetInfluenceMask(layerTexCoord, true, lod);
+    height1 += height0 * _InheritBaseHeight1 * influenceMask;
+    height2 += height0 * _InheritBaseHeight2 * influenceMask;
+    height3 += height0 * _InheritBaseHeight3 * influenceMask;
+    #endif
+
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
-    float4 resultBlendMasks = inputBlendMasks;
-#if defined(_HEIGHT_BASED_BLEND)
-    resultBlendMasks = ApplyHeightBlend(float4(height0, height1, height2, height3), inputBlendMasks);
-#endif
+    #if defined(_HEIGHT_BASED_BLEND)
+    blendMask = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMask);
+    #endif
 
-    ComputeMaskWeights(resultBlendMasks, weights);
-    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
-
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
-    float influenceMask = GetInfluenceMask(layerTexCoord, true, lod);
-    float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
-    return heightResult + height0 * inheritBaseHeight * inputBlendMasks.a * influenceMask; // We multiply by the input mask for the first layer because if the mask here is black it means that the layer is not actually underneath any visible layer so we don't want to inherit its height.
-#endif
-
-
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(blendMask, weights);
+    return BlendLayeredScalar(height0, height1, height2, height3, weights);
 #else
-    float heightResult = 0.0;
+    return 0.0;
 #endif
-    return heightResult;
 }
 
 // Calculate weights to apply to each layer
