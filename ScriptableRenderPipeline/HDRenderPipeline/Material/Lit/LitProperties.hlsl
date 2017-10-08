@@ -197,10 +197,10 @@ float _InheritBaseHeight3;
 float _InheritBaseColor1;
 float _InheritBaseColor2;
 float _InheritBaseColor3;
-float _LayerTilingBlendMask;
 PROP_DECL(float, _HeightOffset);
 float _HeightTransition;
 
+float4 _LayerMaskMap_ST;
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
 float4 _UVMappingMaskBlendMask;
