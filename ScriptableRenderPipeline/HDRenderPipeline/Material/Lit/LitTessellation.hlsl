@@ -8,8 +8,7 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
     float lod = 0.0;
-    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
-    return height * normalWS;
+    return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS)
