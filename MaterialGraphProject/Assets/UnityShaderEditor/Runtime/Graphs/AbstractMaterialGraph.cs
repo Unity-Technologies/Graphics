@@ -141,8 +141,11 @@ namespace UnityEngine.MaterialGraph
             base.OnAfterDeserialize();
         }
 
-        static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
+        protected static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
         {
+            if (nodeForRequirements == null)
+                return ShaderGraphRequirements.none;
+
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, nodeForRequirements);
 
@@ -192,7 +195,7 @@ namespace UnityEngine.MaterialGraph
             return reqs;
         }
 
-        static void GenerateSpaceTranslationSurfaceInputs(
+        protected static void GenerateSpaceTranslationSurfaceInputs(
             NeededCoordinateSpace neededSpaces,
             ShaderGenerator surfaceInputs,
             string objectSpaceName,
@@ -219,85 +222,11 @@ namespace UnityEngine.MaterialGraph
             return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode);
         }
 
-        public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
+        protected void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, AbstractMaterialNode node, bool isMasterNode)
         {
-            if (node == null)
-                throw new ArgumentNullException("node");
-
-            var vertexShader = new ShaderGenerator();
-            var surfaceDescriptionFunction = new ShaderGenerator();
-            var surfaceDescriptionStruct = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
-            var surfaceInputs = new ShaderGenerator();
-
-            var graphVertexInput = @"
-struct GraphVertexInput
-{
-     float4 vertex : POSITION;
-     float3 normal : NORMAL;
-     float4 tangent : TANGENT;
-     float4 texcoord0 : TEXCOORD0;
-     float4 lightmapUV : TEXCOORD1;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
-};";
-
-            surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
-            surfaceInputs.Indent();
-            var requirements = GetRequierments(node);
-            GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, surfaceInputs,
-                ShaderGeneratorNames.ObjectSpaceNormal, ShaderGeneratorNames.ViewSpaceNormal,
-                ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.TangentSpaceNormal);
-
-            GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, surfaceInputs,
-                ShaderGeneratorNames.ObjectSpaceTangent, ShaderGeneratorNames.ViewSpaceTangent,
-                ShaderGeneratorNames.WorldSpaceTangent, ShaderGeneratorNames.TangentSpaceTangent);
-
-            GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, surfaceInputs,
-                ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ViewSpaceBiTangent,
-                ShaderGeneratorNames.WorldSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
-
-            GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, surfaceInputs,
-                ShaderGeneratorNames.ObjectSpaceViewDirection, ShaderGeneratorNames.ViewSpaceViewDirection,
-                ShaderGeneratorNames.WorldSpaceViewDirection, ShaderGeneratorNames.TangentSpaceViewDirection);
-
-            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, surfaceInputs,
-                ShaderGeneratorNames.ObjectSpacePosition, ShaderGeneratorNames.ViewSpacePosition,
-                ShaderGeneratorNames.WorldSpacePosition, ShaderGeneratorNames.TangentSpacePosition);
-
-            if (requirements.requiresVertexColor)
-                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
-
-            if (requirements.requiresScreenPosition)
-                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
-
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-
-            previewMode = PreviewMode.Preview2D;
-            foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
-            {
-                if (pNode.previewMode == PreviewMode.Preview3D)
-                {
-                    previewMode = PreviewMode.Preview3D;
-                    break;
-                }
-            }
-
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
-
-            surfaceInputs.Deindent();
-            surfaceInputs.AddShaderChunk("};", false);
-
-            vertexShader.AddShaderChunk("GraphVertexInput PopulateVertexData(GraphVertexInput v){", false);
-            vertexShader.Indent();
-            vertexShader.AddShaderChunk("return v;", false);
-            vertexShader.Deindent();
-            vertexShader.AddShaderChunk("}", false);
-
             surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
-            if (node is IMasterNode)
+            if (isMasterNode)
             {
                 foreach (var slot in node.GetInputSlots<MaterialSlot>())
                     surfaceDescriptionStruct.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType) + " " + slot.shaderOutputName + ";", false);
@@ -309,8 +238,20 @@ struct GraphVertexInput
             }
             surfaceDescriptionStruct.Deindent();
             surfaceDescriptionStruct.AddShaderChunk("};", false);
+        }
 
-            surfaceDescriptionFunction.AddShaderChunk("SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {", false);
+        protected void GenerateSurfaceDescription(
+            AbstractMaterialNode node,
+            ShaderGenerator surfaceDescriptionFunction,
+            ShaderGenerator shaderFunctionVisitor,
+            PropertyCollector shaderProperties,
+            ShaderGraphRequirements requirements,
+            GenerationMode mode,
+            bool isMasterNode,
+            string functionName = "PopulateSurfaceData",
+            string surfaceDescriptionName = "SurfaceDescription")
+        {
+            surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
             surfaceDescriptionFunction.Indent();
 
             if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
@@ -366,9 +307,10 @@ struct GraphVertexInput
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
                 surfaceDescriptionFunction.AddShaderChunk(string.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
 
-            var shaderProperties = new PropertyCollector();
             CollectShaderProperties(shaderProperties, mode);
 
+            var activeNodeList = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
@@ -379,8 +321,8 @@ struct GraphVertexInput
                 activeNode.CollectShaderProperties(shaderProperties, mode);
             }
 
-            surfaceDescriptionFunction.AddShaderChunk("SurfaceDescription surface = (SurfaceDescription)0;", false);
-            if (node is IMasterNode)
+            surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} surface = ({0})0;", surfaceDescriptionName), false);
+            if (isMasterNode)
             {
                 foreach (var input in node.GetInputSlots<MaterialSlot>())
                 {
@@ -407,6 +349,95 @@ struct GraphVertexInput
             surfaceDescriptionFunction.Deindent();
             surfaceDescriptionFunction.AddShaderChunk("}", false);
             ListPool<INode>.Release(activeNodeList);
+        }
+
+        public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
+        {
+            if (node == null)
+                throw new ArgumentNullException("node");
+
+            var vertexShader = new ShaderGenerator();
+            var surfaceDescriptionFunction = new ShaderGenerator();
+            var surfaceDescriptionStruct = new ShaderGenerator();
+            var shaderFunctionVisitor = new ShaderGenerator();
+            var surfaceInputs = new ShaderGenerator();
+
+            var graphVertexInput = @"
+struct GraphVertexInput
+{
+     float4 vertex : POSITION;
+     float3 normal : NORMAL;
+     float4 tangent : TANGENT;
+     float4 texcoord0 : TEXCOORD0;
+     float4 lightmapUV : TEXCOORD1;
+     UNITY_VERTEX_INPUT_INSTANCE_ID
+};";
+
+            surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
+            surfaceInputs.Indent();
+            var requirements = GetRequierments(node);
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, surfaceInputs,
+                ShaderGeneratorNames.ObjectSpaceNormal, ShaderGeneratorNames.ViewSpaceNormal,
+                ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.TangentSpaceNormal);
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, surfaceInputs,
+                ShaderGeneratorNames.ObjectSpaceTangent, ShaderGeneratorNames.ViewSpaceTangent,
+                ShaderGeneratorNames.WorldSpaceTangent, ShaderGeneratorNames.TangentSpaceTangent);
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, surfaceInputs,
+                ShaderGeneratorNames.ObjectSpaceBiTangent, ShaderGeneratorNames.ViewSpaceBiTangent,
+                ShaderGeneratorNames.WorldSpaceBiTangent, ShaderGeneratorNames.TangentSpaceBiTangent);
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, surfaceInputs,
+                ShaderGeneratorNames.ObjectSpaceViewDirection, ShaderGeneratorNames.ViewSpaceViewDirection,
+                ShaderGeneratorNames.WorldSpaceViewDirection, ShaderGeneratorNames.TangentSpaceViewDirection);
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, surfaceInputs,
+                ShaderGeneratorNames.ObjectSpacePosition, ShaderGeneratorNames.ViewSpacePosition,
+                ShaderGeneratorNames.WorldSpacePosition, ShaderGeneratorNames.TangentSpacePosition);
+
+            if (requirements.requiresVertexColor)
+                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
+
+            if (requirements.requiresScreenPosition)
+                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
+
+            var activeNodeList = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+            previewMode = PreviewMode.Preview2D;
+            foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
+            {
+                if (pNode.previewMode == PreviewMode.Preview3D)
+                {
+                    previewMode = PreviewMode.Preview3D;
+                    break;
+                }
+            }
+            ListPool<INode>.Release(activeNodeList);
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
+
+            surfaceInputs.Deindent();
+            surfaceInputs.AddShaderChunk("};", false);
+
+            vertexShader.AddShaderChunk("GraphVertexInput PopulateVertexData(GraphVertexInput v){", false);
+            vertexShader.Indent();
+            vertexShader.AddShaderChunk("return v;", false);
+            vertexShader.Deindent();
+            vertexShader.AddShaderChunk("}", false);
+
+            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, node, node is IMasterNode);
+
+            var shaderProperties = new PropertyCollector();
+            GenerateSurfaceDescription(
+                node,
+                surfaceDescriptionFunction,
+                shaderFunctionVisitor,
+                shaderProperties,
+                requirements,
+                mode,
+                node is IMasterNode);
 
             var finalShader = new ShaderGenerator();
             finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
