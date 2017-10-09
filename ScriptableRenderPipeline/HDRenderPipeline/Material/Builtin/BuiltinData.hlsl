@@ -47,17 +47,20 @@ void DecodeVelocity(float4 inBuffer, out float2 velocity)
     velocity = inBuffer.xy;
 }
 
-void EncodeDistortion(float2 distortion, float distortionBlur, out float4 outBuffer)
+void EncodeDistortion(float2 distortion, float distortionBlur, bool validSourceForDistortion, out float4 outBuffer)
 {
     // RT - 16:16:16:16 float
     // distortionBlur in alpha for a different blend mode
-    outBuffer = float4(distortion, 0.0, distortionBlur);
+    // Tag pixel as a pixel that can be used as source for distortion (b != 0)
+    // It is compatible with blend mode: either Add or Multiply
+    outBuffer = float4(distortion, validSourceForDistortion ? 1.0 : 0.0, distortionBlur);
 }
 
-void DecodeDistortion(float4 inBuffer, out float2 distortion, out float2 distortionBlur)
+void DecodeDistortion(float4 inBuffer, out float2 distortion, out float2 distortionBlur, out bool validSourceForDistortion)
 {
     distortion = inBuffer.xy;
     distortionBlur = inBuffer.a;
+    validSourceForDistortion = inBuffer.z > 0.1 || inBuffer.z < 0.1;
 }
 
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
