@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
                 }
             }
             outEventDesc.Clear();
-            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { eventName = o.eventName, startSystems = o.startSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
+            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.startSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
         private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)

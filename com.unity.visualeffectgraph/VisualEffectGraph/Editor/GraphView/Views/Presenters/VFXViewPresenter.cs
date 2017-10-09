@@ -210,12 +210,6 @@ namespace UnityEditor.VFX.UI
                     var inputFlowSlot = output.inputFlowSlot[slotIndex];
                     foreach (var link in inputFlowSlot.link)
                     {
-                        if (slotIndex > 0)
-                        {
-                            int a = 0;
-                            a++;
-                        }
-
                         var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == link.context);
                         if (inPresenter == null)
                             break;
