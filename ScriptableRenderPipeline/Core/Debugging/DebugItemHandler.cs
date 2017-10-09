@@ -17,8 +17,8 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugItem = item;
         }
 
-        // Method user needs to override for specific value clamping.
-        public virtual void ClampValues(Func<object> getter, Action<object> setter) {}
+        // Method user needs to override for specific value validation.
+        public virtual void ValidateValues(Func<object> getter, Action<object> setter) {}
         // Method that will create UI items for runtime debug menu.
         public abstract DebugItemUI BuildGUI(GameObject parent);
 
@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Max = max;
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             setter(Mathf.Clamp((float)getter(), m_Min, m_Max));
         }
@@ -311,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Max = max;
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
         }
