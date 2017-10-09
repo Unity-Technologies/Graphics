@@ -35,9 +35,16 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
             foreach (var vfx in vfxComponent)
             {
-                vfx.Reinit();
-                vfx.DebugSimulate(10);
-                vfx.pause = true;
+                var vfxAsset = vfx.vfxAsset;
+                if (vfxAsset)
+                {
+                    var graph = VFXAssetExtensions.GetOrCreateGraph(vfxAsset);
+                    graph.RecompileIfNeeded();
+
+                    vfx.Reinit();
+                    vfx.DebugSimulate(10);
+                    vfx.pause = true;
+                }
             }
 
             instance.camera.cameraType = CameraType.Preview;
