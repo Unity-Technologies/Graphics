@@ -914,7 +914,8 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
 
 float GetInfluenceMask(LayerTexCoord layerTexCoord, bool useLodSampling = false, float lod = 0)
 {
-    return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask).r;
+    // Sample influence mask with same mapping as Main layer
+    return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_BaseColorMap0, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_BaseColorMap0, layerTexCoord.base0).r;
 }
 
 // Return the maximun amplitude use by all enabled heightmap
