@@ -9,14 +9,10 @@
 // Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
 void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
 {
-    // (0 <= abs(anisotropy) <= 1), therefore (0 <= anisoAspect <= 1)
-    // The 0.9 factor limits the aspect ratio to 10:1.
-    float anisoAspect = 1.0 - 0.9 * abs(anisotropy);
-    float anisoT = (anisotropy >= 0) ? rsqrt(anisoAspect) :  sqrt(anisoAspect);
-    float anisoB = (anisotropy >= 0) ?  sqrt(anisoAspect) : rsqrt(anisoAspect);
-
-    roughnessT = roughness * anisoT; // For positive anisotropy: distort along tangent (rougher)
-    roughnessB = roughness * anisoB; // For positive anisotropy: straighten along bitangent (smoother)
+    // Use the parametrization of Sony Imageworks.
+    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
+    roughnessT = roughness * (1 + anisotropy);
+    roughnessB = roughness * (1 - anisotropy);
 }
 
 // Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
