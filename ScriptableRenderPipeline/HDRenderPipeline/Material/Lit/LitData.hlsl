@@ -1252,19 +1252,9 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height0, height1, height2, height3);
+    SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     float4 blendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
-    #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
-    // Add main layer influence if any (simply add main layer add on other layer)
-    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
-    // is not actually underneath any visible layer so we don't want to inherit its height.
-    float influenceMask = blendMasks.a * GetInfluenceMask(layerTexCoord, true, lod);
-    height1 += height0 * _InheritBaseHeight1 * influenceMask;
-    height2 += height0 * _InheritBaseHeight2 * influenceMask;
-    height3 += height0 * _InheritBaseHeight3 * influenceMask;
-    #endif
-
-    SetEnabledHeightByLayer(height0, height1, height2, height3);
 
     #if defined(_HEIGHT_BASED_BLEND)
     // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
@@ -1274,17 +1264,33 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     float weights[_MAX_LAYER];
     ComputeMaskWeights(blendMasks, weights);
 
+    // _MAIN_LAYER_INFLUENCE_MODE is a pure visual mode that doesn't contribute to the weights of a layer
+    // The motivation is like this: if a layer is visible, then we will apply influence on top of it (so it is only visual).
+    // This is what is done for normal and baseColor and we do the same for height.
+    // Note that if we apply influence before ApplyHeightBlend, then have a different behavior.
+#if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
+    // Add main layer influence if any (simply add main layer add on other layer)
+    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
+    // is not actually underneath any visible layer so we don't want to inherit its height.
+    float influenceMask = blendMasks.a * GetInfluenceMask(layerTexCoord, true, lod);
+    height1 += height0 * _InheritBaseHeight1 * influenceMask;
+    height2 += height0 * _InheritBaseHeight2 * influenceMask;
+    height3 += height0 * _InheritBaseHeight3 * influenceMask;
+#endif
+
+    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights).xxx;
+
    // Applying scaling of the object if requested
     #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     float3 objectScale = GetDisplacementObjectScale(true);
     // Reminder: mappingType is know statically, so code below is optimize by the compiler
     // Planar and Triplanar are in world space thus it is independent of object scale
-    return BlendLayeredVector3( height0.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                height1.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                height2.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                height3.xxx * ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)), weights);
+    return heightResult.xxx * BlendLayeredVector3( ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                                   ((layerTexCoord.base1.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                                   ((layerTexCoord.base2.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
+                                                   ((layerTexCoord.base3.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)), weights);
     #else
-    return BlendLayeredScalar(height0, height1, height2, height3, weights).xxx;
+    return heightResult.xxx;
     #endif
 #else
     return float3(0.0, 0.0, 0.0);
@@ -1294,7 +1300,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 // Calculate weights to apply to each layer
 // Caution: This function must not be use for per vertex/pixel displacement, there is a dedicated function for them.
 // This function handle triplanar
-void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, float influenceMask, out float outWeights[_MAX_LAYER])
+void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, out float outWeights[_MAX_LAYER])
 {
     for (int i = 0; i < _MAX_LAYER; ++i)
     {
@@ -1316,18 +1322,10 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height0, height1, height2, height3);
-
-    #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
-    // Add main layer influence if any (simply add main layer add on other layer)
-    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
-    // is not actually underneath any visible layer so we don't want to inherit its height.
-    influenceMask = blendMasks.a * influenceMask;
-    height1 += height0 * _InheritBaseHeight1 * influenceMask;
-    height2 += height0 * _InheritBaseHeight2 * influenceMask;
-    height3 += height0 * _InheritBaseHeight3 * influenceMask;
-    #endif
-
     SetEnabledHeightByLayer(height0, height1, height2, height3);
+
+    // Reminder: _MAIN_LAYER_INFLUENCE_MODE is a purely visual mode, it is not take into account for the blendMasks
+    // As it is purely visual, it is not apply in ComputeLayerWeights
 
     #if defined(_HEIGHT_BASED_BLEND)
     // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
@@ -1413,12 +1411,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Note: If per pixel displacement is enabled it mean we will fetch again the various heightmaps at the intersection location. Not sure the compiler can optimize.
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
-    float influenceMask = 0.0f;
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    influenceMask = GetInfluenceMask(layerTexCoord);
-#endif
     float weights[_MAX_LAYER];
-    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, influenceMask, weights);
+    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, weights);
 
     float depthOffset = PROP_BLEND_SCALAR(depthOffset, weights);
 #ifdef _DEPTHOFFSET_ON
@@ -1436,6 +1430,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
 #if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    float influenceMask = GetInfluenceMask(layerTexCoord);
+
     if (influenceMask > 0.0f)
     {
         surfaceData.baseColor = ComputeMainBaseColorInfluence(influenceMask, surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, layerTexCoord, blendMasks.a, weights);

@@ -239,7 +239,8 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
 
         // Apply offset to all UVSet0 / planar
         ADD_IDX(layerTexCoord.base).uv += offset;
-        ADD_IDX(layerTexCoord.details).uv += isPlanar ? offset : ADD_IDX(_UVDetailsMappingMask).x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
+        // Note: Applying offset on detail uv is only correct if it use the same UVSet or is planar or triplanar. It is up to the user to do the correct thing.
+        ADD_IDX(layerTexCoord.details).uv += offset;
     }
 
     // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
