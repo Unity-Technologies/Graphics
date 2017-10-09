@@ -197,7 +197,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(None, 0, PreTessellation displacement, 1, Pixel displacement, 2, PostTessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
 
