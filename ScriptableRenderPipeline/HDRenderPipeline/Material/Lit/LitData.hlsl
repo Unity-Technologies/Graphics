@@ -1323,7 +1323,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     // Add main layer influence if any (simply add main layer add on other layer)
     // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
     // is not actually underneath any visible layer so we don't want to inherit its height.
-    float influenceMask = blendMasks.a * influenceMask;
+    influenceMask = blendMasks.a * influenceMask;
     height1 += height0 * _InheritBaseHeight1 * influenceMask;
     height2 += height0 * _InheritBaseHeight2 * influenceMask;
     height3 += height0 * _InheritBaseHeight3 * influenceMask;
