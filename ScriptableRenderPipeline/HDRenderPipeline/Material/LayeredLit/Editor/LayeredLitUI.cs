@@ -319,37 +319,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             bool heightBasedBlend = useHeightBasedBlend.floatValue > 0.0f;
 
+            EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+
             // Main layer does not have any options but height base blend.
-            if(layerIndex > 0 || heightBasedBlend )
+            if (layerIndex > 0)
             {
-                EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
+                int paramIndex = layerIndex - 1;
 
-                // influence
-                if (layerIndex > 0)
+                m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
+
+                if (mainLayerInfluenceEnable)
                 {
-                    int paramIndex = layerIndex - 1;
-
-                    m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
-
-                    if (mainLayerInfluenceEnable)
-                    {
-                        m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
-                        m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
-                        // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
-                        // We always display it as it can be tricky to know when per pixel displacement is enabled or not
-                        m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
-                    }
+                    m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
+                    m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
+                    // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
+                    // We always display it as it can be tricky to know when per pixel displacement is enabled or not
+                    m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
                 }
-
-                if (heightBasedBlend)
-                {
-                    m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
-                }
-
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
             }
+            else
+            {
+                if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
+                }
+            }
+
+            if (heightBasedBlend)
+            {
+                m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
+            }
+
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
 
             DoLayerGUI(material, layerIndex);
 
@@ -405,12 +408,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
-            if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
-                EditorGUI.indentLevel--;
             }
 
             EditorGUI.BeginChangeCheck();
