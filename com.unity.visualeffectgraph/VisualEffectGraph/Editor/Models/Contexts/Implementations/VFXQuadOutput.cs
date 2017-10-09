@@ -1,27 +1,16 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXQuadOutput : VFXContext
+    class VFXQuadOutput : VFXAbstractParticleOutput
     {
-        public VFXQuadOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
-        public override bool codeGeneratorCompute { get { return false; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleQuadOutput; } }
-
-        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
-        {
-            get
-            {
-                var renderState = new VFXShaderWriter();
-                renderState.WriteLine("ZWrite On");
-                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
-            }
-        }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -34,6 +23,19 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Read);
+            }
+        }
+
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            return base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name == "texture"));
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                return base.inputProperties.Concat(PropertiesFromType(GetInputPropertiesTypeName()));
             }
         }
 
