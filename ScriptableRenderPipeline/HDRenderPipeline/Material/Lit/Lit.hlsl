@@ -406,7 +406,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Encode normal on 20bit with oct compression + 2bit of sign
     float2 octNormalWS = PackNormalOctEncode((surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT) ? surfaceData.coatNormalWS : surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
-    uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
+    uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
     // Store octNormalSign on two bits with perceptualRoughness
     outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), PackMaterialId(surfaceData.materialId));
 
@@ -428,7 +428,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-            outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, 0.0, 4.0));
+        // To have more precision encode the sign of xy in a separate uint
+        uint octTangentSign = (octTangentWS.x < 0.0 ? 1 : 0) | (octTangentWS.y < 0.0 ? 2 : 0);
+
+        outGBuffer2 = float4(abs(octTangentWS), surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, octTangentSign, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -521,8 +524,9 @@ void DecodeFromGBuffer(
 
     int octNormalSign;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
-    inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
-    inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
+    inGBuffer1.r = (octNormalSign & 1) ? -inGBuffer1.r : inGBuffer1.r;
+    inGBuffer1.g = (octNormalSign & 2) ? -inGBuffer1.g : inGBuffer1.g;
+
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
@@ -582,11 +586,13 @@ void DecodeFromGBuffer(
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float metallic;
-        int unused;
-        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, unused);
+        int octTangentSign;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, octTangentSign);
         FillMaterialIdStandardData(baseColor, metallic, bsdfData);
 
-        float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        inGBuffer2.r = (octTangentSign & 1) ? -inGBuffer2.r : inGBuffer2.r;
+        inGBuffer2.g = (octTangentSign & 2) ? -inGBuffer2.g : inGBuffer2.g;
+        float3 tangentWS = UnpackNormalOctEncode(inGBuffer2.rg);
         float anisotropy = inGBuffer2.b;
         FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
