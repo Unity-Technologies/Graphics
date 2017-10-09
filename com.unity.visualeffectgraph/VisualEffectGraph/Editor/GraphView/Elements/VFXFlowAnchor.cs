@@ -50,6 +50,12 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
+            VFXFlowEdgePresenter edgePresenter = new VFXFlowEdgePresenter();
+            edge.presenter = edgePresenter;
+            edgePresenter.input = edge.input.GetPresenter<VFXFlowAnchorPresenter>();
+            edgePresenter.output = edge.output.GetPresenter<VFXFlowAnchorPresenter>();
+
+            graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)

@@ -183,6 +183,7 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
             m_InsideContainer.Add(m_EdgeDrawer);
+            m_EdgeDrawer.element = this;
 
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
         }
@@ -456,8 +457,6 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-
-            m_EdgeDrawer.presenter = this.presenter;
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             if (presenter == null || presenter.context == null)

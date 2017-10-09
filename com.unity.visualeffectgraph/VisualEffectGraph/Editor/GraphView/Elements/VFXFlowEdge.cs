@@ -164,12 +164,17 @@ namespace UnityEditor.VFX.UI
 
     internal class VFXFlowEdgeControl : VFXEdgeControl
     {
+        public VFXFlowEdgeControl()
+        {
+            orientation = Orientation.Vertical;
+        }
+
         protected override void DrawEndpoint(Vector2 pos, bool start)
         {
             VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
 
 
-            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
+            Color edgeColor = (edgePresenter != null && edgePresenter.selected) ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
 
             if (start)
             {

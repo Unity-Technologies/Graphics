@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXEdgeDrawer : VisualElement
     {
-        public GraphElementPresenter presenter
+        public GraphElement element
         {
             get; set;
         }
@@ -20,10 +20,10 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Ignore;
         }
 
-        public virtual bool EdgeIsInThisDrawer(VFXDataEdgePresenter edgePresenter)
+        public virtual bool EdgeIsInThisDrawer(VFXDataEdge edge)
         {
-            return (edgePresenter.input != null && (edgePresenter.input as VFXDataAnchorPresenter).sourceNode == presenter) ||
-                (edgePresenter.output != null && (edgePresenter.output as VFXDataAnchorPresenter).sourceNode == presenter);
+            return (edge.input != null && edge.input.node == element) ||
+                (edge.output != null && edge.output.node == element);
         }
 
         public override void DoRepaint()
@@ -36,14 +36,12 @@ namespace UnityEditor.VFX.UI
 
             foreach (var dataEdge in view.GetAllDataEdges())
             {
-                VFXDataEdgePresenter edgePresenter = dataEdge.GetPresenter<VFXDataEdgePresenter>();
-                if (EdgeIsInThisDrawer(edgePresenter))
+                if (EdgeIsInThisDrawer(dataEdge))
                 {
-                    VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter);
                     GL.PushMatrix();
-                    Matrix4x4 trans = edge.edgeControl.worldTransform;
+                    Matrix4x4 trans = dataEdge.edgeControl.worldTransform;
                     GL.modelview = GL.modelview * trans;
-                    edge.edgeControl.DoRepaint();
+                    dataEdge.edgeControl.DoRepaint();
                     GL.PopMatrix();
                 }
             }
@@ -55,23 +53,21 @@ namespace UnityEditor.VFX.UI
 
     class VFXContextEdgeDrawer : VFXEdgeDrawer
     {
-        public override bool EdgeIsInThisDrawer(VFXDataEdgePresenter edgePresenter)
+        public override bool EdgeIsInThisDrawer(VFXDataEdge edge)
         {
-            VFXContextPresenter presenter = this.presenter as VFXContextPresenter;
-            if (
-                (edgePresenter.input != null && (edgePresenter.input as VFXDataAnchorPresenter).sourceNode == presenter.slotPresenter) ||
-                (edgePresenter.output != null && (edgePresenter.output as VFXDataAnchorPresenter).sourceNode == presenter.slotPresenter)
+            VFXContextUI context = this.element as VFXContextUI;
+            if ((edge.input != null && edge.input.node == context.ownData) ||
+                (edge.output != null && edge.output.node == context.ownData)
                 )
             {
                 return true;
             }
 
 
-            foreach (var blockPresenter in presenter.blockPresenters)
+            foreach (var block in context.GetAllBlocks())
             {
-                if (
-                    (edgePresenter.input != null && (edgePresenter.input as VFXDataAnchorPresenter).sourceNode == blockPresenter) ||
-                    (edgePresenter.output != null && (edgePresenter.output as VFXDataAnchorPresenter).sourceNode == blockPresenter)
+                if ((edge.input != null && edge.input.node == block) ||
+                    (edge.output != null && edge.output.node == block)
                     )
                 {
                     return true;

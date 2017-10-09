@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var edge in GetAllEdges())
                 {
-                    edge.OnAnchorChanged();
+                    edge.OnAnchorChanged(direction == Direction.Input);
                 }
             }
         }
@@ -176,6 +176,12 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
+            EdgePresenter edgePresenter = new VFXDataEdgePresenter();
+            edge.presenter = edgePresenter;
+            edgePresenter.input = edge.input.GetPresenter<VFXDataAnchorPresenter>();
+            edgePresenter.output = edge.output.GetPresenter<VFXDataAnchorPresenter>();
+
+            graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
         void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)

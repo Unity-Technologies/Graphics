@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.style.positionRight = 0;
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
-
+            m_EdgeDrawer.element = this;
             Add(m_EdgeDrawer);
         }
 
@@ -59,13 +59,6 @@ namespace UnityEditor.VFX.UI
         public void DirtyDrawer()
         {
             m_EdgeDrawer.Dirty(ChangeType.Repaint);
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-
-            m_EdgeDrawer.presenter = GetPresenter<VFXSlotContainerPresenter>();
         }
     }
 
