@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     }
 
     [Flags]
-    public enum RenderingConfiguration
+    public enum FrameRenderingConfiguration
     {
         None = 0,
         Stereo = (1 << 0),
@@ -22,7 +22,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         RequireDepth = (1 << 3),
         DefaultViewport = (1 << 4),
         IntermediateTexture = (1 << 5),
-        IntermediateTextureArray = (1 << 6),
     }
 
     public static class LightweightUtils
@@ -49,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
         }
 
-        public static bool HasFlag(RenderingConfiguration mask, RenderingConfiguration flag)
+        public static bool HasFlag(FrameRenderingConfiguration mask, FrameRenderingConfiguration flag)
         {
             return (mask & flag) != 0;
         }
