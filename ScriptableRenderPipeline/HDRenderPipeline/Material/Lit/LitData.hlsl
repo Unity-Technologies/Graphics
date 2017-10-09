@@ -1296,7 +1296,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 // Calculate weights to apply to each layer
 // Caution: This function must not be use for per vertex/pixel displacement, there is a dedicated function for them.
 // This function handle triplanar
-void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, out float outWeights[_MAX_LAYER])
+void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, float influenceMask, out float outWeights[_MAX_LAYER])
 {
     for (int i = 0; i < _MAX_LAYER; ++i)
     {
@@ -1310,16 +1310,31 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
 #endif
 
-    // If no heightmap is set on any layer, we don't need to try and blend them based on height...
-#if defined(_HEIGHT_BASED_BLEND) && LAYERS_HEIGHTMAP_ENABLE
+#if LAYERS_HEIGHTMAP_ENABLE
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _HeightCenter3) * _HeightAmplitude3;
-    SetEnabledHeightByLayer(height0, height1, height2, height3);
-    float4 heights = float4(height0, height1, height2, height3);
+    // Height is affected by tiling property and by object scale (depends on option).
+    // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
+    ApplyDisplacementTileScale(height0, height1, height2, height3);
 
-    blendMasks = ApplyHeightBlend(heights, blendMasks);
+    #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
+    // Add main layer influence if any (simply add main layer add on other layer)
+    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
+    // is not actually underneath any visible layer so we don't want to inherit its height.
+    float influenceMask = blendMasks.a * influenceMask;
+    height1 += height0 * _InheritBaseHeight1 * influenceMask;
+    height2 += height0 * _InheritBaseHeight2 * influenceMask;
+    height3 += height0 * _InheritBaseHeight3 * influenceMask;
+    #endif
+
+    SetEnabledHeightByLayer(height0, height1, height2, height3);
+
+    #if defined(_HEIGHT_BASED_BLEND)
+    // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
+    blendMasks = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMasks);
+    #endif
 #endif
 
     ComputeMaskWeights(blendMasks, outWeights);
@@ -1385,11 +1400,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
 
-    float influenceMask = 0.0f;
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    influenceMask = GetInfluenceMask(layerTexCoord);
-#endif
-
     float depthOffset0 = ApplyPerPixelDisplacement0(input, V, layerTexCoord);
     float depthOffset1 = ApplyPerPixelDisplacement1(input, V, layerTexCoord);
     float depthOffset2 = ApplyPerPixelDisplacement2(input, V, layerTexCoord);
@@ -1405,8 +1415,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Note: If per pixel displacement is enabled it mean we will fetch again the various heightmaps at the intersection location. Not sure the compiler can optimize.
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
+    float influenceMask = 0.0f;
+#if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    influenceMask = GetInfluenceMask(layerTexCoord);
+#endif
     float weights[_MAX_LAYER];
-    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, weights);
+    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, influenceMask, weights);
 
     float depthOffset = PROP_BLEND_SCALAR(depthOffset, weights);
 #ifdef _DEPTHOFFSET_ON
