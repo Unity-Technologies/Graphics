@@ -1,3 +1,63 @@
+float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor, float3 objectScale)
+{
+    // This call will work for both LayeredLit and Lit shader
+    LayerTexCoord layerTexCoord;
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    GetLayerTexCoord(texCoord0, texCoord1, texCoord2, texCoord3, positionWS, normalWS, layerTexCoord);
+
+    // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
+    // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
+    float lod = 0.0;
+    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
+    float3 displ = height * normalWS;
+
+    // Applying scaling of the object if requested
+    displ *= objectScale;
+
+    return displ;
+}
+
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, float3 objectScale, inout float3 positionWS)
+{
+// If tessellation is enabled we apply displacement map after tessellation
+#if defined(_VERTEX_DISPLACEMENT) && !defined(TESSELLATION_ON)
+    positionWS += GetVertexDisplacement(positionWS, normalWS,
+    #ifdef ATTRIBUTES_NEED_TEXCOORD0
+        input.uv0,
+    #else
+        float2(0.0, 0.0),
+    #endif
+    #ifdef ATTRIBUTES_NEED_TEXCOORD1
+        input.uv1,
+    #else
+        float2(0.0, 0.0),
+    #endif
+    #ifdef ATTRIBUTES_NEED_TEXCOORD2
+        input.uv2,
+    #else
+        float2(0.0, 0.0),
+    #endif
+    #ifdef ATTRIBUTES_NEED_TEXCOORD3
+        input.uv3,
+    #else
+        float2(0.0, 0.0),
+    #endif            
+    #ifdef ATTRIBUTES_NEED_COLOR
+        input.color,
+    #else
+        float4(0.0, 0.0, 0.0, 0.0),
+    #endif      
+        objectScale);
+#endif
+    
+#ifdef _VERTEX_WIND
+    float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
+    ApplyWindDisplacement(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, _Time);
+#endif
+}
+
+#ifdef TESSELLATION_ON
+
 float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
     float maxDisplacement = GetMaxDisplacement();
@@ -72,49 +132,37 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // y - 2->0 edge
 // z - 0->1 edge
 // w - inside tessellation factor
-float3 GetTessellationDisplacement(VaryingsMeshToDS input)
+void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, float3 objectScale, inout float3 positionWS)
 {
-    // This call will work for both LayeredLit and Lit shader
-    LayerTexCoord layerTexCoord;
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-    GetLayerTexCoord(
-#ifdef VARYINGS_DS_NEED_TEXCOORD0
+#if defined(_VERTEX_DISPLACEMENT)
+    positionWS += GetVertexDisplacement(positionWS, normalWS,
+    #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
-#else
+    #else
         float2(0.0, 0.0),
-#endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD1
+    #endif
+    #ifdef VARYINGS_DS_NEED_TEXCOORD1
         input.texCoord1,
-#else
+    #else
         float2(0.0, 0.0),
-#endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD2
+    #endif
+    #ifdef VARYINGS_DS_NEED_TEXCOORD2
         input.texCoord2,
-#else
+    #else
         float2(0.0, 0.0),
-#endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD3
+    #endif
+    #ifdef VARYINGS_DS_NEED_TEXCOORD3
         input.texCoord3,
-#else
+    #else
         float2(0.0, 0.0),
-#endif
-        input.positionWS,
-        input.normalWS,
-        layerTexCoord);
-
-    // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
-    float lod = 0.0;
-    float4 vertexColor = float4(0.0, 0.0, 0.0, 0.0);
-#ifdef VARYINGS_DS_NEED_COLOR
-    vertexColor = input.color;
-#endif
-    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
-    float3 displ = height * input.normalWS;
-
-        // Applying scaling of the object if requested
-#ifdef _TESSELLATION_OBJECT_SCALE
-    displ *= input.objectScale;
-#endif
-
-    return displ;
+    #endif            
+    #ifdef VARYINGS_DS_NEED_COLOR
+        input.color,
+    #else
+        float4(0.0, 0.0, 0.0, 0.0),
+    #endif      
+        objectScale);
+#endif // _VERTEX_DISPLACEMENT
 }
+
+#endif // #ifdef TESSELLATION_ON

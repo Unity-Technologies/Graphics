@@ -29,6 +29,7 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant23              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant23                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=23
 #pragma kernel Deferred_Indirect_Fptl_Variant24              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant24                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Fptl_Variant25              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant25                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=25
+#pragma kernel Deferred_Indirect_Fptl_Variant26              SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant26                  USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=26
 
 /* Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
 #pragma kernel Deferred_Indirect_Clustered_Variant0          SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant0              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=0
@@ -57,6 +58,7 @@
 #pragma kernel Deferred_Indirect_Clustered_Variant23         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant23             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=23
 #pragma kernel Deferred_Indirect_Clustered_Variant24         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant24             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Clustered_Variant25         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant25             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=25
+#pragma kernel Deferred_Indirect_Clustered_Variant26         SHADE_OPAQUE_ENTRY=Deferred_Indirect_Clustered_Variant26             USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=26
 */
 
 #define LIGHTLOOP_TILE_PASS 1

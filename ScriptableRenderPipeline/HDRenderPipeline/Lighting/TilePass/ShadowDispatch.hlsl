@@ -11,14 +11,19 @@
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
 
 
-#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	// enables hardcoded resources and algorithm for directional lights
-#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		// enables hardcoded resources and algorithm for punctual lights
-//#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	// enables separate resources and algorithms for spot and point lights
+#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	    // enables hardcoded resources and algorithm for directional lights
+#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		    // enables hardcoded resources and algorithm for punctual lights
+//#define SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS  // enables separate cascade sampling variants for each cascade
+//#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
 // directional
 #define SHADOW_DISPATCH_DIR_TEX 3
 #define SHADOW_DISPATCH_DIR_SMP 0
-#define SHADOW_DISPATCH_DIR_ALG GPUSHADOWALGORITHM_PCF_TENT_5X5
+#define SHADOW_DISPATCH_DIR_ALG   GPUSHADOWALGORITHM_PCF_TENT_5X5   // all cascades
+#define SHADOW_DISPATCH_DIR_ALG_0 GPUSHADOWALGORITHM_PCF_TENT_7X7   // 1st cascade
+#define SHADOW_DISPATCH_DIR_ALG_1 GPUSHADOWALGORITHM_PCF_TENT_5X5   // 2nd cascade
+#define SHADOW_DISPATCH_DIR_ALG_2 GPUSHADOWALGORITHM_PCF_TENT_3X3   // 3rd cascade
+#define SHADOW_DISPATCH_DIR_ALG_3 GPUSHADOWALGORITHM_PCF_1TAP       // 4th cascade
 // point
 #define SHADOW_DISPATCH_POINT_TEX 3
 #define SHADOW_DISPATCH_POINT_SMP 0
@@ -38,7 +43,11 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 {
 	Texture2DArray	        tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX];
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_DIR_SMP];
-	uint			        algo     = SHADOW_DISPATCH_DIR_ALG;
+#ifdef SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS
+	uint			        algo[kMaxShadowCascades] = { SHADOW_DISPATCH_DIR_ALG_0, SHADOW_DISPATCH_DIR_ALG_1, SHADOW_DISPATCH_DIR_ALG_2, SHADOW_DISPATCH_DIR_ALG_3 };
+#else
+	uint                    algo = SHADOW_DISPATCH_DIR_ALG;
+#endif
 
 	return EvalShadow_CascadedDepth_Blend( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
@@ -93,6 +102,10 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 #undef SHADOW_DISPATCH_DIR_TEX
 #undef SHADOW_DISPATCH_DIR_SMP
 #undef SHADOW_DISPATCH_DIR_ALG
+#undef SHADOW_DISPATCH_DIR_ALG_0
+#undef SHADOW_DISPATCH_DIR_ALG_1
+#undef SHADOW_DISPATCH_DIR_ALG_2
+#undef SHADOW_DISPATCH_DIR_ALG_3
 #undef SHADOW_DISPATCH_POINT_TEX
 #undef SHADOW_DISPATCH_POINT_SMP
 #undef SHADOW_DISPATCH_POINT_ALG

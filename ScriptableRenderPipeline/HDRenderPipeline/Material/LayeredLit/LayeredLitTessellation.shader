@@ -152,8 +152,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
         [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
-        _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
-
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
@@ -166,14 +164,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         // Following are builtin properties
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
-        // Wind
-        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
-        _InitialBend("Initial Bend", float) = 1.0
-        _Stiffness("Stiffness", float) = 1.0
-        _Drag("Drag", float) = 1.0
-        _ShiverDrag("Shiver Drag", float) = 0.2
-        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
@@ -211,7 +201,22 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
+        [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+        // Displacement map
+        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
+        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
+        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
+
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -244,23 +249,21 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
 
-        // Tesselation specific
-        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 1
+        [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
+        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
+        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
+        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
+        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
+
+        // Tessellation specific
+        [Enum(None, 0, Phong, 1)] _TessellationMode("Tessellation mode", Float) = 0
         _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
         _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
         _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
-        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
-        [ToggleOff] _TessellationTilingScale("Tessellation tiling scale", Float) = 1.0
         // TODO: Handle culling mode for backface culling
-
-        [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
-        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
-        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
-        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
-        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
     }
 
     HLSLINCLUDE
@@ -270,14 +273,15 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // #pragma enable_d3d11_debug_symbols
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    // Default is _TESSELLATION_PHONG
-    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
-    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
-    #pragma shader_feature _TESSELLATION_TILING_SCALE
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _VERTEX_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
+    #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _VERTEX_WIND
+    #pragma shader_feature _TESSELLATION_PHONG
 
     #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
@@ -318,7 +322,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
-    #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
@@ -338,6 +341,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #define TESSELLATION_ON
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
+    // This shader support vertex modification
+    #define HAVE_VERTEX_MODIFICATION
+    #define HAVE_TESSELLATION_MODIFICATION
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -400,6 +406,38 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
+        // This pass is the same as GBuffer only it does not do alpha test (the clip instruction is removed)
+        // This is due to the fact that on GCN, any shader with a clip instruction cannot benefit from HiZ so when we do a prepass, in order to get the most performance, we need to make a special case in the subsequent GBuffer pass.
+        Pass
+        {
+            Name "GBufferWithPrepass"  // Name is not used
+            Tags { "LightMode" = "GBufferWithPrepass" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #define _BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
@@ -599,8 +637,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         Pass
         {
-            Name "ForwardDisplayDebug" // Name is not used
-            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDebugDisplay" // Name is not used
+            Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]

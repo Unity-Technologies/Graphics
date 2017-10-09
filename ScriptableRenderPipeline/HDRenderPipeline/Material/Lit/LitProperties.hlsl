@@ -4,16 +4,16 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
-#ifndef LAYERED_LIT_SHADER
-
-TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
-
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER2D(sampler_DistortionVectorMap);
 
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER2D(sampler_EmissiveColorMap);
+
+#ifndef LAYERED_LIT_SHADER
+
+TEXTURE2D(_DiffuseLightingMap);
+SAMPLER2D(sampler_DiffuseLightingMap);
 
 TEXTURE2D(_BaseColorMap);
 SAMPLER2D(sampler_BaseColorMap);
@@ -96,6 +96,12 @@ float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
 float _EnableSpecularOcclusion;
+
+// Transparency
+float3 _TransmittanceColor;
+float _IOR;
+float _ATDistance;
+float _ThicknessMultiplier;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
@@ -191,10 +197,10 @@ float _InheritBaseHeight3;
 float _InheritBaseColor1;
 float _InheritBaseColor2;
 float _InheritBaseColor3;
-float _LayerTilingBlendMask;
 PROP_DECL(float, _HeightOffset);
 float _HeightTransition;
 
+float4 _LayerMaskMap_ST;
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
 float4 _UVMappingMaskBlendMask;

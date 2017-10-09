@@ -28,6 +28,7 @@
 #define LIGHTFEATUREFLAGS_DIRECTIONAL (1024)
 #define LIGHTFEATUREFLAGS_ENV (2048)
 #define LIGHTFEATUREFLAGS_SKY (4096)
+#define LIGHTFEATUREFLAGS_SSL (8192)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields
@@ -38,7 +39,7 @@
 #define USE_LEFT_HAND_CAMERA_SPACE (1)
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
-#define NUM_FEATURE_VARIANTS (26)
+#define NUM_FEATURE_VARIANTS (27)
 #define LIGHT_FEATURE_MASK_FLAGS (65280)
 #define MATERIAL_FEATURE_MASK_FLAGS (255)
 

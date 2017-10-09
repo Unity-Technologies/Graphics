@@ -47,7 +47,6 @@ Shader "HDRenderPipeline/Unlit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     // #pragma shader_feature _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -150,8 +149,8 @@ Shader "HDRenderPipeline/Unlit"
 
         Pass
         {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardDisplayDebug" }
+            Name "ForwardDebugDisplay"
+            Tags { "LightMode" = "ForwardDebugDisplay" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -196,7 +195,7 @@ Shader "HDRenderPipeline/Unlit"
         Pass
         {
             Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardOnlyOpaqueDisplayDebug" }
+            Tags { "LightMode" = "ForwardOnlyOpaqueDebugDisplay" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
