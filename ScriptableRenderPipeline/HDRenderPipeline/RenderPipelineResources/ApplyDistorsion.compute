@@ -1,7 +1,9 @@
 ﻿#include "../../Core/ShaderLibrary/Common.hlsl"
+#include "../../Core/ShaderLibrary/Packing.hlsl"
 #include "../Material/Builtin/BuiltinData.hlsl"
 
 Texture2D<float4> _DistortionTexture;
+Texture2D<float4> _StencilTexture;
 Texture2D<float4> _GaussianPyramidColorTexture;
 RWTexture2D<float4> _CameraColorTexture;
 
@@ -16,6 +18,16 @@ CBUFFER_END
 [numthreads(8, 8, 1)]
 void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
 {
+    // Reject pixels based on stencil buffer
+    // 3rd bit is 1 for rejected pixels
+    uint stencil = UnpackByte(_StencilTexture.Load(uint3(dispatchThreadId, 0)).r);
+    bool isRejected = stencil & 4 != 0;
+    //bool isRejected = (uint(stencil) & 4) != 0;
+    /*if (isRejected)
+        return;*/
+
+    _CameraColorTexture[dispatchThreadId] = float4(isRejected, isRejected, isRejected, 1.0);
+    return;
     // We use a bias when fetching distortion source pixels
     // This avoid artifacts when a distortion is overlapped by an opaque object
     const float _FetchBias = 0.9;

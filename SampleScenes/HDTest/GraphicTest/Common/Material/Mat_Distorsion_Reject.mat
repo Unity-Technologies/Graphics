@@ -6,11 +6,12 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_Distorsion_Ripple
+  m_Name: Mat_Distorsion_Reject
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTION_ON _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF
-    _ENABLESPECULAROCCLUSION_OFF _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON _DOUBLESIDEDENABLE_OFF
+    _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEVERTEXDISPLACEMENT_OFF
+    _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -48,7 +49,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DistortionVectorMap:
-        m_Texture: {fileID: 8600000, guid: b47c3f363d01c934e91b198a745925eb, type: 2}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissiveColorMap:
