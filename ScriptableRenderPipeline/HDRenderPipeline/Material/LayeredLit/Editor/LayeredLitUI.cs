@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 using System.Linq;
 
@@ -17,6 +16,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private class StylesLayer
         {
+            public readonly Color[] layerColors =
+            {
+                Color.white,
+                Color.red,
+                Color.green,
+                Color.blue
+            };
+
             public readonly GUIContent[] layerLabels =
             {
                 new GUIContent("Main layer"),
@@ -41,7 +48,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
-            public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
             public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
             public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
 
@@ -53,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
             public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
 
-            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity as Density", "Use Opacity as Density.");
+            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity map as Density map", "Use opacity map as (alpha channel of base color) as Density map.");
             public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Inherit the normal from the base layer.");
             public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Inherit the height from the base layer.");
             public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the base color from the base layer.");
@@ -64,10 +70,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public StylesLayer()
             {
-                layerLabelColors[0].normal.textColor = Color.white;
-                layerLabelColors[1].normal.textColor = Color.red;
-                layerLabelColors[2].normal.textColor = Color.green;
-                layerLabelColors[3].normal.textColor = Color.blue;
+                layerLabelColors[0].normal.textColor = layerColors[0];
+                layerLabelColors[1].normal.textColor = layerColors[1];
+                layerLabelColors[2].normal.textColor = layerColors[2];
+                layerLabelColors[3].normal.textColor = layerColors[3];
             }
         }
 
@@ -109,8 +115,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kUVBlendMask = "_UVBlendMask";
         MaterialProperty UVMappingMaskBlendMask = null;
         const string kUVMappingMaskBlendMask = "_UVMappingMaskBlendMask";
-        MaterialProperty layerTilingBlendMask = null;
-        const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
         MaterialProperty texWorldScaleBlendMask = null;
         const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
         MaterialProperty useMainLayerInfluence = null;
@@ -154,7 +158,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
-            layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
 
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
@@ -391,10 +394,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
             }
-            else
-            {
-                m_MaterialEditor.ShaderProperty(layerTilingBlendMask, styles.layerTilingBlendMaskText);
-            }
+            m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
             EditorGUI.indentLevel--;
 
             m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
@@ -441,16 +441,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool layersChanged = false;
             Material material = m_MaterialEditor.target as Material;
 
+            Color originalContentColor = GUI.contentColor;
+
             for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
             {
                 EditorGUI.BeginChangeCheck();
+                GUI.contentColor = styles.layerColors[layerIndex];
+
                 m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
                 if (EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
+                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
                     layersChanged = true;
                 }
+
+                GUI.contentColor = originalContentColor;
 
                 GUILayout.BeginHorizontal();
                 {

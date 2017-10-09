@@ -1,36 +1,36 @@
-using UnityEngine.Rendering;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRISkyRenderer : SkyRenderer
     {
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
-        private HDRISkySettings m_HdriSkyParams;
+        MaterialPropertyBlock m_PropertyBlock;
+        HDRISkySettings m_HdriSkyParams;
 
         public HDRISkyRenderer(HDRISkySettings hdriSkyParams)
         {
             m_HdriSkyParams = hdriSkyParams;
+            m_PropertyBlock = new MaterialPropertyBlock();
         }
 
         public override void Build()
         {
-            m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyHDRI");
+            m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyHDRI");
         }
 
         public override void Cleanup()
         {
-            Utilities.Destroy(m_SkyHDRIMaterial);
+            CoreUtils.Destroy(m_SkyHDRIMaterial);
         }
 
         public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                Utilities.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 
@@ -40,10 +40,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
 
             // This matrix needs to be updated at the draw call frequency.
-            MaterialPropertyBlock properties = new MaterialPropertyBlock();
-            properties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+            m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
-            Utilities.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, properties, renderForCubemap ? 0 : 1);
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
         }
 
         public override bool IsSkyValid()

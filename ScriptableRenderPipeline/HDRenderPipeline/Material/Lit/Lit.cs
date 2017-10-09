@@ -38,6 +38,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static float s_SkinSpecularValue = 0.028f;
         }
 
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum RefractionMode
+        {
+            None = 0,
+            ThickPlane = 1,
+            ThickSphere = 2,
+            ThinPlane = 3
+        };
+
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
@@ -90,6 +99,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float coatCoverage;
             [SurfaceDataAttributes("Coat IOR")]
             public float coatIOR; // Value is [0..1] for artists but the UI will display the value between [1..2]
+
+            // Transparency
+            [SurfaceDataAttributes("Indice of refraction")]
+            public float ior;
+            // Reuse thickness from SSS
+            [SurfaceDataAttributes("Transmittance Color")]
+            public Vector3 transmittanceColor;
+            [SurfaceDataAttributes("Transmittance Absorption Distance")]
+            public float atDistance;
         };
 
         //-----------------------------------------------------------------------------
@@ -148,6 +166,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 coatNormalWS;
             public float coatCoverage;
             public float coatIOR; // CoatIOR is in range[1..2] it is surfaceData + 1
+
+            // Transparency
+            public float ior;
+            // Reuse thickness from SSS
+            public Vector3 absorptionCoefficient;
         };
 
         //-----------------------------------------------------------------------------
@@ -260,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build(RenderPipelineResources renderPipelineResources)
         {
-            m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
+            m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
             // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
             m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
@@ -288,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Cleanup()
         {
-            Utilities.Destroy(m_InitPreFGD);
+            CoreUtils.Destroy(m_InitPreFGD);
 
             // TODO: how to delete RenderTexture ? or do we need to do it ?
             m_isInit = false;
@@ -299,9 +322,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_isInit)
                 return;
 
-            using (new Utilities.ProfilingSample("Init PreFGD", cmd))
+            using (new ProfilingSample(cmd, "Init PreFGD"))
             {
-                Utilities.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
+                CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
             m_isInit = true;
         }

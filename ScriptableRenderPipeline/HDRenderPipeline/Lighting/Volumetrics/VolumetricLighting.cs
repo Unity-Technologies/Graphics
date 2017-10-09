@@ -1,10 +1,6 @@
 using System;
 using UnityEngine.Rendering;
 
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
 
@@ -144,13 +140,13 @@ public partial class HDRenderPipeline : RenderPipeline
 
     void ClearVolumetricLightingBuffers(CommandBuffer cmd, bool isFirstFrame)
     {
-        using (new Utilities.ProfilingSample("Clear volumetric lighting buffers", cmd))
+        using (new ProfilingSample(cmd, "Clear volumetric lighting buffers"))
         {
-            Utilities.SetRenderTarget(cmd, m_VolumetricLightingBufferCurrentFrameRT, ClearFlag.ClearColor, Color.black);
+            CoreUtils.SetRenderTarget(cmd, m_VolumetricLightingBufferCurrentFrameRT, ClearFlag.Color, Color.black);
 
             if (isFirstFrame)
             {
-                Utilities.SetRenderTarget(cmd, m_VolumetricLightingBufferAccumulated, ClearFlag.ClearColor, Color.black);
+                CoreUtils.SetRenderTarget(cmd, m_VolumetricLightingBufferAccumulated, ClearFlag.Color, Color.black);
             }
         }
     }
@@ -197,7 +193,7 @@ public partial class HDRenderPipeline : RenderPipeline
     {
         if (!SetGlobalVolumeProperties(m_VolumetricLightingEnabled, cmd, m_VolumetricLightingCS)) { return; }
 
-        using (new Utilities.ProfilingSample("VolumetricLighting", cmd))
+        using (new ProfilingSample(cmd, "VolumetricLighting"))
         {
             bool enableClustered = m_Asset.tileSettings.enableClustered && m_Asset.tileSettings.enableTileAndCluster;
 

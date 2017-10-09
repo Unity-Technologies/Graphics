@@ -1,32 +1,13 @@
-using UnityEngine.Rendering;
-using System;
-using System.Linq;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // This HDRenderPipeline assume linear lighting. Don't work with gamma.
+    // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
     public class HDRenderPipelineAsset : RenderPipelineAsset
     {
-#if UNITY_EDITOR
-        [MenuItem("RenderPipeline/HDRenderPipeline/Create Pipeline Asset", false, 16)]
-        static void CreateHDRenderPipeline()
+        HDRenderPipelineAsset()
         {
-            var instance = CreateInstance<HDRenderPipelineAsset>();
-            AssetDatabase.CreateAsset(instance, Utilities.GetHDRenderPipelinePath() + "HDRenderPipelineAsset.asset");
-
-            // If it exist, load renderPipelineResources
-            instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.GetRenderPipelineResourcesPath());
         }
-#endif
-
-        private HDRenderPipelineAsset()
-        { }
 
         protected override IRenderPipeline InternalCreatePipeline()
         {
@@ -34,15 +15,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private RenderPipelineResources m_RenderPipelineResources;
+        RenderPipelineResources m_RenderPipelineResources;
         public RenderPipelineResources renderPipelineResources
         {
             get { return m_RenderPipelineResources; }
             set { m_RenderPipelineResources = value; }
         }
 
-        // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieve those properties via serialization/reflection
-        // Doing it this way allow to change parameters name and still retrieve correct serialized value
+        // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieves those properties via serialization/reflection
+        // Doing it this way allows to change parameters name and still retrieve correct serialized values
 
         // Renderer Settings
         public RenderingSettings renderingSettings = new RenderingSettings();
@@ -62,13 +43,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Shader m_DefaultShader;
 
-        public Material DefaultDiffuseMaterial
+        public Material defaultDiffuseMaterial
         {
             get { return m_DefaultDiffuseMaterial; }
             private set { m_DefaultDiffuseMaterial = value; }
         }
 
-        public Shader DefaultShader
+        public Shader defaultShader
         {
             get { return m_DefaultShader; }
             private set { m_DefaultShader = value; }
@@ -118,7 +99,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return null;
         }
-
 
         public void OnValidate()
         {

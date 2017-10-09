@@ -16,15 +16,16 @@ MonoBehaviour:
   renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepassWithDeferredRendering: 0
+    renderAlphaTestOnlyInDeferredPrepass: 0
   sssSettings:
     numProfiles: 2
     profiles:
     - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
     - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
-    texturingModeFlags: 1
-    transmissionFlags: 5460
+    texturingModeFlags: 0
+    transmissionFlags: 5462
     thicknessRemaps:
-    - {x: 0, y: 12.031147, z: 0, w: 0}
+    - {x: 0, y: 8.152544, z: 0, w: 0}
     - {x: 0, y: 0.2873168, z: 0, w: 0}
     - {x: 0, y: 5, z: 0, w: 0}
     - {x: 0, y: 12.031147, z: 0, w: 0}

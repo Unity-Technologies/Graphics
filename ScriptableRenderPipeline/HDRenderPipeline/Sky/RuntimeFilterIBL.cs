@@ -1,27 +1,29 @@
 ﻿using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class IBLFilterGGX
     {
-        RenderTexture m_GgxIblSampleData              = null;
-        int           k_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width
+        RenderTexture m_GgxIblSampleData;
+        int           m_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width
         const int     k_GgxIblMipCountMinusOne        = 6;    // Height (UNITY_SPECCUBE_LOD_STEPS)
 
-        ComputeShader m_ComputeGgxIblSampleDataCS     = null;
+        ComputeShader m_ComputeGgxIblSampleDataCS;
         int           m_ComputeGgxIblSampleDataKernel = -1;
 
-        ComputeShader m_BuildProbabilityTablesCS      = null;
+        ComputeShader m_BuildProbabilityTablesCS;
         int           m_ConditionalDensitiesKernel    = -1;
         int           m_MarginalRowDensitiesKernel    = -1;
 
-        Material      m_GgxConvolveMaterial           = null; // Convolves a cubemap with GGX
-
-        bool          m_SupportMIS = !TextureCache.isMobileBuildTarget;
+        Material      m_GgxConvolveMaterial; // Convolves a cubemap with GGX
 
         RenderPipelineResources m_RenderPipelinesResources;
+
+        public bool supportMis
+        {
+            get { return !TextureCache.isMobileBuildTarget; }
+        }
 
         public IBLFilterGGX(RenderPipelineResources renderPipelinesResources)
         {
@@ -33,11 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_GgxIblSampleData != null;
         }
 
-        public bool SupportMIS
-        {
-            get { return m_SupportMIS; }
-        }
-
         public void Initialize(CommandBuffer cmd)
         {
             if (!m_ComputeGgxIblSampleDataCS)
@@ -46,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
-            if (!m_BuildProbabilityTablesCS && SupportMIS)
+            if (!m_BuildProbabilityTablesCS && supportMis)
             {
                 m_BuildProbabilityTablesCS   = m_RenderPipelinesResources.buildProbabilityTables;
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
@@ -55,12 +52,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_GgxConvolveMaterial)
             {
-                m_GgxConvolveMaterial = Utilities.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
+                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
             }
 
             if (!m_GgxIblSampleData)
             {
-                m_GgxIblSampleData = new RenderTexture(k_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                m_GgxIblSampleData = new RenderTexture(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 m_GgxIblSampleData.useMipMap = false;
                 m_GgxIblSampleData.autoGenerateMips = false;
                 m_GgxIblSampleData.enableRandomWrite = true;
@@ -69,9 +66,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
 
-                using (new Utilities.ProfilingSample("Compute GGX IBL Sample Data", cmd))
+                using (new ProfilingSample(cmd, "Compute GGX IBL Sample Data"))
                 {
-                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
+                    cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
                 }
             }
         }
@@ -90,22 +87,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
             {
-                string sampleName = String.Format("Filter Cubemap Mip {0}", mip);
-                cmd.BeginSample(sampleName);
-
-                for (int face = 0; face < 6; ++face)
+                using (new ProfilingSample(cmd, "Filter Cubemap Mip {0}", mip))
                 {
-                    Vector4   faceSize  = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
-                    Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, faceSize, worldToViewMatrices[face], true);
+                    for (int face = 0; face < 6; ++face)
+                    {
+                        var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
+                        var transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, faceSize, worldToViewMatrices[face], true);
 
-                    MaterialPropertyBlock props = new MaterialPropertyBlock();
-                    props.SetFloat("_Level", mip);
-                    props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+                        var props = new MaterialPropertyBlock();
+                        props.SetFloat("_Level", mip);
+                        props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
-                    Utilities.SetRenderTarget(cmd, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
-                    Utilities.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
+                    }
                 }
-                cmd.EndSample(sampleName);
             }
         }
 
@@ -135,10 +131,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int numRows = conditionalCdf.height;
 
-            using (new Utilities.ProfilingSample("Build Probability Tables", cmd))
+            using (new ProfilingSample(cmd, "Build Probability Tables"))
             {
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
+                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
+                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
             }
 
             m_GgxConvolveMaterial.EnableKeyword("USE_MIS");

@@ -675,7 +675,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var lightData = new SFiniteLightData[numVolumes];
             var boundData = new SFiniteLightBound[numVolumes];
             var worldToView = WorldToCamera(camera);
-            bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2))) < 0.0f;      // 3x3 Determinant.
 
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
@@ -1004,7 +1003,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
             else
             {
+                #pragma warning disable CS0162
                 BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+                #pragma warning restore CS0162
             }
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
@@ -1023,7 +1024,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
             else
             {
+                #pragma warning disable CS0162
                 PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+                #pragma warning restore CS0162
             }
 
             // do deferred lighting

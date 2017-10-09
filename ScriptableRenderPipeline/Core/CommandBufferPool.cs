@@ -4,11 +4,11 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    internal class ObjectPool<T> where T : new()
+    class ObjectPool<T> where T : new()
     {
-        private readonly Stack<T> m_Stack = new Stack<T>();
-        private readonly UnityAction<T> m_ActionOnGet;
-        private readonly UnityAction<T> m_ActionOnRelease;
+        readonly Stack<T> m_Stack = new Stack<T>();
+        readonly UnityAction<T> m_ActionOnGet;
+        readonly UnityAction<T> m_ActionOnRelease;
 
         public int countAll { get; private set; }
         public int countActive { get { return countAll - countInactive; } }
@@ -46,27 +46,28 @@ namespace UnityEngine.Experimental.Rendering
             m_Stack.Push(element);
         }
     }
-    
+
     public static class CommandBufferPool
     {
-        private static ObjectPool<CommandBuffer> m_BufferPool = new ObjectPool<CommandBuffer>(null, x => x.Clear());
+        static ObjectPool<CommandBuffer> s_BufferPool = new ObjectPool<CommandBuffer>(null, x => x.Clear());
 
         public static CommandBuffer Get()
         {
-            var cmd = m_BufferPool.Get();
+            var cmd = s_BufferPool.Get();
             cmd.name = "Unnamed Command Buffer";
             return cmd;
         }
+
         public static CommandBuffer Get(string name)
         {
-            var cmd = m_BufferPool.Get();
+            var cmd = s_BufferPool.Get();
             cmd.name = name;
             return cmd;
         }
 
         public static void Release(CommandBuffer buffer)
         {
-            m_BufferPool.Release(buffer);
+            s_BufferPool.Release(buffer);
         }
     }
 }

@@ -474,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_ActiveEntriesCount == 0)
                 return;
 
-            var profilingSample = new HDPipeline.Utilities.ProfilingSample(string.Format("Shadowmap{0}",m_TexSlot), cmd);
+            var profilingSample = new ProfilingSample(cmd, "Shadowmap{0}", m_TexSlot);
 
             string cbName = "";
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
@@ -1394,7 +1394,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
-            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows", cmd))
+            using (new ProfilingSample(cmd, "Render Shadows"))
             {
                 foreach( var sm in m_Shadowmaps )
                 {

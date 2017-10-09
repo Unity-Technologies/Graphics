@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
@@ -45,6 +45,16 @@
 // Use optimization of Precomputing LambdaV
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
+
+// Color pyramid (width, height, lodcount, Unused)
+float4 _GaussianPyramidColorMipSize;
+TEXTURE2D(_GaussianPyramidColorTexture);
+SAMPLER2D(sampler_GaussianPyramidColorTexture);
+
+// Depth pyramid (width, height, lodcount, Unused)
+float4 _PyramidDepthMipSize;
+TEXTURE2D(_PyramidDepthTexture);
+SAMPLER2D(sampler_PyramidDepthTexture);
 
 // Area light textures specific constant
 SamplerState ltc_linear_clamp_sampler;
@@ -101,42 +111,45 @@ bool HasMaterialFeatureFlag(int flag)
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
+    // Precomputed illumination (no dynamic lights) for all material types (except for the clear coat)
+    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | (MATERIAL_FEATURE_MASK_FLAGS & (~MATERIALFEATUREFLAGS_LIT_CLEAR_COAT)),
+
     // Standard>Specular
-    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  3 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  4 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  3 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  5 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // SSS
-    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  7 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
-    /*  9 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  7 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
+    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS,
+    /* 10 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS,
 
     // Aniso
-    /* 10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO,
-    /* 11 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO,
-    /* 12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
-    /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
-    /* 14 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /* 11 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /* 12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /* 14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISO,
+    /* 15 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_ANISO,
 
     // With foliage or crowd with SSS and standard can overlap a lot, better to have a dedicated combination
-    /* 15 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 17 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 19 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 17 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 19 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 20 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // ClearCoat
-    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
-    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
-    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
-    /* 24 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
+    /* 25 */ LIGHT_FEATURE_MASK_FLAGS | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT,
 
-    /* 25 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
+    /* 26 */ LIGHT_FEATURE_MASK_FLAGS | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
@@ -252,6 +265,19 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
+void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, inout BSDFData bsdfData)
+{
+    // Uses thickness from SSS's property set
+    bsdfData.ior = ior;
+    // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
+    bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+#if defined(_REFRACTION_THINPLANE)
+    bsdfData.thickness = 0.03;
+#else
+    bsdfData.thickness = max(0.000001, thickness);
+#endif
+}
+
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
 void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD)
@@ -338,6 +364,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdClearCoatData(surfaceData.coatNormalWS, surfaceData.coatCoverage, surfaceData.coatIOR, bsdfData);
     }
+
+#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+    // Note: Will override thickness of SSS's property set
+    FillMaterialIdTransparencyData(surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, bsdfData);
+#endif
 
     return bsdfData;
 }
@@ -1464,6 +1495,144 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_SSL
+// ----------------------------------------------------------------------------
+
+void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
+{
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+    weight = float2(0.0, 0.0);
+
+#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+    // Refraction process:
+    //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
+    //  2. We calculate the screen space position of the refracted point
+    //  3. If this point is available (ie: in color GBuffer and point is not in front of the object)
+    //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
+    //    b. Multiply by the transmittance for absorption (depends on the optical depth)
+
+    weight.x = 1.0;
+
+    float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
+    float opticalDepth = 0.0;
+
+    // For all refraction approximation, to calculate the refracted point in world space,
+    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
+    //   (We avoid to raymarch the depth texture to get the refracted point.)
+#if defined(_REFRACTION_THICKPLANE)
+    // Thick plane shape model:
+    //  We approximate locally the shape of the object as halfspace defined by the normal {bsdfData.normallWS} at {bsdfData.positionWS}
+    //  Thus, the light is refracted once.
+    //  It approximate cubic filled shapes
+    //
+    // However, we can't approximate the optical depth of the object, so we use a constant as parameter ({bsdfData.thickness})
+    
+    // Refracted ray
+    float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float distFromP = depth - posInput.depthVS;
+
+    float VoR = dot(-V, R);
+    refractedBackPointWS = posInput.positionWS + R * distFromP / VoR;
+    opticalDepth = bsdfData.thickness;
+
+#elif defined(_REFRACTION_THICKSPHERE)
+    // Thick sphere shape model:
+    //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
+    //  The sphere has a diameter of {bsdfData.thickness}
+    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
+    //
+    //  So the light is refracted twice: in and out of the tangent sphere
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float depthFromPosition = depth - posInput.depthVS;
+
+    // First refraction (tangent sphere in)
+    // Refracted ray
+    float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+    // Center of the tangent sphere
+    float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
+
+    // Second refraction (tangent sphere out)
+    float NoR1 = dot(bsdfData.normalWS, R1);
+    // Optical depth within the sphere
+    opticalDepth = -NoR1 * bsdfData.thickness;
+    // Out hit point in the tangent sphere
+    float3 P1 = posInput.positionWS + R1 * opticalDepth;
+    // Out normal
+    float3 N1 = normalize(C - P1);
+    // Out refracted ray
+    float3 R2 = refract(R1, N1, bsdfData.ior);
+    float N1oR2 = dot(N1, R2);
+    float VoR1 = dot(V, R1);
+
+    // Refracted source point
+    refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
+
+#elif defined(_REFRACTION_THINPLANE)
+    // Thin plane shape model:
+    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
+    //  with a thickness {bsdfData.thickness}
+
+    // Refracted ray
+    float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float distFromP = depth - posInput.depthVS;
+
+    // Optical depth within the thin plane
+    opticalDepth = bsdfData.thickness / dot(R, -bsdfData.normalWS);
+
+    // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior)
+    float VoR = dot(-V, R);
+    float VoN = dot(V, bsdfData.normalWS);
+    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
+#endif
+
+    // Calculate screen space coordinates of refracted point in back plane
+    float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
+    float2 refractedBackPointSS = ComputeScreenSpacePosition(refractedBackPointCS);
+    float refractedBackPointDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, refractedBackPointSS, 0.0).r, _ZBufferParams);
+
+    // Exit if texel is out of color buffer
+    // Or if the texel is from an object in front of the object
+    if (refractedBackPointDepth < posInput.depthVS
+        || any(refractedBackPointSS < 0.0)
+        || any(refractedBackPointSS > 1.0))
+    {
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, 0.0).rgb;
+        return;
+    }
+
+    // Map the roughness to the correct mip map level of the color pyramid
+    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, refractedBackPointSS.xy, mipLevel).rgb;
+
+    // Beer-Lamber law for absorption
+    float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
+    diffuseLighting *= transmittance;
+
+#else
+    // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, 0.0).rgb;
+#endif
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
 
@@ -1616,8 +1785,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLight
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
-    // envDiffuseLighting is not used in our case
-    diffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(lightLoopContext.directAmbientOcclusion, bsdfData.diffuseColor) + bakeDiffuseLighting;
+    // envDiffuseLighting is used for refraction
+    diffuseLighting = accLighting.envDiffuseLighting * accLighting.envDiffuseLightingWeight + (1.0 - accLighting.envDiffuseLightingWeight) * ((accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(lightLoopContext.directAmbientOcclusion, bsdfData.diffuseColor) + bakeDiffuseLighting);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
 }
 
