@@ -35,7 +35,7 @@ Shader "HDRenderPipeline/Lit"
 
         _TangentMap("TangentMap", 2D) = "bump" {}
         _TangentMapOS("TangentMapOS", 2D) = "white" {}
-        _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
+        _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
