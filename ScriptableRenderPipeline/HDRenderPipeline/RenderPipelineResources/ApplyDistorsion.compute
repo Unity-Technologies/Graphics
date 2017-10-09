@@ -29,7 +29,7 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     DecodeDistortion(encodedDistortion, distortion, distortionBlur, validForDistortion);
 
     // Get distortion source pixel mask (stored in _DistortionTexture.z)
-    uint2 distortedEncodedDistortionId = dispatchThreadId + uint2(distortion);
+    uint2 distortedEncodedDistortionId = dispatchThreadId + int2(distortion);
 
     float2 distordedDistortion;
     float2 distordedDistortionBlur;
@@ -40,7 +40,7 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     if (distordedValidForDistortion && validForDistortion)
     {
         // Get source pixel for distortion
-        float2 distordedUV = float2(dispatchThreadId + uint2(distortion * _FetchBias)) * _Size.zw;
+        float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
         float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur.x, 0.0, 1.0);
         float4 sampled = _GaussianPyramidColorTexture.SampleLevel(sampler_GaussianPyramidColorTexture, distordedUV, mip);
 
