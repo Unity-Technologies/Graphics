@@ -65,6 +65,8 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+        [HideInInspector] _DistortionStencilRef("Distortion Stencil Comparison", Int) = 1 // UnityEngine.Rendering.CompareFunction.Never
+        [ToggleOff] _DistortionNullify("Nullify distortion", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -228,6 +230,8 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
+                ReadMask 3
+                WriteMask 3
             }
 
             HLSLPROGRAM
@@ -256,6 +260,8 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
+                ReadMask 3
+                WriteMask 3
             }
 
             HLSLPROGRAM
@@ -283,6 +289,8 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
+                ReadMask 3
+                WriteMask 3
             }
 
             HLSLPROGRAM
@@ -400,6 +408,15 @@ Shader "HDRenderPipeline/Lit"
             ZTest [_ZTestMode]
             ZWrite off
             Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  4
+                Comp Always
+                Pass Replace
+                ReadMask 4
+                WriteMask 4
+            }
 
             HLSLPROGRAM
 

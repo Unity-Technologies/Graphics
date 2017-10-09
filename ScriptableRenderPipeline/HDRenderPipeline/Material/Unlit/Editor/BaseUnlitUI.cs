@@ -26,10 +26,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");	
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
-            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
+            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader"); 
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
             public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map", "Vector Map for the distorsion");
+            public static GUIContent distortionNullifyText = new GUIContent("Nullify Distortion", "Nullify distortion");
 
             public static string advancedText = "Advanced Options";
         }
@@ -72,6 +73,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionEnable = "_DistortionEnable";
         protected MaterialProperty distortionOnly = null;
         protected const string kDistortionOnly = "_DistortionOnly";
+        protected MaterialProperty distortionNullify = null;
+        protected const string kDistortionNullify = "_DistortionNullify";
         protected MaterialProperty distortionDepthTest = null;
         protected const string kDistortionDepthTest = "_DistortionDepthTest";
         protected MaterialProperty distortionVectorMap = null;
@@ -105,6 +108,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionOnly = FindProperty(kDistortionOnly, props, false);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props, false);
             distortionVectorMap = FindProperty(kDistortionVectorMap, props, false);
+            distortionNullify = FindProperty(kDistortionNullify, props, false);
         }
 
         void SurfaceTypePopup()
@@ -160,6 +164,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
                         m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
                         m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
+                        m_MaterialEditor.ShaderProperty(distortionNullify, StylesBaseUnlit.distortionNullifyText);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -285,6 +290,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 else
                 {
                     material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                }
+
+                bool distortionNullify = material.GetFloat(kDistortionNullify) > 0.0f;
+                if (distortionNullify)
+                {
+                    material.SetInt("_DistortionStencilRef", (int)UnityEngine.Rendering.CompareFunction.Always);
+                }
+                else
+                {
+                    material.SetInt("_DistortionStencilRef", (int)UnityEngine.Rendering.CompareFunction.Never);
                 }
             }
 
