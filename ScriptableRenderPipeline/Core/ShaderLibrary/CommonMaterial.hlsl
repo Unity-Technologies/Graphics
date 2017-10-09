@@ -9,12 +9,14 @@
 // Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
 void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
 {
-    // (0 <= anisotropy <= 1), therefore (0 <= anisoAspect <= 1)
+    // (0 <= abs(anisotropy) <= 1), therefore (0 <= anisoAspect <= 1)
     // The 0.9 factor limits the aspect ratio to 10:1.
-    float anisoAspect = sqrt(1.0 - 0.9 * anisotropy);
+    float anisoAspect = 1.0 - 0.9 * abs(anisotropy);
+    float anisoT = (anisotropy >= 0) ? rsqrt(anisoAspect) :  sqrt(anisoAspect);
+    float anisoB = (anisotropy >= 0) ?  sqrt(anisoAspect) : rsqrt(anisoAspect);
 
-    roughnessT = roughness / anisoAspect; // Distort along tangent (rougher)
-    roughnessB = roughness * anisoAspect; // Straighten along bitangent (smoother)
+    roughnessT = roughness * anisoT; // For positive anisotropy: distort along tangent (rougher)
+    roughnessB = roughness * anisoB; // For positive anisotropy: straighten along bitangent (smoother)
 }
 
 // Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
@@ -26,7 +28,7 @@ float3 ComputeGrainNormal(float3 grainDir, float3 V)
     return cross(B, grainDir);
 }
 
-// Fake anisotropic by distorting the normal.
+// Fake anisotropy by distorting the normal (non-negative anisotropy values only).
 // The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to N.
 // Anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
 float3 GetAnisotropicModifiedNormal(float3 grainDir, float3 N, float3 V, float anisotropy)
