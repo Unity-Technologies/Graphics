@@ -191,6 +191,9 @@ namespace UnityEditor.VFX.UI
             VFXSlot startSlot = presenter.model;
 
 
+            (node as IEdgeDrawerOwner).DirtyDrawer();
+
+
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
             VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
 
