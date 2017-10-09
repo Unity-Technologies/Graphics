@@ -198,7 +198,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, float4(1.0, 0.0, 0.0, 0.0), _UVDetailsMappingMask,
-                            positionWS, mappingType, _TexWorldScale, layerTexCoord);
+                            _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0,
+                            positionWS, _TexWorldScale,
+                            mappingType, layerTexCoord);
 }
 
 // This is call only in this file
@@ -437,8 +439,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
-
-    float3 interpolatedVertexNormal = input.worldToTangent[2].xyz;
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
@@ -710,7 +710,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
-                            positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
+                            _LayerMaskMap_ST.xy, _LayerMaskMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0,
+                            positionWS, _TexWorldScaleBlendMask,
+                            mappingType, layerTexCoord);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -732,11 +734,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask0, _UVDetailsMappingMask0,
-                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, 1.0
+                            _BaseColorMap0_ST.xy, _BaseColorMap0_ST.zw, _DetailMap0_ST.xy, _DetailMap0_ST.zw, 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
-                            );
+                            , positionWS, _TexWorldScale0,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR1)
@@ -745,7 +748,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask1, _UVDetailsMappingMask1,
-                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, tileObjectScale);
+                            _BaseColorMap1_ST.xy, _BaseColorMap1_ST.zw, _DetailMap1_ST.xy, _DetailMap1_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale1,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR2)
@@ -754,7 +759,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask2, _UVDetailsMappingMask2,
-                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, tileObjectScale);
+                            _BaseColorMap2_ST.xy, _BaseColorMap2_ST.zw, _DetailMap2_ST.xy, _DetailMap2_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale2,
+                            mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR3)
@@ -763,7 +770,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask3, _UVDetailsMappingMask3,
-                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, tileObjectScale);
+                            _BaseColorMap3_ST.xy, _BaseColorMap3_ST.zw, _DetailMap3_ST.xy, _DetailMap3_ST.zw, tileObjectScale,
+                            positionWS, _TexWorldScale3,
+                            mappingType, layerTexCoord);
 }
 
 // This is call only in this file
@@ -1235,38 +1244,36 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    float4 inputBlendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
-
-    float weights[_MAX_LAYER];
-
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
     ApplyDisplacementTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
+
+    float4 blendMask = GetBlendMask(layerTexCoord, vertexColor, true, lod);
+    #if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    // Add main layer influence if any (simply add main layer add on other layer)
+    // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
+    // is not actually underneath any visible layer so we don't want to inherit its height.
+    float influenceMask = blendMask.a * GetInfluenceMask(layerTexCoord, true, lod);
+    height1 += height0 * _InheritBaseHeight1 * influenceMask;
+    height2 += height0 * _InheritBaseHeight2 * influenceMask;
+    height3 += height0 * _InheritBaseHeight3 * influenceMask;
+    #endif
+
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
-    float4 resultBlendMasks = inputBlendMasks;
-#if defined(_HEIGHT_BASED_BLEND)
-    resultBlendMasks = ApplyHeightBlend(float4(height0, height1, height2, height3), inputBlendMasks);
-#endif
+    #if defined(_HEIGHT_BASED_BLEND)
+    blendMask = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMask);
+    #endif
 
-    ComputeMaskWeights(resultBlendMasks, weights);
-    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
-
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-    // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
-    float influenceMask = GetInfluenceMask(layerTexCoord, true, lod);
-    float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
-    return heightResult + height0 * inheritBaseHeight * inputBlendMasks.a * influenceMask; // We multiply by the input mask for the first layer because if the mask here is black it means that the layer is not actually underneath any visible layer so we don't want to inherit its height.
-#endif
-
-
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(blendMask, weights);
+    return BlendLayeredScalar(height0, height1, height2, height3, weights);
 #else
-    float heightResult = 0.0;
+    return 0.0;
 #endif
-    return heightResult;
 }
 
 // Calculate weights to apply to each layer

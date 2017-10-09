@@ -1,5 +1,11 @@
-﻿void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetail,
-                                    float3 positionWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
+﻿void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
+                                    float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetails,
+                                    // scale and bias for base and detail + global tiling factor (for layered lit only)
+                                    float2 texScale, float2 texBias, float2 texScaleDetails, float2 texBiasDetails, float additionalTiling,
+                                    // parameter for planar/triplanar
+                                    float3 positionWS, float worldScale,
+                                    // mapping type and output
+                                    int mappingType, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = uvMappingMask.x * texCoord0 +
@@ -11,10 +17,10 @@
     uvBase *= additionalTiling.xx;
 
 
-    float2 uvDetails =  uvMappingMaskDetail.x * texCoord0 +
-                        uvMappingMaskDetail.y * texCoord1 +
-                        uvMappingMaskDetail.z * texCoord2 +
-                        uvMappingMaskDetail.w * texCoord3;
+    float2 uvDetails =  uvMappingMaskDetails.x * texCoord0 +
+                        uvMappingMaskDetails.y * texCoord1 +
+                        uvMappingMaskDetails.z * texCoord2 +
+                        uvMappingMaskDetails.w * texCoord3;
 
     uvDetails *= additionalTiling.xx;
 
@@ -41,17 +47,17 @@
     }
 
     // Apply tiling options
-    ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uv = uvBase * texScale + texBias;
     // Detail map tiling option inherit from the tiling of the base
-    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(TRANSFORM_TEX(uvDetails, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uv = (uvDetails * texScaleDetails + texBiasDetails) * texScale + texBias;
 
-    ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));
-    
-    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.base).uvXZ = uvXZ * texScale + texBias;
+    ADD_IDX(layerTexCoord.base).uvXY = uvXY * texScale + texBias;
+    ADD_IDX(layerTexCoord.base).uvZY = uvZY * texScale + texBias;
+
+    ADD_IDX(layerTexCoord.details).uvXZ = (uvXZ * texScaleDetails + texBiasDetails) * texScale + texBias;
+    ADD_IDX(layerTexCoord.details).uvXY = (uvXY * texScaleDetails + texBiasDetails) * texScale + texBias;
+    ADD_IDX(layerTexCoord.details).uvZY = (uvZY * texScaleDetails + texBiasDetails) * texScale + texBias;
 
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
@@ -66,15 +72,15 @@
                                                 uvMappingMask.z * layerTexCoord.vertexBitangentWS2 +
                                                 uvMappingMask.w * layerTexCoord.vertexBitangentWS3;
 
-    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetail.x * layerTexCoord.vertexTangentWS0 +
-                                                uvMappingMaskDetail.y * layerTexCoord.vertexTangentWS1 +
-                                                uvMappingMaskDetail.z * layerTexCoord.vertexTangentWS2 +
-                                                uvMappingMaskDetail.w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetails.x * layerTexCoord.vertexTangentWS0 +
+                                                uvMappingMaskDetails.y * layerTexCoord.vertexTangentWS1 +
+                                                uvMappingMaskDetails.z * layerTexCoord.vertexTangentWS2 +
+                                                uvMappingMaskDetails.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetail.x * layerTexCoord.vertexBitangentWS0 +
-                                                    uvMappingMaskDetail.y * layerTexCoord.vertexBitangentWS1 +
-                                                    uvMappingMaskDetail.z * layerTexCoord.vertexBitangentWS2 +
-                                                    uvMappingMaskDetail.w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetails.x * layerTexCoord.vertexBitangentWS0 +
+                                                    uvMappingMaskDetails.y * layerTexCoord.vertexBitangentWS1 +
+                                                    uvMappingMaskDetails.z * layerTexCoord.vertexBitangentWS2 +
+                                                    uvMappingMaskDetails.w * layerTexCoord.vertexBitangentWS3;
     #endif
 }
 

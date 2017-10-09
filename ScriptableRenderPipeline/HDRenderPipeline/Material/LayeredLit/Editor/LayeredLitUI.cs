@@ -48,7 +48,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
-            public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
             public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
             public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
 
@@ -116,8 +115,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kUVBlendMask = "_UVBlendMask";
         MaterialProperty UVMappingMaskBlendMask = null;
         const string kUVMappingMaskBlendMask = "_UVMappingMaskBlendMask";
-        MaterialProperty layerTilingBlendMask = null;
-        const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
         MaterialProperty texWorldScaleBlendMask = null;
         const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
         MaterialProperty useMainLayerInfluence = null;
@@ -161,7 +158,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
-            layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
 
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
@@ -398,10 +394,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
             }
-            else
-            {
-                m_MaterialEditor.ShaderProperty(layerTilingBlendMask, styles.layerTilingBlendMaskText);
-            }
+            m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
             EditorGUI.indentLevel--;
 
             m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
