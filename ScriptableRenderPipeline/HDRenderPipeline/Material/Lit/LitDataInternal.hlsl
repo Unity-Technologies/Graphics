@@ -84,6 +84,174 @@
     #endif
 }
 
+// Return the minimun uv size for all layers including triplanar
+float2 ADD_IDX(GetMinUvSize)(LayerTexCoord layerTexCoord)
+{
+    float2 minUvSize = float2(FLT_MAX, FLT_MAX);
+
+    if (ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_TRIPLANAR)
+    {
+        minUvSize = min(ADD_IDX(layerTexCoord.base).uvZY * MERGE_NAME(ADD_IDX(_HeightMap), _TexelSize.zw), minUvSize);
+        minUvSize = min(ADD_IDX(layerTexCoord.base).uvXZ * MERGE_NAME(ADD_IDX(_HeightMap), _TexelSize.zw), minUvSize);
+        minUvSize = min(ADD_IDX(layerTexCoord.base).uvXY * MERGE_NAME(ADD_IDX(_HeightMap), _TexelSize.zw), minUvSize);
+    }
+    else
+    {
+        minUvSize = min(ADD_IDX(layerTexCoord.base).uv * MERGE_NAME(ADD_IDX(_HeightMap), _TexelSize.zw), minUvSize);
+    }
+
+    return minUvSize;
+}
+
+//TODO: #define USE_HEIGHTMAP_INFLUENCE ((LAYER_INDEX != 0) && defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0))
+
+// define only once
+#if (LAYER_INDEX == 0) && defined(_PIXEL_DISPLACEMENT)
+struct PerPixelHeightDisplacementParam
+{
+    float2 uv;
+    TEXTURE2D(heightmap);
+    SAMPLER2D(heightmapSampler);
+};
+
+// Calculate displacement for per vertex displacement mapping
+float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerPixelHeightDisplacementParam param)
+{
+    // Note: No multiply by amplitude here. This is include in the maxHeight provide to POM
+    // Tiling is automatically handled correctly here.
+    float height = SAMPLE_TEXTURE2D_LOD(param.heightmap, param.heightmapSampler, param.uv + texOffsetCurrent, lod).r;
+#if USE_HEIGHTMAP_INFLUENCE
+    // TODO: We are suppose to get blendmask and influence mask and apply height inheritance... Crazy in term of performance.... + need to deal with macro stuff
+#endif
+    return height;
+}
+
+#include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
+
+#endif
+
+float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+{
+#if defined(_PIXEL_DISPLACEMENT) && defined(_HEIGHTMAP_IDX)
+    // These variables are known at the compile time.
+    bool isPlanar = ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_PLANAR;
+    bool isTriplanar = ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_TRIPLANAR;
+
+    // _HeightAmplitude can be negative if min and max are inverted, but the max displacement must be positive
+    float  maxHeight = abs(ADD_IDX(_HeightAmplitude));
+    #if USE_HEIGHTMAP_INFLUENCE
+    // TODO: maxHeight is supposed to be affect, but how ?
+    #endif
+    // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
+    // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
+    #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
+    maxHeight *= ADD_IDX(_InvTilingScale);
+    // TODO: handle _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    #endif
+    float2 minUvSize = ADD_IDX(GetMinUvSize)(layerTexCoord);
+    float  lod = ComputeTextureLOD(minUvSize);
+
+    float2 invPrimScale = (isPlanar || isTriplanar) ? float2(1.0, 1.0) : _InvPrimScale.xy;
+    float  worldScale = (isPlanar || isTriplanar) ? ADD_IDX(_TexWorldScale) : 1.0;
+    float2 uvSpaceScale = invPrimScale * MERGE_NAME(ADD_IDX(_BaseColorMap), _ST.xy) * (worldScale * maxHeight);
+
+    PerPixelHeightDisplacementParam ppdParam;
+    ppdParam.heightmap = ADD_IDX(_HeightMap);
+    ppdParam.heightmapSampler = SAMPLER_HEIGHTMAP_IDX;
+
+    float height = 0; // final height processed
+    float NdotV = 0;
+
+    // planar/triplanar
+    float2 uvXZ;
+    float2 uvXY;
+    float2 uvZY;
+    GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
+
+    // TODO: support object space planar/triplanar ?
+
+    // We need to calculate the texture space direction. It depends on the mapping.
+    if (isTriplanar)
+    {
+        float planeHeight;
+
+        // Perform a POM in each direction and modify appropriate texture coordinate
+        [branch] if (layerTexCoord.triplanarWeights.x >= 0.001)
+        {
+            ppdParam.uv = ADD_IDX(layerTexCoord.base).uvZY;
+            float3 viewDirTS = float3(uvZY, abs(V.x));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+
+            // Apply offset to all triplanar UVSet
+            ADD_IDX(layerTexCoord.base).uvZY += offset;
+            ADD_IDX(layerTexCoord.details).uvZY += offset;
+            height += layerTexCoord.triplanarWeights.x * planeHeight;
+            NdotV += layerTexCoord.triplanarWeights.x * viewDirTS.z;
+        }
+
+        [branch] if (layerTexCoord.triplanarWeights.y >= 0.001)
+        {
+            ppdParam.uv = ADD_IDX(layerTexCoord.base).uvXZ;
+            float3 viewDirTS = float3(uvXZ, abs(V.y));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+
+            ADD_IDX(layerTexCoord.base).uvXZ += offset;
+            ADD_IDX(layerTexCoord.details).uvXZ += offset;
+            height += layerTexCoord.triplanarWeights.y * planeHeight;
+            NdotV += layerTexCoord.triplanarWeights.y * viewDirTS.z;
+        }
+
+        [branch] if (layerTexCoord.triplanarWeights.z >= 0.001)
+        {
+            ppdParam.uv = ADD_IDX(layerTexCoord.base).uvXY;
+            float3 viewDirTS = float3(uvXY, abs(V.z));
+            float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+            float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+            int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
+
+            ADD_IDX(layerTexCoord.base).uvXY += offset;
+            ADD_IDX(layerTexCoord.details).uvXY += offset;
+            height += layerTexCoord.triplanarWeights.z * planeHeight;
+            NdotV += layerTexCoord.triplanarWeights.z * viewDirTS.z;
+        }
+    }
+    else
+    {
+        ppdParam.uv = ADD_IDX(layerTexCoord.base).uv; // For planar it is uv too, not uvXZ
+
+        // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surface that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
+        // Note: worldToTangent is only define for UVSet0, so we expect that layer that use POM have UVSet0
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
+        NdotV = viewDirTS.z;
+
+        // Transform the view vector into the UV space.
+        float3 viewDirUV = normalize(float3(viewDirTS.xy * uvSpaceScale, viewDirTS.z)); // TODO: skip normalize
+        float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
+        int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
+        float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, height);
+
+        // Apply offset to all UVSet0 / planar
+        ADD_IDX(layerTexCoord.base).uv += offset;
+        ADD_IDX(layerTexCoord.details).uv += isPlanar ? offset : ADD_IDX(_UVDetailsMappingMask).x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
+    }
+
+    // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+    // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+    float verticalDisplacement = maxHeight - height * maxHeight;
+    return verticalDisplacement / NdotV;
+#else
+    return 0.0;
+#endif
+
+}
+
 // Caution: Duplicate from GetBentNormalTS - keep in sync!
 float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
 {
