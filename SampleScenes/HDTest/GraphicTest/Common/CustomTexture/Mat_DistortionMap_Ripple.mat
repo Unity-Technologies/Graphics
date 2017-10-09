@@ -112,7 +112,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistorsionAmplitude: 52
-    - _DistortionAmplitude: 28.5
+    - _DistortionAmplitude: 15.9
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
@@ -147,7 +147,7 @@ Material:
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Size: 41
+    - _Size: 56.4
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
