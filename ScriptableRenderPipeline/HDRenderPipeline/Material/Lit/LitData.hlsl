@@ -473,7 +473,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
-#else
+#else // if LAYERED_LIT_SHADER
+
+#define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
 
 // Number of sampler are limited, we need to share sampler as much as possible with lit material
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
@@ -1013,7 +1015,7 @@ struct PerPixelHeightDisplacementParam
 // Calculate displacement for per vertex displacement mapping
 float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerPixelHeightDisplacementParam param)
 {
-#if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
+#if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3))
     // Note: No multiply by amplitude here, this is bake into the weights and apply in BlendLayeredScalar
     // The amplitude is normalize to be able to work with POM algorithm
     // Tiling is automatically handled correctly here as we use 4 differents uv even if they come from the same UVSet (they include the tiling)
@@ -1042,28 +1044,23 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 // Most contraint are handled by the inspector (i.e the UI) like the mapping constraint and is assumed in the shader.
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord, float influenceMask)
 {
-    bool ppdEnable = false;
+#if defined(_PIXEL_DISPLACEMENT) && LAYERS_HEIGHTMAP_ENABLE
     bool isPlanar = false;
     bool isTriplanar = false;
 
-#ifdef _PIXEL_DISPLACEMENT
-
     // To know if we are planar or triplanar just need to check if any of the active heightmap layer is true as they are enforce to be the same mapping
 #if defined(_HEIGHTMAP0)
-    ppdEnable = true;
     isPlanar = layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR;
     isTriplanar = layerTexCoord.base0.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 
 #if defined(_HEIGHTMAP1)
-    ppdEnable = true;
     isPlanar = layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR;
     isTriplanar = layerTexCoord.base1.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    ppdEnable = true;
     isPlanar = layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR;
     isTriplanar = layerTexCoord.base2.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
@@ -1071,142 +1068,137 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    ppdEnable = true;
     isPlanar = layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR;
     isTriplanar = layerTexCoord.base3.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 #endif
 
-#endif // _PIXEL_DISPLACEMENT
+    // Even if we use same mapping we can have different tiling. For per pixel displacement we will perform the ray marching with already tiled uv
+    float maxHeight = GetMaxDisplacement();
+    // Compute lod as we will sample inside a loop(so can't use regular sampling)
+    // Note: It appear that CALCULATE_TEXTURE2D_LOD only return interger lod. We want to use float lod to have smoother transition and fading, so do our own calculation.
+    // Approximation of lod to used. Be conservative here, we will take the highest mip of all layers.
+    // Remember, we assume that we used the same mapping for all layer, so only size matter.
+    float2 minUvSize = GetMinUvSize(layerTexCoord);
+    float lod = ComputeTextureLOD(minUvSize);
 
-    if (ppdEnable)
-    {
-        // Even if we use same mapping we can have different tiling. For per pixel displacement we will perform the ray marching with already tiled uv
-        float maxHeight = GetMaxDisplacement();
-        // Compute lod as we will sample inside a loop(so can't use regular sampling)
-        // Note: It appear that CALCULATE_TEXTURE2D_LOD only return interger lod. We want to use float lod to have smoother transition and fading, so do our own calculation.
-        // Approximation of lod to used. Be conservative here, we will take the highest mip of all layers.
-        // Remember, we assume that we used the same mapping for all layer, so only size matter.
-        float2 minUvSize = GetMinUvSize(layerTexCoord);
-        float lod = ComputeTextureLOD(minUvSize);
+    // Calculate blend weights
+    float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
 
-        // Calculate blend weights
-        float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(blendMasks, weights);
 
-        float weights[_MAX_LAYER];
-        ComputeMaskWeights(blendMasks, weights);
+    // Be sure we are not considering weight here were there is no heightmap
+    SetEnabledHeightByLayer(weights[0], weights[1], weights[2], weights[3]);
 
-        // Be sure we are not considering weight here were there is no heightmap
-        SetEnabledHeightByLayer(weights[0], weights[1], weights[2], weights[3]);
-
-        PerPixelHeightDisplacementParam ppdParam;
+    PerPixelHeightDisplacementParam ppdParam;
 #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-        // For per pixel displacement we need to have normalized height scale to calculate the interesection (required by the algorithm we use)
-        // mean that we will normalize by the highest amplitude.
-        // We store this normalization factor with the weights as it will be multiply by the readed height.
-        ppdParam.weights[0] = weights[0] * (_HeightAmplitude0) / maxHeight;
-        ppdParam.weights[1] = weights[1] * (_HeightAmplitude1 + _HeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
-        ppdParam.weights[2] = weights[2] * (_HeightAmplitude2 + _HeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
-        ppdParam.weights[3] = weights[3] * (_HeightAmplitude3 + _HeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
+    // For per pixel displacement we need to have normalized height scale to calculate the interesection (required by the algorithm we use)
+    // mean that we will normalize by the highest amplitude.
+    // We store this normalization factor with the weights as it will be multiply by the readed height.
+    ppdParam.weights[0] = weights[0] * (_HeightAmplitude0) / maxHeight;
+    ppdParam.weights[1] = weights[1] * (_HeightAmplitude1 + _HeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
+    ppdParam.weights[2] = weights[2] * (_HeightAmplitude2 + _HeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
+    ppdParam.weights[3] = weights[3] * (_HeightAmplitude3 + _HeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
 
-        // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
-        float mainHeightInfluence = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights) * influenceMask;
-        ppdParam.mainHeightInfluence = mainHeightInfluence;
+    // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
+    float mainHeightInfluence = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights) * influenceMask;
+    ppdParam.mainHeightInfluence = mainHeightInfluence;
 #else
-        [unroll]
-        for (int i = 0; i < _MAX_LAYER; ++i)
-        {
-            ppdParam.weights[i] = weights[i];
-        }
-        ppdParam.mainHeightInfluence = 0.0;
+    [unroll]
+    for (int i = 0; i < _MAX_LAYER; ++i)
+    {
+        ppdParam.weights[i] = weights[i];
+    }
+    ppdParam.mainHeightInfluence = 0.0;
 #endif
 
-        float height; // final height processed
-        float NdotV;
+    float height; // final height processed
+    float NdotV;
 
-        // planar/triplanar
-        float2 uvXZ;
-        float2 uvXY;
-        float2 uvZY;
-        GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
+    // planar/triplanar
+    float2 uvXZ;
+    float2 uvXY;
+    float2 uvZY;
+    GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
 
-        // We need to calculate the texture space direction. It depends on the mapping.
-        if (isTriplanar)
-        {
-            // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
-            // apply the 3 offset on all layers
-            /*
+    // We need to calculate the texture space direction. It depends on the mapping.
+    if (isTriplanar)
+    {
+        // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
+        // apply the 3 offset on all layers
+        /*
 
-            ppdParam.uv[0] = layerTexCoord.base0.uvZY;
-            ppdParam.uv[1] = layerTexCoord.base1.uvYZ;
-            ppdParam.uv[2] = layerTexCoord.base2.uvYZ;
-            ppdParam.uv[3] = layerTexCoord.base3.uvYZ;
+        ppdParam.uv[0] = layerTexCoord.base0.uvZY;
+        ppdParam.uv[1] = layerTexCoord.base1.uvYZ;
+        ppdParam.uv[2] = layerTexCoord.base2.uvYZ;
+        ppdParam.uv[3] = layerTexCoord.base3.uvYZ;
 
-            float3 viewDirTS = ;
-            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
-            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+        float3 viewDirTS = ;
+        int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
+        ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply to all uvZY
+        // Apply to all uvZY
 
-            // Repeat for uvXZ
+        // Repeat for uvXZ
 
-            // Repeat for uvXY
+        // Repeat for uvXY
 
-            // Apply to all layer that used triplanar
-            */
-            height = 1;
-            NdotV  = 1;
-        }
-        else
-        {
-            ppdParam.uv[0] = layerTexCoord.base0.uv;
-            ppdParam.uv[1] = layerTexCoord.base1.uv;
-            ppdParam.uv[2] = layerTexCoord.base2.uv;
-            ppdParam.uv[3] = layerTexCoord.base3.uv;
+        // Apply to all layer that used triplanar
+        */
+        height = 1;
+        NdotV  = 1;
+    }
+    else
+    {
+        ppdParam.uv[0] = layerTexCoord.base0.uv;
+        ppdParam.uv[1] = layerTexCoord.base1.uv;
+        ppdParam.uv[2] = layerTexCoord.base2.uv;
+        ppdParam.uv[3] = layerTexCoord.base3.uv;
 
-            float3x3 worldToTangent = input.worldToTangent;
+        float3x3 worldToTangent = input.worldToTangent;
 
-            // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-            // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
-            // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
-            NdotV = viewDirTS.z;
+        // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
+        // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
+        // TODO: do we support object triplanar ? See ComputeLayerTexCoord
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+        NdotV = viewDirTS.z;
 
-            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+        int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
+        float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
 
-            // Apply offset to all planar UV if applicable
-            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
-                                            layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
-                                            layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
-                                            layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0);
+        // Apply offset to all planar UV if applicable
+        float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
+                                        layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
+                                        layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
+                                        layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0);
 
-            // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
-            float4 offsetWeights = isPlanar ? planarWeight : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
+        // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
+        float4 offsetWeights = isPlanar ? planarWeight : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
 
-            layerTexCoord.base0.uv += offsetWeights.x * offset;
-            layerTexCoord.base1.uv += offsetWeights.y * offset;
-            layerTexCoord.base2.uv += offsetWeights.z * offset;
-            layerTexCoord.base3.uv += offsetWeights.w * offset;
+        layerTexCoord.base0.uv += offsetWeights.x * offset;
+        layerTexCoord.base1.uv += offsetWeights.y * offset;
+        layerTexCoord.base2.uv += offsetWeights.z * offset;
+        layerTexCoord.base3.uv += offsetWeights.w * offset;
 
-            offsetWeights = isPlanar ? planarWeight : float4(_UVDetailsMappingMask0.x, _UVDetailsMappingMask1.x, _UVDetailsMappingMask2.x, _UVDetailsMappingMask3.x);
+        offsetWeights = isPlanar ? planarWeight : float4(_UVDetailsMappingMask0.x, _UVDetailsMappingMask1.x, _UVDetailsMappingMask2.x, _UVDetailsMappingMask3.x);
 
-            layerTexCoord.details0.uv += offsetWeights.x * offset;
-            layerTexCoord.details1.uv += offsetWeights.y * offset;
-            layerTexCoord.details2.uv += offsetWeights.z * offset;
-            layerTexCoord.details3.uv += offsetWeights.w * offset;
-        }
-
-        // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
-        // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-        float verticalDisplacement = maxHeight - height * maxHeight;
-        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
-        float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
-        return tilingScale * verticalDisplacement / max(NdotV, 0.001);
+        layerTexCoord.details0.uv += offsetWeights.x * offset;
+        layerTexCoord.details1.uv += offsetWeights.y * offset;
+        layerTexCoord.details2.uv += offsetWeights.z * offset;
+        layerTexCoord.details3.uv += offsetWeights.w * offset;
     }
 
+    // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+    // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+    float verticalDisplacement = maxHeight - height * maxHeight;
+    // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+    float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
+    return tilingScale * verticalDisplacement / max(NdotV, 0.001);
+#else
     return 0.0;
+#endif
 }
 
 float GetMaxHeight(float4 heights)
@@ -1252,7 +1244,7 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 // Calculate displacement for per vertex displacement mapping
 float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-#if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
+#if LAYERS_HEIGHTMAP_ENABLE
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
@@ -1317,7 +1309,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #endif
 
     // If no heightmap is set on any layer, we don't need to try and blend them based on height...
-#if defined(_HEIGHT_BASED_BLEND) && (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3))
+#if defined(_HEIGHT_BASED_BLEND) && LAYERS_HEIGHTMAP_ENABLE
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
