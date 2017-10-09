@@ -4,29 +4,71 @@ using UnityEditor.MaterialGraph.Drawing;
 using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class GraphEditorView : DataWatchContainer, IDisposable
+    public class GraphEditorView : VisualElement, IDisposable
     {
         GraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+        ToolbarView m_ToolbarView;
+        ToolbarButtonView m_TimeButton;
+
+        PreviewSystem m_PreviewSystem;
+
+        [SerializeField]
+        MaterialGraphPresenter m_GraphPresenter;
+
+        [SerializeField]
+        GraphInspectorPresenter m_GraphInspectorPresenter;
+
+        public Action onUpdateAssetClick { get; set; }
+        public Action onConvertToSubgraphClick { get; set; }
+        public Action onShowInProjectClick { get; set; }
 
         public GraphView graphView
         {
             get { return m_GraphView; }
         }
 
-        ToolbarView m_ToolbarView;
+        public PreviewRate previewRate
+        {
+            get { return previewSystem.previewRate; }
+            set { previewSystem.previewRate = value; }
+        }
 
-        public Action onUpdateAssetClick { get; set; }
-        public Action onConvertToSubgraphClick { get; set; }
-        public Action onShowInProjectClick { get; set; }
+        public MaterialGraphPresenter graphPresenter
+        {
+            get { return m_GraphPresenter; }
+            set { m_GraphPresenter = value; }
+        }
 
-        public GraphEditorView()
+        public GraphInspectorPresenter graphInspectorPresenter
+        {
+            get { return m_GraphInspectorPresenter; }
+            set { m_GraphInspectorPresenter = value; }
+        }
+
+        public PreviewSystem previewSystem
+        {
+            get { return m_PreviewSystem; }
+            set { m_PreviewSystem = value; }
+        }
+
+        public GraphEditorView(AbstractMaterialGraph graph, HelperMaterialGraphEditWindow container, string assetName)
         {
             AddStyleSheetPath("Styles/MaterialGraph");
+
+            previewSystem = new PreviewSystem(graph);
+
+            m_GraphInspectorPresenter = ScriptableObject.CreateInstance<GraphInspectorPresenter>();
+            m_GraphInspectorPresenter.Initialize(assetName, previewSystem, container);
+
+            m_GraphPresenter = ScriptableObject.CreateInstance<MaterialGraphPresenter>();
+            m_GraphPresenter.Initialize(graph, container, previewSystem);
+            m_GraphPresenter.onSelectionChanged += m_GraphInspectorPresenter.UpdateSelection;
 
             m_ToolbarView = new ToolbarView { name = "TitleBar" };
             {
@@ -66,18 +108,16 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_ToolbarView.Add(new ToolbarSpaceView());
                 m_ToolbarView.Add(new ToolbarSeparatorView());
 
-                m_TimeButton = new ToolbarButtonView { text = "" };
+                m_TimeButton = new ToolbarButtonView { text = "Preview rate: " + previewRate };
                 m_TimeButton.AddManipulator(new Clickable(() =>
                 {
-                    if (presenter == null)
-                        return;
-                    if (presenter.previewRate == PreviewRate.Full)
-                        presenter.previewRate = PreviewRate.Throttled;
-                    else if (presenter.previewRate == PreviewRate.Throttled)
-                        presenter.previewRate = PreviewRate.Off;
-                    else if (presenter.previewRate == PreviewRate.Off)
-                        presenter.previewRate = PreviewRate.Full;
-                    m_TimeButton.text = "Preview rate: " + presenter.previewRate;
+                    if (previewRate == PreviewRate.Full)
+                        previewRate = PreviewRate.Throttled;
+                    else if (previewRate == PreviewRate.Throttled)
+                        previewRate = PreviewRate.Off;
+                    else if (previewRate == PreviewRate.Off)
+                        previewRate = PreviewRate.Full;
+                    m_TimeButton.text = "Preview rate: " + previewRate;
                 }));
                 m_ToolbarView.Add(m_TimeButton);
 
@@ -88,42 +128,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             var content = new VisualElement();
             content.name = "content";
             {
-                m_GraphView = new MaterialGraphView { name = "GraphView" };
-                m_GraphInspectorView = new GraphInspectorView() { name = "inspector" };
+                m_GraphView = new MaterialGraphView { name = "GraphView", presenter = m_GraphPresenter };
+                m_GraphInspectorView = new GraphInspectorView() { name = "inspector", presenter = m_GraphInspectorPresenter};
                 content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
             }
             Add(content);
-        }
-
-        public override void OnDataChanged()
-        {
-            m_GraphView.presenter = m_Presenter.graphPresenter;
-            m_GraphInspectorView.presenter = m_Presenter.graphInspectorPresenter;
-            m_TimeButton.text = "Preview rate: " + presenter.previewRate;
-        }
-
-        GraphEditorPresenter m_Presenter;
-        ToolbarButtonView m_TimeButton;
-
-        public GraphEditorPresenter presenter
-        {
-            get { return m_Presenter; }
-            set
-            {
-                if (m_Presenter == value)
-                    return;
-
-                RemoveWatch();
-                m_Presenter = value;
-                OnDataChanged();
-                AddWatch();
-            }
-        }
-
-        protected override Object[] toWatch
-        {
-            get { return new Object[] { m_Presenter }; }
         }
 
         public void Dispose()
@@ -132,6 +142,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
+            if (m_GraphInspectorPresenter != null)
+            {
+                m_GraphInspectorPresenter.Dispose();
+                m_GraphInspectorPresenter = null;
+            }
+            if (previewSystem != null)
+            {
+                previewSystem.Dispose();
+                previewSystem = null;
+            }
         }
     }
 }

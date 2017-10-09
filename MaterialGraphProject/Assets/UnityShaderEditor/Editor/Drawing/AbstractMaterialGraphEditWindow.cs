@@ -79,11 +79,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (m_GraphEditorView != null)
                 {
-                    if (m_GraphEditorView.presenter != null)
-                        m_GraphEditorView.presenter.Dispose();
+                    rootVisualContainer.Remove(m_GraphEditorView);
                     m_GraphEditorView.Dispose();
                 }
                 m_GraphEditorView = value;
+                if (m_GraphEditorView != null)
+                {
+                    m_GraphEditorView.onUpdateAssetClick += UpdateAsset;
+                    m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
+                    m_GraphEditorView.onShowInProjectClick += PingAsset;
+                    m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+                    rootVisualContainer.Add(graphEditorView);
+                }
             }
         }
 
@@ -101,27 +108,14 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Update()
         {
+            if (graphEditorView == null || graphEditorView.graphPresenter == null)
+                graphEditorView = new GraphEditorView(inMemoryAsset, this, selected.name);
             if (graphEditorView != null)
-            {
-                if (graphEditorView.presenter == null)
-                    CreatePresenter();
-                if (graphEditorView.presenter != null)
-                    graphEditorView.presenter.UpdatePreviews();
-            }
-        }
-
-        void OnEnable()
-        {
-            graphEditorView = new GraphEditorView();
-            graphEditorView.onUpdateAssetClick += UpdateAsset;
-            graphEditorView.onConvertToSubgraphClick += ToSubGraph;
-            graphEditorView.onShowInProjectClick += PingAsset;
-            rootVisualContainer.Add(graphEditorView);
+                graphEditorView.previewSystem.Update();
         }
 
         void OnDisable()
         {
-            rootVisualContainer.Clear();
             graphEditorView = null;
         }
 
@@ -136,15 +130,15 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnGUI()
         {
-            var presenter = graphEditorView.presenter;
+            var presenter = graphEditorView.graphPresenter;
             var e = Event.current;
 
             if (e.type == EventType.ValidateCommand && (
-                    e.commandName == "Copy" && presenter.graphPresenter.canCopy
-                    || e.commandName == "Paste" && presenter.graphPresenter.canPaste
-                    || e.commandName == "Duplicate" && presenter.graphPresenter.canDuplicate
-                    || e.commandName == "Cut" && presenter.graphPresenter.canCut
-                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.graphPresenter.canDelete))
+                    e.commandName == "Copy" && presenter.canCopy
+                    || e.commandName == "Paste" && presenter.canPaste
+                    || e.commandName == "Duplicate" && presenter.canDuplicate
+                    || e.commandName == "Cut" && presenter.canCut
+                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
             {
                 e.Use();
             }
@@ -152,15 +146,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (e.type == EventType.ExecuteCommand)
             {
                 if (e.commandName == "Copy")
-                    presenter.graphPresenter.Copy();
+                    presenter.Copy();
                 if (e.commandName == "Paste")
-                    presenter.graphPresenter.Paste();
+                    presenter.Paste();
                 if (e.commandName == "Duplicate")
-                    presenter.graphPresenter.Duplicate();
+                    presenter.Duplicate();
                 if (e.commandName == "Cut")
-                    presenter.graphPresenter.Cut();
+                    presenter.Cut();
                 if (e.commandName == "Delete" || e.commandName == "SoftDelete")
-                    presenter.graphPresenter.Delete();
+                    presenter.Delete();
             }
 
             if (e.type == EventType.KeyDown)
@@ -212,7 +206,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (path.Length == 0)
                 return;
 
-            var graphPresenter = graphEditorView.presenter.graphPresenter;
+            var graphPresenter = graphEditorView.graphPresenter;
             var selected = graphPresenter.elements.Where(e => e.selected);
 
             var filtered = new List<GraphElementPresenter>();
@@ -431,20 +425,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             inMemoryAsset.OnEnable();
             inMemoryAsset.ValidateGraph();
 
-            CreatePresenter();
+            graphEditorView = new GraphEditorView(inMemoryAsset, this, selected.name);
             titleContent = new GUIContent(selected.name);
 
             Repaint();
-        }
-
-        void CreatePresenter()
-        {
-            if (graphEditorView.presenter != null)
-                graphEditorView.presenter.Dispose();
-            var presenter = CreateInstance<GraphEditorPresenter>();
-            presenter.Initialize(inMemoryAsset, this, selected.name);
-            graphEditorView.presenter = presenter;
-            graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
         }
 
         void OnPostLayout(PostLayoutEvent evt)
