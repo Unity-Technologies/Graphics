@@ -54,7 +54,6 @@ SAMPLER2D(sampler_GaussianPyramidColorTexture);
 // Depth pyramid (width, height, lodcount, Unused)
 float4 _PyramidDepthMipSize;
 TEXTURE2D(_PyramidDepthTexture);
-SAMPLER2D(sampler_PyramidDepthTexture);
 
 // Area light textures specific constant
 SamplerState ltc_linear_clamp_sampler;
@@ -1506,6 +1505,13 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSL
 // ----------------------------------------------------------------------------
 
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, uint mipMapCount)
+{
+    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+    return perceptualRoughness * mipMapCount;
+}
+
 void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
     diffuseLighting = float3(0.0, 0.0, 0.0);
@@ -1525,6 +1531,8 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;
 
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
+
     // For all refraction approximation, to calculate the refracted point in world space,
     //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
     //   (We avoid to raymarch the depth texture to get the refracted point.)
@@ -1540,7 +1548,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
     // Get the depth of the approximated back plane
-    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
@@ -1559,7 +1567,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     //  So the light is refracted twice: in and out of the tangent sphere
 
     // Get the depth of the approximated back plane
-    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
@@ -1596,7 +1604,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
     // Get the depth of the approximated back plane
-    float pyramidDepth = SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, posInput.positionSS, 2.0).r;
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
@@ -1614,7 +1622,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
     float2 refractedBackPointSS = ComputeScreenSpacePosition(refractedBackPointCS);
-    float refractedBackPointDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_LOD(_PyramidDepthTexture, sampler_PyramidDepthTexture, refractedBackPointSS, 0.0).r, _ZBufferParams);
+    float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
@@ -1627,8 +1635,8 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, refractedBackPointSS.xy, mipLevel).rgb;
+    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
