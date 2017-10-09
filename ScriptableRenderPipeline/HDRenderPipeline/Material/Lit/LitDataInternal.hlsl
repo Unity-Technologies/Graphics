@@ -151,9 +151,12 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
     float2 minUvSize = ADD_IDX(GetMinUvSize)(layerTexCoord);
     float  lod = ComputeTextureLOD(minUvSize);
 
+    // TODO: Here we calculate the scale transform from world to UV space , which is what we have done in GetLayerTexCoord but without the texBias.
+    // Mean we must also apply the same "additionalTiling", currently not apply Also precompute all this!
     float2 invPrimScale = (isPlanar || isTriplanar) ? float2(1.0, 1.0) : _InvPrimScale.xy;
     float  worldScale = (isPlanar || isTriplanar) ? ADD_IDX(_TexWorldScale) : 1.0;
     float2 uvSpaceScale = invPrimScale * MERGE_NAME(ADD_IDX(_BaseColorMap), _ST.xy) * (worldScale * maxHeight);
+    float2 scaleOffsetDetails = MERGE_NAME(ADD_IDX(_DetailMap), _ST.xy);
 
     PerPixelHeightDisplacementParam ppdParam;
     ppdParam.heightmap = ADD_IDX(_HeightMap);
@@ -187,7 +190,7 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
 
             // Apply offset to all triplanar UVSet
             ADD_IDX(layerTexCoord.base).uvZY += offset;
-            ADD_IDX(layerTexCoord.details).uvZY += offset;
+            ADD_IDX(layerTexCoord.details).uvZY += offset * scaleOffsetDetails;
             height += layerTexCoord.triplanarWeights.x * planeHeight;
             NdotV += layerTexCoord.triplanarWeights.x * viewDirTS.z;
         }
@@ -202,7 +205,7 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
             ADD_IDX(layerTexCoord.base).uvXZ += offset;
-            ADD_IDX(layerTexCoord.details).uvXZ += offset;
+            ADD_IDX(layerTexCoord.details).uvXZ += offset * scaleOffsetDetails;
             height += layerTexCoord.triplanarWeights.y * planeHeight;
             NdotV += layerTexCoord.triplanarWeights.y * viewDirTS.z;
         }
@@ -217,7 +220,7 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1, ppdParam, planeHeight);
 
             ADD_IDX(layerTexCoord.base).uvXY += offset;
-            ADD_IDX(layerTexCoord.details).uvXY += offset;
+            ADD_IDX(layerTexCoord.details).uvXY += offset * scaleOffsetDetails;
             height += layerTexCoord.triplanarWeights.z * planeHeight;
             NdotV += layerTexCoord.triplanarWeights.z * viewDirTS.z;
         }
@@ -240,7 +243,7 @@ float ADD_IDX(ApplyPerPixelDisplacement)(FragInputs input, float3 V, inout Layer
         // Apply offset to all UVSet0 / planar
         ADD_IDX(layerTexCoord.base).uv += offset;
         // Note: Applying offset on detail uv is only correct if it use the same UVSet or is planar or triplanar. It is up to the user to do the correct thing.
-        ADD_IDX(layerTexCoord.details).uv += offset;
+        ADD_IDX(layerTexCoord.details).uv += offset * scaleOffsetDetails;
     }
 
     // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
