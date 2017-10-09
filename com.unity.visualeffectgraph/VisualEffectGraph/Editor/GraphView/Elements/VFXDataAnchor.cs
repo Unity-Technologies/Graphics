@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         VisualElement m_ConnectorHighlight;
 
-        protected VFXDataAnchor()
+        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
             AddToClassList("VFXDataAnchor");
 
@@ -36,10 +36,10 @@ namespace UnityEditor.VFX.UI
             return new VisualElement();
         }
 
-        public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        public static VFXDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXDataAnchor();
-            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
+            var anchor = new VFXDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.UI
 
 
         public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
-        public override void OnStyleResolved(ICustomStyle styles)
+        protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
 
@@ -174,7 +174,11 @@ namespace UnityEditor.VFX.UI
                 m_ConnectorText.text = presenter.name;
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
+        void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
+        {
+        }
+
+        void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 

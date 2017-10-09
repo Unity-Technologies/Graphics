@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
             if (presenter.direction == Direction.Input)
             {
                 VFXDataAnchorPresenter anchorPresenter = presenter as VFXDataAnchorPresenter;
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(anchorPresenter);
 
 
                 anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                return VFXOutputDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+                return VFXOutputDataAnchor.Create(presenter as VFXDataAnchorPresenter);
             }
         }
 

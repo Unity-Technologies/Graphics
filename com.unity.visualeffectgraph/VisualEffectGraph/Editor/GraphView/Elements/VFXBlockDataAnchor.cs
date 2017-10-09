@@ -12,14 +12,14 @@ namespace UnityEditor.VFX.UI
 {
     class VFXBlockDataAnchor : VFXEditableDataAnchor
     {
-        protected VFXBlockDataAnchor()
+        protected VFXBlockDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
         }
 
-        public static new VFXBlockDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        public static new VFXBlockDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXBlockDataAnchor();
-            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
+            var anchor = new VFXBlockDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);

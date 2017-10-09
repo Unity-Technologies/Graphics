@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnStyleResolved(ICustomStyle styles)
+        protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
 
