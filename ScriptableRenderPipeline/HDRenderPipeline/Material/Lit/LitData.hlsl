@@ -206,6 +206,9 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
 #ifdef _BENTNORMALMAP
 #define _BENTNORMALMAP_IDX
 #endif
+#ifdef _HEIGHTMAP
+#define _HEIGHTMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 
 // This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
@@ -253,6 +256,7 @@ float GetMaxDisplacement()
     return maxDisplacement;
 }
 
+/*
 // Return the minimun uv size for all layers including triplanar
 float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 {
@@ -288,6 +292,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 }
 
 #include "../../../Core/ShaderLibrary/PerPixelDisplacement.hlsl"
+*/
 
 void ApplyDisplacementTileScale(inout float height)
 {
@@ -298,6 +303,7 @@ void ApplyDisplacementTileScale(inout float height)
 #endif
 }
 
+/*
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
 #if defined(_PIXEL_DISPLACEMENT) && defined(_HEIGHTMAP)
@@ -406,8 +412,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 #else
     return 0.0;
 #endif
-
 }
+*/
 
 // Calculate displacement for per vertex displacement mapping
 float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
@@ -562,7 +568,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 // Define a helper macro
 
-
 #define ADD_ZERO_IDX(Name) Name##0
 
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
@@ -583,6 +588,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _BENTNORMALMAP0
 #define _BENTNORMALMAP_IDX
 #endif
+#ifdef _HEIGHTMAP0
+#define _HEIGHTMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
@@ -591,6 +599,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
+#undef _HEIGHTMAP_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
@@ -609,6 +618,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _BENTNORMALMAP1
 #define _BENTNORMALMAP_IDX
 #endif
+#ifdef _HEIGHTMAP1
+#define _HEIGHTMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
@@ -617,6 +629,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
+#undef _HEIGHTMAP_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
@@ -635,6 +648,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _BENTNORMALMAP2
 #define _BENTNORMALMAP_IDX
 #endif
+#if defined(_HEIGHTMAP2) && (_LAYER_COUNT > 2)
+#define _HEIGHTMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
@@ -643,6 +659,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
+#undef _HEIGHTMAP_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
@@ -661,6 +678,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _BENTNORMALMAP3
 #define _BENTNORMALMAP_IDX
 #endif
+#if defined(_HEIGHTMAP3) && (_LAYER_COUNT > 3)
+#define _HEIGHTMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
@@ -669,6 +689,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _DETAIL_MAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
+#undef _HEIGHTMAP_IDX
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -941,6 +962,7 @@ float GetMaxDisplacement()
     return maxDisplacement;
 }
 
+/*
 // Return the minimun uv size for all layers including triplanar
 float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 {
@@ -1125,27 +1147,6 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     // We need to calculate the texture space direction. It depends on the mapping.
     if (isTriplanar)
     {
-        // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
-        // apply the 3 offset on all layers
-        /*
-
-        ppdParam.uv[0] = layerTexCoord.base0.uvZY;
-        ppdParam.uv[1] = layerTexCoord.base1.uvYZ;
-        ppdParam.uv[2] = layerTexCoord.base2.uvYZ;
-        ppdParam.uv[3] = layerTexCoord.base3.uvYZ;
-
-        float3 viewDirTS = ;
-        int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
-        ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
-
-        // Apply to all uvZY
-
-        // Repeat for uvXZ
-
-        // Repeat for uvXY
-
-        // Apply to all layer that used triplanar
-        */
         height = 1;
         NdotV  = 1;
     }
@@ -1200,6 +1201,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     return 0.0;
 #endif
 }
+*/
 
 float GetMaxHeight(float4 heights)
 {
@@ -1388,11 +1390,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     influenceMask = GetInfluenceMask(layerTexCoord);
 #endif
 
-    float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord, influenceMask);
-
-#ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
-#endif
+    float depthOffset0 = ApplyPerPixelDisplacement0(input, V, layerTexCoord);
+    float depthOffset1 = ApplyPerPixelDisplacement1(input, V, layerTexCoord);
+    float depthOffset2 = ApplyPerPixelDisplacement2(input, V, layerTexCoord);
+    float depthOffset3 = ApplyPerPixelDisplacement3(input, V, layerTexCoord);
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;
     float3 normalTS0, normalTS1, normalTS2, normalTS3;
@@ -1406,6 +1407,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
     float weights[_MAX_LAYER];
     ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, weights);
+
+    float depthOffset = PROP_BLEND_SCALAR(depthOffset, weights);
+#ifdef _DEPTHOFFSET_ON
+    ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
+#endif
 
     // For layered shader, alpha of base color is used as either an opacity mask, a composition mask for inheritance parameters or a density mask.
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
