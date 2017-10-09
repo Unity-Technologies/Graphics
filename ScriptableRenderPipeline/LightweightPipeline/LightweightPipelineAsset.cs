@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string m_SimpleLightShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_PBSShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_BlitShaderPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit";
+        public static readonly string m_CopyDephPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/CopyDepth";
         private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
@@ -223,6 +224,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader BlitShader
         {
             get { return Shader.Find(LightweightPipelineAsset.m_BlitShaderPath); }
+        }
+
+        public Shader CopyDepthShader
+        {
+            get { return Shader.Find(LightweightPipelineAsset.m_CopyDephPath); }
         }
     }
 }
