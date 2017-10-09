@@ -96,6 +96,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        public override void SetPosition(Rect newPos)
+        {
+            var nodePresenter = GetPresenter<MaterialNodePresenter>();
+            if (nodePresenter != null)
+                nodePresenter.position = newPos;
+            base.SetPosition(newPos);
+        }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
