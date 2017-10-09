@@ -980,7 +980,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
                 cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, (int)(size.x) / (int)x, (int)(size.y) / (int)y, 1);
             }
