@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 345031994}
   - component: {fileID: 345031993}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -257,7 +257,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!28 &361014836
+--- !u!28 &410324206
 Texture2D:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -343,7 +343,7 @@ VFXComponent:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_BakedTexture: {fileID: 361014836}
+  m_BakedTexture: {fileID: 410324206}
 --- !u!4 &1481189724
 Transform:
   m_ObjectHideFlags: 0

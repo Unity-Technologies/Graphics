@@ -796,7 +796,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 5
+      m_SerializableObject: 2.5
   m_Property:
     name: Lifetime
     m_serializedType:
@@ -1085,7 +1085,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":0.10000000149011612,"z":0.0}'
+      m_SerializableObject: '{"x":0.0,"y":0.20000000298023225,"z":0.0}'
   m_Property:
     name: Velocity
     m_serializedType:
@@ -1598,7 +1598,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 1
+      m_SerializableObject: 2
   m_Property:
     name: Rate
     m_serializedType:
@@ -1996,7 +1996,7 @@ VFXAsset:
       - m_ExpressionIndex: 4
         m_Value: 0.15
       - m_ExpressionIndex: 5
-        m_Value: 0.1
+        m_Value: 0.2
       - m_ExpressionIndex: 6
         m_Value: 0
       - m_ExpressionIndex: 7
@@ -2008,9 +2008,9 @@ VFXAsset:
       - m_ExpressionIndex: 10
         m_Value: 1
       - m_ExpressionIndex: 14
-        m_Value: 5
+        m_Value: 2.5
       - m_ExpressionIndex: 15
-        m_Value: 1
+        m_Value: 2
     m_Vector2f:
       m_Array: []
     m_Vector3f:
