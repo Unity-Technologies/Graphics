@@ -24,13 +24,13 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     DecodeDistortion(encodedDistorsion, distorsion, distorsionBlur);
 
     float2 distordedUV = (float2(dispatchThreadId) + distorsion) * _Size.zw;
-    float mip = (_GaussianPyramidColorMipSize.w - 1) * clamp(distorsionBlur.x, 0.0, 1.0);
+    float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distorsionBlur.x, 0.0, 1.0);
     float4 sampled = _GaussianPyramidColorTexture.SampleLevel(sampler_GaussianPyramidColorTexture, distordedUV, mip);
 
     float2 uv = float2(dispatchThreadId) * _Size.zw;
     float depth = _PyramidDepthTexture.SampleLevel(sampler_PyramidDepthTexture, uv, 0).r;
     float distordedDepth = _PyramidDepthTexture.SampleLevel(sampler_PyramidDepthTexture, distordedUV, 0).r;
 
-    if (depth < distordedDepth)
+    //if (depth < distordedDepth)
         _CameraColorTexture[dispatchThreadId] = sampled;
 }

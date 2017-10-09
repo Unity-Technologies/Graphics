@@ -102,8 +102,8 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BlurAmplitude: 1
-    - _BlurMaxAmplitude: 0
-    - _BlurMinAmplitude: 0.088
+    - _BlurMaxAmplitude: 0.405
+    - _BlurMinAmplitude: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
@@ -112,7 +112,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistorsionAmplitude: 116.5
-    - _DistortionAmplitude: 50
+    - _DistortionAmplitude: 48.2
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
@@ -136,8 +136,8 @@ Material:
     - _InitialBend: 1
     - _MaterialID: 1
     - _Metallic: 0
-    - _NoiseAmplitude: 0.492
-    - _NoiseLacunarity: 9.02
+    - _NoiseAmplitude: 0.766
+    - _NoiseLacunarity: 2.18
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
@@ -147,7 +147,7 @@ Material:
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Size: 6.67
+    - _Size: 4.86
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
