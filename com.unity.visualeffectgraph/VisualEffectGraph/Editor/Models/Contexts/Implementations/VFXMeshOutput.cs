@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    // TODO Not working at the moment
+    //[VFXInfo]
     class VFXMeshOutput : VFXContext
     {
         public VFXMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}

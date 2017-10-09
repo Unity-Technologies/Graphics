@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Test
         {
             CreateTestAsset();
 
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Output").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
 

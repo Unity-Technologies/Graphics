@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.Test
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var outputContext = ScriptableObject.CreateInstance<VFXBasicOutput>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
 
             graph.AddChild(spawnerContext);
             graph.AddChild(initContext);

@@ -38,10 +38,12 @@ Shader "Hidden/VFX/ParticlePoints"
 #if VFX_NEEDS_COLOR_INTERPOLATOR
 					nointerpolation float4 color : COLOR0;
 #endif
-#if USE_SOFT_PARTICLE
-					nointerpolation float invSoftParticlesFadeDistance : INV_FADE_DISTANCE;
-					float4 projPos : PROJ_POSITION;			
+#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+					nointerpolation float2 builtInInterpolants : TEXCOORD0;
 #endif
+#if USE_SOFT_PARTICLE
+					float4 projPos : TEXCOORD1;		
+#endif					
 				};
 				
 				struct ps_output
@@ -73,10 +75,14 @@ Shader "Hidden/VFX/ParticlePoints"
 #endif
 #endif
 
-#if USE_SOFT_PARTICLE
-							o.projPos = ComputeScreenPos(o.pos);		
+#if USE_SOFT_PARTICLE		
 							${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-							o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
+							o.builtInInterpolants.x = invSoftParticlesFadeDistance;
+							o.projPos = ComputeScreenPos(o.pos);
+#endif
+#if USE_ALPHA_TEST
+							${VFXLoadParameter:{alphaThreshold}}
+							o.builtInInterpolants.y = alphaThreshold;
 #endif
 						}
 					}
@@ -94,11 +100,13 @@ Shader "Hidden/VFX/ParticlePoints"
 
 #if USE_SOFT_PARTICLE
 					float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
-					float fade = saturate(i.invSoftParticlesFadeDistance * (sceneZ - i.projPos.w));
+					float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
 					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 					o.color.a *= fade;
 #endif
-					clip(o.color.a - 0.5f);
+#if USE_ALPHA_TEST
+					clip(o.color.a - i.builtInInterpolants.y);
+#endif
 
 					return o;
 				}
