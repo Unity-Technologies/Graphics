@@ -1261,12 +1261,12 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height0, height1, height2, height3);
 
-    float4 blendMask = GetBlendMask(layerTexCoord, vertexColor, true, lod);
+    float4 blendMasks = GetBlendMask(layerTexCoord, vertexColor, true, lod);
     #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
     // Add main layer influence if any (simply add main layer add on other layer)
     // We multiply by the input mask for the first layer (blendMask.a) because if the mask here is black it means that the layer
     // is not actually underneath any visible layer so we don't want to inherit its height.
-    float influenceMask = blendMask.a * GetInfluenceMask(layerTexCoord, true, lod);
+    float influenceMask = blendMasks.a * GetInfluenceMask(layerTexCoord, true, lod);
     height1 += height0 * _InheritBaseHeight1 * influenceMask;
     height2 += height0 * _InheritBaseHeight2 * influenceMask;
     height3 += height0 * _InheritBaseHeight3 * influenceMask;
@@ -1276,11 +1276,11 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 
     #if defined(_HEIGHT_BASED_BLEND)
     // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
-    blendMask = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMask);
+    blendMasks = ApplyHeightBlend(float4(height0, height1, height2, height3), blendMasks);
     #endif
 
     float weights[_MAX_LAYER];
-    ComputeMaskWeights(blendMask, weights);
+    ComputeMaskWeights(blendMasks, weights);
 
    // Applying scaling of the object if requested
     #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -1309,7 +1309,6 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
         outWeights[i] = 0.0f;
     }
 
-
 #if defined(_DENSITY_MODE)
     // Note: blendMasks.argb because a is main layer
     float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
@@ -1317,9 +1316,8 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
 #endif
 
-#if defined(_HEIGHT_BASED_BLEND)
-
-#if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
+    // If no heightmap is set on any layer, we don't need to try and blend them based on height...
+#if defined(_HEIGHT_BASED_BLEND) && (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3))
     float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
@@ -1327,15 +1325,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
 
-    // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
-    #if !defined(_PIXEL_DISPLACEMENT)
-    // We don't use height 0 for the height blend based mode
-    heights.y += (heights.x * 0.0001);
-    #endif
-
     blendMasks = ApplyHeightBlend(heights, blendMasks);
-#endif
-    // If no heightmap is set on any layer, we don't need to try and blend them based on height...
 #endif
 
     ComputeMaskWeights(blendMasks, outWeights);
