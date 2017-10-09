@@ -458,9 +458,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                if (EditorGUI.EndChangeCheck())
+                {
+                    heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                }
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -492,6 +496,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
@@ -503,17 +509,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
             UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
-
-            // Precompute.
-            InvTilingScale[layerIndex].floatValue = 2 / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
-            if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+            if (EditorGUI.EndChangeCheck())
             {
-                InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                // Precompute.
+                InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
+                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                {
+                    InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                }
             }
 
             EditorGUI.indentLevel--;
@@ -593,9 +602,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
-                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);                
+                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
             }
-            EditorGUI.indentLevel++;            
+            EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);

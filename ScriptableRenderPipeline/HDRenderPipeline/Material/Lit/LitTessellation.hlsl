@@ -8,20 +8,7 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
     float lod = 0.0;
-    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
-    float3 displ = height * normalWS;
-
-    // Applying scaling of the object if requested
-    // Note: In case of planar mapping there is no object scale as we do world space planar mapping (not object space planar mapping)
-#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementInverseObjectScale(true);
-#else
-    float3 objectScale = float3(1.0, 1.0, 1.0);
-#endif
-
-    displ *= objectScale;
-
-    return displ;
+    return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS)
