@@ -4,7 +4,6 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [Serializable]
     public abstract class DebugItemState
         : ScriptableObject
     {
@@ -83,10 +82,17 @@ namespace UnityEngine.Experimental.Rendering
                     if (debugItemState == null)
                     {
                         debugItemState = item.handler.CreateDebugItemState();
-                        debugItemState.hideFlags = HideFlags.DontSave;
-                        debugItemState.Initialize(item);
-                        debugItemState.SetValue(item.GetValue());
-                        AddDebugItemState(debugItemState);
+                        if(debugItemState != null)
+                        {
+                            debugItemState.hideFlags = HideFlags.DontSave;
+                            debugItemState.Initialize(item);
+                            debugItemState.SetValue(item.GetValue());
+                            AddDebugItemState(debugItemState);
+                        }
+                        else
+                        {
+                            Debug.LogWarning(String.Format("DebugItemState for item {0} of type {1} is not provided.\nDid you implement CreateDebugItemState in your custom Handler?", item.name, item.type));
+                        }
                     }
                 }
             }
