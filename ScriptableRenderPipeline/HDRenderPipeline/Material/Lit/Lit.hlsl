@@ -49,7 +49,6 @@
 // Color pyramid (width, height, lodcount, Unused)
 float4 _GaussianPyramidColorMipSize;
 TEXTURE2D(_GaussianPyramidColorTexture);
-SAMPLER2D(sampler_GaussianPyramidColorTexture);
 
 // Depth pyramid (width, height, lodcount, Unused)
 float4 _PyramidDepthMipSize;
@@ -57,6 +56,7 @@ TEXTURE2D(_PyramidDepthTexture);
 
 // Area light textures specific constant
 SamplerState ltc_linear_clamp_sampler;
+SamplerState ltc_trilinear_clamp_sampler;
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
 TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
@@ -1505,13 +1505,6 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSL
 // ----------------------------------------------------------------------------
 
-float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, uint mipMapCount)
-{
-    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-
-    return perceptualRoughness * mipMapCount;
-}
-
 void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
     diffuseLighting = float3(0.0, 0.0, 0.0);
@@ -1630,13 +1623,13 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, 0.0).rgb;
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
         return;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
     float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, refractedBackPointSS, mipLevel).rgb;
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
@@ -1644,7 +1637,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
 
 #else
     // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, posInput.positionSS, 0.0).rgb;
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
 #endif
 }
 
