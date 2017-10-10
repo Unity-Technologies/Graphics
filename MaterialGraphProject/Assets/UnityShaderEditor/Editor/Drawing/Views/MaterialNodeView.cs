@@ -78,6 +78,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var data = InstantiateNodeAnchor(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
                 data.capabilities &= ~Capabilities.Movable;
                 data.anchorName = slot.displayName;
+                data.userData = slot;
 
                 if (slot.isOutputSlot)
                 {
