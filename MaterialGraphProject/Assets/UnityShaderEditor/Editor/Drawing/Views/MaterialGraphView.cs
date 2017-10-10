@@ -76,21 +76,36 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (startStage == ShaderStage.Dynamic)
                 startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
 
-            foreach (var anchor in anchors.ToList())
+            foreach (var candidateAnchor in anchors.ToList())
             {
-                var candidateAnchorPresenter = anchor.presenter as GraphAnchorPresenter;
-                if (candidateAnchorPresenter == null)
-                    continue;
+                MaterialSlot candidateSlot = null;
 
-                if (!candidateAnchorPresenter.IsConnectable())
-                    continue;
-                if (candidateAnchorPresenter.orientation != startAnchor.orientation)
-                    continue;
-                if (candidateAnchorPresenter.direction == startAnchor.direction)
-                    continue;
-                if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
-                    continue;
-                var candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
+                var candidateAnchorPresenter = candidateAnchor.presenter as GraphAnchorPresenter;
+                if (candidateAnchorPresenter != null)
+                {
+                    if (!candidateAnchorPresenter.IsConnectable())
+                        continue;
+                    if (candidateAnchorPresenter.orientation != startAnchor.orientation)
+                        continue;
+                    if (candidateAnchorPresenter.direction == startAnchor.direction)
+                        continue;
+                    if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
+                        continue;
+                    candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
+                }
+                else
+                {
+                    if (!candidateAnchor.IsConnectable())
+                        continue;
+                    if (candidateAnchor.orientation != startAnchor.orientation)
+                        continue;
+                    if (candidateAnchor.direction == startAnchor.direction)
+                        continue;
+                    if (nodeAdapter.GetAdapter(candidateAnchor.source, startAnchor.source) == null)
+                        continue;
+                    candidateSlot = candidateAnchor.userData as MaterialSlot;
+                }
+
                 if (candidateSlot == null)
                     continue;
                 if (candidateSlot.owner == startSlot.owner)
@@ -107,7 +122,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         continue;
                 }
 
-                compatibleAnchors.Add(anchor);
+                compatibleAnchors.Add(candidateAnchor);
             }
             return compatibleAnchors;
         }

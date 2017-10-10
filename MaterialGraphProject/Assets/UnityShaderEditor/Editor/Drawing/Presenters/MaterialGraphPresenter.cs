@@ -236,7 +236,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (nodePresenter != null)
                 m_Elements.Remove(nodePresenter);
 
-            var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node.guid == change.node.guid);
+            var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == change.node.guid);
             if (nodeView != null)
                 m_GraphView.RemoveElement(nodeView);
         }
