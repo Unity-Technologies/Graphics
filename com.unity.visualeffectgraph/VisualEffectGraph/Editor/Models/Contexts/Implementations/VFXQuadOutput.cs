@@ -21,8 +21,11 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
             }
         }
 
