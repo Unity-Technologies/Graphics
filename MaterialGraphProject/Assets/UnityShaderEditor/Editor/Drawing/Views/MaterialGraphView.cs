@@ -108,7 +108,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphPresenter == null)
                 return;
 
-            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter)x.presenter);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.presenter != null).Select(x => (MaterialNodePresenter)x.presenter);
             graphPresenter.UpdateSelection(selectedNodes);
         }
 
