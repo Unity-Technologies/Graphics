@@ -213,6 +213,15 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
             }
 
+            if (change.node is Vector2Node)
+            {
+                var nodeView = new Vector2NodeView();
+                change.node.onModified += OnNodeChanged;
+                nodeView.Initialize(change.node, m_PreviewSystem);
+                m_GraphView.AddElement(nodeView);
+                return;
+            }
+
             if (change.node is FractalNode)
             {
                 var nodeView = new MaterialNodeView();
