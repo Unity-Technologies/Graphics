@@ -115,7 +115,7 @@ Material:
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 0
     - _DistortionBlurScale: 0
-    - _DistortionBlurSrcBlend: 0
+    - _DistortionBlurSrcBlend: 7
     - _DistortionDepthTest: 0
     - _DistortionDstBlend: 0
     - _DistortionEnable: 1
