@@ -295,11 +295,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool distortionNullify = material.GetFloat(kDistortionNullify) > 0.0f;
                 if (distortionNullify)
                 {
-                    material.SetInt("_DistortionStencilRef", (int)UnityEngine.Rendering.CompareFunction.Always);
+                    material.SetInt("_DistortionStencilRef", 0);
                 }
                 else
                 {
-                    material.SetInt("_DistortionStencilRef", (int)UnityEngine.Rendering.CompareFunction.Never);
+                    material.SetInt("_DistortionStencilRef", (int)HDRenderPipeline.StencilBitMask.DistortionEnabled);
                 }
             }
 
