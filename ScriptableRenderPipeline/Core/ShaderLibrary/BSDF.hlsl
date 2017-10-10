@@ -241,31 +241,33 @@ float Lambert()
     return INV_PI;
 }
 
-float DisneyDiffuseNoPI(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+float DisneyDiffuseNoPI(float NdotV, float NdotL, float LdotV, float perceptualRoughness)
 {
-    float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    // (2 * LdotH * LdotH) = 1 + LdotV
+    // float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    float fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
     // Two schlick fresnel term
     float lightScatter = F_Schlick(1.0, fd90, NdotL);
-    float viewScatter = F_Schlick(1.0, fd90, NdotV);
+    float viewScatter  = F_Schlick(1.0, fd90, NdotV);
 
     return lightScatter * viewScatter;
 }
 
-float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+float DisneyDiffuse(float NdotV, float NdotL, float LdotV, float perceptualRoughness)
 {
-    return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotH, perceptualRoughness);
+    return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, perceptualRoughness);
 }
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
 float3 DiffuseGGXNoPI(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float perceptualRoughness)
 {
-    float facing    = 0.5 + 0.5 * LdotV;
+    float facing    = 0.5 + 0.5 * LdotV;                        // (LdotH)^2
     float rough     = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
     float transmitL = F_Transm_Schlick(0, NdotL);
     float transmitV = F_Transm_Schlick(0, NdotV);
     float smooth    = transmitL * transmitV * 1.05;             // Normalize F_t over the hemisphere
     float single    = lerp(smooth, rough, perceptualRoughness); // Rescaled by PI
-    // This constant is picked s.t. setting perceptualRoughness, albedo and all angles to 1
+    // This constant is picked s.t. setting perceptualRoughness, albedo and all cosines to 1
     // allows us to match the Lambertian and the Disney Diffuse models. Original value: 0.1159.
     float multiple  = perceptualRoughness * (0.079577 * PI);    // Rescaled by PI
 
