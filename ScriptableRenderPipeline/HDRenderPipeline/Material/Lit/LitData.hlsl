@@ -1148,12 +1148,18 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     float  maxHeight1 = abs(_HeightAmplitude1);
     float  maxHeight2 = abs(_HeightAmplitude2);
     float  maxHeight3 = abs(_HeightAmplitude3);
+
     ApplyDisplacementTileScale(maxHeight0, maxHeight1, maxHeight2, maxHeight3);
 #if defined(_MAIN_LAYER_INFLUENCE_MODE) && defined(_HEIGHTMAP0)
     maxHeight1 += abs(_HeightAmplitude0) * _InheritBaseHeight1;
     maxHeight2 += abs(_HeightAmplitude0) * _InheritBaseHeight2;
     maxHeight3 += abs(_HeightAmplitude0) * _InheritBaseHeight3;
 #endif
+
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(blendMasks, weights);
+    float maxHeight = BlendLayeredScalar(maxHeight0, maxHeight1, maxHeight2, maxHeight3, weights);
+
     float2 worldScale0 = (isPlanar || isTriplanar) ? _TexWorldScale0.xx : _InvPrimScale.xy;
     float2 worldScale1 = (isPlanar || isTriplanar) ? _TexWorldScale1.xx : _InvPrimScale.xy;
     float2 worldScale2 = (isPlanar || isTriplanar) ? _TexWorldScale2.xx : _InvPrimScale.xy;
@@ -1161,10 +1167,12 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
     PerPixelHeightDisplacementParam ppdParam;
     ppdParam.blendMasks = blendMasks;
-    ppdParam.uvSpaceScale[0] = _BaseColorMap0_ST.xy * worldScale0 * maxHeight0;
-    ppdParam.uvSpaceScale[1] = _BaseColorMap1_ST.xy * worldScale1 * maxHeight1;
-    ppdParam.uvSpaceScale[2] = _BaseColorMap2_ST.xy * worldScale2 * maxHeight2;
-    ppdParam.uvSpaceScale[3] = _BaseColorMap3_ST.xy * worldScale3 * maxHeight3;
+    ppdParam.uvSpaceScale[0] = _BaseColorMap0_ST.xy * worldScale0;// *maxHeight0;
+    ppdParam.uvSpaceScale[1] = _BaseColorMap1_ST.xy * worldScale1;// *maxHeight1;
+    ppdParam.uvSpaceScale[2] = _BaseColorMap2_ST.xy * worldScale2;// *maxHeight2;
+    ppdParam.uvSpaceScale[3] = _BaseColorMap3_ST.xy * worldScale3;// *maxHeight3;
+
+    float uvSpaceScale = BlendLayeredScalar(ppdParam.uvSpaceScale[0], ppdParam.uvSpaceScale[1], ppdParam.uvSpaceScale[2], ppdParam.uvSpaceScale[3], weights);
 
     float2 scaleOffsetDetails0 =_DetailMap0_ST.xy;
     float2 scaleOffsetDetails1 =_DetailMap1_ST.xy;
@@ -1203,12 +1211,13 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float3 viewDirUV = float3(viewDirTS.xy, viewDirTS.z);
         float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
         int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
-        float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1.0, ppdParam, height);
+        float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, maxHeight, ppdParam, height);
+        offset *= uvSpaceScale;
 
-        layerTexCoord.base0.uv += offset * ppdParam.uvSpaceScale[0];
-        layerTexCoord.base1.uv += offset * ppdParam.uvSpaceScale[1];
-        layerTexCoord.base2.uv += offset * ppdParam.uvSpaceScale[2];
-        layerTexCoord.base3.uv += offset * ppdParam.uvSpaceScale[3];
+        layerTexCoord.base0.uv += offset;
+        layerTexCoord.base1.uv += offset;
+        layerTexCoord.base2.uv += offset;
+        layerTexCoord.base3.uv += offset;
 
         layerTexCoord.details0.uv += offset * scaleOffsetDetails0;
         layerTexCoord.details1.uv += offset * scaleOffsetDetails1;
@@ -1218,11 +1227,6 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
     // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
     // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign. { height = -height + 1 }.
-
-    float weights[_MAX_LAYER];
-    ComputeMaskWeights(ppdParam.blendMasks, weights);
-    float maxHeight = BlendLayeredScalar(maxHeight0, maxHeight1, maxHeight2, maxHeight3, weights);
-    // TODO: handle height based blend
 
     float verticalDisplacement = maxHeight - height * maxHeight;
     return verticalDisplacement / max(NdotV, 0.001);
