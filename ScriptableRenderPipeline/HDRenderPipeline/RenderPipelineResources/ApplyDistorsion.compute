@@ -1,11 +1,9 @@
 ﻿#include "../../Core/ShaderLibrary/Common.hlsl"
-#include "../../Core/ShaderLibrary/Packing.hlsl"
 #include "../Material/Builtin/BuiltinData.hlsl"
 
 #define DISTORTIONENABLED_STENCILBIT 4
 
 Texture2D<float4> _DistortionTexture;
-Texture2D<float4> _StencilTexture;
 Texture2D<float4> _GaussianPyramidColorTexture;
 RWTexture2D<float4> _CameraColorTexture;
 
@@ -20,13 +18,6 @@ CBUFFER_END
 [numthreads(8, 8, 1)]
 void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Reject pixels based on stencil buffer
-    // 3rd bit is 1 for rejected pixels
-    uint stencil = UnpackByte(_StencilTexture.Load(uint3(dispatchThreadId, 0)).r);
-    bool isValid = (stencil & DISTORTIONENABLED_STENCILBIT) != 0;
-    if (!isValid)
-        return;
-
     // We use a bias when fetching distortion source pixels
     // This avoid artifacts when a distortion is overlapped by an opaque object
     const float _FetchBias = 0.9;
@@ -48,13 +39,10 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     float4 encodedDistordedDistortion = _DistortionTexture.Load(int3(distortedEncodedDistortionId, 0));
     DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur, distordedValidForDistortion);
 
-    if (distordedValidForDistortion && validForDistortion)
-    {
-        // Get source pixel for distortion
-        float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
-        float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur.x, 0.0, 1.0);
-        float4 sampled = _GaussianPyramidColorTexture.SampleLevel(sampler_GaussianPyramidColorTexture, distordedUV, mip);
+    // Get source pixel for distortion
+    float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
+    float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur.x, 0.0, 1.0);
+    float4 sampled = _GaussianPyramidColorTexture.SampleLevel(sampler_GaussianPyramidColorTexture, distordedUV, mip);
 
-        _CameraColorTexture[dispatchThreadId] = sampled;
-    }
+    _CameraColorTexture[dispatchThreadId] = sampled;
 }

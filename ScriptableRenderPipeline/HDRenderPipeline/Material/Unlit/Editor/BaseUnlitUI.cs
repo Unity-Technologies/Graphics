@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -29,8 +30,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader"); 
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map", "Vector Map for the distorsion");
-            public static GUIContent distortionNullifyText = new GUIContent("Nullify Distortion", "Nullify distortion");
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map", "Vector Map for the distorsion"); 
+            public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode"); 
+            public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
+            public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
 
             public static string advancedText = "Advanced Options";
         }
@@ -73,12 +76,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionEnable = "_DistortionEnable";
         protected MaterialProperty distortionOnly = null;
         protected const string kDistortionOnly = "_DistortionOnly";
-        protected MaterialProperty distortionNullify = null;
-        protected const string kDistortionNullify = "_DistortionNullify";
         protected MaterialProperty distortionDepthTest = null;
         protected const string kDistortionDepthTest = "_DistortionDepthTest";
         protected MaterialProperty distortionVectorMap = null;
         protected const string kDistortionVectorMap = "_DistortionVectorMap";
+        protected MaterialProperty distortionBlendMode = null;
+        protected const string kDistortionBlendMode = "_DistortionBlendMode";
+        protected MaterialProperty distortionScale = null;
+        protected const string kDistortionScale = "_DistortionScale";
+        protected MaterialProperty distortionBlurScale = null;
+        protected const string kDistortionBlurScale = "_DistortionBlurScale";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -108,7 +115,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionOnly = FindProperty(kDistortionOnly, props, false);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props, false);
             distortionVectorMap = FindProperty(kDistortionVectorMap, props, false);
-            distortionNullify = FindProperty(kDistortionNullify, props, false);
+            distortionBlendMode = FindProperty(kDistortionBlendMode, props, false);
+            distortionScale = FindProperty(kDistortionScale, props, false);
+            distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
         }
 
         void SurfaceTypePopup()
@@ -161,10 +170,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (distortionEnable.floatValue == 1.0f)
                     {
                         EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(distortionBlendMode, StylesBaseUnlit.distortionBlendModeText);
                         m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
                         m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
                         m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
-                        m_MaterialEditor.ShaderProperty(distortionNullify, StylesBaseUnlit.distortionNullifyText);
+                        m_MaterialEditor.ShaderProperty(distortionScale, StylesBaseUnlit.distortionScaleText);
+                        m_MaterialEditor.ShaderProperty(distortionBlurScale, StylesBaseUnlit.distortionBlurScaleText);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -292,14 +303,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
                 }
 
-                bool distortionNullify = material.GetFloat(kDistortionNullify) > 0.0f;
-                if (distortionNullify)
+                var distortionBlendMode = material.GetInt(kDistortionBlendMode);
+                switch (distortionBlendMode)
+
                 {
-                    material.SetInt("_DistortionStencilRef", 0);
-                }
-                else
-                {
-                    material.SetInt("_DistortionStencilRef", (int)HDRenderPipeline.StencilBitMask.DistortionEnabled);
+                    default:
+                    case 0: // Add
+                    {
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Max);
+                            break;
+                    }
+                    case 1: // Multiply
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstAlpha);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
+                        break;
                 }
             }
 

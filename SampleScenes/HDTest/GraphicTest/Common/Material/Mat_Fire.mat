@@ -6,29 +6,19 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_Distorsion_Lit_Only_2DNoise
-  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_Name: Mat_Fire
+  m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTIONONLY_OFF
     _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3000
   stringTagMap:
     RenderType: Transparent
-  disabledShaderPasses:
-  - GBuffer
-  - META
-  - SHADOWCASTER
-  - DepthOnly
-  - MOTIONVECTORS
-  - Forward
-  - ForwardOnlyOpaqueDepthOnly
-  - ForwardOnlyOpaque
-  - GBufferWithPrepass
-  - TransparentDepthPrepass
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -48,12 +38,16 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ColorMap:
+        m_Texture: {fileID: 2800000, guid: e394d1c1e9b289443936483ad0c5ebeb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DistortionVectorMap:
-        m_Texture: {fileID: 8600000, guid: 99d420ed53cf5bc449b014653d05770d, type: 2}
+        m_Texture: {fileID: 2800000, guid: ac92c0f4bdc82e84fbd6dc4c7ec78f95, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissiveColorMap:
@@ -111,7 +105,6 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistortionBlendMode: 0
-    - _DistortionBlendOp: 0
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 0
     - _DistortionBlurScale: 1
@@ -120,7 +113,7 @@ Material:
     - _DistortionDstBlend: 1
     - _DistortionEnable: 1
     - _DistortionNullify: 0
-    - _DistortionOnly: 1
+    - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
     - _DistortionStencilRef: 4
@@ -171,6 +164,7 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
