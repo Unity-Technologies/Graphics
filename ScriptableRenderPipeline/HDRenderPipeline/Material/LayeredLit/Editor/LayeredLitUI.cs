@@ -622,6 +622,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
             }
 
+            SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
+
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
