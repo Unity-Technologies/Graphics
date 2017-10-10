@@ -104,18 +104,18 @@ Material:
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
-    - _DistortionBlendMode: 0
+    - _DistortionBlendMode: 1
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 0
     - _DistortionBlurScale: 1
-    - _DistortionBlurSrcBlend: 0
+    - _DistortionBlurSrcBlend: 7
     - _DistortionDepthTest: 0
-    - _DistortionDstBlend: 1
+    - _DistortionDstBlend: 0
     - _DistortionEnable: 1
     - _DistortionNullify: 0
     - _DistortionOnly: 0
     - _DistortionScale: 1
-    - _DistortionSrcBlend: 1
+    - _DistortionSrcBlend: 2
     - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1

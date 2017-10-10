@@ -39,9 +39,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     float4 outBuffer;
-    // We do not use pixel outside of distorted objects, so we use masking to reject invalid pixels
-    // https://developer.nvidia.com/gpugems/GPUGems2/gpugems2_chapter19.html (refraction mask)
-    // true = tag this pixel as a valid distortion pixel source
-    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, true, outBuffer);
+    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, posInput.depthRaw, outBuffer);
     return outBuffer;
 }

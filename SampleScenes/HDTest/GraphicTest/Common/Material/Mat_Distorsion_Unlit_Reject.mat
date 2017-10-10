@@ -25,6 +25,10 @@ Material:
   - DepthOnly
   - MOTIONVECTORS
   - Forward
+  - ForwardOnlyOpaqueDepthOnly
+  - ForwardOnlyOpaque
+  - GBufferWithPrepass
+  - TransparentDepthPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -110,10 +114,18 @@ Material:
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DistortionBlendMode: 1
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 0
+    - _DistortionBlurScale: 0
+    - _DistortionBlurSrcBlend: 7
     - _DistortionDepthTest: 0
+    - _DistortionDstBlend: 0
     - _DistortionEnable: 1
     - _DistortionNullify: 1
     - _DistortionOnly: 1
+    - _DistortionScale: 0
+    - _DistortionSrcBlend: 2
     - _DistortionStencilRef: 0
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1

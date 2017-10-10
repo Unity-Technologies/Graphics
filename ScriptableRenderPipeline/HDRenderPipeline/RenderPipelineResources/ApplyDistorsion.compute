@@ -1,11 +1,10 @@
 ﻿#include "../../Core/ShaderLibrary/Common.hlsl"
 #include "../Material/Builtin/BuiltinData.hlsl"
 
-#define DISTORTIONENABLED_STENCILBIT 4
-
-Texture2D<float4> _DistortionTexture;
-Texture2D<float4> _GaussianPyramidColorTexture;
-RWTexture2D<float4> _CameraColorTexture;
+TEXTURE2D(_DepthTexture);
+TEXTURE2D(_DistortionTexture);
+TEXTURE2D(_GaussianPyramidColorTexture);
+RW_TEXTURE2D(float4, _CameraColorTexture);
 
 SamplerState sampler_GaussianPyramidColorTexture;
 
@@ -23,26 +22,31 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     const float _FetchBias = 0.9;
 
     // Get distortion values
-    float4 encodedDistortion = _DistortionTexture.Load(int3(dispatchThreadId, 0));
+    float4 encodedDistortion = LOAD_TEXTURE2D(_DistortionTexture, dispatchThreadId);
 
     float2 distortion;
     float2 distortionBlur;
-    bool validForDistortion;
-    DecodeDistortion(encodedDistortion, distortion, distortionBlur, validForDistortion);
+    float depthRaw;
+    DecodeDistortion(encodedDistortion, distortion, distortionBlur, depthRaw);
 
-    // Get distortion source pixel mask (stored in _DistortionTexture.z)
     uint2 distortedEncodedDistortionId = dispatchThreadId + int2(distortion);
+
+    // Discard pixels that are in front of the distortion object
+    float distordedDepth = LOAD_TEXTURE2D(_DepthTexture, distortedEncodedDistortionId).r;
+
+    /*if (distordedDepth > depthRaw)
+        return;*/
 
     float2 distordedDistortion;
     float2 distordedDistortionBlur;
-    bool distordedValidForDistortion;
-    float4 encodedDistordedDistortion = _DistortionTexture.Load(int3(distortedEncodedDistortionId, 0));
-    DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur, distordedValidForDistortion);
+    float distordedObjectDepth;
+    float4 encodedDistordedDistortion = LOAD_TEXTURE2D(_DistortionTexture, distortedEncodedDistortionId);
+    DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur, distordedObjectDepth);
 
     // Get source pixel for distortion
     float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
     float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur.x, 0.0, 1.0);
-    float4 sampled = _GaussianPyramidColorTexture.SampleLevel(sampler_GaussianPyramidColorTexture, distordedUV, mip);
+    float4 sampled = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, distordedUV, mip);
 
     _CameraColorTexture[dispatchThreadId] = sampled;
 }
