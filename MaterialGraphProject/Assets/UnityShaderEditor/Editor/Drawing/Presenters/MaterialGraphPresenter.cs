@@ -256,21 +256,46 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
-            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
 
             var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
             var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-            var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
-            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
 
-            var edgePresenter = CreateInstance<GraphEdgePresenter>();
-            edgePresenter.Initialize(edge);
-            edgePresenter.output = sourceAnchorPresenter;
-            edgePresenter.output.Connect(edgePresenter);
-            edgePresenter.input = targetAnchor;
-            edgePresenter.input.Connect(edgePresenter);
-            m_Elements.Add(edgePresenter);
+            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
+
+            if (sourceNodePresenter != null)
+            {
+                var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
+
+                var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
+                var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
+
+                var edgePresenter = CreateInstance<GraphEdgePresenter>();
+                edgePresenter.Initialize(edge);
+                edgePresenter.output = sourceAnchorPresenter;
+                edgePresenter.output.Connect(edgePresenter);
+                edgePresenter.input = targetAnchor;
+                edgePresenter.input.Connect(edgePresenter);
+                m_Elements.Add(edgePresenter);
+            }
+            else
+            {
+                var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
+                if (sourceNodeView == null)
+                    return;
+
+                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
+
+                var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
+                var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
+
+                var edgeView = new Edge();
+                edgeView.userData = edge;
+                edgeView.output = sourceAnchor;
+                edgeView.output.Connect(edgeView);
+                edgeView.input = targetAnchor;
+                edgeView.input.Connect(edgeView);
+                m_GraphView.AddElement(edgeView);
+            }
         }
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
@@ -309,6 +334,22 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 Undo.RecordObject(m_GraphObject, "Connect Edge");
                 graph.Connect(left.slot.slotReference, right.slot.slotReference);
+                RecordState();
+            }
+        }
+
+        public void Connect(NodeAnchor left, NodeAnchor right)
+        {
+            if (left != null && right != null)
+            {
+                Undo.RecordObject(m_GraphObject, "Connect Edge");
+                var leftSlot = left.userData as ISlot;
+                var rightSlot = right.userData as ISlot;
+
+                if (leftSlot == null || rightSlot == null)
+                    return;
+
+                graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
                 RecordState();
             }
         }

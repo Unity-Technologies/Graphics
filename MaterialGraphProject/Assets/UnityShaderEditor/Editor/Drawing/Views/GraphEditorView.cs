@@ -161,16 +161,19 @@ namespace UnityEditor.MaterialGraph.Drawing
                     }
                 }
             }
+            */
 
             if (graphViewChange.edgesToCreate != null)
             {
                 foreach (Edge edge in graphViewChange.edgesToCreate)
                 {
-                    EdgeConnected(edge);
+                    m_GraphPresenter.Connect(edge.output, edge.input);
                 }
+                graphViewChange.edgesToCreate.Clear();
             }
 
-            if (graphViewChange.movedElements != null)
+            /*
+            if (graphViewChange.movedElements != null)  
             {
                 foreach (GraphElement element in graphViewChange.movedElements)
                 {
