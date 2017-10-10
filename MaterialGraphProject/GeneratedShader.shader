@@ -1,20 +1,21 @@
-Shader "hidden/preview/Fractal_DDEE6FBB"
+Shader "hidden/preview/_E2A7472C"
 {
 	Properties
 	{
 	}
 	CGINCLUDE
 	#include "UnityCG.cginc"
-			void Unity_Fractal_float(float2 uv, float2 pan, float zoom, float aspect, out float result)
+			void Unity_AACheckerboard_float(float2 uv, float4 colorA, float4 colorB, float3 aaTweak, float2 frequency, out float4 result)
 			{
-			    const int Iterations = 128;
-			    float2 c = (uv - 0.5) * zoom * float2(1, aspect) - pan;
-			    float2 v = 0;
-			    for (int n = 0; n < Iterations && dot(v,v) < 4; n++)
-			    {
-			        v = float2(v.x * v.x - v.y * v.y, v.x * v.y * 2) + c;
-			    }
-			    result = (dot(v, v) > 4) ? (float)n / (float)Iterations : 0;
+			    float4 derivatives = float4(ddx(uv), ddy(uv));
+			    float2 duv_length = sqrt(float2(dot(derivatives.xz, derivatives.xz), dot(derivatives.yw, derivatives.yw)));
+			    float width = 0.5f;
+			    float2 distance3 = 2.0f * abs(frac(uv.xy * frequency) - 0.5f) - width;
+			    float2 scale = aaTweak.x / duv_length.xy;
+			    float2 blend_out = saturate((scale - aaTweak.zz) / (aaTweak.yy - aaTweak.zz));
+			    float2 vector_alpha = clamp(distance3 * scale.xy * blend_out.xy, -1.0f, 1.0f);
+			    float alpha = saturate(0.5f + 0.5f * vector_alpha.x * vector_alpha.y);
+			    result= lerp(colorA, colorB, alpha.xxxx);
 			}
 	struct GraphVertexInput
 	{
@@ -29,21 +30,22 @@ Shader "hidden/preview/Fractal_DDEE6FBB"
 				half4 uv0;
 			};
 			struct SurfaceDescription{
-				float Fractal_DDEE6FBB_result;
+				float4 _E2A7472C_result;
 			};
-			float4 Fractal_DDEE6FBB_uv;
-			float4 Fractal_DDEE6FBB_pan;
-			float Fractal_DDEE6FBB_zoom;
-			float Fractal_DDEE6FBB_aspect;
+			float4 _E2A7472C_uv;
+			float4 _E2A7472C_colorA;
+			float4 _E2A7472C_colorB;
+			float4 _E2A7472C_aaTweak;
+			float4 _E2A7472C_frequency;
 			GraphVertexInput PopulateVertexData(GraphVertexInput v){
 				return v;
 			}
 			SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 				half4 uv0 = IN.uv0;
-				float Fractal_DDEE6FBB_result;
-				Unity_Fractal_float(uv0, Fractal_DDEE6FBB_pan, Fractal_DDEE6FBB_zoom, Fractal_DDEE6FBB_aspect, Fractal_DDEE6FBB_result);
+				float4 _E2A7472C_result;
+				Unity_AACheckerboard_float(uv0, _E2A7472C_colorA, _E2A7472C_colorB, _E2A7472C_aaTweak, _E2A7472C_frequency, _E2A7472C_result);
 				SurfaceDescription surface = (SurfaceDescription)0;
-				surface.Fractal_DDEE6FBB_result = Fractal_DDEE6FBB_result;
+				surface._E2A7472C_result = _E2A7472C_result;
 				return surface;
 			}
 	ENDCG
@@ -76,7 +78,7 @@ Shader "hidden/preview/Fractal_DDEE6FBB"
 	            SurfaceInputs surfaceInput = (SurfaceInputs)0;;
 	            surfaceInput.uv0  =uv0;
 	            SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-	            return half4(surf.Fractal_DDEE6FBB_result, surf.Fractal_DDEE6FBB_result, surf.Fractal_DDEE6FBB_result, 1.0);
+	            return half4(surf._E2A7472C_result.x, surf._E2A7472C_result.y, surf._E2A7472C_result.z, 1.0);
 	        }
 	        ENDCG
 	    }
