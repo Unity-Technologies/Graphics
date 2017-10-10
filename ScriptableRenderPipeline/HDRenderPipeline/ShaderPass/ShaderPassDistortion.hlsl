@@ -39,6 +39,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     float4 outBuffer;
-    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, posInput.depthRaw, outBuffer);
+    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, outBuffer);
     return outBuffer;
 }
