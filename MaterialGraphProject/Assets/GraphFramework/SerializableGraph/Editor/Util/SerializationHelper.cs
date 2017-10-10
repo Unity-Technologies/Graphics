@@ -112,10 +112,11 @@ namespace UnityEngine.Graphing
             TypeSerializationInfo info = item.typeInfo;
             if (remapper != null)
                 info = DoTypeRemap(info, remapper);
+            info.assemblyName = "Assembly-CSharp-Editor";
 
             var type = GetTypeFromSerializedString(info);
             if (type == null)
-                throw new ArgumentException(string.Format("Can not deserialize {0}, type {1} is invalid", info));
+                throw new ArgumentException(string.Format("Can not deserialize ({0}, {1}), type is invalid", info.assemblyName, info.fullName));
 
             T instance;
             try
