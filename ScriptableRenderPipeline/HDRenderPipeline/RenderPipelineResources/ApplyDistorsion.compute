@@ -26,22 +26,14 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
 
     float2 distortion;
     float2 distortionBlur;
-    float depthRaw;
-    DecodeDistortion(encodedDistortion, distortion, distortionBlur, depthRaw);
+    DecodeDistortion(encodedDistortion, distortion, distortionBlur);
 
     uint2 distortedEncodedDistortionId = dispatchThreadId + int2(distortion);
 
-    // Discard pixels that are in front of the distortion object
-    float distordedDepth = LOAD_TEXTURE2D(_DepthTexture, distortedEncodedDistortionId).r;
-
-    /*if (distordedDepth > depthRaw)
-        return;*/
-
     float2 distordedDistortion;
     float2 distordedDistortionBlur;
-    float distordedObjectDepth;
     float4 encodedDistordedDistortion = LOAD_TEXTURE2D(_DistortionTexture, distortedEncodedDistortionId);
-    DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur, distordedObjectDepth);
+    DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur);
 
     // Get source pixel for distortion
     float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
