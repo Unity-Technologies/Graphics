@@ -19,14 +19,7 @@ namespace UnityEditor.VFX.UI
     {
         public VFXDataEdge()
         {
-        }
-
-        public override int layer
-        {
-            get
-            {
-                return -1;
-            }
+            layer = -1;
         }
 
         public override void OnDisplayChanged()
@@ -122,6 +115,7 @@ namespace UnityEditor.VFX.UI
             base.OnSelected();
             UpdateColor();
             DirtyAnchors();
+            layer = 10;
         }
 
         public override void OnUnselected()
@@ -129,6 +123,7 @@ namespace UnityEditor.VFX.UI
             base.OnUnselected();
             UpdateColor();
             DirtyAnchors();
+            layer = -1;
         }
 
         protected override EdgeControl CreateEdgeControl()

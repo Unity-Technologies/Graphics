@@ -323,7 +323,9 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
-            //this.SendToFront();
+            base.OnSelected();
+
+            parent.Add(this);
             if (!VFXComponentEditor.s_IsEditingAsset)
                 Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }

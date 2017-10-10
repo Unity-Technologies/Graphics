@@ -190,17 +190,9 @@ namespace UnityEditor.VFX.UI
 
     internal class VFXFlowEdge : Edge
     {
-        public override int layer
-        {
-            get
-            {
-                return 1;
-            }
-        }
-
-
         public VFXFlowEdge()
         {
+            layer = 1;
         }
 
         protected override EdgeControl CreateEdgeControl()
