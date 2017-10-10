@@ -83,8 +83,7 @@ namespace UnityEditor.VFX.Test
 
             update1.LinkTo(output1);
             init.LinkTo(update1); // this will unlink update0
-
-            init.Unlink(update1);
+            init.UnlinkTo(update1);
 
             var particleData0 = init.GetData();
             var particleData1 = update0.GetData();

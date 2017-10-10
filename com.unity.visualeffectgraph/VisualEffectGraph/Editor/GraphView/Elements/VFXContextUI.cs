@@ -500,6 +500,7 @@ namespace UnityEditor.VFX.UI
                 case VFXContextType.kInit:    AddToClassList("init"); break;
                 case VFXContextType.kUpdate:  AddToClassList("update"); break;
                 case VFXContextType.kOutput:  AddToClassList("output"); break;
+                case VFXContextType.kEvent:   AddToClassList("event"); break;
                 default: throw new Exception();
             }
 
