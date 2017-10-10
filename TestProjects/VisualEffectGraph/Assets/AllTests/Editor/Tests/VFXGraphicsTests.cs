@@ -26,13 +26,8 @@ namespace UnityEditor.VFX.Test
             public RenderTexture texture;
         }
 
-        static SceneCaptureInstance InitScene(string scenePath)
+        static void StandardWarmingLoop(IEnumerable<VFXComponent> vfxComponent)
         {
-            SceneCaptureInstance instance;
-            instance.scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-            instance.camera = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Camera>()).First();
-
-            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
             foreach (var vfx in vfxComponent)
             {
                 var vfxAsset = vfx.vfxAsset;
@@ -45,6 +40,68 @@ namespace UnityEditor.VFX.Test
                     vfx.DebugSimulate(10);
                     vfx.pause = true;
                 }
+            }
+        }
+
+        static void WarmingLoopWithAnimator(IEnumerable<VFXComponent> vfxComponent, IEnumerable<Animator> vfxAnimator)
+        {
+            int loopCount = 10;
+            foreach (var vfx in vfxComponent)
+            {
+                var vfxAsset = vfx.vfxAsset;
+                if (vfxAsset)
+                {
+                    var graph = VFXAssetExtensions.GetOrCreateGraph(vfxAsset);
+                    graph.RecompileIfNeeded();
+                    vfx.Reinit();
+                }
+            }
+
+            AnimationMode.StartAnimationMode();
+            for (int loop = 0; loop < loopCount; loop++)
+            {
+                int sliceCount = 16;
+                float simulateTime = 1.0f / (float)sliceCount;
+                for (int slice = 0; slice < sliceCount; slice++)
+                {
+                    float t = (float)slice / (float)sliceCount;
+                    foreach (var animator in vfxAnimator)
+                    {
+                        foreach (var clip in animator.GetCurrentAnimatorClipInfo(0))
+                        {
+                            AnimationMode.BeginSampling();
+                            AnimationMode.SampleAnimationClip(animator.gameObject, clip.clip, t);
+                            AnimationMode.EndSampling();
+                        }
+                    }
+
+                    foreach (var vfx in vfxComponent)
+                    {
+                        vfx.pause = false;
+                        vfx.DebugSimulate(simulateTime);
+                        vfx.pause = true;
+                    }
+                }
+            }
+            AnimationMode.StopAnimationMode();
+        }
+
+        static SceneCaptureInstance InitScene(string scenePath)
+        {
+            SceneCaptureInstance instance;
+            instance.scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            instance.camera = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Camera>()).First();
+
+            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
+            var vfxAnimator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
+
+            if (vfxAnimator.Any())
+            {
+                WarmingLoopWithAnimator(vfxComponent, vfxAnimator);
+            }
+            else
+            {
+                StandardWarmingLoop(vfxComponent);
             }
 
             instance.camera.cameraType = CameraType.Preview;
