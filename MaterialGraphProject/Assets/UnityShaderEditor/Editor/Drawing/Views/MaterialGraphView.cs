@@ -61,6 +61,57 @@ namespace UnityEditor.MaterialGraph.Drawing
             evt.StopPropagation();
         }
 
+        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        {
+            var compatibleAnchors = new List<NodeAnchor>();
+            var startAnchorPresenter = startAnchor.presenter as GraphAnchorPresenter;
+            if (startAnchorPresenter == null)
+                return compatibleAnchors;
+            var startSlot = startAnchorPresenter.slot as MaterialSlot;
+            if (startSlot == null)
+                return compatibleAnchors;
+
+            var goingBackwards = startSlot.isOutputSlot;
+            var startStage = startSlot.shaderStage;
+            if (startStage == ShaderStage.Dynamic)
+                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
+
+            foreach (var anchor in anchors.ToList())
+            {
+                var candidateAnchorPresenter = anchor.presenter as GraphAnchorPresenter;
+                if (candidateAnchorPresenter == null)
+                    continue;
+
+                if (!candidateAnchorPresenter.IsConnectable())
+                    continue;
+                if (candidateAnchorPresenter.orientation != startAnchor.orientation)
+                    continue;
+                if (candidateAnchorPresenter.direction == startAnchor.direction)
+                    continue;
+                if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
+                    continue;
+                var candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
+                if (candidateSlot == null)
+                    continue;
+                if (candidateSlot.owner == startSlot.owner)
+                    continue;
+                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.valueType))
+                    continue;
+
+                if (startStage != ShaderStage.Dynamic)
+                {
+                    var candidateStage = candidateSlot.shaderStage;
+                    if (candidateStage == ShaderStage.Dynamic)
+                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
+                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
+                        continue;
+                }
+
+                compatibleAnchors.Add(anchor);
+            }
+            return compatibleAnchors;
+        }
+
         class AddNodeCreationObject
         {
             public Vector2 m_Pos;
