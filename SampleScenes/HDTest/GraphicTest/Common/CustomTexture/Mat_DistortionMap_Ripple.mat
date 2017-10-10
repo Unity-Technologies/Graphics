@@ -102,7 +102,7 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BlurAmplitude: 1
-    - _BlurMaxAmplitude: 1
+    - _BlurMaxAmplitude: 0.874
     - _BlurMinAmplitude: 0.251
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
@@ -112,7 +112,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistorsionAmplitude: 52
-    - _DistortionAmplitude: 15.9
+    - _DistortionAmplitude: 16
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
