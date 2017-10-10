@@ -160,9 +160,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear    = 0,                    // 0x0
-            Lighting = 3,                    // 0x3  - 2 bit
-            All      = 255                   // 0xFF - 8 bit
+            Clear             = 0,                    // 0x0
+            Lighting          = 3,                    // 0x3  - 2 bit
+            DistortionEnabled = 4,                    // 0x4  - 1 bit
+            All               = 255                   // 0xFF - 8 bit
         }
 
         RenderStateBlock m_DepthStateOpaque;
@@ -285,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForRegularLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
             m_CopyStencilForDistortion = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CopyStencilForDistortion.DisableKeyword("EXPORT_HTILE");
-            m_CopyStencilForDistortion.SetInt(HDShaderIDs._StencilRef, 3); // Distortion mask
+            m_CopyStencilForDistortion.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DistortionEnabled);
             m_CameraMotionVectorsMaterial   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
@@ -569,9 +570,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
             // Therefore, it's manually copied using a pixel shader.
-            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission
-                || m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion 
-                || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
         }
 
         bool NeedHTileCopy()
@@ -623,7 +622,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Our method of exporting the stencil requires one pass per unique stencil value.
                     CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting,   m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
                     CoreUtils.DrawFullScreen(cmd, m_CopyStencilForRegularLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
-                    CoreUtils.DrawFullScreen(cmd, m_CopyStencilForDistortion,      m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
                     cmd.ClearRandomWriteTargets();
                 }
             }
@@ -765,12 +763,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderPyramidDepth(camera, cmd);
 
-            // TODO: Check with VFX team.
-            // Rendering distortion here have off course lot of artifact.
-            // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-            // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
-            RenderDistortion(m_CullResults, camera, renderContext, cmd);
-
             // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
 
@@ -847,7 +839,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
                     RenderGaussianPyramidColor(camera, cmd);
-                    ApplyDistortion(cmd, m_Asset.renderPipelineResources);
+
+                    // TODO: Check with VFX team.
+                    // Rendering distortion here have off course lot of artifact.
+                    // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
+                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
+                    AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
+                    // We need the stencil buffer to render the distortion in a compute shader
+                    // Due to API limitation, it will OVERRIDE previous values in copied stencil buffer
+                    PrepareAndBindStencilTextureForDistortion(cmd);
+                    RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
                     RenderPostProcesses(camera, cmd, postProcessLayer);
                 }
@@ -975,7 +976,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
-        void ApplyDistortion(CommandBuffer cmd, RenderPipelineResources resources)
+        /// <summary>
+        /// Distortion is resolved in two steps:
+        ///  - AccumulateDistortion is a pass that
+        ///     1. Accumulate distortion vectors (add)
+        ///     2. Accumulate smoothness (max)
+        ///     3. Mark in DistortionBuffer pixel eligible as source for distortion
+        ///     4. Mark in stencil buffer pixel eligible to be distorted
+        ///  - RenderDistortion is a pass that distort eligible pixels with eligible sources with a specified smoothness
+        /// </summary>
+        void AccumulateDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
+                return;
+
+            using (new ProfilingSample(cmd, "Distortion"))
+            {
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+
+                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
+                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+
+                // Only transparent object can render distortion vectors
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
+            }
+        }
+
+        void PrepareAndBindStencilTextureForDistortion(CommandBuffer cmd)
+        {
+            // We need to get the 3rd bit of the stencil buffer for distortion
+            // This call will overwrite the stencil with the value of the third bit (0 or 4)
+            using (new ProfilingSample(cmd, "Copy StencilBuffer For Distortion"))
+                CoreUtils.DrawFullScreen(cmd, m_CopyStencilForDistortion, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
+        }
+
+        void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
         {
             using (new ProfilingSample(cmd, "ApplyDistortion"))
             {
@@ -985,7 +1022,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._StencilTexture, GetStencilTexture());
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._StencilTexture, m_CameraStencilBufferCopyRT);
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
                 cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, (int)(size.x) / (int)x, (int)(size.y) / (int)y, 1);
@@ -1396,25 +1433,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int i = 0; i < lodCount + 1; i++)
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
-            }
-        }
-
-        void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
-                return;
-
-            using (new ProfilingSample(cmd, "Distortion"))
-            {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-
-                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
-                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
-                cmd.ClearRenderTarget(false, true, Color.clear); // TODO: can we avoid this clear for performance ?
-
-                // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
 

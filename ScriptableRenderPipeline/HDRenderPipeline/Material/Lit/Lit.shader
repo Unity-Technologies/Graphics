@@ -65,7 +65,7 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
-        [HideInInspector] _DistortionStencilRef("Distortion Stencil Comparison", Int) = 1 // UnityEngine.Rendering.CompareFunction.Never
+        [HideInInspector] _DistortionStencilRef("Distortion Stencil Ref", Int) = 4
         [ToggleOff] _DistortionNullify("Nullify distortion", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
@@ -260,8 +260,6 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
-                ReadMask 3
-                WriteMask 3
             }
 
             HLSLPROGRAM
@@ -289,8 +287,6 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
-                ReadMask 3
-                WriteMask 3
             }
 
             HLSLPROGRAM
@@ -411,11 +407,11 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
-                Ref  4
+                Ref [_DistortionStencilRef]
                 Comp Always
                 Pass Replace
-                ReadMask 4
-                WriteMask 4
+                // This will erase previous stencil information
+                // Make sure this pass is called after light stencil bits were used
             }
 
             HLSLPROGRAM
