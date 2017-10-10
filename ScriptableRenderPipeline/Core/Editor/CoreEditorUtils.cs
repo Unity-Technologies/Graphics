@@ -1,9 +1,44 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
     public static class CoreEditorUtils
     {
+        // Serialization helpers
+        public static string FindProperty<T, TValue>(Expression<Func<T, TValue>> expr)
+        {
+            // Get the field path as a string
+            MemberExpression me;
+            switch (expr.Body.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    me = expr.Body as MemberExpression;
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+
+            var members = new List<string>();
+            while (me != null)
+            {
+                members.Add(me.Member.Name);
+                me = me.Expression as MemberExpression;
+            }
+
+            var sb = new StringBuilder();
+            for (int i = members.Count - 1; i >= 0; i--)
+            {
+                sb.Append(members[i]);
+                if (i > 0) sb.Append('.');
+            }
+
+            return sb.ToString();
+        }
+
         // UI Helpers
         public static void DrawSplitter()
         {
@@ -44,7 +79,6 @@ namespace UnityEditor.Experimental.Rendering
 
             // Title
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
-            EditorGUILayout.Space();
         }
 
         public static bool DrawHeaderFoldout(string title, bool state)

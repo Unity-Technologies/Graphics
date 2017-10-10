@@ -89,11 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly = null;
 
         // Subsurface Scattering Settings
-        // Old SSS Model >>>
-        SerializedProperty m_UseDisneySSS = null;
-        // <<< Old SSS Model
-        SerializedProperty m_Profiles = null;
-        SerializedProperty m_NumProfiles = null;
+        SerializedProperty m_SubsurfaceScatteringSettings;
 
         // Shadow Settings
         SerializedProperty m_ShadowAtlasWidth = null;
@@ -108,38 +104,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (var p = new PropertyFetcher<HDRenderPipelineAsset>(serializedObject))
             {
-                m_DefaultDiffuseMaterial = p.FindProperty("m_DefaultDiffuseMaterial");
-                m_DefaultShader = p.FindProperty("m_DefaultShader");
+                m_DefaultDiffuseMaterial = p.Find("m_DefaultDiffuseMaterial");
+                m_DefaultShader = p.Find("m_DefaultShader");
 
                 // Tile settings
-                m_enableTileAndCluster = p.FindProperty(x => x.tileSettings.enableTileAndCluster);
-                m_enableComputeLightEvaluation = p.FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
-                m_enableComputeLightVariants = p.FindProperty(x => x.tileSettings.enableComputeLightVariants);
-                m_enableComputeMaterialVariants = p.FindProperty(x => x.tileSettings.enableComputeMaterialVariants);
-                m_enableClustered = p.FindProperty(x => x.tileSettings.enableClustered);
-                m_enableFptlForOpaqueWhenClustered = p.FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
-                m_enableBigTilePrepass = p.FindProperty(x => x.tileSettings.enableBigTilePrepass);
+                m_enableTileAndCluster = p.Find(x => x.tileSettings.enableTileAndCluster);
+                m_enableComputeLightEvaluation = p.Find(x => x.tileSettings.enableComputeLightEvaluation);
+                m_enableComputeLightVariants = p.Find(x => x.tileSettings.enableComputeLightVariants);
+                m_enableComputeMaterialVariants = p.Find(x => x.tileSettings.enableComputeMaterialVariants);
+                m_enableClustered = p.Find(x => x.tileSettings.enableClustered);
+                m_enableFptlForOpaqueWhenClustered = p.Find(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
+                m_enableBigTilePrepass = p.Find(x => x.tileSettings.enableBigTilePrepass);
 
                 // Shadow settings
-                m_ShadowAtlasWidth = p.FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
-                m_ShadowAtlasHeight = p.FindProperty(x => x.shadowInitParams.shadowAtlasHeight);
+                m_ShadowAtlasWidth = p.Find(x => x.shadowInitParams.shadowAtlasWidth);
+                m_ShadowAtlasHeight = p.Find(x => x.shadowInitParams.shadowAtlasHeight);
 
                 // Texture settings
-                m_SpotCookieSize = p.FindProperty(x => x.textureSettings.spotCookieSize);
-                m_PointCookieSize = p.FindProperty(x => x.textureSettings.pointCookieSize);
-                m_ReflectionCubemapSize = p.FindProperty(x => x.textureSettings.reflectionCubemapSize);
+                m_SpotCookieSize = p.Find(x => x.textureSettings.spotCookieSize);
+                m_PointCookieSize = p.Find(x => x.textureSettings.pointCookieSize);
+                m_ReflectionCubemapSize = p.Find(x => x.textureSettings.reflectionCubemapSize);
 
                 // Rendering settings
-                m_RenderingUseForwardOnly = p.FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
-                m_RenderingUseDepthPrepass = p.FindProperty(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
-                m_RenderingUseDepthPrepassAlphaTestOnly = p.FindProperty(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
+                m_RenderingUseForwardOnly = p.Find(x => x.renderingSettings.useForwardRenderingOnly);
+                m_RenderingUseDepthPrepass = p.Find(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
+                m_RenderingUseDepthPrepassAlphaTestOnly = p.Find(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
 
                 // Subsurface Scattering Settings
-                // Old SSS Model >>>
-                m_UseDisneySSS = p.FindProperty(x => x.sssSettings.useDisneySSS);
-                // <<< Old SSS Model
-                m_Profiles    = p.FindProperty(x => x.sssSettings.profiles);
-                m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
+                m_SubsurfaceScatteringSettings = p.Find(x => x.sssSettings);
             }
         }
 
@@ -187,7 +179,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-
             if (EditorGUI.EndChangeCheck())
             {
                 HackSetDirty(renderContext); // Repaint
@@ -198,30 +189,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void SssSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
-
             EditorGUILayout.LabelField(styles.sssSettings);
-            EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
-
-            EditorGUI.BeginChangeCheck();
-
-            // Old SSS Model >>>
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_UseDisneySSS);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                hdPipeline.CreateSssMaterials(m_UseDisneySSS.boolValue);
-            }
-            // <<< Old SSS Model
-            EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
-
-            for (int i = 0, n = m_Profiles.arraySize; i < n; i++)
-            {
-                SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(profile, styles.sssProfiles[i]);
-            }
-
+            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings);
             EditorGUI.indentLevel--;
         }
 
