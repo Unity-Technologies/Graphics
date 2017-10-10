@@ -6,10 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_Distorsion_2DNoise
-  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_Name: Mat_Distorsion_Unlit_Only_Ripple
+  m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTION_ON _DOUBLESIDEDENABLE_OFF
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON _DOUBLESIDEDENABLE_OFF
     _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEVERTEXDISPLACEMENT_OFF
     _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
@@ -44,12 +44,16 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DistortionVectorMap:
-        m_Texture: {fileID: 8600000, guid: 99d420ed53cf5bc449b014653d05770d, type: 2}
+        m_Texture: {fileID: 8600000, guid: b47c3f363d01c934e91b198a745925eb, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissiveColorMap:
@@ -106,9 +110,11 @@ Material:
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
-    - _DistortionDepthTest: 0
+    - _DistortionDepthTest: 1
     - _DistortionEnable: 1
+    - _DistortionNullify: 0
     - _DistortionOnly: 1
+    - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -152,10 +158,11 @@ Material:
     - _UVDetail: 0
     - _VertexDisplacementObjectScale: 1
     - _VertexDisplacementTilingScale: 1
-    - _ZTestMode: 8
+    - _ZTestMode: 4
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

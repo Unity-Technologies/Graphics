@@ -14,6 +14,8 @@ Shader "HDRenderPipeline/Unlit"
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [HideInInspector] _DistortionStencilRef("Distortion Stencil Ref", Int) = 4
+        [ToggleOff] _DistortionNullify("Nullify distortion", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -111,10 +113,20 @@ Shader "HDRenderPipeline/Unlit"
             Name "Distortion" // Name is not used
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
-            Blend One One
+            Blend One One, One One
+            BlendOp Add, Max
             ZTest [_ZTestMode]
             ZWrite off
             Cull [_CullMode]
+
+            Stencil
+            {
+                Ref [_DistortionStencilRef]
+                Comp Always
+                Pass Replace
+                // This will erase previous stencil information
+                // Make sure this pass is called after light stencil bits were used
+            }
 
             HLSLPROGRAM
 
