@@ -738,7 +738,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (!match)
                 {
-                    EditorGUILayout.HelpBox(s_Styles.perPixelDisplacementLayersWarning.text, MessageType.Warning);
+                    EditorGUILayout.HelpBox(styles.perPixelDisplacementLayersWarning.text, MessageType.Warning);
                 }
             }
 

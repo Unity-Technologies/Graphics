@@ -1061,10 +1061,10 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     // See function ComputePerVertexDisplacement() for comment about the weights/influenceMask/BlendMask
 
     // Note: Amplitude is handled in uvSpaceScale, no need to multiply by it here.
-    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, param.uv[0] + texOffsetCurrent/* * param.uvSpaceScale[0]*/, lod).r;
-    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, param.uv[1] + texOffsetCurrent/* * param.uvSpaceScale[1]*/, lod).r;
-    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, param.uv[2] + texOffsetCurrent/* * param.uvSpaceScale[2]*/, lod).r;
-    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, param.uv[3] + texOffsetCurrent/* * param.uvSpaceScale[3]*/, lod).r;
+    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, param.uv[0] + texOffsetCurrent * param.uvSpaceScale[0], lod).r;
+    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, param.uv[1] + texOffsetCurrent * param.uvSpaceScale[1], lod).r;
+    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, param.uv[2] + texOffsetCurrent * param.uvSpaceScale[2], lod).r;
+    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, param.uv[3] + texOffsetCurrent * param.uvSpaceScale[3], lod).r;
 
     SetEnabledHeightByLayer(height0, height1, height2, height3);
 
@@ -1200,15 +1200,15 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
-        float3 viewDirUV = normalize(float3(viewDirTS.xy * ppdParam.uvSpaceScale[0], viewDirTS.z));
+        float3 viewDirUV = float3(viewDirTS.xy, viewDirTS.z);
         float  unitAngle = saturate(FastACosPos(viewDirUV.z) * INV_HALF_PI);            // TODO: optimize
         int    numSteps = (int)lerp(_PPDMinSamples, _PPDMaxSamples, unitAngle);
         float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirUV, 1.0, ppdParam, height);
 
-        layerTexCoord.base0.uv += offset;// *ppdParam.uvSpaceScale[0];
-        layerTexCoord.base1.uv += offset; //*ppdParam.uvSpaceScale[1];
-        layerTexCoord.base2.uv += offset;// *ppdParam.uvSpaceScale[2];
-        layerTexCoord.base3.uv += offset; //*ppdParam.uvSpaceScale[3];
+        layerTexCoord.base0.uv += offset * ppdParam.uvSpaceScale[0];
+        layerTexCoord.base1.uv += offset * ppdParam.uvSpaceScale[1];
+        layerTexCoord.base2.uv += offset * ppdParam.uvSpaceScale[2];
+        layerTexCoord.base3.uv += offset * ppdParam.uvSpaceScale[3];
 
         layerTexCoord.details0.uv += offset * scaleOffsetDetails0;
         layerTexCoord.details1.uv += offset * scaleOffsetDetails1;
@@ -1218,7 +1218,13 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
     // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
     // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign. { height = -height + 1 }.
-    float verticalDisplacement = maxHeight0 - height * maxHeight0;
+
+    float weights[_MAX_LAYER];
+    ComputeMaskWeights(ppdParam.blendMasks, weights);
+    float maxHeight = BlendLayeredScalar(maxHeight0, maxHeight1, maxHeight2, maxHeight3, weights);
+    // TODO: handle height based blend
+
+    float verticalDisplacement = maxHeight - height * maxHeight;
     return verticalDisplacement / max(NdotV, 0.001);
 #else
     return 0.0;
