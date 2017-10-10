@@ -44,6 +44,31 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionInverseMatrix : VFXExpression
+    {
+        public VFXExpressionInverseMatrix()
+            : this(VFXValue<Matrix4x4>.Default)
+        {}
+
+        public VFXExpressionInverseMatrix(VFXExpression parent)
+            : base(VFXExpression.Flags.InvalidOnGPU, parent)
+        {}
+
+        public override VFXExpressionOp operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXInverseTRSOp;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrix = constParents[0].Get<Matrix4x4>();
+            return VFXValue.Constant(matrix.inverse);
+        }
+    }
+
     class VFXExpressionExtractPositionFromMatrix : VFXExpression
     {
         public VFXExpressionExtractPositionFromMatrix() : this(VFXValue<Matrix4x4>.Default)
