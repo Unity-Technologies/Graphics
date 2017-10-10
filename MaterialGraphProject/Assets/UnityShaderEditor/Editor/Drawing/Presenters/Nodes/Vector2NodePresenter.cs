@@ -35,4 +35,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             return new List<GraphControlPresenter>(base.GetControlData()) { instance };
         }
     }
+
+    public class Vector2NodeView : PropertyNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<Vector2ControlPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
+        }
+    }
 }

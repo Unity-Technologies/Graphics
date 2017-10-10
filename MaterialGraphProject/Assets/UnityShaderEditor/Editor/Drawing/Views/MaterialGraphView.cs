@@ -64,10 +64,19 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<NodeAnchor>();
+
+            MaterialSlot startSlot = null;
+
             var startAnchorPresenter = startAnchor.presenter as GraphAnchorPresenter;
-            if (startAnchorPresenter == null)
-                return compatibleAnchors;
-            var startSlot = startAnchorPresenter.slot as MaterialSlot;
+            if (startAnchorPresenter != null && startAnchor.dependsOnPresenter)
+            {
+                startSlot = startAnchorPresenter.slot as MaterialSlot;
+            }
+            else
+            {
+                startSlot = startAnchor.userData as MaterialSlot;
+            }
+
             if (startSlot == null)
                 return compatibleAnchors;
 
@@ -81,7 +90,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 MaterialSlot candidateSlot = null;
 
                 var candidateAnchorPresenter = candidateAnchor.presenter as GraphAnchorPresenter;
-                if (candidateAnchorPresenter != null)
+                if (candidateAnchorPresenter != null && candidateAnchor.dependsOnPresenter)
                 {
                     if (!candidateAnchorPresenter.IsConnectable())
                         continue;
