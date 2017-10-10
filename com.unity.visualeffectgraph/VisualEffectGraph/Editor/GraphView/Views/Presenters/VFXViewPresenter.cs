@@ -205,24 +205,28 @@ namespace UnityEditor.VFX.UI
             foreach (var outPresenter in contextPresenters.ToArray())
             {
                 var output = outPresenter.context;
-                foreach (var input in output.inputContexts)
+                for (int slotIndex = 0; slotIndex < output.inputFlowSlot.Length; ++slotIndex)
                 {
-                    var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == input);
-                    if (inPresenter == null)
-                        break;
-
-                    var outputAnchor = inPresenter.flowOutputAnchors.First();
-                    var inputAnchor = outPresenter.flowInputAnchors.First();
-
-                    var edgePresenter = m_Elements.OfType<VFXFlowEdgePresenter>().FirstOrDefault(t => t.input == inputAnchor && t.output == outputAnchor);
-                    if (edgePresenter != null)
-                        unusedEdges.Remove(edgePresenter);
-                    else
+                    var inputFlowSlot = output.inputFlowSlot[slotIndex];
+                    foreach (var link in inputFlowSlot.link)
                     {
-                        edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
-                        edgePresenter.output = inPresenter.flowOutputAnchors.First();
-                        edgePresenter.input = outPresenter.flowInputAnchors.First();
-                        base.AddElement(edgePresenter);
+                        var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == link.context);
+                        if (inPresenter == null)
+                            break;
+
+                        var outputAnchor = inPresenter.flowOutputAnchors.Where(o => o.slotIndex == link.slotIndex).FirstOrDefault();
+                        var inputAnchor = outPresenter.flowInputAnchors.Where(o => o.slotIndex == slotIndex).FirstOrDefault();
+
+                        var edgePresenter = m_Elements.OfType<VFXFlowEdgePresenter>().FirstOrDefault(t => t.input == inputAnchor && t.output == outputAnchor);
+                        if (edgePresenter != null)
+                            unusedEdges.Remove(edgePresenter);
+                        else
+                        {
+                            edgePresenter = CreateInstance<VFXFlowEdgePresenter>();
+                            edgePresenter.output = outputAnchor;
+                            edgePresenter.input = inputAnchor;
+                            base.AddElement(edgePresenter);
+                        }
                     }
                 }
 
@@ -254,10 +258,13 @@ namespace UnityEditor.VFX.UI
             {
                 var flowEdge = (VFXFlowEdgePresenter)edge;
 
-                var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner;
-                var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner;
+                var outputFlowAnchor = flowEdge.output as VFXFlowAnchorPresenter;
+                var inputFlowAnchor = flowEdge.input as VFXFlowAnchorPresenter;
 
-                context0.LinkTo(context1);
+                var contextOutput = outputFlowAnchor.Owner;
+                var contextInput = inputFlowAnchor.Owner;
+
+                contextOutput.LinkTo(contextInput, outputFlowAnchor.slotIndex, inputFlowAnchor.slotIndex);
 
                 // disconnect this edge as it will not be added by add element
                 edge.input = null;
@@ -343,10 +350,13 @@ namespace UnityEditor.VFX.UI
             {
                 var flowEdge = element as VFXFlowEdgePresenter;
 
-                var context0 = ((VFXFlowAnchorPresenter)(flowEdge.input)).Owner as VFXContext;
-                var context1 = ((VFXFlowAnchorPresenter)(flowEdge.output)).Owner as VFXContext;
+                var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
+                var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
 
-                context0.Unlink(context1);
+                var contextInput = inputAnchor.Owner as VFXContext;
+                var contextOutput = outputAnchor.Owner as VFXContext;
+
+                contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
             }
             else if (element is VFXDataEdgePresenter)
             {

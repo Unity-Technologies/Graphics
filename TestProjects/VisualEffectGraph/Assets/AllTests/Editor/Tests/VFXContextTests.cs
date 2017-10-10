@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -81,17 +82,17 @@ namespace UnityEditor.VFX.Test
             from.LinkTo(to1);
             to2.LinkFrom(from);
 
-            Assert.AreEqual(0, from.GetNbInputs());
-            Assert.AreEqual(1, to1.GetNbInputs());
-            Assert.AreEqual(1, to2.GetNbInputs());
-            Assert.AreEqual(2, from.GetNbOutputs());
-            Assert.AreEqual(0, to1.GetNbOutputs());
-            Assert.AreEqual(0, to2.GetNbOutputs());
+            Assert.AreEqual(0, from.inputContexts.Count());
+            Assert.AreEqual(1, to1.inputContexts.Count());
+            Assert.AreEqual(1, to2.inputContexts.Count());
+            Assert.AreEqual(2, from.outputContexts.Count());
+            Assert.AreEqual(0, to1.outputContexts.Count());
+            Assert.AreEqual(0, to2.outputContexts.Count());
 
-            Assert.AreEqual(to1, from.GetOutput(0));
-            Assert.AreEqual(to2, from.GetOutput(1));
-            Assert.AreEqual(from, to1.GetInput(0));
-            Assert.AreEqual(from, to2.GetInput(0));
+            Assert.AreEqual(to1, from.outputContexts.ElementAt(0));
+            Assert.AreEqual(to2, from.outputContexts.ElementAt(1));
+            Assert.AreEqual(from, to1.inputContexts.ElementAt(0));
+            Assert.AreEqual(from, to2.inputContexts.ElementAt(0));
         }
 
         [Test]
@@ -104,15 +105,15 @@ namespace UnityEditor.VFX.Test
             from.LinkTo(to1);
             to2.LinkFrom(from);
 
-            to1.Unlink(from);
-            from.Unlink(to2);
+            to1.UnlinkFrom(from);
+            from.UnlinkTo(to2);
 
-            Assert.AreEqual(0, from.GetNbInputs());
-            Assert.AreEqual(0, to1.GetNbInputs());
-            Assert.AreEqual(0, to2.GetNbInputs());
-            Assert.AreEqual(0, from.GetNbOutputs());
-            Assert.AreEqual(0, to1.GetNbOutputs());
-            Assert.AreEqual(0, to2.GetNbOutputs());
+            Assert.AreEqual(0, from.inputContexts.Count());
+            Assert.AreEqual(0, to1.inputContexts.Count());
+            Assert.AreEqual(0, to2.inputContexts.Count());
+            Assert.AreEqual(0, from.outputContexts.Count());
+            Assert.AreEqual(0, to1.outputContexts.Count());
+            Assert.AreEqual(0, to2.outputContexts.Count());
         }
 
         [Test]
@@ -127,12 +128,55 @@ namespace UnityEditor.VFX.Test
 
             from.UnlinkAll();
 
-            Assert.AreEqual(0, from.GetNbInputs());
-            Assert.AreEqual(0, to1.GetNbInputs());
-            Assert.AreEqual(0, to2.GetNbInputs());
-            Assert.AreEqual(0, from.GetNbOutputs());
-            Assert.AreEqual(0, to1.GetNbOutputs());
-            Assert.AreEqual(0, to2.GetNbOutputs());
+            Assert.AreEqual(0, from.inputContexts.Count());
+            Assert.AreEqual(0, to1.inputContexts.Count());
+            Assert.AreEqual(0, to2.inputContexts.Count());
+            Assert.AreEqual(0, from.outputContexts.Count());
+            Assert.AreEqual(0, to1.outputContexts.Count());
+            Assert.AreEqual(0, to2.outputContexts.Count());
+        }
+
+        [Test]
+        public void MultiSlot_Link()
+        {
+            var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStart.SetSettingValue("eventName", "Start");
+            var eventStop = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStop.SetSettingValue("eventName", "Stop");
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            spawner.LinkFrom(eventStart, 0, 0);
+            Assert.AreEqual(1, spawner.inputContexts.Count());
+            Assert.AreEqual(1, spawner.inputFlowSlot[0].link.Count);
+            Assert.AreEqual(0, spawner.inputFlowSlot[1].link.Count);
+
+            spawner.LinkFrom(eventStop, 0, 1);
+            Assert.AreEqual(2, spawner.inputContexts.Count());
+            Assert.AreEqual(1, spawner.inputFlowSlot[0].link.Count);
+            Assert.AreEqual(1, spawner.inputFlowSlot[1].link.Count);
+
+            spawner.UnlinkFrom(eventStart, 0, 0);
+            Assert.AreEqual(1, spawner.inputContexts.Count());
+            Assert.AreEqual(0, spawner.inputFlowSlot[0].link.Count);
+            Assert.AreEqual(1, spawner.inputFlowSlot[1].link.Count);
+
+            spawner.UnlinkFrom(eventStop, 0, 1);
+            Assert.AreEqual(0, spawner.inputContexts.Count());
+            Assert.AreEqual(0, spawner.inputFlowSlot[0].link.Count);
+            Assert.AreEqual(0, spawner.inputFlowSlot[1].link.Count);
+        }
+
+        [Test]
+        public void MultiLink_Fail()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var to1 = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var to2 = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+
+            to1.LinkFrom(from);
+            to2.LinkFrom(from);
+
+            Assert.AreEqual(1, from.outputContexts.Count());
         }
 
         [Test]

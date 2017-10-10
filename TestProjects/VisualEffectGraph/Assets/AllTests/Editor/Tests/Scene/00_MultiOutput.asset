@@ -107,9 +107,14 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
-  m_Inputs:
-  - {fileID: 114536471820266184}
-  m_Outputs: []
+  m_InputFlowSlot:
+  - link:
+    - context: {fileID: 114536471820266184}
+      slotIndex: 0
+  m_OutputFlowSlot:
+  - link: []
+  blendMode: 1
+  useSoftParticle: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -178,9 +183,14 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
-  m_Inputs:
-  - {fileID: 114536471820266184}
-  m_Outputs: []
+  m_InputFlowSlot:
+  - link:
+    - context: {fileID: 114536471820266184}
+      slotIndex: 0
+  m_OutputFlowSlot:
+  - link: []
+  blendMode: 1
+  useSoftParticle: 0
 --- !u!114 &114069458236294264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,9 +238,13 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114049132967902410}
   m_Space: 0
-  m_Inputs: []
-  m_Outputs:
-  - {fileID: 114988927067353768}
+  m_InputFlowSlot:
+  - link: []
+  - link: []
+  m_OutputFlowSlot:
+  - link:
+    - context: {fileID: 114988927067353768}
+      slotIndex: 0
 --- !u!114 &114096789490094170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -951,12 +965,18 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
-  m_Inputs:
-  - {fileID: 114988927067353768}
-  m_Outputs:
-  - {fileID: 114051895635770072}
-  - {fileID: 114802777676336084}
-  - {fileID: 114033350763109576}
+  m_InputFlowSlot:
+  - link:
+    - context: {fileID: 114988927067353768}
+      slotIndex: 0
+  m_OutputFlowSlot:
+  - link:
+    - context: {fileID: 114051895635770072}
+      slotIndex: 0
+    - context: {fileID: 114033350763109576}
+      slotIndex: 0
+    - context: {fileID: 114802777676336084}
+      slotIndex: 0
   integration: 0
 --- !u!114 &114537866366631664
 MonoBehaviour:
@@ -1375,9 +1395,14 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
-  m_Inputs:
-  - {fileID: 114536471820266184}
-  m_Outputs: []
+  m_InputFlowSlot:
+  - link:
+    - context: {fileID: 114536471820266184}
+      slotIndex: 0
+  m_OutputFlowSlot:
+  - link: []
+  blendMode: 1
+  useSoftParticle: 0
 --- !u!114 &114809451265799136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1822,10 +1847,14 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
-  m_Inputs:
-  - {fileID: 114095934640662620}
-  m_Outputs:
-  - {fileID: 114536471820266184}
+  m_InputFlowSlot:
+  - link:
+    - context: {fileID: 114095934640662620}
+      slotIndex: 0
+  m_OutputFlowSlot:
+  - link:
+    - context: {fileID: 114536471820266184}
+      slotIndex: 0
 --- !u!114 &114997603949784974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2170,3 +2199,10 @@ VFXAsset:
       - expressionIndex: 12
         nameId: texture_texture
       processor: {fileID: 4800000, guid: 58c16bb59ff2fc64dbd13c8d2d14f0c4, type: 3}
+  m_Events:
+  - name: OnStart
+    startSystems: 00000000
+    stopSystems: 
+  - name: OnStop
+    startSystems: 
+    stopSystems: 00000000

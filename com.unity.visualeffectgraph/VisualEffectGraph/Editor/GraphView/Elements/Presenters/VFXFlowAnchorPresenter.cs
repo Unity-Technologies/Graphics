@@ -11,9 +11,14 @@ namespace UnityEditor.VFX.UI
         private VFXContext m_Owner;
         public VFXContext Owner { get { return m_Owner; } }
 
-        public void Init(VFXContext owner)
+        [SerializeField]
+        private int m_SlotIndex;
+        public int slotIndex { get { return m_SlotIndex; } }
+
+        public void Init(VFXContext owner, int slotIndex)
         {
             m_Owner = owner;
+            m_SlotIndex = slotIndex;
             anchorType = typeof(int); // We dont care about that atm!
             orientation = Orientation.Vertical;
         }
