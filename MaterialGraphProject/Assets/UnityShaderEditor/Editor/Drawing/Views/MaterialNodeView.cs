@@ -7,11 +7,149 @@ using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     public class MaterialNodeView : Node
     {
+        public AbstractMaterialNode node { get; private set; }
+
+        protected List<GraphControlPresenter> m_Controls = new List<GraphControlPresenter>();
+
+        public List<GraphControlPresenter> controls
+        {
+            get { return m_Controls; }
+        }
+
+        int m_Version;
+        PreviewData m_Preview;
+
+        public Texture previewTexture { get; private set; }
+
+        public override bool expanded
+        {
+            get { return base.expanded; }
+            set
+            {
+                if (base.expanded != value)
+                {
+                    base.expanded = value;
+                    var ds = node.drawState;
+                    ds.expanded = value;
+                    node.drawState = ds;
+                }
+            }
+        }
+
+        public virtual void OnModified(ModificationScope scope)
+        {
+            m_Version++;
+
+            expanded = node.drawState.expanded;
+            /*
+            if (scope == ModificationScope.Topological)
+            {
+                var slots = node.GetSlots<ISlot>().ToList();
+
+                inputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
+                outputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
+
+                AddSlots(slots.Except(inputAnchors.Concat(outputAnchors).Select(data => ((GraphAnchorPresenter)data).slot)));
+
+                inputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
+                outputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
+            }
+            */
+        }
+
+        protected virtual IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            return Enumerable.Empty<GraphControlPresenter>();
+        }
+
+        protected void AddSlots(IEnumerable<ISlot> slots)
+        {
+            foreach (var slot in slots)
+            {
+                if (slot.hidden)
+                    continue;
+
+                var data = InstantiateNodeAnchor(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
+                data.capabilities &= ~Capabilities.Movable;
+                data.anchorName = slot.displayName;
+
+                if (slot.isOutputSlot)
+                {
+                    outputContainer.Add(data);
+                }
+                else
+                {
+                    inputContainer.Add(data);
+                }
+            }
+        }
+
+        public virtual void Initialize(INode inNode, PreviewSystem previewSystem)
+        {
+            node = inNode as AbstractMaterialNode;
+
+            if (node == null)
+                return;
+
+            title = inNode.name;
+            expanded = node.drawState.expanded;
+
+            AddSlots(node.GetSlots<ISlot>());
+
+            var controlData = GetControlData();
+            controls.AddRange(controlData);
+
+            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+
+            m_Version = 0;
+
+            m_Preview = previewSystem.GetPreview(inNode);
+            m_Preview.onPreviewChanged += OnPreviewChanged;
+
+            node.onReplaced += OnReplaced; 
+
+            // From OnDataChange()
+
+            m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
+            if (node.hasPreview)
+                m_PreviewToggle.RemoveFromClassList("inactive");
+            else
+                m_PreviewToggle.AddToClassList("inactive");
+
+            UpdateControls();
+
+            UpdatePreviewTexture(node.previewExpanded ? previewTexture : null);
+        }
+
+        void OnReplaced(INode previous, INode current)
+        {
+            node = current as AbstractMaterialNode;
+        }
+
+        void OnPreviewChanged()
+        {
+            previewTexture = m_Preview.texture;
+            UpdatePreviewTexture(node.previewExpanded ? previewTexture : null);
+            m_Version++;
+        }
+
+        public void Dispose()
+        {
+            if (m_Preview != null)
+            {
+                m_Preview.onPreviewChanged -= OnPreviewChanged;
+                m_Preview = null;
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
         VisualElement m_ControlsContainer;
         List<GraphControlPresenter> m_CurrentControls;
         VisualElement m_PreviewToggle;
@@ -49,14 +187,17 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnPreviewToggle()
         {
-            var node = GetPresenter<MaterialNodePresenter>().node;
+            AbstractMaterialNode materialNode = node;
+            if (presenter != null)
+                materialNode = GetPresenter<MaterialNodePresenter>().node;
+
             node.previewExpanded = !node.previewExpanded;
             m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
         }
 
         void UpdatePreviewTexture(Texture previewTexture)
         {
-            if (previewTexture == null)
+            if (previewTexture == null) 
             {
                 m_PreviewImage.visible = false;
                 m_PreviewImage.RemoveFromClassList("visible");
@@ -72,6 +213,28 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             Dirty(ChangeType.Repaint);
 
+        }
+
+        void UpdateControls()
+        {
+            if (controls.SequenceEqual(m_CurrentControls) && expanded)
+                return;
+
+            m_ControlsContainer.Clear();
+            m_CurrentControls.Clear();
+            Dirty(ChangeType.Layout);
+
+            if (!expanded)
+                return;
+
+            foreach (var controlData in controls)
+            {
+                m_ControlsContainer.Add(new IMGUIContainer(controlData.OnGUIHandler)
+                {
+                    name = "element"
+                });
+                m_CurrentControls.Add(controlData);
+            }
         }
 
         void UpdateControls(MaterialNodePresenter nodeData)

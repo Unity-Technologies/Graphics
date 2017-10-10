@@ -7,6 +7,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Graphing;
+using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -22,6 +23,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
+        private GraphView m_GraphView;
+
         GraphTypeMapper typeMapper { get; set; }
         PreviewSystem m_PreviewSystem;
 
@@ -153,8 +156,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 //            if (scope == ModificationScope.Topological)
         }
 
-        public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
+        public virtual void Initialize(GraphView graphView, IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
         {
+            m_GraphView = graphView;
+
             m_PreviewSystem = previewSystem;
             this.graph = graph;
             m_Container = container;
@@ -199,6 +204,24 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
+            if (change.node is Vector1Node)
+            {
+                var nodeView = new Vector1NodeView();
+                change.node.onModified += OnNodeChanged;
+                nodeView.Initialize(change.node, m_PreviewSystem);
+                m_GraphView.AddElement(nodeView);
+                return;
+            }
+
+            if (change.node is FractalNode)
+            {
+                var nodeView = new MaterialNodeView();
+                change.node.onModified += OnNodeChanged;
+                nodeView.Initialize(change.node, m_PreviewSystem);
+                m_GraphView.AddElement(nodeView);
+                return;
+            }
+
             var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
             change.node.onModified += OnNodeChanged;
             nodePresenter.Initialize(change.node, m_PreviewSystem);
@@ -208,9 +231,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         void NodeRemoved(NodeRemovedGraphChange change)
         {
             change.node.onModified -= OnNodeChanged;
+
             var nodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == change.node.guid);
             if (nodePresenter != null)
                 m_Elements.Remove(nodePresenter);
+
+            var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node.guid == change.node.guid);
+            if (nodeView != null)
+                m_GraphView.RemoveElement(nodeView);
         }
 
         void EdgeAdded(EdgeAddedGraphChange change)
@@ -257,6 +285,12 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
         {
             graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.edge));
+            graph.ValidateGraph();
+        }
+
+        public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
+        {
+            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));  
             graph.ValidateGraph();
         }
 
@@ -351,7 +385,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public bool canCopy
         {
-            get { return elements.Any(e => e.selected); }
+            get { return elements.Any(e => e.selected) || (m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected)); }
         }
 
         public void Copy()
@@ -409,6 +443,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             RecordState();
             Undo.RecordObject(m_GraphObject, "Delete");
             RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RemoveElements(
+                m_GraphView.selection.OfType<MaterialNodeView>().Where(e => e.selected && e.presenter == null),
+                m_GraphView.selection.OfType<Edge>().Where(e => e.selected));
             RecordState();
         }
 

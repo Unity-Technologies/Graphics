@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEditor.MaterialGraph.Drawing.Inspector;
@@ -66,10 +67,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_GraphInspectorPresenter = ScriptableObject.CreateInstance<GraphInspectorPresenter>();
             m_GraphInspectorPresenter.Initialize(assetName, previewSystem, container);
 
-            m_GraphPresenter = ScriptableObject.CreateInstance<MaterialGraphPresenter>();
-            m_GraphPresenter.Initialize(graph, container, previewSystem);
-            m_GraphPresenter.onSelectionChanged += m_GraphInspectorPresenter.UpdateSelection;
-
             m_ToolbarView = new ToolbarView { name = "TitleBar" };
             {
                 m_ToolbarView.Add(new ToolbarSpaceView());
@@ -125,6 +122,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             Add(m_ToolbarView);
 
+            m_GraphPresenter = ScriptableObject.CreateInstance<MaterialGraphPresenter>();
+
             var content = new VisualElement();
             content.name = "content";
             {
@@ -132,8 +131,58 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphInspectorView = new GraphInspectorView() { name = "inspector", presenter = m_GraphInspectorPresenter};
                 content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
+
+                m_GraphView.graphViewChanged = GraphViewChanged;
             }
+
+            m_GraphPresenter.Initialize(m_GraphView, graph, container, previewSystem);
+            m_GraphPresenter.onSelectionChanged += m_GraphInspectorPresenter.UpdateSelection;
+
             Add(content);
+        }
+
+        private GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
+        {
+            /*
+            if (graphViewChange.elementsToRemove != null)
+            {
+                graphViewChange.elementsToRemove.To
+                foreach (GraphElement element in graphViewChange.elementsToRemove)
+                {
+                    if (element is Node)
+                    {
+                        m_GraphPresenter.RemoveElements(
+                            m_GraphView.selection.OfType<MaterialNodeView>().Where(e => e.selected && e.presenter == null),
+                            m_GraphView.selection.OfType<Edge>().Where(e => e.selected));
+                    }
+                    else if (element is Edge)
+                    {
+                        EdgeDisconnected(element as Edge);
+                    }
+                }
+            }
+
+            if (graphViewChange.edgesToCreate != null)
+            {
+                foreach (Edge edge in graphViewChange.edgesToCreate)
+                {
+                    EdgeConnected(edge);
+                }
+            }
+
+            if (graphViewChange.movedElements != null)
+            {
+                foreach (GraphElement element in graphViewChange.movedElements)
+                {
+                    MathNode mathNode = element.userData as MathNode;
+                    if (mathNode == null)
+                        continue;
+
+                    mathNode.m_Position = element.layout.position;
+                }
+            }
+            */
+            return graphViewChange;
         }
 
         public void Dispose()
