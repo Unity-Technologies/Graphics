@@ -80,7 +80,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material m_CopyStencilForSplitLighting;
         Material m_CopyStencilForRegularLighting;
-        Material m_CopyStencilForDistortion;
         GPUCopy m_GPUCopy;
 
         // Various set of material use in render loop
@@ -284,9 +283,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForRegularLighting = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CopyStencilForRegularLighting.DisableKeyword("EXPORT_HTILE");
             m_CopyStencilForRegularLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
-            m_CopyStencilForDistortion = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
-            m_CopyStencilForDistortion.DisableKeyword("EXPORT_HTILE");
-            m_CopyStencilForDistortion.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DistortionEnabled);
             m_CameraMotionVectorsMaterial   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
@@ -845,9 +841,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
                     // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
                     AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
-                    // We need the stencil buffer to render the distortion in a compute shader
-                    // Due to API limitation, it will OVERRIDE previous values in copied stencil buffer
-                    PrepareAndBindStencilTextureForDistortion(cmd);
                     RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
                     RenderPostProcesses(camera, cmd, postProcessLayer);
@@ -1004,14 +997,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PrepareAndBindStencilTextureForDistortion(CommandBuffer cmd)
-        {
-            // We need to get the 3rd bit of the stencil buffer for distortion
-            // This call will overwrite the stencil with the value of the third bit (0 or 4)
-            using (new ProfilingSample(cmd, "Copy StencilBuffer For Distortion"))
-                CoreUtils.DrawFullScreen(cmd, m_CopyStencilForDistortion, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
-        }
-
         void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
         {
             using (new ProfilingSample(cmd, "ApplyDistortion"))
@@ -1022,7 +1007,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._StencilTexture, m_CameraStencilBufferCopyRT);
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
                 cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
                 cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, (int)(size.x) / (int)x, (int)(size.y) / (int)y, 1);

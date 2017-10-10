@@ -19,12 +19,16 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
+  - Forward
+  - DepthOnly
+  - ForwardOnlyOpaqueDepthOnly
+  - ForwardOnlyOpaque
   - GBuffer
+  - GBufferWithPrepass
+  - MOTIONVECTORS
+  - TransparentDepthPrepass
   - META
   - SHADOWCASTER
-  - DepthOnly
-  - MOTIONVECTORS
-  - Forward
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -106,10 +110,19 @@ Material:
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DistortionBlendMode: 1
+    - _DistortionBlendOp: 21
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 8
     - _DistortionDepthTest: 1
+    - _DistortionDstBlend: 0
     - _DistortionEnable: 1
     - _DistortionNullify: 0
     - _DistortionOnly: 1
+    - _DistortionScale: 0
+    - _DistortionSrcBlend: 2
     - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
