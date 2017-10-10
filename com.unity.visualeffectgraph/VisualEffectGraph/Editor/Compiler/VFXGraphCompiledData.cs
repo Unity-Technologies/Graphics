@@ -456,7 +456,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
-                float nbSteps = 8.0f;
+                float nbSteps = 9.0f;
                 string progressBarTitle = "Compiling VFX...";
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
@@ -526,6 +526,7 @@ namespace UnityEditor.VFX
                 foreach (var data in models.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
                 m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
             }
