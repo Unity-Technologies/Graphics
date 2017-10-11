@@ -47,20 +47,34 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Version++;
 
             expanded = node.drawState.expanded;
-            /*
+
             if (scope == ModificationScope.Topological)
             {
                 var slots = node.GetSlots<ISlot>().ToList();
 
-                inputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
-                outputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
+                var anchorsToRemove = new List<VisualElement>();
+                foreach (var anchor in inputContainer.Children())
+                {
+                    if (!slots.Contains(anchor.userData as ISlot))
+                        anchorsToRemove.Add(anchor);
+                }
+                foreach (var ve in anchorsToRemove)
+                    inputContainer.Remove(ve);
 
-                AddSlots(slots.Except(inputAnchors.Concat(outputAnchors).Select(data => ((GraphAnchorPresenter)data).slot)));
+                anchorsToRemove.Clear();
+                foreach (var anchor in outputContainer.Children())
+                {
+                    if (!slots.Contains(anchor.userData as ISlot))
+                        anchorsToRemove.Add(anchor);
+                }
+                foreach (var ve in anchorsToRemove)
+                    outputContainer.Remove(ve);
 
-                inputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
-                outputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
+                AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as ISlot)));
+
+                inputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
+                outputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
             }
-            */
         }
 
         protected virtual IEnumerable<GraphControlPresenter> GetControlData()
