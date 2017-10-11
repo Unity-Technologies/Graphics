@@ -776,7 +776,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX iso
-    preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
+    preLightData.ggxLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
     preLightData.TdotV = 0.0;
@@ -785,7 +785,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
         float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, abs(bsdfData.anisotropy));
