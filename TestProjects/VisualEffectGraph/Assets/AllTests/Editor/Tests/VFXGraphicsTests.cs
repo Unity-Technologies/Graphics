@@ -33,9 +33,6 @@ namespace UnityEditor.VFX.Test
                 var vfxAsset = vfx.vfxAsset;
                 if (vfxAsset)
                 {
-                    var graph = VFXAssetExtensions.GetOrCreateGraph(vfxAsset);
-                    graph.RecompileIfNeeded();
-
                     vfx.Reinit();
                     vfx.DebugSimulate(10);
                     vfx.pause = true;
@@ -48,13 +45,7 @@ namespace UnityEditor.VFX.Test
             int loopCount = 10;
             foreach (var vfx in vfxComponent)
             {
-                var vfxAsset = vfx.vfxAsset;
-                if (vfxAsset)
-                {
-                    var graph = VFXAssetExtensions.GetOrCreateGraph(vfxAsset);
-                    graph.RecompileIfNeeded();
-                    vfx.Reinit();
-                }
+                vfx.Reinit();
             }
 
             AnimationMode.StartAnimationMode();
@@ -94,6 +85,13 @@ namespace UnityEditor.VFX.Test
 
             var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
             var vfxAnimator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
+            var vfxAsset = vfxComponent.Select(o => o.vfxAsset).Where(o => o != null).Distinct();
+
+            foreach (var vfx in vfxAsset)
+            {
+                var graph = VFXAssetExtensions.GetOrCreateGraph(vfx);
+                graph.RecompileIfNeeded();
+            }
 
             if (vfxAnimator.Any())
             {
@@ -198,7 +196,7 @@ namespace UnityEditor.VFX.Test
             uint waitFrameCount = 4;
 
             var scenePath = sceneTest.path;
-            var treshold = 0.05f;
+            var treshold = 0.051f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
@@ -228,7 +226,7 @@ namespace UnityEditor.VFX.Test
             var currentTexture = new Texture2D(2, 2);
             currentTexture.LoadImage(File.ReadAllBytes(currentCapturePath));
 
-            var refTexture = new Texture2D(2, 2);
+            var refTexture = new Texture2D(4, 2);
             refTexture.LoadImage(File.ReadAllBytes(refCapturePath));
 
             var rmse = CompareTextures(currentTexture, refTexture);
