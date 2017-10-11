@@ -159,7 +159,10 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness)
     return 0.5 / (lambdaV + lambdaL);
 }
 
-// Precompute part of LambdaV
+// Precompute a part of LambdaV.
+// Note on this linear approximation.
+// Exact for roughness values of 0 and 1. Also, exact when the cosine is 0 or 1.
+// Otherwise, the worst case relative error is around 10%.
 float GetSmithJointGGXApproxLambdaV(float NdotV, float roughness)
 {
     float a = roughness;
