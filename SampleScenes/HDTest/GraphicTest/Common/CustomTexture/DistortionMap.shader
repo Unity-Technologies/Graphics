@@ -3,8 +3,6 @@
     {
         _Size("Size", Float) = 1
         _DistortionAmplitude("Distortion Amplitude", Float) = 1
-        _BlurMinAmplitude("Blur Min Amplitude", Range(0, 1)) = 0
-        _BlurMaxAmplitude("Blur Max Amplitude", Range(0, 1)) = 1
         _NoiseAmplitude("Noise Amplitude", Range(0, 1)) = 0.5
         _NoiseLacunarity("Noise Lacunarity", Range(0, 10)) = 2
     }
@@ -15,8 +13,6 @@
 
     float _Size;
     float _DistortionAmplitude;
-    float _BlurMinAmplitude;
-    float _BlurMaxAmplitude;
     float _NoiseAmplitude;
     float _NoiseLacunarity;
 
@@ -208,7 +204,7 @@
                 float3 s = fbm2x3(p, _NoiseAmplitude, _NoiseLacunarity * (_SinTime.w * 0.1 + 1.0));
 
                 float2 distortion = s.xy * _DistortionAmplitude;
-                float blur = s.z * (_BlurMaxAmplitude - _BlurMinAmplitude) + _BlurMinAmplitude;
+                float blur = s.z;
 
                 return float4(distortion, blur, 1.0);
             }
@@ -235,7 +231,7 @@
 
                 float2 distortion = sin(n3.xy * s) * _DistortionAmplitude;
                 
-                float blur = (min(t, 1-t) * 2) * (_BlurMaxAmplitude - _BlurMinAmplitude) + _BlurMinAmplitude;
+                float blur = (min(t, 1-t) * 2);
 
                 return float4(distortion, blur, 1.0);
             }
@@ -269,7 +265,7 @@
 
                 float2 distortion = sdfVoronoiGrad(uv);
 
-                float blur = v * (_BlurMaxAmplitude - _BlurMinAmplitude) + _BlurMinAmplitude;
+                float blur = v;
 
                 return float4(distortion, blur, 1.0);
             }

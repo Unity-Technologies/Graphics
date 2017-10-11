@@ -31,7 +31,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if (SHADERPASS == SHADERPASS_DISTORTION)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     builtinData.distortion = distortion.rg * _DistortionScale;
-    builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0);
+    builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #else
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;

@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected static class StylesBaseUnlit
         {
+            public static string TransparencyInputsText = "Transparency Inputs";
             public static string optionText = "Surface options";
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
@@ -34,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode"); 
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
+            public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
 
             public static string advancedText = "Advanced Options";
         }
@@ -86,6 +88,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionScale = "_DistortionScale";
         protected MaterialProperty distortionBlurScale = null;
         protected const string kDistortionBlurScale = "_DistortionBlurScale";
+        protected MaterialProperty distortionBlurRemapMin = null;
+        protected const string kDistortionBlurRemapMin = "_DistortionBlurRemapMin";
+        protected MaterialProperty distortionBlurRemapMax = null;
+        protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -118,6 +124,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlendMode = FindProperty(kDistortionBlendMode, props, false);
             distortionScale = FindProperty(kDistortionScale, props, false);
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
+            distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
+            distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
         }
 
         void SurfaceTypePopup()
@@ -162,23 +170,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
                 BlendModePopup();
-
-                if (distortionEnable != null)
-                {
-                    m_MaterialEditor.ShaderProperty(distortionEnable, StylesBaseUnlit.distortionEnableText);
-
-                    if (distortionEnable.floatValue == 1.0f)
-                    {
-                        EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(distortionBlendMode, StylesBaseUnlit.distortionBlendModeText);
-                        m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
-                        m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
-                        m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
-                        m_MaterialEditor.ShaderProperty(distortionScale, StylesBaseUnlit.distortionScaleText);
-                        m_MaterialEditor.ShaderProperty(distortionBlurScale, StylesBaseUnlit.distortionBlurScaleText);
-                        EditorGUI.indentLevel--;
-                    }
-                }
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
@@ -212,6 +203,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
 
             EditorGUI.indentLevel--;
+        }
+
+        protected void DoDistortionInputsGUI()
+        {
+            if (distortionEnable != null)
+            {
+                m_MaterialEditor.ShaderProperty(distortionEnable, StylesBaseUnlit.distortionEnableText);
+
+                if (distortionEnable.floatValue == 1.0f)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(distortionBlendMode, StylesBaseUnlit.distortionBlendModeText);
+                    m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
+                    m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
+
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(distortionScale, StylesBaseUnlit.distortionScaleText);
+                    m_MaterialEditor.ShaderProperty(distortionBlurScale, StylesBaseUnlit.distortionBlurScaleText);
+                    float remapMin = distortionBlurRemapMin.floatValue;
+                    float remapMax = distortionBlurRemapMax.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(StylesBaseUnlit.distortionBlurRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        distortionBlurRemapMin.floatValue = remapMin;
+                        distortionBlurRemapMax.floatValue = remapMax;
+                    }
+                    EditorGUI.indentLevel--;
+
+                    EditorGUI.indentLevel--;
+
+                    EditorGUI.indentLevel--;
+                }
+            }
         }
 
         static public void SetKeyword(Material m, string keyword, bool state)
