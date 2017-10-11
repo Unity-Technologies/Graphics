@@ -44,6 +44,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+
+            var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
+            if (surfaceTypeValue == SurfaceType.Transparent)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
+                ++EditorGUI.indentLevel;
+
+                DoDistortionInputsGUI();
+
+                --EditorGUI.indentLevel;
+            }
         }
 
         protected override void VertexAnimationPropertiesGUI()

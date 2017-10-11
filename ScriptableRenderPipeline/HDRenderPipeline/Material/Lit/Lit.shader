@@ -73,6 +73,8 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
         _DistortionScale("Distortion Scale", Float) = 1
         _DistortionBlurScale("Distortion Blur Scale", Float) = 1
+        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
+        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5

@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_DistortionMap_Ripple
+  m_Name: Mat_DistortionMap_Voronoi
   m_Shader: {fileID: 4800000, guid: 6a35625f46490314eb2456e4538d20ec, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF
     _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF
@@ -102,7 +102,7 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BlurAmplitude: 1
-    - _BlurMaxAmplitude: 0.93
+    - _BlurMaxAmplitude: 1
     - _BlurMinAmplitude: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
@@ -112,7 +112,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistorsionAmplitude: 52
-    - _DistortionAmplitude: 50.98
+    - _DistortionAmplitude: 5.54
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
@@ -147,7 +147,7 @@ Material:
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Size: 2.27
+    - _Size: 4.48
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0

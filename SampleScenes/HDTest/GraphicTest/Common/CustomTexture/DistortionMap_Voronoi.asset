@@ -12,7 +12,7 @@ CustomRenderTexture:
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
   m_Width: 1024
-  m_Height: 1024
+  m_Height: 512
   m_AntiAliasing: 1
   m_DepthFormat: 0
   m_ColorFormat: 11
@@ -31,9 +31,9 @@ CustomRenderTexture:
     m_WrapW: 1
   m_Dimension: 2
   m_VolumeDepth: 1
-  m_Material: {fileID: 2100000, guid: 8ac64f99a42c6e64ebae3fc8bb262751, type: 2}
+  m_Material: {fileID: 2100000, guid: b555ea09a7c584740be0313f42a6c6af, type: 2}
   m_InitSource: 1
-  m_InitMaterial: {fileID: 2100000, guid: 8ac64f99a42c6e64ebae3fc8bb262751, type: 2}
+  m_InitMaterial: {fileID: 2100000, guid: b555ea09a7c584740be0313f42a6c6af, type: 2}
   m_InitColor: {r: 1, g: 0, b: 0, a: 0}
   m_InitTexture: {fileID: 2800000, guid: 8abdc3adb95657847a5a8f760fdfc843, type: 3}
   m_UpdateMode: 1
