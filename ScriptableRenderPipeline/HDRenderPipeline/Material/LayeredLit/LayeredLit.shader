@@ -98,20 +98,20 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailMap2("DetailMap2", 2D) = "black" {}
         _DetailMap3("DetailMap3", 2D) = "black" {}
 
-        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(-2.0, 2.0)) = 1
+        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(0.0, 2.0)) = 1
 
         _DetailNormalScale0("_DetailNormalScale0", Range(0.0, 2.0)) = 1
         _DetailNormalScale1("_DetailNormalScale1", Range(0.0, 2.0)) = 1
         _DetailNormalScale2("_DetailNormalScale2", Range(0.0, 2.0)) = 1
         _DetailNormalScale3("_DetailNormalScale3", Range(0.0, 2.0)) = 1
 
-        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(-2.0, 2.0)) = 1
+        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(0.0, 2.0)) = 1
 
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
