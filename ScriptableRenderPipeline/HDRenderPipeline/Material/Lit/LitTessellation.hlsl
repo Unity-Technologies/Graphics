@@ -73,10 +73,14 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     bool faceCull = false;
 
 #ifndef _DOUBLESIDED_ON
-    // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
+        // Handle transform mirroring (like negative scaling)
+        // Caution: don't change p1/p2 directly as it is use later
+        float3 backfaceP1 = unity_WorldTransformParams.w < 0.0 ? p2 : p1;
+        float3 backfaceP2 = unity_WorldTransformParams.w < 0.0 ? p1 : p2;
+
+        faceCull = BackFaceCullTriangle(p0, backfaceP1, backfaceP2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
     }
 #endif
 

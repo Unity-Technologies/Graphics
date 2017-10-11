@@ -541,7 +541,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
             {
-                if (material.GetTexture(kDetailMap + layerIndex))
+                if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
                     EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
             }
             m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
