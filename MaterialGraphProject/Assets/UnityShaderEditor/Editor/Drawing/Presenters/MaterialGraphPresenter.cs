@@ -312,6 +312,14 @@ namespace UnityEditor.MaterialGraph.Drawing
                 edgePresenter.input.Disconnect(edgePresenter);
                 m_Elements.Remove(edgePresenter);
             }
+
+            var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && (IEdge)p.userData == change.edge);
+            if (edgeView != null)
+            {
+                edgeView.output.Disconnect(edgeView);
+                edgeView.input.Disconnect(edgeView);
+                m_GraphView.RemoveElement(edgeView);
+            }
         }
 
         public void AddNode(INode node)
