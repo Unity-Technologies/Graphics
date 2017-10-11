@@ -674,12 +674,12 @@ struct PreLightData
     float NdotV;                         // Geometric version (could be negative)
 
     // GGX iso
-    float ggxLambdaV;
+    float ggxPreLambdaV;
 
     // GGX Aniso
     float TdotV;
     float BdotV;
-    float anisoGGXLambdaV;
+    float anisoGGXPreLambdaV;
 
     // Clear coat
     float coatNdotV;
@@ -776,7 +776,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX iso
-    preLightData.ggxLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
+    preLightData.ggxPreLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
     preLightData.TdotV = 0.0;
@@ -785,7 +785,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.anisoGGXPreLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
         float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, abs(bsdfData.anisotropy));
@@ -960,8 +960,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     F *= F_Schlick(bsdfData.fresnel0, LdotH);
 
-    float Vis;
-    float D;
+    float DV;
 
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
@@ -975,29 +974,29 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughnessT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessT);
         bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
-        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                          bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
-        #else
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        Vis = V_SmithJointGGXAniso(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                   bsdfData.roughnessT, bsdfData.roughnessB);
+        DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
+                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
+                                   TdotL, BdotL, NdotL,
+                                   bsdfData.roughnessT, bsdfData.roughnessB
+        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
+                                 , preLightData.preLambdaV);
+        #else
+                                   );
         #endif
-
-        D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
     {
         bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
 
+        DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughness
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
+                            , preLightData preLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
+                              );
         #endif
-        D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting += F * (Vis * D);
+    specularLighting += F * DV;
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();

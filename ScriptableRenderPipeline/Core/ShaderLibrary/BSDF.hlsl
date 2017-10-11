@@ -232,10 +232,10 @@ float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, f
 }
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
-float DV_SmithJointGGX(float TdotH, float BdotH, float NdotH,
-                       float TdotV, float BdotV, float NdotV,
-                       float TdotL, float BdotL, float NdotL,
-                       float roughnessT, float roughnessB, float preLambdaV)
+float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
+                            float TdotV, float BdotV, float NdotV,
+                            float TdotL, float BdotL, float NdotL,
+                            float roughnessT, float roughnessB, float preLambdaV)
 {
     float aT2 = roughnessT * roughnessT;
     float aB2 = roughnessB * roughnessB;
@@ -251,16 +251,16 @@ float DV_SmithJointGGX(float TdotH, float BdotH, float NdotH,
     return (INV_PI * 0.5) * (D.x * G.y) / (D.y * G.y);
 }
 
-float DV_SmithJointGGX(float TdotH, float BdotH, float NdotH,
-                       float TdotV, float BdotV, float NdotV,
-                       float TdotL, float BdotL, float NdotL,
-                       float roughnessT, float roughnessB)
+float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
+                            float TdotV, float BdotV, float NdotV,
+                            float TdotL, float BdotL, float NdotL,
+                            float roughnessT, float roughnessB)
 {
     float preLambdaV = GetSmithJointGGXAnisoPreLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
-    return DV_SmithJointGGX(TdotH, BdotH, NdotH,
-                            TdotV, BdotV, NdotV,
-                            TdotL, BdotL, NdotL,
-                            roughnessT, roughnessB, preLambdaV);
+    return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
+                                 TdotV, BdotV, NdotV,
+                                 TdotL, BdotL, NdotL,
+                                 roughnessT, roughnessB, preLambdaV);
 }
 
 //-----------------------------------------------------------------------------
