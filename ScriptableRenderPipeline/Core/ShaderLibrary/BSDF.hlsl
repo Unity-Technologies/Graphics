@@ -154,7 +154,7 @@ float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness, f
 
     float2 G = float2(1, lambdaV + lambdaL); // Fraction without the constant (0.5)
 
-    return (INV_PI * 0.5) * (D.x * G.y) / (D.y * G.y);
+    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
 
 float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness)
@@ -249,7 +249,7 @@ float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
 
     float2 G = float2(1, lambdaV + lambdaL);               // Fraction without the constant (0.5)
 
-    return (INV_PI * 0.5) * (D.x * G.y) / (D.y * G.y);
+    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
 
 float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
