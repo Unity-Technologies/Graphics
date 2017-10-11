@@ -122,7 +122,7 @@ Shader "HDRenderPipeline/Unlit"
             Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOp Add, [_DistortionBlurBlendOp]
             ZTest [_ZTestMode]
-            ZWrite off
+            ZWrite on
             Cull [_CullMode]
 
             HLSLPROGRAM

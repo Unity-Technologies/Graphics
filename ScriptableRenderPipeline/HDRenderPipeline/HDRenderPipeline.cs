@@ -112,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
         readonly int m_VelocityBuffer;
         readonly int m_DistortionBuffer;
+        readonly int m_DistortionDepthBuffer;
         readonly int m_GaussianPyramidColorBuffer;
         readonly int m_DepthPyramidBuffer;
 
@@ -125,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
+        readonly RenderTargetIdentifier m_DistortionDepthBufferRT;
         readonly RenderTargetIdentifier m_GaussianPyramidColorBufferRT;
         readonly RenderTargetIdentifier m_DepthPyramidBufferRT;
         RenderTextureDescriptor m_GaussianPyramidColorBufferDesc;
@@ -309,6 +311,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
+            m_DistortionDepthBuffer = HDShaderIDs._DistortionDepthTexture;
+            m_DistortionDepthBufferRT = new RenderTargetIdentifier(m_DistortionDepthBuffer);
 
             m_GaussianPyramidKernel = m_GaussianPyramidCS.FindKernel("KMain");
             m_GaussianPyramidColorBuffer = HDShaderIDs._GaussianPyramidColorTexture;
@@ -969,15 +973,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
-        /// <summary>
-        /// Distortion is resolved in two steps:
-        ///  - AccumulateDistortion is a pass that
-        ///     1. Accumulate distortion vectors (add)
-        ///     2. Accumulate smoothness (max)
-        ///     3. Mark in DistortionBuffer pixel eligible as source for distortion
-        ///     4. Mark in stencil buffer pixel eligible to be distorted
-        ///  - RenderDistortion is a pass that distort eligible pixels with eligible sources with a specified smoothness
-        /// </summary>
         void AccumulateDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
@@ -988,9 +983,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
 
+                cmd.GetTemporaryRT(m_DistortionDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
                 cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
-                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
-                cmd.ClearRenderTarget(false, true, Color.clear);
+                cmd.SetRenderTarget(m_DistortionBufferRT, m_DistortionDepthBufferRT);
+                cmd.ClearRenderTarget(true, true, Color.clear);
 
                 // Only transparent object can render distortion vectors
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
@@ -1005,6 +1001,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 uint x, y, z;
                 resources.applyDistortionCS.GetKernelThreadGroupSizes(resources.applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionDepthTexture, m_DistortionDepthBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
                 cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
