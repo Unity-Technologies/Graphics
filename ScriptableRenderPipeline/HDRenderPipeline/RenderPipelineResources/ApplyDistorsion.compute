@@ -3,6 +3,7 @@
 
 TEXTURE2D(_DepthTexture);
 TEXTURE2D(_DistortionTexture);
+TEXTURE2D(_DistortionDepthTexture);
 TEXTURE2D(_GaussianPyramidColorTexture);
 RW_TEXTURE2D(float4, _CameraColorTexture);
 
@@ -23,6 +24,7 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
 
     // Get distortion values
     float4 encodedDistortion = LOAD_TEXTURE2D(_DistortionTexture, dispatchThreadId);
+    float depthRaw = LOAD_TEXTURE2D(_DistortionDepthTexture, dispatchThreadId).r;
 
     float2 distortion;
     float2 distortionBlur;
@@ -33,7 +35,11 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     float2 distordedDistortion;
     float2 distordedDistortionBlur;
     float4 encodedDistordedDistortion = LOAD_TEXTURE2D(_DistortionTexture, distortedEncodedDistortionId);
+    float distordedDepthRaw = LOAD_TEXTURE2D(_DepthTexture, distortedEncodedDistortionId).r;
     DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur);
+
+    if (distordedDepthRaw > depthRaw)
+        return;
 
     // Get source pixel for distortion
     float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;

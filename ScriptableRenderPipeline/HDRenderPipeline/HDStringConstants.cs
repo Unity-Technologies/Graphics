@@ -196,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
+        public static readonly int _DistortionDepthTexture = Shader.PropertyToID("_DistortionDepthTexture");
         public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
         public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_PyramidDepthTexture");
         public static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
