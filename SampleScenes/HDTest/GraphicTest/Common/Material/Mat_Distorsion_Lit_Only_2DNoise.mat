@@ -22,13 +22,12 @@ Material:
   - GBuffer
   - META
   - SHADOWCASTER
-  - DepthOnly
+  - TransparentDepthPrepass
   - MOTIONVECTORS
   - Forward
   - ForwardOnlyOpaqueDepthOnly
   - ForwardOnlyOpaque
   - GBufferWithPrepass
-  - TransparentDepthPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
