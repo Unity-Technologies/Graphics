@@ -169,7 +169,7 @@ namespace UnityEditor.VFX
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
         {
-            var settings = VFXSettingAttribute.Collect(block).ToArray();
+            var settings = block.activeSettings.ToArray();
             if (settings.Length > 0)
             {
                 comment = "";
