@@ -32,6 +32,14 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                yield return "positionMode";
+            }
+        }
+
         public override string source
         {
             get

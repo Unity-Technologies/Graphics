@@ -39,8 +39,8 @@ namespace UnityEditor.VFX.Block
                         var thickness = VFXOperatorUtility.CastFloat(inputSlots[1].GetExpression(), VFXValueType.kFloat3);
                         if (positionMode == PositionMode.ThicknessAbsolute)
                         {
-                            var size = inputSlots[0][1].GetExpression();
-                            thickness = VFXOperatorUtility.CastFloat(thickness, VFXValueType.kFloat3) / size;
+                            var sizeHalf = inputSlots[0][1].GetExpression() * VFXValue.Constant<Vector3>(new Vector3(0.5f, 0.5f, 0.5f));
+                            thickness = VFXOperatorUtility.CastFloat(thickness, VFXValueType.kFloat3) / sizeHalf;
                         }
 
                         factor = VFXOperatorUtility.Saturate(thickness);
@@ -49,6 +49,14 @@ namespace UnityEditor.VFX.Block
                 }
 
                 yield return new VFXNamedExpression(new VFXExpressionPow(VFXValue.Constant(Vector3.one) - factor, VFXValue.Constant(new Vector3(3, 3, 3))), "volumeFactor");
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                yield return "spawnMode";
             }
         }
 
