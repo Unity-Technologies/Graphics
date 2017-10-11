@@ -25,11 +25,17 @@ namespace UnityEditor.VFX.Block
             public ArcCone Cone = new ArcCone() { radius0 = 0.0f, radius1 = 1.0f, height = 0.5f, arc = Mathf.PI * 2.0f };
         }
 
+        public class CustomProperties
+        {
+            [Range(0, 1), Tooltip("When using customized emission, control the position along the height to emit particles from.")]
+            public float HeightFactor = 0.0f;
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness" && e.name != "Cone.radius1"))
+                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
@@ -41,6 +47,19 @@ namespace UnityEditor.VFX.Block
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
                 yield return new VFXNamedExpression(radius1 / tanSlope, "fullConeHeight");
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                var properties = PropertiesFromType(GetInputPropertiesTypeName());
+                if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
+                    properties = properties.Concat(PropertiesFromType("ThicknessProperties"));
+                if (heightMode == HeightMode.Volume && spawnMode == SpawnMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomProperties"));
+                return properties;
             }
         }
 
@@ -83,7 +102,7 @@ float3 base = float3(0.0f, 0.0f, Cone_height - fullConeHeight);
                 else
                 {
                     outSource += @"
-float hNorm = 1.0f;
+float hNorm = HeightFactor;
 float3 base = float3(0.0f, 0.0f, 0.0f);
 ";
                 }
