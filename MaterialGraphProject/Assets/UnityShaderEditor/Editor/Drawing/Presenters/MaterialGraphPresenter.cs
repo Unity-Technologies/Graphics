@@ -150,6 +150,11 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in found)
                     drawableNodeData.OnModified(scope);
+
+                var theViews = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
+                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
+                foreach (var drawableNodeData in viewsFound)
+                    drawableNodeData.OnModified(scope);
             }
 
             // We might need to do something here
