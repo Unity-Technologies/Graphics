@@ -222,7 +222,8 @@ namespace UnityEditor.VFX.UI
 
         public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
         {
-            DragFinished();
+            if (m_DragDisplay.parent != null)
+                m_BlockContainer.Remove(m_DragDisplay);
             if (!CanDrop(blocks, target))
             {
                 return;
