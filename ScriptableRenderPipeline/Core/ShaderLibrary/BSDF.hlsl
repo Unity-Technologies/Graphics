@@ -250,7 +250,9 @@ float DisneyDiffuseNoPI(float NdotV, float NdotL, float LdotV, float perceptualR
     float lightScatter = F_Schlick(1.0, fd90, NdotL);
     float viewScatter  = F_Schlick(1.0, fd90, NdotV);
 
-    return lightScatter * viewScatter;
+    // Normalize the BRDF for polar viewing angles up to (Pi/4).
+    // Hopefully the compiler folds the constant together with (1/Pi).
+    return rcp(1.03571) * (lightScatter * viewScatter);
 }
 
 float DisneyDiffuse(float NdotV, float NdotL, float LdotV, float perceptualRoughness)
