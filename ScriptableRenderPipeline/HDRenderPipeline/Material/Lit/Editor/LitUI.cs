@@ -83,6 +83,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Transparency absorption
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Absorption color (RGB)");
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Absorption distance reference");
+
+            public static GUIContent perPixelDisplacementDetailsWarning = new GUIContent("For pixel displacement to work correctly, details and base map must use same UV mapping");
         }
 
         // Lit shader is not layered but some layered materials inherit from it. In order to share code we need LitUI to account for this.
@@ -537,6 +539,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
+            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
+            {
+                if (material.GetTexture(kDetailMap + layerIndex))
+                    EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
+            }
             m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);

@@ -197,7 +197,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(None, 0, PreTessellation displacement, 1, Pixel displacement, 2, PostTessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
 
@@ -323,6 +323,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
