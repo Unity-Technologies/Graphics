@@ -167,6 +167,7 @@ float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness)
 // Note on this linear approximation.
 // Exact for roughness values of 0 and 1. Also, exact when the cosine is 0 or 1.
 // Otherwise, the worst case relative error is around 10%.
+// https://www.desmos.com/calculator/wtp8lnjutx
 float GetSmithJointGGXPreLambdaVApprox(float NdotV, float roughness)
 {
     float a = roughness;
