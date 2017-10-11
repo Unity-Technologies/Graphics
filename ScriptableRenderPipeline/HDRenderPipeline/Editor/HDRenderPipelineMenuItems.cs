@@ -186,18 +186,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        class DoCreateNewAssetSSSProfile : DoCreateNewAsset<SubsurfaceScatteringProfile> {}
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSSAOSettings : DoCreateNewAsset<ScreenSpaceAmbientOcclusionSettings> {}
-
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
-        static void MenuCreateSubsurfaceScatteringProfile()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSSProfile>(), "New SSS Profile.asset", icon, null);
-        }
+        class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
         [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 677)]
         static void MenuCreateCommonSettings()
@@ -225,6 +218,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSAOSettings>(), "New AmbientOcclusionSettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 681)]
+        static void MenuCreateSubsurfaceScatteringSettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
         }
     }
 }

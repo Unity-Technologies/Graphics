@@ -150,35 +150,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
             m_AdditionalLightData = new SerializedLightData
             {
-                spotInnerPercent = o.FindProperty(x => x.m_InnerSpotPercent),
-                lightDimmer = o.FindProperty(x => x.lightDimmer),
-                fadeDistance = o.FindProperty(x => x.fadeDistance),
-                affectDiffuse = o.FindProperty(x => x.affectDiffuse),
-                affectSpecular = o.FindProperty(x => x.affectSpecular),
-                lightTypeExtent = o.FindProperty(x => x.lightTypeExtent),
-                spotLightShape = o.FindProperty(x => x.spotLightShape),
-                shapeLength = o.FindProperty(x => x.shapeLength),
-                shapeWidth = o.FindProperty(x => x.shapeWidth),
-                shapeRadius = o.FindProperty(x => x.shapeRadius),
-                maxSmoothness = o.FindProperty(x => x.maxSmoothness),
-                applyRangeAttenuation = o.FindProperty(x => x.applyRangeAttenuation),
+                spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
+                lightDimmer = o.Find(x => x.lightDimmer),
+                fadeDistance = o.Find(x => x.fadeDistance),
+                affectDiffuse = o.Find(x => x.affectDiffuse),
+                affectSpecular = o.Find(x => x.affectSpecular),
+                lightTypeExtent = o.Find(x => x.lightTypeExtent),
+                spotLightShape = o.Find(x => x.spotLightShape),
+                shapeLength = o.Find(x => x.shapeLength),
+                shapeWidth = o.Find(x => x.shapeWidth),
+                shapeRadius = o.Find(x => x.shapeRadius),
+                maxSmoothness = o.Find(x => x.maxSmoothness),
+                applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
 
                 // Editor stuff
-                useOldInspector = o.FindProperty(x => x.useOldInspector),
-                showFeatures = o.FindProperty(x => x.featuresFoldout),
-                showAdditionalSettings = o.FindProperty(x => x.showAdditionalSettings)
+                useOldInspector = o.Find(x => x.useOldInspector),
+                showFeatures = o.Find(x => x.featuresFoldout),
+                showAdditionalSettings = o.Find(x => x.showAdditionalSettings)
             };
 
             // TODO: Review this once AdditionalShadowData is refactored
             using (var o = new PropertyFetcher<AdditionalShadowData>(m_SerializedAdditionalShadowData))
             m_AdditionalShadowData = new SerializedShadowData
             {
-                dimmer = o.FindProperty(x => x.shadowDimmer),
-                fadeDistance = o.FindProperty(x => x.shadowFadeDistance),
-                cascadeCount = o.FindProperty("shadowCascadeCount"),
-                cascadeRatios = o.FindProperty("shadowCascadeRatios"),
-                cascadeBorders = o.FindProperty("shadowCascadeBorders"),
-                resolution = o.FindProperty(x => x.shadowResolution)
+                dimmer = o.Find(x => x.shadowDimmer),
+                fadeDistance = o.Find(x => x.shadowFadeDistance),
+                cascadeCount = o.Find("shadowCascadeCount"),
+                cascadeRatios = o.Find("shadowCascadeRatios"),
+                cascadeBorders = o.Find("shadowCascadeBorders"),
+                resolution = o.Find(x => x.shadowResolution)
             };
         }
 
