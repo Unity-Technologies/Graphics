@@ -6,7 +6,7 @@
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam, out float outHeight)
+float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out float outHeight)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     float stepSize = 1.0 / (float)numSteps;
@@ -17,7 +17,7 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
     // float2 parallaxDir = normalize(Out.viewDirTS.xy);
     // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
     // Above code simplify to
-    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) * maxHeight;
+    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z);
     float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
 
     // Do a first step before the loop to init all value correctly
