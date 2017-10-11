@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
 
                 CoreUtils.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.None, 0, (CubemapFace)i);
-                m_Renderer.RenderSky(builtinParams, skySettings, true);
+                m_Renderer.RenderSky(builtinParams, true);
             }
 
             // Generate mipmap for our cubemap
@@ -460,7 +460,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
                     m_Renderer.SetRenderTargets(m_BuiltinParameters);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skySettings, false);
+                    m_Renderer.RenderSky(m_BuiltinParameters, false);
                 }
             }
         }
