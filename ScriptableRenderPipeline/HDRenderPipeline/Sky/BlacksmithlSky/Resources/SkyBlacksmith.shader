@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
+Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
 {
     SubShader
     {
