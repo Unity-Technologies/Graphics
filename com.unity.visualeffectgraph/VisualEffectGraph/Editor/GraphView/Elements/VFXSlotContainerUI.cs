@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
                     foreach (var edge in allEdges.Where(t =>
                         {
                             var pres = t.GetPresenter<EdgePresenter>();
-                            return pres.output == anchor.presenter || pres.input == anchor.presenter;
+                            return pres != null && (pres.output == anchor.presenter || pres.input == anchor.presenter);
                         }))
                     {
                         edge.OnDataChanged();

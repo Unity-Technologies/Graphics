@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXSlotContainerUI
+    class VFXContextSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
     {
         public VFXContextSlotContainerUI()
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
 
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorPresenter);
 
             anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
 
@@ -61,6 +61,11 @@ namespace UnityEditor.VFX.UI
         public VFXContextUI context
         {
             get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
+        }
+
+        public void DirtyDrawer()
+        {
+            context.DirtyDrawer();
         }
     }
 }

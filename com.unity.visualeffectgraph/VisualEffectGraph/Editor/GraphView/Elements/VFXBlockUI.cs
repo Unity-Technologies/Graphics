@@ -47,14 +47,24 @@ namespace UnityEditor.VFX.UI
             switch ((EventType)evt.imguiEvent.type)
             {
                 case EventType.DragUpdated:
+                {
+                    Vector2 savedPos = evt.imguiEvent.mousePosition;
+                    evt.imguiEvent.mousePosition = this.ChangeCoordinatesTo(dropTarget as VisualElement, evt.imguiEvent.mousePosition);
                     dropTarget.DragUpdated(evt, selection, dropTarget);
-                    break;
+                    evt.imguiEvent.mousePosition = savedPos;
+                }
+                break;
                 case EventType.DragExited:
                     dropTarget.DragExited();
                     break;
                 case EventType.DragPerform:
+                {
+                    Vector2 savedPos = evt.imguiEvent.mousePosition;
+                    evt.imguiEvent.mousePosition = this.ChangeCoordinatesTo(dropTarget as VisualElement, evt.imguiEvent.mousePosition);
                     dropTarget.DragPerform(evt, selection, dropTarget);
-                    break;
+                    evt.imguiEvent.mousePosition = savedPos;
+                }
+                break;
             }
         }
 
@@ -78,17 +88,21 @@ namespace UnityEditor.VFX.UI
 
         EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
-            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
+            Vector2 pos = evt.imguiEvent.mousePosition;
 
             context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
 
             return EventPropagation.Stop;
         }
 
+        public override void OnSelected()
+        {
+        }
+
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();
-            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
+            Vector2 pos = evt.imguiEvent.mousePosition;
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
             IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());
@@ -109,7 +123,7 @@ namespace UnityEditor.VFX.UI
 
         EventPropagation IDropTarget.DragExited()
         {
-            context.DragFinished();
+            //context.DragFinished();
             return EventPropagation.Stop;
         }
     }

@@ -19,72 +19,39 @@ namespace UnityEditor.VFX.UI
     {
         public VFXDataEdge()
         {
-        }
-
-        public override int layer
-        {
-            get
-            {
-                return -1;
-            }
+            layer = -1;
         }
 
         public override void OnDisplayChanged()
         {
-            VFXDataEdgePresenter edgePresenter = GetPresenter<VFXDataEdgePresenter>();
-            VFXDataAnchorPresenter outputPresenter = edgePresenter.output as VFXDataAnchorPresenter;
-            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
-
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-
-            var nodes = view.GetAllNodes().Where(t => (outputPresenter != null && t.presenter == outputPresenter.sourceNode) || (inputPresenter != null && t.presenter == inputPresenter.sourceNode));
-
-            foreach (var node in nodes)
+            if (view != null)
             {
-                if (node is VFXStandaloneSlotContainerUI)
-                    (node as VFXStandaloneSlotContainerUI).DirtyDrawer();
-                else // node must be from a VFXContext
-                    node.GetFirstAncestorOfType<VFXContextUI>().DirtyDrawer();
+                var nodes = view.GetAllNodes().Where(t => (output != null && t == output.node) || (input != null && t == input.node));
+
+                foreach (var node in nodes)
+                {
+                    if (node is VFXStandaloneSlotContainerUI)
+                        (node as VFXStandaloneSlotContainerUI).DirtyDrawer();
+                    else // node must be from a VFXBlockUI
+                        node.GetFirstAncestorOfType<VFXContextUI>().DirtyDrawer();
+                }
             }
-            //TODO VFXContext dirtydrawer when existing
         }
 
         public override void OnDataChanged()
         {
             base.OnDataChanged();
 
-            foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
-                RemoveFromClassList(cls);
+            VFXDataEdgePresenter presenter = GetPresenter<VFXDataEdgePresenter>();
 
+            bool dirty = false;
 
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-            /*if (outputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirtyNextPoll(outputPresenter);
-
-            if (inputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirtyNextPoll(inputPresenter);*/
-
-            System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
-
-            AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
-            OnAnchorChanged();
-        }
-
-        public override void OnSelected()
-        {
-            DirtyAnchors();
-        }
-
-        public override void OnUnselected()
-        {
-            DirtyAnchors();
+            if (dirty)
+            {
+                Dirty(ChangeType.Repaint);
+                UpdateEdgeControl();
+            }
         }
 
         void DirtyAnchors()
@@ -109,47 +76,54 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnAnchorChanged()
+        public override void OnAnchorChanged(bool isInput)
         {
-            var edgePresenter = GetPresenter<EdgePresenter>();
+            base.OnAnchorChanged(isInput);
 
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
+            UpdateColor();
+        }
 
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
-            if (view != null)
+        public virtual void UpdateColor()
+        {
+            if (selected)
             {
-                VFXDataAnchor outputAnchor = view.GetDataAnchorByPresenter(outputPresenter as VFXDataAnchorPresenter);
-                VFXDataAnchor inputAnchor = view.GetDataAnchorByPresenter(inputPresenter as VFXDataAnchorPresenter);
-
-                VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
-
-                if (GetPresenter<EdgePresenter>().selected)
+                edgeControl.inputColor = edgeControl.outputColor = selectedColor;
+            }
+            else
+            {
+                if (input != null)
                 {
-                    edgeControl.inputColor = edgeControl.outputColor = selectedColor;
+                    edgeControl.inputColor = (input as VFXDataAnchor).anchorColor;
                 }
-                else
+                else if (output != null)
                 {
-                    if (inputAnchor != null)
-                    {
-                        edgeControl.inputColor = inputAnchor.anchorColor;
-                    }
-                    else if (outputAnchor != null)
-                    {
-                        edgeControl.inputColor = outputAnchor.anchorColor;
-                    }
-
-                    if (outputAnchor != null)
-                    {
-                        edgeControl.outputColor = outputAnchor.anchorColor;
-                    }
-                    else if (inputAnchor != null)
-                    {
-                        edgeControl.outputColor = inputAnchor.anchorColor;
-                    }
+                    edgeControl.inputColor = (output as VFXDataAnchor).anchorColor;
+                }
+                if (output != null)
+                {
+                    edgeControl.outputColor = (output as VFXDataAnchor).anchorColor;
+                }
+                else if (input != null)
+                {
+                    edgeControl.outputColor = (input as VFXDataAnchor).anchorColor;
                 }
             }
+        }
+
+        public override void OnSelected()
+        {
+            base.OnSelected();
+            UpdateColor();
+            DirtyAnchors();
+            layer = 10;
+        }
+
+        public override void OnUnselected()
+        {
+            base.OnUnselected();
+            UpdateColor();
+            DirtyAnchors();
+            layer = -1;
         }
 
         protected override EdgeControl CreateEdgeControl()
@@ -163,6 +137,22 @@ namespace UnityEditor.VFX.UI
 
         protected override void DrawEdge()
         {
+            EdgePresenter edgePresenter = GetPresenter<EdgePresenter>();
+            /*
+            if (presenter != null && (output == null || output.presenter != edgePresenter.output))
+            {
+
+                GraphView view = GetFirstAncestorOfType<GraphView>();
+                if (view != null)
+                    output = view.Query().OfType<NodeAnchor>().Where(t => t.presenter == edgePresenter.output);
+            }
+            if (presenter != null && (input == null || input.presenter != edgePresenter.input))
+            {
+                GraphView view = GetFirstAncestorOfType<GraphView>();
+                if (view != null)
+                    input = view.Query().OfType<NodeAnchor>().Where(t => t.presenter == edgePresenter.input);
+            }*/
+
             UpdateEdgeControl();
         }
 

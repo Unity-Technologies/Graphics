@@ -323,6 +323,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        {
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
+
+            if (startAnchor is VFXDataAnchor)
+            {
+                return presenters.Select(t => (NodeAnchor)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+            }
+            else
+            {
+                return presenters.Select(t => (NodeAnchor)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+            }
+        }
+
         public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input, bool output)
         {
             foreach (var context in GetAllContexts())
@@ -339,6 +355,13 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return null;
             return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+        }
+
+        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
+        {
+            if (presenter == null)
+                return null;
+            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
         }
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)

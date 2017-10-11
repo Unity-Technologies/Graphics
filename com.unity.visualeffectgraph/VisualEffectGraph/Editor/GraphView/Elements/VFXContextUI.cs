@@ -183,6 +183,7 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
             m_InsideContainer.Add(m_EdgeDrawer);
+            m_EdgeDrawer.element = this;
 
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
         }
@@ -221,7 +222,8 @@ namespace UnityEditor.VFX.UI
 
         public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
         {
-            DragFinished();
+            if (m_DragDisplay.parent != null)
+                m_BlockContainer.Remove(m_DragDisplay);
             if (!CanDrop(blocks, target))
             {
                 return;
@@ -322,7 +324,9 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
-            //this.SendToFront();
+            base.OnSelected();
+
+            parent.Add(this);
             if (!VFXComponentEditor.s_IsEditingAsset)
                 Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
@@ -457,8 +461,6 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            m_EdgeDrawer.presenter = this.presenter;
-
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             if (presenter == null || presenter.context == null)
                 return;
@@ -525,7 +527,7 @@ namespace UnityEditor.VFX.UI
                 var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == inanchorpresenter);
                 if (existing == null)
                 {
-                    var anchor = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(inanchorpresenter);
+                    var anchor = VFXFlowAnchor.Create(inanchorpresenter);
                     m_FlowInputConnectorContainer.Add(anchor);
                     newInAnchors.Add(anchor);
                 }
@@ -548,7 +550,7 @@ namespace UnityEditor.VFX.UI
                 var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
                 if (existing == null)
                 {
-                    var anchor = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(outanchorpresenter);
+                    var anchor = VFXFlowAnchor.Create(outanchorpresenter);
                     m_FlowOutputConnectorContainer.Add(anchor);
                     newOutAnchors.Add(anchor);
                 }
@@ -589,7 +591,7 @@ namespace UnityEditor.VFX.UI
 
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it
-        public override void OnStyleResolved(ICustomStyle styles)
+        protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
             styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
