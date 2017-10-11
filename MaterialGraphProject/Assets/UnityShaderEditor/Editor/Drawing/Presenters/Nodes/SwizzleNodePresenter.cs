@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -33,12 +34,24 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class SwizzleNodePresenter : PropertyNodePresenter
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<SwizzleControlPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
+        }
+    }
+#endif
+
+    public class SwizzleNodeView : MaterialNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<SwizzleControlPresenter>();
             instance.Initialize(node);
             return new List<GraphControlPresenter>(base.GetControlData()) { instance };
         }

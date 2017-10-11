@@ -6,6 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.Graphing.Util
 {
+#if WITH_PRESENTER
     public class GraphTypeMapper : BaseTypeFactory<INode, ScriptableObject>
     {
         public GraphTypeMapper(Type fallbackType) : base(fallbackType)
@@ -17,4 +18,17 @@ namespace UnityEditor.Graphing.Util
             return ScriptableObject.CreateInstance(valueType);
         }
     }
+#else
+    public class GraphTypeMapper : BaseTypeFactory<INode, GraphElement>
+    {
+        public GraphTypeMapper(Type fallbackType) : base(fallbackType)
+        {
+        }
+
+        protected override GraphElement InternalCreate(Type valueType)
+        {
+            return (GraphElement) Activator.CreateInstance(valueType);
+        }
+    }
+#endif
 }

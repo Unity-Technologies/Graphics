@@ -27,12 +27,24 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class Matrix3NodePresenter : PropertyNodePresenter
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<Matrix3ControlPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
+        }
+    }
+#endif
+
+    public class Matrix3NodeView : PropertyNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<Matrix3ControlPresenter>();
             instance.Initialize(node);
             return new List<GraphControlPresenter>(base.GetControlData()) { instance };
         }

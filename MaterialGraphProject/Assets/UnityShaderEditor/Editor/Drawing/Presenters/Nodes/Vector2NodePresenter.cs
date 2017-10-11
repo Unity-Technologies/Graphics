@@ -25,6 +25,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class Vector2NodePresenter : PropertyNodePresenter
     {
@@ -35,6 +36,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             return new List<GraphControlPresenter>(base.GetControlData()) { instance };
         }
     }
+#endif
 
     public class Vector2NodeView : PropertyNodeView
     {
