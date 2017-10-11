@@ -41,6 +41,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected MaterialGraphPresenter()
         {
+#if WITH_PRESENTERS
             typeMapper = new GraphTypeMapper(typeof(MaterialNodePresenter));
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
@@ -91,6 +92,58 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
 
 //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
+#else
+            typeMapper = new GraphTypeMapper(typeof(MaterialNodeView));
+            typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodeView);
+            typeMapper[typeof(ColorNode)] = typeof(ColorNodeView);
+            typeMapper[typeof(GradientNode)] = typeof(GradientNodeView);
+
+            // typeMapper[typeof(ScatterNode)] = typeof(ScatterNodeView);
+            //typeMapper[typeof(TextureNode)] = typeof(TextureNodeView);
+            //typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodeView);
+            //typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodeView);
+            //            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodeView);
+            //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodeView);
+            typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodeView);
+            //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodeView);
+            //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodeView);
+            typeMapper[typeof(UVNode)] = typeof(UVNodeView);
+            typeMapper[typeof(Vector1Node)] = typeof(Vector1NodeView);
+            typeMapper[typeof(Vector2Node)] = typeof(Vector2NodeView);
+            typeMapper[typeof(Vector3Node)] = typeof(Vector3NodeView);
+            typeMapper[typeof(Vector4Node)] = typeof(Vector4NodeView);
+            typeMapper[typeof(PropertyNode)] = typeof(PropertyNodeView);
+
+            /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
+             typeMapper[typeof(RadialShearNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
+             typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodeView);          // anything derived from AnyNode should use the AnyNodeView
+             typeMapper[typeof(SphericalIndentationNode)] = typeof(AnyNodeView);          // anything derived from AnyNode should use the AnyNodeView
+             typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
+             typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView*/
+            typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodeView);
+            typeMapper[typeof(MasterRemapNode)] = typeof(MasterRemapNodeView);
+
+            // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodeView);
+            typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodeView);
+            //            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeView);
+            typeMapper[typeof(LevelsNode)] = typeof(LevelsNodeView);
+            typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodeView);
+
+            //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodeView);
+            typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodeView);
+
+            // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodeView);
+            typeMapper[typeof(IfNode)] = typeof(IfNodeView);
+
+            //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodeView);
+            typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodeView);
+            typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodeView);
+            typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodeView);
+            typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodeView);
+            typeMapper[typeof(TransformNode)] = typeof(TransformNodeView);
+
+            //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodeView);
+#endif
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
@@ -209,37 +262,17 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-            if (change.node is Vector1Node)
-            {
-                var nodeView = new Vector1NodeView();
-                change.node.onModified += OnNodeChanged;
-                nodeView.Initialize(change.node, m_PreviewSystem);
-                m_GraphView.AddElement(nodeView);
-                return;
-            }
-
-            if (change.node is Vector2Node)
-            {
-                var nodeView = new Vector2NodeView();
-                change.node.onModified += OnNodeChanged;
-                nodeView.Initialize(change.node, m_PreviewSystem);
-                m_GraphView.AddElement(nodeView);
-                return;
-            }
-
-            if (change.node is FractalNode)
-            {
-                var nodeView = new MaterialNodeView();
-                change.node.onModified += OnNodeChanged;
-                nodeView.Initialize(change.node, m_PreviewSystem);
-                m_GraphView.AddElement(nodeView);
-                return;
-            }
-
+#if WITH_PRESENTER
             var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
             change.node.onModified += OnNodeChanged;
             nodePresenter.Initialize(change.node, m_PreviewSystem);
             m_Elements.Add(nodePresenter);
+#else
+            var nodeView = (MaterialNodeView)typeMapper.Create(change.node);
+            change.node.onModified += OnNodeChanged;
+            nodeView.Initialize(change.node, m_PreviewSystem);
+            m_GraphView.AddElement(nodeView);
+#endif
         }
 
         void NodeRemoved(NodeRemovedGraphChange change)

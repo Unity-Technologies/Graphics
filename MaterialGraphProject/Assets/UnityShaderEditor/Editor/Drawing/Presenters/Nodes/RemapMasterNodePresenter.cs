@@ -28,12 +28,24 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class MasterRemapNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<RemapContolPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter> { instance };
+        }
+    }
+#endif
+
+    public class MasterRemapNodeView : MaterialNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<RemapContolPresenter>();
             instance.Initialize(node);
             return new List<GraphControlPresenter> { instance };
         }

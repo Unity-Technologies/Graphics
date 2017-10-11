@@ -38,4 +38,14 @@ namespace UnityEditor.MaterialGraph.Drawing
             return new List<GraphControlPresenter> { instance };
         }
     }
+
+    public class SubgraphNodeView : MaterialNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<SubgraphContolPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter> { instance };
+        }
+    }
 }

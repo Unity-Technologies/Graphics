@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.MaterialGraph;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -36,12 +37,24 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class ConstantsNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
         {
             var instance = CreateInstance<ConstantsContolPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter> { instance };
+        }
+    }
+#endif
+
+    public class ConstantsNodeView : MaterialNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<ConstantsContolPresenter>();
             instance.Initialize(node);
             return new List<GraphControlPresenter> { instance };
         }

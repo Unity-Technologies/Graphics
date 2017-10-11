@@ -28,6 +28,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+#if WITH_PRESENTER
     [Serializable]
     public class TransformNodePresenter : PropertyNodePresenter
     {
@@ -36,6 +37,17 @@ namespace UnityEditor.MaterialGraph.Drawing
             var instance = CreateInstance<TransformControlPresenter>();
             instance.Initialize(node);
             return new List<GraphControlPresenter>(base.GetControlData()) { instance };
+        }
+    }
+#endif
+
+    public class TransformNodeView : PropertyNodeView
+    {
+        protected override IEnumerable<GraphControlPresenter> GetControlData()
+        {
+            var instance = ScriptableObject.CreateInstance<TransformControlPresenter>();
+            instance.Initialize(node);
+            return new List<GraphControlPresenter> { instance };
         }
     }
 }
