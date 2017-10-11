@@ -312,6 +312,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS

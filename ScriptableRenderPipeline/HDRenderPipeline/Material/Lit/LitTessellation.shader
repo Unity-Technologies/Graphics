@@ -100,7 +100,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
-        [Enum(None, 0, PreTessellation displacement, 1, Pixel displacement, 2, PostTessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
 

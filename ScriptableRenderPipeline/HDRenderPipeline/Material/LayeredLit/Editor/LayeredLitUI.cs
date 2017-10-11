@@ -66,6 +66,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent heightOffset = new GUIContent("Height Offset", "Offset applied to the height before layering.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
 
+            public readonly GUIContent perPixelDisplacementLayersWarning = new GUIContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping");
+
             public readonly GUIContent materialReferencesText = new GUIContent("Material References");
 
             public StylesLayer()
@@ -319,37 +321,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             bool heightBasedBlend = useHeightBasedBlend.floatValue > 0.0f;
 
+            EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+
             // Main layer does not have any options but height base blend.
-            if(layerIndex > 0 || heightBasedBlend )
+            if (layerIndex > 0)
             {
-                EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
+                int paramIndex = layerIndex - 1;
 
-                // influence
-                if (layerIndex > 0)
+                m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
+
+                if (mainLayerInfluenceEnable)
                 {
-                    int paramIndex = layerIndex - 1;
-
-                    m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
-
-                    if (mainLayerInfluenceEnable)
-                    {
-                        m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
-                        m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
-                        // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
-                        // We always display it as it can be tricky to know when per pixel displacement is enabled or not
-                        m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
-                    }
+                    m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
+                    m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
+                    // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
+                    // We always display it as it can be tricky to know when per pixel displacement is enabled or not
+                    m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
                 }
-
-                if (heightBasedBlend)
-                {
-                    m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
-                }
-
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
             }
+            else
+            {
+                if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
+                }
+            }
+
+            if (heightBasedBlend)
+            {
+                m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
+            }
+
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
 
             DoLayerGUI(material, layerIndex);
 
@@ -405,12 +410,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
-            if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
-                EditorGUI.indentLevel--;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -625,6 +624,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
             }
 
+            SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
+
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
@@ -701,6 +702,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 optionsChanged = true;
             }
+
+            // In case of pixel displacement and layered shader, all layers must used the same texture mapping for layer that have a heightmap
+            // (Else the algorithm will not work correctly)
+            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
+            {
+                float compareValue = -1.0f;
+                bool match = true;
+
+                if (material.GetTexture(kHeightMap + 0))
+                {
+                    compareValue = UVBase[0].floatValue;
+                }
+                if (material.GetTexture(kHeightMap + 1))
+                {
+                    if (compareValue == -1.0f)
+                        compareValue = UVBase[1].floatValue;
+                    else if (compareValue != UVBase[1].floatValue)
+                        match = false;
+                }
+                if (material.GetTexture(kHeightMap + 2))
+                {
+                    if (compareValue == -1.0f)
+                        compareValue = UVBase[2].floatValue;
+                    else if (compareValue != UVBase[2].floatValue)
+                        match = false;
+                }
+                if (material.GetTexture(kHeightMap + 3))
+                {
+                    if (compareValue == -1.0f)
+                        compareValue = UVBase[3].floatValue;
+                    else if (compareValue != UVBase[3].floatValue)
+                        match = false;
+                }
+
+                if (!match)
+                {
+                    EditorGUILayout.HelpBox(styles.perPixelDisplacementLayersWarning.text, MessageType.Warning);
+                }
+            }
+
 
             bool layerChanged = DoLayersGUI(materialImporter);
             DoEmissiveGUI(material);
