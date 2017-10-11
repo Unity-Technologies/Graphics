@@ -22,6 +22,43 @@
 
     float3 permute(float3 x) { return ((x*34.0) + 1.0)*x % 289.0; }
 
+    float2 rand2(float2 p)
+    {
+        return frac(sin(float2(dot(p, float2(64321.9843, 8143.18321)), dot(p, float2(8312.153, 3218.1984)))) * 13218.2165);
+    }
+
+    #define SDF_VORONOI(pointTransform, name) float name(float2 value)\
+    {\
+        float2 o = floor(value);\
+        float2 f = frac(value);\
+        float r = 1;\
+        for (int y = -1; y <= 1; ++y)\
+        {\
+            for (int x = -1; x <= 1; ++x)\
+            {\
+                float2 cell = float2(float(x), float(y));\
+                float2 pCS = rand2(cell + o);\
+                pCS = pointTransform(pCS);\
+                float2 diff = cell + pCS - f;\
+                float dist = length(diff);\
+                    \
+                r = min(r, dist);\
+            }\
+        }\
+        \
+        return r;\
+    }
+
+    #define SDF_GRADIENT(sdf, name) float2 name(float2 value)\
+    {\
+        const float2 d = float2(0.0, 0.0001);\
+        float f00 = sdf(value + d.xx);\
+        float f01 = sdf(value + d.xy);\
+        float f10 = sdf(value + d.yx);\
+        float f11 = sdf(value + d.yy);\
+        return float2((f10 - f00 + f11 - f10) * 0.5, (f01 - f00 + f11 - f10) * 0.5);\
+    }
+
     float snoise(float2 v) {
         const float4 C = float4(0.211324865405187, 0.366025403784439,
             -0.577350269189626, 0.024390243902439);
@@ -178,8 +215,6 @@
             ENDCG
         }
 
-        
-
         Pass
         {
             Name "Ripple"
@@ -201,6 +236,40 @@
                 float2 distortion = sin(n3.xy * s) * _DistortionAmplitude;
                 
                 float blur = (min(t, 1-t) * 2) * (_BlurMaxAmplitude - _BlurMinAmplitude) + _BlurMinAmplitude;
+
+                return float4(distortion, blur, 1.0);
+            }
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "Voronoi"
+
+            CGPROGRAM
+            #include "UnityCustomRenderTexture.cginc"
+            #pragma vertex CustomRenderTextureVertexShader
+            #pragma fragment frag
+            #pragma target 3.0
+
+            float2 circlePoint(float2 p)
+            {
+                p = 0.5 + 0.5 * sin(_Time.w * 0.2 + 6.2831 * p);
+                return p;
+            }
+
+            SDF_VORONOI(circlePoint, sdfVoronoi)
+            SDF_GRADIENT(sdfVoronoi, sdfVoronoiGrad)
+
+            float4 frag(v2f_customrendertexture IN) : COLOR
+            {
+                float2 uv = IN.globalTexcoord.xy * _Size;
+                float v = sdfVoronoi(uv);
+                v = v * v * v;
+
+                float2 distortion = sdfVoronoiGrad(uv);
+
+                float blur = v * (_BlurMaxAmplitude - _BlurMinAmplitude) + _BlurMinAmplitude;
 
                 return float4(distortion, blur, 1.0);
             }
