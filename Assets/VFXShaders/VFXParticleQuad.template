@@ -31,6 +31,14 @@ Shader "Hidden/VFX/ParticleQuads"
 #if USE_SOFT_PARTICLE
 				sampler2D_float _CameraDepthTexture;
 #endif
+
+#if USE_FLIPBOOK
+				float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
+				{
+					float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
+					return (tile + uv) * invDim;
+				}
+#endif
 				
 				struct ps_input
 				{
@@ -38,13 +46,16 @@ Shader "Hidden/VFX/ParticleQuads"
 #if VFX_NEEDS_COLOR_INTERPOLATOR
 					nointerpolation float4 color : COLOR0;
 #endif				
-#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
-					nointerpolation float2 builtInInterpolants : TEXCOORD0;
+#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+// x: inverse soft particles fade distance
+// y: alpha threshold
+// z: frame blending factor
+					nointerpolation float3 builtInInterpolants : TEXCOORD0;
 #endif
 #if USE_SOFT_PARTICLE
 					float4 projPos : TEXCOORD1;	
 #endif
-					float2 uv : TEXCOORD2;
+					float4 uv : TEXCOORD2;
 				};
 				
 				struct ps_output
@@ -107,6 +118,20 @@ Shader "Hidden/VFX/ParticleQuads"
 							${VFXLoadParameter:{alphaThreshold}}
 							o.builtInInterpolants.y = alphaThreshold;
 #endif
+#if USE_FLIPBOOK
+							${VFXLoadParameter:{flipBookSize}}
+							${VFXLoadParameter:{invFlipBookSize}}
+							
+							float frameBlend = frac(texIndex);
+							float frameIndex = texIndex - frameBlend;
+							
+#if USE_FLIPBOOK_INTERPOLATION
+							o.builtInInterpolants.z = frameBlend;
+							o.uv.zw = GetSubUV(frameIndex + 1,o.uv.xy,flipBookSize,invFlipBookSize);
+							
+#endif
+							o.uv.xy = GetSubUV(frameIndex,o.uv.xy,flipBookSize,invFlipBookSize);
+#endif
 						}
 					}
 					return o;
@@ -120,8 +145,14 @@ Shader "Hidden/VFX/ParticleQuads"
 #if VFX_NEEDS_COLOR_INTERPOLATOR
 					o.color *= i.color;
 #endif
-					o.color *= texture_texture.Sample(samplertexture_texture,i.uv);
 
+					float4 texColor = texture_texture.Sample(samplertexture_texture,i.uv.xy);			
+#if USE_FLIPBOOK_INTERPOLATION
+					float4 texColor2 = texture_texture.Sample(samplertexture_texture,i.uv.zw);	
+					texColor = lerp(texColor,texColor2,i.builtInInterpolants.z);
+#endif
+					o.color *= texColor;
+					
 #if USE_SOFT_PARTICLE
 					float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
 					float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
