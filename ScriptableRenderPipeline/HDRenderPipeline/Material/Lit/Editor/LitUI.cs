@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -82,6 +83,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Transparency absorption
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Absorption color (RGB)");
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Absorption distance reference");
+
+            public static GUIContent perPixelDisplacementDetailsWarning = new GUIContent("For pixel displacement to work correctly, details and base map must use same UV mapping");
         }
 
         // Lit shader is not layered but some layered materials inherit from it. In order to share code we need LitUI to account for this.
@@ -124,6 +127,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
         protected const string kTexWorldScale = "_TexWorldScale";
+        protected MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
+        protected const string kInvTilingScale = "_InvTilingScale";
         protected MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
         protected const string kUVMappingMask = "_UVMappingMask";
 
@@ -238,6 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 UVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, m_PropertySuffixes[i]), props);
                 TexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, m_PropertySuffixes[i]), props);
+                InvTilingScale[i] = FindProperty(string.Format("{0}{1}", kInvTilingScale, m_PropertySuffixes[i]), props);
                 UVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, m_PropertySuffixes[i]), props);
 
                 baseColor[i] = FindProperty(string.Format("{0}{1}", kBaseColor, m_PropertySuffixes[i]), props);
@@ -449,9 +455,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                if (EditorGUI.EndChangeCheck())
+                {
+                    heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                }
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -483,6 +493,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
@@ -494,11 +506,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
             UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Precompute.
+                InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
+                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                {
+                    InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                }
+            }
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -529,6 +551,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
+            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
+            {
+                if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
+                    EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
+            }
             m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
