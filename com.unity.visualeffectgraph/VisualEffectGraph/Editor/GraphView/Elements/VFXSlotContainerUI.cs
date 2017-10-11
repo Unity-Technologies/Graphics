@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.UI
     class VFXSlotContainerUI : VFXNodeUI
     {
         public VisualElement m_SettingsContainer;
+        private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
         public bool collapse
         {
@@ -54,11 +55,19 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                for (int i = 0; i < m_SettingsContainer.childCount; ++i)
+                var activeSettings = presenter.model.activeSettings;
+
+                for (int i = 0; i < m_Settings.Count; ++i)
+                    m_Settings[i].RemoveFromHierarchy();
+
+                for (int i = 0; i < m_Settings.Count; ++i)
                 {
-                    PropertyRM prop = m_SettingsContainer.ElementAt(i) as PropertyRM;
-                    if (prop != null)
+                    PropertyRM prop = m_Settings[i];
+                    if (prop != null && activeSettings.Any(s => s.Name == presenter.settings[i].name))
+                    {
+                        m_SettingsContainer.Add(prop);
                         prop.Update();
+                    }
                 }
             }
 
@@ -96,7 +105,7 @@ namespace UnityEditor.VFX.UI
             var rm = PropertyRM.Create(setting, 100);
             if (rm != null)
             {
-                m_SettingsContainer.Add(rm);
+                m_Settings.Add(rm);
             }
             else
             {
