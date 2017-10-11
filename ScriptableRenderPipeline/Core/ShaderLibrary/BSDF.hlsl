@@ -302,25 +302,23 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotV, float perceptualRough
 }
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
-float3 DiffuseGGXNoPI(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float perceptualRoughness)
+float3 DiffuseGGXNoPI(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float roughness)
 {
-    float facing    = 0.5 + 0.5 * LdotV;                        // (LdotH)^2
-    float rough     = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
+    float facing    = 0.5 + 0.5 * LdotV;              // (LdotH)^2
+    float rough     = facing * (0.9 - 0.4 * facing) * (0.5 / NdotH + 1);
     float transmitL = F_Transm_Schlick(0, NdotL);
     float transmitV = F_Transm_Schlick(0, NdotV);
-    float smooth    = transmitL * transmitV * 1.05;             // Normalize F_t over the hemisphere
-    float single    = lerp(smooth, rough, perceptualRoughness); // Rescaled by PI
-    // This constant is picked s.t. setting perceptualRoughness, albedo and all cosines to 1
-    // allows us to match the Lambertian and the Disney Diffuse models. Original value: 0.1159.
-    float multiple  = perceptualRoughness * (0.079577 * PI);    // Rescaled by PI
+    float smooth    = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
+    float single    = lerp(smooth, rough, roughness); // Rescaled by PI
+    float multiple  = roughness * (0.1159 * PI);      // Rescaled by PI
 
     return single + albedo * multiple;
 }
 
-float3 DiffuseGGX(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float perceptualRoughness)
+float3 DiffuseGGX(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float roughness)
 {
     // Note that we could save 2 cycles by inlining the multiplication by INV_PI.
-    return INV_PI * DiffuseGGXNoPI(albedo, NdotV, NdotL, NdotH, LdotV, perceptualRoughness);
+    return INV_PI * DiffuseGGXNoPI(albedo, NdotV, NdotL, NdotH, LdotV, roughness);
 }
 
 #endif // UNITY_BSDF_INCLUDED
