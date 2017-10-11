@@ -344,7 +344,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
                 int profileID = (int)subsurfaceProfileID.floatValue;
-                profileID = EditorGUILayout.IntPopup(Styles.subsurfaceProfileText, profileID, names, values);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel(Styles.subsurfaceProfileText);
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        profileID = EditorGUILayout.IntPopup(profileID, names, values);
+
+                        if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
+                            Selection.activeObject = sssSettings;
+                    }
+                }
 
                 if (scope.changed)
                     subsurfaceProfileID.floatValue = profileID;
