@@ -40,15 +40,15 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class IntPropertyRM : SimpleUIPropertyRM<int, long>
+    class IntPropertyRM : SimplePropertyRM<int>
     {
         public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override IControl<long> CreateField()
+        public override ValueControl<int> CreateField()
         {
-            return new LabeledField<IntegerField, long>(m_Label);
+            return new IntField(m_Label);
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
@@ -63,20 +63,20 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class FloatPropertyRM : SimpleUIPropertyRM<float, double>
+    class FloatPropertyRM : SimplePropertyRM<float>
     {
         public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override IControl<double> CreateField()
+        public override ValueControl<float> CreateField()
         {
-            //Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
 
-            //if (range == Vector2.zero)
-            return new LabeledField<DoubleField, double>(m_Label);   /*
+            if (range == Vector2.zero)
+                return new FloatField(m_Label);
             else
-                return new SliderField(m_Label, range);*/
+                return new SliderField(m_Label, range);
         }
     }
 

@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Block
                     case Mode.FaceCameraPlane:
                         return @"
 float4x4 cameraMat = VFXCameraMatrix();
-front = -VFXCameraLook();
+front = VFXCameraLook();
 side = cameraMat[0].xyz;
 up = cameraMat[1].xyz;
 ";

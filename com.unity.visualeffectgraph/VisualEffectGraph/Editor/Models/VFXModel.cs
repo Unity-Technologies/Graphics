@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.Profiling;
@@ -215,6 +216,22 @@ namespace UnityEditor.VFX
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);
+        }
+
+        public IEnumerable<FieldInfo> activeSettings
+        {
+            get
+            {
+                return VFXSettingAttribute.Collect(this).Where(fo => !filteredOutSettings.Contains(fo.Name));
+            }
+        }
+
+        protected virtual IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
         }
 
         [SerializeField]

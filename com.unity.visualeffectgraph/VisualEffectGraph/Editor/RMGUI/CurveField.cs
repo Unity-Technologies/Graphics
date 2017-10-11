@@ -9,25 +9,20 @@ namespace UnityEditor.VFX.UIElements
 {
     class CurveField : ValueControl<AnimationCurve>
     {
-        VisualElement m_Curve;
+        static readonly Color kCurveColor = Color.green;
 
-
-        void CreateCurve()
+        void SetupCurve()
         {
-            m_Curve = new VisualElement();
-            m_Curve.style.minWidth = 4; m_Curve.style.minHeight = 4;
-            m_Curve.AddToClassList("curve");
-
-            m_Curve.AddManipulator(new Clickable(OnCurveClick));
-            m_Curve.RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            this.AddManipulator(new Clickable(OnCurveClick));
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
         }
 
         void OnDetach(DetachFromPanelEvent e)
         {
-            if (m_Curve.style.backgroundImage.value != null)
+            if (style.backgroundImage.value != null)
             {
-                Object.DestroyImmediate(m_Curve.style.backgroundImage.value);
-                m_Curve.style.backgroundImage = null;
+                Object.DestroyImmediate(style.backgroundImage.value);
+                style.backgroundImage = null;
             }
         }
 
@@ -41,7 +36,7 @@ namespace UnityEditor.VFX.UIElements
                 m_Value = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1) });
             CurveEditorWindow.curve = m_Value;
 
-            CurveEditorWindow.color = Color.green;
+            CurveEditorWindow.color = kCurveColor;
             CurveEditorWindow.instance.Show(OnCurveChanged, settings);
         }
 
@@ -59,16 +54,14 @@ namespace UnityEditor.VFX.UIElements
 
         public CurveField(string label) : base(label)
         {
-            CreateCurve();
+            SetupCurve();
 
             style.flexDirection = FlexDirection.Row;
-            Add(m_Curve);
         }
 
         public CurveField(VisualElement existingLabel) : base(existingLabel)
         {
-            CreateCurve();
-            Add(m_Curve);
+            SetupCurve();
         }
 
         public override void OnPersistentDataReady()
@@ -89,20 +82,20 @@ namespace UnityEditor.VFX.UIElements
             if (m_Dirty)
             {
                 m_Dirty = false;
-                int previewWidth = (int)m_Curve.layout.width;
-                int previewHeight = (int)m_Curve.layout.height;
+                int previewWidth = (int)layout.width;
+                int previewHeight = (int)layout.height;
 
                 if (previewHeight > 0 && previewWidth > 0)
                 {
                     Rect range = new Rect(0, 0, 1, 1);
                     // Instantiate because AnimationCurvePreviewCache returns a temporary;
-                    m_Curve.style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
+                    style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
                             previewWidth,
                             previewHeight,
                             range,
                             m_Value,
-                            Color.green,
-                            m_Curve.style.backgroundImage.value);
+                            kCurveColor,
+                            style.backgroundImage.value);
                 }
             }
 

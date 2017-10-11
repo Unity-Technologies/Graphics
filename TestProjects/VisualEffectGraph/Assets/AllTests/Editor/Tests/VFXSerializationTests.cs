@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Test
 
             var init0 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var update0 = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var output0 = ScriptableObject.CreateInstance<VFXBasicOutput>();
+            var output0 = ScriptableObject.CreateInstance<VFXPointOutput>();
 
             graph.AddChild(init0);
             graph.AddChild(update0);
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.Test
             update0.LinkTo(output0);
 
             var init1 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var output1 = ScriptableObject.CreateInstance<VFXBasicOutput>();
+            var output1 = ScriptableObject.CreateInstance<VFXPointOutput>();
 
             init1.LinkTo(output1);
 
