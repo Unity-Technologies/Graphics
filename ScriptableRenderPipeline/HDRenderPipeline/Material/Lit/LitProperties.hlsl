@@ -76,8 +76,9 @@ PROP_DECL_TEX2D(_HeightMap);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
-TEXTURE2D(_LayerInfluenceMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
+TEXTURE2D(_LayerInfluenceMaskMap);
+SAMPLER2D(sampler_LayerInfluenceMaskMap);
 
 #endif
 
@@ -108,6 +109,8 @@ float _ThicknessMultiplier;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
+
+float4 _InvPrimScale; // Only XY are used
 
 // Wind
 float _InitialBend;
@@ -151,6 +154,7 @@ float _CoatIOR;
 float4 _SpecularColor;
 
 float _TexWorldScale;
+float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 
@@ -203,6 +207,7 @@ float _HeightTransition;
 float4 _LayerMaskMap_ST;
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+PROP_DECL(float, _InvTilingScale);
 float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);

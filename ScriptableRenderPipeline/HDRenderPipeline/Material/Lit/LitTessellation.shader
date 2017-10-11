@@ -94,25 +94,26 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
 
-        [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
+        [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
+        [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+        _PPDPrimitiveLength("Primitive length for POM", Float) = 1
+        _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
+        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-
-        // Displacement map
-        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
-        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
-        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -152,13 +153,12 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT _TESSELLATION_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
-    #pragma shader_feature _TESSELLATION_PHONG
+    #pragma shader_feature _ _TESSELLATION_PHONG
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
