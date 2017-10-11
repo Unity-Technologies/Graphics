@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_Distorsion_Lit_2DNoise
+  m_Name: Mat_Distorsion_Lit_Voronoi
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
     _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON
@@ -21,14 +21,13 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - Forward
-  - DepthOnly
+  - SHADOWCASTER
   - ForwardOnlyOpaqueDepthOnly
   - ForwardOnlyOpaque
   - GBuffer
   - GBufferWithPrepass
   - TransparentDepthPrepass
   - META
-  - SHADOWCASTER
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -53,7 +52,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DistortionVectorMap:
-        m_Texture: {fileID: 8600000, guid: 99d420ed53cf5bc449b014653d05770d, type: 2}
+        m_Texture: {fileID: 8600000, guid: 857ebf2cca737d54194a3a1077fec4cc, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissiveColorMap:
@@ -116,14 +115,14 @@ Material:
     - _DistortionBlurDstBlend: 1
     - _DistortionBlurRemapMax: 1
     - _DistortionBlurRemapMin: 0
-    - _DistortionBlurScale: 1.93
+    - _DistortionBlurScale: 1.3
     - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
     - _DistortionDstBlend: 1
     - _DistortionEnable: 1
     - _DistortionNullify: 0
     - _DistortionOnly: 1
-    - _DistortionScale: 2.21
+    - _DistortionScale: 200000
     - _DistortionSrcBlend: 1
     - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0

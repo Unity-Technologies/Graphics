@@ -19,16 +19,15 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
-  - MOTIONVECTORS
   - Forward
   - ForwardOnlyOpaqueDepthOnly
   - ForwardOnlyOpaque
   - GBuffer
   - GBufferWithPrepass
+  - MOTIONVECTORS
   - TransparentDepthPrepass
   - META
   - SHADOWCASTER
-  - DepthOnly
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -116,7 +115,7 @@ Material:
     - _DistortionBlurDstBlend: 1
     - _DistortionBlurRemapMax: 0.58173394
     - _DistortionBlurRemapMin: 0
-    - _DistortionBlurScale: 0.71
+    - _DistortionBlurScale: 0
     - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 1
     - _DistortionDstBlend: 1

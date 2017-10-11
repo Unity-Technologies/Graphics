@@ -9,8 +9,8 @@ Material:
   m_Name: Mat_Distorsion_Lit_2DNoise
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON
-    _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTIONONLY_OFF
+    _DISTORTION_ON _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
     _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -18,17 +18,7 @@ Material:
   m_CustomRenderQueue: 3000
   stringTagMap:
     RenderType: Transparent
-  disabledShaderPasses:
-  - MOTIONVECTORS
-  - Forward
-  - DepthOnly
-  - ForwardOnlyOpaqueDepthOnly
-  - ForwardOnlyOpaque
-  - GBuffer
-  - GBufferWithPrepass
-  - TransparentDepthPrepass
-  - META
-  - SHADOWCASTER
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -122,7 +112,7 @@ Material:
     - _DistortionDstBlend: 1
     - _DistortionEnable: 1
     - _DistortionNullify: 0
-    - _DistortionOnly: 1
+    - _DistortionOnly: 0
     - _DistortionScale: 2.21
     - _DistortionSrcBlend: 1
     - _DistortionStencilRef: 4
