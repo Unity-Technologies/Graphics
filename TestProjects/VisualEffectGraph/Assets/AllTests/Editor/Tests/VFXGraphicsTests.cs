@@ -26,6 +26,57 @@ namespace UnityEditor.VFX.Test
             public RenderTexture texture;
         }
 
+        static void StandardWarmingLoop(IEnumerable<VFXComponent> vfxComponent)
+        {
+            foreach (var vfx in vfxComponent)
+            {
+                var vfxAsset = vfx.vfxAsset;
+                if (vfxAsset)
+                {
+                    vfx.Reinit();
+                    vfx.DebugSimulate(10);
+                    vfx.pause = true;
+                }
+            }
+        }
+
+        static void WarmingLoopWithAnimator(IEnumerable<VFXComponent> vfxComponent, IEnumerable<Animator> vfxAnimator)
+        {
+            int loopCount = 10;
+            foreach (var vfx in vfxComponent)
+            {
+                vfx.Reinit();
+            }
+
+            AnimationMode.StartAnimationMode();
+            for (int loop = 0; loop < loopCount; loop++)
+            {
+                int sliceCount = 16;
+                float simulateTime = 1.0f / (float)sliceCount;
+                for (int slice = 0; slice < sliceCount; slice++)
+                {
+                    float t = (float)slice / (float)sliceCount;
+                    foreach (var animator in vfxAnimator)
+                    {
+                        foreach (var clip in animator.GetCurrentAnimatorClipInfo(0))
+                        {
+                            AnimationMode.BeginSampling();
+                            AnimationMode.SampleAnimationClip(animator.gameObject, clip.clip, t);
+                            AnimationMode.EndSampling();
+                        }
+                    }
+
+                    foreach (var vfx in vfxComponent)
+                    {
+                        vfx.pause = false;
+                        vfx.DebugSimulate(simulateTime);
+                        vfx.pause = true;
+                    }
+                }
+            }
+            AnimationMode.StopAnimationMode();
+        }
+
         static SceneCaptureInstance InitScene(string scenePath)
         {
             SceneCaptureInstance instance;
@@ -33,18 +84,22 @@ namespace UnityEditor.VFX.Test
             instance.camera = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Camera>()).First();
 
             var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
-            foreach (var vfx in vfxComponent)
-            {
-                var vfxAsset = vfx.vfxAsset;
-                if (vfxAsset)
-                {
-                    var graph = VFXAssetExtensions.GetOrCreateGraph(vfxAsset);
-                    graph.RecompileIfNeeded();
+            var vfxAnimator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
+            var vfxAsset = vfxComponent.Select(o => o.vfxAsset).Where(o => o != null).Distinct();
 
-                    vfx.Reinit();
-                    vfx.DebugSimulate(10);
-                    vfx.pause = true;
-                }
+            foreach (var vfx in vfxAsset)
+            {
+                var graph = VFXAssetExtensions.GetOrCreateGraph(vfx);
+                graph.RecompileIfNeeded();
+            }
+
+            if (vfxAnimator.Any())
+            {
+                WarmingLoopWithAnimator(vfxComponent, vfxAnimator);
+            }
+            else
+            {
+                StandardWarmingLoop(vfxComponent);
             }
 
             instance.camera.cameraType = CameraType.Preview;
@@ -141,7 +196,7 @@ namespace UnityEditor.VFX.Test
             uint waitFrameCount = 4;
 
             var scenePath = sceneTest.path;
-            var treshold = 0.05f;
+            var treshold = 0.051f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
@@ -171,7 +226,7 @@ namespace UnityEditor.VFX.Test
             var currentTexture = new Texture2D(2, 2);
             currentTexture.LoadImage(File.ReadAllBytes(currentCapturePath));
 
-            var refTexture = new Texture2D(2, 2);
+            var refTexture = new Texture2D(4, 2);
             refTexture.LoadImage(File.ReadAllBytes(refCapturePath));
 
             var rmse = CompareTextures(currentTexture, refTexture);
