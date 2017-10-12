@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXSlotContainerUI()
         {
-            this.AddManipulator(new Collapser());
         }
 
         public override void OnDataChanged()
