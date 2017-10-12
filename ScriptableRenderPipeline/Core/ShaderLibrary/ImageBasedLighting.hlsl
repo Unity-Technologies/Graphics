@@ -420,8 +420,10 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
+            // See "Moving Frostbite to Physically Based Rendering", p 63.
+            // The goal of this function is to use Monte-Carlo integration to evaluate
             // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+            // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
             // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
             // PDF    = D * NdotH / (4 * LdotH).
             // Weight = CBSDF / PDF = F * G * LdotH / (NdotV * NdotH).
