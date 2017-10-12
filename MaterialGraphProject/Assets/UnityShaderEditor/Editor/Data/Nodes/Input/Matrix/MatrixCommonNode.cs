@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using UnityEngine.Graphing;
 using System.Collections.Generic;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -27,6 +28,7 @@ namespace UnityEngine.MaterialGraph
 
         public override bool hasPreview { get { return false; } }
 
+        [EnumControl("")]
         public CommonMatrixType matrix
         {
             get { return m_matrix; }
