@@ -203,7 +203,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
     // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
-    float baseColorOverlay = (detailAlbedo < 0.5) ? 
+    float3 baseColorOverlay = (detailAlbedo < 0.5) ? 
                                 surfaceData.baseColor * PositivePow(2.0 * detailAlbedo, ADD_IDX(_DetailAlbedoScale)) :
                                 1.0 - 2.0 * (1.0 - surfaceData.baseColor) * (1.0 - (detailAlbedo * ADD_IDX(_DetailAlbedoScale)));
     // Lerp with details mask
