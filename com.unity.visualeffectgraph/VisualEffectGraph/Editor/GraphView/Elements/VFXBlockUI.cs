@@ -29,6 +29,9 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.shadow.Insert(0, m_EnableToggle);
+
+
+            capabilities &= ~Capabilities.SendToFrontOnSelection;
         }
 
         void OnToggleEnable()
@@ -95,9 +98,6 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public override void OnSelected()
-        {
-        }
 
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {

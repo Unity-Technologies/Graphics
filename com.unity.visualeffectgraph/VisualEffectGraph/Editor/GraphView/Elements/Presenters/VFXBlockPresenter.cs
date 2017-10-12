@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnEnable();
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable | Capabilities.Deletable;
+            capabilities &= ~Capabilities.SendToFrontOnSelection;
 
             // Most initialization will be done in Init
         }

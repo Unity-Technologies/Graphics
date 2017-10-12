@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UIElements
         {
             this.AddManipulator(new Clickable(OnCurveClick));
             RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            RegisterCallback<AttachToPanelEvent>(OnAttach);
         }
 
         void OnDetach(DetachFromPanelEvent e)
@@ -24,6 +25,11 @@ namespace UnityEditor.VFX.UIElements
                 Object.DestroyImmediate(style.backgroundImage.value);
                 style.backgroundImage = null;
             }
+        }
+
+        void OnAttach(AttachToPanelEvent e)
+        {
+            m_Dirty = true;
         }
 
         void OnCurveClick()
@@ -88,14 +94,13 @@ namespace UnityEditor.VFX.UIElements
                 if (previewHeight > 0 && previewWidth > 0)
                 {
                     Rect range = new Rect(0, 0, 1, 1);
-                    // Instantiate because AnimationCurvePreviewCache returns a temporary;
                     style.backgroundImage = AnimationCurvePreviewCache.GenerateCurvePreview(
                             previewWidth,
                             previewHeight,
                             range,
                             m_Value,
                             kCurveColor,
-                            style.backgroundImage.value);
+                        style.backgroundImage.value);
                 }
             }
 

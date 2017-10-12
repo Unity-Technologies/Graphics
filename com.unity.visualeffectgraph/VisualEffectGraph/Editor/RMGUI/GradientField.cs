@@ -16,6 +16,13 @@ namespace UnityEditor.VFX.UIElements
         {
             this.AddManipulator(new Clickable(OnClick));
             RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            RegisterCallback<AttachToPanelEvent>(OnAttach);
+        }
+
+
+        void OnAttach(AttachToPanelEvent e)
+        {
+            ValueToGUI();
         }
 
         void OnDetach(DetachFromPanelEvent e)
@@ -52,8 +59,8 @@ namespace UnityEditor.VFX.UIElements
         {
             Gradient gradient = GetValue();
 
-            // Instantiate because GetGradientPreview returns a temporary;
             Texture2D gradientTexture = UnityEditorInternal.GradientPreviewCache.GenerateGradientPreview(gradient, style.backgroundImage.value);
+            gradientTexture.hideFlags = HideFlags.HideAndDontSave;
 
             style.backgroundImage = gradientTexture;
         }

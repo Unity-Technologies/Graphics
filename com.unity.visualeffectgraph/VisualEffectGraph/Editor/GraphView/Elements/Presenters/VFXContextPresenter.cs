@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-            capabilities |= Capabilities.Deletable;
+            capabilities |= Capabilities.Deletable | Capabilities.SendToFrontOnSelection;
         }
 
         protected void OnDisable()

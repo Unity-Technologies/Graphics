@@ -326,7 +326,6 @@ namespace UnityEditor.VFX.UI
         {
             base.OnSelected();
 
-            parent.Add(this);
             if (!VFXComponentEditor.s_IsEditingAsset)
                 Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
