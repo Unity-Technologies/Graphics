@@ -286,7 +286,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetInt("_ZWrite", 0);
                 var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0f;
                 material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreTransparent : HDRenderQueue.Transparent);
-                SetKeyword(material, "_REFRACTION_ROUGHNESS_ON", !isPrePass); // NOTE: this should be in lit as refraction is only for lit
 
                 SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
                 SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
