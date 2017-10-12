@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        [Vector2Control]
+        [MultiFloatControl("")]
         public Vector2 value
         {
             get { return m_Value; }
