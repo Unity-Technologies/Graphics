@@ -157,6 +157,7 @@ float _TexWorldScale;
 float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
+float _LinkDetailsWithBase;
 
 #else // LAYERED_LIT_SHADER
 
@@ -211,6 +212,7 @@ PROP_DECL(float, _InvTilingScale);
 float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
+PROP_DECL(float, _LinkDetailsWithBase);
 
 #endif // LAYERED_LIT_SHADER
 
