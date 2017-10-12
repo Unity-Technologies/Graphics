@@ -327,9 +327,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autoGenerateMips = false
             };
 
-            m_DistortionBuffer = HDShaderIDs._DistortionTexture;
-            m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
-
             m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
             m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
 
@@ -836,11 +833,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
+                    RenderGaussianPyramidColor(camera, cmd);
+
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
                     // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
-                    RenderDistortion(m_CullResults, camera, renderContext, cmd);
+                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
+                    AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
+                    RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
                     RenderPostProcesses(camera, cmd, postProcessLayer);
                 }
@@ -966,6 +966,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
             else
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
+        }
+
+        void AccumulateDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
+                return;
+
+            using (new ProfilingSample(cmd, "Distortion"))
+            {
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+
+                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
+                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+
+                // Only transparent object can render distortion vectors
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
+            }
+        }
+
+        void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
+        {
+            using (new ProfilingSample(cmd, "ApplyDistortion"))
+            {
+                var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
+                uint x, y, z;
+                resources.applyDistortionCS.GetKernelThreadGroupSizes(resources.applyDistortionKernel, out x, out y, out z);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
+
+                cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
+            }
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -1292,7 +1330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
-                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                int size = CalculatePyramidSize(w, h);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1339,7 +1377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
-                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                int size = CalculatePyramidSize(w, h);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1372,25 +1410,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int i = 0; i < lodCount + 1; i++)
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
-            }
-        }
-
-        void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
-                return;
-
-            using (new ProfilingSample(cmd, "Distortion"))
-            {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-
-                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
-                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
-                cmd.ClearRenderTarget(false, true, Color.black); // TODO: can we avoid this clear for performance ?
-
-                // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
 
@@ -1513,7 +1532,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_CameraFilteringBuffer,          w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     // Color and depth pyramids
-                    int s = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                    int s = CalculatePyramidSize(w, h);
                     m_GaussianPyramidColorBufferDesc.width = s;
                     m_GaussianPyramidColorBufferDesc.height = s;
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
@@ -1583,6 +1602,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 // END TEMP
             }
+        }
+
+        static int CalculatePyramidSize(int w, int h)
+        {
+            return Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
         }
     }
 }
