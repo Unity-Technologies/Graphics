@@ -87,6 +87,10 @@ CBUFFER_START(_PerMaterial)
 // shared constant between lit and layered lit
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
+float _DistortionScale;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
