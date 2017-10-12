@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
@@ -13,7 +15,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     public class MaterialNodeView : Node
     {
         VisualElement m_ControlsContainer;
-        List<GraphControlPresenter> m_CurrentControls;
+        List<VisualElement> m_ControlViews;
+        Guid m_NodeGuid;
         VisualElement m_PreviewToggle;
         Image m_PreviewImage;
         bool m_IsScheduled;
@@ -32,7 +35,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 name = "controls"
             };
             leftContainer.Add(m_ControlsContainer);
-            m_CurrentControls = new List<GraphControlPresenter>();
+            m_ControlViews = new List<VisualElement>();
 
             m_PreviewToggle = new VisualElement { name = "toggle", text = "" };
             m_PreviewToggle.AddManipulator(new Clickable(OnPreviewToggle));
@@ -76,23 +79,24 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdateControls(MaterialNodePresenter nodeData)
         {
-            if (nodeData.controls.SequenceEqual(m_CurrentControls) && nodeData.expanded)
-                return;
-
-            m_ControlsContainer.Clear();
-            m_CurrentControls.Clear();
-            Dirty(ChangeType.Layout);
+            if (!nodeData.node.guid.Equals(m_NodeGuid))
+            {
+                m_ControlViews.Clear();
+                foreach (var propertyInfo in nodeData.node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
+                        m_ControlViews.Add(attribute.InstantiateControl(nodeData.node, propertyInfo));
+                }
+            }
 
             if (!nodeData.expanded)
-                return;
-
-            foreach (var controlData in nodeData.controls)
             {
-                m_ControlsContainer.Add(new IMGUIContainer(controlData.OnGUIHandler)
-                {
-                    name = "element"
-                });
-                m_CurrentControls.Add(controlData);
+                m_ControlsContainer.Clear();
+            }
+            else if (m_ControlsContainer.childCount != m_ControlViews.Count)
+            {
+                foreach (var view in m_ControlViews)
+                    m_ControlsContainer.Add(view);
             }
         }
 
@@ -112,7 +116,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (nodePresenter == null)
             {
                 m_ControlsContainer.Clear();
-                m_CurrentControls.Clear();
+                m_ControlViews.Clear();
                 UpdatePreviewTexture(null);
                 return;
             }
@@ -126,6 +130,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdateControls(nodePresenter);
 
             UpdatePreviewTexture(nodePresenter.node.previewExpanded ? nodePresenter.previewTexture : null);
+
+            m_NodeGuid = nodePresenter.node.guid;
         }
     }
 }
