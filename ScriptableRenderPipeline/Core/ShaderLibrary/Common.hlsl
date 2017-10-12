@@ -306,13 +306,23 @@ float3 Sqr(float3 x)
     return x * x;
 }
 
-// Acos in 14 cycles.
-// Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
-float FastACos(float inX)
+// Input [0, 1] and output [0, PI/2]
+// 9 VALU
+float FastACosPos(float inX)
 {
     float x = abs(inX);
     float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
     res *= sqrt(1.0 - x);
+
+    return res;
+}
+
+// Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
+// Input [-1, 1] and output [0, PI]
+// 12 VALU
+float FastACos(float inX)
+{
+    float res = FastACosPos(inX);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }

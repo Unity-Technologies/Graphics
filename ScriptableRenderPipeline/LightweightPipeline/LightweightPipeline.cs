@@ -72,7 +72,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private Camera m_CurrCamera = null;
 
-        private int m_LightIndicesCount = 0;
         private ComputeBuffer m_LightIndexListBuffer;
 
         private static readonly int kMaxCascades = 4;
@@ -84,7 +83,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CameraColorRT;
         private RenderTargetIdentifier m_CameraDepthRT;
 
-        private bool m_RenderToIntermediateTarget = false;
         private bool m_IntermediateTextureArray = false;
 
         private const int kShadowDepthBufferBits = 16;
@@ -156,7 +154,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 m_LightIndexListBuffer.Dispose();
                 m_LightIndexListBuffer = null;
-                m_LightIndicesCount = 0;
             }
         }
 
@@ -207,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void ShadowPass(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
-            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1) 
+            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
             {
                 VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
                 if (mainLight.light.shadows != LightShadows.None)
@@ -230,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Setup camera matrices
             context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
- 
+
             RendererConfiguration rendererSettings = GetRendererSettings(ref lightData);
 
             BeginForwardRendering(ref context, renderingConfig);
@@ -375,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // shadow lights types.
         // Lightweight pipeline only supports 1 single directional shadow light.
         // Any additional pixel lights don't cast shadows.
-        // 
+        //
         // 2) If shadows are disabled or no shadow light is present then main light is the main brighest directional
         // 3) If neither a shadow light or main light is first visible light.
         private int GetMainLightIndex(VisibleLight[] lights)
@@ -384,33 +381,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int mainDirectional = -1;
             int mainShadowLight = -1;
 
-            for (int i = 0; i < lights.Length; ++i) 
+            for (int i = 0; i < lights.Length; ++i)
             {
-                if (shadowsEnabled && LightweightUtils.IsSupportedShadowType (lights[i].lightType) && lights[i].light.shadows != LightShadows.None) 
+                if (shadowsEnabled && LightweightUtils.IsSupportedShadowType (lights[i].lightType) && lights[i].light.shadows != LightShadows.None)
                 {
                     // Shadow Type priority: Soft > Hard > None
                     if (mainShadowLight < 0 || lights[i].light.shadows > lights[mainShadowLight].light.shadows)
                         mainShadowLight = i;
                 }
 
-                if (lights[i].lightType == LightType.Directional) 
+                if (lights[i].lightType == LightType.Directional)
                 {
                     if (mainDirectional < 0 || lights[i].light.intensity > lights[mainDirectional].light.intensity)
                         mainDirectional = i;
                 }
             }
 
-            if (mainShadowLight >= 0) 
+            if (mainShadowLight >= 0)
             {
                 if (mainDirectional > 0 && lights[mainDirectional].light.shadows != LightShadows.None)
                     return mainDirectional;
                 else
                     return mainShadowLight;
-            } 
+            }
 
             if (mainDirectional > 0)
                 return mainDirectional;
-            
+
             return 0;
         }
 
@@ -482,7 +479,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
-            if (lightData.mainLightIndex != -1) 
+            if (lightData.mainLightIndex != -1)
             {
                 SetupMainLightConstants (cmd, lights, lightData.mainLightIndex, ref context);
                 if (lightData.shadowsRendered)
@@ -511,9 +508,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             int[] lightIndexMap = m_CullResults.GetLightIndexMap();
             int lightIter = 0;
-            for (int i = 0; i < totalLightCount; ++i) 
+            for (int i = 0; i < totalLightCount; ++i)
             {
-                if (i == lightData.mainLightIndex || lightIter >= maxLights) 
+                if (i == lightData.mainLightIndex || lightIter >= maxLights)
                 {
                     lightIndexMap[i] = -1;
                     continue;

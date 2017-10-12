@@ -108,34 +108,18 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
-    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-    // Extract scaling from world transform
-#ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    float3 objectScale;
-    float4x4 worldTransform = GetObjectToWorldMatrix();
-    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-    objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
-#else
-    float3 objectScale = float3(1.0, 1.0, 1.0);
-#endif
-
     // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
 
     // This code is disabled for velocity pass for now because at the moment we cannot have Normals with the velocity pass (this attributes holds last frame data)
     // TODO: Remove the velocity pass test when velocity is properly handled.
 #if defined(HAVE_VERTEX_MODIFICATION) && (SHADERPASS != SHADERPASS_VELOCITY)
-    ApplyVertexModification(input, normalWS, objectScale, positionWS);
+    ApplyVertexModification(input, normalWS, positionWS);
 #endif
 
     positionWS = GetCameraRelativePositionWS(positionWS);
 
 #ifdef TESSELLATION_ON
     output.positionWS = positionWS;
-    #ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-    output.objectScale = objectScale;
-    #endif
     // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
     #if (SHADERPASS == SHADERPASS_VELOCITY)
     output.normalWS = float3(0.0, 0.0, 1.0);

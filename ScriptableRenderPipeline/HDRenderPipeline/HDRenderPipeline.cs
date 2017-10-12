@@ -190,9 +190,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
+        SubsurfaceScatteringSettings m_InternalSSSAsset;
         public SubsurfaceScatteringSettings sssSettings
         {
-            get { return m_Asset.sssSettings; }
+            get
+            {
+                // If no SSS asset is set, build / reuse an internal one for simplicity
+                var asset = m_Asset.sssSettings;
+
+                if (asset == null)
+                {
+                    if (m_InternalSSSAsset == null)
+                        m_InternalSSSAsset = ScriptableObject.CreateInstance<SubsurfaceScatteringSettings>();
+
+                    asset = m_InternalSSSAsset;
+                }
+
+                return asset;
+            }
         }
 
         CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
@@ -259,7 +274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraFilteringBuffer            = HDShaderIDs._CameraFilteringBuffer;
             m_CameraFilteringBufferRT          = new RenderTargetIdentifier(m_CameraFilteringBuffer);
 
-            CreateSssMaterials(sssSettings.useDisneySSS);
+            CreateSssMaterials();
 
             m_CopyStencilForSplitLighting   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
@@ -360,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
 
-        public void CreateSssMaterials(bool useDisneySSS)
+        public void CreateSssMaterials()
         {
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
 
@@ -415,6 +430,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugDisplayLatlong);
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_ErrorMaterial);
+            CoreUtils.Destroy(m_InternalSSSAsset);
 
             m_SkyManager.Cleanup();
 
@@ -709,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var postProcessLayer = camera.GetComponent<PostProcessLayer>();
             var hdCamera = HDCamera.Get(camera, postProcessLayer);
-            PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
+            PushGlobalParams(hdCamera, cmd, sssSettings);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -784,7 +800,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                 // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-                SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
+                SubsurfaceScatteringPass(hdCamera, cmd, sssSettings);
 
                 RenderForward(m_CullResults, camera, renderContext, cmd, true);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, true);

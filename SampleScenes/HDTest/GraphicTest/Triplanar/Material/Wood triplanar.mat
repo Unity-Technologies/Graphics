@@ -9,7 +9,6 @@ Material:
   m_Name: Wood triplanar
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _HEIGHTMAP _MAPPING_TRIPLANAR _NORMALMAP _NORMALMAP_TANGENT_SPACE
-    _PER_PIXEL_DISPLACEMENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -27,6 +26,14 @@ Material:
     - _BaseColorMap:
         m_Texture: {fileID: 2800000, guid: 927434958f610214aa6a4179f134f5fd, type: 3}
         m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _BentNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -121,11 +128,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _ATDistance: 1
+    - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
+    - _CoatCoverage: 1
+    - _CoatIOR: 0.5
     - _CullMode: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
@@ -136,6 +147,9 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DisplacementLockObjectScale: 1
+    - _DisplacementLockTilingScale: 1
+    - _DisplacementMode: 0
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
@@ -148,14 +162,20 @@ Material:
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnablePerPixelDisplacement: 1
+    - _EnableSpecularOcclusion: 0
+    - _EnableVertexDisplacement: 0
     - _EnableWind: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude: 0.17
+    - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
+    - _HeightMax: 1
+    - _HeightMin: -1
     - _HorizonFade: 1
+    - _IOR: 1
     - _InitialBend: 1
+    - _InvTilingScale: 0.5
     - _MaterialID: 1
     - _Metallic: 0
     - _Mode: 0
@@ -165,10 +185,15 @@ Material:
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 1
+    - _PPDPrimitiveLength: 1
+    - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
+    - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
+    - _SmoothnessRemapMax: 1
+    - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -179,10 +204,13 @@ Material:
     - _SurfaceType: 0
     - _TexWorldScale: 0.1
     - _Thickness: 1
-    - _UVBase: 2
+    - _ThicknessMultiplier: 1
+    - _UVBase: 5
     - _UVDetail: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0
+    - _VertexDisplacementObjectScale: 1
+    - _VertexDisplacementTilingScale: 1
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
@@ -191,6 +219,8 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMask: {r: 0, g: 0, b: 0, a: 0}

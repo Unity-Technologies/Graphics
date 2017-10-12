@@ -528,6 +528,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &113580756
 Light:
@@ -1325,6 +1326,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &192903506
 Light:
@@ -1854,6 +1856,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &269387786
 Light:
@@ -3007,6 +3010,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &476925264
 Light:
@@ -3595,6 +3599,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &563884888
 Light:
@@ -3718,6 +3723,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &580932149
 Light:
@@ -4594,6 +4600,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &682868819
 Light:
@@ -4898,6 +4905,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &710116622
 Light:
@@ -5119,6 +5127,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &726298023
 Light:
@@ -5280,6 +5289,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!114 &733865597
 MonoBehaviour:
@@ -6194,6 +6204,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!114 &785457128
 MonoBehaviour:
@@ -6358,6 +6369,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &827169275
 Light:
@@ -6709,6 +6721,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!114 &834722899
 MonoBehaviour:
@@ -6951,6 +6964,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &858501141
 Light:
@@ -7040,9 +7054,9 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 874252441}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: 1, z: -14}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 12.5, y: 1, z: -16}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 1950745466}
   - {fileID: 122368351}
@@ -7050,7 +7064,7 @@ Transform:
   - {fileID: 195260446}
   m_Father: {fileID: 0}
   m_RootOrder: 13
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &885480687
 GameObject:
   m_ObjectHideFlags: 0
@@ -7282,6 +7296,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &903116312
 Light:
@@ -7730,6 +7745,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &970745599
 Light:
@@ -7973,6 +7989,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &990293191
 Light:
@@ -8460,6 +8477,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1013563954
 Light:
@@ -8869,6 +8887,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1046252902
 Light:
@@ -9056,6 +9075,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1063426086
 Light:
@@ -9299,6 +9319,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1083738370
 Light:
@@ -9422,6 +9443,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1085128924
 Light:
@@ -9867,6 +9889,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1148469246
 Light:
@@ -9990,6 +10013,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1161056799
 Light:
@@ -10417,6 +10441,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!114 &1220024537
 MonoBehaviour:
@@ -10650,6 +10675,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1235762390
 Light:
@@ -11152,6 +11178,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1308071701
 Light:
@@ -11275,6 +11302,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1309651670
 Light:
@@ -11864,6 +11892,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1352160402
 Light:
@@ -13059,6 +13088,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1555751258
 Light:
@@ -13182,6 +13212,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1559142270
 Light:
@@ -13776,6 +13807,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1640077385
 Light:
@@ -14582,6 +14614,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1737381190
 Light:
@@ -15855,6 +15888,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!114 &1854618468
 MonoBehaviour:
@@ -15934,6 +15968,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1879857774
 Light:
@@ -16614,6 +16649,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1943835614
 Light:
@@ -16739,6 +16775,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1945509647
 Light:
@@ -16895,6 +16932,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1950745469
 Light:
@@ -17077,6 +17115,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &1988224188
 Light:
@@ -17290,6 +17329,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!108 &2015022936
 Light:
