@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -46,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+            public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
 
             // Subsurface
             public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
@@ -83,6 +84,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Transparency absorption
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Absorption color (RGB)");
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Absorption distance reference");
+
+            public static GUIContent perPixelDisplacementDetailsWarning = new GUIContent("For pixel displacement to work correctly, details and base map must use same UV mapping");
         }
 
         // Lit shader is not layered but some layered materials inherit from it. In order to share code we need LitUI to account for this.
@@ -125,6 +128,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
         protected const string kTexWorldScale = "_TexWorldScale";
+        protected MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
+        protected const string kInvTilingScale = "_InvTilingScale";
         protected MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
         protected const string kUVMappingMask = "_UVMappingMask";
 
@@ -171,6 +176,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailMap = "_DetailMap";
+        protected MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
+        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
         protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
         protected MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
@@ -192,7 +199,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
-        protected SubsurfaceScatteringProfile subsurfaceProfile = null;
         protected MaterialProperty subsurfaceProfileID  = null;
         protected const string     kSubsurfaceProfileID = "_SubsurfaceProfile";
         protected MaterialProperty subsurfaceRadius     = null;
@@ -240,6 +246,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 UVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, m_PropertySuffixes[i]), props);
                 TexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, m_PropertySuffixes[i]), props);
+                InvTilingScale[i] = FindProperty(string.Format("{0}{1}", kInvTilingScale, m_PropertySuffixes[i]), props);
                 UVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, m_PropertySuffixes[i]), props);
 
                 baseColor[i] = FindProperty(string.Format("{0}{1}", kBaseColor, m_PropertySuffixes[i]), props);
@@ -264,6 +271,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Details
                 UVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, m_PropertySuffixes[i]), props);
                 UVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, m_PropertySuffixes[i]), props);
+                linkDetailsWithBase[i] = FindProperty(string.Format("{0}{1}", kLinkDetailsWithBase, m_PropertySuffixes[i]), props);
                 detailMap[i] = FindProperty(string.Format("{0}{1}", kDetailMap, m_PropertySuffixes[i]), props);
                 detailAlbedoScale[i] = FindProperty(string.Format("{0}{1}", kDetailAlbedoScale, m_PropertySuffixes[i]), props);
                 detailNormalScale[i] = FindProperty(string.Format("{0}{1}", kDetailNormalScale, m_PropertySuffixes[i]), props);
@@ -320,52 +328,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI(Material material)
         {
-            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var sssSettings = hdPipeline.sssSettings;
 
-            if (subsurfaceProfile == null)
+            if (sssSettings == null)
             {
-                // Attempt to load the profile from the SSS Settings.
+                EditorGUILayout.HelpBox("No Subsurface Scattering Settings have been assigned to the render pipeline asset.", MessageType.Warning);
+                return;
+            }
+
+            // TODO: Optimize me
+            var profiles = hdPipeline.sssSettings.profiles;
+            var names = new GUIContent[profiles.Length + 1];
+            names[0] = new GUIContent("None");
+
+            var values = new int[names.Length];
+            values[0] = SssConstants.SSS_NEUTRAL_PROFILE_ID;
+
+            for (int i = 0; i < profiles.Length; i++)
+            {
+                names[i + 1] = new GUIContent(profiles[i].name);
+                values[i + 1] = i;
+            }
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
+            {
                 int profileID = (int)subsurfaceProfileID.floatValue;
 
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    // This is a valid profile ID.
-                    subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
+                    EditorGUILayout.PrefixLabel(Styles.subsurfaceProfileText);
 
-                    // Refresh the ID of the profile.
-                    hdPipeline.sssSettings.OnValidate();
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        profileID = EditorGUILayout.IntPopup(profileID, names, values);
+
+                        if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
+                            Selection.activeObject = sssSettings;
+                    }
                 }
-            }
 
-            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, typeof(SubsurfaceScatteringProfile), false) as SubsurfaceScatteringProfile;
-
-            bool validProfile = false;
-
-            // Set the profile ID.
-            if (subsurfaceProfile != null)
-            {
-                // Load the profile from the GUI field.
-                int profileID = subsurfaceProfile.settingsIndex;
-
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null &&
-                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
-                {
-                    validProfile = true;
-                    material.SetInt("_SubsurfaceProfile", profileID);
-                }
-                else
-                {
-                    subsurfaceProfile = null;
-                    Debug.LogError("The SSS Profile assigned to the material has an invalid index. First, add the Profile to the SSS Settings, and then reassign it to the material.");
-                }
-            }
-
-            if (!validProfile)
-            {
-                // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
+                if (scope.changed)
+                    subsurfaceProfileID.floatValue = profileID;
             }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
@@ -455,9 +459,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                if (EditorGUI.EndChangeCheck())
+                {
+                    heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                }
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -489,6 +497,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
@@ -500,11 +510,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
             UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Precompute.
+                InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
+                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                {
+                    InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                }
+            }
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -525,7 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-            }
+            }            
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
             X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
@@ -534,7 +554,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(linkDetailsWithBase[layerIndex], Styles.linkDetailsWithBaseText);
+            EditorGUI.indentLevel--;
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
+            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
+            {
+                if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
+                    EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
+            }
             m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
@@ -583,9 +611,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
-                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);                
+                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
             }
-            EditorGUI.indentLevel++;            
+            EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
