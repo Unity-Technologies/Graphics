@@ -161,7 +161,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Clear             = 0,                    // 0x0
             Lighting          = 3,                    // 0x3  - 2 bit
-            DistortionEnabled = 4,                    // 0x4  - 1 bit
             All               = 255                   // 0xFF - 8 bit
         }
 

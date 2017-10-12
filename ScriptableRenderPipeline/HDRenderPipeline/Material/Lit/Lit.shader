@@ -238,8 +238,6 @@ Shader "HDRenderPipeline/Lit"
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
-                ReadMask 3
-                WriteMask 3
             }
 
             HLSLPROGRAM
