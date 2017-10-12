@@ -227,6 +227,30 @@ namespace UnityEditor.VFX.UI
             AddLayer(2);
 
             focusIndex = 0;
+
+            VisualElement toolbar = new VisualElement();
+            toolbar.AddToClassList("toolbar");
+            Add(toolbar);
+
+
+            Toggle toggle = new Toggle(OnToggleCompile);
+            //toggle.AddToClassList("toolbarButton");
+            toggle.text = "AutoCompile";
+            toolbar.Add(toggle);
+
+            Button button = new Button(OnCompile);
+            button.text = "Compile";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+        }
+
+        void OnToggleCompile()
+        {
+
+        }
+        void OnCompile()
+        {
+
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
