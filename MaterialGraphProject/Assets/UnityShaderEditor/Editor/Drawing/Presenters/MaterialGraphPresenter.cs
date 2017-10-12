@@ -48,10 +48,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             //typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodePresenter);
 //            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodePresenter);
  //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
-            typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodePresenter);
    //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
      //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
-            typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
             typeMapper[typeof(PropertyNode)] = typeof(PropertyNodePresenter);
 
             /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
@@ -66,7 +64,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
 //            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);
-            typeMapper[typeof(LevelsNode)] = typeof(LevelsNodePresenter);
             typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodePresenter);
 
             //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
@@ -79,7 +76,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
             typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
             typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
-            typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
             typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
 
 //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
