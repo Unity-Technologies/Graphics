@@ -233,12 +233,24 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
+            Button button = new Button(()=>{Resync();});
+            button.text = "Refresh";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+
+
+            VisualElement spacer = new VisualElement();
+            spacer.style.flex = 1;
+            toolbar.Add(spacer);
+
+
             Toggle toggle = new Toggle(OnToggleCompile);
             //toggle.AddToClassList("toolbarButton");
             toggle.text = "AutoCompile";
+            toggle.on = true;
             toolbar.Add(toggle);
 
-            Button button = new Button(OnCompile);
+            button = new Button(OnCompile);
             button.text = "Compile";
             button.AddToClassList("toolbarButton");
             toolbar.Add(button);
@@ -246,11 +258,13 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleCompile()
         {
-
+            VFXViewWindow.currentWindow.autoCompile = ! VFXViewWindow.currentWindow.autoCompile;
         }
         void OnCompile()
         {
+            var graph = VFXViewPresenter.viewPresenter.GetGraph();
 
+            graph.RecompileIfNeeded();
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
