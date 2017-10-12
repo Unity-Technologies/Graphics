@@ -28,22 +28,33 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     bool distortionIsSourceValid;
     DecodeDistortion(encodedDistortion, distortion, distortionBlur, distortionIsSourceValid);
 
-    uint2 distortedEncodedDistortionId = dispatchThreadId + int2(distortion);
+    // Reject the pixel if it is not in the distortion mask
+    if (!distortionIsSourceValid)
+        return;
 
+    int2 distortedEncodedDistortionId = dispatchThreadId + int2(distortion);
+
+    // Reject distortion if we try to fetch a pixel out of the buffer
+    if (any(distortedEncodedDistortionId < 0)
+        || any(distortedEncodedDistortionId > int2(_Size.xy)))
+        return;
+
+    // We fetch a second time the _DistortionTexture for the at the distorded coordinate
+    // Then we check if this pixels is in the distorded mask (eg: behind any distorted object)
+    // Otherwise we reject the distortion
     float2 distordedDistortion;
     float distordedDistortionBlur;
     bool distordedIsSourceValid;
     float4 encodedDistordedDistortion = LOAD_TEXTURE2D(_DistortionTexture, distortedEncodedDistortionId);
     DecodeDistortion(encodedDistordedDistortion, distordedDistortion, distordedDistortionBlur, distordedIsSourceValid);
 
-    // We apply distortion only if both this pixel and source pixel are behind any distortion object
-    if (distortionIsSourceValid && distordedIsSourceValid)
-    {
-        // Get source pixel for distortion
-        float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
-        float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur, 0.0, 1.0);
-        float4 sampled = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, distordedUV, mip);
+    if (!distordedIsSourceValid)
+        return;
+     
+    // Get source pixel for distortion
+    float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
+    float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur, 0.0, 1.0);
+    float4 sampled = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, distordedUV, mip);
 
-        _CameraColorTexture[dispatchThreadId] = sampled;
-    }
+    _CameraColorTexture[dispatchThreadId] = sampled;
 }
