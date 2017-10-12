@@ -31,7 +31,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        [Vector1Control]
+        [MultiFloatControl("")]
         public float value
         {
             get { return m_Value; }
