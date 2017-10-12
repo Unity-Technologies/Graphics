@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.gaussianPyramidCS = Load<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
             instance.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
             instance.copyChannelCS = Load<ComputeShader>(CorePath + "Resources/GPUCopy.compute");
+            instance.applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ApplyDistorsion.compute");
 
             instance.clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/cleardispatchindirect.compute");
             instance.buildDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/TilePass/builddispatchindirect.compute");
