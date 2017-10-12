@@ -77,24 +77,25 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         }
 
-        void UpdateControls(MaterialNodePresenter nodeData)
+        void UpdateControls(MaterialNodePresenter nodePresenter)
         {
-            if (!nodeData.node.guid.Equals(m_NodeGuid))
+            if (!nodePresenter.node.guid.Equals(m_NodeGuid))
             {
                 m_ControlViews.Clear();
-                foreach (var propertyInfo in nodeData.node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                foreach (var propertyInfo in nodePresenter.node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                 {
                     foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                        m_ControlViews.Add(attribute.InstantiateControl(nodeData.node, propertyInfo));
+                        m_ControlViews.Add(attribute.InstantiateControl(nodePresenter.node, propertyInfo));
                 }
             }
 
-            if (!nodeData.expanded)
+            if (!nodePresenter.expanded)
             {
                 m_ControlsContainer.Clear();
             }
             else if (m_ControlsContainer.childCount != m_ControlViews.Count)
             {
+                m_ControlsContainer.Clear();
                 foreach (var view in m_ControlViews)
                     m_ControlsContainer.Add(view);
             }
