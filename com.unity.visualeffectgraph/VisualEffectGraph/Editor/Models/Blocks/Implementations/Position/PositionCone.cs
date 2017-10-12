@@ -45,7 +45,8 @@ namespace UnityEditor.VFX.Block
                 VFXExpression height = inputSlots[0][3].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
-                yield return new VFXNamedExpression(radius1 / tanSlope, "fullConeHeight");
+                if (spawnMode == SpawnMode.Randomized)
+                    yield return new VFXNamedExpression(radius1 / tanSlope, "fullConeHeight");
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
         }

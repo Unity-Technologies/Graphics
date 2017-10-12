@@ -23,32 +23,43 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
-                VFXExpression factor = VFXValue.Constant(Vector3.zero);
-
-                switch (positionMode)
+                if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                 {
-                    case PositionMode.Surface:
-                        factor = VFXValue.Constant(Vector3.zero);
-                        break;
-                    case PositionMode.Volume:
-                        factor = VFXValue.Constant(Vector3.one);
-                        break;
-                    case PositionMode.ThicknessAbsolute:
-                    case PositionMode.ThicknessRelative:
+                    VFXExpression factor = VFXValue.Constant(Vector3.zero);
+                    VFXExpression boxSize = inputSlots[0][1].GetExpression();
+
+                    switch (positionMode)
                     {
-                        var thickness = VFXOperatorUtility.CastFloat(inputSlots[1].GetExpression(), VFXValueType.kFloat3);
-                        if (positionMode == PositionMode.ThicknessAbsolute)
-                        {
-                            var sizeHalf = inputSlots[0][1].GetExpression() * VFXValue.Constant<Vector3>(new Vector3(0.5f, 0.5f, 0.5f));
-                            thickness = VFXOperatorUtility.CastFloat(thickness, VFXValueType.kFloat3) / sizeHalf;
-                        }
-
-                        factor = VFXOperatorUtility.Saturate(thickness);
-                        break;
+                        case PositionMode.ThicknessAbsolute:
+                            factor = VFXOperatorUtility.Clamp(VFXOperatorUtility.CastFloat(inputSlots[1].GetExpression() * VFXValue.Constant(2.0f), VFXValueType.kFloat3), VFXValue.Constant(0.0f), boxSize);
+                            break;
+                        case PositionMode.ThicknessRelative:
+                            factor = VFXOperatorUtility.CastFloat(VFXOperatorUtility.Saturate(inputSlots[1].GetExpression()), VFXValueType.kFloat3) * boxSize;
+                            break;
                     }
-                }
 
-                yield return new VFXNamedExpression(new VFXExpressionPow(VFXValue.Constant(Vector3.one) - factor, VFXValue.Constant(new Vector3(3, 3, 3))), "volumeFactor");
+                    factor = new VFXExpressionMax(factor, VFXValue.Constant(new Vector3(0.0001f, 0.0001f, 0.0001f)));
+
+                    VFXExpression volumeXY = new VFXExpressionCombine(new[] { boxSize.x, boxSize.y, factor.z });
+                    VFXExpression volumeXZ = new VFXExpressionCombine(new[] { boxSize.x, boxSize.z - factor.z, factor.y });
+                    VFXExpression volumeYZ = new VFXExpressionCombine(new[] { boxSize.y - factor.y, boxSize.z - factor.z, factor.x });
+
+                    VFXExpression volumes = new VFXExpressionCombine(new[] {
+                        volumeXY.x * volumeXY.y * volumeXY.z,
+                        volumeXZ.x * volumeXZ.y * volumeXZ.z,
+                        volumeYZ.x * volumeYZ.y * volumeYZ.z
+                    });
+                    VFXExpression cumulativeVolumes = new VFXExpressionCombine(new[] {
+                        volumes.x,
+                        volumes.x + volumes.y,
+                        volumes.x + volumes.y + volumes.z
+                    });
+
+                    yield return new VFXNamedExpression(volumeXY, "volumeXY");
+                    yield return new VFXNamedExpression(volumeXZ, "volumeXZ");
+                    yield return new VFXNamedExpression(volumeYZ, "volumeYZ");
+                    yield return new VFXNamedExpression(cumulativeVolumes, "cumulativeVolumes");
+                }
             }
         }
 
@@ -68,9 +79,9 @@ namespace UnityEditor.VFX.Block
                 {
                     return @"position = Box_size * (RAND3 - 0.5f) + Box_center;";
                 }
-                else
+                else if (positionMode == PositionMode.Surface)
                 {
-                    string outSource = @"
+                    return @"
 float areaXY = Box_size.x * Box_size.y;
 float areaXZ = Box_size.x * Box_size.z;
 float areaYZ = Box_size.y * Box_size.z;
@@ -84,22 +95,36 @@ if (face < areaXY)
 else if(face < areaXY + areaXZ)
     cube = cube.xzy;
 else
-    cube = cube.zyx;
-";
+    cube = cube.zxy;
 
-                    if (positionMode == PositionMode.Surface)
-                    {
-                        outSource += @"position = cube * Box_size + Box_center;";
-                    }
-                    else
-                    {
-                        outSource += @"
-float3 vNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f/3.0f);
-position = cube * Box_size * vNorm + Box_center;
+position = cube * Box_size + Box_center;
 ";
-                    }
+                }
+                else
+                {
+                    return @"
+float face = RAND * cumulativeVolumes.z;
+float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
+float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
 
-                    return outSource;
+if (face < cumulativeVolumes.x)
+{
+    cube = (cube * volumeXY).xyz + float3(0.0f, 0.0f, Box_size.z);
+    cube.z *= flip;
+}
+else if(face < cumulativeVolumes.y)
+{
+    cube = (cube * volumeXZ).xzy + float3(0.0f, Box_size.y, 0.0f);
+    cube.y *= flip;
+}
+else
+{
+    cube = (cube * volumeYZ).zxy + float3(Box_size.x, 0.0f, 0.0f);
+    cube.x *= flip;
+}
+
+position = cube * 0.5f + Box_center;
+";
                 }
             }
         }
