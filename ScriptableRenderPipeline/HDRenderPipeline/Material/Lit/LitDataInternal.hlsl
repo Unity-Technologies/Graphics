@@ -1,7 +1,7 @@
 void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetails,
                                     // scale and bias for base and detail + global tiling factor (for layered lit only)
-                                    float2 texScale, float2 texBias, float2 texScaleDetails, float2 texBiasDetails, float additionalTiling,
+                                    float2 texScale, float2 texBias, float2 texScaleDetails, float2 texBiasDetails, float additionalTiling, float linkDetailsWithBase,
                                     // parameter for planar/triplanar
                                     float3 positionWS, float worldScale,
                                     // mapping type and output
@@ -49,15 +49,27 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
     // Apply tiling options
     ADD_IDX(layerTexCoord.base).uv = uvBase * texScale + texBias;
     // Detail map tiling option inherit from the tiling of the base
-    ADD_IDX(layerTexCoord.details).uv = (uvDetails * texScaleDetails + texBiasDetails) * texScale + texBias;
+    ADD_IDX(layerTexCoord.details).uv = uvDetails * texScaleDetails + texBiasDetails;
+    if (linkDetailsWithBase > 0.0)
+    {
+        ADD_IDX(layerTexCoord.details).uv = ADD_IDX(layerTexCoord.details).uv * texScale + texBias;
+    }
 
     ADD_IDX(layerTexCoord.base).uvXZ = uvXZ * texScale + texBias;
     ADD_IDX(layerTexCoord.base).uvXY = uvXY * texScale + texBias;
     ADD_IDX(layerTexCoord.base).uvZY = uvZY * texScale + texBias;
 
-    ADD_IDX(layerTexCoord.details).uvXZ = (uvXZ * texScaleDetails + texBiasDetails) * texScale + texBias;
-    ADD_IDX(layerTexCoord.details).uvXY = (uvXY * texScaleDetails + texBiasDetails) * texScale + texBias;
-    ADD_IDX(layerTexCoord.details).uvZY = (uvZY * texScaleDetails + texBiasDetails) * texScale + texBias;
+    ADD_IDX(layerTexCoord.details).uvXZ = uvXZ * texScaleDetails + texBiasDetails;
+    ADD_IDX(layerTexCoord.details).uvXY = uvXY * texScaleDetails + texBiasDetails;
+    ADD_IDX(layerTexCoord.details).uvZY = uvZY * texScaleDetails + texBiasDetails;
+
+    if (linkDetailsWithBase > 0.0)
+    {
+        ADD_IDX(layerTexCoord.details).uvXZ = ADD_IDX(layerTexCoord.details).uvXZ * texScale + texBias;
+        ADD_IDX(layerTexCoord.details).uvXY = ADD_IDX(layerTexCoord.details).uvXY * texScale + texBias;
+        ADD_IDX(layerTexCoord.details).uvZY = ADD_IDX(layerTexCoord.details).uvZY * texScale + texBias;
+    }
+
 
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET

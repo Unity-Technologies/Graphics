@@ -113,6 +113,7 @@ Shader "HDRenderPipeline/Lit"
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
+        [ToggleOff] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
         // Wind
