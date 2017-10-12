@@ -136,8 +136,8 @@ Material:
     - _InitialBend: 1
     - _MaterialID: 1
     - _Metallic: 0
-    - _NoiseAmplitude: 0.492
-    - _NoiseLacunarity: 5.91
+    - _NoiseAmplitude: 0.401
+    - _NoiseLacunarity: 2.81
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
@@ -147,7 +147,7 @@ Material:
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Size: 56.4
+    - _Size: 5
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
