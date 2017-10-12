@@ -40,7 +40,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             typeMapper = new GraphTypeMapper(typeof(MaterialNodePresenter));
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
-            typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
 
             // typeMapper[typeof(ScatterNode)] = typeof(ScatterNodePresenter);

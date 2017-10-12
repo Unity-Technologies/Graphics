@@ -14,6 +14,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
         {
             if (MultiFloatControlView.validTypes.Contains(propertyInfo.PropertyType))
                 return new MultiFloatControlView(null, "X", "Y", "Z", "W", node, propertyInfo);
+            if (propertyInfo.PropertyType == typeof(Color))
+                return new ColorControlView(null, node, propertyInfo);
             return null;
         }
     }
