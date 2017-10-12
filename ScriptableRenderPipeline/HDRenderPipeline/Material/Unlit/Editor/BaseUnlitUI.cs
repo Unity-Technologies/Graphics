@@ -37,6 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
 
+            public static GUIContent transparentPrePassText = new GUIContent("Pre Transparent Pass", "Render in pre-transparent pass");
+
             public static string advancedText = "Advanced Options";
         }
 
@@ -92,6 +94,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlurRemapMin = "_DistortionBlurRemapMin";
         protected MaterialProperty distortionBlurRemapMax = null;
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
+        protected MaterialProperty transparentPrepass = null;
+        protected const string kTransparentPrepass = "_PreTransparentPass";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -128,6 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
+            transparentPrepass = FindProperty(kTransparentPrepass, props, false);
         }
 
         void SurfaceTypePopup()
@@ -172,6 +177,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
                 BlendModePopup();
+
+                m_MaterialEditor.ShaderProperty(transparentPrepass, StylesBaseUnlit.transparentPrePassText);
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
@@ -271,13 +278,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 material.SetInt("_ZWrite", 1);
-                material.renderQueue = alphaTestEnable ? (int)UnityEngine.Rendering.RenderQueue.AlphaTest : -1;
+                material.renderQueue = alphaTestEnable ? (int)HDRenderQueue.AlphaTest : -1;
             }
             else
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
-                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0f;
+                material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreTransparent : HDRenderQueue.Transparent);
+                SetKeyword(material, "_REFRACTION_ROUGHNESS_ON", !isPrePass); // NOTE: this should be in lit as refraction is only for lit
 
                 SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
                 SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);

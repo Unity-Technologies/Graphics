@@ -71,6 +71,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public partial class HDRenderPipeline : RenderPipeline
     {
+        enum ForwardPass
+        {
+            Opaque,
+            PreTransparent,
+            Transparent
+        }
+
+        static readonly RenderQueueRange k_RenderQueue_PreTransparent = new RenderQueueRange { min = (int)HDRenderQueue.GeometryLast + 1, max = (int)HDRenderQueue.PreTransparent };
+        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.PreTransparent + 1, max = 5000 };
+
         readonly HDRenderPipelineAsset m_Asset;
 
         readonly RenderPipelineMaterial m_DeferredMaterial;
@@ -809,21 +819,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
                 SubsurfaceScatteringPass(hdCamera, cmd, sssSettings);
 
-                RenderForward(m_CullResults, camera, renderContext, cmd, true);
-                RenderForwardError(m_CullResults, camera, renderContext, cmd, true);
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
                 RenderSky(hdCamera, cmd);
 
-                RenderGaussianPyramidColor(camera, cmd);
-
                 // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
                 RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
 
+                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBuffer);
+
+                // Render pre transparent objects
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreTransparent);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreTransparent);
+
+                RenderGaussianPyramidColor(camera, cmd);
+
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-                RenderForward(m_CullResults, camera, renderContext, cmd, false);
-                RenderForwardError(m_CullResults, camera, renderContext, cmd, false);
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
                 // Render volumetric lighting
                 VolumetricLightingPass(hdCamera, cmd);
@@ -934,10 +950,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ShaderPassName          passName,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null)
+                                         Material                overrideMaterial = null,
+                                         bool                    preTransparentQueue = false)
         {
             m_SinglePassName[0] = passName;
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, rendererConfiguration, stateBlock, overrideMaterial);
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, 
+                rendererConfiguration, stateBlock, overrideMaterial, preTransparentQueue);
         }
 
         void RenderTransparentRenderList(CullResults             cull,
@@ -947,7 +965,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ShaderPassName[]        passNames,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null)
+                                         Material                overrideMaterial = null,
+                                         bool                    preTransparentQueue = false)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
@@ -970,7 +989,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (overrideMaterial != null)
                 drawSettings.SetOverrideMaterial(overrideMaterial, 0);
 
-            var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
+            var filterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = preTransparentQueue 
+                    ? k_RenderQueue_PreTransparent 
+                    : k_RenderQueue_Transparent
+            };
 
             if(stateBlock == null)
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
@@ -1230,7 +1254,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
-        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
+        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
             // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
@@ -1242,18 +1266,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string profileName;
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
-                profileName = renderOpaque ? "Forward Opaque Debug Display" : "Forward Transparent Debug Display";
+                profileName = string.Format("Forward {0} Debug Display", pass);
             }
             else
             {
-                profileName = renderOpaque ? "Forward Opaque" : "Forward Transparent";
+                profileName = string.Format("Forward {0} Display", pass);
             }
 
             using (new ProfilingSample(cmd, profileName))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                m_LightLoop.RenderForward(camera, cmd, renderOpaque);
+                m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
@@ -1266,8 +1290,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
                 }
 
-
-                if (renderOpaque)
+                if (pass == ForwardPass.Opaque)
                 {
                     var passNames = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
@@ -1275,8 +1298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, HDUtils.k_RendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, HDUtils.k_RendererConfigurationBakedLighting, preTransparentQueue: pass == ForwardPass.PreTransparent);
                 }
             }
         }
@@ -1286,25 +1308,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd,"Forward Transparent Depth Prepass"))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName, preTransparentQueue: true);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName, preTransparentQueue: false);
             }
         }
 
         // This is use to Display legacy shader with an error shader
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
+        void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
             using (new ProfilingSample(cmd, "Render Forward Error"))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                if (renderOpaque)
+                if (pass == ForwardPass.Opaque)
                 {
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, null, m_ErrorMaterial);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, 
+                        null, m_ErrorMaterial, pass == ForwardPass.PreTransparent);
                 }
             }
         }
