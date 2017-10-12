@@ -602,6 +602,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
                         ++EditorGUI.indentLevel;
                         m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
                         --EditorGUI.indentLevel;
 
                         --EditorGUI.indentLevel;
