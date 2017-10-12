@@ -11,10 +11,13 @@ StructuredBuffer<uint> g_vLightListMeshInst;          // build on CPU if in use.
 uniform int g_numLights;
 uniform int g_numReflectionProbes;
 
+uniform float4 unity_LightIndicesOffsetAndCount;
+uniform float4 unity_ReflectionProbeIndicesOffsetAndCount;
+
 void GetCountAndStart(out uint start, out uint nrLights, uint model)
 {
-    start = model==REFLECTION_LIGHT ? g_numLights : 0;  // offset by numLights entries
-    nrLights = model==REFLECTION_LIGHT ? g_numReflectionProbes : g_numLights;
+    start = model==REFLECTION_LIGHT ? unity_ReflectionProbeIndicesOffsetAndCount.x : unity_LightIndicesOffsetAndCount.x;
+    nrLights = model==REFLECTION_LIGHT ? unity_ReflectionProbeIndicesOffsetAndCount.y : unity_LightIndicesOffsetAndCount.y;
 }
 
 uint FetchIndex(const uint start, const uint l)
