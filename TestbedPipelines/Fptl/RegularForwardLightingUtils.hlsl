@@ -8,11 +8,8 @@
 StructuredBuffer<SFiniteLightData> g_vLightData;
 StructuredBuffer<uint> g_vLightListMeshInst;          // build on CPU if in use. direct lights first, then reflection probes. (don't support Buffer yet in unity, so using structured)
 
-uniform int g_numLights;
-uniform int g_numReflectionProbes;
-
-uniform float4 unity_LightIndicesOffsetAndCount;
-uniform float4 unity_ReflectionProbeIndicesOffsetAndCount;
+uniform uint4 unity_LightIndicesOffsetAndCount;
+uniform uint4 unity_ReflectionProbeIndicesOffsetAndCount;
 
 void GetCountAndStart(out uint start, out uint nrLights, uint model)
 {
