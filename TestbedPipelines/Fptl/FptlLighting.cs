@@ -323,7 +323,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
             s_DirLightList = new ComputeBuffer(MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
-            s_LightIndices = new ComputeBuffer(MaxNumLights + MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(int)));
+            s_LightIndices = null; // only used in traditional forward, will be created on demand
 
             buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
             //m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
@@ -688,6 +688,15 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             for (int i = 0; i < lightIndexMap.Length; i++)
             {
                 lightIndexMap[i] = -1;
+            }
+
+            int lightIndexCount = inputs.GetLightIndicesCount();
+            if (s_LightIndices == null || lightIndexCount > s_LightIndices.count)
+            {
+                // The light indices buffer is too small, resize
+                if (s_LightIndices != null)
+                    s_LightIndices.Release();
+                s_LightIndices = new ComputeBuffer(lightIndexCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(int)));
             }
 
             uint shadowLightIndex = 0;
