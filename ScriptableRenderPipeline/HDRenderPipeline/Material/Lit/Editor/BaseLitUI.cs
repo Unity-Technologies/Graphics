@@ -353,6 +353,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
                 SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
             }
+
+            var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0;
+            SetKeyword(material, "_REFRACTION_ROUGHNESS_ON", !isPrePass); // Rough refraction is not available for pre transparent
         }
 
         static public void SetupBaseLitMaterialPass(Material material)
