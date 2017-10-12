@@ -3,9 +3,9 @@
 #endif
 
 // Attributes
-#define REQUIRE_TANGENT_TO_WORLD (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
+#define REQUIRE_TANGENT_TO_WORLD defined(_PIXEL_DISPLACEMENT)
 #define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_WIND) || defined(_VERTEX_DISPLACEMENT)
-#define REQUIRE_VERTEX_COLOR (defined(_VERTEX_DISPLACEMENT) && defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))) || defined(_VERTEX_WIND)
+#define REQUIRE_VERTEX_COLOR ((defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT)) && defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))) || defined(_VERTEX_WIND)
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
 
@@ -25,7 +25,7 @@
 // If we have a layered shader, any UV can be use for this. To reduce the number of variant we groupt UV0/UV1 and UV2/UV3 instead of having variant for UV0/UV1/UV2/UV3
 // When UVX is present, we assume that UVX - 1 ... UV0 is present
 
-#if defined(_VERTEX_DISPLACEMENT) || REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
+#if defined(_VERTEX_DISPLACEMENT) || REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON) || defined(_TESSELLATION_DISPLACEMENT)
 #define ATTRIBUTES_NEED_TEXCOORD0
     #ifdef LAYERED_LIT_SHADER
     #define ATTRIBUTES_NEED_TEXCOORD1

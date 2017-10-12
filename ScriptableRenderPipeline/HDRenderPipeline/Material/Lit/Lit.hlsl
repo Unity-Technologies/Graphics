@@ -407,7 +407,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Encode normal on 20bit with oct compression + 2bit of sign
     float2 octNormalWS = PackNormalOctEncode((surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT) ? surfaceData.coatNormalWS : surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
-    uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
+    uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
     // Store octNormalSign on two bits with perceptualRoughness
     outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), PackMaterialId(surfaceData.materialId));
 
@@ -429,7 +429,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-            outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, PackFloatInt8bit(surfaceData.metallic, 0.0, 4.0));
+        // To have more precision encode the sign of xy in a separate uint
+        uint octTangentSign = (octTangentWS.x < 0.0 ? 1 : 0) | (octTangentWS.y < 0.0 ? 2 : 0);
+
+        outGBuffer2 = float4(abs(octTangentWS), surfaceData.anisotropy * 0.5 + 0.5, PackFloatInt8bit(surfaceData.metallic, octTangentSign, 4.0));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -522,8 +525,9 @@ void DecodeFromGBuffer(
 
     int octNormalSign;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
-    inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
-    inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
+    inGBuffer1.r = (octNormalSign & 1) ? -inGBuffer1.r : inGBuffer1.r;
+    inGBuffer1.g = (octNormalSign & 2) ? -inGBuffer1.g : inGBuffer1.g;
+
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
@@ -583,12 +587,15 @@ void DecodeFromGBuffer(
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float metallic;
-        int unused;
-        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, unused);
+        int octTangentSign;
+        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, octTangentSign);
         FillMaterialIdStandardData(baseColor, metallic, bsdfData);
 
-        float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-        float anisotropy = inGBuffer2.b;
+        inGBuffer2.r = (octTangentSign & 1) ? -inGBuffer2.r : inGBuffer2.r;
+        inGBuffer2.g = (octTangentSign & 2) ? -inGBuffer2.g : inGBuffer2.g;
+        float3 tangentWS = UnpackNormalOctEncode(inGBuffer2.rg);
+        float anisotropy = inGBuffer2.b * 2 - 1;
+
         FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -667,12 +674,12 @@ struct PreLightData
     float NdotV;                         // Geometric version (could be negative)
 
     // GGX iso
-    float ggxLambdaV;
+    float ggxPreLambdaV;
 
     // GGX Aniso
     float TdotV;
     float BdotV;
-    float anisoGGXLambdaV;
+    float anisoGGXPreLambdaV;
 
     // Clear coat
     float coatNdotV;
@@ -730,11 +737,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // Clear coat IBL
 
         // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V);
+        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V); // Use non-clamped NdotV
         preLightData.coatIblDirWS = reflect(-V, coatIblNormalWS);
 
+        float coatNdotV = max(preLightData.coatNdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+
         // Clear coat area light
-        float theta = FastACos(preLightData.coatNdotV);
+        float theta = FastACosPos(coatNdotV);
         float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(0.0, theta * INV_HALF_PI); // Use Roughness of 0.0 for clearCoat roughness
 
                                                                                        // Get the inverse LTC matrix for GGX
@@ -760,16 +769,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
     preLightData.NdotV = dot(bsdfData.normalWS, V); // Store the unaltered (geometric) version
-    float NdotV = preLightData.NdotV;
 
     // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V); // Use non clamped NdotV
+    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
     float3 iblR = reflect(-V, iblNormalWS);
 
-    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+    float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX iso
-    preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
+    preLightData.ggxPreLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
     preLightData.TdotV = 0.0;
@@ -778,9 +786,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
-        // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
-        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, iblNormalWS, V, bsdfData.anisotropy);
+        preLightData.anisoGGXPreLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
+        float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, abs(bsdfData.anisotropy));
 
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
@@ -809,7 +818,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACos(NdotV); // For Area light - UVs for sampling the LUTs
+    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
@@ -952,8 +961,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     F *= F_Schlick(bsdfData.fresnel0, LdotH);
 
-    float Vis;
-    float D;
+    float DV;
 
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
@@ -967,36 +975,36 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughnessT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessT);
         bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
-        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                          bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
-        #else
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        Vis = V_SmithJointGGXAniso(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                   bsdfData.roughnessT, bsdfData.roughnessB);
+        DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
+                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
+                                   TdotL, BdotL, NdotL,
+                                   bsdfData.roughnessT, bsdfData.roughnessB
+        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
+                                 , preLightData.preLambdaV);
+        #else
+                                   );
         #endif
-
-        D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
     {
         bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
 
+        DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughness
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
+                            , preLightData preLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
+                              );
         #endif
-        D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting += F * (Vis * D);
+    specularLighting += F * DV;
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
 #elif LIT_DIFFUSE_GGX_BRDF
     float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
 #else
-    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 #endif
 
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;

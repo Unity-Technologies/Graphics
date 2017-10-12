@@ -2,10 +2,13 @@
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class SubsurfaceScatteringProfileEditor
+    public sealed partial class SubsurfaceScatteringSettingsEditor
     {
+        // TODO: missing tooltips
         sealed class Styles
         {
+            public readonly GUIContent   useDisneySSS              = new GUIContent("Use Disney SSS");
+
             public readonly GUIContent   profilePreview0           = new GUIContent("Profile Preview");
             public readonly GUIContent   profilePreview1           = new GUIContent("Shows the fraction of light scattered from the source (center).");
             public readonly GUIContent   profilePreview2           = new GUIContent("The distance to the boundary of the image corresponds to the Max Radius.");

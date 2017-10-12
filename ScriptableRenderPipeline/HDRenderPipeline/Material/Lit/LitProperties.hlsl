@@ -4,16 +4,16 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
-#ifndef LAYERED_LIT_SHADER
-
-TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
-
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER2D(sampler_DistortionVectorMap);
 
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER2D(sampler_EmissiveColorMap);
+
+#ifndef LAYERED_LIT_SHADER
+
+TEXTURE2D(_DiffuseLightingMap);
+SAMPLER2D(sampler_DiffuseLightingMap);
 
 TEXTURE2D(_BaseColorMap);
 SAMPLER2D(sampler_BaseColorMap);
@@ -76,8 +76,9 @@ PROP_DECL_TEX2D(_HeightMap);
 PROP_DECL_TEX2D(_DetailMap);
 
 TEXTURE2D(_LayerMaskMap);
-TEXTURE2D(_LayerInfluenceMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
+TEXTURE2D(_LayerInfluenceMaskMap);
+SAMPLER2D(sampler_LayerInfluenceMaskMap);
 
 #endif
 
@@ -108,6 +109,8 @@ float _ThicknessMultiplier;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
+
+float4 _InvPrimScale; // Only XY are used
 
 // Wind
 float _InitialBend;
@@ -151,8 +154,10 @@ float _CoatIOR;
 float4 _SpecularColor;
 
 float _TexWorldScale;
+float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
+float _LinkDetailsWithBase;
 
 #else // LAYERED_LIT_SHADER
 
@@ -197,15 +202,17 @@ float _InheritBaseHeight3;
 float _InheritBaseColor1;
 float _InheritBaseColor2;
 float _InheritBaseColor3;
-float _LayerTilingBlendMask;
 PROP_DECL(float, _HeightOffset);
 float _HeightTransition;
 
+float4 _LayerMaskMap_ST;
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+PROP_DECL(float, _InvTilingScale);
 float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
+PROP_DECL(float, _LinkDetailsWithBase);
 
 #endif // LAYERED_LIT_SHADER
 

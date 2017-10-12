@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!isDebugViewMaterialInit)
             {
-                List<RenderPipelineMaterial> materialList = CoreUtils.GetRenderPipelineMaterialList();
+                List<RenderPipelineMaterial> materialList = HDUtils.GetRenderPipelineMaterialList();
 
                 // TODO: Share this code to retrieve deferred material with HDRenderPipeline
                 // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
@@ -376,8 +376,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None = 0,
             Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
-            PerPixelDisplacement,
+            PixelDisplacement,
             VertexDisplacement,
+            TessellationDisplacement,
             DepthOffset,
             Lightmap,
         }

@@ -1,5 +1,11 @@
-﻿void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetail,
-                                    float3 positionWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
+void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
+                                    float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetails,
+                                    // scale and bias for base and detail + global tiling factor (for layered lit only)
+                                    float2 texScale, float2 texBias, float2 texScaleDetails, float2 texBiasDetails, float additionalTiling, float linkDetailsWithBase,
+                                    // parameter for planar/triplanar
+                                    float3 positionWS, float worldScale,
+                                    // mapping type and output
+                                    int mappingType, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = uvMappingMask.x * texCoord0 +
@@ -11,10 +17,10 @@
     uvBase *= additionalTiling.xx;
 
 
-    float2 uvDetails =  uvMappingMaskDetail.x * texCoord0 +
-                        uvMappingMaskDetail.y * texCoord1 +
-                        uvMappingMaskDetail.z * texCoord2 +
-                        uvMappingMaskDetail.w * texCoord3;
+    float2 uvDetails =  uvMappingMaskDetails.x * texCoord0 +
+                        uvMappingMaskDetails.y * texCoord1 +
+                        uvMappingMaskDetails.z * texCoord2 +
+                        uvMappingMaskDetails.w * texCoord3;
 
     uvDetails *= additionalTiling.xx;
 
@@ -41,17 +47,29 @@
     }
 
     // Apply tiling options
-    ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uv = uvBase * texScale + texBias;
     // Detail map tiling option inherit from the tiling of the base
-    ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(TRANSFORM_TEX(uvDetails, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uv = uvDetails * texScaleDetails + texBiasDetails;
+    if (linkDetailsWithBase > 0.0)
+    {
+        ADD_IDX(layerTexCoord.details).uv = ADD_IDX(layerTexCoord.details).uv * texScale + texBias;
+    }
 
-    ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));
-    
-    ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap)), ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.base).uvXZ = uvXZ * texScale + texBias;
+    ADD_IDX(layerTexCoord.base).uvXY = uvXY * texScale + texBias;
+    ADD_IDX(layerTexCoord.base).uvZY = uvZY * texScale + texBias;
+
+    ADD_IDX(layerTexCoord.details).uvXZ = uvXZ * texScaleDetails + texBiasDetails;
+    ADD_IDX(layerTexCoord.details).uvXY = uvXY * texScaleDetails + texBiasDetails;
+    ADD_IDX(layerTexCoord.details).uvZY = uvZY * texScaleDetails + texBiasDetails;
+
+    if (linkDetailsWithBase > 0.0)
+    {
+        ADD_IDX(layerTexCoord.details).uvXZ = ADD_IDX(layerTexCoord.details).uvXZ * texScale + texBias;
+        ADD_IDX(layerTexCoord.details).uvXY = ADD_IDX(layerTexCoord.details).uvXY * texScale + texBias;
+        ADD_IDX(layerTexCoord.details).uvZY = ADD_IDX(layerTexCoord.details).uvZY * texScale + texBias;
+    }
+
 
     #ifdef SURFACE_GRADIENT
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
@@ -66,15 +84,15 @@
                                                 uvMappingMask.z * layerTexCoord.vertexBitangentWS2 +
                                                 uvMappingMask.w * layerTexCoord.vertexBitangentWS3;
 
-    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetail.x * layerTexCoord.vertexTangentWS0 +
-                                                uvMappingMaskDetail.y * layerTexCoord.vertexTangentWS1 +
-                                                uvMappingMaskDetail.z * layerTexCoord.vertexTangentWS2 +
-                                                uvMappingMaskDetail.w * layerTexCoord.vertexTangentWS3;
+    ADD_IDX(layerTexCoord.details).tangentWS =  uvMappingMaskDetails.x * layerTexCoord.vertexTangentWS0 +
+                                                uvMappingMaskDetails.y * layerTexCoord.vertexTangentWS1 +
+                                                uvMappingMaskDetails.z * layerTexCoord.vertexTangentWS2 +
+                                                uvMappingMaskDetails.w * layerTexCoord.vertexTangentWS3;
 
-    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetail.x * layerTexCoord.vertexBitangentWS0 +
-                                                    uvMappingMaskDetail.y * layerTexCoord.vertexBitangentWS1 +
-                                                    uvMappingMaskDetail.z * layerTexCoord.vertexBitangentWS2 +
-                                                    uvMappingMaskDetail.w * layerTexCoord.vertexBitangentWS3;
+    ADD_IDX(layerTexCoord.details).bitangentWS =    uvMappingMaskDetails.x * layerTexCoord.vertexBitangentWS0 +
+                                                    uvMappingMaskDetails.y * layerTexCoord.vertexBitangentWS1 +
+                                                    uvMappingMaskDetails.z * layerTexCoord.vertexBitangentWS2 +
+                                                    uvMappingMaskDetails.w * layerTexCoord.vertexBitangentWS3;
     #endif
 }
 
@@ -184,9 +202,12 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.baseColor *= LerpWhiteTo(2.0 * detailAlbedo, detailMask * ADD_IDX(_DetailAlbedoScale));
-    // we saturate to avoid to have a smoothness value above 1
-    surfaceData.baseColor = saturate(surfaceData.baseColor);
+    // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    float baseColorOverlay = (detailAlbedo < 0.5) ? 
+                                surfaceData.baseColor * PositivePow(2.0 * detailAlbedo, ADD_IDX(_DetailAlbedoScale)) :
+                                1.0 - 2.0 * (1.0 - surfaceData.baseColor) * (1.0 - (detailAlbedo * ADD_IDX(_DetailAlbedoScale)));
+    // Lerp with details mask
+    surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif
 
     surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
@@ -204,9 +225,12 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * detailSmoothness, detailMask * ADD_IDX(_DetailSmoothnessScale));
-    // we saturate to avoid to have a smoothness value above 1
-    surfaceData.perceptualSmoothness = saturate(surfaceData.perceptualSmoothness);
+    // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    float smoothnessOverlay = (detailSmoothness < 0.5) ?
+                                surfaceData.perceptualSmoothness * PositivePow(2.0 * detailSmoothness, ADD_IDX(_DetailSmoothnessScale)) :
+                                1.0 - 2.0 * (1.0 - surfaceData.baseColor) * (1.0 - (detailSmoothness * ADD_IDX(_DetailSmoothnessScale)));
+    // Lerp with details mask
+    surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 #endif
 
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), emissive Mask (Optional), Smoothness

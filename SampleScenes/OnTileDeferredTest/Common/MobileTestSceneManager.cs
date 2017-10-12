@@ -25,7 +25,7 @@ public class MobileTestSceneManager : MonoBehaviour {
 	int detectSwipe() {
 		if (Input.touchCount == 1 && Input.GetTouch (0).phase == TouchPhase.Ended) {
 			Vector2 endPosition = Input.GetTouch (0).position;
-			Vector2 delta = endPosition - startPosition;
+			//Vector2 delta = endPosition - startPosition;
 
 			if (startPosition.x < endPosition.x)
 				return 1;
@@ -83,5 +83,5 @@ public class MobileTestSceneManager : MonoBehaviour {
 		detectTouchBegan();
 #endif
 
-	}	
+	}
 }
