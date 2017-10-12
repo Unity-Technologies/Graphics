@@ -159,9 +159,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear             = 0,                    // 0x0
-            Lighting          = 3,                    // 0x3  - 2 bit
-            All               = 255                   // 0xFF - 8 bit
+            Clear    = 0,                    // 0x0
+            Lighting = 3,                    // 0x3  - 2 bit
+            All      = 255                   // 0xFF - 8 bit
         }
 
         RenderStateBlock m_DepthStateOpaque;
