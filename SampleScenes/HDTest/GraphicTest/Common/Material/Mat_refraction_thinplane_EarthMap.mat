@@ -9,7 +9,8 @@ Material:
   m_Name: Mat_refraction_thinplane_EarthMap
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP _MASKMAP _NORMALMAP_TANGENT_SPACE
-    _REFRACTION_ON _REFRACTION_THINPLANE _ROUGH_REFRACTION _ROUGH_REFRACTION_ON
+    _REFRACTION_ON _REFRACTION_ROUGHNESS_ON _REFRACTION_THINPLANE _ROUGH_REFRACTION
+    _ROUGH_REFRACTION_ON
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -150,9 +151,22 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DisplacementLockObjectScale: 1
+    - _DisplacementLockTilingScale: 1
+    - _DisplacementMode: 0
+    - _DistortionBlendMode: 0
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 1
+    - _DistortionBlurRemapMax: 1
+    - _DistortionBlurRemapMin: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
+    - _DistortionDstBlend: 1
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DistortionScale: 1
+    - _DistortionSrcBlend: 1
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
@@ -178,6 +192,8 @@ Material:
     - _HorizonFade: 1
     - _IOR: 1.5
     - _InitialBend: 1
+    - _InvTilingScale: 1
+    - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metalic: 1
     - _Metallic: 0.04
@@ -188,8 +204,11 @@ Material:
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
+    - _PPDPrimitiveLength: 1
+    - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
     - _PerPixelDisplacementObjectScale: 1
+    - _PreTransparentPass: 0
     - _RefractionAbsorptionEnable: 0
     - _RefractionEnable: 0
     - _RefractionMode: 3
@@ -225,6 +244,7 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _RefractionAbsorption: {r: 0, g: 0, b: 0, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _TransmittanceColor: {r: 0.816, g: 0.6632562, b: 0.374544, a: 1}
