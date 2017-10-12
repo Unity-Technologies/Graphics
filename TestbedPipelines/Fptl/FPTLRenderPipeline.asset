@@ -39,7 +39,7 @@ MonoBehaviour:
     type: 3}
   buildPerVoxelLightListShader: {fileID: 7200000, guid: 4c2d6eb0553e2514bba3ea9a85d8c53c,
     type: 3}
-  enableClustered: 0
+  enableClustered: 1
   disableFptlWhenClustered: 0
   enableBigTilePrepass: 1
   enableDrawLightBoundsDebug: 0
