@@ -74,14 +74,7 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 #endif
 
 #ifdef HAVE_TESSELLATION_MODIFICATION
-    // TODO: This should be an uniform for the object, this code should be remove (and is specific to Lit.shader) once we have it. - Workaround for now
-    // Extract scaling from world transform
-    #ifdef _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    float3 objectScale = varying.vmesh.objectScale; 
-    #else
-    float3 objectScale = float3(1.0, 1.0, 1.0);
-    #endif
-    ApplyTessellationModification(varying.vmesh, varying.vmesh.normalWS, objectScale, varying.vmesh.positionWS);
+    ApplyTessellationModification(varying.vmesh, varying.vmesh.normalWS, varying.vmesh.positionWS);
 #endif
 
     return VertTesselation(varying);

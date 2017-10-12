@@ -98,20 +98,20 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailMap2("DetailMap2", 2D) = "black" {}
         _DetailMap3("DetailMap3", 2D) = "black" {}
 
-        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(-2.0, 2.0)) = 1
+        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(0.0, 2.0)) = 1
 
         _DetailNormalScale0("_DetailNormalScale0", Range(0.0, 2.0)) = 1
         _DetailNormalScale1("_DetailNormalScale1", Range(0.0, 2.0)) = 1
         _DetailNormalScale2("_DetailNormalScale2", Range(0.0, 2.0)) = 1
         _DetailNormalScale3("_DetailNormalScale3", Range(0.0, 2.0)) = 1
 
-        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(-2.0, 2.0)) = 1
+        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(0.0, 2.0)) = 1
 
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
@@ -197,18 +197,18 @@ Shader "HDRenderPipeline/LayeredLit"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
+        [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+        _PPDPrimitiveLength("Primitive length for POM", Float) = 1
+        _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
+        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-
-        // Displacement map
-        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
-        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
-        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -228,6 +228,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
+
+        [HideInInspector] _InvTilingScale0("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale1("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale2("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale3("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
@@ -265,11 +270,10 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
@@ -308,6 +312,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS

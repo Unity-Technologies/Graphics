@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             m_Max = (uint)hdPipeline.GetShadowAtlasCount() - 1;
@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             m_Max = (uint)hdPipeline.GetCurrentShadowCount() - 1;
