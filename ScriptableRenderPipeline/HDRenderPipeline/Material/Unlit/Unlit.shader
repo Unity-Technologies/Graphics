@@ -140,6 +140,52 @@ Shader "HDRenderPipeline/Unlit"
 
         Pass
         {
+            Name "DepthOnly"
+            Tags{ "LightMode" = "DepthOnly" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitDepthPass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        // Unlit opaque material need to be render with ForwardOnlyOpaqueDepthOnly. Unlike Lit that can be both deferred and forward,
+        // unlit require to be forward only, that's why we need this pass.
+        // Also in case of forward rendering, unlit will use regular DepthOnly pass.
+        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
+        Pass
+        {
+            Name "ForwardOnlyOpaqueDepthOnly"
+            Tags{ "LightMode" = "ForwardOnlyOpaqueDepthOnly" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitDepthPass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "ForwardUnlit"
             Tags { "LightMode" = "Forward" }
 
@@ -182,6 +228,7 @@ Shader "HDRenderPipeline/Unlit"
 
         // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward,
         // unlit require to be forward only, that's why we need this pass. Unlit transparent will use regular Forward pass
+        // Also in case of forward rendering, unlit will use regular forward pass too
         // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
         Pass
         {
