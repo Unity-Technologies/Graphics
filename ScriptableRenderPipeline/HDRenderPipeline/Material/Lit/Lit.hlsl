@@ -1636,9 +1636,13 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
         return;
     }
 
+#ifdef _REFRACTION_ROUGHNESS_ON
     // Map the roughness to the correct mip map level of the color pyramid
     float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
     diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+#else
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS.xy, 0.0).rgb;
+#endif
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
