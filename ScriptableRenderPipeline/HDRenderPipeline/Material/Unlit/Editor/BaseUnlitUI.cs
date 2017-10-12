@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader"); 
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map", "Vector Map for the distorsion"); 
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map - Dist(RG) Blur(B)", "Vector Map for the distorsion - Dist(RG) Blur(B)"); 
             public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode"); 
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
