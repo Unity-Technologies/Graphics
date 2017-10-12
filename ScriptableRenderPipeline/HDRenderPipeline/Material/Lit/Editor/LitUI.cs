@@ -46,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+            public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
 
             // Subsurface
             public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
@@ -175,6 +176,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailMap = "_DetailMap";
+        protected MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
+        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
         protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
         protected MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
@@ -268,6 +271,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Details
                 UVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, m_PropertySuffixes[i]), props);
                 UVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, m_PropertySuffixes[i]), props);
+                linkDetailsWithBase[i] = FindProperty(string.Format("{0}{1}", kLinkDetailsWithBase, m_PropertySuffixes[i]), props);
                 detailMap[i] = FindProperty(string.Format("{0}{1}", kDetailMap, m_PropertySuffixes[i]), props);
                 detailAlbedoScale[i] = FindProperty(string.Format("{0}{1}", kDetailAlbedoScale, m_PropertySuffixes[i]), props);
                 detailNormalScale[i] = FindProperty(string.Format("{0}{1}", kDetailNormalScale, m_PropertySuffixes[i]), props);
@@ -541,7 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-            }
+            }            
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
             X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
@@ -550,6 +554,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(linkDetailsWithBase[layerIndex], Styles.linkDetailsWithBaseText);
+            EditorGUI.indentLevel--;
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
             {
