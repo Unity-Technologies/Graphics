@@ -61,13 +61,6 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1018)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+TransmissionType:  static fields
-//
-#define TRANSMISSIONTYPE_NONE (0)
-#define TRANSMISSIONTYPE_REGULAR (1)
-#define TRANSMISSIONTYPE_THIN_OBJECT (2)
-
-//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1030)

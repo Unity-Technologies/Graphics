@@ -114,14 +114,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum TransmissionType
-        {
-            None = 0,
-            Regular = 1,
-            ThinObject = 2,
-        };
-
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
