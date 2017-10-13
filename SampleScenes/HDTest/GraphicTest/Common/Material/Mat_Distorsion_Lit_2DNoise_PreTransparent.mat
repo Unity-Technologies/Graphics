@@ -6,16 +6,16 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_Distorsion_Unlit_2DNoise
-  m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
+  m_Name: Mat_Distorsion_Lit_2DNoise_PreTransparent
+  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
     _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTIONONLY_OFF
     _DISTORTION_ON _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE _PRETRANSPARENTPASS_OFF
+    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2750
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses: []
@@ -27,7 +27,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 8abdc3adb95657847a5a8f760fdfc843, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -36,10 +36,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ColorMap:
-        m_Texture: {fileID: 2800000, guid: 8abdc3adb95657847a5a8f760fdfc843, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
@@ -108,18 +104,19 @@ Material:
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
     - _DistortionBlendMode: 0
+    - _DistortionBlendOp: 0
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 1
     - _DistortionBlurRemapMax: 1
     - _DistortionBlurRemapMin: 0
-    - _DistortionBlurScale: 1
+    - _DistortionBlurScale: 1.93
     - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
     - _DistortionDstBlend: 1
     - _DistortionEnable: 1
     - _DistortionNullify: 0
     - _DistortionOnly: 0
-    - _DistortionScale: 1
+    - _DistortionScale: 2.21
     - _DistortionSrcBlend: 1
     - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0
@@ -150,7 +147,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PerPixelDisplacementObjectScale: 1
-    - _PreTransparentPass: 0
+    - _PreTransparentPass: 1
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
@@ -174,7 +171,6 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
