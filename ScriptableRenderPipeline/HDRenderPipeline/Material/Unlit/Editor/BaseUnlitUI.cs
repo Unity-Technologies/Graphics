@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
 
-            public static GUIContent transparentPrePassText = new GUIContent("Pre Transparent Pass", "Render in pre-transparent pass");
+            public static GUIContent transparentPrePassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
 
             public static string advancedText = "Advanced Options";
         }
@@ -94,8 +94,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlurRemapMin = "_DistortionBlurRemapMin";
         protected MaterialProperty distortionBlurRemapMax = null;
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
-        protected MaterialProperty transparentPrepass = null;
-        protected const string kTransparentPrepass = "_PreTransparentPass";
+        protected MaterialProperty preRefractionPass = null;
+        protected const string kPrePrefractionPass = "_PreRefractionPass";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
-            transparentPrepass = FindProperty(kTransparentPrepass, props, false);
+            preRefractionPass = FindProperty(kPrePrefractionPass, props, false);
         }
 
         void SurfaceTypePopup()
@@ -178,7 +178,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 BlendModePopup();
 
-                m_MaterialEditor.ShaderProperty(transparentPrepass, StylesBaseUnlit.transparentPrePassText);
+                m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
@@ -284,8 +284,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
-                var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0f;
-                material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreTransparent : HDRenderQueue.Transparent);
+                var isPrePass = material.GetFloat(kPrePrefractionPass) > 0.0f;
+                material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
 
                 SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
                 SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
