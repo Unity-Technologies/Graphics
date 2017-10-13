@@ -355,7 +355,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0;
-            SetKeyword(material, "_REFRACTION_ROUGHNESS_ON", !isPrePass); // Rough refraction is not available for pre transparent
+            SetKeyword(material, "_REFRACTION_ON", !isPrePass); // Refraction is not available for pre transparent (color buffer cannot be fetched)
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

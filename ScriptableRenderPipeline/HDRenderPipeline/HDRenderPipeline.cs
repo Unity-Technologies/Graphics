@@ -829,8 +829,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
                 RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
 
-                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBuffer);
-
                 // Render pre transparent objects
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreTransparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreTransparent);
@@ -1017,6 +1015,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
                 // Only transparent object can render distortion vectors
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, preTransparentQueue:true);
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
