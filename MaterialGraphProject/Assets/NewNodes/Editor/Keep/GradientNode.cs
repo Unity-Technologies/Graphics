@@ -180,7 +180,7 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var rgbaOutputName = GetVariableNameForSlot(RGBAOutputSlotId);
-            visitor.AddShaderChunk(string.Format("{0}4 {1};", precision, rgbaOutputName), false);
+            visitor.AddShaderChunk(string.Format("{0}4 {1} = {0}4({2}.rgb, {3}.r);", precision, rgbaOutputName, GetColorKeyName(0), GetAlphaKeyName(0)), false);
 
             visitor.AddShaderChunk("{", false);
             visitor.Indent();
@@ -188,19 +188,12 @@ namespace UnityEngine.MaterialGraph
                 var timeInputValue = GetSlotValue(TimeInputSlotId, generationMode);
 
                 // Color interpolation
-                visitor.AddShaderChunk(string.Format("{1}3 gradientColor = {0}.rgb;", GetColorKeyName(0), precision), false);
                 for (var i = 0; i < m_Gradient.colorKeys.Length - 1; i++)
-                {
-                    visitor.AddShaderChunk(string.Format("gradientColor = lerp(gradientColor, {1}.rgb, smoothstep({0}.a, {1}.a, {2}));", GetColorKeyName(i), GetColorKeyName(i + 1), timeInputValue), false);
-                }
+                    visitor.AddShaderChunk(string.Format("{3}.rgb = lerp({3}.rgb, {1}.rgb, smoothstep({0}.a, {1}.a, {2}));", GetColorKeyName(i), GetColorKeyName(i + 1), timeInputValue, rgbaOutputName), false);
 
                 // Alpha interpolation
-                visitor.AddShaderChunk(string.Format("{1} gradientAlpha = {0}.r;", GetAlphaKeyName(0), precision), false);
                 for (var i = 0; i < m_Gradient.alphaKeys.Length - 1; i++)
-                    visitor.AddShaderChunk(string.Format("gradientAlpha = lerp(gradientAlpha, {1}.r, smoothstep({0}.g, {1}.g, {2}));", GetAlphaKeyName(i), GetAlphaKeyName(i + 1), timeInputValue), false);
-
-                //Result
-                visitor.AddShaderChunk(string.Format("{0} = float4(gradientColor, gradientAlpha);", rgbaOutputName), false);
+                    visitor.AddShaderChunk(string.Format("{3}.a = lerp({3}.a, {1}.r, smoothstep({0}.g, {1}.g, {2}));", GetAlphaKeyName(i), GetAlphaKeyName(i + 1), timeInputValue, rgbaOutputName), false);
             }
             visitor.Deindent();
             visitor.AddShaderChunk("}", false);
