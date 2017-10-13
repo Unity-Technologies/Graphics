@@ -50,8 +50,6 @@ namespace UnityEditor.MaterialGraph.Drawing
  //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
    //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
      //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
-            typeMapper[typeof(PropertyNode)] = typeof(PropertyNodePresenter);
-
             /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(RadialShearNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
              typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
