@@ -118,6 +118,7 @@ float GetSmithJointGGXPreLambdaV(float NdotV, float roughness)
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
 }
 
+// Note: V = G / (4 * NdotL * NdotV)
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float preLambdaV)
 {
@@ -214,6 +215,7 @@ float GetSmithJointGGXAnisoPreLambdaV(float TdotV, float BdotV, float NdotV, flo
     return sqrt(aT2 * TdotV * TdotV + aB2 * BdotV * BdotV + NdotV * NdotV);
 }
 
+// Note: V = G / (4 * NdotL * NdotV)
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
 float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB, float preLambdaV)
 {
