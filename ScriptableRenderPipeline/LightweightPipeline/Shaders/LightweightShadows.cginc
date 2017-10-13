@@ -11,9 +11,9 @@
 #endif
 
 #ifdef _SHADOWS
-#define SHADOW_ATTENUATION(vertexOutput, shadowDir) ComputeShadowAttenuation(vertexOutput, shadowDir)
+#define LIGHTWEIGHT_SHADOW_ATTENUATION(vertexOutput, shadowDir) ComputeShadowAttenuation(vertexOutput, shadowDir)
 #else
-#define SHADOW_ATTENUATION(vertexOutput, shadowDir) 1.0h
+#define LIGHTWEIGHT_SHADOW_ATTENUATION(vertexOutput, shadowDir) 1.0h
 #endif
 
 sampler2D_float _ShadowMap;

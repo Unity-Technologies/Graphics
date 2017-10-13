@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // Max amount of visible lights. This controls the lights constant buffers in shader but not the max shaded lights.
         // Lights are set per-object and the max shaded lights for each object are controlled by the max pixel lights in pipeline asset and kMaxVertexLights.
         private static readonly int kMaxVisibleAdditionalLights = 16;
-        private static readonly int kMaxPerObjectLights = 4;
+        private static readonly int kMaxPerObjectLights = 8;
 
         private Vector4[] m_LightPositions = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightColors = new Vector4[kMaxVisibleAdditionalLights];
@@ -476,7 +476,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightData.additionalPixelLightsCount = maxPixelLights - 1;
             }
 
-            lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLightsCount - maxPixelLights, kMaxPerObjectLights) : 0;
+            lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Math.Min(4, Math.Min(visibleLightsCount - maxPixelLights, kMaxPerObjectLights)) : 0;
             lightData.hasAdditionalLights = (lightData.additionalPixelLightsCount + lightData.vertexLightsCount) > 0;
             lightData.shadowsRendered = false;
         }
