@@ -1520,6 +1520,10 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     specularLighting = float3(0.0, 0.0, 0.0);
     weight = float2(0.0, 0.0);
 
+#if !defined(_REFRACTION_ON)
+    return;
+#endif
+
 #if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
@@ -1636,13 +1640,9 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
         return;
     }
 
-#ifdef _REFRACTION_ROUGHNESS_ON
     // Map the roughness to the correct mip map level of the color pyramid
-    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
+    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
-#else
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS.xy, 0.0).rgb;
-#endif
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);

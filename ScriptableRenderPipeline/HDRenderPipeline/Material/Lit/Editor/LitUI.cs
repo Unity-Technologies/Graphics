@@ -578,7 +578,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
 
-                if (refractionMode != null)
+                var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0;
+                if (refractionMode != null && !isPrePass)
                 {
                     m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
                     var mode = (Lit.RefractionMode)refractionMode.floatValue;

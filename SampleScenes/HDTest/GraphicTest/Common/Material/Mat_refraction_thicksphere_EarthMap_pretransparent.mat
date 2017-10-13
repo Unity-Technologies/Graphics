@@ -9,7 +9,7 @@ Material:
   m_Name: Mat_refraction_thicksphere_EarthMap_pretransparent
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP _MASKMAP _NORMALMAP_TANGENT_SPACE
-    _REFRACTION_ON _REFRACTION_THICKSPHERE _ROUGH_REFRACTION _ROUGH_REFRACTION_ON
+    _REFRACTION_THICKSPHERE _ROUGH_REFRACTION _ROUGH_REFRACTION_ON
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -238,7 +238,7 @@ Material:
     - _ZTestMode: 8
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0.428}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
