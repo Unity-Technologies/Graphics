@@ -354,8 +354,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
             }
 
-            var isPrePass = material.GetFloat(kTransparentPrepass) > 0.0;
-            SetKeyword(material, "_REFRACTION_ON", !isPrePass); // Refraction is not available for pre transparent (color buffer cannot be fetched)
+            var isPrePass = material.GetFloat(kPrePrefractionPass) > 0.0;
+            SetKeyword(material, "_REFRACTION_ON", !isPrePass); // Refraction is not available for pre refraction (color buffer cannot be fetched)
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

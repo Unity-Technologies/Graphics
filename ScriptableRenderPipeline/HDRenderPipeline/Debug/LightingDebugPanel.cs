@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var fullScreenDebugModeValue = (FullScreenDebugMode)fullScreenDebugModeHandler.GetValue();
                 switch (fullScreenDebugModeValue)
                 {
-                    case FullScreenDebugMode.PreTransparentColorPyramid:
+                    case FullScreenDebugMode.PreRefractionColorPyramid:
                     case FullScreenDebugMode.FinalColorPyramid:
                     case FullScreenDebugMode.DepthPyramid:
                     {
