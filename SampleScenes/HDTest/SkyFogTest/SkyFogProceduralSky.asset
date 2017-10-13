@@ -13,14 +13,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotation: 0
   exposure: 0
-  multiplier: 1.3
+  multiplier: 1
   resolution: 256
   updateMode: 0
   updatePeriod: 0
   lightingOverride: {fileID: 0}
-  sunSize: 0.04
-  sunSizeConvergence: 5
-  atmosphereThickness: 1
+  atmosphericScatteringSettings:
+    type: 2
+    colorMode: 1
+    fogColor: {r: 0.36937714, g: 0.40825674, b: 0.41176468, a: 1}
+    mipFogMaxMip: 0.554
+    mipFogNear: 40
+    mipFogFar: 400
+    linearFogDensity: 1
+    linearFogStart: 40
+    linearFogEnd: 100
+    expFogDistance: 100
+  sunSize: 0.054
+  sunSizeConvergence: 6.27
+  atmosphereThickness: 1.17
   skyTint: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
-  groundColor: {r: 0.36862746, g: 0.34901962, b: 0.34117648, a: 1}
+  groundColor: {r: 0.5661765, g: 0.5661765, b: 0.5661765, a: 1}
   enableSunDisk: 1

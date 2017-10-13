@@ -40,6 +40,7 @@
         public ComputeShader buildProbabilityTables;
         public ComputeShader computeGgxIblSampleData;
         public Shader GGXConvolve;
+        public Shader opaqueAtmosphericScattering;
 
         public Shader skyboxCubemap;
     }

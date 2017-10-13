@@ -51,6 +51,7 @@ SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
+float _SkyTextureMipCount;
 
 TEXTURE2D(_AmbientOcclusionTexture);
 

@@ -69,6 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.buildProbabilityTables = Load<ComputeShader>(HDRenderPipelinePath + "Sky/BuildProbabilityTables.compute");
             instance.computeGgxIblSampleData = Load<ComputeShader>(HDRenderPipelinePath + "Sky/ComputeGgxIblSampleData.compute");
             instance.GGXConvolve = Load<Shader>(HDRenderPipelinePath + "Sky/GGXConvolve.shader");
+            instance.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Sky/OpaqueAtmosphericScattering.shader");
 
             // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
             instance.skyboxCubemap = Shader.Find("Skybox/Cubemap");

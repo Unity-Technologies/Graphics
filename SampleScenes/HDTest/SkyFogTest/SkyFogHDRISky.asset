@@ -11,11 +11,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
   m_Name: SkyFogHDRISky
   m_EditorClassIdentifier: 
-  rotation: 0
+  rotation: 16
   exposure: 0
   multiplier: 1
   resolution: 256
   updateMode: 0
   updatePeriod: 0
   lightingOverride: {fileID: 0}
-  skyHDRI: {fileID: 8900000, guid: a615f6de0224d55408b4e74da3b0bac0, type: 3}
+  atmosphericScatteringSettings:
+    type: 1
+    colorMode: 1
+    fogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    mipFogMaxMip: 0.692
+    mipFogNear: 200
+    mipFogFar: 500
+    linearFogDensity: 0.875
+    linearFogStart: 10
+    linearFogEnd: 56.82
+    expFogDistance: 100
+  skyHDRI: {fileID: 8900000, guid: de78f930088fc194290da7400c89bfb5, type: 3}
