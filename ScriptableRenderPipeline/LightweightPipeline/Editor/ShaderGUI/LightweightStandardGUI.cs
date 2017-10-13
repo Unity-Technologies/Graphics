@@ -59,7 +59,7 @@ namespace UnityEditor
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private MaterialProperty workflowMode = null;
         private MaterialProperty blendMode = null;
 
@@ -97,7 +97,7 @@ namespace UnityEditor
         private ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, kMaxfp16, 1 / kMaxfp16, 3f);
 
         private bool m_FirstTimeApply = true;
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
 
         public void FindProperties(MaterialProperty[] props)
         {

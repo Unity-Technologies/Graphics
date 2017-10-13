@@ -376,8 +376,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None = 0,
             Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
-            PerPixelDisplacement,
+            PixelDisplacement,
             VertexDisplacement,
+            TessellationDisplacement,
             DepthOffset,
             Lightmap,
         }

@@ -16,6 +16,7 @@
         public ComputeShader gaussianPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;
+        public ComputeShader applyDistortionCS;
 
         // Lighting tile pass resources
         public ComputeShader clearDispatchIndirectShader;
@@ -42,5 +43,15 @@
         public Shader GGXConvolve;
 
         public Shader skyboxCubemap;
+
+        public int applyDistortionKernel { get; private set; }
+
+        void OnEnable()
+        {
+            applyDistortionKernel = -1;
+
+            if (applyDistortionCS != null)
+                applyDistortionKernel = applyDistortionCS.FindKernel("KMain");
+        }
     }
 }

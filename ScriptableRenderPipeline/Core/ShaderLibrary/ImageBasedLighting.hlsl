@@ -19,11 +19,16 @@
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
 // Improves the perceptual roughness distribution.
-float PerceptualRoughnessToMipmapLevel(float perceptualRoughness)
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, uint mipMapCount)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 
-    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+    return perceptualRoughness * mipMapCount;
+}
+
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness)
+{
+    return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
 }
 
 // The *accurate* version of the non-linear remapping. It works by

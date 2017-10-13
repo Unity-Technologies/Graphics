@@ -1,4 +1,4 @@
-float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor, float3 objectScale)
+float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
@@ -8,19 +8,13 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
     float lod = 0.0;
-    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
-    float3 displ = height * normalWS;
-
-    // Applying scaling of the object if requested
-    displ *= objectScale;
-
-    return displ;
+    return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, float3 objectScale, inout float3 positionWS)
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS)
 {
-// If tessellation is enabled we apply displacement map after tessellation
-#if defined(_VERTEX_DISPLACEMENT) && !defined(TESSELLATION_ON)
+#if defined(_VERTEX_DISPLACEMENT)
+
     positionWS += GetVertexDisplacement(positionWS, normalWS,
     #ifdef ATTRIBUTES_NEED_TEXCOORD0
         input.uv0,
@@ -43,11 +37,11 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, float3 objec
         float2(0.0, 0.0),
     #endif            
     #ifdef ATTRIBUTES_NEED_COLOR
-        input.color,
+        input.color
     #else
-        float4(0.0, 0.0, 0.0, 0.0),
+        float4(0.0, 0.0, 0.0, 0.0)
     #endif      
-        objectScale);
+        );
 #endif
     
 #ifdef _VERTEX_WIND
@@ -79,10 +73,14 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     bool faceCull = false;
 
 #ifndef _DOUBLESIDED_ON
-    // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
+        // Handle transform mirroring (like negative scaling)
+        // Caution: don't change p1/p2 directly as it is use later
+        float3 backfaceP1 = unity_WorldTransformParams.w < 0.0 ? p2 : p1;
+        float3 backfaceP2 = unity_WorldTransformParams.w < 0.0 ? p1 : p2;
+
+        faceCull = BackFaceCullTriangle(p0, backfaceP1, backfaceP2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
     }
 #endif
 
@@ -132,9 +130,10 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // y - 2->0 edge
 // z - 0->1 edge
 // w - inside tessellation factor
-void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, float3 objectScale, inout float3 positionWS)
+void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionWS)
 {
-#if defined(_VERTEX_DISPLACEMENT)
+#if defined(_TESSELLATION_DISPLACEMENT)
+
     positionWS += GetVertexDisplacement(positionWS, normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
@@ -157,12 +156,12 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, floa
         float2(0.0, 0.0),
     #endif            
     #ifdef VARYINGS_DS_NEED_COLOR
-        input.color,
+        input.color
     #else
-        float4(0.0, 0.0, 0.0, 0.0),
+        float4(0.0, 0.0, 0.0, 0.0)
     #endif      
-        objectScale);
-#endif // _VERTEX_DISPLACEMENT
+        );
+#endif // _TESSELLATION_DISPLACEMENT
 }
 
 #endif // #ifdef TESSELLATION_ON
