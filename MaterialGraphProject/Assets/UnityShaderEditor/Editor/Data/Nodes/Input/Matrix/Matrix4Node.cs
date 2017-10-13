@@ -55,7 +55,7 @@ namespace UnityEngine.MaterialGraph
                 return;
             row = value;
             if (onModified != null)
-                onModified(this, ModificationScope.Node);
+                onModified(this, ModificationScope.Graph);
         }
 
         public Matrix4Node()
