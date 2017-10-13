@@ -5,9 +5,8 @@
 
 void DoAlphaTest(float alpha, float alphaCutoff)
 {
-    // For Forward (Full forward or ForwardOnlyOpaque in deferred):
-    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
-#if (SHADER_PASS == SHADERPASS_FORWARD_UNLIT && defined(SURFACE_TYPE_TRANSPARENT))
+    // Don't do the clip when rendering forward opaque (unlit). Forward opaque always have a prepass (with depth test on)
+#if !(SHADER_PASS == SHADERPASS_FORWARD_UNLIT && defined(SURFACE_TYPE_OPAQUE))
     clip(alpha - alphaCutoff);
 #endif
 }
