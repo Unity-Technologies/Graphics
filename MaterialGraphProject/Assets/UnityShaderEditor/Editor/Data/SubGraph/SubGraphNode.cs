@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -32,6 +33,7 @@ namespace UnityEngine.MaterialGraph
         }
 
 #if UNITY_EDITOR
+        [ObjectControl("Subgraph")]
         public MaterialSubGraphAsset subGraphAsset
         {
             get
