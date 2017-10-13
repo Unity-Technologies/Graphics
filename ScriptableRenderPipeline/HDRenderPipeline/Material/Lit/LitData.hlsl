@@ -10,7 +10,7 @@ void DoAlphaTest(float alpha, float alphaCutoff)
     // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
     // For Forward
     // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
-#if !(SHADER_PASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_OPAQUE)) && !(SHADER_PASS == SHADERPASS_GBUFFER && defined(_BYPASS_ALPHA_TEST))
+#if !(SHADERPASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_OPAQUE)) && !(SHADERPASS == SHADERPASS_GBUFFER && defined(_BYPASS_ALPHA_TEST))
     clip(alpha - alphaCutoff);
 #endif
 }

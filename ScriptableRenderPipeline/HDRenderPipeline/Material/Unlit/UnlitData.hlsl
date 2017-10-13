@@ -6,7 +6,7 @@
 void DoAlphaTest(float alpha, float alphaCutoff)
 {
     // Don't do the clip when rendering forward opaque (unlit). Forward opaque always have a prepass (with depth test on)
-#if !(SHADER_PASS == SHADERPASS_FORWARD_UNLIT && defined(SURFACE_TYPE_OPAQUE))
+#if !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && defined(SURFACE_TYPE_OPAQUE))
     clip(alpha - alphaCutoff);
 #endif
 }
