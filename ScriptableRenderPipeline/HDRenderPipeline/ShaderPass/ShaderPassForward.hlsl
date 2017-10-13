@@ -67,6 +67,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef DEBUG_DISPLAY
+    // Same code in ShaderPassForward.shader
     if (_DebugViewMaterial != 0)
     {
         float3 result = float3(1.0, 0.0, 1.0);
