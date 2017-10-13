@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
@@ -14,6 +15,12 @@ namespace UnityEditor.VFX.Block
             public ArcCircle Circle = new ArcCircle() { radius = 1.0f, arc = Mathf.PI * 2.0f };
         }
 
+        public class CustomProperties
+        {
+            [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
+            public float ArcSequencer = 0.0f;
+        }
+
         public override string source
         {
             get
@@ -22,7 +29,7 @@ namespace UnityEditor.VFX.Block
                 if (spawnMode == SpawnMode.Randomized)
                     outSource += @"float theta = Circle_arc * RAND;";
                 else
-                    outSource += @"float theta = Circle_arc;";
+                    outSource += @"float theta = Circle_arc * ArcSequencer;";
 
                 outSource += @"
 float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);

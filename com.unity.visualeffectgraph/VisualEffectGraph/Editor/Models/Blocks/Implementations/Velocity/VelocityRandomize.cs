@@ -15,14 +15,11 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.ReadWrite);
             }
         }
-
-        private VFXAttributeInfo Direction = new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.ReadWrite);
 
         public class InputProperties
         {
@@ -38,7 +35,7 @@ namespace UnityEditor.VFX.Block
             {
                 return @"
 float3 randomDirection = normalize(RAND3 * 2.0f - 1.0f);
-direction = lerp(direction, randomDirection, DirectionBlend);
+direction = normalize(lerp(direction, randomDirection, DirectionBlend));
 velocity += direction * Speed;";
             }
         }

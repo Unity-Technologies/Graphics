@@ -40,20 +40,20 @@ namespace UnityEditor.VFX.Block
 
                     factor = new VFXExpressionMax(factor, VFXValue.Constant(new Vector3(0.0001f, 0.0001f, 0.0001f)));
 
-                    VFXExpression volumeXY = new VFXExpressionCombine(new[] { boxSize.x, boxSize.y, factor.z });
-                    VFXExpression volumeXZ = new VFXExpressionCombine(new[] { boxSize.x, boxSize.z - factor.z, factor.y });
-                    VFXExpression volumeYZ = new VFXExpressionCombine(new[] { boxSize.y - factor.y, boxSize.z - factor.z, factor.x });
+                    VFXExpression volumeXY = new VFXExpressionCombine(boxSize.x, boxSize.y, factor.z);
+                    VFXExpression volumeXZ = new VFXExpressionCombine(boxSize.x, boxSize.z - factor.z, factor.y);
+                    VFXExpression volumeYZ = new VFXExpressionCombine(boxSize.y - factor.y, boxSize.z - factor.z, factor.x);
 
-                    VFXExpression volumes = new VFXExpressionCombine(new[] {
-                        volumeXY.x * volumeXY.y * volumeXY.z,
-                        volumeXZ.x * volumeXZ.y * volumeXZ.z,
-                        volumeYZ.x * volumeYZ.y * volumeYZ.z
-                    });
-                    VFXExpression cumulativeVolumes = new VFXExpressionCombine(new[] {
-                        volumes.x,
-                        volumes.x + volumes.y,
-                        volumes.x + volumes.y + volumes.z
-                    });
+                    VFXExpression volumes = new VFXExpressionCombine(
+                            volumeXY.x * volumeXY.y * volumeXY.z,
+                            volumeXZ.x * volumeXZ.y * volumeXZ.z,
+                            volumeYZ.x * volumeYZ.y * volumeYZ.z
+                            );
+                    VFXExpression cumulativeVolumes = new VFXExpressionCombine(
+                            volumes.x,
+                            volumes.x + volumes.y,
+                            volumes.x + volumes.y + volumes.z
+                            );
 
                     yield return new VFXNamedExpression(volumeXY, "volumeXY");
                     yield return new VFXNamedExpression(volumeXZ, "volumeXZ");

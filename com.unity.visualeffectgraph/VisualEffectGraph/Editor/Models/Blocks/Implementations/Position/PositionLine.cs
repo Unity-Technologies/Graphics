@@ -18,18 +18,7 @@ namespace UnityEditor.VFX.Block
         public class CustomProperties
         {
             [Range(0, 1), Tooltip("When using customized emission, control the position along the line to emit particles from.")]
-            public float LineFactor = 0.0f;
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                var properties = PropertiesFromType(GetInputPropertiesTypeName());
-                if (spawnMode == SpawnMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("CustomProperties"));
-                return properties;
-            }
+            public float LineSequencer = 0.0f;
         }
 
         protected override IEnumerable<string> filteredOutSettings
@@ -45,7 +34,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (spawnMode == SpawnMode.Custom)
-                    return @"position += lerp(line_start, line_end, LineFactor);";
+                    return @"position += lerp(line_start, line_end, LineSequencer);";
                 else
                     return @"position += lerp(line_start, line_end, RAND);";
             }

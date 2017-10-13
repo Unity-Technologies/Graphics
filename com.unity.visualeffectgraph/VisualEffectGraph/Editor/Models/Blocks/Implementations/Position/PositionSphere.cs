@@ -15,6 +15,12 @@ namespace UnityEditor.VFX.Block
             public ArcSphere Sphere = new ArcSphere() { radius = 1.0f, arc = Mathf.PI * 2.0f };
         }
 
+        public class CustomProperties
+        {
+            [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
+            public float ArcSequencer = 0.0f;
+        }
+
         public override string source
         {
             get
@@ -23,7 +29,7 @@ namespace UnityEditor.VFX.Block
                 if (spawnMode == SpawnMode.Randomized)
                     outSource += @"float theta = Sphere_arc * RAND;";
                 else
-                    outSource += @"float theta = Sphere_arc;";
+                    outSource += @"float theta = Sphere_arc * ArcSequencer;";
 
                 outSource += @"
 float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);

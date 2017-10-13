@@ -21,14 +21,14 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private VFXAttributeInfo Direction = new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.ReadWrite);
-
         public class InputProperties
         {
             [Tooltip("The speed to add to the particles, in the new direction.")]
             public float Speed = 1.0f;
             [Range(0, 1), Tooltip("Blend between the original emission direction and the new spherical direction, based on this value.")]
             public float DirectionBlend = 1.0f;
+            [Tooltip("The centre of the spherical direction.")]
+            public Vector3 center;
         }
 
         public override string source
@@ -36,8 +36,8 @@ namespace UnityEditor.VFX.Block
             get
             {
                 return @"
-float3 sphereDirection = normalize(position);
-direction = lerp(direction, sphereDirection, DirectionBlend);
+float3 sphereDirection = normalize(position - center);
+direction = normalize(lerp(direction, sphereDirection, DirectionBlend));
 velocity += direction * Speed;";
             }
         }

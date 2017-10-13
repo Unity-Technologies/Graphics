@@ -28,7 +28,9 @@ namespace UnityEditor.VFX.Block
         public class CustomProperties
         {
             [Range(0, 1), Tooltip("When using customized emission, control the position along the height to emit particles from.")]
-            public float HeightFactor = 0.0f;
+            public float HeightSequencer = 0.0f;
+            [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
+            public float ArcSequencer = 0.0f;
         }
 
         public override IEnumerable<VFXNamedExpression> parameters
@@ -51,19 +53,6 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                var properties = PropertiesFromType(GetInputPropertiesTypeName());
-                if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
-                    properties = properties.Concat(PropertiesFromType("ThicknessProperties"));
-                if (heightMode == HeightMode.Volume && spawnMode == SpawnMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("CustomProperties"));
-                return properties;
-            }
-        }
-
         public override string source
         {
             get
@@ -73,7 +62,7 @@ namespace UnityEditor.VFX.Block
                 if (spawnMode == SpawnMode.Randomized)
                     outSource += @"float theta = Cone_arc * RAND;";
                 else
-                    outSource += @"float theta = Cone_arc;";
+                    outSource += @"float theta = Cone_arc * ArcSequencer;";
 
                 outSource += @"
 float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
@@ -103,7 +92,7 @@ float3 base = float3(0.0f, 0.0f, Cone_height - fullConeHeight);
                 else
                 {
                     outSource += @"
-float hNorm = HeightFactor;
+float hNorm = HeightSequencer;
 float3 base = float3(0.0f, 0.0f, 0.0f);
 ";
                 }

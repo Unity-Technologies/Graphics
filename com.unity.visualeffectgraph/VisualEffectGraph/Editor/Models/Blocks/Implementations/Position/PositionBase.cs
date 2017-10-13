@@ -61,6 +61,8 @@ namespace UnityEditor.VFX.Block
                 var properties = PropertiesFromType(GetInputPropertiesTypeName());
                 if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                     properties = properties.Concat(PropertiesFromType("ThicknessProperties"));
+                if (spawnMode == SpawnMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomProperties"));
                 return properties;
             }
         }
