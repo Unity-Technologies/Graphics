@@ -39,6 +39,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     float4 outBuffer;
-    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, outBuffer);
+    // Mark this pixel as eligible as source for distortion
+    EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, true, outBuffer);
     return outBuffer;
 }

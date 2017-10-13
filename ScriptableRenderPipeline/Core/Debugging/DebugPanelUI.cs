@@ -57,7 +57,30 @@ namespace UnityEngine.Experimental.Rendering
                 GameObject.Destroy(child.gameObject);
             }
 
+            m_ItemsUI.Clear();
+
             BuildGUIImpl(m_Root);
+        }
+
+        protected void AddDebugItemUI(DebugItem item, GameObject parent)
+        {
+#if UNITY_EDITOR
+            // We don't want runtime only items even in the "player" debug menu if we are in the editor.
+            if (item.runtimeOnly)
+                return;
+#endif
+            if(item.editorOnly)
+                return;
+
+            DebugItemUI itemUI = item.handler.BuildGUI(parent);
+            if(itemUI == null)
+            {
+                Debug.LogWarning(String.Format("DebugItemUI not provided for item {0} of type {1}.\n Did you implement BuildGUI for your custom Handler?", item.name, item.type));
+            }
+            else
+            {
+                m_ItemsUI.Add(itemUI);
+            }
         }
 
         // Default Implementation: just build all items with provided handler.
@@ -65,20 +88,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, parent);
 
-            m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
                 DebugItem item = m_DebugPanel.GetDebugItem(i);
-#if UNITY_EDITOR
-                // We don't want runtime only items even in the "player" debug menu if we are in the editor.
-                if (item.runtimeOnly)
-                    continue;
-#endif
-                if(!item.editorOnly)
-                {
-                    DebugItemHandler handler = item.handler; // Should never be null, we have at least the default handler
-                    m_ItemsUI.Add(handler.BuildGUI(parent));
-                }
+                AddDebugItemUI(item, parent);
             }
         }
 
@@ -101,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_SelectedItem != -1)
             {
-                return m_DebugPanel.GetDebugItem(m_SelectedItem);
+                return m_ItemsUI[m_SelectedItem].debugItem;
             }
 
             return null;
@@ -161,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void OnMoveHorizontal(float value)
         {
-            if (m_SelectedItem != -1 && !m_DebugPanel.GetDebugItem(m_SelectedItem).readOnly)
+            if (m_SelectedItem != -1 && !m_ItemsUI[m_SelectedItem].debugItem.readOnly)
             {
                 if (value > 0.0f)
                     m_ItemsUI[m_SelectedItem].OnIncrement();
@@ -180,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void OnValidate()
         {
-            if (m_SelectedItem != -1 && !m_DebugPanel.GetDebugItem(m_SelectedItem).readOnly)
+            if (m_SelectedItem != -1 && !m_ItemsUI[m_SelectedItem].debugItem.readOnly)
                 m_ItemsUI[m_SelectedItem].OnValidate();
         }
 

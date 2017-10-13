@@ -73,7 +73,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private Camera m_CurrCamera = null;
 
-        private int m_LightIndicesCount = 0;
         private ComputeBuffer m_LightIndexListBuffer;
 
         private static readonly int kMaxCascades = 4;
@@ -87,7 +86,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CameraDepthRT;
         private RenderTargetIdentifier m_CameraCopyDepthRT;
 
-        private bool m_RenderToIntermediateTarget = false;
         private bool m_IntermediateTextureArray = false;
 
         private const int kShadowDepthBufferBits = 16;
@@ -177,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 m_LightIndexListBuffer.Dispose();
                 m_LightIndexListBuffer = null;
-                m_LightIndicesCount = 0;
             }
         }
 
