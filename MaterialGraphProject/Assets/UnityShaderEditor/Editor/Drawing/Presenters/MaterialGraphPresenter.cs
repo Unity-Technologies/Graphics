@@ -68,7 +68,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
 
             // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
-            typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
 
             //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
             typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
