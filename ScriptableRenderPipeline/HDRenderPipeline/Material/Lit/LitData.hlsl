@@ -8,11 +8,11 @@ void DoAlphaTest(float alpha, float alphaCutoff)
 {
     // For Deferred:
     // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
-    // For Forward (Full forward or ForwardOnlyOpaque in deferred):
+    // For Forward
     // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
-    #if ((SHADER_PASS == SHADERPASS_GBUFFER) && !defined(_BYPASS_ALPHA_TEST)) || (SHADER_PASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_TRANSPARENT))
-        clip(alpha - alphaCutoff);
-    #endif
+#if !(SHADERPASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_OPAQUE)) && !(SHADERPASS == SHADERPASS_GBUFFER && defined(_BYPASS_ALPHA_TEST))
+    clip(alpha - alphaCutoff);
+#endif
 }
 
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
@@ -61,8 +61,8 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
 #if (SHADERPASS == SHADERPASS_DISTORTION)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
-    builtinData.distortion = distortion.rg;
-    builtinData.distortionBlur = distortion.b;
+    builtinData.distortion = distortion.rg * _DistortionScale;
+    builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #else
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;

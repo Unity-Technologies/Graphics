@@ -75,7 +75,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
 
             // Transparency
-            public static string TransparencyInputsText = "Transparency Inputs";
             public static string refractionModeText = "Refraction Mode";
             public static GUIContent refractionIORText = new GUIContent("Indice of refraction", "Indice of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
@@ -574,31 +573,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 && refractionMode != null)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField(Styles.TransparencyInputsText, EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
 
-                m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
-                var mode = (Lit.RefractionMode)refractionMode.floatValue;
-                if (mode != Lit.RefractionMode.None)
+                if (refractionMode != null)
                 {
-                    m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
-
-                    if (mode != Lit.RefractionMode.ThinPlane)
+                    m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
+                    var mode = (Lit.RefractionMode)refractionMode.floatValue;
+                    if (mode != Lit.RefractionMode.None)
                     {
-                        if (thicknessMap.textureValue == null)
-                            m_MaterialEditor.ShaderProperty(thickness, Styles.refractionThicknessText);
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap);
-
                         ++EditorGUI.indentLevel;
-                        m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+
+                        m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
+
+                        if (mode != Lit.RefractionMode.ThinPlane)
+                        {
+                            if (thicknessMap.textureValue == null)
+                                m_MaterialEditor.ShaderProperty(thickness, Styles.refractionThicknessText);
+                            m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap);
+
+                            ++EditorGUI.indentLevel;
+                            m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                            --EditorGUI.indentLevel;
+                        }
+
+                        m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
+                        ++EditorGUI.indentLevel;
+                        m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                        --EditorGUI.indentLevel;
+
                         --EditorGUI.indentLevel;
                     }
-
-                    m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
-                    ++EditorGUI.indentLevel;
-                    m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
-                    --EditorGUI.indentLevel;
                 }
+
+                DoDistortionInputsGUI();
+
                 --EditorGUI.indentLevel;
             }
         }

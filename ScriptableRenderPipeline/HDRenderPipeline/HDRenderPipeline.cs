@@ -143,7 +143,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier m_HTileRT;
 
         // The pass "SRPDefaultUnlit" is a fallback to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
-        ShaderPassName[] m_ForwardPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
+        ShaderPassName[] m_DepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName };
+        ShaderPassName[] m_DepthOnlyPassNames = { HDShaderPassNames.s_DepthOnlyName };
         ShaderPassName[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderPassName[] m_SinglePassName = new ShaderPassName[1];
 
@@ -326,9 +330,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 useMipMap = true,
                 autoGenerateMips = false
             };
-
-            m_DistortionBuffer = HDShaderIDs._DistortionTexture;
-            m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
             m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
             m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
@@ -865,11 +866,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
+                    RenderGaussianPyramidColor(camera, cmd);
+
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
                     // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
-                    RenderDistortion(m_CullResults, camera, renderContext, cmd);
+                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
+                    AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
+                    RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
                     RenderPostProcesses(camera, cmd, postProcessLayer);
                 }
@@ -997,40 +1001,82 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
+        void AccumulateDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
+                return;
+
+            using (new ProfilingSample(cmd, "Distortion"))
+            {
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+
+                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
+                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+
+                // Only transparent object can render distortion vectors
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
+            }
+        }
+
+        void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
+        {
+            using (new ProfilingSample(cmd, "ApplyDistortion"))
+            {
+                var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
+                uint x, y, z;
+                resources.applyDistortionCS.GetKernelThreadGroupSizes(resources.applyDistortionKernel, out x, out y, out z);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
+
+                cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
+            }
+        }
+
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
         // Forward only renderer: We always render everything
         // Deferred renderer: We render a depth prepass only if engine request it. We can decide if we render everything or only opaque alpha tested object.
-        // Forward opaque with deferred renderer (ForwardOnlyOpaqueDepthOnly pass): We always render everything
+        // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            // Guidelines: To be able to switch from deferred to forward renderer we need to have forward opaque material with both DepthOnly and ForwardOnlyOpaqueDepthOnly pass.
-            // This is also required if we want to support optional depth prepass dynamically.
-            // This is what is assume here. But users may want to reduce number of shader combination once they have made their choice.
+            // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
+            // And they will tag the stencil to not be lit during the deferred lighting pass.
 
-            // In case of forward only renderer we have a depth prepass. In case of deferred renderer, it is optional
-            bool addDepthPrepass = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() || m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering;
-            // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list. And they will tag the stencil to not be lit during the deferred lighting pass.
-            // Caution: If a DepthPrepass is enabled for deferred then the object will be rendered with the pass DepthPrepass. See guidelines. This allow to switch dynamically between both mode.
-            // So we don't need to render the ForwardOnlyOpaqueDepthOnly pass
-            // Note that an object can't be in both list
-            bool addForwardOnlyOpaqueDepthPrepass = !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && !m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering;
+            // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
+            // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
+            // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
 
-            if (addDepthPrepass == false && addForwardOnlyOpaqueDepthPrepass == false)
-                return;
+            // In case of forward only rendering we have a depth prepass. In case of deferred renderer, it is optional
+            bool addFullDepthPrepass = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() || m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering;
+            bool addAlphaTestedOnly = !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass;
 
-            using (new ProfilingSample(cmd, addDepthPrepass ? "Depth Prepass" : "Depth Prepass forward opaque"))
+            using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass"))
             {
-                // Default depth prepass (forward and deferred) will render all opaque geometry.
-                var renderQueueRange = RenderQueueRange.opaque;
-                // If we want only alpha tested geometry in prepass for deferred we change the RenderQueueRange
-                if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass)
-                    renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-
-                // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
-                // This is handeled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                // Note: addDepthPrepass and addForwardOnlyOpaqueDepthPrepass can't be both true at the same time. And if we are here both are not false
-                RenderOpaqueRenderList(cull, camera, renderContext, cmd, addDepthPrepass ? HDShaderPassNames.s_DepthOnlyName : HDShaderPassNames.s_ForwardOnlyOpaqueDepthOnlyName, 0, renderQueueRange);
+                if (addFullDepthPrepass && !addAlphaTestedOnly) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
+                {
+                    // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
+                    // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, RenderQueueRange.opaque);
+                }
+                else // Deferred rendering with partial depth prepass
+                {
+                    // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, RenderQueueRange.opaque);
+
+                    // Render Alpha test only if requested
+                    if (addAlphaTestedOnly)
+                    {
+                        var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
+                    }
+                }
             }
         }
 
@@ -1209,27 +1255,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
         {
-            // Guidelines: To be able to switch from deferred to forward renderer we need to have forward opaque material with both Forward and ForwardOnlyOpaque pass.
-            // This is what is assume here. But users may want to reduce number of shader combination once they have made their choice.
+            // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
+            // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
+            // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
+            // The RenderForward pass will render the appropriate pass depends on the engine settings. In case of forward only rendering, both "Forward" pass and "ForwardOnly" pass
+            // material will be render for both transparent and opaque. In case of deferred, both path are used for transparent but only "ForwardOnly" is use for opaque.
+            // (Thus why "Forward" and "ForwardOnly" are exclusive, else they will render two times"
 
-            // If we are transparent, we add the forward pass. Else (Render Opaque) we add it only if we are forward rendering
-            bool addForwardPass = !renderOpaque || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly();
-
-            // In case of deferred we can still have forward opaque object
-            // It mean that addForwardOnlyOpaquePass = !addForwardPass which is a simplification of: renderOpaque && !m_Asset.renderingSettings.ShouldUseForwardRenderingOnly()
-            // There is no need to store this case as we don't need to test for it
-
-            ShaderPassName passName;
             string profileName;
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
-                passName = addForwardPass ? HDShaderPassNames.s_ForwardDebugDisplayName : HDShaderPassNames.s_ForwardOnlyOpaqueDebugDisplayName;
-                profileName = addForwardPass ? (renderOpaque ? "Forward Opaque Debug Display" : "Forward Transparent Debug Display") : "ForwardOnlyOpaqueDebugDisplay";
+                profileName = renderOpaque ? "Forward Opaque Debug Display" : "Forward Transparent Debug Display";
             }
             else
             {
-                passName = addForwardPass ? HDShaderPassNames.s_ForwardName : HDShaderPassNames.s_ForwardOnlyOpaqueName;
-                profileName = addForwardPass ? (renderOpaque ? "Forward Opaque" : "Forward Transparent") :  "Forward Only Opaque";
+                profileName = renderOpaque ? "Forward Opaque" : "Forward Transparent";
             }
 
             using (new ProfilingSample(cmd, profileName))
@@ -1238,16 +1278,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.RenderForward(camera, cmd, renderOpaque);
 
-                m_ForwardPassNames[0] = passName;
-
-                if (renderOpaque)
+                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
-                    // Forward opaque material always have a prepass (whether or not we use deferred) so we pass the right depth state here.
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, m_ForwardPassNames, HDUtils.k_RendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
+                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
+                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardPassNames, HDUtils.k_RendererConfigurationBakedLighting);
+                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
+                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
+                }
+
+
+                if (renderOpaque)
+                {
+                    var passNames = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
+                    // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, HDUtils.k_RendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
+                }
+                else
+                {
+
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, HDUtils.k_RendererConfigurationBakedLighting);
                 }
             }
         }
@@ -1321,7 +1373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
-                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                int size = CalculatePyramidSize(w, h);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1368,7 +1420,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
-                int size = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                int size = CalculatePyramidSize(w, h);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1401,25 +1453,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int i = 0; i < lodCount + 1; i++)
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
-            }
-        }
-
-        void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
-                return;
-
-            using (new ProfilingSample(cmd, "Distortion"))
-            {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-
-                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
-                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
-                cmd.ClearRenderTarget(false, true, Color.black); // TODO: can we avoid this clear for performance ?
-
-                // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
 
@@ -1542,7 +1575,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_CameraFilteringBuffer,          w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     // Color and depth pyramids
-                    int s = Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+                    int s = CalculatePyramidSize(w, h);
                     m_GaussianPyramidColorBufferDesc.width = s;
                     m_GaussianPyramidColorBufferDesc.height = s;
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
@@ -1612,6 +1645,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 // END TEMP
             }
+        }
+
+        static int CalculatePyramidSize(int w, int h)
+        {
+            return Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
         }
     }
 }
