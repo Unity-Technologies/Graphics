@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/TilePass.cs.  Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand.
 //
 
 #ifndef TILEPASS_CS_HLSL
