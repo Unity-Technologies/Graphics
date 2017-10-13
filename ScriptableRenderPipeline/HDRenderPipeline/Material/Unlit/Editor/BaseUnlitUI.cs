@@ -25,14 +25,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");	
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
-            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader"); 
+            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map - Dist(RG) Blur(B)", "Vector Map for the distorsion - Dist(RG) Blur(B)"); 
-            public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode"); 
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map - Dist(RG) Blur(B)", "Vector Map for the distorsion - Dist(RG) Blur(B)");
+            public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode");
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
@@ -256,6 +256,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
+            // These need to always been set either with opaque or transparent! So a users can swtich to opaque and remove the keyword correctly
+            SetKeyword(material, "_BLENDMODE_LERP", false);
+            SetKeyword(material, "_BLENDMODE_ADD", false);
+            SetKeyword(material, "_BLENDMODE_SOFT_ADD", false);
+            SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
+            SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
+
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
@@ -319,7 +326,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
             if (material.HasProperty(kDistortionEnable))
-            {                
+            {
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
                 if (distortionDepthTest)
                 {
@@ -376,15 +383,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // If distortion only is enabled, disable all passes (except distortion and debug)
                 bool enablePass = !(distortionEnable && distortionOnly);
-                
+
                 // Disable all passes except distortion
                 // Distortion is setup in code above
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DepthOnlyStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyOpaqueDepthOnlyStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyOpaqueStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyOpaqueDebugDisplayStr, true);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DepthForwardOnlyStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferWithPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferDebugDisplayStr, true);
