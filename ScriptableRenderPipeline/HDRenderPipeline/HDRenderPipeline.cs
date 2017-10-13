@@ -774,7 +774,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Build Light list and render shadows"))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, deffered shadow, material and light classification can be parallelize with Async compute)
-                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
+
+                    if (ssaoSettingsToUse.enable)
+                    {
+                        // Override v2's MSVO if the internal default one is enabled
+                        m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
+                    }
+                    else if (postProcessLayer != null)
+                    {
+                        var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
+
+                        if (settings.IsEnabledAndSupported(null))
+                        {
+                            cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, RenderTextureFormat.R8, 0)
+                            {
+                                sRGB = false,
+                                enableRandomWrite = true
+                            }, FilterMode.Bilinear);
+                            postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
+                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, settings.directLightingStrength.value);
+                            PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
+
+                            // AO color is available at:
+                            //  settings.color.value
+                        }
+                        else
+                        {
+                            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
+                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, 0f);
+                        }
+                    }
+
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
