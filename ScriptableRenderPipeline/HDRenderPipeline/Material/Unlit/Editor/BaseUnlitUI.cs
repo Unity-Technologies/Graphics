@@ -256,6 +256,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
+            // These need to always been set either with opaque or transparent! So a users can swtich to opaque and remove the keyword correctly
+            SetKeyword(material, "_BLENDMODE_LERP", false);
+            SetKeyword(material, "_BLENDMODE_ADD", false);
+            SetKeyword(material, "_BLENDMODE_SOFT_ADD", false);
+            SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
+            SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
+
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
