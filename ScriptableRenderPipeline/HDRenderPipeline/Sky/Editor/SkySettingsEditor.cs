@@ -26,6 +26,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_EnvUpdatePeriod;
         private SerializedProperty m_LightingOverride;
 
+        private AtmosphericScatteringEditor m_AtmosphericScatteringEditor = new AtmosphericScatteringEditor();
+
         protected void OnEnable()
         {
             m_SkyResolution = serializedObject.FindProperty("resolution");
@@ -35,6 +37,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_EnvUpdateMode = serializedObject.FindProperty("updateMode");
             m_EnvUpdatePeriod = serializedObject.FindProperty("updatePeriod");
             m_LightingOverride = serializedObject.FindProperty("lightingOverride");
+
+            SerializedProperty atmosphericScattering = serializedObject.FindProperty("atmosphericScatteringSettings");
+            m_AtmosphericScatteringEditor.OnEnable(atmosphericScattering);
         }
 
         protected void CommonSkySettingsGUI()
@@ -50,6 +55,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_EnvUpdatePeriod, SkySettingsStyles.environmentUpdatePeriod);
             }
             EditorGUILayout.PropertyField(m_LightingOverride, SkySettingsStyles.lightingOverride);
+
+            EditorGUILayout.Space();
+
+            m_AtmosphericScatteringEditor.OnGUI();
         }
     }
 }

@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
+        Material                m_OpaqueAtmScatteringMaterial;
 
         IBLFilterGGX            m_iblFilterGgx;
 
@@ -253,7 +254,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The texture being set is the sky (environment) map pre-convolved with GGX.
         public void SetGlobalSkyTexture()
         {
-            Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
+            Shader.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
+            float mipCount = Mathf.Clamp(Mathf.Log((float)m_SkyboxGGXCubemapRT.width, 2.0f) + 1, 0.0f, 6.0f);
+            Shader.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
         public void Resize(float nearPlane, float farPlane)
@@ -272,6 +275,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
 
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.blitCubemap);
+
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.opaqueAtmosphericScattering);
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -450,6 +455,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (IsSkyValid())
                 {
+                    // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
+                    m_SkySettings.atmosphericScatteringSettings.PushShaderParameters(cmd);
+
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
@@ -461,6 +469,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_Renderer.SetRenderTargets(m_BuiltinParameters);
                     m_Renderer.RenderSky(m_BuiltinParameters, false);
+                }
+            }
+        }
+
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
+            {
+                if(skySettings.atmosphericScatteringSettings.NeedFogRendering())
+                {
+                    CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
                 }
             }
         }

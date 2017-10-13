@@ -34,7 +34,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
             float    _DisableSkyOcclusionTest;
 
             #define IS_RENDERING_SKY
-            #include "AtmosphericScattering.hlsl"
+            #include "AtmosphericScattering_blacksmith.hlsl"
 
             struct Attributes
             {
