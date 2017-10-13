@@ -792,6 +792,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 enableRandomWrite = true
                             }, FilterMode.Bilinear);
                             postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
+                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, settings.directLightingStrength.value);
                             PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
 
                             // AO color is available at:
