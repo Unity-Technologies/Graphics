@@ -1,9 +1,9 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/SubsurfaceScatteringProfile.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/SubsurfaceScatteringSettings.cs.  Please don't edit by hand.
 //
 
-#ifndef SUBSURFACESCATTERINGPROFILE_CS_HLSL
-#define SUBSURFACESCATTERINGPROFILE_CS_HLSL
+#ifndef SUBSURFACESCATTERINGSETTINGS_CS_HLSL
+#define SUBSURFACESCATTERINGSETTINGS_CS_HLSL
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.SssConstants:  static fields
 //
