@@ -337,6 +337,11 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 {
     float3x3 localToWorld = GetLocalFrame(N);
 
+#ifndef USE_KARIS_APPROXIMATION
+    float NdotV      = 1; // N == V
+    float preLambdaV = GetSmithJointGGXPreLambdaV(1, roughness);
+#endif
+
     // Bias samples towards the mirror direction to reduce variance.
     // This will have a side effect of making the reflection sharper.
     // Ref: Stochastic Screen-Space Reflections, p. 67.
@@ -420,20 +425,29 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // See "Moving Frostbite to Physically Based Rendering", p 63.
-            // The goal of this function is to use Monte-Carlo integration to evaluate
-            // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+            // The goal of this function is to use Monte-Carlo integration to find
+            // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
             // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
             // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
             // PDF    = D * NdotH / (4 * LdotH).
             // Weight = CBSDF / PDF = F * G * LdotH / (NdotV * NdotH).
             // Since we perform filtering with the assumption that (V == N),
             // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
-            // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
-            // Weight ≈ NdotL, which produces nearly identical results in practice.
+            // Therefore, after the Monte Carlo expansion of the integrals,
+            // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * G) / Sum(F * G).
 
+        #ifndef USE_KARIS_APPROXIMATION
+            float F = 1; // The choice of the Fresnel factor does not appear to affect the result
+            float V = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
+            float G = V * /* 4 * */ NdotL * NdotV; // 4 cancels out
+            lightInt += F * G * val;
+            cbsdfInt += F * G;
+        #else
+            // Use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
+            // Weight ≈ NdotL.
             lightInt += NdotL * val;
             cbsdfInt += NdotL;
+        #endif
         }
     }
 
