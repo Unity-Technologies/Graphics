@@ -70,9 +70,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
 
             //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
-            typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
-            typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
-            typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
 
 //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
         }
