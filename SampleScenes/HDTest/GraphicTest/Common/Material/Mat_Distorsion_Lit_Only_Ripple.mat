@@ -11,7 +11,7 @@ Material:
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
     _DEPTHOFFSETENABLE_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON _DOUBLESIDEDENABLE_OFF
     _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEVERTEXDISPLACEMENT_OFF
-    _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+    _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE _REFRACTION_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -110,6 +110,9 @@ Material:
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DisplacementLockObjectScale: 1
+    - _DisplacementLockTilingScale: 1
+    - _DisplacementMode: 0
     - _DistortionBlendMode: 0
     - _DistortionBlendOp: 21
     - _DistortionBlurBlendMode: 0
@@ -123,7 +126,7 @@ Material:
     - _DistortionEnable: 1
     - _DistortionNullify: 0
     - _DistortionOnly: 1
-    - _DistortionScale: 0.92
+    - _DistortionScale: 1
     - _DistortionSrcBlend: 1
     - _DistortionStencilRef: 4
     - _DoubleSidedEnable: 0
@@ -142,6 +145,8 @@ Material:
     - _HeightMin: -1
     - _IOR: 1
     - _InitialBend: 1
+    - _InvTilingScale: 1
+    - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metallic: 0
     - _NormalMapSpace: 0
@@ -149,7 +154,10 @@ Material:
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
+    - _PPDPrimitiveLength: 1
+    - _PPDPrimitiveWidth: 1
     - _PerPixelDisplacementObjectScale: 1
+    - _PreRefractionPass: 0
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
@@ -176,6 +184,7 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
