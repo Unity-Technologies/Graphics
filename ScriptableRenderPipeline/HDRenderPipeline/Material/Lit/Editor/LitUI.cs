@@ -579,7 +579,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ++EditorGUI.indentLevel;
 
                 var isPrePass = material.GetFloat(kPrePrefractionPass) > 0.0;
-                if (refractionMode != null && !isPrePass)
+                if (refractionMode != null
+                    // Refraction is not available for pre-refraction objects
+                    && !isPrePass)
                 {
                     m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
                     var mode = (Lit.RefractionMode)refractionMode.floatValue;
