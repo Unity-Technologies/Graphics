@@ -4,7 +4,7 @@
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
-#include "SubsurfaceScatteringProfile.cs.hlsl"
+#include "SubsurfaceScatteringSettings.cs.hlsl"
 
 // Enables attenuation of light source contributions by participating media (fog).
 #define VOLUMETRIC_SHADOWING_ENABLED
@@ -1536,7 +1536,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     //  It approximate cubic filled shapes
     //
     // However, we can't approximate the optical depth of the object, so we use a constant as parameter ({bsdfData.thickness})
-    
+
     // Refracted ray
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
