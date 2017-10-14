@@ -73,10 +73,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _HeightMap2("HeightMap2", 2D) = "black" {}
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
-        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 1
-        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 1
-        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 1
-        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 1
+        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
+        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
+        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
+        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
 
         _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
         _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5

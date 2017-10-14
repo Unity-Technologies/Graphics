@@ -454,23 +454,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
             }
 
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
-                }
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
             }
+            // Note: We should only enclose min/max property here for change detection. However heightAmplitude may not be correctly initialize if default value was not correct
+            // force a refresh when the user setup a heightmap, so we are sure it is correct
+            if (EditorGUI.EndChangeCheck())
+            {
+                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+            }
 
-            if(materialID != null)
+            if (materialID != null)
             {
             switch ((Lit.MaterialId)materialID.floatValue)
             {
@@ -544,7 +546,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-            }            
+            }
 
             // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
             X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;

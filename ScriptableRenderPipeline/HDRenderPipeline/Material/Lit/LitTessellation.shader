@@ -23,7 +23,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units
         _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
