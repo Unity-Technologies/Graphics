@@ -65,7 +65,16 @@ Shader "HDRenderPipeline/LitTessellation"
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
-        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+        [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
+        [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
+        [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurSrcBlend("Distortion Blur Blend Src", Int) = 0
+        [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
+        _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionBlurScale("Distortion Blur Scale", Float) = 1
+        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
+        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -104,6 +113,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
