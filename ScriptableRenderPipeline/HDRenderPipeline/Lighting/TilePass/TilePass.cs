@@ -1073,12 +1073,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
                 envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-                envLightData.envShapeType = EnvShapeType.None;
-
                 // TODO: Support sphere influence in UI
-                if (probe.boxProjection != 0)
+                if (probe.boxProjection == 0)
                 {
                     envLightData.envShapeType = EnvShapeType.Box;
+                    // If user request to have no projection, then setup a high number for minProjectionDistance
+                    // this will mimic infinite shape projection
+                    envLightData.minProjectionDistance = 65504.0f;
+                }
+                else
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    envLightData.minProjectionDistance = 0.0f;
                 }
 
                 // remove scale from the matrix (Scale in this matrix is use to scale the widget)
