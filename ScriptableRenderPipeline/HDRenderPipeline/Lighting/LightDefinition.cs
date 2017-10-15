@@ -6,14 +6,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // structure definition
     //-----------------------------------------------------------------------------
 
+    // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
     public enum GPULightType
     {
         Directional,
-        ProjectorBox,
-        Spot,
         Point,
+        Spot,
         ProjectorPyramid,
+        ProjectorBox,
 
         // AreaLight
         Line, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
