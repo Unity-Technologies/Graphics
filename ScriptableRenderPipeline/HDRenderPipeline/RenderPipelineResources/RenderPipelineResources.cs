@@ -10,7 +10,6 @@
 
         // Lighting resources
         public Shader deferredShader;
-        public Shader screenSpaceAmbientOcclusionShader;
         public ComputeShader subsurfaceScatteringCS;
         public ComputeShader volumetricLightingCS;
         public ComputeShader gaussianPyramidCS;
