@@ -2047,7 +2047,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
                             Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
                             int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
-                            float ambientOcclusionDirectLightStrenght = Shader.GetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght);
+                            Vector4 ambientOcclusionParam = Shader.GetGlobalVector(HDShaderIDs._AmbientOcclusionParam);
 
                             int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
                             int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
@@ -2121,7 +2121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._CosTime, cosTime);
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs.unity_DeltaTime, unity_DeltaTime);
                                 cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._EnvLightSkyEnabled, envLightSkyEnabled);
-                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionDirectLightStrenght, ambientOcclusionDirectLightStrenght);
+                                cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
 

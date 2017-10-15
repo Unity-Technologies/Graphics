@@ -771,16 +771,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 enableRandomWrite = true
                             }, FilterMode.Bilinear);
                             postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
-                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, settings.directLightingStrength.value);
+                            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
                             PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
-
-                            // AO color is available at:
-                            //  settings.color.value
                         }
                         else
                         {
                             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
-                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, 0.0f);
+                            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
                         }
                     }
 

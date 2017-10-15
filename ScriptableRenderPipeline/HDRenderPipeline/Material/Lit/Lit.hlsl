@@ -61,7 +61,7 @@ TEXTURE2D(_PyramidDepthTexture);
 
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
-float _AmbientOcclusionDirectLightStrenght;
+float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
 
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
@@ -1796,13 +1796,13 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
     float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
     // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionDirectLightStrenght);
+    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
 #if GTAO_MULTIBOUNCE_APPROX
     bakeDiffuseLighting *= GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
 #else
-    bakeDiffuseLighting *= indirectAmbientOcclusion;
+    bakeDiffuseLighting *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
 #endif
 
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, indirectAmbientOcclusion, bsdfData.roughness);
@@ -1811,12 +1811,17 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #if GTAO_MULTIBOUNCE_APPROX
     accLighting.envSpecularLighting *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
 #else
-    accLighting.envSpecularLighting *= min(bsdfData.specularOcclusion, specularOcclusion);
+    accLighting.envSpecularLighting *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
-    float3 directDiffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
+    float3 directDiffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting)
+#if GTAO_MULTIBOUNCE_APPROX
+                                    * GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
+#else
+                                    * lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
+#endif
     // envDiffuseLighting is used for refraction in this Lit material. Use the weight to balance between transmission and reflection
     diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
