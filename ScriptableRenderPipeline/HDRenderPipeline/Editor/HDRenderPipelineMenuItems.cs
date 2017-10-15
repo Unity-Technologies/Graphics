@@ -189,7 +189,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
-        class DoCreateNewAssetSSAOSettings : DoCreateNewAsset<ScreenSpaceAmbientOcclusionSettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
         [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 677)]
@@ -211,13 +210,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
-        }
-
-        [MenuItem("Assets/Create/HDRenderPipeline/Ambient Occlusion Settings", priority = 680)]
-        static void MenuCreateSSAOSettings()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSAOSettings>(), "New AmbientOcclusionSettings.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 681)]

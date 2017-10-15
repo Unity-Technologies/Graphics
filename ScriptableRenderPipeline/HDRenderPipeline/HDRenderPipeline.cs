@@ -155,7 +155,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
-        readonly ScreenSpaceAmbientOcclusionEffect m_SsaoEffect;
 
         // Stencil usage in HDRenderPipeline.
         // Currently we use only 2 bits to identify the kind of lighting that is expected from the render pipeline
@@ -216,7 +215,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
         SkySettings m_SkySettings = null;
-        ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
 
         public CommonSettings.Settings commonSettingsToUse
         {
@@ -237,17 +235,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return SkySettingsSingleton.overrideSettings;
 
                 return m_SkySettings;
-            }
-        }
-
-        public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
-        {
-            get
-            {
-                if (ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings)
-                    return ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings.settings;
-
-                return m_SsaoSettings;
             }
         }
 
@@ -342,8 +329,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect();
-            m_SsaoEffect.Build(asset.renderPipelineResources);
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
@@ -434,8 +419,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_InternalSSSAsset);
 
             m_SkyManager.Cleanup();
-
-            m_SsaoEffect.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -773,14 +756,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Build Light list and render shadows"))
                 {
-                    // TODO: Everything here (SSAO, Shadow, Build light list, deffered shadow, material and light classification can be parallelize with Async compute)
+                    // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
 
-                    if (ssaoSettingsToUse.enable)
-                    {
-                        // Override v2's MSVO if the internal default one is enabled
-                        m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, cmd, m_Asset.renderingSettings.useForwardRenderingOnly);
-                    }
-                    else if (postProcessLayer != null)
+                    // Apply SSAO from PostprocessLayer
+                    if (postProcessLayer != null)
                     {
                         var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
 
@@ -801,7 +780,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
-                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, 0f);
+                            cmd.SetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght, 0.0f);
                         }
                     }
 
