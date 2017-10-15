@@ -46,6 +46,11 @@
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
 
+// Sampler use by area light, gaussian pyramid, ambient occlusion etc...
+SamplerState s_linear_clamp_sampler;
+SamplerState s_trilinear_clamp_sampler;
+
+// Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
 float4 _GaussianPyramidColorMipSize;
 TEXTURE2D(_GaussianPyramidColorTexture);
@@ -54,9 +59,11 @@ TEXTURE2D(_GaussianPyramidColorTexture);
 float4 _PyramidDepthMipSize;
 TEXTURE2D(_PyramidDepthTexture);
 
-// Area light textures specific constant
-SamplerState ltc_linear_clamp_sampler;
-SamplerState ltc_trilinear_clamp_sampler;
+// Ambient occlusion texture
+TEXTURE2D(_AmbientOcclusionTexture);
+float _AmbientOcclusionDirectLightStrenght;
+
+// Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
 TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
@@ -67,9 +74,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
-
-// Subsurface scattering specific constant
+// Subsurface scattering constant
 #define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
@@ -86,6 +91,9 @@ float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unu
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
 float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
+
+// General constant
+#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -286,7 +294,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, ltc_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -749,9 +757,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
                                                                                        // Note we load the matrix transpose (avoid to have to transpose it in shader)
         preLightData.ltcXformClearCoat = 0.0;
         preLightData.ltcXformClearCoat._m22 = 1.0;
-        preLightData.ltcXformClearCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+        preLightData.ltcXformClearCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
-        float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+        float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
         float ltcClearCoatFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
         float ltcClearCoatFresnelMagnitude = ltcMagnitude.g;
         preLightData.ltcClearCoatFresnelTerm = preLightData.coatFresnel0 * ltcClearCoatFresnelMagnitudeDiff + ltcClearCoatFresnelMagnitude;
@@ -827,21 +835,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // Get the inverse LTC matrix for Disney Diffuse
     preLightData.ltcTransformDiffuse      = 0.0;
     preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
+    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
 #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformSpecular      = 0.0;
     preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
     preLightData.orthoBasisViewNormal[2] = bsdfData.normalWS;
     preLightData.orthoBasisViewNormal[1] = normalize(cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]));
 
-    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
     float  ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
     float  ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     float  ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
@@ -1624,13 +1632,13 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
         return;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
     float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
@@ -1638,7 +1646,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
 
 #else
     // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
 #endif
 }
 
@@ -1773,21 +1781,44 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 // PostEvaluateBSDF
 // ----------------------------------------------------------------------------
 
-void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLightData, BSDFData bsdfData, LightLoopAccumulatedLighting accLighting, float3 bakeDiffuseLighting,
+void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, LightLoopAccumulatedLighting accLighting, BSDFData bsdfData, float3 bakeDiffuseLighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
-    bakeDiffuseLighting *= GTAOMultiBounce(lightLoopContext.indirectAmbientOcclusion, bsdfData.diffuseColor);
+    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
+#define GTAO_MULTIBOUNCE_APPROX 1
 
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+
+    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
+    // Ambient occlusion use for direct lighting (directional, punctual, area)
+    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionDirectLightStrenght);
+
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
+#if GTAO_MULTIBOUNCE_APPROX
+    bakeDiffuseLighting *= GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+#else
+    bakeDiffuseLighting *= indirectAmbientOcclusion;
+#endif
+
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, indirectAmbientOcclusion, bsdfData.roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
+#if GTAO_MULTIBOUNCE_APPROX
     accLighting.envSpecularLighting *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
+#else
+    accLighting.envSpecularLighting *= min(bsdfData.specularOcclusion, specularOcclusion);
+#endif
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
-    // envDiffuseLighting is used for refraction
-    diffuseLighting = accLighting.envDiffuseLighting * accLighting.envDiffuseLightingWeight + (1.0 - accLighting.envDiffuseLightingWeight) * ((accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(lightLoopContext.directAmbientOcclusion, bsdfData.diffuseColor) + bakeDiffuseLighting);
+    float3 directDiffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
+    // envDiffuseLighting is used for refraction in this Lit material. Use the weight to balance between transmission and reflection
+    diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
 }
 

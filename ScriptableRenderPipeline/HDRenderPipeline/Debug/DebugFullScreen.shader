@@ -107,10 +107,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
                 }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAOBEFORE_FILTERING)
-                {
-                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
-                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                 #if UNITY_UV_STARTS_AT_TOP
