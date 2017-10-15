@@ -193,7 +193,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         #ifdef LIGHTLOOP_TILE_PASS
 
-        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted and compare performance.
         uint punctualLightStart;
         uint punctualLightCount;
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
@@ -201,8 +201,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < punctualLightCount; ++i)
         {
             float3 localDiffuseLighting, localSpecularLighting;
+            int punctualIndex = FetchIndex(punctualLightStart, i);
 
-            EvaluateBSDF_Punctual(  context, V, posInput, preLightData, _LightDatas[FetchIndex(punctualLightStart, i)], bsdfData,
+            EvaluateBSDF_Punctual(  context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, _LightDatas[punctualIndex].lightType,
                                     localDiffuseLighting, localSpecularLighting);
 
             accLighting.punctualDiffuseLighting += localDiffuseLighting;
@@ -215,7 +216,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             float3 localDiffuseLighting, localSpecularLighting;
 
-            EvaluateBSDF_Punctual(  context, V, posInput, preLightData, _LightDatas[i], bsdfData,
+            EvaluateBSDF_Punctual(  context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType,
                                     localDiffuseLighting, localSpecularLighting);
 
             accLighting.punctualDiffuseLighting += localDiffuseLighting;
