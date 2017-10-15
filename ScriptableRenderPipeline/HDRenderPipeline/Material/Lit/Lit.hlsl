@@ -1168,12 +1168,13 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 }
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                            float3 V, PositionInputs posInput,
+                            PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
                             out float3 diffuseLighting,
                             out float3 specularLighting)
 {
     float3 positionWS = posInput.positionWS;
-    int    lightType  = lightData.lightType;
+    int    lightType  = GPULightType;
 
     // All punctual light type in the same formula, attenuation is neutral depends on light type.
     // light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
