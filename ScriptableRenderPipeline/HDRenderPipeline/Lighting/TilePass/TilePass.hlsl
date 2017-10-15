@@ -75,7 +75,6 @@ struct LightLoopContext
     float directAmbientOcclusion;   // Ambient occlusion use for direct lighting (directional, punctual, area)
 
     // Not visible from Material (user should not use these properties in Material file)
-    int sampleShadow;
     int sampleReflection;
     ShadowContext shadowContext;
 };

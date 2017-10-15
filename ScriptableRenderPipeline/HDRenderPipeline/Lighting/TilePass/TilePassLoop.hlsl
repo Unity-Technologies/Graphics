@@ -166,7 +166,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
     context.indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
     context.directAmbientOcclusion = lerp(1.0, context.indirectAmbientOcclusion, _AmbientOcclusionDirectLightStrenght);
-    context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
 
@@ -328,7 +327,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #else
                 uint envLightIndex = i;
             #endif
-                EvaluateBSDF_Env(context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+                EvaluateBSDF_Env(context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType, localDiffuseLighting, localSpecularLighting, weight);
                 applyWeigthedIblLighting(localDiffuseLighting, localSpecularLighting, weight, accLighting.envDiffuseLighting, accLighting.envSpecularLighting, totalIblWeight);
             }
         }
@@ -344,7 +343,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
                 context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
                 EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-                EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+                EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, localDiffuseLighting, localSpecularLighting, weight);
                 applyWeigthedIblLighting(localDiffuseLighting, localSpecularLighting, weight, accLighting.envDiffuseLighting, accLighting.envSpecularLighting, totalIblWeight);
             }
         }
