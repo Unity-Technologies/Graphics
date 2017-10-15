@@ -85,11 +85,11 @@ struct EnvLightData
     float3 up;
     float blendDistance;
     float3 right;
-    int unused0;
+    float minProjectionDistance;
     float3 innerDistance;
-    float unused1;
+    float unused0;
     float3 offsetLS;
-    float unused2;
+    float unused1;
 };
 
 //
@@ -239,25 +239,25 @@ float3 GetRight(EnvLightData value)
 {
 	return value.right;
 }
-int GetUnused0(EnvLightData value)
+float GetMinProjectionDistance(EnvLightData value)
 {
-	return value.unused0;
+	return value.minProjectionDistance;
 }
 float3 GetInnerDistance(EnvLightData value)
 {
 	return value.innerDistance;
 }
-float GetUnused1(EnvLightData value)
+float GetUnused0(EnvLightData value)
 {
-	return value.unused1;
+	return value.unused0;
 }
 float3 GetOffsetLS(EnvLightData value)
 {
 	return value.offsetLS;
 }
-float GetUnused2(EnvLightData value)
+float GetUnused1(EnvLightData value)
 {
-	return value.unused2;
+	return value.unused1;
 }
 
 
