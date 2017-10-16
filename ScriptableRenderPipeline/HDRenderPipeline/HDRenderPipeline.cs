@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.GeometryLast + 1, max = (int)HDRenderQueue.PreRefraction };
-        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction + 1, max = 5000 };
+        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction + 1, max = (int)HDRenderQueue.Last };
 
         readonly HDRenderPipelineAsset m_Asset;
 
