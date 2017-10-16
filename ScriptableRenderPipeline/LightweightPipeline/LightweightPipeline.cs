@@ -237,8 +237,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
             {
                 VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
+
                 if (mainLight.light.shadows != LightShadows.None)
                 {
+                    if (!LightweightUtils.IsSupportedShadowType(mainLight.lightType))
+                    {
+                        Debug.LogWarning("Only directional and spot shadows are supported by LightweightPipeline.");
+                        return;
+                    }
+
                     // There's no way to map shadow light indices. We need to pass in the original unsorted index.
                     // If no additional lights then no light sorting is performed and the indices match.
                     int shadowOriginalIndex = (lightData.hasAdditionalLights) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
@@ -484,7 +491,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Dictionary<int, int> visibleLightsIDMap = new Dictionary<int, int>();
             for (int i = 0; i < totalVisibleLights; ++i)
-                visibleLightsIDMap.Add(visibleLights[i].light.GetInstanceID(), i);
+                visibleLightsIDMap.Add(visibleLights[i].GetHashCode(), i);
 
             // Sorts light so we have all directionals first, then local lights.
             // Directionals are sorted further by shadow, cookie and intensity
@@ -493,7 +500,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(visibleLights, m_LightCompararer);
 
             for (int i = 0; i < totalVisibleLights; ++i)
-                m_SortedLightIndexMap.Add(visibleLightsIDMap[visibleLights[i].light.GetInstanceID()]);
+                m_SortedLightIndexMap.Add(visibleLightsIDMap[visibleLights[i].GetHashCode()]);
 
             return GetMainLight(visibleLights);
         }
@@ -652,8 +659,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
 
-            float bias = shadowLight.light.shadowBias * 0.1f;
-            float normalBias = shadowLight.light.shadowNormalBias;
+            Light light = shadowLight.light;
+            float bias = light.shadowBias * 0.1f;
+            float normalBias = light.shadowNormalBias;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             const int maxShadowCascades = 4;
