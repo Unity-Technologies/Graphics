@@ -7,9 +7,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -26,10 +24,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             this.AddManipulator(new ClickSelector());
 
             Insert(0, new GridBackground());
-
-            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeView);
-            typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
-            typeFactory[typeof(EdgePresenter)] = typeof(Edge);
 
             AddStyleSheetPath("Styles/MaterialGraph");
         }
@@ -183,7 +177,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphPresenter == null)
                 return;
 
-            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.presenter != null).Select(x => (MaterialNodePresenter)x.presenter);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
             graphPresenter.UpdateSelection(selectedNodes);
         }
 

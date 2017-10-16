@@ -146,11 +146,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theElements = m_Elements.OfType<MaterialNodePresenter>().ToList();
-                var found = theElements.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in found)
-                    drawableNodeData.OnModified(scope);
-
                 var theViews = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
                 var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in viewsFound)
@@ -219,10 +214,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             change.node.onModified -= OnNodeChanged;
 
-            var nodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == change.node.guid);
-            if (nodePresenter != null)
-                m_Elements.Remove(nodePresenter);
-
             var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == change.node.guid);
             if (nodeView != null)
                 m_GraphView.RemoveElement(nodeView);
@@ -274,12 +265,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             RecordState();
         }
 
-        public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
-        {
-            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.edge));
-            graph.ValidateGraph();
-        }
-
         public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
         {
             graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));  
@@ -312,22 +297,22 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
+        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
         {
             var graph = new CopyPasteGraph();
-            foreach (var presenter in selection)
+            foreach (var element in selection)
             {
-                var nodePresenter = presenter as MaterialNodePresenter;
-                if (nodePresenter != null)
+                var nodeView = element as MaterialNodeView;
+                if (nodeView != null)
                 {
-                    graph.AddNode(nodePresenter.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodePresenter.node))
+                    graph.AddNode(nodeView.node);
+                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
                         graph.AddEdge(edge);
                 }
 
-                var edgePresenter = presenter as GraphEdgePresenter;
-                if (edgePresenter != null)
-                    graph.AddEdge(edgePresenter.edge);
+                var edgeView = element as Edge;
+                if (edgeView != null)
+                    graph.AddEdge(edgeView.userData as IEdge);
             }
             return graph;
         }
@@ -398,7 +383,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Copy()
         {
-            var graph = CreateCopyPasteGraph(elements.Where(e => e.selected));
+            var graph = CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>());
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
         }
 
@@ -411,7 +396,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             Copy();
             Undo.RecordObject(m_GraphObject, "Cut");
-            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RemoveElements(
+                m_GraphView.selection.OfType<MaterialNodeView>(),
+                m_GraphView.selection.OfType<Edge>());
             RecordState();
         }
 
@@ -435,7 +422,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Duplicate()
         {
-            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(elements.Where(e => e.selected)), true));
+            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
             Undo.RecordObject(m_GraphObject, "Duplicate");
             InsertCopyPasteGraph(graph);
             RecordState();
@@ -450,10 +437,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             RecordState();
             Undo.RecordObject(m_GraphObject, "Delete");
-            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
             RemoveElements(
-                m_GraphView.selection.OfType<MaterialNodeView>().Where(e => e.selected && e.presenter == null),
-                m_GraphView.selection.OfType<Edge>().Where(e => e.selected));
+                m_GraphView.selection.OfType<MaterialNodeView>(),
+                m_GraphView.selection.OfType<Edge>());
             RecordState();
         }
 
@@ -462,16 +448,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
         }
 
-        public delegate void OnSelectionChanged(IEnumerable<INode> presenters);
+        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
 
         public OnSelectionChanged onSelectionChanged;
 
-        public void UpdateSelection(IEnumerable<MaterialNodePresenter> presenters)
+        public void UpdateSelection(IEnumerable<MaterialNodeView> nodes)
         {
             if (graph == null)
                 return;
             if (onSelectionChanged != null)
-                onSelectionChanged(presenters.Select(x => x.node as INode));
+                onSelectionChanged(nodes.Select(x => x.userData as INode));
         }
 
         public override void AddElement(GraphElementPresenter element)
