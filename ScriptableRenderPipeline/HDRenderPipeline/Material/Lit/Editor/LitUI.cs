@@ -578,7 +578,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
 
-                if (refractionMode != null)
+                var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0;
+                if (refractionMode != null
+                    // Refraction is not available for pre-refraction objects
+                    && !isPrePass)
                 {
                     m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
                     var mode = (Lit.RefractionMode)refractionMode.floatValue;
@@ -602,6 +605,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
                         ++EditorGUI.indentLevel;
                         m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
                         --EditorGUI.indentLevel;
 
                         --EditorGUI.indentLevel;
@@ -717,6 +721,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_REFRACTION_THINPLANE", refractionModeValue == Lit.RefractionMode.ThinPlane);
             SetKeyword(material, "_REFRACTION_THICKPLANE", refractionModeValue == Lit.RefractionMode.ThickPlane);
             SetKeyword(material, "_REFRACTION_THICKSPHERE", refractionModeValue == Lit.RefractionMode.ThickSphere);
+
+            var hasRefraction = (!material.HasProperty(kPreRefractionPass) 
+                || material.GetFloat(kPreRefractionPass) <= 0.0)
+                && refractionModeValue != Lit.RefractionMode.None;
+            SetKeyword(material, "_REFRACTION_ON", hasRefraction); // Refraction is not available for pre refraction (color buffer cannot be fetched)
         }
     }
 } // namespace UnityEditor

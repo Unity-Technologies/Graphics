@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
         public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
         public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
+        public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
         public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
         public static string kTileDebug = "Tile Debug By Category";
@@ -34,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
+        public float fullscreenDebugMip = 0;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -143,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, int>(kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kFullScreenDebugMip, () => fullscreenDebugMip, value => fullscreenDebugMip = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0f, 1f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
@@ -487,6 +490,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MinLightingFullScreenDebug,
         SSAO,
         DeferredShadows,
+        PreRefractionColorPyramid,
+        DepthPyramid,
+        FinalColorPyramid,
         MaxLightingFullScreenDebug,
 
         // Rendering
