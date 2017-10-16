@@ -94,35 +94,17 @@ namespace UnityEngine.MaterialGraph
             if (otherMG != null)
             {
                 using (var removedPropertiesPooledObject = ListPool<Guid>.GetDisposable())
-                using (var replacedPropertiesPooledObject = ListPool<IndexedProperty>.GetDisposable())
                 {
                     var removedPropertyGuids = removedPropertiesPooledObject.value;
-                    var replacedProperties = replacedPropertiesPooledObject.value;
-                    var index = 0;
                     foreach (var property in m_Properties)
-                    {
-                        var otherProperty = otherMG.properties.FirstOrDefault(op => op.guid == property.guid);
-                        if (otherProperty == null)
-                            removedPropertyGuids.Add(property.guid);
-                        else
-                            replacedProperties.Add(new IndexedProperty { index = index, property = otherProperty });
-                        index++;
-                    }
-
+                        removedPropertyGuids.Add(property.guid);
                     foreach (var propertyGuid in removedPropertyGuids)
                         RemoveShaderProperty(propertyGuid);
-
-                    foreach (var indexedProperty in replacedProperties)
-                    {
-                        m_Properties[indexedProperty.index] = indexedProperty.property;
-                        // TODO: Notify of change
-                    }
-
-                    foreach (var otherProperty in otherMG.properties)
-                    {
-                        if (!properties.Any(p => p.guid == otherProperty.guid))
-                            AddShaderProperty(otherProperty);
-                    }
+                }
+                foreach (var otherProperty in otherMG.properties)
+                {
+                    if (!properties.Any(p => p.guid == otherProperty.guid))
+                        AddShaderProperty(otherProperty);
                 }
             }
             base.ReplaceWith(other);

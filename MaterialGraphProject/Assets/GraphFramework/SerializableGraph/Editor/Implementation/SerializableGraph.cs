@@ -292,38 +292,12 @@ namespace UnityEngine.Graphing
                     RemoveEdge(edge);
             }
 
+            // Remove all nodes and re-add them.
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
                 foreach (var node in m_Nodes.Values)
-                {
-                    var otherNode = other.GetNodeFromGuid(node.guid);
-                    if (otherNode == null || node.GetType() != otherNode.GetType())
-                    {
-                        // Remove the node if it doesn't exist in the other graph, or if the types don't match.
-                        removedNodeGuids.Add(node.guid);
-                    }
-                    else
-                    {
-                        foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                        {
-                            var attribute = propertyInfo.GetCustomAttributes(typeof(NonSerializedAttribute), true).FirstOrDefault();
-                            if (attribute == null && propertyInfo.GetSetMethod() != null)
-                                propertyInfo.SetValue(node, propertyInfo.GetValue(otherNode, null), null);
-                        }
-                        foreach (var fieldInfo in node.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                        {
-                            var nonSerializedAttribute = fieldInfo.GetCustomAttributes(typeof(NonSerializedAttribute), true).FirstOrDefault();
-                            var serializeFieldAttribute = fieldInfo.GetCustomAttributes(typeof(SerializeField), true).FirstOrDefault();
-                            var isSerialized = ((fieldInfo.IsPublic && nonSerializedAttribute != null) || serializeFieldAttribute != null) && !fieldInfo.IsStatic && !fieldInfo.IsLiteral && !fieldInfo.IsInitOnly;
-                            if (isSerialized)
-                                fieldInfo.SetValue(node, fieldInfo.GetValue(otherNode));
-                        }
-                        var callbackReceiver = node as ISerializationCallbackReceiver;
-                        if (callbackReceiver != null) callbackReceiver.OnAfterDeserialize();
-                    }
-                }
-
+                    removedNodeGuids.Add(node.guid);
                 foreach (var nodeGuid in removedNodeGuids)
                     RemoveNode(m_Nodes[nodeGuid]);
             }
