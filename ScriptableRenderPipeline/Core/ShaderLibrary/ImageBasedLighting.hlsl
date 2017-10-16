@@ -470,8 +470,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * G) / Sum(F * G).
 
     #ifndef USE_KARIS_APPROXIMATION
-        float F0  = 1; // The choice of the Fresnel factor does not appear to affect the result
-        float F   = F_Schlick(F0, LdotH);
+        // The choice of the Fresnel factor does not appear to affect the result.
+        float F   = 1; // F_Schlick(F0, LdotH);
         float V   = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
         float G2  = V * NdotL * NdotV; // 4 cancels out
         lightInt += F * G2 * val;

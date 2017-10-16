@@ -37,7 +37,8 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 
     while (true)
     {
-        int wastedSampleCount = 0;
+        int acceptedSampleCount = 0;
+        int shiftedSampleIndex  = 0;
 
         for (int i = 0; i < sampleCount; i++)
         {
@@ -46,10 +47,19 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
             float2 u = Golden2dSeq(i, sampleCount);
             SampleVisibleAnisoGGXDir(u, V, k_identity3x3, roughness, roughness, localL, NdotL, NdotH, LdotH, true);
 
-            if (NdotL <= 0) wastedSampleCount++;
+            if (NdotL > 0)
+            {
+                if (acceptedSampleCount == sampleIndex) shiftedSampleIndex = i;
+                acceptedSampleCount++;
+            }
         }
 
-        if (validSampleCount == sampleCount - wastedSampleCount) break;
+        if (acceptedSampleCount == validSampleCount)
+        {
+            sampleIndex = shiftedSampleIndex;
+            break;
+        }
+
         sampleCount++;
     }
 
