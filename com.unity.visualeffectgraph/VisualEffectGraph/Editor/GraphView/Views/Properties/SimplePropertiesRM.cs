@@ -14,15 +14,40 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
+    interface IStringProvider
+    {
+        string[] GetAvailableString();
+    }
+
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public class StringProviderAttribute : PropertyAttribute
     {
         public StringProviderAttribute(Type providerType)
         {
-            m_ProviderType = providerType;
+            if (!typeof(IStringProvider).IsAssignableFrom(providerType))
+                throw new InvalidCastException("StringProviderAttribute except a type which implement interface IStringProvider : " + providerType);
+            this.providerType = providerType;
         }
 
-        public Type m_ProviderType;
+        public Type providerType { get; private set; }
+    }
+
+    interface IPushButtonBehavior
+    {
+        void OnClicked(string currentValue);
+    }
+
+    [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public class PushButtonAttribute : PropertyAttribute
+    {
+        public PushButtonAttribute(Type pushButtonProvider)
+        {
+            if (!typeof(IPushButtonBehavior).IsAssignableFrom(pushButtonProvider))
+                throw new InvalidCastException("PushButtonAttribute except a type which implement interface IPushButtonBehavior : " + pushButtonProvider);
+            this.pushButtonProvider = pushButtonProvider;
+        }
+
+        public Type pushButtonProvider { get; private set; }
     }
 }
 
@@ -142,12 +167,26 @@ namespace UnityEditor.VFX.UI
                 {
                     if (attribute is StringProviderAttribute)
                     {
-                        var instance = Activator.CreateInstance((attribute as StringProviderAttribute).m_ProviderType);
-                        if (instance is IStringProvider)
-                        {
-                            var stringProvider = instance as IStringProvider;
-                            return () => stringProvider.GetAvailableString();
-                        }
+                        var instance = Activator.CreateInstance((attribute as StringProviderAttribute).providerType);
+                        var stringProvider = instance as IStringProvider;
+                        return () => stringProvider.GetAvailableString();
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static Action<string> FindPushButtonBehavior(object[] customAttributes)
+        {
+            if (customAttributes != null)
+            {
+                foreach (var attribute in customAttributes)
+                {
+                    if (attribute is PushButtonAttribute)
+                    {
+                        var instance = Activator.CreateInstance((attribute as PushButtonAttribute).pushButtonProvider);
+                        var pushButtonBehavior = instance as IPushButtonBehavior;
+                        return (a) => pushButtonBehavior.OnClicked(a);
                     }
                 }
             }
@@ -157,9 +196,14 @@ namespace UnityEditor.VFX.UI
         public override ValueControl<string> CreateField()
         {
             var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
             if (stringProvider != null)
             {
                 return new StringFieldProvider(m_Label, stringProvider);
+            }
+            else if (pushButtonProvider != null)
+            {
+                return new StringFieldPushButton(m_Label, pushButtonProvider);
             }
             else
             {

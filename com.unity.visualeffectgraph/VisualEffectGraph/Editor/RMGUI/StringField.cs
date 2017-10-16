@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UIElements
 {
     class StringField : ValueControl<string>, IValueChangeListener<string>
     {
-        TextField m_TextField;
+        protected TextField m_TextField;
 
         void CreateTextField()
         {
