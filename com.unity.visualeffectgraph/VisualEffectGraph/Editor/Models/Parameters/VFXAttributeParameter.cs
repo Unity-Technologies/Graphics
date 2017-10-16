@@ -23,6 +23,9 @@ namespace UnityEditor.VFX
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
+
+        override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = VFXAttribute.Find(this.attribute, location);
