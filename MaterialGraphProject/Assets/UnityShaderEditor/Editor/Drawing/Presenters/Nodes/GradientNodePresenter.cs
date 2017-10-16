@@ -63,19 +63,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class GradientNodePresenter : MaterialNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<GradientContolPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter> { instance };
-        }
-    }
-#endif
-
     public class GradientNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

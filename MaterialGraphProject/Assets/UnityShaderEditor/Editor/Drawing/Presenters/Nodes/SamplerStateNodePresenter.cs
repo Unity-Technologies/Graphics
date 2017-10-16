@@ -50,19 +50,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class SamplerStateNodePresenter : MaterialNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<SamplerStateControlPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter> { instance };
-        }
-    }
-#endif
-
     public class SamplerStateNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

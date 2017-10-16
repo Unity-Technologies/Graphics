@@ -25,17 +25,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-    [Serializable]
-    public class Vector4NodePresenter : PropertyNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<Vector4ControlPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
-        }
-    }
-
     public class Vector4NodeView : PropertyNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

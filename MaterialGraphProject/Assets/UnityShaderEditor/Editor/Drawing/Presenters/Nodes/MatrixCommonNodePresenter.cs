@@ -37,19 +37,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class MatrixCommonNodePresenter : MaterialNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<MatrixCommonContolPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter> { instance };
-        }
-    }
-#endif
-
     public class MatrixCommonNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

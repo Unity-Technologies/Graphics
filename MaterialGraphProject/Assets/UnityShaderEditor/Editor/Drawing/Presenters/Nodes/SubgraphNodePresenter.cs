@@ -28,17 +28,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-    [Serializable]
-    public class SubgraphNodePresenter : MaterialNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<SubgraphContolPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter> { instance };
-        }
-    }
-
     public class SubgraphNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
