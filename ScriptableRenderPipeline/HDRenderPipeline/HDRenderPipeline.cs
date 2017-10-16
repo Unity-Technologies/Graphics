@@ -78,6 +78,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Transparent
         }
 
+        static readonly string[] k_ForwardPassDebugName =
+        {
+            "Forward Opaque Debug Display",
+            "Forward PreRefraction Debug Display",
+            "Forward Transparent Debug Display"
+        };
+
+        static readonly string[] k_ForwardPassName =
+        {
+            "Forward Opaque Display",
+            "Forward PreRefraction Display",
+            "Forward Transparent Display"
+        };
+
         static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.GeometryLast + 1, max = (int)HDRenderQueue.PreRefraction };
         static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction + 1, max = (int)HDRenderQueue.Last };
 
@@ -1265,11 +1279,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string profileName;
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
-                profileName = string.Format("Forward {0} Debug Display", pass);
+                profileName = k_ForwardPassDebugName[(int)pass];
             }
             else
             {
-                profileName = string.Format("Forward {0} Display", pass);
+                profileName = k_ForwardPassName[(int)pass];
             }
 
             using (new ProfilingSample(cmd, profileName))
