@@ -1,11 +1,11 @@
-﻿﻿using System;
+﻿using System;
 using System.Linq;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
- using UnityEngine.Experimental.UIElements.StyleEnums;
- using UnityEngine.Experimental.UIElements.StyleSheets;
- using UnityEngine.Graphing;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Inspector
@@ -63,7 +63,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
-                m_Preview = new Image { name = "preview", image = Texture2D.blackTexture};
+                m_Preview = new Image { name = "preview", image = Texture2D.blackTexture };
                 bottomContainer.Add(m_Preview);
             }
             Add(bottomContainer);
@@ -74,21 +74,27 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             // - SubGraphOutputNode
             m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorView), typeof(StandardNodeEditorView))
             {
-                  // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
+                // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
             };
         }
 
         void OnAddProperty()
         {
             var gm = new GenericMenu();
-            gm.AddItem(new GUIContent("Float"), false, () => m_Presenter.graph.AddShaderProperty(new FloatShaderProperty()));
-            gm.AddItem(new GUIContent("Vector2"), false, () => m_Presenter.graph.AddShaderProperty(new Vector2ShaderProperty()));
-            gm.AddItem(new GUIContent("Vector3"), false, () => m_Presenter.graph.AddShaderProperty(new Vector3ShaderProperty()));
-            gm.AddItem(new GUIContent("Vector4"), false, () => m_Presenter.graph.AddShaderProperty(new Vector4ShaderProperty()));
-            gm.AddItem(new GUIContent("Color"), false, () => m_Presenter.graph.AddShaderProperty(new ColorShaderProperty()));
-            gm.AddItem(new GUIContent("Texture"), false, () => m_Presenter.graph.AddShaderProperty(new TextureShaderProperty()));
-                gm.ShowAsContext();
-            }
+            gm.AddItem(new GUIContent("Float"), false, () => AddProperty(new FloatShaderProperty()));
+            gm.AddItem(new GUIContent("Vector2"), false, () => AddProperty(new Vector2ShaderProperty()));
+            gm.AddItem(new GUIContent("Vector3"), false, () => AddProperty(new Vector3ShaderProperty()));
+            gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty()));
+            gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty()));
+            gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty()));
+            gm.ShowAsContext();
+        }
+
+        void AddProperty(IShaderProperty property)
+        {
+            m_Presenter.graph.owner.RegisterCompleteObjectUndo("Add Property");
+            m_Presenter.graph.AddShaderProperty(property);
+        }
 
         public void OnChange(GraphInspectorPresenter.ChangeType changeType)
         {
@@ -144,7 +150,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                         m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
                     m_Graph.onChange += OnGraphChange;
                 }
-        }
+            }
         }
 
         void OnGraphChange(GraphChange change)

@@ -40,6 +40,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         void OnClickRemove()
         {
+            graph.owner.RegisterCompleteObjectUndo("Remove Property");
             graph.RemoveShaderProperty(property.guid);
             NotifyNodes();
         }
