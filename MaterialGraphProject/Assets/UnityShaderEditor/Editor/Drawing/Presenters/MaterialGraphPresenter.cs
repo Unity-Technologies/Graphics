@@ -209,17 +209,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-#if WITH_PRESENTER
-            var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
-            change.node.onModified += OnNodeChanged;
-            nodePresenter.Initialize(change.node, m_PreviewSystem);
-            m_Elements.Add(nodePresenter);
-#else
             var nodeView = (MaterialNodeView)typeMapper.Create(change.node);
             change.node.onModified += OnNodeChanged;
             nodeView.Initialize(change.node, m_PreviewSystem);
             m_GraphView.AddElement(nodeView);
-#endif
         }
 
         void NodeRemoved(NodeRemovedGraphChange change)
@@ -245,54 +238,26 @@ namespace UnityEditor.MaterialGraph.Drawing
             var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
             var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
 
-            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
+            var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
+            if (sourceNodeView == null)
+                return;
 
-            if (sourceNodePresenter != null)
-            {
-                var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
+            var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
 
-                var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
-                var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
+            var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
+            var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
 
-                var edgePresenter = CreateInstance<GraphEdgePresenter>();
-                edgePresenter.Initialize(edge);
-                edgePresenter.output = sourceAnchorPresenter;
-                edgePresenter.output.Connect(edgePresenter);
-                edgePresenter.input = targetAnchor;
-                edgePresenter.input.Connect(edgePresenter);
-                m_Elements.Add(edgePresenter);
-            }
-            else
-            {
-                var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
-                if (sourceNodeView == null)
-                    return;
-
-                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
-
-                var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
-                var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
-
-                var edgeView = new Edge();
-                edgeView.userData = edge;
-                edgeView.output = sourceAnchor;
-                edgeView.output.Connect(edgeView);
-                edgeView.input = targetAnchor;
-                edgeView.input.Connect(edgeView);
-                m_GraphView.AddElement(edgeView);
-            }
+            var edgeView = new Edge();
+            edgeView.userData = edge;
+            edgeView.output = sourceAnchor;
+            edgeView.output.Connect(edgeView);
+            edgeView.input = targetAnchor;
+            edgeView.input.Connect(edgeView);
+            m_GraphView.AddElement(edgeView);
         }
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
         {
-            var edgePresenter = m_Elements.OfType<GraphEdgePresenter>().FirstOrDefault(p => p.edge == change.edge);
-            if (edgePresenter != null)
-            {
-                edgePresenter.output.Disconnect(edgePresenter);
-                edgePresenter.input.Disconnect(edgePresenter);
-                m_Elements.Remove(edgePresenter);
-            }
-
             var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && (IEdge)p.userData == change.edge);
             if (edgeView != null)
             {
