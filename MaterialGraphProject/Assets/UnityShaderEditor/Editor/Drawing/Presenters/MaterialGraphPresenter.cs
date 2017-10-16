@@ -11,86 +11,17 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialGraphObject : ScriptableObject
-    {
-        [SerializeField]
-        public string serializedGraph;
-
-        [SerializeField]
-        public int version;
-    }
-
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
         private GraphView m_GraphView;
 
-        GraphTypeMapper typeMapper { get; set; }
         PreviewSystem m_PreviewSystem;
 
         public IGraph graph { get; private set; }
 
-        [SerializeField]
-        IMaterialGraphEditWindow m_Container;
-
-        [SerializeField]
-        MaterialGraphObject m_GraphObject;
-
-        [SerializeField]
-        int m_GraphVersion;
-
         protected MaterialGraphPresenter()
         {
-            typeMapper = new GraphTypeMapper(typeof(MaterialNodeView));
-            typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodeView);
-            typeMapper[typeof(ColorNode)] = typeof(ColorNodeView);
-            typeMapper[typeof(GradientNode)] = typeof(GradientNodeView);
-
-            // typeMapper[typeof(ScatterNode)] = typeof(ScatterNodeView);
-            //typeMapper[typeof(TextureNode)] = typeof(TextureNodeView);
-            //typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodeView);
-            //typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodeView);
-            //            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodeView);
-            //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodeView);
-            typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodeView);
-            //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodeView);
-            //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodeView);
-            typeMapper[typeof(UVNode)] = typeof(UVNodeView);
-            typeMapper[typeof(Vector1Node)] = typeof(Vector1NodeView);
-            typeMapper[typeof(Vector2Node)] = typeof(Vector2NodeView);
-            typeMapper[typeof(Vector3Node)] = typeof(Vector3NodeView);
-            typeMapper[typeof(Vector4Node)] = typeof(Vector4NodeView);
-            typeMapper[typeof(PropertyNode)] = typeof(PropertyNodeView);
-
-            /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
-             typeMapper[typeof(RadialShearNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
-             typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodeView);          // anything derived from AnyNode should use the AnyNodeView
-             typeMapper[typeof(SphericalIndentationNode)] = typeof(AnyNodeView);          // anything derived from AnyNode should use the AnyNodeView
-             typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView
-             typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodeView);         // anything derived from AnyNode should use the AnyNodeView*/
-            typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodeView);
-            typeMapper[typeof(MasterRemapNode)] = typeof(MasterRemapNodeView);
-
-            // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodeView);
-            typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodeView);
-            //            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeView);
-            typeMapper[typeof(LevelsNode)] = typeof(LevelsNodeView);
-            typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodeView);
-
-            //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodeView);
-            typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodeView);
-
-            // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodeView);
-            typeMapper[typeof(IfNode)] = typeof(IfNodeView);
-
-            //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodeView);
-            typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodeView);
-            typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodeView);
-            typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodeView);
-            typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodeView);
-            typeMapper[typeof(TransformNode)] = typeof(TransformNodeView);
-
-            //            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodeView);
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
@@ -162,7 +93,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_PreviewSystem = previewSystem;
             this.graph = graph;
-            m_Container = container;
 
             if (graph == null)
                 return;
@@ -173,28 +103,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 EdgeAdded(new EdgeAddedGraphChange(edge));
 
             this.graph.onChange += OnChange;
-
-            m_GraphObject = CreateInstance<MaterialGraphObject>();
-            Undo.undoRedoPerformed += UndoRedoPerformed;
-
-            RecordState();
-        }
-
-        void UndoRedoPerformed()
-        {
-            if (m_GraphObject.version != m_GraphVersion)
-            {
-                var targetGraph = JsonUtility.FromJson(m_GraphObject.serializedGraph, graph.GetType()) as IGraph;
-                graph.ReplaceWith(targetGraph);
-                m_GraphVersion = m_GraphObject.version;
-            }
-        }
-
-        void RecordState()
-        {
-            m_GraphObject.serializedGraph = JsonUtility.ToJson(graph, false);
-            m_GraphObject.version++;
-            m_GraphVersion = m_GraphObject.version;
         }
 
         void OnChange(GraphChange change)
@@ -260,9 +168,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void AddNode(INode node)
         {
-            Undo.RecordObject(m_GraphObject, "Add " + node.name);
+            graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
             graph.AddNode(node);
-            RecordState();
         }
 
         public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
@@ -275,9 +182,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             if (left != null && right != null)
             {
-                Undo.RecordObject(m_GraphObject, "Connect Edge");
+                graph.owner.RegisterCompleteObjectUndo("Connect Edge");
                 graph.Connect(left.slot.slotReference, right.slot.slotReference);
-                RecordState();
             }
         }
 
@@ -395,11 +301,10 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Cut()
         {
             Copy();
-            Undo.RecordObject(m_GraphObject, "Cut");
+            graph.owner.RegisterCompleteObjectUndo("Cut");
             RemoveElements(
                 m_GraphView.selection.OfType<MaterialNodeView>(),
                 m_GraphView.selection.OfType<Edge>());
-            RecordState();
         }
 
         public bool canPaste
@@ -410,9 +315,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Paste()
         {
             var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
-            Undo.RecordObject(m_GraphObject, "Paste");
+            graph.owner.RegisterCompleteObjectUndo("Paste");
             InsertCopyPasteGraph(pastedGraph);
-            RecordState();
         }
 
         public bool canDuplicate
@@ -422,10 +326,9 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Duplicate()
         {
-            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
-            Undo.RecordObject(m_GraphObject, "Duplicate");
-            InsertCopyPasteGraph(graph);
-            RecordState();
+            var deserializedGraph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
+            graph.owner.RegisterCompleteObjectUndo("Duplicate");
+            InsertCopyPasteGraph(deserializedGraph);
         }
 
         public bool canDelete
@@ -435,12 +338,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Delete()
         {
-            RecordState();
-            Undo.RecordObject(m_GraphObject, "Delete");
+            graph.owner.RegisterCompleteObjectUndo("Delete");
             RemoveElements(
                 m_GraphView.selection.OfType<MaterialNodeView>(),
                 m_GraphView.selection.OfType<Edge>());
-            RecordState();
         }
 
         public override void AddElement(EdgePresenter edge)
