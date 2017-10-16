@@ -8,14 +8,11 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Mat_Distorsion_Lit_2DNoise_PreTransparent
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTIONONLY_OFF
-    _DISTORTION_ON _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _BLENDMODE_LERP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2750
+  m_CustomRenderQueue: 3000
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses: []
@@ -147,6 +144,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PerPixelDisplacementObjectScale: 1
+    - _PreRefractionPass: 0
     - _PreTransparentPass: 1
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
