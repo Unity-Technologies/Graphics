@@ -112,7 +112,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-            var nodeView = (MaterialNodeView)typeMapper.Create(change.node);
+            var nodeView = new MaterialNodeView();
             change.node.onModified += OnNodeChanged;
             nodeView.Initialize(change.node, m_PreviewSystem);
             m_GraphView.AddElement(nodeView);
@@ -178,20 +178,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             graph.ValidateGraph();
         }
 
-        public void Connect(GraphAnchorPresenter left, GraphAnchorPresenter right)
-        {
-            if (left != null && right != null)
-            {
-                graph.owner.RegisterCompleteObjectUndo("Connect Edge");
-                graph.Connect(left.slot.slotReference, right.slot.slotReference);
-            }
-        }
-
         public void Connect(NodeAnchor left, NodeAnchor right)
         {
             if (left != null && right != null)
             {
-                Undo.RecordObject(m_GraphObject, "Connect Edge");
+                graph.owner.RegisterCompleteObjectUndo("Connect Edge");
                 var leftSlot = left.userData as ISlot;
                 var rightSlot = right.userData as ISlot;
 
@@ -199,7 +190,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return;
 
                 graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
-                RecordState();
             }
         }
 
@@ -342,11 +332,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             RemoveElements(
                 m_GraphView.selection.OfType<MaterialNodeView>(),
                 m_GraphView.selection.OfType<Edge>());
-        }
-
-        public override void AddElement(EdgePresenter edge)
-        {
-            Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
         }
 
         public delegate void OnSelectionChanged(IEnumerable<INode> nodes);

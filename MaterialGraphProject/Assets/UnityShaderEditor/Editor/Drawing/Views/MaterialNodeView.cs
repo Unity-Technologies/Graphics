@@ -9,11 +9,8 @@ using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-<<<<<<< HEAD
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
-=======
 using UnityEngine.Experimental.UIElements.StyleSheets;
->>>>>>> master
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -147,6 +144,21 @@ namespace UnityEditor.MaterialGraph.Drawing
             UpdateControls();
 
             UpdatePreviewTexture(node.previewExpanded ? previewTexture : null);
+
+            m_NodeGuid = node.guid;
+            if (node is PreviewNode)
+            {
+                if (!m_ResizeHandleAdded)
+                {
+                    m_ResizeHandle = new VisualElement() { name = "resize", text = "" };
+                    m_ResizeHandle.AddManipulator(new Draggable(OnResize));
+                    Add(m_ResizeHandle);
+
+                    m_ResizeHandleAdded = true;
+                }
+
+                UpdateSize();
+            }
         }
 
         void OnReplaced(INode previous, INode current)
@@ -219,7 +231,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             float updatedWidth = Mathf.Min(leftContainer.layout.width + deltaSize.x, 1000f);
             float updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
 
-            PreviewNode previewNode = GetPresenter<MaterialNodePresenter>().node as PreviewNode;
+            PreviewNode previewNode = node as PreviewNode;
 
             if (previewNode != null)
             {
@@ -266,9 +278,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
             }
 
-            if (!nodePresenter.expanded)
+            if (!expanded)
             {
-            m_ControlsContainer.Clear();
+                m_ControlsContainer.Clear();
             }
             else if (m_ControlsContainer.childCount != m_ControlViews.Count)
             {
@@ -277,55 +289,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_ControlsContainer.Add(view);
             }
         }
-
-        /*
-        public override void SetPosition(Rect newPos)
-        {
-            var nodePresenter = GetPresenter<MaterialNodePresenter>();
-            if (nodePresenter != null)
-                nodePresenter.position = newPos;
-            base.SetPosition(newPos);
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-            var nodePresenter = GetPresenter<MaterialNodePresenter>();
-
-            if (nodePresenter == null)
-            {
-                m_ControlsContainer.Clear();
-                m_ControlViews.Clear();
-                UpdatePreviewTexture(null);
-                return;
-            }
-
-            m_PreviewToggle.text = nodePresenter.node.previewExpanded ? "▲" : "▼";
-            if (nodePresenter.node.hasPreview)
-                m_PreviewToggle.RemoveFromClassList("inactive");
-            else
-                m_PreviewToggle.AddToClassList("inactive");
-
-            UpdateControls(nodePresenter);
-
-            UpdatePreviewTexture(nodePresenter.node.previewExpanded ? nodePresenter.previewTexture : null);
-
-            m_NodeGuid = nodePresenter.node.guid;
-            if (GetPresenter<MaterialNodePresenter>().node is PreviewNode)
-            {
-                if (!m_ResizeHandleAdded)
-                {
-                    m_ResizeHandle = new VisualElement() { name = "resize", text = "" };
-                    m_ResizeHandle.AddManipulator(new Draggable(OnResize));
-                    Add(m_ResizeHandle);
-
-                    m_ResizeHandleAdded = true;
-                }
-
-                UpdateSize();
-            }
-        }
-        */
 
         void UpdateSize()
         {
