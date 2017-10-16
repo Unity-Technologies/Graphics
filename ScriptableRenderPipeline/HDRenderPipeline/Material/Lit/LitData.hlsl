@@ -1431,7 +1431,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #ifdef _INFLUENCEMASK_MAP
     float influenceMask = GetInfluenceMask(layerTexCoord);
     #else
-    float influenceMask = 0.0;
+    float influenceMask = 1.0;
     #endif
 
     if (influenceMask > 0.0f)
