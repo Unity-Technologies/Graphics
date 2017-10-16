@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void UpdateTitle()
         {
+            title = model.name;
         }
 
         public override Rect position

@@ -37,6 +37,7 @@ namespace UnityEditor.VFX
         public VFXModelDescriptor(T template)
         {
             m_Template = template;
+            m_Template.hideFlags = HideFlags.HideAndDontSave;
         }
 
         virtual public string name { get { return m_Template.name; } }
@@ -50,10 +51,12 @@ namespace UnityEditor.VFX
 
         virtual public T CreateInstance()
         {
-            return (T)ScriptableObject.CreateInstance(m_Template.GetType());
+            T instance = (T)UnityEngine.Object.Instantiate(m_Template);
+
+            return instance;
         }
 
-        protected T m_Template;
+        public T m_Template;
     }
 
     class VFXModelDescriptorCustomSpawnerBlock : VFXModelDescriptor<VFXBlock>
@@ -206,6 +209,18 @@ namespace UnityEditor.VFX
                 {
                     m_BlockDescs.Add(new VFXModelDescriptorCustomSpawnerBlock(customSpawnerType));
                 }
+
+                // add all Set Attributes something to blocks.
+                System.Array.ForEach(VFXAttribute.All,
+                    t =>
+                    {
+                        UnityEditor.VFX.Block.SetAttribute instance =
+                            (UnityEditor.VFX.Block.SetAttribute)ScriptableObject
+                            .CreateInstance<UnityEditor.VFX.Block.SetAttribute>();
+                        instance.attribute = t;
+
+                        m_BlockDescs.Add(new VFXModelDescriptor<VFXBlock>(instance));
+                    });
 
                 m_OperatorDescs = LoadModels<VFXOperator>();
 

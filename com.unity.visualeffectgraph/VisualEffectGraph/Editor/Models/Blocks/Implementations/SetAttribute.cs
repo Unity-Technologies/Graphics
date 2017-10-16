@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute")]
+    [VFXInfo(category = "Attribute", autoRegister = false)]
     class SetAttribute : VFXBlock
     {
         [VFXSetting]

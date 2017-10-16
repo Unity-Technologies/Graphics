@@ -114,18 +114,18 @@ namespace UnityEditor.VFX.UI
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model) && b.modelType != typeof(SetAttribute)).ToList();
-            var attributeBlocks = VFXAttribute.All.Select(t => new VFXModelDescriptor<VFXBlock>(new SetAttribute { attribute = t})).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model));
 
 
-            filteredBlocks.Concat(attributeBlocks).ToList().Sort((blockA, blockB) =>
+            var allBLocks = filteredBlocks.ToList();
+            allBLocks.Sort((blockA, blockB) =>
                 {
                     var infoA = blockA.info;
                     var infoB = blockB.info;
                     int res = infoA.category.CompareTo(infoB.category);
                     return res != 0 ? res : blockA.name.CompareTo(blockB.name);
                 });
-            return filteredBlocks;
+            return allBLocks;
         }
     }
 }
