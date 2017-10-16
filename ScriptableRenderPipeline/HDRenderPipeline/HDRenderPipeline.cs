@@ -71,6 +71,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public partial class HDRenderPipeline : RenderPipeline
     {
+        enum ForwardPass
+        {
+            Opaque,
+            PreRefraction,
+            Transparent
+        }
+
+        static readonly string[] k_ForwardPassDebugName =
+        {
+            "Forward Opaque Debug Display",
+            "Forward PreRefraction Debug Display",
+            "Forward Transparent Debug Display"
+        };
+
+        static readonly string[] k_ForwardPassName =
+        {
+            "Forward Opaque Display",
+            "Forward PreRefraction Display",
+            "Forward Transparent Display"
+        };
+
+        static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
+        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.Transparent, max = (int)HDRenderQueue.Overlay };
+
         readonly HDRenderPipelineAsset m_Asset;
 
         readonly RenderPipelineMaterial m_DeferredMaterial;
@@ -743,7 +767,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             CopyDepthBufferIfNeeded(cmd);
 
-            RenderPyramidDepth(camera, cmd);
+            RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
             // Required for the SSS and the shader feature classification pass.
             PrepareAndBindStencilTexture(cmd);
@@ -809,21 +833,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
                 SubsurfaceScatteringPass(hdCamera, cmd, sssSettings);
 
-                RenderForward(m_CullResults, camera, renderContext, cmd, true);
-                RenderForwardError(m_CullResults, camera, renderContext, cmd, true);
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
                 RenderSky(hdCamera, cmd);
 
-                RenderGaussianPyramidColor(camera, cmd);
-
                 // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
                 RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
 
+                // Render pre refraction objects
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
+
+                RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.PreRefractionColorPyramid);
+
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-                RenderForward(m_CullResults, camera, renderContext, cmd, false);
-                RenderForwardError(m_CullResults, camera, renderContext, cmd, false);
+                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
+                RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
                 // Render volumetric lighting
                 VolumetricLightingPass(hdCamera, cmd);
@@ -843,7 +871,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
-                    RenderGaussianPyramidColor(camera, cmd);
+                    RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
 
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
@@ -934,10 +962,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ShaderPassName          passName,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null)
+                                         Material                overrideMaterial = null,
+                                         bool                    preRefractionQueue = false)
         {
             m_SinglePassName[0] = passName;
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, rendererConfiguration, stateBlock, overrideMaterial);
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, 
+                rendererConfiguration, stateBlock, overrideMaterial, preRefractionQueue);
         }
 
         void RenderTransparentRenderList(CullResults             cull,
@@ -947,7 +977,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ShaderPassName[]        passNames,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null)
+                                         Material                overrideMaterial = null,
+                                         bool                    preRefractionQueue = false)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
@@ -970,7 +1001,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (overrideMaterial != null)
                 drawSettings.SetOverrideMaterial(overrideMaterial, 0);
 
-            var filterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
+            var filterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = preRefractionQueue 
+                    ? k_RenderQueue_PreRefraction 
+                    : k_RenderQueue_Transparent
+            };
 
             if(stateBlock == null)
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
@@ -993,6 +1029,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
                 // Only transparent object can render distortion vectors
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, preRefractionQueue:true);
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
@@ -1230,7 +1267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
-        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
+        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
             // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
@@ -1242,18 +1279,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string profileName;
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
-                profileName = renderOpaque ? "Forward Opaque Debug Display" : "Forward Transparent Debug Display";
+                profileName = k_ForwardPassDebugName[(int)pass];
             }
             else
             {
-                profileName = renderOpaque ? "Forward Opaque" : "Forward Transparent";
+                profileName = k_ForwardPassName[(int)pass];
             }
 
             using (new ProfilingSample(cmd, profileName))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                m_LightLoop.RenderForward(camera, cmd, renderOpaque);
+                m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
@@ -1266,8 +1303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
                 }
 
-
-                if (renderOpaque)
+                if (pass == ForwardPass.Opaque)
                 {
                     var passNames = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
@@ -1275,8 +1311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, HDUtils.k_RendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, HDUtils.k_RendererConfigurationBakedLighting, preRefractionQueue: pass == ForwardPass.PreRefraction);
                 }
             }
         }
@@ -1286,25 +1321,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd,"Forward Transparent Depth Prepass"))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName, preRefractionQueue: true);
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName);
             }
         }
 
         // This is use to Display legacy shader with an error shader
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool renderOpaque)
+        void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
             using (new ProfilingSample(cmd, "Render Forward Error"))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                if (renderOpaque)
+                if (pass == ForwardPass.Opaque)
                 {
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, null, m_ErrorMaterial);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, null, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, 
+                        null, m_ErrorMaterial, pass == ForwardPass.PreRefraction);
                 }
             }
         }
@@ -1341,7 +1378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd)
+        void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
                 return;
@@ -1367,19 +1404,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var last = m_GaussianPyramidColorBuffer;
 
+                var mipSize = size;
                 for (int i = 0; i < lodCount; i++)
                 {
-                    size >>= 1;
+                    mipSize >>= 1;
 
-                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], mipSize, mipSize, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(size, size, 1f / size, 1f / size));
-                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, size / 8, size / 8, 1);
+                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(mipSize, mipSize, 1f / mipSize, 1f / mipSize));
+                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, mipSize / 8, mipSize / 8, 1);
                     cmd.CopyTexture(HDShaderIDs._GaussianPyramidColorMips[i + 1], 0, 0, m_GaussianPyramidColorBufferRT, 0, i + 1);
 
                     last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
                 }
+
+                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, size, size, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
 
@@ -1388,7 +1428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPyramidDepth(Camera camera, CommandBuffer cmd)
+        void RenderPyramidDepth(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableGaussianPyramid)
                 return;
@@ -1414,17 +1454,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size));
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
 
+                var mipSize = size;
                 for (int i = 0; i < lodCount; i++)
                 {
-                    size >>= 1;
+                    mipSize >>= 1;
 
-                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], mipSize, mipSize, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", HDShaderIDs._DepthPyramidMips[i]);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_Size", new Vector4(size, size, 1f / size, 1f / size));
-                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, size / 8, size / 8, 1);
+                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_Size", new Vector4(mipSize, mipSize, 1f / mipSize, 1f / mipSize));
+                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, mipSize / 8, mipSize / 8, 1);
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }
+
+                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, size, size, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
 
@@ -1481,6 +1524,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 cb.Blit(textureID, m_DebugFullScreenTempRT);
+            }
+        }
+
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, int width, int height, FullScreenDebugMode debugMode)
+        {
+            var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
+            if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
+            {
+                m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
+                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, width >> mipIndex, height >> mipIndex, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0);
+            }
+        }
+
+        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, int width, int height, FullScreenDebugMode debugMode)
+        {
+            var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
+            if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
+            {
+                m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
+                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, width >> mipIndex, height >> mipIndex, 0, FilterMode.Point, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0);
             }
         }
 

@@ -8,10 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Mat_Distorsion_Unlit_Only_2DNoise
   m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_LERP
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONNULLIFY_OFF _DISTORTION_ON
-    _DOUBLESIDEDENABLE_OFF _ENABLEPERPIXELDISPLACEMENT_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEVERTEXDISPLACEMENT_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _BLENDMODE_LERP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -28,6 +25,9 @@ Material:
   - ForwardOnlyOpaqueDepthOnly
   - ForwardOnlyOpaque
   - GBufferWithPrepass
+  - DepthOnly
+  - DepthForwardOnly
+  - ForwardOnly
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:

@@ -272,7 +272,7 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float refractionMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
@@ -283,6 +283,7 @@ void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float 
 #else
     bsdfData.thickness = max(0.000001, thickness);
 #endif
+    bsdfData.refractionMask = refractionMask;
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -374,7 +375,9 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
 #if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
     // Note: Will override thickness of SSS's property set
-    FillMaterialIdTransparencyData(surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, bsdfData);
+    FillMaterialIdTransparencyData(
+        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.refractionMask, 
+        bsdfData);
 #endif
 
     return bsdfData;
@@ -1520,6 +1523,10 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     specularLighting = float3(0.0, 0.0, 0.0);
     weight = float2(0.0, 0.0);
 
+#if !defined(_REFRACTION_ON)
+    return;
+#endif
+
 #if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
@@ -1528,7 +1535,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    weight.x = 1.0;
+    weight.x = bsdfData.refractionMask;
 
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;

@@ -100,6 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Coat IOR")]
             public float coatIOR; // Value is [0..1] for artists but the UI will display the value between [1..2]
 
+            // Only in forward
             // Transparency
             [SurfaceDataAttributes("Indice of refraction")]
             public float ior;
@@ -108,6 +109,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
             public float atDistance;
+            [SurfaceDataAttributes("Refraction mask")]
+            public float refractionMask;
         };
 
         //-----------------------------------------------------------------------------
@@ -159,10 +162,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float coatCoverage;
             public float coatIOR; // CoatIOR is in range[1..2] it is surfaceData + 1
 
+            // Only in forward
             // Transparency
             public float ior;
             // Reuse thickness from SSS
             public Vector3 absorptionCoefficient;
+            public float refractionMask;
         };
 
         //-----------------------------------------------------------------------------
