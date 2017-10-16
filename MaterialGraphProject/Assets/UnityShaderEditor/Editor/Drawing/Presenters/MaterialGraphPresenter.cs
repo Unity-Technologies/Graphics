@@ -22,7 +22,6 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
-        GraphTypeMapper typeMapper { get; set; }
         PreviewSystem m_PreviewSystem;
 
         public IGraph graph { get; private set; }
@@ -38,56 +37,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected MaterialGraphPresenter()
         {
-            typeMapper = new GraphTypeMapper(typeof(MaterialNodePresenter));
-            typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
-            typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
-            typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
-
-            // typeMapper[typeof(ScatterNode)] = typeof(ScatterNodePresenter);
-            //typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
-            //typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodePresenter);
-            //typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodePresenter);
-//            typeMapper[typeof(Texture2DNode)] = typeof(TextureAssetNodePresenter);
- //           typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
-            typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodePresenter);
-   //         typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
-     //       typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
-            typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
-            typeMapper[typeof(Vector1Node)] = typeof(Vector1NodePresenter);
-            typeMapper[typeof(Vector2Node)] = typeof(Vector2NodePresenter);
-            typeMapper[typeof(Vector3Node)] = typeof(Vector3NodePresenter);
-            typeMapper[typeof(Vector4Node)] = typeof(Vector4NodePresenter);
-            typeMapper[typeof(PropertyNode)] = typeof(PropertyNodePresenter);
-
-            /* typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
-             typeMapper[typeof(RadialShearNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
-             typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
-             typeMapper[typeof(SphericalIndentationNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
-             typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
-             typeMapper[typeof(AACheckerboard3dNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter*/
-            typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
-            typeMapper[typeof(MasterRemapNode)] = typeof(MasterRemapNodePresenter);
-
-            // typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
-            typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
-//            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodePresenter);
-            typeMapper[typeof(LevelsNode)] = typeof(LevelsNodePresenter);
-            typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodePresenter);
-
-            //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
-            typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
-
-            // typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
-            typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
-
-            //typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
-            typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
-            typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
-            typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
-            typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
-            typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
-
-//            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
@@ -199,7 +148,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-            var nodePresenter = (MaterialNodePresenter)typeMapper.Create(change.node);
+            var nodePresenter = CreateInstance<MaterialNodePresenter>();
             change.node.onModified += OnNodeChanged;
             nodePresenter.Initialize(change.node, m_PreviewSystem);
             m_Elements.Add(nodePresenter);

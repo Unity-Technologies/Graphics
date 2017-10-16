@@ -1,5 +1,6 @@
 using UnityEngine.Graphing;
 using System.Collections.Generic;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -16,6 +17,7 @@ namespace UnityEngine.MaterialGraph
         private const string kInputSlotName = "Input";
         private const string kOutputSlotName = "Output";
 
+        [EnumControl("From")]
         public SimpleMatrixType spaceFrom
         {
             get { return m_spaceListFrom; }
@@ -37,6 +39,7 @@ namespace UnityEngine.MaterialGraph
             get { return false; }
         }
 
+        [EnumControl("To")]
         public SimpleMatrixType spaceTo
         {
             get { return m_spaceListTo; }

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -155,7 +156,7 @@ namespace UnityEngine.MaterialGraph
             return edges.Count == 0;
         }
 
-
+        [PropertyControl]
         public Guid propertyGuid
         {
             get { return m_PropertyGuid; }

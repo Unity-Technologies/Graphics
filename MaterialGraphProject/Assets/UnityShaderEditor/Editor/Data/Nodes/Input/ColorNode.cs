@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -7,39 +8,15 @@ namespace UnityEngine.MaterialGraph
     public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private bool m_HDR;
-
-        [SerializeField]
         private Color m_Color;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Color";
 
-        public bool HDR
-        {
-            get { return m_HDR; }
-            set
-            {
-                if (m_HDR == value)
-                    return;
-
-                m_HDR = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
-            }
-        }
-
         public ColorNode()
         {
             name = "Color";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override bool hasPreview
-        {
-            get { return true; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -48,6 +25,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
+        [ColorControl("")]
         public Color color
         {
             get { return m_Color; }
@@ -75,7 +53,7 @@ namespace UnityEngine.MaterialGraph
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = color,
-                HDR = HDR
+                HDR = false
             });
         }
 

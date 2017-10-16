@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -9,6 +10,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private TextureSamplerState.FilterMode m_filter = TextureSamplerState.FilterMode.Linear;
 
+        [EnumControl]
         public TextureSamplerState.FilterMode filter
         {
             get { return m_filter; }
@@ -28,6 +30,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private TextureSamplerState.WrapMode m_wrap = TextureSamplerState.WrapMode.Repeat;
 
+        [EnumControl]
         public TextureSamplerState.WrapMode wrap
         {
             get { return m_wrap; }

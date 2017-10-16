@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Graphing;
 
@@ -22,6 +23,7 @@ namespace UnityEngine.MaterialGraph
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Constant";
 
+        [EnumControl("")]
         public ConstantType constant
         {
             get { return m_constant; }

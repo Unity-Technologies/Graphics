@@ -1,3 +1,4 @@
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -5,25 +6,56 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Matrix/Matrix 4")]
     public class Matrix4Node : AbstractMaterialNode, IGeneratesBodyCode
     {
-        private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
+        const int kOutputSlotId = 0;
+        const string kOutputSlotName = "Value";
 
         [SerializeField]
-        private Vector4[] m_Value = new Vector4[4];
+        Vector4 m_Row0;
 
-        public Vector4 this[int index]
+        [SerializeField]
+        Vector4 m_Row1;
+
+        [SerializeField]
+        Vector4 m_Row2;
+
+        [SerializeField]
+        Vector4 m_Row3;
+
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector4 row0
         {
-            get { return m_Value[index]; }
-            set
-            {
-                if (m_Value[index] == value)
-                    return;
+            get { return m_Row0; }
+            set { SetRow(ref m_Row0, value); }
+        }
 
-                m_Value[index] = value;
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector4 row1
+        {
+            get { return m_Row1; }
+            set { SetRow(ref m_Row1, value); }
+        }
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector4 row2
+        {
+            get { return m_Row2; }
+            set { SetRow(ref m_Row2, value); }
+        }
+
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector4 row3
+        {
+            get { return m_Row3; }
+            set { SetRow(ref m_Row3, value); }
+        }
+
+        void SetRow(ref Vector4 row, Vector4 value)
+        {
+            if (value == row)
+                return;
+            row = value;
+            if (onModified != null)
+                onModified(this, ModificationScope.Graph);
         }
 
         public Matrix4Node()
@@ -56,11 +88,11 @@ namespace UnityEngine.MaterialGraph
             //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
             //    return;
 
-            visitor.AddShaderChunk(precision + "4x4 " + propertyName + " = " + precision + "4x4 (" + m_Value[0].x + ", " + m_Value[0].y + ", " + m_Value[0].z + ", " + m_Value[0].w + ", " + m_Value[1].x + ", " + m_Value[1].y + ", " + m_Value[1].z + ", " + m_Value[1].w + ", " + m_Value[2].x + ", " + m_Value[2].y + ", " + m_Value[2].z + ", " + m_Value[2].w + ", " + m_Value[3].x + ", " + m_Value[3].y + ", " + m_Value[3].z + ", " + m_Value[3].w + ");", true);
+            visitor.AddShaderChunk(precision + "4x4 " + propertyName + " = " + precision + "4x4 (" + row0.x + ", " + row0.y + ", " + row0.z + ", " + row0.w + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row1.w + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ", " + m_Row2.w + ", " + m_Row3.x + ", " + m_Row3.y + ", " + m_Row3.z + ", " + m_Row3.w + ");", true);
         }
 
         [SerializeField]
-        private string m_Description = string.Empty;
+        string m_Description = string.Empty;
 
         public string description
         {
