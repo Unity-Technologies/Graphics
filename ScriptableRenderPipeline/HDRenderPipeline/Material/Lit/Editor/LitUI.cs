@@ -430,7 +430,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            m_MaterialEditor.TexturePropertySingleLine((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitSpecular ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine((materialID != null && (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
