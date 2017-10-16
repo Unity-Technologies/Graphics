@@ -45,7 +45,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     float4 outColor = float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
 
 #ifdef DEBUG_DISPLAY
-    // Same code in ShaderPassForwardUnlit.shader
+    // Same code in ShaderPassForward.shader
     if (_DebugViewMaterial != 0)
     {
         float3 result = float3(1.0, 0.0, 1.0);
