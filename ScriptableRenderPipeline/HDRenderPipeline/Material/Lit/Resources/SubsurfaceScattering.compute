@@ -332,7 +332,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     // Rescaling the filter is equivalent to inversely scaling the world.
     float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID].x / distScale);
-    float unitsPerMm = rcp(max(mmPerUnit, 0.001)); // Avoid divide by 0
+    float unitsPerMm = rcp(mmPerUnit);
 
     // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
     float2 unitsPerPixel = 2 * abs(cornerPosVS.xy - centerPosVS.xy);
