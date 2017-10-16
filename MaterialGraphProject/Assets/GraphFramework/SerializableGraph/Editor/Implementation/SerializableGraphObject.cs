@@ -31,14 +31,15 @@ namespace UnityEngine.Graphing
 
         public void OnBeforeSerialize()
         {
-            m_SerializedGraph = SerializationHelper.Serialize(graph);
+            if (graph != null)
+                m_SerializedGraph = SerializationHelper.Serialize(graph);
         }
 
         public void OnAfterDeserialize()
         {
             var deserializedGraph = SerializationHelper.Deserialize<IGraph>(m_SerializedGraph, null);
             if (graph == null)
-                graph = m_DeserializedGraph;
+                graph = deserializedGraph;
             else
                 m_DeserializedGraph = deserializedGraph; // graph.ReplaceWith(m_DeserializedGraph);
         }
@@ -46,6 +47,7 @@ namespace UnityEngine.Graphing
         void OnEnable()
         {
             Undo.undoRedoPerformed += UndoRedoPerformed;
+            UndoRedoPerformed();
         }
 
         void OnDisable()
