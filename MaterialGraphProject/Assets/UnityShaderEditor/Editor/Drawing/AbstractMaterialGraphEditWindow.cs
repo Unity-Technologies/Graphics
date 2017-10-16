@@ -375,7 +375,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
         {
-            var graph = graphObject as T;
+            var graph = graphObject.graph as T;
             if (graph == null)
                 return;
 
