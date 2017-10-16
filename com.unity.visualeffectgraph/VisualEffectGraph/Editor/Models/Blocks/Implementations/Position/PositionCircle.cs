@@ -1,18 +1,18 @@
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Position")]
-    class PositionSphere : PositionBase
+    class PositionCircle : PositionBase
     {
-        public override string name { get { return "Position (Sphere)"; } }
+        public override string name { get { return "Position (Circle)"; } }
+        protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
         {
-            [Tooltip("The sphere used for positioning particles.")]
-            public ArcSphere Sphere = new ArcSphere() { radius = 1.0f, arc = Mathf.PI * 2.0f };
+            [Tooltip("The circle used for positioning particles.")]
+            public ArcCircle Circle = new ArcCircle() { radius = 1.0f, arc = Mathf.PI * 2.0f };
         }
 
         public class CustomProperties
@@ -25,21 +25,20 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
+                string outSource = @"";
                 if (spawnMode == SpawnMode.Randomized)
-                    outSource += @"float theta = Sphere_arc * RAND;";
+                    outSource += @"float theta = Circle_arc * RAND;";
                 else
-                    outSource += @"float theta = Sphere_arc * ArcSequencer;";
+                    outSource += @"float theta = Circle_arc * ArcSequencer;";
 
                 outSource += @"
-float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);
+float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
 
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
-sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
 
-direction = float3(sincosTheta, cosPhi);
-position += direction * (rNorm * Sphere_radius) + Sphere_center;
+direction = float3(sincosTheta, 0.0f);
+position.xy += sincosTheta * rNorm * Circle_radius + Circle_center;
 ";
 
                 return outSource;

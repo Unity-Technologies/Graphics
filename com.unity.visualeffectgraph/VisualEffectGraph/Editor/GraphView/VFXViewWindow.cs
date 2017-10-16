@@ -66,6 +66,8 @@ namespace  UnityEditor.VFX.UI
             base.OnEnable();
             var objs = Selection.objects;
 
+            autoCompile = true;
+
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
                 VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
@@ -133,6 +135,8 @@ namespace  UnityEditor.VFX.UI
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
+        public bool autoCompile {get; set; }
+
         void Update()
         {
             var graph = VFXViewPresenter.viewPresenter.GetGraph();
@@ -144,7 +148,8 @@ namespace  UnityEditor.VFX.UI
                     filename += "*";
                 }
                 titleContent.text = filename;
-                graph.RecompileIfNeeded();
+                if (autoCompile)
+                    graph.RecompileIfNeeded();
             }
             VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }

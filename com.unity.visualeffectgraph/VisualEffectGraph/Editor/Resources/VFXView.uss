@@ -23,3 +23,31 @@ VFXView #VFXBackgroundGrid {
 	margin-top:-2;
 	background-color: rgb(210, 152, 0);
 }
+
+.toolbar {
+	background-image: resource("Builtin Skins/DarkSkin/Images/Toolbar.png");
+	slice-top:2;
+	slice-bottom:2;
+	height:17;
+	position-type:absolute;
+	position-top:0;
+	position-left:0;
+	position-right:0;
+	flex-direction:row;
+}
+
+.toolbarButton
+{
+	background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
+	slice-left:6;
+	slice-right:6;
+	height:17;
+	margin-left:0;
+	margin-right:0;
+	margin-bottom:0;
+	margin-top:0;
+}
+
+Button:hover:active {
+	background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
+}

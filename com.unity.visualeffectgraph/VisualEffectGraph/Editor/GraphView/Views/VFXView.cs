@@ -227,6 +227,45 @@ namespace UnityEditor.VFX.UI
             AddLayer(2);
 
             focusIndex = 0;
+
+            VisualElement toolbar = new VisualElement();
+            toolbar.AddToClassList("toolbar");
+            Add(toolbar);
+
+
+            Button button = new Button(() => {Resync(); });
+            button.text = "Refresh";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+
+
+            VisualElement spacer = new VisualElement();
+            spacer.style.flex = 1;
+            toolbar.Add(spacer);
+
+
+            Toggle toggle = new Toggle(OnToggleCompile);
+            //toggle.AddToClassList("toolbarButton");
+            toggle.text = "AutoCompile";
+            toggle.on = true;
+            toolbar.Add(toggle);
+
+            button = new Button(OnCompile);
+            button.text = "Compile";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+        }
+
+        void OnToggleCompile()
+        {
+            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
+        }
+
+        void OnCompile()
+        {
+            var graph = VFXViewPresenter.viewPresenter.GetGraph();
+
+            graph.RecompileIfNeeded();
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)

@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
 
+            this.AddManipulator(new Collapser());
             capabilities &= ~Capabilities.SendToFrontOnSelection;
         }
 
@@ -97,7 +98,6 @@ namespace UnityEditor.VFX.UI
 
             return EventPropagation.Stop;
         }
-
 
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
