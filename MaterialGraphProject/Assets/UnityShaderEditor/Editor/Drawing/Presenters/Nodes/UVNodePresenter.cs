@@ -26,19 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class UVNodePresenter : MaterialNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<UVNodeContolPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter> { instance };
-        }
-    }
-#endif
-
     public class UVNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

@@ -26,19 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class Matrix2NodePresenter : PropertyNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<Matrix2ControlPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
-        }
-    }
-#endif
-
     public class Matrix2NodeView : PropertyNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()

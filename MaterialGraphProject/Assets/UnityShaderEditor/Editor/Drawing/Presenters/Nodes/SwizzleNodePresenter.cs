@@ -34,19 +34,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
-#if WITH_PRESENTER
-    [Serializable]
-    public class SwizzleNodePresenter : PropertyNodePresenter
-    {
-        protected override IEnumerable<GraphControlPresenter> GetControlData()
-        {
-            var instance = CreateInstance<SwizzleControlPresenter>();
-            instance.Initialize(node);
-            return new List<GraphControlPresenter>(base.GetControlData()) { instance };
-        }
-    }
-#endif
-
     public class SwizzleNodeView : MaterialNodeView
     {
         protected override IEnumerable<GraphControlPresenter> GetControlData()
