@@ -188,7 +188,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
-                    return float4(color.rrr * 10.0, 1.0);
+                    return float4(color.rrr / (color.rrr + 1), 1.0);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);
