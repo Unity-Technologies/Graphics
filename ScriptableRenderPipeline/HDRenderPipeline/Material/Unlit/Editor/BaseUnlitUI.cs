@@ -95,7 +95,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty distortionBlurRemapMax = null;
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
         protected MaterialProperty preRefractionPass = null;
-        protected const string kPrePrefractionPass = "_PreRefractionPass";
+        protected const string kPreRefractionPass = "_PreRefractionPass";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
-            preRefractionPass = FindProperty(kPrePrefractionPass, props, false);
+            preRefractionPass = FindProperty(kPreRefractionPass, props, false);
         }
 
         void SurfaceTypePopup()
@@ -284,7 +284,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
-                var isPrePass = material.GetFloat(kPrePrefractionPass) > 0.0f;
+                var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
                 material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
 
                 SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
