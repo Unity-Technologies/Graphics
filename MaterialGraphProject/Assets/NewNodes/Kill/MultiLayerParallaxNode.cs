@@ -58,27 +58,27 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual MaterialSlot GetInputDepthSlot()
         {
-            return new MaterialSlot(InputDepthSlotId, GetInputSlot1Name(), kInputDepthShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+            return new Vector1MaterialSlot(InputDepthSlotId, GetInputSlot1Name(), kInputDepthShaderName, SlotType.Input,0);
         }
 
         protected virtual MaterialSlot GetInputFadeRateSlot()
         {
-            return new MaterialSlot(InputFadeRateSlotId, GetInputSlot2Name(), kInputFadeRateShaderName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new DynamicVectorMaterialSlot(InputFadeRateSlotId, GetInputSlot2Name(), kInputFadeRateShaderName, SlotType.Input, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetInputLayerCountSlot()
         {
-            return new MaterialSlot(InputLayerCountSlotId, GetInputSlot3Name(), kInputLayerCountShaderName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new DynamicVectorMaterialSlot(InputLayerCountSlotId, GetInputSlot3Name(), kInputLayerCountShaderName, SlotType.Input, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetTextureSlot()
         {
-            return new MaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
+            return new Texture2DMaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
+            return new DynamicVectorMaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, Vector4.zero);
         }
 
         protected virtual string GetInputSlot1Name()

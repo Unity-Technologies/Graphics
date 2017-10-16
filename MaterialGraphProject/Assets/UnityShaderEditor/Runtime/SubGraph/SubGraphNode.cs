@@ -138,7 +138,7 @@ namespace UnityEngine.MaterialGraph
                 }
                 else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
                 {
-                    prop.overrideReferenceName = MaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
                 }
                 else
                 {

@@ -13,7 +13,7 @@ namespace UnityEngine.MaterialGraph
         public virtual int AddSlot()
         {
             var index = GetInputSlots<ISlot>().Count() + 1;
-            AddSlot(new MaterialSlot(index, "Output " + index, "Output" + index, SlotType.Input, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(index, "Output " + index, "Output" + index, SlotType.Input, Vector4.zero));
             return index;
         }
 

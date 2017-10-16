@@ -41,7 +41,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 

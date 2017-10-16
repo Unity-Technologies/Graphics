@@ -4,42 +4,298 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class MaterialSlot : SerializableSlot
+    public class Vector1MaterialSlot : MaterialSlot
     {
         [SerializeField]
-        SlotValueType m_ValueType;
+        private float m_Value;
+        
+        public Vector1MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            float value,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+            m_Value = value;
+        }
+
+        public float value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return value.ToString();
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Vector1; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector1; } }
+    }
+
+    [Serializable]
+    public class Vector2MaterialSlot : MaterialSlot
+    {
+        [SerializeField]
+        private Vector2 m_Value;
 
         [SerializeField]
-        Vector4 m_DefaultValue;
+        private Vector2 m_DefaultValue;
+
+        public Vector2MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            Vector2 value,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+            m_Value = value;
+        }
+
+        public Vector2 value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "2 (" + value.x + "," + value.y + ")";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Vector2; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector2; } }
+    }
+
+    [Serializable]
+    public class Vector3MaterialSlot : MaterialSlot
+    {
+        [SerializeField]
+        private Vector3 m_Value;
 
         [SerializeField]
-        Vector4 m_CurrentValue;
+        private Vector3 m_DefaultValue;
+
+        public Vector3MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            Vector3 value,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+            m_Value = value;
+        }
+
+        public Vector3 value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "3 (" + value.x + "," + value.y + "," + value.z + ")";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Vector3; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector3; } }
+    }
+
+    [Serializable]
+    public class Vector4MaterialSlot : MaterialSlot
+    {
+        [SerializeField]
+        private Vector4 m_Value;
 
         [SerializeField]
-        ConcreteSlotValueType m_ConcreteValueType;
+        private Vector4 m_DefaultValue;
 
+        public Vector4MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            Vector4 value,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+            m_Value = value;
+        }
+
+        public Vector4 value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Vector4; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector4; } }
+    }
+
+    [Serializable]
+    public class Matrix2MaterialSlot : MaterialSlot
+    {
+        public Matrix2MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+        }
+        
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "2x2 (1,0,0,1)";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Matrix2; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Matrix2; } }
+    }
+
+    [Serializable]
+    public class Matrix3MaterialSlot : MaterialSlot
+    {
+        public Matrix3MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "3x3 (1,0,0,0,1,0,0,0,1)";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Matrix3; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Matrix3; } }
+    }
+
+    [Serializable]
+    public class Matrix4MaterialSlot : MaterialSlot
+    {
+        public Matrix4MaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+        }
+
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "4x4 (1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)";
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Matrix4; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Matrix4; } }
+    }
+
+    [Serializable]
+    public class Texture2DMaterialSlot : MaterialSlot
+    {
+        public Texture2DMaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+        }
+
+        public static readonly string DefaultTextureName = "ShaderGraph_DefaultTexture";
+
+        public override SlotValueType valueType { get { return SlotValueType.Texture2D; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture2D; } }
+    }
+
+    [Serializable]
+    public class SamplerStateMaterialSlot : MaterialSlot
+    {
+        public SamplerStateMaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.SamplerState; } }
+    }
+
+    [Serializable]
+    public class DynamicVectorMaterialSlot : MaterialSlot
+    {
+        [SerializeField]
+        private Vector4 m_Value;
+
+        [SerializeField]
+        private Vector4 m_DefaultValue;
+
+        public DynamicVectorMaterialSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            Vector4 value,
+            ShaderStage shaderStage = ShaderStage.Dynamic,
+            bool hidden = false)
+            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {
+            m_Value = value;
+        }
+
+        public override SlotValueType valueType { get { return SlotValueType.Dynamic; } }
+        public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Error; } }
+    }
+
+    [Serializable]
+    public abstract class MaterialSlot : SerializableSlot
+    {
         [SerializeField]
         string m_ShaderOutputName;
 
         [SerializeField]
         ShaderStage m_ShaderStage;
+        
+        protected MaterialSlot() { }
 
-        public static readonly string DefaultTextureName = "ShaderGraph_DefaultTexture";
-
-        public MaterialSlot() { }
-
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, slotType, hidden)
         {
-            SharedInitialize(shaderOutputName, valueType, defaultValue, shaderStage);
-        }
-
-        void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue, ShaderStage shaderStage)
-        {
-            m_ShaderOutputName = inShaderOutputName;
-            valueType = inValueType;
-            m_DefaultValue = inDefaultValue;
-            m_CurrentValue = inDefaultValue;
+            m_ShaderOutputName = shaderOutputName;
             this.shaderStage = shaderStage;
         }
 
@@ -76,62 +332,9 @@ namespace UnityEngine.MaterialGraph
             set { base.displayName = value; }
         }
 
-        public Vector4 defaultValue
-        {
-            get { return m_DefaultValue; }
-            set { m_DefaultValue = value; }
-        }
+        public abstract SlotValueType valueType { get; }
 
-        public SlotValueType valueType
-        {
-            get { return m_ValueType; }
-            set
-            {
-                switch (value)
-                {
-                    case SlotValueType.Vector1:
-                        concreteValueType = ConcreteSlotValueType.Vector1;
-                        break;
-                    case SlotValueType.Vector2:
-                        concreteValueType = ConcreteSlotValueType.Vector2;
-                        break;
-                    case SlotValueType.Vector3:
-                        concreteValueType = ConcreteSlotValueType.Vector3;
-                        break;
-                    case SlotValueType.Matrix2:
-                        concreteValueType = ConcreteSlotValueType.Matrix2;
-                        break;
-                    case SlotValueType.Matrix3:
-                        concreteValueType = ConcreteSlotValueType.Matrix3;
-                        break;
-                    case SlotValueType.Matrix4:
-                        concreteValueType = ConcreteSlotValueType.Matrix4;
-                        break;
-                    case SlotValueType.Texture2D:
-                        concreteValueType = ConcreteSlotValueType.Texture2D;
-                        break;
-                    case SlotValueType.SamplerState:
-                        concreteValueType = ConcreteSlotValueType.SamplerState;
-                        break;
-                    default:
-                        concreteValueType = ConcreteSlotValueType.Vector4;
-                        break;
-                }
-                m_ValueType = value;
-            }
-        }
-
-        public Vector4 currentValue
-        {
-            get { return m_CurrentValue; }
-            set { m_CurrentValue = value; }
-        }
-
-        public ConcreteSlotValueType concreteValueType
-        {
-            get { return m_ConcreteValueType; }
-            set { m_ConcreteValueType = value; }
-        }
+        public abstract ConcreteSlotValueType concreteValueType { get; }
 
         public string shaderOutputName
         {
@@ -188,37 +391,24 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        public string GetDefaultValue(GenerationMode generationMode)
+        public virtual string GetDefaultValue(GenerationMode generationMode)
         {
             var matOwner = owner as AbstractMaterialNode;
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             if (concreteValueType == ConcreteSlotValueType.Texture2D)
-                return DefaultTextureName;
+                return Texture2DMaterialSlot.DefaultTextureName;
 
             if (generationMode.IsPreview())
                 return matOwner.GetVariableNameForSlot(id);
 
-            switch (concreteValueType)
-            {
-                case ConcreteSlotValueType.Vector1:
-                    return m_CurrentValue.x.ToString();
-                case ConcreteSlotValueType.Vector2:
-                    return matOwner.precision + "2 (" + m_CurrentValue.x + "," + m_CurrentValue.y + ")";
-                case ConcreteSlotValueType.Vector3:
-                    return matOwner.precision + "3 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + ")";
-                case ConcreteSlotValueType.Vector4:
-                    return matOwner.precision + "4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
-                case ConcreteSlotValueType.Matrix2:
-                    return matOwner.precision + "2x2 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ")";
-                case ConcreteSlotValueType.Matrix3:
-                    return matOwner.precision + "3x3 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ")";
-                case ConcreteSlotValueType.Matrix4:
-                    return matOwner.precision + "4x4 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ")";
-                default:
-                    return "error";
-            }
+            return ConcreteSlotValueAsVariable(matOwner.precision);
+        }
+
+        protected virtual string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return "error";
         }
 
         public void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -227,7 +417,7 @@ namespace UnityEngine.MaterialGraph
             if (concreteValueType == ConcreteSlotValueType.Texture2D)
             {
                 var prop = new TextureShaderProperty();
-                prop.overrideReferenceName = DefaultTextureName;
+                prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
                 prop.modifiable = false;
                 prop.generatePropertyBlock = true;
                 properties.AddShaderProperty(prop);

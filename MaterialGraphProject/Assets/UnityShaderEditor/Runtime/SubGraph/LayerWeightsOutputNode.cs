@@ -12,8 +12,8 @@ namespace UnityEngine.MaterialGraph
             name = "LayerWeights";
         }
 
-        public override bool allowedInRemapGraph { get; } = false;
-        public override bool allowedInSubGraph { get; } = false;
+        public override bool allowedInRemapGraph { get { return false; } }
+        public override bool allowedInSubGraph { get { return false; } }
 
         public void OnEnable()
         {
@@ -24,7 +24,7 @@ namespace UnityEngine.MaterialGraph
             var goodSlots =  new List<int>();
             foreach (var layer in layeredGraph.layers)
             {
-                AddSlot(new MaterialSlot(layer.guid.GetHashCode(), LayeredShaderGraph.LayerToFunctionName(layer.guid), LayeredShaderGraph.LayerToFunctionName(layer.guid), SlotType.Input, SlotValueType.Vector1, new Vector4(0, 0, 0, 0)));
+                AddSlot(new Vector1MaterialSlot(layer.guid.GetHashCode(), LayeredShaderGraph.LayerToFunctionName(layer.guid), LayeredShaderGraph.LayerToFunctionName(layer.guid), SlotType.Input,0));
                 goodSlots.Add(layer.guid.GetHashCode());
             }
 
