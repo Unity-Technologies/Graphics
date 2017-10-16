@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_GgxConvolveMaterial.SetTexture("_MainTex", source);
             m_GgxConvolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
-            m_GgxConvolveMaterial.SetFloat("_LastLevel", mipCount - 1);
             m_GgxConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 
             for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
