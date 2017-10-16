@@ -323,8 +323,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                         break;
                     case ConcreteSlotValueType.Vector1:
                         break;
-                    case ConcreteSlotValueType.Error:
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
