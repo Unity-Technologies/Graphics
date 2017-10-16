@@ -202,10 +202,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnPreviewToggle()
         {
-            AbstractMaterialNode materialNode = node;
-            if (presenter != null)
-                materialNode = GetPresenter<MaterialNodePresenter>().node;
-
             node.previewExpanded = !node.previewExpanded;
             m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
         }
@@ -250,60 +246,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 });
                 m_CurrentControls.Add(controlData);
             }
-        }
-
-        void UpdateControls(MaterialNodePresenter nodeData)
-        {
-            if (nodeData.controls.SequenceEqual(m_CurrentControls) && nodeData.expanded)
-                return;
-
-            m_ControlsContainer.Clear();
-            m_CurrentControls.Clear();
-            Dirty(ChangeType.Layout);
-
-            if (!nodeData.expanded)
-                return;
-
-            foreach (var controlData in nodeData.controls)
-            {
-                m_ControlsContainer.Add(new IMGUIContainer(controlData.OnGUIHandler)
-                {
-                    name = "element"
-                });
-                m_CurrentControls.Add(controlData);
-            }
-        }
-
-        public override void SetPosition(Rect newPos)
-        {
-            var nodePresenter = GetPresenter<MaterialNodePresenter>();
-            if (nodePresenter != null)
-                nodePresenter.position = newPos;
-            base.SetPosition(newPos);
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-            var nodePresenter = GetPresenter<MaterialNodePresenter>();
-
-            if (nodePresenter == null)
-            {
-                m_ControlsContainer.Clear();
-                m_CurrentControls.Clear();
-                UpdatePreviewTexture(null);
-                return;
-            }
-
-            m_PreviewToggle.text = nodePresenter.node.previewExpanded ? "▲" : "▼";
-            if (nodePresenter.node.hasPreview)
-                m_PreviewToggle.RemoveFromClassList("inactive");
-            else
-                m_PreviewToggle.AddToClassList("inactive");
-
-            UpdateControls(nodePresenter);
-
-            UpdatePreviewTexture(nodePresenter.node.previewExpanded ? nodePresenter.previewTexture : null);
         }
     }
 }
