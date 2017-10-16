@@ -338,6 +338,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
+    surfaceData.refractionMask = 0.0;
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
 

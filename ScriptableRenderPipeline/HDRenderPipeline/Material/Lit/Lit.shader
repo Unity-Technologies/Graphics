@@ -51,8 +51,6 @@ Shader "HDRenderPipeline/Lit"
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
@@ -62,6 +60,7 @@ Shader "HDRenderPipeline/Lit"
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0

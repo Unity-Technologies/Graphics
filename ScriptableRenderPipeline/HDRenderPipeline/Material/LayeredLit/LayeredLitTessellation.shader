@@ -164,8 +164,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         // Following are builtin properties
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
@@ -591,29 +589,21 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         Pass
         {
-            Name "Distortion" // Name is not used
-            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+            Name "Forward" // Name is not used
+            Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
-            Blend One One
-            ZTest [_ZTestMode]
-            ZWrite off
-            Cull [_CullMode]
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_CullMode]
 
             HLSLPROGRAM
 
             #pragma hull Hull
             #pragma domain Domain
 
-            #define SHADERPASS SHADERPASS_DISTORTION
+            #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
-            #include "../Lit/LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
-
-            ENDHLSL
-        }
-
+            #include "../../Lighting/Forward.
         Pass
         {
             Name "Forward" // Name is not used
