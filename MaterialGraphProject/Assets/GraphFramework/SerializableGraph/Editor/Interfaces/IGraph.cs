@@ -21,5 +21,6 @@ namespace UnityEngine.Graphing
         void ValidateGraph();
         void ReplaceWith(IGraph other);
         OnGraphChange onChange { get; set; }
+        IGraphObject owner { get; set; }
     }
 }
