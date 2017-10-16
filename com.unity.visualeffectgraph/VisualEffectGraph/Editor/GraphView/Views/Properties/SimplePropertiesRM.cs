@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         public StringProviderAttribute(Type providerType)
         {
             if (!typeof(IStringProvider).IsAssignableFrom(providerType))
-                throw new InvalidCastException("StringProviderAttribute except a type which implement interface IStringProvider : " + providerType);
+                throw new InvalidCastException("StringProviderAttribute excepts a type which implements interface IStringProvider : " + providerType);
             this.providerType = providerType;
         }
 
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
         public PushButtonAttribute(Type pushButtonProvider)
         {
             if (!typeof(IPushButtonBehavior).IsAssignableFrom(pushButtonProvider))
-                throw new InvalidCastException("PushButtonAttribute except a type which implement interface IPushButtonBehavior : " + pushButtonProvider);
+                throw new InvalidCastException("PushButtonAttribute excepts a type which implements interface IPushButtonBehavior : " + pushButtonProvider);
             this.pushButtonProvider = pushButtonProvider;
         }
 
