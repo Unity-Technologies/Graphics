@@ -5,12 +5,11 @@ Shader "HDRenderPipeline/Unlit"
         _Color("Color", Color) = (1,1,1,1)
         _ColorMap("ColorMap", 2D) = "white" {}
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
@@ -24,6 +23,9 @@ Shader "HDRenderPipeline/Unlit"
         _DistortionBlurScale("Distortion Blur Scale", Float) = 1
         _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
         _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
+
+        // Transparency
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
