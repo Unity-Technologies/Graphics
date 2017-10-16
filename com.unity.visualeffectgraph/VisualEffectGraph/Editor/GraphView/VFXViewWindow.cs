@@ -135,7 +135,7 @@ namespace  UnityEditor.VFX.UI
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
-        public bool autoCompile{get;set;}
+        public bool autoCompile {get; set; }
 
         void Update()
         {
@@ -148,7 +148,7 @@ namespace  UnityEditor.VFX.UI
                     filename += "*";
                 }
                 titleContent.text = filename;
-                if( autoCompile )
+                if (autoCompile)
                     graph.RecompileIfNeeded();
             }
             VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();

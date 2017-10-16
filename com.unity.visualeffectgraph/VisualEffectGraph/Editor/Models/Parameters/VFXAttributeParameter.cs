@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    interface IStringProvider
-    {
-        string[] GetAvailableString();
-    }
-
     class AttributeProvider : IStringProvider
     {
         public string[] GetAvailableString()

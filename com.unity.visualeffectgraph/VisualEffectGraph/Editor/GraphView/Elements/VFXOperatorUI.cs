@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
         public VFXStandaloneSlotContainerUI()
         {
             this.AddManipulator(new Collapser());
-            
+
             m_EdgeDrawer = new VFXEdgeDrawer();
             m_EdgeDrawer.style.positionType = PositionType.Absolute;
             m_EdgeDrawer.style.positionLeft = 0;

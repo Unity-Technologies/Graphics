@@ -456,17 +456,15 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-
-        void AddBlock(Vector2 position,VFXModelDescriptor<VFXBlock> descriptor)
+        void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
         {
-
             int blockIndex = -1;
             VFXBlockUI clickedBlock = null;
 
             var blocks = m_BlockContainer.Query().OfType<VFXBlockUI>().ToList();
-            for(int i = 0 ; i < blocks.Count ; ++i)
+            for (int i = 0; i < blocks.Count; ++i)
             {
-                if( blocks[i].worldBound.Contains(position) )
+                if (blocks[i].worldBound.Contains(position))
                 {
                     blockIndex = i;
                     break;
@@ -488,7 +486,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
                     {
-                        AddBlock(mPos,d);
+                        AddBlock(mPos, d);
                     }));
                 m_NodeContainer.AddManipulator(m_PopupManipulator);
             }
