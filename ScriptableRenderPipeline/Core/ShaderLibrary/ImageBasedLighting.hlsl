@@ -6,7 +6,6 @@
 #include "BSDF.hlsl"
 #include "Sampling.hlsl"
 
-// TODO: We need to change this hard limit!
 #ifndef UNITY_SPECCUBE_LOD_STEPS
     #define UNITY_SPECCUBE_LOD_STEPS 6
 #endif
@@ -127,7 +126,6 @@ void SampleGGXDir(float2   u,
 
     // Compute { localL = reflect(-localV, localH) }
     float3 localL = -localV + 2.0 * VdotH * localH;
-
     NdotL = localL.z;
 
     L = mul(localL, localToWorld);
@@ -177,9 +175,6 @@ void SampleVisibleAnisoGGXDir(float2 u, float3 V, float3x3 localToWorld,
     float3 localL = -localV + 2 * VdotH * localH;
     NdotL = localL.z;
 
-#if 0
-    H = mul(localH, localToWorld);
-#endif
     L = mul(localL, localToWorld);
 }
 
@@ -393,7 +388,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
 #ifndef USE_KARIS_APPROXIMATION
     float NdotV      = 1; // N == V
-    float preLambdaV = GetSmithJointGGXPreLambdaV(1, roughness);
+    float preLambdaV = GetSmithJointGGXPreLambdaV(NdotV, roughness);
 #endif
 
     float3 lightInt = float3(0.0, 0.0, 0.0);
@@ -416,7 +411,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         {
             float2 u = Fibonacci2d(i, sampleCount);
 
-            SampleVisibleAnisoGGXDir(u, V, localToWorld, roughness, roughness, L, NdotL, NdotH, LdotH, true);
+            // Note: if (N == V), all of the microsurface normals are visible.
+            SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, LdotH, true);
 
             if (NdotL <= 0) continue; // Note that some samples will have 0 contribution
         }
@@ -433,8 +429,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // in order to reduce the variance.
             // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
             //
-            // - OmegaS : Solid angle associated with the sample
-            // - OmegaP : Solid angle associated with the texel of the cubemap
+            // - OmegaS: Solid angle associated with the sample
+            // - OmegaP: Solid angle associated with the texel of the cubemap
 
             float omegaS;
 
@@ -444,15 +440,17 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             }
             else
             {
-                // float pdf = D_v / (4 * LdotH).
-                // TODO: check the accuracy of the sample's solid angle fit for GGX.
-                float rcpPdf = (4 * LdotH) / D_GGX_Visible(NdotH, NdotV, LdotH, roughness);
-                omegaS       = rcp(sampleCount) * rcpPdf;
+                // float PDF = D * NdotH * Jacobian, where Jacobian = 1 / (4 * LdotH).
+                // Since (N == V), NdotH == LdotH.
+                float pdf = 0.25 * D_GGX(NdotH, roughness);
+                // TODO: improve the accuracy of the sample's solid angle fit for GGX.
+                omegaS    = rcp(sampleCount) * rcp(pdf);
             }
 
-            // invOmegaP is precomputed on CPU and provide as a parameter of the function
+            // 'invOmegaP' is precomputed on CPU and provided as a parameter to the function.
             // float omegaP = FOUR_PI / (6.0 * cubemapWidth * cubemapWidth);
-            mipLevel = 0.5 * log2(omegaS * invOmegaP);
+            const float mipBias = roughness;
+            mipLevel = 0.5 * log2(omegaS * invOmegaP) + mipBias;
         }
 
         // TODO: use a Gaussian-like filter to generate the MIP pyramid.
@@ -461,21 +459,22 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // The goal of this function is to use Monte-Carlo integration to find
         // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
         // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
-        // using the formulation with the distribution of visible normals D_v,
-        // CBSDF  = F * D_v * G * NdotL / (4 * G_v * NdotL * VdotH) = F * D_v * G / (4 * G_v * NdotV).
-        // PDF    = D_v / (4 * LdotH).
-        // Weight = CBSDF / PDF = F * G / G_v.
-        // Since we perform filtering with the assumption that (V == N), G_v is constant.
+        // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
+        // PDF    = D * NdotH / (4 * LdotH).
+        // Weight = CBSDF / PDF = F * G * LdotH / (NdotV * NdotH).
+        // Since we perform filtering with the assumption that (V == N),
+        // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
         // Therefore, after the Monte Carlo expansion of the integrals,
         // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * G) / Sum(F * G).
 
     #ifndef USE_KARIS_APPROXIMATION
         // The choice of the Fresnel factor does not appear to affect the result.
-        float F   = 1; // F_Schlick(F0, LdotH);
-        float V   = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
-        float G2  = V * NdotL * NdotV; // 4 cancels out
-        lightInt += F * G2 * val;
-        cbsdfInt += F * G2;
+        float F = 1; // F_Schlick(F0, LdotH);
+        float V = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
+        float G = V * NdotL * NdotV; // 4 cancels out
+
+        lightInt += F * G * val;
+        cbsdfInt += F * G;
     #else
         // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
         lightInt += NdotL * val;
