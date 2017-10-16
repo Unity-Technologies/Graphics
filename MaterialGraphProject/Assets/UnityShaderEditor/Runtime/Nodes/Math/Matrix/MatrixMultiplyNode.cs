@@ -44,17 +44,17 @@ namespace UnityEngine.MaterialGraph
 
         protected MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Matrix4, Vector4.zero);
+            return new Matrix4MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input);
         }
 
         protected MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Matrix4, Vector4.zero);
+            return new Matrix4MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input);
         }
 
         protected MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix4, Vector4.zero);
+            return new Matrix4MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output);
         }
 
         protected virtual string GetInputSlot1Name()

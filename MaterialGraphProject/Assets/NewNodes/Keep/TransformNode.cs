@@ -73,12 +73,12 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero);
+            return new Vector3MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, Vector3.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
+            return new Vector3MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotName, SlotType.Output, Vector4.zero);
         }
 
         protected virtual string GetInputSlotName()
