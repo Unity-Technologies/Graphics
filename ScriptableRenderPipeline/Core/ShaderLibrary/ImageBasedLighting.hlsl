@@ -128,6 +128,56 @@ void SampleGGXDir(float2   u,
     L = mul(localL, localToWorld);
 }
 
+// Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".
+void SampleVisibleAnisoGGXDir(float2 u, float3 V, float3x3 localToWorld,
+                              float roughnessT, float roughnessB,
+                              out float3 L,
+                              out float  NdotL,
+                              out float  NdotH,
+                              out float  VdotH,
+                                  bool   VeqN = false)
+{
+    float3 localV = mul(V, transpose(localToWorld));
+
+    // Construct an orthonormal basis around the stretched view direction.
+    float3x3 viewToLocal;
+    if (VeqN)
+    {
+        viewToLocal = k_identity3x3;
+    }
+    else
+    {
+        viewToLocal[2] = normalize(float3(roughnessT * localV.x, roughnessB * localV.y, localV.z));
+        viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(viewToLocal[2], float3(0, 0, 1))) : float3(1, 0, 0);
+        viewToLocal[1] = cross(viewToLocal[0], viewToLocal[2]);
+    }
+
+    // Compute a sample point with polar coordinates (r, phi).
+    float r   = sqrt(u.x);
+    float b   = viewToLocal[2].z + 1;
+    float a   = rcp(b);
+    float c   = (u.y < a) ? u.y * b : 1 + (u.y * b - 1) / viewToLocal[2].z;
+    float phi = PI * c;
+    float p1  = r * cos(phi);
+    float p2  = r * sin(phi) * ((u.y < a) ? 1 : viewToLocal[2].z);
+
+    // Unstretch.
+    float3 viewH = normalize(float3(roughnessT * p1, roughnessB * p2, sqrt(1 - p1 * p1 - p2 * p2)));
+    VdotH = viewH.z;
+
+    float3 localH = mul(viewH, viewToLocal);
+    NdotH = localH.z;
+
+    // Compute { localL = reflect(-localV, localH) }
+    float3 localL = -localV + 2 * VdotH * localH;
+    NdotL = localL.z;
+
+#if 0
+    H = mul(localH, localToWorld);
+#endif
+    L = mul(localL, localToWorld);
+}
+
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
 void SampleAnisoGGXDir(float2 u,
                        float3 V,
@@ -329,7 +379,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                    float3 N,
                    float roughness,
                    float index,      // Current MIP level minus one
-                   float lastMipLevel,
                    float invOmegaP,
                    uint sampleCount, // Must be a Fibonacci number
                    bool prefilter,
@@ -342,36 +391,29 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     float preLambdaV = GetSmithJointGGXPreLambdaV(1, roughness);
 #endif
 
-    // Bias samples towards the mirror direction to reduce variance.
-    // This will have a side effect of making the reflection sharper.
-    // Ref: Stochastic Screen-Space Reflections, p. 67.
-    const float bias = 0.5 * roughness;
-
     float3 lightInt = float3(0.0, 0.0, 0.0);
     float  cbsdfInt = 0.0;
 
     for (uint i = 0; i < sampleCount; ++i)
     {
         float3 L;
-        float  NdotL, NdotH, VdotH;
-        bool   isValid;
+        float  NdotL, NdotH, LdotH;
 
         if (usePrecomputedSamples)
         {
             float3 localL = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).xyz;
 
-            L       = mul(localL, localToWorld);
-            NdotL   = localL.z;
-            isValid = true;
+            L     = mul(localL, localToWorld);
+            NdotL = localL.z;
+            LdotH = sqrt(0.5 + 0.5 * NdotL);
         }
         else
         {
             float2 u = Fibonacci2d(i, sampleCount);
-            u.x = lerp(u.x, 0.0, bias);
 
-            SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
+            SampleVisibleAnisoGGXDir(u, V, localToWorld, roughness, roughness, L, NdotL, NdotH, LdotH, true);
 
-            isValid = NdotL > 0.0;
+            if (NdotL <= 0) continue; // Note that some samples will have 0 contribution
         }
 
         float mipLevel;
@@ -386,14 +428,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // in order to reduce the variance.
             // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
             //
-            // pdf = D * NdotH * jacobian, where jacobian = 1.0 / (4* LdotH).
-            //
-            // Since L and V are symmetric around H, LdotH == VdotH.
-            // Since we pre-integrate the result for the normal direction,
-            // N == V and then NdotH == LdotH. Therefore, the BRDF's pdf
-            // can be simplified:
-            // pdf = D * NdotH / (4 * LdotH) = D * 0.25;
-            //
             // - OmegaS : Solid angle associated with the sample
             // - OmegaP : Solid angle associated with the texel of the cubemap
 
@@ -405,50 +439,43 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             }
             else
             {
-                float pdf = D_GGX(NdotH, roughness) * 0.25;
+                // float pdf = D_v / (4 * LdotH).
                 // TODO: check the accuracy of the sample's solid angle fit for GGX.
-                omegaS = rcp(sampleCount) / pdf;
+                float rcpPdf = (4 * LdotH) / D_GGX_Visible(NdotH, NdotV, LdotH, roughness);
+                omegaS       = rcp(sampleCount) * rcpPdf;
             }
 
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0 * cubemapWidth * cubemapWidth);
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP);
+            mipLevel = 0.5 * log2(omegaS * invOmegaP);
         }
 
-        if (isValid)
-        {
-            // Bias the MIP map level to compensate for the importance sampling bias.
-            // This will blur the reflection.
-            // TODO: find a more accurate MIP bias function.
-            mipLevel = lerp(mipLevel, lastMipLevel, bias);
+        // TODO: use a Gaussian-like filter to generate the MIP pyramid.
+        float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // TODO: use a Gaussian-like filter to generate the MIP pyramid.
-            float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
+        // The goal of this function is to use Monte-Carlo integration to find
+        // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+        // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
+        // using the formulation with the distribution of visible normals D_v,
+        // CBSDF  = F * D_v * G * NdotL / (4 * G_v * NdotL * VdotH) = F * D_v * G / (4 * G_v * NdotV).
+        // PDF    = D_v / (4 * LdotH).
+        // Weight = CBSDF / PDF = F * G / G_v.
+        // Since we perform filtering with the assumption that (V == N), G_v is constant.
+        // Therefore, after the Monte Carlo expansion of the integrals,
+        // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * G) / Sum(F * G).
 
-            // The goal of this function is to use Monte-Carlo integration to find
-            // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
-            // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
-            // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
-            // PDF    = D * NdotH / (4 * LdotH).
-            // Weight = CBSDF / PDF = F * G * LdotH / (NdotV * NdotH).
-            // Since we perform filtering with the assumption that (V == N),
-            // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
-            // Therefore, after the Monte Carlo expansion of the integrals,
-            // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * G) / Sum(F * G).
-
-        #ifndef USE_KARIS_APPROXIMATION
-            float F = 1; // The choice of the Fresnel factor does not appear to affect the result
-            float V = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
-            float G = V * /* 4 * */ NdotL * NdotV; // 4 cancels out
-            lightInt += F * G * val;
-            cbsdfInt += F * G;
-        #else
-            // Use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
-            // Weight ≈ NdotL.
-            lightInt += NdotL * val;
-            cbsdfInt += NdotL;
-        #endif
-        }
+    #ifndef USE_KARIS_APPROXIMATION
+        float F0  = 1; // The choice of the Fresnel factor does not appear to affect the result
+        float F   = F_Schlick(F0, LdotH);
+        float V   = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
+        float G2  = V * NdotL * NdotV; // 4 cancels out
+        lightInt += F * G2 * val;
+        cbsdfInt += F * G2;
+    #else
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        lightInt += NdotL * val;
+        cbsdfInt += NdotL;
+    #endif
     }
 
     return float4(lightInt / cbsdfInt, 1.0);
