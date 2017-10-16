@@ -6,6 +6,7 @@ using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.MaterialGraph;
+using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -165,26 +166,27 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (graphViewChange.edgesToCreate != null)
             {
-                foreach (Edge edge in graphViewChange.edgesToCreate)
+                foreach (var edge in graphViewChange.edgesToCreate)
                 {
                     m_GraphPresenter.Connect(edge.output, edge.input);
                 }
                 graphViewChange.edgesToCreate.Clear();
             }
 
-            /*
             if (graphViewChange.movedElements != null)  
             {
                 foreach (GraphElement element in graphViewChange.movedElements)
                 {
-                    MathNode mathNode = element.userData as MathNode;
-                    if (mathNode == null)
+                    var node = element.userData as INode;
+                    if (node == null)
                         continue;
 
-                    mathNode.m_Position = element.layout.position;
+                    var drawState = node.drawState;
+                    drawState.position = element.layout;
+                    node.drawState = drawState;
                 }
             }
-            */
+
             return graphViewChange;
         }
 
