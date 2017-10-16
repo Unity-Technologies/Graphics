@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 
@@ -125,6 +126,7 @@ namespace UnityEngine.Graphing
                 return null;
 
             var slotEdges = GetEdges(inputSlot).ToList();
+
             // remove any inputs that exits before adding
             foreach (var edge in slotEdges)
             {
@@ -275,6 +277,8 @@ namespace UnityEngine.Graphing
 
         public virtual void ReplaceWith(IGraph other)
         {
+
+
             using (var pooledList = ListPool<IEdge>.GetDisposable())
             {
                 var removedNodeEdges = pooledList.value;
@@ -289,38 +293,39 @@ namespace UnityEngine.Graphing
             }
 
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
-            using (var replacedNodesPooledObject = ListPool<INode>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
-                var replacedNodes = replacedNodesPooledObject.value;
                 foreach (var node in m_Nodes.Values)
                 {
-                    if (!other.ContainsNodeGuid(node.guid))
-                        // Remove the node if it doesn't exist in the other graph.
+                    var otherNode = other.GetNodeFromGuid(node.guid);
+                    if (otherNode == null || node.GetType() != otherNode.GetType())
+                    {
+                        // Remove the node if it doesn't exist in the other graph, or if the types don't match.
                         removedNodeGuids.Add(node.guid);
+                    }
                     else
-                        // Replace the node with the one from the other graph otherwise.
-                        replacedNodes.Add(node);
+                    {
+                        foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                        {
+                            var attribute = propertyInfo.GetCustomAttributes(typeof(NonSerializedAttribute), true).FirstOrDefault();
+                            if (attribute == null && propertyInfo.GetSetMethod() != null)
+                                propertyInfo.SetValue(node, propertyInfo.GetValue(otherNode, null), null);
+                        }
+                        foreach (var fieldInfo in node.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                        {
+                            var nonSerializedAttribute = fieldInfo.GetCustomAttributes(typeof(NonSerializedAttribute), true).FirstOrDefault();
+                            var serializeFieldAttribute = fieldInfo.GetCustomAttributes(typeof(SerializeField), true).FirstOrDefault();
+                            var isSerialized = ((fieldInfo.IsPublic && nonSerializedAttribute != null) || serializeFieldAttribute != null) && !fieldInfo.IsStatic && !fieldInfo.IsLiteral && !fieldInfo.IsInitOnly;
+                            if (isSerialized)
+                                fieldInfo.SetValue(node, fieldInfo.GetValue(otherNode));
+                        }
+                        var callbackReceiver = node as ISerializationCallbackReceiver;
+                        if (callbackReceiver != null) callbackReceiver.OnAfterDeserialize();
+                    }
                 }
 
                 foreach (var nodeGuid in removedNodeGuids)
                     RemoveNode(m_Nodes[nodeGuid]);
-
-                foreach (var node in replacedNodes)
-                {
-                    var currentNode = other.GetNodeFromGuid(node.guid);
-                    currentNode.owner = this;
-                    m_Nodes[node.guid] = currentNode;
-                    currentNode.onModified = node.onModified;
-                    currentNode.onReplaced = node.onReplaced;
-                    // Notify listeners that the reference has changed.
-                    if (node.onReplaced != null)
-                        node.onReplaced(node, currentNode);
-                    if (currentNode.onModified != null)
-                        currentNode.onModified(node, ModificationScope.Node);
-                    node.onModified = null;
-                    node.onReplaced = null;
-                }
             }
 
             // Add nodes from other graph which don't exist in this one.
