@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GeometryLast = UnityEngine.Rendering.RenderQueue.GeometryLast,
         PreRefraction = 2750,
         Transparent = UnityEngine.Rendering.RenderQueue.Transparent,
-        Overlay = UnityEngine.Rendering.RenderQueue.Overlay
+        Overlay = UnityEngine.Rendering.RenderQueue.Overlay,
+        Last = Overlay + 1000
     }
 }
