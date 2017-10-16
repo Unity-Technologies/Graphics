@@ -92,8 +92,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             "Forward Transparent Display"
         };
 
-        static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.GeometryLast + 1, max = (int)HDRenderQueue.PreRefraction };
-        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction + 1, max = (int)HDRenderQueue.Last };
+        static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
+        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.Transparent, max = (int)HDRenderQueue.Overlay };
 
         readonly HDRenderPipelineAsset m_Asset;
 
