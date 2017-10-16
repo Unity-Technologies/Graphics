@@ -208,6 +208,7 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
     - _PerPixelDisplacementObjectScale: 1
+    - _PreRefractionPass: 0
     - _PreTransparentPass: 0
     - _RefractionAbsorptionEnable: 0
     - _RefractionEnable: 0
@@ -239,7 +240,7 @@ Material:
     - _ZTestMode: 8
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

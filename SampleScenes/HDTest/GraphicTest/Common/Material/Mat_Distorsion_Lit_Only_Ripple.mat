@@ -19,16 +19,18 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
-  - Forward
-  - ForwardOnlyOpaqueDepthOnly
   - ForwardOnlyOpaque
+  - ForwardOnlyOpaqueDepthOnly
+  - Forward
+  - DepthOnly
+  - DepthForwardOnly
+  - ForwardOnly
   - GBuffer
   - GBufferWithPrepass
   - MOTIONVECTORS
   - TransparentDepthPrepass
   - META
   - SHADOWCASTER
-  - DepthOnly
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
