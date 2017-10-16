@@ -33,8 +33,12 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDataChanged()
         {
-            base.OnDataChanged();
             var presenter = GetPresenter<VFXSlotContainerPresenter>();
+            // update the title in the presenter before it is used somewhere in base.OnDataChanged();
+            presenter.UpdateTitle();
+
+            base.OnDataChanged();
+
 
             if (presenter == null)
                 return;

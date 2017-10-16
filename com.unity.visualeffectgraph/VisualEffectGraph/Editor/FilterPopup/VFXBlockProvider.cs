@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.UI
 {
@@ -113,8 +114,11 @@ namespace UnityEditor.VFX.UI
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
-            filteredBlocks.Sort((blockA, blockB) =>
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model) && b.modelType != typeof(SetAttribute)).ToList();
+            var attributeBlocks = VFXAttribute.All.Select(t => new VFXModelDescriptor<VFXBlock>(new SetAttribute { attribute = t})).ToList();
+
+
+            filteredBlocks.Concat(attributeBlocks).ToList().Sort((blockA, blockB) =>
                 {
                     var infoA = blockA.info;
                     var infoB = blockB.info;
