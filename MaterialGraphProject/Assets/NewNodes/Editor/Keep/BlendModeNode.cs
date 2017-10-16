@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -17,7 +18,9 @@ namespace UnityEngine.MaterialGraph
         }
 
         [SerializeField]
-        private BlendModesEnum m_BlendMode;
+        BlendModesEnum m_BlendMode;
+
+        [EnumControl("")]
         public BlendModesEnum blendMode
         {
             get { return m_BlendMode; }

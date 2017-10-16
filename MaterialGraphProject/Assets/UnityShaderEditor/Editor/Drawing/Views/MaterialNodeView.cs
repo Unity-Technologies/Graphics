@@ -82,7 +82,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!nodePresenter.node.guid.Equals(m_NodeGuid))
             {
                 m_ControlViews.Clear();
-                foreach (var propertyInfo in nodePresenter.node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                foreach (var propertyInfo in nodePresenter.node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
                         m_ControlViews.Add(attribute.InstantiateControl(nodePresenter.node, propertyInfo));
