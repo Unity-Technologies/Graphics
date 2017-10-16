@@ -1,3 +1,4 @@
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -5,25 +6,36 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Matrix/Matrix 2")]
     public class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
-        private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
+        const int kOutputSlotId = 0;
+        const string kOutputSlotName = "Value";
 
         [SerializeField]
-        private Vector2[] m_Value = new Vector2[2];
+        Vector2 m_Row0;
 
-        public Vector2 this[int index]
+        [SerializeField]
+        Vector2 m_Row1;
+
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector2 row0
         {
-            get { return m_Value[index]; }
-            set
-            {
-                if (m_Value[index] == value)
-                    return;
+            get { return m_Row0; }
+            set { SetRow(ref m_Row0, value); }
+        }
 
-                m_Value[index] = value;
+        [MultiFloatControl("", " ", " ", " ", " ")]
+        public Vector2 row1
+        {
+            get { return m_Row1; }
+            set { SetRow(ref m_Row1, value); }
+        }
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
+        void SetRow(ref Vector2 row, Vector2 value)
+        {
+            if (value == row)
+                return;
+            row = value;
+            if (onModified != null)
+                onModified(this, ModificationScope.Graph);
         }
 
         public Matrix2Node()
@@ -34,7 +46,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Matrix2, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Matrix2, Vector2.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
@@ -56,11 +68,11 @@ namespace UnityEngine.MaterialGraph
             //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
             //    return;
 
-            visitor.AddShaderChunk(precision + "2 " +  name + " = " + precision + "2x2 (" + m_Value[0].x + ", " + m_Value[0].y + ", " + m_Value[1].x + ", " + m_Value[1].y + ");", true);
+            visitor.AddShaderChunk(precision + "2 " +  name + " = " + precision + "2x2 (" + m_Row0.x + ", " + m_Row0.y + ", " + m_Row1.x + ", " + m_Row1.y + ");", true);
         }
 
         [SerializeField]
-        private string m_Description = string.Empty;
+        string m_Description = string.Empty;
 
         public string description
         {
@@ -96,7 +108,7 @@ namespace UnityEngine.MaterialGraph
             {
                 m_Name = propertyName,
                 m_PropType = PropertyType.Vector2,
-                m_Vector4 = m_Value
+                m_Vector2 = m_Value
             };
         }*/
     }

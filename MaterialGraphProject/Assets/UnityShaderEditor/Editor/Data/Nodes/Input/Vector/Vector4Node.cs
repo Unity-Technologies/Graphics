@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -24,6 +25,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
+        [MultiFloatControl("")]
         public Vector4 value
         {
             get { return m_Value; }

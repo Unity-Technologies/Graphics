@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -43,6 +44,7 @@ namespace UnityEngine.MaterialGraph
         }
 
 #if UNITY_EDITOR
+        [ObjectControl("Remap")]
         public MasterRemapGraphAsset remapGraphAsset
         {
             get

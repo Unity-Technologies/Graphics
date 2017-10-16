@@ -1,3 +1,4 @@
+using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -15,6 +16,8 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private UVChannel m_OutputChannel;
+
+        [EnumControl("")]
         public UVChannel uvChannel
         {
             get { return m_OutputChannel; }
