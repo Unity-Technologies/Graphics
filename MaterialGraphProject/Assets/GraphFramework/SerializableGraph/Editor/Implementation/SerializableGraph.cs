@@ -348,6 +348,8 @@ namespace UnityEngine.Graphing
 
         public OnGraphChange onChange { get; set; }
 
+        public IGraphObject owner { get; set; }
+
         protected void NotifyChange(GraphChange change)
         {
             if (onChange != null)
