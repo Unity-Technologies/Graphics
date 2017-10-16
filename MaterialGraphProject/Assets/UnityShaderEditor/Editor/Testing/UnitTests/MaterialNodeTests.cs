@@ -21,8 +21,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             public TestNode()
             {
-                AddSlot(new MaterialSlot(V1Out, "V1Out", "V1Out", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new Vector1MaterialSlot(V1Out, "V1Out", "V1Out", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, 0));
             }
         }
 
@@ -55,13 +55,13 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void ReplacingMaterialSlotPreservesTheOldCurrentValue()
         {
-            m_NodeA.AddSlot(new MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.one));
+            m_NodeA.AddSlot(new Vector1MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, 0));
             Assert.AreEqual(2, m_NodeA.GetSlots<MaterialSlot>().Count());
             Assert.AreEqual(1, m_NodeA.GetInputSlots<MaterialSlot>().Count());
 
-            var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
+            var slot = m_NodeA.GetInputSlots<Vector1MaterialSlot>().FirstOrDefault();
             Assert.AreEqual(Vector4.one, slot.defaultValue);
-            Assert.AreEqual(Vector4.zero, slot.currentValue);
+            Assert.AreEqual(Vector4.zero, slot.value);
         }
 
         [Test]
@@ -76,7 +76,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual("3x3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix3));
             Assert.AreEqual("4x4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix4));
             Assert.AreEqual("SamplerState", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.SamplerState));
-            Assert.AreEqual("Error", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
         }
 
         [Test]
@@ -84,14 +83,14 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var properties = new List<PreviewProperty>();
             m_NodeA.CollectPreviewMaterialProperties(properties);
-            var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
+            var slot = m_NodeA.GetInputSlots<Vector1MaterialSlot>().FirstOrDefault();
 
             Assert.AreEqual(1, properties.Count);
             var pp = properties.FirstOrDefault();
 
             Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.m_Name);
             Assert.AreEqual(PropertyType.Float, pp.m_PropType);
-            Assert.AreEqual(slot.currentValue, pp.m_Vector4);
+            Assert.AreEqual(slot.value, pp.m_Vector4);
         }
 
         [Test]

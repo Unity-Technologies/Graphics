@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -15,13 +14,28 @@ namespace UnityEditor.MaterialGraph.UnitTests
         class TestNode : AbstractMaterialNode
         {
             public const int V1In = 1;
+            public const int V2In = 2;
+            public const int V3In = 3;
+            public const int V4In = 4;
 
-            public readonly MaterialSlot slot;
+            public readonly Vector1MaterialSlot slot1;
+            public readonly Vector2MaterialSlot slot2;
+            public readonly Vector3MaterialSlot slot3;
+            public readonly Vector4MaterialSlot slot4;
 
             public TestNode()
             {
-                slot = new MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-                AddSlot(slot);
+                slot1 = new Vector1MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, 0);
+                AddSlot(slot1);
+
+                slot2 = new Vector2MaterialSlot(V2In, "V2In", "V2In", SlotType.Input, Vector2.zero);
+                AddSlot(slot2);
+
+                slot3 = new Vector3MaterialSlot(V3In, "V3In", "V3In", SlotType.Input, Vector3.zero);
+                AddSlot(slot3);
+
+                slot4 = new Vector4MaterialSlot(V4In, "V4In", "V4In", SlotType.Input, Vector4.zero);
+                AddSlot(slot4);
             }
         }
 
@@ -41,51 +55,36 @@ namespace UnityEditor.MaterialGraph.UnitTests
         }
 
         [Test]
-        public void CanUpdateMaterialSlotDisplayName()
+        public void SlotDisplayNameIsCorrect()
         {
             var displayName = "New Display Name";
 
-            var slot = m_NodeA.slot;
-            slot.displayName = displayName;
+            var slot = m_NodeA.slot1;
+            
+            Assert.AreEqual(displayName + "(1)", m_NodeA.slot1.displayName);
 
-            slot.valueType = SlotValueType.Vector1;
-            Assert.AreEqual(displayName + "(1)", slot.displayName);
+            Assert.AreEqual(displayName + "(2)", m_NodeA.slot2.displayName);
 
-            slot.valueType = SlotValueType.Vector2;
-            Assert.AreEqual(displayName + "(2)", slot.displayName);
+            Assert.AreEqual(displayName + "(3)", m_NodeA.slot3.displayName);
 
-            slot.valueType = SlotValueType.Vector3;
-            Assert.AreEqual(displayName + "(3)", slot.displayName);
-
-            slot.valueType = SlotValueType.Vector4;
-            Assert.AreEqual(displayName + "(4)", slot.displayName);
-
-            slot.valueType = SlotValueType.Dynamic;
-            Assert.AreEqual(displayName + "(4)", slot.displayName);
+            Assert.AreEqual(displayName + "(4)", m_NodeA.slot4.displayName);
+            
         }
 
         [Test]
         public void CanUpdateMaterialSlotDefaultValue()
         {
-            var slot = m_NodeA.slot;
-            slot.defaultValue = Vector4.one;
+            var slot = m_NodeA.slot1;
+            slot.value = 1;
             Assert.AreEqual(Vector4.one, slot.defaultValue);
         }
 
         [Test]
         public void CanUpdateMaterialSlotCurrentValue()
         {
-            var slot = m_NodeA.slot;
-            slot.currentValue = Vector4.one;
-            Assert.AreEqual(Vector4.one, slot.currentValue);
-        }
-
-        [Test]
-        public void CanUpdateMaterialSlotValueType()
-        {
-            var slot = m_NodeA.slot;
-            slot.valueType = SlotValueType.Vector3;
-            Assert.AreEqual(SlotValueType.Vector3, slot.valueType);
+            var slot = m_NodeA.slot1;
+            slot.value = 1;
+            Assert.AreEqual(Vector4.one, 1);
         }
 
    /*     [Test]
@@ -103,29 +102,24 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void MaterialSlotReturnsValidDefaultValue()
         {
             string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
-
-            var slot = m_NodeA.slot;
-            var result = slot.GetDefaultValue(GenerationMode.Preview);
+            
+            var result = m_NodeA.slot1.GetDefaultValue(GenerationMode.Preview);
             Assert.AreEqual(expected, result);
 
-            slot.valueType = SlotValueType.Vector1;
-            slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.ForReals);
+            m_NodeA.slot1.value = 6;
+            result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("6", result);
 
-            slot.valueType = SlotValueType.Vector2;
-            slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.ForReals);
+            m_NodeA.slot2.value = new Vector4(6, 6, 6, 1);
+            result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half2 (6,6)", result);
-
-            slot.valueType = SlotValueType.Vector3;
-            slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.ForReals);
+            
+            m_NodeA.slot3.value = new Vector4(6, 6, 6, 1);
+            result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half3 (6,6,6)", result);
 
-            slot.valueType = SlotValueType.Vector4;
-            slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.ForReals);
+            m_NodeA.slot4.value = new Vector4(6, 6, 6, 1);
+            result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half4 (6,6,6,1)", result);
         }
 

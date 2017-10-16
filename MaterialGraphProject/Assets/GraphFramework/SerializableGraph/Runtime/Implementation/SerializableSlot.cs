@@ -62,6 +62,11 @@ namespace UnityEngine.Graphing
             get { return m_SlotType == SlotType.Output; }
         }
 
+        public SlotType slotType
+        {
+            get { return m_SlotType; }
+        }
+
         // used via reflection / serialization after deserialize
         // to reconstruct this slot.
         public SerializableSlot()

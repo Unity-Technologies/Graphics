@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+﻿using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
@@ -23,26 +21,46 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 return;
             var previousWideMode = EditorGUIUtility.wideMode;
             EditorGUIUtility.wideMode = true;
-            var newValue = SlotField(m_Slot);
-            if (newValue != m_Slot.currentValue)
-            {
-                m_Slot.currentValue = newValue;
-                m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
-            }
+            var modified = SlotField(m_Slot);
             EditorGUIUtility.wideMode = previousWideMode;
+
+            if (modified)
+                m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
         }
 
-        static Vector4 SlotField(MaterialSlot slot)
+        public static bool SlotField(MaterialSlot slot)
         {
-            if (slot.concreteValueType == ConcreteSlotValueType.Vector1)
-                return new Vector4(EditorGUILayout.FloatField(slot.displayName, slot.currentValue.x), 0, 0, 0);
-            if (slot.concreteValueType == ConcreteSlotValueType.Vector2)
-                return EditorGUILayout.Vector2Field(slot.displayName, slot.currentValue);
-            if (slot.concreteValueType == ConcreteSlotValueType.Vector3)
-                return EditorGUILayout.Vector3Field(slot.displayName, slot.currentValue);
-            if (slot.concreteValueType == ConcreteSlotValueType.Vector4)
-                return EditorGUILayout.Vector4Field(slot.displayName, slot.currentValue);
-            return Vector4.zero;
+            EditorGUI.BeginChangeCheck();
+            if (slot is DynamicVectorMaterialSlot)
+            {
+                var dynSlot = slot as DynamicVectorMaterialSlot;
+                dynSlot.value = EditorGUILayout.Vector4Field(slot.displayName, dynSlot.value);
+            }
+
+            if (slot is Vector1MaterialSlot)
+            {
+                var dynSlot = slot as Vector1MaterialSlot;
+                dynSlot.value = EditorGUILayout.FloatField(slot.displayName, dynSlot.value);
+            }
+
+            if (slot is Vector2MaterialSlot)
+            {
+                var dynSlot = slot as Vector2MaterialSlot;
+                dynSlot.value = EditorGUILayout.Vector2Field(slot.displayName, dynSlot.value);
+            }
+            
+            if (slot is Vector3MaterialSlot)
+            {
+                var dynSlot = slot as Vector3MaterialSlot;
+                dynSlot.value = EditorGUILayout.Vector3Field(slot.displayName, dynSlot.value);
+            }
+
+            if (slot is Vector4MaterialSlot)
+            {
+                var dynSlot = slot as Vector4MaterialSlot;
+                dynSlot.value = EditorGUILayout.Vector4Field(slot.displayName, dynSlot.value);
+            }
+            return EditorGUI.EndChangeCheck();
         }
     }
 }

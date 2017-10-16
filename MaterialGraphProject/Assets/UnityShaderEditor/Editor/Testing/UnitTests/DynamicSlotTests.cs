@@ -20,9 +20,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             public DynamicNode()
             {
-                AddSlot(new MaterialSlot(DynIn1, "DynIn1", "DynIn1", SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
-                AddSlot(new MaterialSlot(DynIn2, "DynIn2", "DynIn2", SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
-                AddSlot(new MaterialSlot(DynOut, "DynOut", "DynOut", SlotType.Output, SlotValueType.Dynamic, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(DynIn1, "DynIn1", "DynIn1", SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(DynIn2, "DynIn2", "DynIn2", SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(DynOut, "DynOut", "DynOut", SlotType.Output, Vector4.zero));
             }
         }
 
@@ -35,10 +35,10 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             public TestNode()
             {
-                AddSlot(new MaterialSlot(V1Out, "V1Out", "V1Out", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(V2Out, "V2Out", "V2Out", SlotType.Output, SlotValueType.Vector2, Vector4.zero));
-                AddSlot(new MaterialSlot(V3Out, "V3Out", "V3Out", SlotType.Output, SlotValueType.Vector3, Vector4.zero));
-                AddSlot(new MaterialSlot(V4Out, "V4Out", "V4Out", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                AddSlot(new Vector1MaterialSlot(V1Out, "V1Out", "V1Out", SlotType.Output, 0));
+                AddSlot(new Vector2MaterialSlot(V2Out, "V2Out", "V2Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector3MaterialSlot(V3Out, "V3Out", "V3Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(V4Out, "V4Out", "V4Out", SlotType.Output, Vector4.zero));
             }
         }
 
