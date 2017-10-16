@@ -302,10 +302,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;
+    surfaceData.refractionMask = 1.0 - alpha;
+    alpha = 1.0; // Transparency is done with refraction, not blending
 #else
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1.0;
+    surfaceData.refractionMask = 0.0;
 #endif
 
     surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
@@ -335,6 +338,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
+    surfaceData.refractionMask = 0.0;
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
 

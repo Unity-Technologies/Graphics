@@ -59,7 +59,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
     builtinData.velocity = float2(0.0, 0.0);
 
-#if (SHADERPASS == SHADERPASS_DISTORTION)
+#if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
@@ -1468,6 +1468,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
+    surfaceData.refractionMask = 0.0;
 
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
