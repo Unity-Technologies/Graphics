@@ -108,6 +108,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public virtual void Initialize(INode inNode, PreviewSystem previewSystem)
         {
             node = inNode as AbstractMaterialNode;
+            userData = node;
 
             if (node == null)
                 return;
