@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public override AbstractMaterialGraph GetMaterialGraph()
         {
-            return inMemoryAsset;
+            return inMemoryAsset.graph as AbstractMaterialGraph;
         }
     }
 
@@ -52,7 +52,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public override AbstractMaterialGraph GetMaterialGraph()
         {
-            return inMemoryAsset;
+            return inMemoryAsset.graph as AbstractMaterialGraph;
         }
     }
 
@@ -60,7 +60,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public override AbstractMaterialGraph GetMaterialGraph()
         {
-            return inMemoryAsset;
+            return inMemoryAsset.graph as AbstractMaterialGraph;
         }
     }
 
@@ -70,7 +70,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         Object m_Selected;
 
         [SerializeField]
-        TGraphType m_InMemoryAsset;
+        SerializableGraphObject m_InMemoryAsset;
 
         GraphEditorView m_GraphEditorView;
         GraphEditorView graphEditorView
@@ -95,10 +95,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        protected TGraphType inMemoryAsset
+        protected SerializableGraphObject inMemoryAsset
         {
             get { return m_InMemoryAsset; }
-            set { m_InMemoryAsset = value; }
+            set
+            {
+                if (m_InMemoryAsset != null)
+                    DestroyImmediate(m_InMemoryAsset);
+                m_InMemoryAsset = value;
+            }
         }
 
         public override Object selected
@@ -110,7 +115,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         void Update()
         {
             if (graphEditorView == null || graphEditorView.graphPresenter == null)
-                graphEditorView = new GraphEditorView(inMemoryAsset, this, selected.name);
+                graphEditorView = new GraphEditorView(GetMaterialGraph(), this, selected.name);
             if (graphEditorView != null)
                 graphEditorView.previewSystem.Update();
         }
@@ -126,6 +131,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 UpdateAsset();
             }
+            DestroyImmediate(inMemoryAsset);
             graphEditorView = null;
         }
 
@@ -369,7 +375,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UpdateShaderGraphOnDisk(string path)
         {
-            var graph = inMemoryAsset as UnityEngine.MaterialGraph.MaterialGraph;
+            var graph = inMemoryAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
             if (graph == null)
                 return;
 
@@ -408,6 +414,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
+
         public override void ChangeSelection(Object newSelection)
         {
             if (!EditorUtility.IsPersistent(newSelection))
@@ -420,11 +427,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var path = AssetDatabase.GetAssetPath(newSelection);
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            inMemoryAsset = JsonUtility.FromJson<TGraphType>(textGraph);
-            inMemoryAsset.OnEnable();
-            inMemoryAsset.ValidateGraph();
+            inMemoryAsset = CreateInstance<SerializableGraphObject>();
+            inMemoryAsset.graph = JsonUtility.FromJson<TGraphType>(textGraph);
+            inMemoryAsset.graph.OnEnable();
+            inMemoryAsset.graph.ValidateGraph();
 
-            graphEditorView = new GraphEditorView(inMemoryAsset, this, selected.name);
+            graphEditorView = new GraphEditorView(GetMaterialGraph(), this, selected.name);
             titleContent = new GUIContent(selected.name);
 
             Repaint();

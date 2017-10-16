@@ -46,6 +46,23 @@ MaterialNodeView > .mainContainer > #left > #toggle:active {
 	background-color: rgba(0, 0, 0, 0.66);
 }
 
+MaterialNodeView > #resize {
+    background-color: rgb(0, 0, 255);
+    position-type: absolute;
+    position-right: 5;
+    position-bottom: 5;
+    width: 10;
+    height: 10;
+}
+
+MaterialNodeView > #resize:hover {
+    background-color: rgb(0, 127, 127);
+}
+
+MaterialNodeView > #resize:active {
+    background-color: rgb(0, 225, 25);
+}
+
 GridBackground {
 	grid-background-color: rgb(20, 21, 21);
 	line-color: rgb(20, 21, 21);
