@@ -269,6 +269,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         // TODO: Handle culling mode for backface culling
+
+        // Transparency
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
     }
 
     HLSLINCLUDE
