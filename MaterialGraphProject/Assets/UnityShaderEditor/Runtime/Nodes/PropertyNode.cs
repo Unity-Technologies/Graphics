@@ -5,7 +5,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Property Node")]
-    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IOnAssetEnabled
     {
         private Guid m_PropertyGuid;
 
@@ -179,11 +179,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
-        {
-            base.UpdateNodeAfterDeserialization();
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
             if (slotId != TOutputSlotId)
@@ -215,6 +210,11 @@ namespace UnityEngine.MaterialGraph
             base.OnAfterDeserialize();
             if (!string.IsNullOrEmpty(m_PropertyGuidSerialized))
                 m_PropertyGuid = new Guid(m_PropertyGuidSerialized);
+        }
+
+        public void OnEnable()
+        {
+            UpdateNode();
         }
     }
 }

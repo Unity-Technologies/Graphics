@@ -18,6 +18,10 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private float m_DefaultValue;
 
+        public Vector1MaterialSlot()
+        {
+        }
+
         public Vector1MaterialSlot(
             int slotId,
             string displayName,
@@ -70,6 +74,10 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector2 m_DefaultValue;
+        
+        public Vector2MaterialSlot()
+        {
+        }
 
         public Vector2MaterialSlot(
             int slotId,
@@ -122,6 +130,10 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector3 m_DefaultValue;
+        
+        public Vector3MaterialSlot()
+        {
+        }
 
         public Vector3MaterialSlot(
             int slotId,
@@ -174,6 +186,10 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private Vector4 m_DefaultValue;
 
+        public Vector4MaterialSlot()
+        {
+        }
+
         public Vector4MaterialSlot(
             int slotId,
             string displayName,
@@ -220,6 +236,11 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class Matrix2MaterialSlot : MaterialSlot
     {
+
+        public Matrix2MaterialSlot()
+        {
+        }
+
         public Matrix2MaterialSlot(
             int slotId,
             string displayName,
@@ -243,6 +264,11 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class Matrix3MaterialSlot : MaterialSlot
     {
+
+        public Matrix3MaterialSlot()
+        {
+        }
+
         public Matrix3MaterialSlot(
             int slotId,
             string displayName,
@@ -266,6 +292,10 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class Matrix4MaterialSlot : MaterialSlot
     {
+        public Matrix4MaterialSlot()
+        {
+        }
+
         public Matrix4MaterialSlot(
             int slotId,
             string displayName,
@@ -290,6 +320,10 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class Texture2DMaterialSlot : MaterialSlot
     {
+        public Texture2DMaterialSlot()
+        {
+        }
+
         public Texture2DMaterialSlot(
             int slotId,
             string displayName,
@@ -310,6 +344,10 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public class SamplerStateMaterialSlot : MaterialSlot
     {
+        public SamplerStateMaterialSlot()
+        {
+        }
+
         public SamplerStateMaterialSlot(
             int slotId,
             string displayName,
@@ -335,6 +373,10 @@ namespace UnityEngine.MaterialGraph
         private Vector4 m_DefaultValue;
 
         private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Vector4;
+
+        public DynamicVectorMaterialSlot()
+        {
+        }
 
         public DynamicVectorMaterialSlot(
             int slotId,
@@ -368,6 +410,24 @@ namespace UnityEngine.MaterialGraph
         public void SetConcreteType(ConcreteSlotValueType valueType)
         {
             m_ConcreteValueType = valueType;
+        }
+
+        public override PreviewProperty GetPreviewProperty(string name)
+        {
+            var pp = new PreviewProperty
+            {
+                m_Name = name,
+                m_PropType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
+                m_Vector4 = new Vector4(value.x, value.y, value.z, value.w),
+                m_Float = value.x,
+                m_Color = new Vector4(value.x, value.x, value.z, value.w),
+            };
+            return pp;
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")"; 
         }
     }
 
@@ -446,7 +506,7 @@ namespace UnityEngine.MaterialGraph
                 case SlotValueType.Dynamic:
                     return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector4:
-                    return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
+                    return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector3:
                     return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector2:

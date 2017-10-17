@@ -62,7 +62,7 @@ namespace UnityEngine.MaterialGraph
                 var helper = new RemapGraphHelper();
                 helper.remapGraph = value;
                 m_SerializedRemapGraph = EditorJsonUtility.ToJson(helper, true);
-                OnEnable();
+                UpdateSlots();
 
                 if (onModified != null)
                     onModified(this, ModificationScope.Topological);

@@ -18,6 +18,10 @@ namespace UnityEngine.MaterialGraph
             PreviewMode pmode;
             return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
-
+         
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize(); 
+        }
     }
 }

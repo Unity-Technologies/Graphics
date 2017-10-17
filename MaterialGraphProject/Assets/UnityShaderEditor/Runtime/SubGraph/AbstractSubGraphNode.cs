@@ -7,7 +7,6 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractSubGraphNode : AbstractMaterialNode
         , IGeneratesFunction
-        , IOnAssetEnabled
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -42,7 +41,7 @@ namespace UnityEngine.MaterialGraph
             get { return null; }
         }
 
-        public virtual void OnEnable()
+        public virtual void UpdateSlots()
         {
             var validNames = new List<int>();
             if (referencedGraph == null)
