@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class BlockContainer : VisualElement, IKeyFocusBlocker
+    class BlockContainer : VisualElement
     {
         // ISelection implementation
         public List<ISelectable> selection { get; private set; }

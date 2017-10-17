@@ -27,7 +27,6 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("#tab"), view.FramePrev },
                 { Event.KeyboardEvent("tab"), view.FrameNext },
                 {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
-                {Event.KeyboardEvent("#e"), view.ToggleLogEvent},     // TEST
                 {Event.KeyboardEvent("#r"), view.Resync},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},

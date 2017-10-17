@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.UIElements
                             range,
                             m_Value,
                             kCurveColor,
-                        style.backgroundImage.value);
+                            style.backgroundImage.value);
                 }
             }
 
