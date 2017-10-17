@@ -42,7 +42,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
-    float4 EvaluateAtmosphericScattering(posInput, float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity));
+    float4 outColor = EvaluateAtmosphericScattering(posInput, float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity));
 
 #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForward.shader

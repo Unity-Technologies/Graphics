@@ -477,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                if(skySettings.atmosphericScatteringSettings.NeedFogRendering())
+                if(skySettings != null && skySettings.atmosphericScatteringSettings.NeedFogRendering())
                 {
                     CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
                 }
