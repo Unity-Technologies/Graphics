@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent linearFogDensity = new GUIContent("Fog Density");
             public readonly GUIContent linearFogStart = new GUIContent("Fog Start Distance");
             public readonly GUIContent linearFogEnd = new GUIContent("Fog End Distance");
+            public readonly GUIContent expFogDensity = new GUIContent("Fog Density");
             public readonly GUIContent expFogDistance = new GUIContent("Fog Distance");
         }
 
@@ -38,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_LinearFogEnd;
 
         private SerializedProperty m_ExpFogDistance;
+        private SerializedProperty m_ExpFogDensity;
 
         public void OnEnable(SerializedProperty atmScatterProperty)
         {
@@ -54,6 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LinearFogEnd = atmScatterProperty.FindPropertyRelative("linearFogEnd");
             // Exp fog
             m_ExpFogDistance = atmScatterProperty.FindPropertyRelative("expFogDistance");
+            m_ExpFogDensity = atmScatterProperty.FindPropertyRelative("expFogDensity");
         }
 
         public void OnGUI()
@@ -89,6 +92,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else if((AtmosphericScatteringSettings.FogType)m_Type.intValue == AtmosphericScatteringSettings.FogType.Exponential)
                     {
+                        EditorGUILayout.PropertyField(m_ExpFogDensity, styles.expFogDensity);
                         EditorGUILayout.PropertyField(m_ExpFogDistance, styles.expFogDistance);
                     }
                 }

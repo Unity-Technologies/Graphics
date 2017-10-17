@@ -59,7 +59,7 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+    outColor = EvaluateAtmosphericScattering(posInput, float4(diffuseLighting + specularLighting, builtinData.opacity));
     }
 
 #ifdef _DEPTHOFFSET_ON

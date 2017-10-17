@@ -19,19 +19,20 @@ MonoBehaviour:
   updatePeriod: 0
   lightingOverride: {fileID: 0}
   atmosphericScatteringSettings:
-    type: 2
+    type: 1
     colorMode: 1
     fogColor: {r: 0.36937714, g: 0.40825674, b: 0.41176468, a: 1}
-    mipFogMaxMip: 0.554
+    mipFogMaxMip: 0.514
     mipFogNear: 40
     mipFogFar: 400
     linearFogDensity: 1
     linearFogStart: 40
-    linearFogEnd: 100
-    expFogDistance: 100
+    linearFogEnd: 50
+    expFogDistance: 150
+    expFogDensity: 1
   sunSize: 0.054
   sunSizeConvergence: 6.27
   atmosphereThickness: 1.17
   skyTint: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
-  groundColor: {r: 0.5661765, g: 0.5661765, b: 0.5661765, a: 1}
+  groundColor: {r: 0.5808823, g: 0.5808823, b: 0.5808823, a: 1}
   enableSunDisk: 1

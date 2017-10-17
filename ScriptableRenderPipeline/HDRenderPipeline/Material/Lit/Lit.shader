@@ -88,6 +88,8 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
+        [ToggleOff] _EnableFog ("Enable Fog", Float) = 1.0
+
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
@@ -133,7 +135,7 @@ Shader "HDRenderPipeline/Lit"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
-    // #pragma enable_d3d11_debug_symbols
+    //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -168,6 +170,9 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _SPECULARCOLORMAP
 
     #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    
+    // This feature is only for transparent Lit
+    #pragma shader_feature _ENABLE_FOG
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD

@@ -9,6 +9,7 @@
 #include "../../Core/ShaderLibrary/CommonMaterial.hlsl"
 #include "../../Core/ShaderLibrary/EntityLighting.hlsl"
 #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 //-----------------------------------------------------------------------------
 // Blending
@@ -19,6 +20,41 @@
 #else
 #   define SURFACE_TYPE_OPAQUE
 #endif
+
+//-----------------------------------------------------------------------------
+// Fog sampling function for materials
+//-----------------------------------------------------------------------------
+
+// Used for transparent object. input color is color + alpha of the original transparent pixel.
+float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
+{
+    float4 result = inputColor;
+
+#if defined(SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG)
+    float4 fog = EvaluateAtmosphericScattering(posInput);
+
+#if defined(_BLENDMODE_LERP)
+    // Regular alpha blend only need a lerp to work
+    result.rgb = lerp(result.rgb, fog.rgb, fog.a);
+#elif defined(_BLENDMODE_ADD)
+    // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
+    result.rgb = result.rgb * (1.0 - fog.a);
+#elif defined(_BLENDMODE_MULTIPLY) 
+    // For multiplicative, we just need to fade to white with fog density (white * background == background color == fog color)
+    result.rgb = lerp(result.rgb, float3(1.0, 1.0, 1.0), fog.a);
+#elif defined(_BLENDMODE_PRE_MULTIPLY)
+    // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
+    result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
+#endif
+
+#else
+    // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
+    // but this funtction is called in generic forward shader code so we need it to be neutral in this case.
+#endif
+
+    return result;
+}
+
 
 //-----------------------------------------------------------------------------
 // BuiltinData
