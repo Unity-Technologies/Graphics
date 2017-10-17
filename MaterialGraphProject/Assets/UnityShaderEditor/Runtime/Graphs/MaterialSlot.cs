@@ -540,45 +540,40 @@ namespace UnityEngine.MaterialGraph
             set { m_HasError = value; }
         }
 
-        public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
+        public bool IsCompatibleWithInputSlotType(ConcreteSlotValueType inputType)
         {
-            switch (valueType)
+            switch (concreteValueType)
             {
-                case SlotValueType.SamplerState:
-                    return inputType == SlotValueType.SamplerState;
-                case SlotValueType.Matrix4:
-                    return inputType == SlotValueType.Matrix4
-                        || inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
-                case SlotValueType.Matrix3:
-                    return inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
-                case SlotValueType.Matrix2:
-                    return inputType == SlotValueType.Matrix2;
-                case SlotValueType.Texture2D:
-                    return inputType == SlotValueType.Texture2D;
-                case SlotValueType.Vector4:
-                    return inputType == SlotValueType.Vector4
-                        || inputType == SlotValueType.Vector3
-                        || inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
-                case SlotValueType.Vector3:
-                    return inputType == SlotValueType.Vector3
-                        || inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
-                case SlotValueType.Vector2:
-                    return inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
-                case SlotValueType.Dynamic:
-                case SlotValueType.Vector1:
-                    return inputType == SlotValueType.Vector4
-                        || inputType == SlotValueType.Vector3
-                        || inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
+                case ConcreteSlotValueType.SamplerState:
+                    return inputType == ConcreteSlotValueType.SamplerState;
+                case ConcreteSlotValueType.Matrix4:
+                    return inputType == ConcreteSlotValueType.Matrix4
+                        || inputType == ConcreteSlotValueType.Matrix3
+                        || inputType == ConcreteSlotValueType.Matrix2;
+                case ConcreteSlotValueType.Matrix3:
+                    return inputType == ConcreteSlotValueType.Matrix3
+                        || inputType == ConcreteSlotValueType.Matrix2;
+                case ConcreteSlotValueType.Matrix2:
+                    return inputType == ConcreteSlotValueType.Matrix2;
+                case ConcreteSlotValueType.Texture2D:
+                    return inputType == ConcreteSlotValueType.Texture2D;
+                case ConcreteSlotValueType.Vector4:
+                    return inputType == ConcreteSlotValueType.Vector4
+                        || inputType == ConcreteSlotValueType.Vector3
+                        || inputType == ConcreteSlotValueType.Vector2
+                        || inputType == ConcreteSlotValueType.Vector1;
+                case ConcreteSlotValueType.Vector3:
+                    return inputType == ConcreteSlotValueType.Vector3
+                        || inputType == ConcreteSlotValueType.Vector2
+                        || inputType == ConcreteSlotValueType.Vector1;
+                case ConcreteSlotValueType.Vector2:
+                    return inputType == ConcreteSlotValueType.Vector2
+                        || inputType == ConcreteSlotValueType.Vector1;
+                case ConcreteSlotValueType.Vector1:
+                    return inputType == ConcreteSlotValueType.Vector4
+                        || inputType == ConcreteSlotValueType.Vector3
+                        || inputType == ConcreteSlotValueType.Vector2
+                        || inputType == ConcreteSlotValueType.Vector1;
             }
             return false;
         }
