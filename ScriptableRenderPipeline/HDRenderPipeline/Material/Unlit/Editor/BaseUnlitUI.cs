@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
@@ -275,7 +275,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // These need to always been set either with opaque or transparent! So a users can swtich to opaque and remove the keyword correctly
             SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
-            SetKeyword(material, "_BLENDMODE_SOFT_ADD", false);
             SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
             SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
