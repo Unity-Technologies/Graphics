@@ -104,10 +104,20 @@ struct SurfaceData
     half3 specular;
     half  metallic;
     half  smoothness;
-    half3 normalWorld;
+    half3 normal;
     half3 emission;
     half  occlusion;
     half  alpha;
+};
+
+struct SurfaceInput
+{
+    float3 tangentToWorld0; // tx, bx, nx
+    float3 tangentToWorld1; // ty, by, ny
+    float3 tangentToWorld2; // tz, bz, nz
+    float3 worldPos;
+    half3  viewDir;
+    float  fogFactor;
 };
 
 struct BRDFData
@@ -134,20 +144,13 @@ inline half Alpha(half albedoAlpha)
     return alpha;
 }
 
-inline half3 Normal(LightweightVertexOutput i)
+half3 Normal(float2 uv)
 {
-    #if _NORMALMAP
-    half3 normalTangent = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
-
-    // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
-    // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
-    // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    half3 normalWorld = normalize(half3(dot(normalTangent, i.tangentToWorld0), dot(normalTangent, i.tangentToWorld1), dot(normalTangent, i.tangentToWorld2)));
+#if _NORMALMAP
+    return UnpackNormal(tex2D(_BumpMap, uv));
 #else
-    half3 normalWorld = normalize(i.normal);
+    return half3(0.0h, 0.0h, 1.0h);
 #endif
-
-    return normalWorld;
 }
 
 inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)

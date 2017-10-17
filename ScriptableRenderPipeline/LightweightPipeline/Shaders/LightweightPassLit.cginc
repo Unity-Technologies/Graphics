@@ -61,35 +61,45 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #endif
 
     o.hpos = UnityObjectToClipPos(v.vertex);
-    UNITY_TRANSFER_FOG(o, o.hpos);
+    o.fogCoord.x = ComputeFogFactor(o.hpos.z);
     return o;
 }
 
-half4 LightweightFragmentPBR(LightweightVertexOutput i, SurfaceData surfaceData)
+// NdotV, reflectVec (view tangent space)
+// NdotL, (light in tangent space)
+
+half4 LightweightFragmentPBR(LightweightVertexOutput IN, SurfaceData surfaceData)
 {
     BRDFData brdfData;
     InitializeBRDFData(surfaceData, brdfData);
 
-    float2 lightmapUV = i.uv01.zw;
-    half3 normal = surfaceData.normalWorld;
-    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+    // Should we standardize/pass this as input
+    float2 lightmapUV = IN.uv01.zw;
+    float fogFactor = IN.fogCoord.x;
+    float3 SH_L2Coeff = IN.fogCoord.yzw;
+    half3 viewDir = IN.viewDir.xyz;
+    float3 posWS = IN.posWS.xyz;
+
+    half3 normalWorld = TangentToWorldNormal(surfaceData.normal, IN);
+
+    half3 reflectVec = reflect(-viewDir, normalWorld);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, surfaceData.occlusion, brdfData.perceptualRoughness);
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, SH_L2Coeff, normalWorld, reflectVec, surfaceData.occlusion, brdfData.perceptualRoughness);
 
     // PBS
-    half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
+    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWorld, viewDir)));
     half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
     half3 lightDirection;
 
 #ifdef _MAIN_LIGHT
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
-    half lightAtten = ComputeMainLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(i, _ShadowLightDirection.xyz);
+    half lightAtten = ComputeMainLightAttenuation(light, normalWorld, posWS, lightDirection);
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(IN, _ShadowLightDirection.xyz);
 
-    half NdotL = saturate(dot(normal, lightDirection));
+    half NdotL = saturate(dot(normalWorld, lightDirection));
     half3 radiance = light.color * (lightAtten * NdotL);
-    color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
+    color += LightweightBDRF(brdfData, roughness2, normalWorld, lightDirection, viewDir) * radiance;
 #endif
 
 #ifdef _ADDITIONAL_PIXEL_LIGHTS
@@ -98,25 +108,27 @@ half4 LightweightFragmentPBR(LightweightVertexOutput i, SurfaceData surfaceData)
     {
         LightInput light;
         INITIALIZE_LIGHT(light, lightIter);
-        half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
+        half lightAtten = ComputeLightAttenuation(light, normalWorld, posWS, lightDirection);
 
-        half NdotL = saturate(dot(normal, lightDirection));
+        half NdotL = saturate(dot(normalWorld, lightDirection));
         half3 radiance = light.color * (lightAtten * NdotL);
-        color += LightweightBDRF(brdfData, roughness2, normal, lightDirection, i.viewDir.xyz) * radiance;
+        color += LightweightBDRF(brdfData, roughness2, normalWorld, lightDirection, viewDir) * radiance;
     }
 #endif
 
     color += surfaceData.emission;
-    UNITY_APPLY_FOG(i.fogCoord, color);
+
+    // Computes fog factor per-vertex
+    ApplyFog(color, fogFactor);
     return OutputColor(color, surfaceData.alpha);
 }
 
-half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
+half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 {
     SurfaceData surfaceData;
-    InitializeSurfaceData(i, surfaceData);
+    InitializeSurfaceData(IN, surfaceData);
 
-    return LightweightFragmentPBR(i, surfaceData);
+    return LightweightFragmentPBR(IN, surfaceData);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
@@ -136,7 +148,8 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     clip(alpha - _Cutoff);
 #endif
 
-    half3 normal = Normal(i);
+    half3 normalTangent = Normal(i.uv01.xy);
+    half3 normalWorld = TangentToWorldNormal(normalTangent, i);
 
     half4 specularGloss;
     SpecularGloss(i.uv01.xy, alpha, specularGloss);
@@ -149,19 +162,19 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
 #if defined(LIGHTMAP_ON)
     half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
 #else
-    half3 color = (SHEvalLinearL0L1(half4(normal, 1.0)) + i.fogCoord.yzw) * diffuse;
+    half3 color = (SHEvalLinearL0L1(half4(normalWorld, 1.0)) + i.fogCoord.yzw) * diffuse;
 #endif
 
 #ifdef _MAIN_LIGHT
     LightInput lightInput;
     INITIALIZE_MAIN_LIGHT(lightInput);
-    half lightAtten = ComputeMainLightAttenuation(lightInput, normal, worldPos, lightDirection);
+    half lightAtten = ComputeMainLightAttenuation(lightInput, normalWorld, worldPos, lightDirection);
     lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(i, _ShadowLightDirection.xyz);
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
+    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightInput.color;
 #else
-    color += LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightInput.color;
+    color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightInput.color;
 #endif
 
 #endif
@@ -172,19 +185,21 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     {
         LightInput lightData;
         INITIALIZE_LIGHT(lightData, lightIter);
-        half lightAtten = ComputeLightAttenuation(lightData, normal, worldPos, lightDirection);
+        half lightAtten = ComputeLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
-        color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightData.color;
+        color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightData.color;
 #else
-        color += LightingLambert(diffuse, lightDirection, normal, lightAtten) * lightData.color;
+        color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightData.color;
 #endif
     }
 
 #endif // _ADDITIONAL_PIXEL_LIGHTS
 
     color += EmissionLW(i.uv01.xy);
-    UNITY_APPLY_FOG(i.fogCoord, color);
+
+    // Computes Fog Factor per vextex
+    ApplyFog(color, i.fogCoord.x);
     return OutputColor(color, alpha);
 };
 
