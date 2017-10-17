@@ -60,8 +60,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void RemoveMaterialKeywords(Material material)
         {
-            foreach (var keyword in material.shaderKeywords)
-                material.DisableKeyword(keyword);
+            material.shaderKeywords = null;
         }
     }
 }
