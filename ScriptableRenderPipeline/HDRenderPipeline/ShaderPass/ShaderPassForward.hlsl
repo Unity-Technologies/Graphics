@@ -81,6 +81,7 @@ void Frag(PackedVaryingsToPS packedInput,
         LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
         outColor = ApplyBlendModeAccurateLighting(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, outColor);
     }
 
 #ifdef _DEPTHOFFSET_ON
