@@ -136,12 +136,6 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
-        public EventPropagation ToggleLogEvent()
-        {
-            EventDispatcher.logEvents = !EventDispatcher.logEvents;
-            return EventPropagation.Stop;
-        }
-
         public VFXView()
         {
             forceNotififcationOnAdd = true;

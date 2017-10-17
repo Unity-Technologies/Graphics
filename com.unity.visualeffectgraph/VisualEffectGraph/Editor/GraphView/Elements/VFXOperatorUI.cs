@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class VFXOperatorUI : VFXStandaloneSlotContainerUI, IKeyFocusBlocker
+    class VFXOperatorUI : VFXStandaloneSlotContainerUI
     {
         public VFXOperatorUI()
         {
