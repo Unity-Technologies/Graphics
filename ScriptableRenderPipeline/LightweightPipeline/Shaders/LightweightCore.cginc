@@ -39,7 +39,7 @@ inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData out
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalWorld = Normal(i);
+    outSurfaceData.normal = Normal(uv);
     outSurfaceData.occlusion = OcclusionLW(uv);
     outSurfaceData.emission = EmissionLW(uv);
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
@@ -75,6 +75,46 @@ inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData
     half alpha = surfaceData.alpha;
     outBRDFData.diffuse *= alpha;
     surfaceData.alpha = reflectivity + alpha * (1.0 - reflectivity);
+#endif
+}
+
+half3 TangentToWorldNormal(half3 normalTangent, LightweightVertexOutput IN)
+{
+#if _NORMALMAP
+    // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
+    // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
+    // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
+    return normalize(half3(dot(normalTangent, IN.tangentToWorld0), dot(normalTangent, IN.tangentToWorld1), dot(normalTangent, IN.tangentToWorld2)));
+#else
+    return normalize(IN.normal);
+#endif
+}
+
+float ComputeFogFactor(float z)
+{
+    float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
+
+#if defined(FOG_LINEAR)
+    // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
+    float fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);
+    return fogFactor;
+#elif defined(FOG_EXP)
+    // factor = exp(-density*z)
+    float unityFogFactor = unity_FogParams.y * clipZ_01;
+    return saturate(exp2(-unityFogFactor));
+#elif defined(FOG_EXP2)
+    // factor = exp(-(density*z)^2)
+    float unityFogFactor = unity_FogParams.x * clipZ_01;
+    return saturate(exp2(-unityFogFactor*unityFogFactor));
+#else
+    return 0.0;
+#endif
+}
+
+void ApplyFog(inout half3 color, float fogFactor)
+{
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    color = lerp(unity_FogColor, color, fogFactor);
 #endif
 }
 
