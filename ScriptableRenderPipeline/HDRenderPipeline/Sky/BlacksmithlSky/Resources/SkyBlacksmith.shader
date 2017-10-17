@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
+Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
 {
     SubShader
     {
@@ -34,7 +34,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             float    _DisableSkyOcclusionTest;
 
             #define IS_RENDERING_SKY
-            #include "AtmosphericScattering.hlsl"
+            #include "AtmosphericScattering_blacksmith.hlsl"
 
             struct Attributes
             {

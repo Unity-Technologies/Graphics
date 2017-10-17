@@ -1,4 +1,5 @@
-#include "TilePass.cs.hlsl"
+﻿#include "TilePass.cs.hlsl"
+#include "../../Sky/SkyVariables.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
@@ -48,9 +49,6 @@ SAMPLERCUBE_ABSTRACT(sampler_CookieCubeTextures);
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
 SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
-
-TEXTURECUBE(_SkyTexture);
-SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
 TEXTURE2D(_DeferredShadowTexture);
 
@@ -127,6 +125,6 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
-        return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
+        return SampleSkyTexture(texCoord, lod);
     }
 }
