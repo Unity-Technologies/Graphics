@@ -54,12 +54,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void RemoveMaterialKeywords(Material material)
-        {
-            foreach (var keyword in material.shaderKeywords)
-                material.DisableKeyword(keyword);
-        }
-
         // The goal of this script is to help maintenance of data that have already been produced but need to update to the latest shader code change.
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
@@ -73,34 +67,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 for (int i = 0, length = materials.Length; i < length; i++)
                 {
-                    var mat = materials[i];
+                    EditorUtility.DisplayProgressBar(
+                        "Setup materials Keywords...",
+                        string.Format("{0} / {1} materials cleaned.", i, length),
+                        i / (float)(length - 1));
+
+                    HDEditorUtils.ResetMaterialKeywords(materials[i]);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        [MenuItem("HDRenderPipeline/Test/Reset all materials keywords in project")]
+        static void ResetAllMaterialKeywordsInProject()
+        {
+            try
+            {
+                var matIds = AssetDatabase.FindAssets("t:Material");
+
+                for (int i = 0, length = matIds.Length; i < length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                     EditorUtility.DisplayProgressBar(
                         "Setup materials Keywords...",
                         string.Format("{0} / {1} materials cleaned.", i, length),
                         i / (float)(length - 1));
 
-                    if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
-                    else if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        LitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
-                    else if (mat.shader.name == "HDRenderPipeline/Unlit")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        UnlitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
+                    HDEditorUtils.ResetMaterialKeywords(mat);
                 }
             }
             finally
@@ -124,7 +122,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     mat.shader = litShader;
                     // We remove all keyword already present
-                    RemoveMaterialKeywords(mat);
+                    HDEditorUtils.RemoveMaterialKeywords(mat);
                     LitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -132,7 +130,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
-                    RemoveMaterialKeywords(mat);
+                    HDEditorUtils.RemoveMaterialKeywords(mat);
                     LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }

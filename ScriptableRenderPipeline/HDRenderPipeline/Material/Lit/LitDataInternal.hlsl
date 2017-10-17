@@ -296,7 +296,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
 
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#ifdef HAS_REFRACTION
     surfaceData.ior = _IOR;
     surfaceData.transmittanceColor = _TransmittanceColor;
     surfaceData.atDistance = _ATDistance;
