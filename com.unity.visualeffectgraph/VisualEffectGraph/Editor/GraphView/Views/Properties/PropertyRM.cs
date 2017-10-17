@@ -328,7 +328,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class SimpleUIPropertyRM<T, U> : PropertyRM<T>
     {
-        public abstract IControl<U> CreateField();
+        public abstract INotifyValueChanged<U> CreateField();
 
         public SimpleUIPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
@@ -355,7 +355,7 @@ namespace UnityEditor.VFX.UI
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
         }
 
-        IControl<U> m_Field;
+        INotifyValueChanged<U> m_Field;
         public override void UpdateGUI()
         {
             m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));

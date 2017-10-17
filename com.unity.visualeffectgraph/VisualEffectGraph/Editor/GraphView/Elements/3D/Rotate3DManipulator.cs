@@ -36,8 +36,8 @@ namespace UnityEditor.VFX.UI
             if (m_Dragging)
             {
                 m_Dragging = false;
-                if (target.HasCapture())
-                    target.ReleaseCapture();
+                if (target.HasMouseCapture())
+                    target.ReleaseMouseCapture();
                 EditorGUIUtility.SetWantsMouseJumping(0);
 
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Dragging = true;
             EditorGUIUtility.SetWantsMouseJumping(1);
-            target.TakeCapture();
+            target.TakeMouseCapture();
             target.RegisterCallback<MouseMoveEvent>(OnMouseMove, Capture.Capture);
             m_Dragging = true;
             e.StopPropagation();
@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Dragging)
             {
-                if (!target.HasCapture())
+                if (!target.HasMouseCapture())
                 {
                     Release();
                     return;

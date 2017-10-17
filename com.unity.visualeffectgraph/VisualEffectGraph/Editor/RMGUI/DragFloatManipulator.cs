@@ -101,8 +101,15 @@ namespace UnityEditor.VFX.UIElements
             return true;
         }
 
-        void IEventHandler.HandleEvent(EventBase evt) {}
-        void IEventHandler.OnLostCapture()
+        void IEventHandler.HandleEvent(EventBase evt)
+        {
+            if (evt is MouseCaptureOutEvent)
+            {
+                OnLostCapture();
+            }
+        }
+
+        void OnLostCapture()
         {
             m_Dragging = false;
             EditorGUIUtility.SetWantsMouseJumping(0);
@@ -115,9 +122,9 @@ namespace UnityEditor.VFX.UIElements
                 m_Dragging = false;
 
                 VFXViewPresenter.viewPresenter.EndLiveModification();
-                if (target.HasCapture())
+                if (target.HasMouseCapture())
                 {
-                    UIElementsUtility.eventDispatcher.ReleaseCapture(target);
+                    target.ReleaseMouseCapture();
                 }
                 EditorGUIUtility.SetWantsMouseJumping(0);
 
@@ -141,7 +148,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 EditorGUIUtility.SetWantsMouseJumping(1);
                 target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
-                UIElementsUtility.eventDispatcher.TakeCapture(target);
+                target.TakeMouseCapture();
                 m_Dragging = true;
                 VFXViewPresenter.viewPresenter.BeginLiveModification();
                 m_OriginalValue = m_Listener.GetValue(m_UserData);
@@ -153,7 +160,7 @@ namespace UnityEditor.VFX.UIElements
         {
             if (m_Dragging)
             {
-                if (!target.HasCapture())
+                if (!target.HasMouseCapture())
                 {
                     Release();
                     return;
@@ -188,12 +195,12 @@ namespace UnityEditor.VFX.UIElements
 
     class UIDragValueManipulator<T> : Manipulator, IEventHandler
     {
-        public UIDragValueManipulator(IControl<T> listener)
+        public UIDragValueManipulator(INotifyValueChanged<T> listener)
         {
             m_Listener = listener;
         }
 
-        IControl<T> m_Listener;
+        INotifyValueChanged<T> m_Listener;
 
         T m_OriginalValue;
         bool m_Dragging;
@@ -223,8 +230,15 @@ namespace UnityEditor.VFX.UIElements
             return true;
         }
 
-        void IEventHandler.HandleEvent(EventBase evt) {}
-        void IEventHandler.OnLostCapture()
+        void IEventHandler.HandleEvent(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == MouseCaptureOutEvent.TypeId())
+            {
+                OnLostCapture();
+            }
+        }
+
+        void OnLostCapture()
         {
             m_Dragging = false;
             EditorGUIUtility.SetWantsMouseJumping(0);
@@ -237,9 +251,9 @@ namespace UnityEditor.VFX.UIElements
                 m_Dragging = false;
 
                 VFXViewPresenter.viewPresenter.EndLiveModification();
-                if (target.HasCapture())
+                if (target.HasMouseCapture())
                 {
-                    UIElementsUtility.eventDispatcher.ReleaseCapture(target);
+                    target.ReleaseMouseCapture();
                 }
                 EditorGUIUtility.SetWantsMouseJumping(0);
 
@@ -263,7 +277,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 EditorGUIUtility.SetWantsMouseJumping(1);
                 target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
-                UIElementsUtility.eventDispatcher.TakeCapture(target);
+                target.TakeMouseCapture();
                 m_Dragging = true;
                 VFXViewPresenter.viewPresenter.BeginLiveModification();
                 m_OriginalValue = m_Listener.value;
@@ -275,7 +289,7 @@ namespace UnityEditor.VFX.UIElements
         {
             if (m_Dragging)
             {
-                if (!target.HasCapture())
+                if (!target.HasMouseCapture())
                 {
                     Release();
                     return;
