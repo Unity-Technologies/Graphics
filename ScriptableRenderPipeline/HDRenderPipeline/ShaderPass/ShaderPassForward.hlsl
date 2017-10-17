@@ -31,7 +31,7 @@ float4 BlendDiffuseSpecular(float3 diffuse, float3 specular, float opacity)
 
 float4 BlendDiffuseWithConsistentSpecular(float3 diffuse, float3 specular, float opacity)
 {
-#ifdef _BLENDMODE_LERP
+#ifdef _BLENDMODE_ALPHA
     return float4(diffuse + (specular / max(opacity, 0.01)), opacity);
 #elif defined(_BLENDMODE_ADD) || defined(_BLENDMODE_PRE_MULTIPLY)
     return float4(diffuse * opacity + specular, opacity);
