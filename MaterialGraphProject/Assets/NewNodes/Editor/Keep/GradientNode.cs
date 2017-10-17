@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Gradient Editor")]
+    [Title("Input/Gradient")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         Gradient m_Gradient;
