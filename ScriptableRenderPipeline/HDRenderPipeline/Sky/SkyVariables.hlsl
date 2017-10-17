@@ -1,9 +1,10 @@
 #ifndef UNITY_SKY_VARIABLES_INCLUDED
 #define UNITY_SKY_VARIABLES_INCLUDED
 
-CBUFFER_START(SkyParameters)
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
+
+CBUFFER_START(SkyParameters)
 float _SkyTextureMipCount;
 CBUFFER_END
 

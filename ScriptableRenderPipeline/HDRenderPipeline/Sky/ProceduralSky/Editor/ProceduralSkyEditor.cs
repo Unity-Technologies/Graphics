@@ -36,9 +36,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_GroundColor;
         private SerializedProperty m_EnableSunDisk;
 
-        void OnEnable()
+        protected override void InitializeProperties()
         {
-            base.OnEnable();
+            base.InitializeProperties();
+
             m_SunSize = serializedObject.FindProperty("sunSize");
             m_SunSizeConvergence = serializedObject.FindProperty("sunSizeConvergence");
             m_AtmosphericThickness = serializedObject.FindProperty("atmosphereThickness");

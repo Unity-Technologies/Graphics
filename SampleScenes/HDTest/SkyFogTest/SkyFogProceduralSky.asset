@@ -27,7 +27,7 @@ MonoBehaviour:
     mipFogFar: 400
     linearFogDensity: 1
     linearFogStart: 40
-    linearFogEnd: 50
+    linearFogEnd: 120
     expFogDistance: 150
     expFogDensity: 1
   sunSize: 0.054

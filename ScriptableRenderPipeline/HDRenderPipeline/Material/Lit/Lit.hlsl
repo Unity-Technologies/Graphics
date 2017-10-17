@@ -52,16 +52,21 @@ SamplerState s_trilinear_clamp_sampler;
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
-float4 _GaussianPyramidColorMipSize;
 TEXTURE2D(_GaussianPyramidColorTexture);
-
 // Depth pyramid (width, height, lodcount, Unused)
-float4 _PyramidDepthMipSize;
 TEXTURE2D(_PyramidDepthTexture);
+
+CBUFFER_START(UnityGaussianPyramidParameters)
+float4 _GaussianPyramidColorMipSize;
+float4 _PyramidDepthMipSize;
+CBUFFER_END
 
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
+
+CBUFFER_START(UnityAmbientOcclusionParameters)
 float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
+CBUFFER_END
 
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
