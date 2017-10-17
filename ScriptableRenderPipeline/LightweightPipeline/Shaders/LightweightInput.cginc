@@ -101,11 +101,13 @@ struct LightweightVertexOutput
 struct SurfaceData
 {
     half3 albedo;
-    half  alpha;
-    half4 metallicSpecGloss;
+    half3 specular;
+    half  metallic;
+    half  smoothness;
     half3 normalWorld;
-    half  ao;
     half3 emission;
+    half  occlusion;
+    half  alpha;
 };
 
 struct BRDFData

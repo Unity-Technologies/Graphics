@@ -14,7 +14,6 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #ifdef LIGHTMAP_ON
     o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 #endif
-    o.hpos = UnityObjectToClipPos(v.vertex);
 
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     o.posWS.xyz = worldPos;
@@ -61,15 +60,13 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.fogCoord.yzw = SHEvalLinearL2(half4(normal, 1.0));
 #endif
 
+    o.hpos = UnityObjectToClipPos(v.vertex);
     UNITY_TRANSFER_FOG(o, o.hpos);
     return o;
 }
 
-half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
+half4 LightweightFragmentPBR(LightweightVertexOutput i, SurfaceData surfaceData)
 {
-    SurfaceData surfaceData;
-    InitializeSurfaceData(i, surfaceData);
-
     BRDFData brdfData;
     InitializeBRDFData(surfaceData, brdfData);
 
@@ -77,7 +74,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     half3 normal = surfaceData.normalWorld;
     half3 reflectVec = reflect(-i.viewDir.xyz, normal);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, surfaceData.ao, brdfData.perceptualRoughness);
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, i.fogCoord.yzw, normal, reflectVec, surfaceData.occlusion, brdfData.perceptualRoughness);
 
     // PBS
     half fresnelTerm = Pow4(1.0 - saturate(dot(normal, i.viewDir.xyz)));
@@ -112,6 +109,14 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     color += surfaceData.emission;
     UNITY_APPLY_FOG(i.fogCoord, color);
     return OutputColor(color, surfaceData.alpha);
+}
+
+half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
+{
+    SurfaceData surfaceData;
+    InitializeSurfaceData(i, surfaceData);
+
+    return LightweightFragmentPBR(i, surfaceData);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target

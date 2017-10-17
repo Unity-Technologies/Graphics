@@ -27,45 +27,48 @@ inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData out
     float2 uv = i.uv01.xy;
     half4 albedoAlpha = tex2D(_MainTex, uv);
 
+    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
     outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
-    outSurfaceData.alpha = Alpha(albedoAlpha.a);
-    outSurfaceData.metallicSpecGloss = MetallicSpecGloss(uv, albedoAlpha);
+
+#if _METALLIC_SETUP
+    outSurfaceData.specular = half4(1.0h, 1.0h, 1.0h, 1.0h);
+    outSurfaceData.metallic = specGloss.r;
+#else
+    outSurfaceData.specular = specGloss.rgb;
+    outSurfaceData.metallic = 1.0h;
+#endif
+
+    outSurfaceData.smoothness = specGloss.a;
     outSurfaceData.normalWorld = Normal(i);
-    outSurfaceData.ao = OcclusionLW(uv);
+    outSurfaceData.occlusion = OcclusionLW(uv);
     outSurfaceData.emission = EmissionLW(uv);
+    outSurfaceData.alpha = Alpha(albedoAlpha.a);
 }
 
 inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData)
 {
     // BRDF SETUP
 #ifdef _METALLIC_SETUP
-    half2 metallicGloss = surfaceData.metallicSpecGloss.ra;
-    half metallic = metallicGloss.r;
-    half smoothness = metallicGloss.g;
-
     // We'll need oneMinusReflectivity, so
     //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
     // store (1-dielectricSpec) in kDieletricSpec.a, then
     //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
     //                  = alpha - metallic * alpha
     half oneMinusDielectricSpec = kDieletricSpec.a;
-    half oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+    half oneMinusReflectivity = oneMinusDielectricSpec - surfaceData.metallic * oneMinusDielectricSpec;
     half reflectivity = 1.0 - oneMinusReflectivity;
 
     outBRDFData.diffuse = surfaceData.albedo * oneMinusReflectivity;
-    outBRDFData.specular = lerp(kDieletricSpec.rgb, surfaceData.albedo, metallic);
-
+    outBRDFData.specular = lerp(kDieletricSpec.rgb, surfaceData.albedo, surfaceData.metallic);
 #else
-    half3 specular = surfaceData.metallicSpecGloss.rgb;
-    half smoothness = surfaceData.metallicSpecGloss.a;
-    half reflectivity = SpecularReflectivity(specular);
+    half reflectivity = SpecularReflectivity(surfaceData.specular);
 
-    outBRDFData.diffuse = surfaceData.albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
+    outBRDFData.diffuse = surfaceData.albedo * (half3(1.0h, 1.0h, 1.0h) - surfaceData.specular);
+    outBRDFData.specular = surfaceData.specular;
 #endif
 
-    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
-    outBRDFData.perceptualRoughness = 1.0h - smoothness;
+    outBRDFData.grazingTerm = saturate(surfaceData.smoothness + reflectivity);
+    outBRDFData.perceptualRoughness = 1.0h - surfaceData.smoothness;
     outBRDFData.roughness = outBRDFData.perceptualRoughness * outBRDFData.perceptualRoughness;
 
 #ifdef _ALPHAPREMULTIPLY_ON
