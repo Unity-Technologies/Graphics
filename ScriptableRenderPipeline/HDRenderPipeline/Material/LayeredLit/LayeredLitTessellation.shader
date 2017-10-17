@@ -187,6 +187,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
+        [ToggleOff] _EnableFog ("Enable Fog", Float) = 1.0
+
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
@@ -329,6 +331,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+
+    // This feature is only for transparent Lit
+    #pragma shader_feature _ENABLE_FOG
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED

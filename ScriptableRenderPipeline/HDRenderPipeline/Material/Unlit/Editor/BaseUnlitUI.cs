@@ -183,11 +183,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 BlendModePopup();
 
-                if(enableFog != null)
-                    m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
+                m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
 
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
-                    }
+            }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
             {
