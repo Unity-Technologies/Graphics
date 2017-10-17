@@ -240,6 +240,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty refractionMode = null;
         protected const string kRefractionMode = "_RefractionMode";
 
+        protected override bool showBlendModePopup
+        {
+            get { return refractionMode == null || refractionMode.floatValue == 0f; }
+        }
+
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {
             for (int i = 0; i < m_LayerCount; ++i)
@@ -591,6 +596,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ++EditorGUI.indentLevel;
 
                         m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
+
+                        blendMode.floatValue = (float)BlendMode.Lerp;
 
                         if (mode != Lit.RefractionMode.ThinPlane)
                         {

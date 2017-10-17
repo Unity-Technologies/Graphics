@@ -261,6 +261,9 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
         [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
         [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
+
+        // Transparency
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
     }
 
     HLSLINCLUDE
