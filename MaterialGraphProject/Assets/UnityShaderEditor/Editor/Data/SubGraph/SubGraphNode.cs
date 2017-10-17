@@ -53,7 +53,7 @@ namespace UnityEngine.MaterialGraph
                 var helper = new SubGraphHelper();
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
-                OnEnable();
+                UpdateSlots();
 
                 if (onModified != null)
                     onModified(this, ModificationScope.Topological);
@@ -140,7 +140,7 @@ namespace UnityEngine.MaterialGraph
                 }
                 else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
                 {
-                    prop.overrideReferenceName = MaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
                 }
                 else
                 {

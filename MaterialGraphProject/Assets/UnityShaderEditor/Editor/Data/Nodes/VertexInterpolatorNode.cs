@@ -19,8 +19,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(InputSlotId, k_InputSlotName, k_InputSlotName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero, ShaderStage.Vertex));
-            AddSlot(new MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero, ShaderStage.Fragment));
+            AddSlot(new DynamicVectorMaterialSlot(InputSlotId, k_InputSlotName, k_InputSlotName, SlotType.Input, Vector4.zero, ShaderStage.Vertex));
+            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.zero, ShaderStage.Fragment));
             RemoveSlotsNameNotMatching(k_ValidSlots);
         }
 

@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class MaterialGraph : AbstractMaterialGraph
+    public class MaterialGraph : AbstractMaterialGraph, IShaderGraph
     {
         public IMasterNode masterNode
         {
@@ -18,6 +18,10 @@ namespace UnityEngine.MaterialGraph
             PreviewMode pmode;
             return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
-
+         
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize(); 
+        }
     }
 }
