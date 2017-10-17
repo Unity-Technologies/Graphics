@@ -11,15 +11,10 @@
 #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
-//-----------------------------------------------------------------------------
-// Blending
-//-----------------------------------------------------------------------------
-// This should match the possible blending modes in any material .shader file (lit/layeredlit/unlit etc)
-#if defined(_BLENDMODE_ALPHA) || defined(_BLENDMODE_ADD) || defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
-#define SURFACE_TYPE_TRANSPARENT
-#else
-#define SURFACE_TYPE_OPAQUE
-#endif
+// Guidelines
+// .Shader need to define _SURFACE_TYPE_TRANSPARENT if they use a transparent material
+// Also when transparent material object use a blend mode, it must define the blend mode (Note: Rough Refraction don't use blend mode)
+// _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, (_BLENDMODE_PRE_MULTIPLY)
 
 //-----------------------------------------------------------------------------
 // Fog sampling function for materials
@@ -30,7 +25,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 {
     float4 result = inputColor;
 
-#if defined(SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG)
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG)
     float4 fog = EvaluateAtmosphericScattering(posInput);
 
 #if defined(_BLENDMODE_ALPHA)
@@ -39,7 +34,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #elif defined(_BLENDMODE_ADD)
     // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
     result.rgb = result.rgb * (1.0 - fog.a);
-#elif defined(_BLENDMODE_MULTIPLY) 
+#elif defined(_BLENDMODE_MULTIPLY)
     // For multiplicative, we just need to fade to white with fog density (white * background == background color == fog color)
     result.rgb = lerp(result.rgb, float3(1.0, 1.0, 1.0), fog.a);
 #elif defined(_BLENDMODE_PRE_MULTIPLY)
