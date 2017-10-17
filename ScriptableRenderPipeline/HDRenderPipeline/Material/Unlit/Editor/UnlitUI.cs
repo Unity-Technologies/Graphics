@@ -79,7 +79,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseUnlitKeywords(material);
             SetupBaseUnlitMaterialPass(material);
 
-            SetKeyword(material, "SURFACE_TYPE_TRANSPARENT", (SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
         }
     }
