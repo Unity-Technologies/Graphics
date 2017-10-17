@@ -603,7 +603,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
-            #include "../../Lighting/Forward.
+            #include "../../Lighting/Forward.hlsl"
         Pass
         {
             Name "Forward" // Name is not used
