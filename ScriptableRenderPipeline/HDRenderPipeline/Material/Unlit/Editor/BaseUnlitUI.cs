@@ -100,6 +100,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
 
+        bool m_ShowBlendModePopup = true;
+        protected virtual bool showBlendModePopup { get { return m_ShowBlendModePopup; } }
+
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
@@ -176,7 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceTypePopup();
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
-                BlendModePopup();
+                if (showBlendModePopup)
+                    BlendModePopup();
 
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
             }
