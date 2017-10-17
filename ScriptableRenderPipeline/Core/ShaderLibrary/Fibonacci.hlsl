@@ -12,6 +12,14 @@ float2 Fibonacci2dSeq(float fibN1, float fibN2, int i)
     return float2(i / fibN1 + (0.5f / fibN1), frac(i * (fibN2 / fibN1)));
 }
 
+#define GOLDEN_RATIO 1.6180339887498948482
+
+// Replaces the Fibonacci sequence in Fibonacci2dSeq() with the Golden ratio.
+float2 Golden2dSeq(int i, float n)
+{
+    return float2(i / n + (0.5f / n), frac(i * rcp(GOLDEN_RATIO)));
+}
+
 static const int k_FibonacciSeq[] = {
     0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181
 };

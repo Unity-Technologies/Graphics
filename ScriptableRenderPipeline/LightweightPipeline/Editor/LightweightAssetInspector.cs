@@ -15,10 +15,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Allows game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
 
             public static GUIContent maxPixelLights = new GUIContent("Per-Object Pixel Lights",
-                    "Max amount of dynamic per-object pixel lights.");
+                    "Max amount of pixel lights.");
 
             public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Light",
-                    "Lightweight pipeline support at most 4 per-object lights between pixel and vertex. If value in pixel lights is set to max this settings has no effect.");
+                    "Lightweight pipeline support at most 4 vertex lights.");
+
+            public static GUIContent enableSoftParticles = new GUIContent("Enable Soft Particles", "By enabled this the pipeline will generate depth texture necessary for SoftParticles");
 
             public static GUIContent shadowType = new GUIContent("Shadow Type",
                     "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
@@ -59,11 +61,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent attenuationTextureLabel = new GUIContent("Attenuation Texture", "Light attenuation falloff texture");
         }
 
-        private int kMaxSupportedPixelLights = 5;
+        private int kMaxSupportedPixelLights = 9;
         private SerializedProperty m_LinearRenderingProperty;
         private SerializedProperty m_RenderScale;
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
+        private SerializedProperty m_SupportSoftParticlesProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -86,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
+            m_SupportSoftParticlesProp = serializedObject.FindProperty("m_SupportSoftParticles");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -120,6 +124,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, kMaxSupportedPixelLights);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
+            EditorGUILayout.PropertyField(m_SupportSoftParticlesProp, Styles.enableSoftParticles);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
             EditorGUILayout.PropertyField(m_AttenuationTexture, Styles.attenuationTextureLabel);
             EditorGUI.indentLevel--;

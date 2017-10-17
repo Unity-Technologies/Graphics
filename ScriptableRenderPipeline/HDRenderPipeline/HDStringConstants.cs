@@ -7,9 +7,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_ForwardStr = "Forward";
         public static readonly string s_ForwardDebugDisplayStr = "ForwardDebugDisplay";
         public static readonly string s_DepthOnlyStr = "DepthOnly";
-        public static readonly string s_ForwardOnlyOpaqueDepthOnlyStr = "ForwardOnlyOpaqueDepthOnly";
-        public static readonly string s_ForwardOnlyOpaqueStr = "ForwardOnlyOpaque";
-        public static readonly string s_ForwardOnlyOpaqueDebugDisplayStr = "ForwardOnlyOpaqueDebugDisplay";
+        public static readonly string s_DepthForwardOnlyStr = "DepthForwardOnly";
+        public static readonly string s_ForwardOnlyStr = "ForwardOnly";
+        public static readonly string s_ForwardOnlyDebugDisplayStr = "ForwardOnlyDebugDisplay";
         public static readonly string s_GBufferStr = "GBuffer";
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
         public static readonly string s_GBufferDebugDisplayStr = "GBufferDebugDisplay";
@@ -25,9 +25,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_ForwardName = new ShaderPassName(s_ForwardStr);
         public static readonly ShaderPassName s_ForwardDebugDisplayName = new ShaderPassName(s_ForwardDebugDisplayStr);
         public static readonly ShaderPassName s_DepthOnlyName = new ShaderPassName(s_DepthOnlyStr);
-        public static readonly ShaderPassName s_ForwardOnlyOpaqueDepthOnlyName = new ShaderPassName(s_ForwardOnlyOpaqueDepthOnlyStr);
-        public static readonly ShaderPassName s_ForwardOnlyOpaqueName = new ShaderPassName(s_ForwardOnlyOpaqueStr);
-        public static readonly ShaderPassName s_ForwardOnlyOpaqueDebugDisplayName = new ShaderPassName(s_ForwardOnlyOpaqueDebugDisplayStr);
+        public static readonly ShaderPassName s_DepthForwardOnlyName = new ShaderPassName(s_DepthForwardOnlyStr);
+        public static readonly ShaderPassName s_ForwardOnlyName = new ShaderPassName(s_ForwardOnlyStr);
+        public static readonly ShaderPassName s_ForwardOnlyDebugDisplayName = new ShaderPassName(s_ForwardOnlyDebugDisplayStr);
         public static readonly ShaderPassName s_GBufferName = new ShaderPassName(s_GBufferStr);
         public static readonly ShaderPassName s_GBufferWithPrepassName = new ShaderPassName(s_GBufferWithPrepassStr);
         public static readonly ShaderPassName s_GBufferDebugDisplayName = new ShaderPassName(s_GBufferDebugDisplayStr);
@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CosTime = Shader.PropertyToID("_CosTime");
         public static readonly int unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
-        public static readonly int _AmbientOcclusionDirectLightStrenght = Shader.PropertyToID("_AmbientOcclusionDirectLightStrenght");
+        public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
         public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
         public static readonly int _SkyTextureMipCount = Shader.PropertyToID("_SkyTextureMipCount");
 
@@ -253,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
 
+        public static readonly int _SubsurfaceProfile = Shader.PropertyToID("_SubsurfaceProfile");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");
         public static readonly int _ShapeParam = Shader.PropertyToID("_ShapeParam");
         public static readonly int _StdDev1 = Shader.PropertyToID("_StdDev1");

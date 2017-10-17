@@ -47,17 +47,18 @@ void DecodeVelocity(float4 inBuffer, out float2 velocity)
     velocity = inBuffer.xy;
 }
 
-void EncodeDistortion(float2 distortion, float distortionBlur, out float4 outBuffer)
+void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)
 {
     // RT - 16:16:16:16 float
     // distortionBlur in alpha for a different blend mode
-    outBuffer = float4(distortion, 0.0, distortionBlur);
+    outBuffer = float4(distortion, isValidSource, distortionBlur);
 }
 
-void DecodeDistortion(float4 inBuffer, out float2 distortion, out float2 distortionBlur)
+void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distortionBlur, out bool isValidSource)
 {
     distortion = inBuffer.xy;
     distortionBlur = inBuffer.a;
+    isValidSource = (inBuffer.z != 0.0);
 }
 
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
@@ -77,6 +78,9 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
         result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity is 1m
+        break; 
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
+        result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
         break;
     }
 }

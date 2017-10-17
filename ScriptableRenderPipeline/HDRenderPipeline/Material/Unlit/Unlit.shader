@@ -5,15 +5,27 @@ Shader "HDRenderPipeline/Unlit"
         _Color("Color", Color) = (1,1,1,1)
         _ColorMap("ColorMap", 2D) = "white" {}
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
+        [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
+        [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurSrcBlend("Distortion Blur Blend Src", Int) = 0
+        [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
+        _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionBlurScale("Distortion Blur Scale", Float) = 1
+        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
+        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
+
+        // Transparency
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -116,7 +128,8 @@ Shader "HDRenderPipeline/Unlit"
             Name "Distortion" // Name is not used
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
-            Blend One One
+            Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
+            BlendOp Add, [_DistortionBlurBlendOp]
             ZTest [_ZTestMode]
             ZWrite off
             Cull [_CullMode]
@@ -132,10 +145,33 @@ Shader "HDRenderPipeline/Unlit"
             ENDHLSL
         }
 
+        // Unlit shader always render in forward
+        Pass
+        {
+            Name ""
+            Tags{ "LightMode" = "DepthForwardOnly" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitDepthPass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        // Unlit shader always render in forward
         Pass
         {
             Name "ForwardUnlit"
-            Tags { "LightMode" = "Forward" }
+            Tags { "LightMode" = "ForwardOnly" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -155,7 +191,7 @@ Shader "HDRenderPipeline/Unlit"
         Pass
         {
             Name "ForwardDebugDisplay"
-            Tags { "LightMode" = "ForwardDebugDisplay" }
+            Tags { "LightMode" = "ForwardOnlyDebugDisplay" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -164,50 +200,6 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define DEBUG_DISPLAY
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Debug/DebugDisplay.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
-
-            ENDHLSL
-        }
-
-        // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward,
-        // unlit require to be forward only, that's why we need this pass. Unlit transparent will use regular Forward pass
-        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
-        Pass
-        {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardOnlyOpaque" }
-
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardOnlyOpaqueDebugDisplay" }
-
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"

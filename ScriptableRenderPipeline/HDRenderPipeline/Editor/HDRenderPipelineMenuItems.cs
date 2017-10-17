@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -186,12 +186,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        class DoCreateNewAssetSSSProfile : DoCreateNewAsset<SubsurfaceScatteringProfile> {}
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
         class DoCreateNewAssetBlacksmithSkySettings : DoCreateNewAsset<BlacksmithSkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
-        class DoCreateNewAssetSSAOSettings : DoCreateNewAsset<ScreenSpaceAmbientOcclusionSettings> {}
+        class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
         [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 700)]
         static void MenuCreateCommonSettings()
@@ -200,18 +199,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Ambient Occlusion Settings", priority = 701)]
-        static void MenuCreateSSAOSettings()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSAOSettings>(), "New AmbientOcclusionSettings.asset", icon, null);
-        }
-
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 702)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 702)]
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSSProfile>(), "New SSS Profile.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Profile.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 750)]

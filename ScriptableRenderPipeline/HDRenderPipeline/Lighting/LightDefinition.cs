@@ -6,14 +6,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // structure definition
     //-----------------------------------------------------------------------------
 
+    // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
     public enum GPULightType
     {
         Directional,
-        ProjectorBox,
-        Spot,
         Point,
+        Spot,
         ProjectorPyramid,
+        ProjectorBox,
 
         // AreaLight
         Line, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
@@ -89,6 +90,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 
+    // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
+    // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
+    // It allow to have more coherence for the dynamic if in shader code.
+    // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
+    // that simulate effect of no shape projection
     [GenerateHLSL]
     public struct EnvLightData
     {
@@ -102,13 +108,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float blendDistance;     // blend transition outside the volume
 
         public Vector3 right;
-        public int unused0;
+        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
+        public float minProjectionDistance;
 
         public Vector3 innerDistance;   // equivalent to volume scale
-        public float unused1;
+        public float unused0;
 
         public Vector3 offsetLS;
-        public float unused2;
+        public float unused1;
     };
 
     // Usage of StencilBits.Lighting on 2 bits.

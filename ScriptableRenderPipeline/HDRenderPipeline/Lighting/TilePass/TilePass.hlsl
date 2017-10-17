@@ -1,4 +1,4 @@
-#include "TilePass.cs.hlsl"
+﻿#include "TilePass.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
@@ -50,8 +50,6 @@ SAMPLERCUBE_ABSTRACT(sampler_CookieCubeTextures);
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
 SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 
-TEXTURE2D(_AmbientOcclusionTexture);
-
 TEXTURE2D(_DeferredShadowTexture);
 
 CBUFFER_START(UnityPerLightLoop)
@@ -62,18 +60,13 @@ uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
-float _AmbientOcclusionDirectLightStrenght;
 
 CBUFFER_END
 
+// LightLoopContext is not visible from Material (user should not use these properties in Material file)
+// It allow the lightloop to have transmit sampling information (do we use atlas, or texture array etc...)
 struct LightLoopContext
 {
-    // Visible from Material - these values are expected in any LightLoopContext
-    float indirectAmbientOcclusion; // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-    float directAmbientOcclusion;   // Ambient occlusion use for direct lighting (directional, punctual, area)
-
-    // Not visible from Material (user should not use these properties in Material file)
-    int sampleShadow;
     int sampleReflection;
     ShadowContext shadowContext;
 };
