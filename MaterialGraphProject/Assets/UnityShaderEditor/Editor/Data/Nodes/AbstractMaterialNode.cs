@@ -74,6 +74,16 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
+        public virtual bool allowedInMainGraph
+        {
+            get { return true; }
+        }
+
+        public virtual bool allowedInLayerGraph
+        {
+            get { return true; }
+        }
+
         public override bool hasError
         {
             get { return m_HasError; }
@@ -125,40 +135,6 @@ namespace UnityEngine.MaterialGraph
             return inputSlot.GetDefaultValue(generationMode);
         }
 
-        private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
-        {
-            if (ImplicitConversionExists(from, to))
-                return to;
-
-            return ConcreteSlotValueType.Error;
-        }
-
-        private static ConcreteSlotValueType ToConcreteType(SlotValueType svt)
-        {
-            switch (svt)
-            {
-                case SlotValueType.Vector1:
-                    return ConcreteSlotValueType.Vector1;
-                case SlotValueType.Vector2:
-                    return ConcreteSlotValueType.Vector2;
-                case SlotValueType.Vector3:
-                    return ConcreteSlotValueType.Vector3;
-                case SlotValueType.Vector4:
-                    return ConcreteSlotValueType.Vector4;
-                case SlotValueType.Texture2D:
-                    return ConcreteSlotValueType.Texture2D;
-                case SlotValueType.Matrix2:
-                    return ConcreteSlotValueType.Matrix2;
-                case SlotValueType.Matrix3:
-                    return ConcreteSlotValueType.Matrix3;
-                case SlotValueType.Matrix4:
-                    return ConcreteSlotValueType.Matrix4;
-                case SlotValueType.SamplerState:
-                    return ConcreteSlotValueType.SamplerState;
-            }
-            return ConcreteSlotValueType.Error;
-        }
-
         private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
             if (from == to)
@@ -184,9 +160,7 @@ namespace UnityEngine.MaterialGraph
         private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
-            if (concreteSlotValueTypes.Any(x => x == ConcreteSlotValueType.Error))
-                return ConcreteSlotValueType.Error;
-
+         
             var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
             switch (inputTypesDistinct.Count)
             {
@@ -202,19 +176,21 @@ namespace UnityEngine.MaterialGraph
                         return ordered.FirstOrDefault();
                     break;
             }
-            return ConcreteSlotValueType.Error;
+            return ConcreteSlotValueType.Vector1;
         }
 
         public override void ValidateNode()
         {
-            var isInError = false;
+            var isInError = false; 
 
             // all children nodes needs to be updated first
             // so do that here
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
+                inputSlot.hasError = false;
+
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                foreach (var edge in edges)
+                foreach (var edge in edges) 
                 {
                     var fromSocketRef = edge.outputSlot;
                     var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
@@ -227,21 +203,18 @@ namespace UnityEngine.MaterialGraph
                 }
             }
 
-            var dynamicInputSlotsToCompare = DictionaryPool<MaterialSlot, ConcreteSlotValueType>.Get();
-            var skippedDynamicSlots = ListPool<MaterialSlot>.Get();
+            var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
+            var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
             // iterate the input slots
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
-                var inputType = inputSlot.valueType;
                 // if there is a connection
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())
                 {
-                    if (inputType != SlotValueType.Dynamic)
-                        inputSlot.concreteValueType = ToConcreteType(inputType);
-                    else
-                        skippedDynamicSlots.Add(inputSlot);
+                    if (inputSlot is DynamicVectorMaterialSlot)
+                        skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
                     continue;
                 }
 
@@ -255,31 +228,36 @@ namespace UnityEngine.MaterialGraph
                 if (outputSlot == null)
                     continue;
 
-                var outputConcreteType = outputSlot.concreteValueType;
-
-                // if we have a standard connection... just check the types work!
-                if (inputType != SlotValueType.Dynamic)
+                if (outputSlot.hasError)
                 {
-                    var inputConcreteType = ToConcreteType(inputType);
-                    inputSlot.concreteValueType = FindCommonChannelType(outputConcreteType, inputConcreteType);
+                    inputSlot.hasError = true;
                     continue;
                 }
 
+                var outputConcreteType = outputSlot.concreteValueType;
                 // dynamic input... depends on output from other node.
                 // we need to compare ALL dynamic inputs to make sure they
                 // are compatable.
-                dynamicInputSlotsToCompare.Add(inputSlot, outputConcreteType);
+                if (inputSlot is DynamicVectorMaterialSlot)
+                {
+                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot) inputSlot, outputConcreteType);
+                    continue;
+                }
+
+                // if we have a standard connection... just check the types work!
+                if (!ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
+                    inputSlot.hasError = true;
             }
 
             // we can now figure out the dynamic slotType
             // from here set all the
             var dynamicType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
             foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                dynamicKvP.Key.concreteValueType = dynamicType;
+                dynamicKvP.Key.SetConcreteType(dynamicType);
             foreach (var skippedSlot in skippedDynamicSlots)
-                skippedSlot.concreteValueType = dynamicType;
+                skippedSlot.SetConcreteType(dynamicType);
 
-            var inputError = GetInputSlots<MaterialSlot>().Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            var inputError = GetInputSlots<MaterialSlot>().Any(x => x.hasError);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
@@ -287,22 +265,23 @@ namespace UnityEngine.MaterialGraph
             // or error if there is an input error
             foreach (var outputSlot in GetOutputSlots<MaterialSlot>())
             {
+                outputSlot.hasError = false;
+
                 if (inputError)
                 {
-                    outputSlot.concreteValueType = ConcreteSlotValueType.Error;
+                    outputSlot.hasError = true;
                     continue;
                 }
 
-                if (outputSlot.valueType == SlotValueType.Dynamic)
+                if (outputSlot is DynamicVectorMaterialSlot)
                 {
-                    outputSlot.concreteValueType = dynamicType;
+                    (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
                     continue;
                 }
-                outputSlot.concreteValueType = ToConcreteType(outputSlot.valueType);
             }
 
             isInError |= inputError;
-            isInError |= GetOutputSlots<MaterialSlot>().Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            isInError |= GetOutputSlots<MaterialSlot>().Any(x => x.hasError);
             isInError |= CalculateNodeHasError();
             hasError = isInError;
 
@@ -311,8 +290,8 @@ namespace UnityEngine.MaterialGraph
                 ++version;
             }
 
-            ListPool<MaterialSlot>.Release(skippedDynamicSlots);
-            DictionaryPool<MaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+            ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
+            DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
 
         }
 
@@ -379,33 +358,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public static PropertyType ConvertConcreteSlotValueTypeToPropertyType(ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Texture2D:
-                    return PropertyType.Texture;
-                case ConcreteSlotValueType.Vector1:
-                    return PropertyType.Float;
-                case ConcreteSlotValueType.Vector2:
-                    return PropertyType.Vector2;
-                case ConcreteSlotValueType.Vector3:
-                    return PropertyType.Vector3;
-                case ConcreteSlotValueType.Vector4:
-                    return PropertyType.Vector4;
-                case ConcreteSlotValueType.Matrix2:
-                    return PropertyType.Matrix2;
-                case ConcreteSlotValueType.Matrix3:
-                    return PropertyType.Matrix3;
-                case ConcreteSlotValueType.Matrix4:
-                    return PropertyType.Matrix4;
-                case ConcreteSlotValueType.SamplerState:
-                    return PropertyType.SamplerState;
-                default:
-                    return PropertyType.Vector4;
-            }
-        }
-
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             var validSlots = GetInputSlots<MaterialSlot>().ToArray();
@@ -417,15 +369,11 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                var pp = new PreviewProperty
-                {
-                    m_Name = GetVariableNameForSlot(s.id),
-                    m_PropType = ConvertConcreteSlotValueTypeToPropertyType(s.concreteValueType),
-                    m_Vector4 = s.currentValue,
-                    m_Float = s.currentValue.x,
-                    m_Color = s.currentValue
-                };
-                properties.Add(pp);
+                var item = s.GetPreviewProperty(GetVariableNameForSlot(s.id));
+                if (item == null)
+                    continue;
+
+                properties.Add(item);
             }
         }
 
@@ -457,9 +405,18 @@ namespace UnityEngine.MaterialGraph
 
             if (foundSlot == null)
                 return;
-
-            // preserve the old current value.
-            addingSlot.currentValue = foundSlot.currentValue;
+            
+            // now copy over values :)
+            if (addingSlot is DynamicVectorMaterialSlot && foundSlot is DynamicVectorMaterialSlot)
+                (addingSlot as DynamicVectorMaterialSlot).value = (foundSlot as DynamicVectorMaterialSlot).value;
+            if (addingSlot is Vector1MaterialSlot && foundSlot is Vector1MaterialSlot)
+                (addingSlot as Vector1MaterialSlot).value = (foundSlot as Vector1MaterialSlot).value;
+            if (addingSlot is Vector2MaterialSlot && foundSlot is Vector2MaterialSlot)
+                (addingSlot as Vector2MaterialSlot).value = (foundSlot as Vector2MaterialSlot).value;
+            if (addingSlot is Vector3MaterialSlot && foundSlot is Vector3MaterialSlot)
+                (addingSlot as Vector3MaterialSlot).value = (foundSlot as Vector3MaterialSlot).value;
+            if (addingSlot is Vector4MaterialSlot && foundSlot is Vector4MaterialSlot)
+                (addingSlot as Vector4MaterialSlot).value = (foundSlot as Vector4MaterialSlot).value;
         }
     }
 }

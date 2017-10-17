@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -63,6 +62,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+    public class LayeredGraphEditWindow : AbstractMaterialGraphEditWindow<LayeredShaderGraph>
+    {
+        public override AbstractMaterialGraph GetMaterialGraph()
+        {
+            return graphObject == null ? null : graphObject.graph as AbstractMaterialGraph;
+        }
+    }
+
     public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
     {
         [SerializeField]
@@ -98,7 +105,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             get { return m_GraphObject; }
             set
-            {
+        {
                 if (m_GraphObject != null)
                     DestroyImmediate(m_GraphObject);
                 m_GraphObject = value;
@@ -204,6 +211,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
 
                 if (typeof(TGraphType) == typeof(UnityEngine.MaterialGraph.MaterialGraph))
+                    UpdateShaderGraphOnDisk(path);
+
+                if (typeof(TGraphType) == typeof(LayeredShaderGraph))
                     UpdateShaderGraphOnDisk(path);
 
                 if (typeof(TGraphType) == typeof(SubGraph))
@@ -321,8 +331,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                         break;
                     case ConcreteSlotValueType.Vector1:
                         break;
-                    case ConcreteSlotValueType.Error:
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -385,7 +393,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UpdateShaderGraphOnDisk(string path)
         {
-            var graph = graphObject.graph as UnityEngine.MaterialGraph.MaterialGraph;
+            var graph = graphObject.graph as IShaderGraph;
             if (graph == null)
                 return;
 

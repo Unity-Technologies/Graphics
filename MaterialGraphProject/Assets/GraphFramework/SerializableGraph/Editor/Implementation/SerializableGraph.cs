@@ -246,7 +246,7 @@ namespace UnityEngine.Graphing
                 AddEdgeToNodeEdges(edge);
 
             OnEnable();
-            ValidateGraph();
+            ValidateGraph(); 
         }
 
         public virtual void ValidateGraph()
@@ -255,8 +255,8 @@ namespace UnityEngine.Graphing
             //orphans. This can happen if a user
             //manually modifies serialized data
             //of if they delete a node in the inspector
-            //debug view.
-            foreach (var edge in edges.ToArray())
+            //debug view. 
+            foreach (var edge in edges.ToArray()) 
             {
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
