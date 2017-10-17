@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
@@ -25,7 +25,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");	
+            public static GUIContent enableFogText = new GUIContent("Enable Fog");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
@@ -48,13 +49,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Transparent
         }
 
+        // Enum values are hardcoded for retrocompatibility. Don't change them.
         public enum BlendMode
         {
-            Lerp,
-            Add,
-            SoftAdd,
-            Multiply,
-            Premultiply
+            Alpha = 0,
+            Additive = 1,
+            Multiplicative = 3,
+            PremultipliedAlpha = 4
         }
 
         protected MaterialEditor m_MaterialEditor;
@@ -96,6 +97,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
         protected MaterialProperty preRefractionPass = null;
         protected const string kPreRefractionPass = "_PreRefractionPass";
+        protected MaterialProperty enableFog = null;
+        protected const string kEnableFog = "_EnableFog";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -133,6 +136,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
             preRefractionPass = FindProperty(kPreRefractionPass, props, false);
+
+            enableFog = FindProperty(kEnableFog, props, false);
         }
 
         void SurfaceTypePopup()
@@ -177,6 +182,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
                 BlendModePopup();
+
+                m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
 
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
             }
@@ -266,7 +273,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
             // These need to always been set either with opaque or transparent! So a users can swtich to opaque and remove the keyword correctly
-            SetKeyword(material, "_BLENDMODE_LERP", false);
+            SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
             SetKeyword(material, "_BLENDMODE_SOFT_ADD", false);
             SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
@@ -287,35 +294,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
                 material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
 
-                SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
-                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
-                SetKeyword(material, "_BLENDMODE_SOFT_ADD", BlendMode.SoftAdd == blendMode);
-                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiply == blendMode);
-                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
+                SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
+                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
+                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiplicative == blendMode);
+                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
 
                 switch (blendMode)
                 {
-                    case BlendMode.Lerp:
+                    case BlendMode.Alpha:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         break;
 
-                    case BlendMode.Add:
+                    case BlendMode.Additive:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         break;
 
-                    case BlendMode.SoftAdd:
-                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusDstColor);
-                        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                        break;
-
-                    case BlendMode.Multiply:
+                    case BlendMode.Multiplicative:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                         break;
 
-                    case BlendMode.Premultiply:
+                    case BlendMode.PremultipliedAlpha:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         break;
@@ -335,8 +336,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
+            bool fogEnabled = material.GetFloat(kEnableFog) > 0.0f;
+            SetKeyword(material, "_ENABLE_FOG", fogEnabled);
+
             if (material.HasProperty(kDistortionEnable))
-            {
+            {                
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
                 if (distortionDepthTest)
                 {
@@ -361,7 +365,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Max);
                             break;
-                    }
+            }
                     case 1: // Multiply
                         material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
                         material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
@@ -393,7 +397,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // If distortion only is enabled, disable all passes (except distortion and debug)
                 bool enablePass = !(distortionEnable && distortionOnly);
-
+                
                 // Disable all passes except distortion
                 // Distortion is setup in code above
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardStr, enablePass);

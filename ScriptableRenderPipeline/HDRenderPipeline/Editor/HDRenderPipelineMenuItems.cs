@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -186,35 +186,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
+        class DoCreateNewAssetBlacksmithSkySettings : DoCreateNewAsset<BlacksmithSkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 677)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 700)]
         static void MenuCreateCommonSettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 678)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 702)]
+        static void MenuCreateSubsurfaceScatteringProfile()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Profile.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 750)]
         static void MenuCreateHDRISkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 679)]
+        [MenuItem("Assets/Create/HDRenderPipeline/BlacksmithSky Settings", priority = 751)]
+        static void MenuCreateBlacksmithSkySettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetBlacksmithSkySettings>(), "New BlacksmithSkySettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 752)]
         static void MenuCreateProceduralSkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 681)]
-        static void MenuCreateSubsurfaceScatteringSettings()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
-        }
     }
 }
