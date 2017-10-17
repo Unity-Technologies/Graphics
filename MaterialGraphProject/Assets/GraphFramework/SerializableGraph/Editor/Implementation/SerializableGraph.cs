@@ -277,8 +277,6 @@ namespace UnityEngine.Graphing
 
         public virtual void ReplaceWith(IGraph other)
         {
-
-
             using (var pooledList = ListPool<IEdge>.GetDisposable())
             {
                 var removedNodeEdges = pooledList.value;

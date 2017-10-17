@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing.Controls
@@ -39,127 +41,114 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
 
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
-        float[] m_Values;
-        GUIContent[] m_Labels;
-        GUIContent m_Label;
-        float m_Height;
-        Action m_Read;
-        Action m_Write;
+        Vector4 m_Value;
+        int m_UndoGroup = -1;
 
         public MultiFloatControlView(string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             int components;
-            SerializedPropertyType serializedPropertyType;
             if (propertyInfo.PropertyType == typeof(float))
-            {
                 components = 1;
-                serializedPropertyType = SerializedPropertyType.Float;
-                m_Read = ReadFloat;
-                m_Write = WriteFloat;
-            }
             else if (propertyInfo.PropertyType == typeof(Vector2))
-            {
                 components = 2;
-                serializedPropertyType = SerializedPropertyType.Vector2;
-                m_Read = ReadVector2;
-                m_Write = WriteVector2;
-            }
             else if (propertyInfo.PropertyType == typeof(Vector3))
-            {
                 components = 3;
-                serializedPropertyType = SerializedPropertyType.Vector3;
-                m_Read = ReadVector3;
-                m_Write = WriteVector3;
-            }
             else if (propertyInfo.PropertyType == typeof(Vector4))
-            {
                 components = 4;
-                serializedPropertyType = SerializedPropertyType.Vector4;
-                m_Read = ReadVector4;
-                m_Write = WriteVector4;
-            }
             else
-            {
                 throw new ArgumentException("Property must be of type float, Vector2, Vector3 or Vector4.", "propertyInfo");
-            }
 
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            m_Values = new float[components];
-            m_Labels = new GUIContent[components];
-            m_Labels[0] = new GUIContent(subLabel1);
+
+            label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
+            if (!string.IsNullOrEmpty(label))
+                Add(new Label(label));
+
+            m_Value = GetValue();
+            AddField(0, subLabel1);
             if (components > 1)
-                m_Labels[1] = new GUIContent(subLabel2);
+                AddField(1, subLabel2);
             if (components > 2)
-                m_Labels[2] = new GUIContent(subLabel3);
+                AddField(2, subLabel3);
             if (components > 3)
-                m_Labels[3] = new GUIContent(subLabel4);
-            m_Height = EditorGUI.GetPropertyHeight(serializedPropertyType, m_Label);
-
-            Add(new IMGUIContainer(OnGUIHandler));
+                AddField(3, subLabel4);
         }
 
-        void ReadFloat()
+        void AddField(int index, string subLabel)
         {
-            var value = (float)m_PropertyInfo.GetValue(m_Node, null);
-            m_Values[0] = value;
-        }
-
-        void ReadVector2()
-        {
-            var value = (Vector2)m_PropertyInfo.GetValue(m_Node, null);
-            m_Values[0] = value.x;
-            m_Values[1] = value.y;
-        }
-
-        void ReadVector3()
-        {
-            var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
-            m_Values[0] = value.x;
-            m_Values[1] = value.y;
-            m_Values[2] = value.z;
-        }
-
-        void ReadVector4()
-        {
-            var value = (Vector4)m_PropertyInfo.GetValue(m_Node, null);
-            m_Values[0] = value.x;
-            m_Values[1] = value.y;
-            m_Values[2] = value.z;
-            m_Values[3] = value.w;
-        }
-
-        void WriteFloat()
-        {
-            m_PropertyInfo.SetValue(m_Node, m_Values[0], null);
-        }
-
-        void WriteVector2()
-        {
-            m_PropertyInfo.SetValue(m_Node, new Vector2(m_Values[0], m_Values[1]), null);
-        }
-
-        void WriteVector3()
-        {
-            m_PropertyInfo.SetValue(m_Node, new Vector3(m_Values[0], m_Values[1], m_Values[2]), null);
-        }
-
-        void WriteVector4()
-        {
-            m_PropertyInfo.SetValue(m_Node, new Vector4(m_Values[0], m_Values[1], m_Values[2], m_Values[3]), null);
-        }
-
-        void OnGUIHandler()
-        {
-            m_Read();
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            Add(new Label(subLabel));
+            var doubleField = new DoubleField { userData = index, value = m_Value[index] };
+            doubleField.RegisterCallback<MouseDownEvent>(Repaint);
+            doubleField.RegisterCallback<MouseMoveEvent>(Repaint);
+            doubleField.OnValueChanged(evt =>
             {
-                var position = EditorGUILayout.GetControlRect(true, m_Height, EditorStyles.numberField);
-                EditorGUI.MultiFloatField(position, m_Label, m_Labels, m_Values);
-                if (changeCheckScope.changed)
-                    m_Write();
-            }
+                var value = GetValue();
+                value[index] = (float)evt.newValue;
+                SetValue(value);
+                m_UndoGroup = -1;
+//                Dirty(ChangeType.Repaint);
+            });
+            doubleField.RegisterCallback<InputEvent>(evt =>
+            {
+                if (m_UndoGroup == -1)
+                {
+                    m_UndoGroup = Undo.GetCurrentGroup();
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                }
+                float newValue;
+                if (!float.TryParse(evt.newData, out newValue))
+                    newValue = 0f;
+                var value = GetValue();
+                value[index] = newValue;
+                SetValue(value);
+            });
+            doubleField.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
+                {
+                    Undo.RevertAllDownToGroup(m_UndoGroup);
+                    m_UndoGroup = -1;
+                    m_Value = GetValue();
+                    evt.StopPropagation();
+                }
+                Dirty(ChangeType.Repaint);
+            });
+            Add(doubleField);
+        }
+
+        object ValueToPropertyType(Vector4 value)
+        {
+            if (m_PropertyInfo.PropertyType == typeof(float))
+                return value.x;
+            if (m_PropertyInfo.PropertyType == typeof(Vector2))
+                return (Vector2)value;
+            if (m_PropertyInfo.PropertyType == typeof(Vector3))
+                return (Vector3)value;
+            return value;
+        }
+
+        Vector4 GetValue()
+        {
+            var value = m_PropertyInfo.GetValue(m_Node, null);
+            if (m_PropertyInfo.PropertyType == typeof(float))
+                return new Vector4((float) value, 0f, 0f, 0f);
+            if (m_PropertyInfo.PropertyType == typeof(Vector2))
+                return (Vector2)value;
+            if (m_PropertyInfo.PropertyType == typeof(Vector3))
+                return (Vector3)value;
+            return (Vector4)value;
+        }
+
+        void SetValue(Vector4 value)
+        {
+            m_PropertyInfo.SetValue(m_Node, ValueToPropertyType(value), null);
+        }
+
+        void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()
+        {
+            evt.StopPropagation();
+            Dirty(ChangeType.Repaint);
         }
     }
 }

@@ -271,3 +271,22 @@ ToolbarButtonView:hover {
 ToolbarButtonView:active {
     background-color: rgba(0, 0, 0, 0.25);
 }
+
+ColorControlView {
+    flex-direction: row;
+}
+
+MultiFloatControlView {
+    flex-direction: row;
+}
+
+MultiFloatControlView > Label {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+MultiFloatControlView > DoubleField {
+    flex: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
