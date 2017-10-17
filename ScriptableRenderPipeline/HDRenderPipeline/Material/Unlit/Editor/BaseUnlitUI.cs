@@ -224,7 +224,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(distortionBlendMode, StylesBaseUnlit.distortionBlendModeText);
-                    m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
+                    if (distortionOnly != null)
+                        m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
                     m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
 
                     EditorGUI.indentLevel++;
