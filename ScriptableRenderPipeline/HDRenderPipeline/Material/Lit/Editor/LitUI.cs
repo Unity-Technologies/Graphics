@@ -719,14 +719,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
 
             var refractionModeValue = (Lit.RefractionMode)material.GetFloat(kRefractionMode);
-            SetKeyword(material, "_REFRACTION_THINPLANE", refractionModeValue == Lit.RefractionMode.ThinPlane);
-            SetKeyword(material, "_REFRACTION_THICKPLANE", refractionModeValue == Lit.RefractionMode.ThickPlane);
-            SetKeyword(material, "_REFRACTION_THICKSPHERE", refractionModeValue == Lit.RefractionMode.ThickSphere);
-
-            var hasRefraction = (!material.HasProperty(kPreRefractionPass) 
-                || material.GetFloat(kPreRefractionPass) <= 0.0)
-                && refractionModeValue != Lit.RefractionMode.None;
-            SetKeyword(material, "_REFRACTION_ON", hasRefraction); // Refraction is not available for pre refraction (color buffer cannot be fetched)
+            // We can't have refraction in pre-refraction queue
+            var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
+            SetKeyword(material, "_REFRACTION_THINPLANE", (refractionModeValue == Lit.RefractionMode.ThinPlane) && canHaveRefraction);
+            SetKeyword(material, "_REFRACTION_THICKPLANE", (refractionModeValue == Lit.RefractionMode.ThickPlane) && canHaveRefraction);
+            SetKeyword(material, "_REFRACTION_THICKSPHERE", (refractionModeValue == Lit.RefractionMode.ThickSphere) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor
