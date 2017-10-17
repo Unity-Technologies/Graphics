@@ -257,38 +257,44 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = VFXViewPresenter.viewPresenter.GetGraph();
+            var graph = GetPresenter<VFXViewPresenter>().GetGraph();
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
 
         void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
         void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
         }
 
         void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
         }
 
         void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
@@ -313,24 +319,27 @@ namespace UnityEditor.VFX.UI
         public EventPropagation Resync()
         {
             var presenter = GetPresenter<VFXViewPresenter>();
-            presenter.SetVFXAsset(presenter.GetVFXAsset(), true);
+            presenter.ForceReload();
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
@@ -359,6 +368,7 @@ namespace UnityEditor.VFX.UI
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter == null) return null;
 
             var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
 
@@ -503,6 +513,7 @@ namespace UnityEditor.VFX.UI
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter == null) return;
 
             VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
 
@@ -515,6 +526,8 @@ namespace UnityEditor.VFX.UI
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
                 var contextSelected = selection.OfType<VFXContextUI>();
+
+                if (presenter == null) return;
 
                 if (contextSelected.Count() > 0)
                 {

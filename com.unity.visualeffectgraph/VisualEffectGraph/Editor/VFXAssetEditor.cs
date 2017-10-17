@@ -16,16 +16,26 @@ using UnityEditorInternal;
 [CustomEditor(typeof(VFXAsset))]
 public class VFXAssetEditor : Editor
 {
+    VFXViewPresenter m_Presenter;
     void OnEnable()
     {
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null)
-            VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
+        {
+            m_Presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            m_Presenter.useCount++;
+        }
+
         m_AdvDictionary.Clear();
     }
 
     void OnDisable()
     {
+        if (m_Presenter != null)
+        {
+            m_Presenter.useCount--;
+            m_Presenter = null;
+        }
     }
 
     public void OnSceneGUI()
@@ -49,13 +59,14 @@ public class VFXAssetEditor : Editor
     public override void OnInspectorGUI()
     {
         VFXAsset asset = (VFXAsset)target;
-        if (asset.graph != null && VFXViewPresenter.viewPresenter.GetVFXAsset() != asset)
+        if (asset.graph != null && m_Presenter == null)
         {
-            VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
+            m_Presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            m_Presenter.useCount++;
         }
 
 
-        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;

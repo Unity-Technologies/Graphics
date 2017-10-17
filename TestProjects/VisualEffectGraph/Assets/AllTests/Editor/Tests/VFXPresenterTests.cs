@@ -31,8 +31,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, testAssetName);
 
-            m_ViewPresenter = VFXViewPresenter.viewPresenter;
-            m_ViewPresenter.SetVFXAsset(asset, false);
+            m_ViewPresenter = VFXViewPresenter.Manager.GetPresenter(asset);
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }

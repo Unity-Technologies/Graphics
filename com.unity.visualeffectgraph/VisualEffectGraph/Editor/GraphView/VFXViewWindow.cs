@@ -43,11 +43,35 @@ namespace  UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
+        public void LoadAsset(VFXAsset asset)
+        {
+            VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(asset);
+
+            if (presenter != newPresenter)
+            {
+                if (presenter != null)
+                    GetPresenter<VFXViewPresenter>().useCount--;
+                presenter = newPresenter;
+                newPresenter.useCount++;
+
+                graphView.presenter = newPresenter;
+            }
+        }
+
         protected override GraphView BuildView()
         {
             BuildPresenters();
-            SetupFramingShortcutHandler(VFXViewPresenter.viewPresenter.View);
-            return VFXViewPresenter.viewPresenter.View;
+
+            VFXView view = new VFXView();
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
+            {
+                presenter.useCount++;
+            }
+            view.presenter = presenter;
+
+            SetupFramingShortcutHandler(view);
+            return view;
         }
 
         protected override GraphViewPresenter BuildPresenters()
@@ -55,9 +79,9 @@ namespace  UnityEditor.VFX.UI
             if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-                VFXViewPresenter.viewPresenter.SetVFXAsset(asset, true);
+                return VFXViewPresenter.Manager.GetPresenter(asset, false);
             }
-            return VFXViewPresenter.viewPresenter;
+            return null;
         }
 
         protected new void OnEnable()
@@ -67,19 +91,17 @@ namespace  UnityEditor.VFX.UI
 
             autoCompile = true;
 
+
+            VFXAsset selectedAsset = null;
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
-                VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
+                selectedAsset = objs[0] as VFXAsset;
             }
             else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
 
-                VFXViewPresenter.viewPresenter.SetVFXAsset(asset, true);
-            }
-            else
-            {
-                VFXViewPresenter.viewPresenter.SetVFXAsset(VFXViewPresenter.viewPresenter.GetVFXAsset(), true);
+                selectedAsset = asset;
             }
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
@@ -94,6 +116,18 @@ namespace  UnityEditor.VFX.UI
             }
 
             currentWindow = this;
+
+            if (selectedAsset != null)
+            {
+                if (graphView.presenter != null)
+                {
+                    if (graphView.GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
+                    {
+                        graphView.GetPresenter<VFXViewPresenter>().useCount--;
+                    }
+                }
+                graphView.presenter = VFXViewPresenter.Manager.GetPresenter(selectedAsset);
+            }
         }
 
         protected new void OnDisable()
@@ -102,8 +136,15 @@ namespace  UnityEditor.VFX.UI
             {
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+
+                VFXViewPresenter presenter = graphView.GetPresenter<VFXViewPresenter>();
+                if (presenter != null)
+                {
+                    presenter.useCount--;
+                    graphView.presenter = null;
+                }
             }
-            VFXViewPresenter.viewPresenter.SetVFXAsset(null, false);
+
             base.OnDisable();
             currentWindow = null;
         }
@@ -114,7 +155,19 @@ namespace  UnityEditor.VFX.UI
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
                 m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
-                VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, false);
+
+                VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+                VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
+
+                if (presenter != newPresenter)
+                {
+                    if (presenter != null)
+                        presenter.useCount--;
+                    this.presenter = newPresenter;
+                    graphView.presenter = newPresenter;
+                    newPresenter.useCount++;
+                }
             }
         }
 
@@ -138,18 +191,22 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
-            var graph = VFXViewPresenter.viewPresenter.GetGraph();
-            if (graph != null)
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
             {
-                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
-                if (!graph.saved)
+                var graph = presenter.GetGraph();
+                if (graph != null)
                 {
-                    filename += "*";
+                    var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                    if (!graph.saved)
+                    {
+                        filename += "*";
+                    }
+                    titleContent.text = filename;
+                    graph.RecompileIfNeeded(!autoCompile);
                 }
-                titleContent.text = filename;
-                graph.RecompileIfNeeded(!autoCompile);
+                presenter.RecompileExpressionGraphIfNeeded();
             }
-            VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }
 
         [SerializeField]

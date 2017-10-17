@@ -417,8 +417,6 @@ public class VFXComponentEditor : Editor
         if (asset == null)
             return;
 
-        VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
-
 
         /*
         int nbDescs = asset.GetNbEditorExposedDesc();
@@ -592,9 +590,9 @@ public class VFXComponentEditor : Editor
             GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
-                EditorWindow.GetWindow<VFXViewWindow>();
+                VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                VFXViewPresenter.viewPresenter.SetVFXAsset(component.vfxAsset, false);
+                window.LoadAsset(component.vfxAsset);
             }
         }
 
@@ -613,13 +611,13 @@ public class VFXComponentEditor : Editor
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        /*var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
 
         foreach (var parameter in newList)
         {
             OnParamGUI(parameter);
         }
-
+        */
         serializedObject.ApplyModifiedProperties();
 
         EditMode.DoEditModeInspectorModeButton(
