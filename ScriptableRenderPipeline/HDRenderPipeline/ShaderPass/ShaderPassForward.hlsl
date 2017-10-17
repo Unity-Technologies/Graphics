@@ -24,6 +24,22 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+float4 BlendDiffuseSpecular(float3 diffuse, float3 specular, float opacity)
+{
+    return float4(diffuse + specular, opacity);
+}
+
+float4 BlendDiffuseWithConsistentSpecular(float3 diffuse, float3 specular, float opacity)
+{
+#ifdef _BLENDMODE_LERP
+    return float4(diffuse + (specular / max(opacity, 0.01)), opacity);
+#elif defined(_BLENDMODE_ADD) || defined(_BLENDMODE_PRE_MULTIPLY)
+    return float4(diffuse * opacity + specular, opacity);
+#else
+    return BlendDiffuseSpecular(diffuse, specular, opacity);
+#endif
+}
+
 void Frag(PackedVaryingsToPS packedInput,
           out float4 outColor : SV_Target0
       #ifdef _DEPTHOFFSET_ON
@@ -59,12 +75,8 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-#ifdef _BLENDMODE_LERP
-    outColor = float4(diffuseLighting + (specularLighting / max(builtinData.opacity, 0.01)), builtinData.opacity);
-#else
-    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
-#endif
-    }
+    outColor = BlendDiffuseWithConsistentSpecular(diffuseLighting, specularLighting, builtinData.opacity);
+}
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.depthRaw;
