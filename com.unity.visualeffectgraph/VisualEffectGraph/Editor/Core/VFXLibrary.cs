@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.VFX;
 using Object = System.Object;
@@ -51,7 +52,7 @@ namespace UnityEditor.VFX
 
         virtual public T CreateInstance()
         {
-            T instance = (T)UnityEngine.Object.Instantiate(m_Template);
+            T instance = (T)ScriptableObject.CreateInstance(m_Template.GetType());
 
             return instance;
         }
@@ -73,6 +74,21 @@ namespace UnityEditor.VFX
             var vfxSpawnerTemplate = m_Template as VFXSpawnerCustomWrapper;
             vfxSpawnerInstance.Init(vfxSpawnerTemplate.customBehavior);
             return vfxSpawnerInstance;
+        }
+    }
+
+    class VFXModelDescriptorAttributeBlock : VFXModelDescriptor<VFXBlock>
+    {
+        public VFXModelDescriptorAttributeBlock(string parameter) : base(ScriptableObject.CreateInstance<UnityEditor.VFX.Block.SetAttribute>())
+        {
+            (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute = parameter;
+        }
+
+        public override VFXBlock CreateInstance()
+        {
+            var instance = base.CreateInstance() as UnityEditor.VFX.Block.SetAttribute;
+            instance.attribute = (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute;
+            return instance;
         }
     }
 
@@ -214,12 +230,7 @@ namespace UnityEditor.VFX
                 System.Array.ForEach(VFXAttribute.All,
                     t =>
                     {
-                        UnityEditor.VFX.Block.SetAttribute instance =
-                            (UnityEditor.VFX.Block.SetAttribute)ScriptableObject
-                            .CreateInstance<UnityEditor.VFX.Block.SetAttribute>();
-                        instance.attribute = t;
-
-                        m_BlockDescs.Add(new VFXModelDescriptor<VFXBlock>(instance));
+                        m_BlockDescs.Add(new VFXModelDescriptorAttributeBlock(t));
                     });
 
                 m_OperatorDescs = LoadModels<VFXOperator>();
