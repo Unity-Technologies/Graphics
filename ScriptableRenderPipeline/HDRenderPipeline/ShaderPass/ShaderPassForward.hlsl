@@ -1,4 +1,4 @@
-﻿#if SHADERPASS != SHADERPASS_FORWARD
+#if SHADERPASS != SHADERPASS_FORWARD
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -24,19 +24,24 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 BlendDiffuseSpecular(float3 diffuse, float3 specular, float opacity)
+float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opacity)
 {
-    return float4(diffuse + specular, opacity);
+    return float4(diffuseLighting + specularLighting, opacity);
 }
 
-float4 BlendDiffuseWithConsistentSpecular(float3 diffuse, float3 specular, float opacity)
+// ref: http://advances.realtimerendering.com/other/2016/naughty_dog/index.html
+// Lit transparent object should have reflection and tramission.
+// Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
+// However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
+// This is the purpose of following function, "Cancel" the blend mode effect on the specular lighting but not on the diffuse lighting
+float4 ApplyBlendModeAccurateLighting(float3 diffuseLighting, float3 specularLighting, float opacity)
 {
 #ifdef _BLENDMODE_ALPHA
-    return float4(diffuse + (specular / max(opacity, 0.01)), opacity);
+    return float4(diffuseLighting + (specularLighting / max(opacity, 0.01)), opacity);
 #elif defined(_BLENDMODE_ADD) || defined(_BLENDMODE_PRE_MULTIPLY)
-    return float4(diffuse * opacity + specular, opacity);
+    return float4(diffuseLighting * opacity + specularLighting, opacity);
 #else
-    return BlendDiffuseSpecular(diffuse, specular, opacity);
+    return ApplyBlendMode(diffuseLighting, specularLighting, opacity);
 #endif
 }
 
@@ -69,14 +74,14 @@ void Frag(PackedVaryingsToPS packedInput,
     if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
 #endif
     {
-    uint featureFlags = 0xFFFFFFFF;
-    float3 diffuseLighting;
-    float3 specularLighting;
-    float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
+        uint featureFlags = 0xFFFFFFFF;
+        float3 diffuseLighting;
+        float3 specularLighting;
+        float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
+        LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-    outColor = BlendDiffuseWithConsistentSpecular(diffuseLighting, specularLighting, builtinData.opacity);
-}
+        outColor = ApplyBlendModeAccurateLighting(diffuseLighting, specularLighting, builtinData.opacity);
+    }
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.depthRaw;
