@@ -54,6 +54,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Exponential fog
         //[Min(0.0f)] Not available until 2018.1
         public float        expFogDistance = 100.0f;
+        [Range(0.0f, 1.0f)]
+        public float        expFogDensity = 1.0f;
 
         public bool NeedFogRendering()
         {
@@ -70,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Linear Fog
             cmd.SetGlobalVector(m_LinearFogParam, new Vector4(linearFogStart, linearFogEnd, 1.0f / (linearFogEnd - linearFogStart), linearFogDensity));
             // Exp fog
-            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(0.0f, expFogDistance), 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(0.0f, expFogDistance), expFogDensity, 0.0f, 0.0f));
         }
     }
 

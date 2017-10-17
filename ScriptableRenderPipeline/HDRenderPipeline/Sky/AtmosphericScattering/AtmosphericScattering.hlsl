@@ -1,33 +1,35 @@
 #ifndef UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
-#include "AtmosphericScattering.cs.hlsl"
 #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 
-uniform float _AtmosphericScatteringType;
+#include "AtmosphericScattering.cs.hlsl"
+#include "../SkyVariables.hlsl"
+#include "../../ShaderVariables.hlsl"
 
+CBUFFER_START(AtmosphericScattering)
+uniform float _AtmosphericScatteringType;
 // Common
 uniform float   _FogColorMode;
 uniform float4  _FogColor;
-float4  _MipFogParameters;
-#define _MipFogNear     _MipFogParameters.x
-#define _MipFogFar      _MipFogParameters.y
-#define _MipFogMaxMip   _MipFogParameters.z
-
-TEXTURECUBE(_SkyTexture); // Global name defined in SkyManager
-SAMPLERCUBE(sampler_SkyTexture);
-float _SkyTextureMipCount;
-
+float4          _MipFogParameters;
 // Linear fog
-uniform float4 _LinearFogParameters;
+uniform float4  _LinearFogParameters;
+// Exp fog
+uniform float4  _ExpFogParameters;
+CBUFFER_END
+
+#define _MipFogNear         _MipFogParameters.x
+#define _MipFogFar          _MipFogParameters.y
+#define _MipFogMaxMip       _MipFogParameters.z
+
 #define _LinearFogStart     _LinearFogParameters.x
 #define _LinearFogEnd       _LinearFogParameters.y
 #define _LinearFogOoRange   _LinearFogParameters.z
 #define _LinearFogDensity   _LinearFogParameters.w
 
-// Exp fog
-uniform float4 _ExpFogParameters;
-#define _ExpFogDensity      _ExpFogParameters.x
+#define _ExpFogDistance     _ExpFogParameters.x
+#define _ExpFogDensity      _ExpFogParameters.y
 
 float3 GetFogColor(PositionInputs posInput)
 {
@@ -39,8 +41,8 @@ float3 GetFogColor(PositionInputs posInput)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
         float mipLevel = (1.0 - _MipFogMaxMip * saturate((posInput.depthVS - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
-        float3 dir = normalize(posInput.positionWS - _WorldSpaceCameraPos);
-        return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, dir, mipLevel).rgb;
+        float3 dir = normalize(posInput.positionWS - GetPrimaryCameraPosition());
+        return SampleSkyTexture(dir, mipLevel).rgb;
     }
     else // Should not be possible.
         return  float3(0.0, 0.0, 0.0);
@@ -52,7 +54,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
         float3 fogColor = GetFogColor(posInput);
-        float fogFactor = 1.0f - Transmittance(OpticalDepthHomogeneous(1.0f / _ExpFogDensity, posInput.depthVS));
+        float fogFactor = _ExpFogDensity * (1.0f - Transmittance(OpticalDepthHomogeneous(1.0f / _ExpFogDistance, posInput.depthVS)));
         return float4(fogColor, fogFactor);
     }
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)

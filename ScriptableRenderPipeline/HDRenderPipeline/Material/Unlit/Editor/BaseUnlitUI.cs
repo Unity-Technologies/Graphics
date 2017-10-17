@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");	
+            public static GUIContent enableFogText = new GUIContent("Enable Fog");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
@@ -73,6 +74,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionOnly = "_DistortionOnly";
         protected MaterialProperty distortionDepthTest = null;
         protected const string kDistortionDepthTest = "_DistortionDepthTest";
+        protected MaterialProperty enableFog = null;
+        protected const string kEnableFog = "_EnableFog";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -101,6 +104,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionEnable = FindProperty(kDistortionEnable, props, false);
             distortionOnly = FindProperty(kDistortionOnly, props, false);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props, false);
+
+            enableFog = FindProperty(kEnableFog, props, false);
         }
 
         void SurfaceTypePopup()
@@ -145,6 +150,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
                 BlendModePopup();
+
+                if(enableFog != null)
+                    m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
 
                 if (distortionEnable != null)
                 {
@@ -269,6 +277,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
+
+            bool fogEnabled = material.GetFloat(kEnableFog) > 0.0f;
+            SetKeyword(material, "_ENABLE_FOG", fogEnabled);
 
             if (material.HasProperty(kDistortionEnable))
             {                
