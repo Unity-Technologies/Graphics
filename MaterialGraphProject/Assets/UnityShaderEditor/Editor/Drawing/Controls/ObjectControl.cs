@@ -46,7 +46,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
             {
                 value = EditorGUILayout.MiniThumbnailObjectField(m_Label, value, m_PropertyInfo.PropertyType);
                 if (changeCheckScope.changed)
+                {
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     m_PropertyInfo.SetValue(m_Node, value, null);
+                }
             }
         }
     }
