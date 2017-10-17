@@ -103,6 +103,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
 
+        bool m_ShowBlendModePopup = true;
+        protected virtual bool showBlendModePopup { get { return m_ShowBlendModePopup; } }
+
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
@@ -181,7 +184,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceTypePopup();
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
-                BlendModePopup();
+                if (showBlendModePopup)
+                    BlendModePopup();
 
                 m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
 
@@ -231,7 +235,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(distortionBlendMode, StylesBaseUnlit.distortionBlendModeText);
-                    m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
+                    if (distortionOnly != null)
+                        m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
                     m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
 
                     EditorGUI.indentLevel++;
