@@ -59,7 +59,11 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
+#ifdef _BLENDMODE_LERP
+    outColor = float4(diffuseLighting + (specularLighting / max(builtinData.opacity, 0.01)), builtinData.opacity);
+#else
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+#endif
     }
 
 #ifdef _DEPTHOFFSET_ON
