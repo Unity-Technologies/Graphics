@@ -65,6 +65,7 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     // This feature is only for transparent Unlit

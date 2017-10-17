@@ -333,6 +333,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     // This feature is only for transparent Lit
