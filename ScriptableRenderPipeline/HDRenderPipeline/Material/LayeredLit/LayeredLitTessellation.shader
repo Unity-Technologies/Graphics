@@ -328,7 +328,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -587,23 +587,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             ENDHLSL
         }
 
-        Pass
-        {
-            Name "Forward" // Name is not used
-            Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
-
-            Blend[_SrcBlend][_DstBlend]
-            ZWrite[_ZWrite]
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #pragma hull Hull
-            #pragma domain Domain
-
-            #define SHADERPASS SHADERPASS_FORWARD
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Lighting/Forward.hlsl"
         Pass
         {
             Name "Forward" // Name is not used

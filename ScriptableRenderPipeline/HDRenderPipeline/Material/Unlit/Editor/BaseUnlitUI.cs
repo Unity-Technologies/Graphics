@@ -49,13 +49,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Transparent
         }
 
+        // Enum values are hardcoded for retrocompatibility. Don't change them.
         public enum BlendMode
         {
-            Lerp,
-            Add,
-            SoftAdd,
-            Multiply,
-            Premultiply
+            Alpha = 0,
+            Additive = 1,
+            Multiplicative = 3,
+            PremultipliedAlpha = 4
         }
 
         protected MaterialEditor m_MaterialEditor;
@@ -274,7 +274,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
             // These need to always been set either with opaque or transparent! So a users can swtich to opaque and remove the keyword correctly
-            SetKeyword(material, "_BLENDMODE_LERP", false);
+            SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
             SetKeyword(material, "_BLENDMODE_SOFT_ADD", false);
             SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
@@ -295,35 +295,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
                 material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
 
-                SetKeyword(material, "_BLENDMODE_LERP", BlendMode.Lerp == blendMode);
-                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Add == blendMode);
-                SetKeyword(material, "_BLENDMODE_SOFT_ADD", BlendMode.SoftAdd == blendMode);
-                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiply == blendMode);
-                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
+                SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
+                SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
+                SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiplicative == blendMode);
+                SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
 
                 switch (blendMode)
                 {
-                    case BlendMode.Lerp:
+                    case BlendMode.Alpha:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         break;
 
-                    case BlendMode.Add:
+                    case BlendMode.Additive:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         break;
 
-                    case BlendMode.SoftAdd:
-                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusDstColor);
-                        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                        break;
-
-                    case BlendMode.Multiply:
+                    case BlendMode.Multiplicative:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                         break;
 
-                    case BlendMode.Premultiply:
+                    case BlendMode.PremultipliedAlpha:
                         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         break;

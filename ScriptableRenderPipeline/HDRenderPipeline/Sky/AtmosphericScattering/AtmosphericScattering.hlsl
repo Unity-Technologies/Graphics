@@ -8,15 +8,15 @@
 #include "../../ShaderVariables.hlsl"
 
 CBUFFER_START(AtmosphericScattering)
-uniform float _AtmosphericScatteringType;
+float   _AtmosphericScatteringType;
 // Common
-uniform float   _FogColorMode;
-uniform float4  _FogColor;
-float4          _MipFogParameters;
+float   _FogColorMode;
+float4  _FogColor;
+float4  _MipFogParameters;
 // Linear fog
-uniform float4  _LinearFogParameters;
+float4  _LinearFogParameters;
 // Exp fog
-uniform float4  _ExpFogParameters;
+float4  _ExpFogParameters;
 CBUFFER_END
 
 #define _MipFogNear         _MipFogParameters.x

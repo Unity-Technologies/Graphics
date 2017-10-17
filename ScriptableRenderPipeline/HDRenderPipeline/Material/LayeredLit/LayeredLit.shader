@@ -565,20 +565,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
             #include "../../Lighting/Forward.hlsl"
-        Pass
-        {
-            Name "Forward" // Name is not used
-            Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
-
-            Blend[_SrcBlend][_DstBlend]
-            ZWrite[_ZWrite]
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_FORWARD
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

@@ -28,7 +28,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private AtmosphericScatteringEditor m_AtmosphericScatteringEditor = new AtmosphericScatteringEditor();
 
-        protected void OnEnable()
+        void OnEnable()
+        {
+            InitializeProperties();
+        }
+
+        virtual protected void InitializeProperties()
         {
             m_SkyResolution = serializedObject.FindProperty("resolution");
             m_SkyExposure = serializedObject.FindProperty("exposure");

@@ -26,9 +26,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private SerializedProperty m_SkyHDRI;
 
-        void OnEnable()
+        protected override void InitializeProperties()
         {
-            base.OnEnable();
+            base.InitializeProperties();
 
             m_SkyHDRI = serializedObject.FindProperty("skyHDRI");
         }

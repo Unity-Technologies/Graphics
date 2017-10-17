@@ -15,7 +15,7 @@
 // Blending
 //-----------------------------------------------------------------------------
 // This should match the possible blending modes in any material .shader file (lit/layeredlit/unlit etc)
-#if defined(_BLENDMODE_LERP) || defined(_BLENDMODE_ADD) || defined(_BLENDMODE_SOFT_ADD) || defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+#if defined(_BLENDMODE_ALPHA) || defined(_BLENDMODE_ADD) || defined(_BLENDMODE_SOFT_ADD) || defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
 #define SURFACE_TYPE_TRANSPARENT
 #else
 #define SURFACE_TYPE_OPAQUE
@@ -33,7 +33,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #if defined(SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG)
     float4 fog = EvaluateAtmosphericScattering(posInput);
 
-#if defined(_BLENDMODE_LERP)
+#if defined(_BLENDMODE_ALPHA)
     // Regular alpha blend only need a lerp to work
     result.rgb = lerp(result.rgb, fog.rgb, fog.a);
 #elif defined(_BLENDMODE_ADD)
