@@ -264,7 +264,7 @@ namespace UnityEditor.VFX.UI
         void OnCompile()
         {
             var graph = VFXViewPresenter.viewPresenter.GetGraph();
-
+            graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 

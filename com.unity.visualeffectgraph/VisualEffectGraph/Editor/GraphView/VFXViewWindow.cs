@@ -148,8 +148,7 @@ namespace  UnityEditor.VFX.UI
                     filename += "*";
                 }
                 titleContent.text = filename;
-                if (autoCompile)
-                    graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(!autoCompile);
             }
             VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }
