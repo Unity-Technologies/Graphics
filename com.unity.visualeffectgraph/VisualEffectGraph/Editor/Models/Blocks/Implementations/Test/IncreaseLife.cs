@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.ReadWriteCurrent) };
+                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.ReadWrite) };
             }
         }
 

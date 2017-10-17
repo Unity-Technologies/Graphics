@@ -282,7 +282,7 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.WriteCurrent) != 0 ? "inout " : "", GetFunctionParameterType(expression.valueType), parameter));
+                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", GetFunctionParameterType(expression.valueType), parameter));
             }
 
             WriteFormat("void {0}({1})", functionName, AggregateParameters(parameters));
@@ -305,7 +305,7 @@ namespace UnityEditor.VFX
                 var parameter = parameterNames[i];
                 var mode = modes[i];
                 var expression = expressions[i];
-                parameters.Add(string.Format("{1}{0}", GetFunctionParameterName(expression, variableNames), (mode & VFXAttributeMode.WriteCurrent) != 0 ? "/*inout*/" : ""));
+                parameters.Add(string.Format("{1}{0}", GetFunctionParameterName(expression, variableNames), (mode & VFXAttributeMode.Write) != 0 ? "/*inout*/" : ""));
             }
 
             WriteLineFormat("{0}({1});", functionName, AggregateParameters(parameters));

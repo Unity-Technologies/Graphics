@@ -101,7 +101,7 @@ namespace UnityEditor.VFX
         {
             if (m_StoredCurrentAttributes.Count == 0)
                 return string.Empty;
-            else if ((mode & VFXAttributeMode.WriteCurrent) != 0)
+            else if ((mode & VFXAttributeMode.Write) != 0)
                 return "RWByteAddressBuffer attributeData;";
             else
                 return "ByteAddressBuffer attributeData;";

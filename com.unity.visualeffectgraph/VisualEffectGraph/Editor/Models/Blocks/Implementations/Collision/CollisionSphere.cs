@@ -22,8 +22,8 @@ namespace UnityEditor.VFX.BlockLibrary
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWriteCurrent);
-                yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWriteCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
             }
         }
 

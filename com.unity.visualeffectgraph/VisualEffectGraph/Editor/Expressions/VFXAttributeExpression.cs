@@ -10,9 +10,9 @@ namespace UnityEditor.VFX
     enum VFXAttributeMode
     {
         None        = 0,
-        ReadCurrent = 1 << 0,
-        WriteCurrent = 1 << 1,
-        ReadWriteCurrent = ReadCurrent | WriteCurrent,
+        Read = 1 << 0,
+        Write = 1 << 1,
+        ReadWrite = Read | Write,
         ReadSource  = 1 << 2,
     }
 
@@ -177,7 +177,7 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
-            yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.ReadCurrent);
+            yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.Read);
         }
     }
 }

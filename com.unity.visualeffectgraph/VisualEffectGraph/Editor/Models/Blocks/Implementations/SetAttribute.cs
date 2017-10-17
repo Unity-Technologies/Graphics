@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(currentAttribute, VFXAttributeMode.WriteCurrent) };
+                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(currentAttribute, VFXAttributeMode.Write) };
             }
         }
         static private string GenerateLocalAttributeName(string name)

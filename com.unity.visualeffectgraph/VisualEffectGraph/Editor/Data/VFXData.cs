@@ -48,16 +48,16 @@ namespace UnityEditor.VFX
             m_Owners.Remove(context);
         }
 
-        public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadCurrent) != 0; }
-        public bool IsCurrentAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.WriteCurrent) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsCurrentAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadCurrent) != 0; }
-        public bool IsCurrentAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.WriteCurrent) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
 
         public bool IsAttributeUsed(VFXAttribute attrib)                                { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
         public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)            { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
 
-        public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWriteCurrent) != 0; }
+        public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
 
         public bool IsSourceAttributeUsed(VFXAttribute attrib)                          { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
 
@@ -224,9 +224,9 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        if ((kvp2.Value & VFXAttributeMode.ReadCurrent) != 0)
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
                             onlyUpdateWrite = false;
-                        if ((kvp2.Value & VFXAttributeMode.WriteCurrent) != 0)
+                        if ((kvp2.Value & VFXAttributeMode.Write) != 0)
                             onlyUpdateRead = false;
                     }
 
@@ -234,13 +234,13 @@ namespace UnityEditor.VFX
                     {
                         int shift = m_Owners.IndexOf(context) << 1;
                         int value = 0;
-                        if ((kvp2.Value & VFXAttributeMode.ReadCurrent) != 0)
+                        if ((kvp2.Value & VFXAttributeMode.Read) != 0)
                             value |= 0x01;
-                        if (((kvp2.Value & VFXAttributeMode.WriteCurrent) != 0) && context.contextType == VFXContextType.kUpdate)
+                        if (((kvp2.Value & VFXAttributeMode.Write) != 0) && context.contextType == VFXContextType.kUpdate)
                             value |= 0x02;
                         key |= (value << shift);
                     }
-                    else if ((kvp2.Value & VFXAttributeMode.WriteCurrent) != 0)
+                    else if ((kvp2.Value & VFXAttributeMode.Write) != 0)
                         writtenInInit = true;
                 }
 

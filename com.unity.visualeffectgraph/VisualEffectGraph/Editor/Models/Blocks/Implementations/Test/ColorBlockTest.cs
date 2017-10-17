@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.WriteCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
             }
         }
 
