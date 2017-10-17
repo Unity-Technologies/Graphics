@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
@@ -37,5 +38,13 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
             window.Show();
             window.ChangeSelection(asset);
         }
+    }
+
+    [OnOpenAsset]
+    static bool OnOpenAsset(int instanceID, int line)
+    {
+        var path = AssetDatabase.GetAssetPath(instanceID);
+        ShowGraphEditWindow(path);
+        return true;
     }
 }
