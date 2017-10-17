@@ -24,13 +24,13 @@ namespace UnityEditor.VFX.BlockLibrary
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.ReadCurrent);
 
                 if (composition == Composition.Overwrite)
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.WriteCurrent);
                 if (composition == Composition.Scale)
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.ReadWriteCurrent);
             }
         }
 

@@ -10,15 +10,10 @@ namespace UnityEditor.VFX
     enum VFXAttributeMode
     {
         None        = 0,
-        Read        = 1 << 0,
-        Write       = 1 << 1,
-        ReadWrite   = Read | Write,
-    }
-
-    enum VFXAttributeLocation
-    {
-        Current = 0,
-        Source = 1,
+        ReadCurrent = 1 << 0,
+        WriteCurrent = 1 << 1,
+        ReadWriteCurrent = ReadCurrent | WriteCurrent,
+        ReadSource  = 1 << 2,
     }
 
     struct VFXAttribute
@@ -60,21 +55,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAttribute(string name, VFXValueType type, VFXAttributeLocation location = VFXAttributeLocation.Current)
+        public VFXAttribute(string name, VFXValueType type)
         {
             this.name = name;
-            this.location = location;
             this.value = GetValueFromType(type);
         }
 
-        public VFXAttribute(string name, VFXValue value, VFXAttributeLocation location = VFXAttributeLocation.Current)
+        public VFXAttribute(string name, VFXValue value)
         {
             this.name = name;
-            this.location = location;
             this.value = value;
         }
 
-        public static VFXAttribute Find(string attributeName, VFXAttributeLocation location)
+        public static VFXAttribute Find(string attributeName)
         {
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
@@ -82,13 +75,11 @@ namespace UnityEditor.VFX
             }
 
             var attribute = AllAttribute.First(e => e.name == attributeName);
-            attribute.location = location;
             return attribute;
         }
 
         public string name;
         public VFXValue value;
-        public VFXAttributeLocation location;
         public VFXValueType type
         {
             get
@@ -110,11 +101,18 @@ namespace UnityEditor.VFX
         public VFXAttributeMode mode;
     }
 
+    enum VFXAttributeLocation
+    {
+        Current = 0,
+        Source = 1,
+    }
+
     sealed class VFXAttributeExpression : VFXExpression
     {
-        public VFXAttributeExpression(VFXAttribute attribute) : base(Flags.PerElement)
+        public VFXAttributeExpression(VFXAttribute attribute, VFXAttributeLocation location = VFXAttributeLocation.Current) : base(Flags.PerElement)
         {
-            m_Attribute = attribute;
+            m_attribute = attribute;
+            m_attributeLocation = location;
         }
 
         public override VFXExpressionOp operation
@@ -129,7 +127,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.type;
+                return m_attribute.type;
             }
         }
 
@@ -137,7 +135,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.name;
+                return m_attribute.name;
             }
         }
 
@@ -145,13 +143,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.location;
+                return m_attributeLocation;
             }
         }
 
-        public VFXAttribute attribute { get { return m_Attribute; } }
-        private VFXAttribute m_Attribute;
-
+        public VFXAttribute attribute { get { return m_attribute; } }
+        private VFXAttribute m_attribute;
+        private VFXAttributeLocation m_attributeLocation;
 
         public override bool Equals(object obj)
         {
@@ -179,7 +177,7 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
-            yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
+            yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.ReadCurrent);
         }
     }
 }

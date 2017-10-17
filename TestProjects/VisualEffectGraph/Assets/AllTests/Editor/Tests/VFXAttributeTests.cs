@@ -74,17 +74,17 @@ namespace UnityEditor.VFX.Test
             TestAttributes(
                 (graph) =>
                 {
-                    ((ContextTest)graph[0]).attributeInfos.Add(new VFXAttributeInfo(Attrib1, VFXAttributeMode.Write));
-                    ((ContextTest)graph[0]).attributeInfos.Add(new VFXAttributeInfo(Attrib2, VFXAttributeMode.ReadWrite));
-                    ((ContextTest)graph[1]).attributeInfos.Add(new VFXAttributeInfo(Attrib1, VFXAttributeMode.Read));
-                    ((ContextTest)graph[1]).attributeInfos.Add(new VFXAttributeInfo(Attrib3, VFXAttributeMode.Read));
+                    ((ContextTest)graph[0]).attributeInfos.Add(new VFXAttributeInfo(Attrib1, VFXAttributeMode.WriteCurrent));
+                    ((ContextTest)graph[0]).attributeInfos.Add(new VFXAttributeInfo(Attrib2, VFXAttributeMode.ReadWriteCurrent));
+                    ((ContextTest)graph[1]).attributeInfos.Add(new VFXAttributeInfo(Attrib1, VFXAttributeMode.ReadCurrent));
+                    ((ContextTest)graph[1]).attributeInfos.Add(new VFXAttributeInfo(Attrib3, VFXAttributeMode.ReadCurrent));
                 },
                 (data) =>
                 {
                     Assert.AreEqual(3, data.GetNbAttributes());
-                    Assert.AreEqual(VFXAttributeMode.ReadWrite, data.GetAttributeMode(Attrib1));
-                    Assert.AreEqual(VFXAttributeMode.ReadWrite, data.GetAttributeMode(Attrib2));
-                    Assert.AreEqual(VFXAttributeMode.Read,      data.GetAttributeMode(Attrib3));
+                    Assert.AreEqual(VFXAttributeMode.ReadWriteCurrent, data.GetAttributeMode(Attrib1));
+                    Assert.AreEqual(VFXAttributeMode.ReadWriteCurrent, data.GetAttributeMode(Attrib2));
+                    Assert.AreEqual(VFXAttributeMode.ReadCurrent,      data.GetAttributeMode(Attrib3));
                 });
         }
     }

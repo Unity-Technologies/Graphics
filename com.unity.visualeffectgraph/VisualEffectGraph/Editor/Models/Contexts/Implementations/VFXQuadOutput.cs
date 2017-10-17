@@ -45,19 +45,19 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.ReadCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.ReadCurrent);
 
                 if (flipBook)
-                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.ReadCurrent);
             }
         }
 

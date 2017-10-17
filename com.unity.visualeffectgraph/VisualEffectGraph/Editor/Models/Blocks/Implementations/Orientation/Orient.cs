@@ -30,13 +30,13 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.WriteCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.WriteCurrent);
+                yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.WriteCurrent);
                 if (mode != Mode.FixedOrientation && mode != Mode.FaceCameraPlane)
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadCurrent);
                 if (mode == Mode.AlongVelocity)
-                    yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadCurrent);
             }
         }
 

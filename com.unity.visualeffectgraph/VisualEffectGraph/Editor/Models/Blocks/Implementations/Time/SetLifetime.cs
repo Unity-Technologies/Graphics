@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.WriteCurrent);
                 if (mode != SetMode.Constant)
-                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWriteCurrent);
             }
         }
 
