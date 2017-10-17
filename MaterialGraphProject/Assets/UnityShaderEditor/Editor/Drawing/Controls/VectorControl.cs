@@ -46,16 +46,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
 
         public MultiFloatControlView(string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            int components;
-            if (propertyInfo.PropertyType == typeof(float))
-                components = 1;
-            else if (propertyInfo.PropertyType == typeof(Vector2))
-                components = 2;
-            else if (propertyInfo.PropertyType == typeof(Vector3))
-                components = 3;
-            else if (propertyInfo.PropertyType == typeof(Vector4))
-                components = 4;
-            else
+            var components = Array.IndexOf(validTypes, propertyInfo.PropertyType) + 1;
+            if (components == -1)
                 throw new ArgumentException("Property must be of type float, Vector2, Vector3 or Vector4.", "propertyInfo");
 
             m_Node = node;
@@ -87,7 +79,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
                 value[index] = (float)evt.newValue;
                 SetValue(value);
                 m_UndoGroup = -1;
-//                Dirty(ChangeType.Repaint);
             });
             doubleField.RegisterCallback<InputEvent>(evt =>
             {
