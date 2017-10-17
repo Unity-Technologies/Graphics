@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Renderer Settings
         public RenderingSettings renderingSettings = new RenderingSettings();
-        public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
+        public SubsurfaceScatteringSettings sssSettings;
         public TileSettings tileSettings = new TileSettings();
 
         // Shadow Settings
@@ -102,7 +102,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            sssSettings.OnValidate();
         }
     }
 }

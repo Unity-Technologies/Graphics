@@ -16,9 +16,9 @@
 //-----------------------------------------------------------------------------
 // This should match the possible blending modes in any material .shader file (lit/layeredlit/unlit etc)
 #if defined(_BLENDMODE_LERP) || defined(_BLENDMODE_ADD) || defined(_BLENDMODE_SOFT_ADD) || defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
-#   define SURFACE_TYPE_TRANSPARENT
+#define SURFACE_TYPE_TRANSPARENT
 #else
-#   define SURFACE_TYPE_OPAQUE
+#define SURFACE_TYPE_OPAQUE
 #endif
 
 //-----------------------------------------------------------------------------

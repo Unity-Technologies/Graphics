@@ -88,10 +88,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
     half lightAtten = ComputeMainLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
-
-#ifdef _SHADOWS
-    lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
-#endif
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(i, _ShadowLightDirection.xyz);
 
     half NdotL = saturate(dot(normal, lightDirection));
     half3 radiance = light.color * (lightAtten * NdotL);
@@ -103,8 +100,7 @@ half4 LitPassFragment(LightweightVertexOutput i) : SV_Target
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput light;
-        int lightIndex = unity_4LightIndices0[lightIter];
-        INITIALIZE_LIGHT(light, lightIndex);
+        INITIALIZE_LIGHT(light, lightIter);
         half lightAtten = ComputeLightAttenuation(light, normal, i.posWS.xyz, lightDirection);
 
         half NdotL = saturate(dot(normal, lightDirection));
@@ -155,9 +151,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     LightInput lightInput;
     INITIALIZE_MAIN_LIGHT(lightInput);
     half lightAtten = ComputeMainLightAttenuation(lightInput, normal, worldPos, lightDirection);
-#ifdef _SHADOWS
-    lightAtten *= ComputeShadowAttenuation(i, _ShadowLightDirection.xyz);
-#endif
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(i, _ShadowLightDirection.xyz);
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
     color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normal, viewDir, lightAtten) * lightInput.color;
@@ -172,8 +166,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput i) : SV_Target
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput lightData;
-        int lightIndex = unity_4LightIndices0[lightIter];
-        INITIALIZE_LIGHT(lightData, lightIndex);
+        INITIALIZE_LIGHT(lightData, lightIter);
         half lightAtten = ComputeLightAttenuation(lightData, normal, worldPos, lightDirection);
 
 #ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
