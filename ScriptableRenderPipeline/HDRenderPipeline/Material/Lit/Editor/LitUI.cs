@@ -597,7 +597,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
 
-                        blendMode.floatValue = (float)BlendMode.Lerp;
+                        blendMode.floatValue = (float)BlendMode.Alpha;
 
                         if (mode != Lit.RefractionMode.ThinPlane)
                         {
