@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing

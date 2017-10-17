@@ -181,7 +181,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void ValidateNode()
         {
-            var isInError = false;
+            var isInError = false; 
 
             // all children nodes needs to be updated first
             // so do that here
@@ -190,7 +190,7 @@ namespace UnityEngine.MaterialGraph
                 inputSlot.hasError = false;
 
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                foreach (var edge in edges)
+                foreach (var edge in edges) 
                 {
                     var fromSocketRef = edge.outputSlot;
                     var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
