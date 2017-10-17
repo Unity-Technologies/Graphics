@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return relativePath.Replace("\\", "/") + "/";
         }
 
-        public static void ResetMaterialKeywords(Material material)
+        public static bool ResetMaterialKeywords(Material material)
         {
             MaterialResetter resetter;
             if (k_MaterialResetters.TryGetValue(material.shader.name, out resetter))
@@ -53,7 +53,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 RemoveMaterialKeywords(material);
                 resetter(material);
                 EditorUtility.SetDirty(material);
+                return true;
             }
+            return false;
         }
 
         public static void RemoveMaterialKeywords(Material material)
