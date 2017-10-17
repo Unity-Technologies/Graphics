@@ -15,6 +15,13 @@
     #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 #endif
 
+// Define refraction keyword helpers
+#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+    #define HAS_REFRACTION
+#else
+    #undef HAS_REFRACTION
+#endif
+
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
@@ -1523,11 +1530,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     specularLighting = float3(0.0, 0.0, 0.0);
     weight = float2(0.0, 0.0);
 
-#if !defined(_REFRACTION_ON)
-    return;
-#endif
-
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#ifdef HAS_REFRACTION
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
     //  2. We calculate the screen space position of the refracted point
@@ -1650,10 +1653,6 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
     diffuseLighting *= transmittance;
-
-#else
-    // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
 #endif
 }
 
