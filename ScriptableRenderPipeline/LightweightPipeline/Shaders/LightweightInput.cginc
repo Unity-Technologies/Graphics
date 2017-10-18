@@ -86,9 +86,9 @@ struct LightweightVertexOutput
     float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
     float4 posWS : TEXCOORD1;
 #if _NORMALMAP
-    half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix
-    half3 tangentToWorld1 : TEXCOORD3; // tangentToWorld matrix
-    half3 tangentToWorld2 : TEXCOORD4; // tangentToWorld matrix
+    half3 tangent   : TEXCOORD2;
+    half3 binormal  : TEXCOORD3;
+    half3 normal    : TEXCOORD4;
 #else
     half3 normal : TEXCOORD2;
 #endif
@@ -106,15 +106,17 @@ struct SurfaceData
     half  smoothness;
     half3 normal;
     half3 emission;
+    half3 ambient;
     half  occlusion;
     half  alpha;
 };
 
 struct SurfaceInput
 {
-    float3 tangentToWorld0; // tx, bx, nx
-    float3 tangentToWorld1; // ty, by, ny
-    float3 tangentToWorld2; // tz, bz, nz
+    float4 lightmapUV;
+    half3 tangent;
+    half3 binormal;
+    half3 normal;
     float3 worldPos;
     half3  viewDir;
     float  fogFactor;
