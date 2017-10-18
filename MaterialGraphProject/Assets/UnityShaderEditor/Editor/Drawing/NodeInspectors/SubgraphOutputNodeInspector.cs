@@ -60,9 +60,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 EditorGUI.BeginChangeCheck();
                 var result = (UISlotValueType)EditorGUILayout.EnumPopup(ToUISlot(slot.valueType));
-                slot.valueType = ToSlotValueType(result);
+                var chantedTo = ToSlotValueType(result);
                 if (EditorGUI.EndChangeCheck())
+                {
                     typeChanged |= true;
+                    MaterialSlot.CreateMaterialSlot(chantedTo, slot.id, slot.RawDisplayName(), slot.shaderOutputName, slot.slotType, Vector4.zero);
+                }
             }
 
             GUILayout.Space(10);

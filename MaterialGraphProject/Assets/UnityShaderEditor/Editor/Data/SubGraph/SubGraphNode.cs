@@ -53,7 +53,7 @@ namespace UnityEngine.MaterialGraph
                 var helper = new SubGraphHelper();
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
-                OnEnable();
+                UpdateSlots();
 
                 if (onModified != null)
                     onModified(this, ModificationScope.Topological);
@@ -91,14 +91,8 @@ namespace UnityEngine.MaterialGraph
             //var validOutputSlots = NodeUtils.GetSlotsThatOutputToNodeRecurse(this, (graph as BaseMaterialGraph).masterNode);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-
-                outputString.AddShaderChunk(
-                    "float"
-                    + outDimension
-                    + " "
-                    + GetVariableNameForSlot(slot.id)
-                    + " = 0;", false);
+                var outDimension = ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+                outputString.AddShaderChunk(string.Format("{0} {1} = 0;", outDimension, GetVariableNameForSlot(slot.id)), false);
             }
 
             // Step 2...
@@ -140,7 +134,7 @@ namespace UnityEngine.MaterialGraph
                 }
                 else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
                 {
-                    prop.overrideReferenceName = MaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
                 }
                 else
                 {

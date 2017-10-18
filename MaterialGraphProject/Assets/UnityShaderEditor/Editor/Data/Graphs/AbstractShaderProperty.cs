@@ -3,30 +3,19 @@ using System;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public abstract class AbstractShaderProperty<T> : ISerializationCallbackReceiver, IShaderProperty
+    public abstract class AbstractShaderProperty<T> : IShaderProperty
     {
         [SerializeField]
         private T m_Value;
 
         [SerializeField]
-        private string m_Description;
-
-        [SerializeField]
         private string m_Name;
-
-        [NonSerialized]
-        private Guid m_Guid;
-
-        [SerializeField]
-        private string m_GuidSerialized;
 
         [SerializeField]
         private bool m_GeneratePropertyBlock = true;
 
-        protected AbstractShaderProperty()
-        {
-            m_Guid = Guid.NewGuid();
-        }
+        [SerializeField]
+        private SerializableGuid m_Guid = new SerializableGuid();
 
         public T value
         {
@@ -39,7 +28,7 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 if (string.IsNullOrEmpty(m_Name))
-                    return m_Guid.ToString();
+                    return guid.ToString();
                 return m_Name;
             }
             set { m_Name = value; }
@@ -61,7 +50,7 @@ namespace UnityEngine.MaterialGraph
 
         public Guid guid
         {
-            get { return m_Guid; }
+            get { return m_Guid.guid; }
         }
 
         public bool generatePropertyBlock
@@ -80,18 +69,5 @@ namespace UnityEngine.MaterialGraph
         }
 
         public abstract PreviewProperty GetPreviewMaterialProperty();
-
-        public virtual void OnBeforeSerialize()
-        {
-            m_GuidSerialized = m_Guid.ToString();
-        }
-
-        public virtual void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-                m_Guid = new Guid(m_GuidSerialized);
-            else
-                m_Guid = Guid.NewGuid();
-        }
     }
 }

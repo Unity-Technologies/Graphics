@@ -27,13 +27,12 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(
+            AddSlot(new Vector3MaterialSlot(
                     kOutputSlotId,
                     ShaderGeneratorNames.WorldSpacePosition,
                     ShaderGeneratorNames.WorldSpacePosition,
                     SlotType.Output,
-                    SlotValueType.Vector3,
-                    Vector4.zero));
+                    Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 

@@ -1,13 +1,10 @@
 fileFormatVersion: 2
 guid: 0bf1c65d8d6ab4c1f8476fb1cf9eb20a
-timeCreated: 1504702365
-licenseType: Pro
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures:
-  - Texture2D_Texture2D_ED131035_Uniform: {fileID: 2800000, guid: 330f42016073a97418a4aae5517e32c8,
-      type: 3}
+  - Texture_AD00096F: {fileID: 2800000, guid: 55fd692de65e703408cbda23b0eae8d0, type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

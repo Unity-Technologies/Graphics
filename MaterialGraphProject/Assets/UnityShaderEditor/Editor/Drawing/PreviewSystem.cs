@@ -267,7 +267,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             else
             {
-                List<PropertyCollector.TextureInfo> defaultTextures;
                 PreviewMode mode;
                 previewData.shaderString = m_Graph.GetPreviewShader(node, out mode);
                 previewData.previewMode = mode;

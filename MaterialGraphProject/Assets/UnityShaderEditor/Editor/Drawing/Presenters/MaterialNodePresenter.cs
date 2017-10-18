@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
