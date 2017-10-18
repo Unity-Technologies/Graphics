@@ -149,7 +149,7 @@ Material:
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _StencilRef: 2
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
