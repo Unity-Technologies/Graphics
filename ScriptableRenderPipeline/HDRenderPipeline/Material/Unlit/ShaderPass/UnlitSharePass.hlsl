@@ -4,7 +4,7 @@
 
 #define ATTRIBUTES_NEED_TEXCOORD0
 
-#if defined(_ENABLE_FOG)
+#if defined(_ENABLE_TRANSPARENT_FOG)
 #define VARYINGS_NEED_POSITION_WS
 #endif
 

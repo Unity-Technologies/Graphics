@@ -29,7 +29,7 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
     return float4(diffuseLighting + specularLighting, opacity);
 }
 
-// ref: http://advances.realtimerendering.com/other/2016/naughty_dog/index.html
+// ref: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
 // Lit transparent object should have reflection and tramission.
 // Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
 // However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
@@ -80,7 +80,13 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
         LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
+        // Note: When we are lit (which is the case here, else we use unlit pass), we should always use _BLENDMODE_ACCURATE_LIGHTING
+        // however artists may not be use to this new mode and would like to use old fashion blending with lighting, so keep a fallback
+#ifdef _BLENDMODE_ACCURATE_LIGHTING
         outColor = ApplyBlendModeAccurateLighting(diffuseLighting, specularLighting, builtinData.opacity);
+#else
+        outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+#endif
         outColor = EvaluateAtmosphericScattering(posInput, outColor);
     }
 
