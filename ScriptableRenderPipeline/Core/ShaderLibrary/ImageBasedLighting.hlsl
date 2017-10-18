@@ -59,6 +59,28 @@ float MipmapLevelToPerceptualRoughness(float mipmapLevel)
     return saturate(1.7 / 1.4 - sqrt(2.89 / 1.96 - (2.8 / 1.96) * perceptualRoughness));
 }
 
+//-----------------------------------------------------------------------------
+// Anisotropic image based lighting
+//-----------------------------------------------------------------------------
+
+// Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
+// The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to the normal.
+// The returned normal is NOT normalized.
+float3 ComputeGrainNormal(float3 grainDir, float3 V)
+{
+    float3 B = cross(grainDir, V);
+    return cross(B, grainDir);
+}
+
+// Fake anisotropy by distorting the normal (non-negative anisotropy values only).
+// The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to N.
+// Anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
+float3 GetAnisotropicModifiedNormal(float3 grainDir, float3 N, float3 V, float anisotropy)
+{
+    float3 grainNormal = ComputeGrainNormal(grainDir, V);
+    return normalize(lerp(N, grainNormal, anisotropy));
+}
+
 // Ref: "Moving Frostbite to PBR", p. 69.
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
@@ -77,9 +99,6 @@ float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
     return lerp(N, R, lerpFactor);
 }
 
-//-----------------------------------------------------------------------------
-// Anisotropic image based lighting
-//-----------------------------------------------------------------------------
 // To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
 // which allow to fake an anisotropic specular lobe.
 // Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
