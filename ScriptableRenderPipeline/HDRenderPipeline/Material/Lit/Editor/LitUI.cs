@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Inputs";
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
-            public static GUIContent baseColorSmoothnessText = new GUIContent("Base Color + Smoothness", "Albedo (RGB) and Smoothness (A)");
+            public static GUIContent baseColorRefractionMaskText = new GUIContent("Base Color + RefractionMask", "Albedo (RGB) and Refraction mask (A)");
 
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
@@ -409,7 +409,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
+            bool refractionEnable = refractionMode.floatValue > 0.0f && preRefractionPass.floatValue == 0.0f;
+
+            m_MaterialEditor.TexturePropertySingleLine(refractionEnable ? Styles.baseColorRefractionMaskText : Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
             if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
                 (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
