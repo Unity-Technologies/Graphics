@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");	
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");
             public static GUIContent enableFogText = new GUIContent("Enable Fog");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
@@ -187,9 +187,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (showBlendModePopup)
                     BlendModePopup();
 
+                EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
-
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
+                EditorGUI.indentLevel--;
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
@@ -277,6 +278,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
+            SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
+
             // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
             SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
@@ -344,7 +347,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_ENABLE_FOG", fogEnabled);
 
             if (material.HasProperty(kDistortionEnable))
-            {                
+            {
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
                 if (distortionDepthTest)
                 {
@@ -401,7 +404,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // If distortion only is enabled, disable all passes (except distortion and debug)
                 bool enablePass = !(distortionEnable && distortionOnly);
-                
+
                 // Disable all passes except distortion
                 // Distortion is setup in code above
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardStr, enablePass);
