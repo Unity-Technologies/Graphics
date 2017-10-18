@@ -31,7 +31,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (startSlot == null)
                 return compatibleAnchors;
 
-            var goingBackwards = startSlot.isOutputSlot;
             var startStage = startSlot.shaderStage;
             if (startStage == ShaderStage.Dynamic)
                 startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
@@ -51,7 +50,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     continue;
                 if (candidateSlot.owner == startSlot.owner)
                     continue;
-                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.valueType))
+                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.concreteValueType))
                     continue;
 
                 if (startStage != ShaderStage.Dynamic)
