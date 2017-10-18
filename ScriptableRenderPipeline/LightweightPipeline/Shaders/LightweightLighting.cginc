@@ -51,13 +51,13 @@ struct SurfaceData
 
 struct SurfaceInput
 {
-    float4 lightmapUV;
-    half3 normalWS;
-    half3 tangentWS;
-    half3 bitangentWS;
-    float3 positionWS;
-    half3  viewDirectionWS;
-    float  fogFactor;
+    float4  lightmapUV;
+    half3   normalWS;
+    half3   tangentWS;
+    half3   bitangentWS;
+    float3  positionWS;
+    half3   viewDirectionWS;
+    half    fogFactor;
 };
 
 struct BRDFData
