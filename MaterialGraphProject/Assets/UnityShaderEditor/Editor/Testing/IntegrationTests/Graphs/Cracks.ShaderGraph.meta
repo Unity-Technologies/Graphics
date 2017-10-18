@@ -1,17 +1,9 @@
 fileFormatVersion: 2
 guid: a8cb0d181b460aa4bac2693ce3bfc1ad
-timeCreated: 1504881039
-licenseType: Pro
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
-  nonModifiableTextures:
-  - Texture2D_Texture2D_CF0DB0B2_Uniform: {fileID: 2800000, guid: 7296f51323ae9485a9c834c4e3d722ed,
-      type: 3}
-  - Texture2D_Texture2D_D8FD66BB_Uniform: {fileID: -931156776, guid: b69a7e88e13e24260acb38513f619ff2,
-      type: 3}
-  - Texture2D_Texture2D_DF8FC6BF_Uniform: {fileID: 2800000, guid: 9d64a9e7ca6864704ae6b8ca7afc9d85,
-      type: 3}
+  nonModifiableTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 

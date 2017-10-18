@@ -19,7 +19,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         private Material m_CheckerboardMaterial;
 
         private static readonly Mesh[] s_Meshes = { null, null, null, null, null };
-        private static Mesh s_PlaneMesh;
         private static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
         private static readonly GUIContent[] s_LightIcons = { null, null };
         private static readonly GUIContent[] s_TimeIcons = { null, null };
@@ -121,7 +120,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
-                s_PlaneMesh = quadMesh;
             }
         }
 

@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Gradient Editor")]
+    [Title("Input/Gradient")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         Gradient m_Gradient;
@@ -89,12 +89,12 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(TimeInputSlotId, k_TimeInputSlotName, k_TimeInputSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(RGBAOutputSlotId, k_RGBAOutputSlotName, k_RGBAOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-            AddSlot(new MaterialSlot(ROutputSlotId, k_ROutputSlotName, k_ROutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(GOutputSlotId, k_GOutputSlotName, k_GOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(BOutputSlotId, k_BOutputSlotName, k_BOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(AOutputSlotId, k_AOutputSlotName, k_AOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new Vector1MaterialSlot(TimeInputSlotId, k_TimeInputSlotName, k_TimeInputSlotName, SlotType.Input,0));
+            AddSlot(new Vector4MaterialSlot(RGBAOutputSlotId, k_RGBAOutputSlotName, k_RGBAOutputSlotName, SlotType.Output, Vector4.zero));
+            AddSlot(new Vector1MaterialSlot(ROutputSlotId, k_ROutputSlotName, k_ROutputSlotName, SlotType.Output,0));
+            AddSlot(new Vector1MaterialSlot(GOutputSlotId, k_GOutputSlotName, k_GOutputSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(BOutputSlotId, k_BOutputSlotName, k_BOutputSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(AOutputSlotId, k_AOutputSlotName, k_AOutputSlotName, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { TimeInputSlotId, RGBAOutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId });
             m_Gradient = new Gradient();
             var colorKeys = m_SerializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();

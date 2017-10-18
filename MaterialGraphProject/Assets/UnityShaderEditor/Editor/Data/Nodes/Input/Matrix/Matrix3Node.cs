@@ -27,7 +27,7 @@ namespace UnityEngine.MaterialGraph
 
         [MultiFloatControl("", " ", " ", " ", " ")]
         public Vector3 row1
-        {
+            {
             get { return m_Row1; }
             set { SetRow(ref m_Row1, value); }
         }
@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
             if (value == row)
                 return;
             row = value;
-            if (onModified != null)
+                if (onModified != null)
                 onModified(this, ModificationScope.Graph);
         }
 
@@ -56,7 +56,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Matrix3, Vector3.zero));
+            AddSlot(new Matrix3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
