@@ -20,10 +20,44 @@
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 
 //-----------------------------------------------------------------------------
+// ApplyBlendMode function
+//-----------------------------------------------------------------------------
+
+float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opacity)
+{
+    // ref: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
+    // Lit transparent object should have reflection and tramission.
+    // Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
+    // However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
+    // This is the purpose of following function, "Cancel" the blend mode effect on the specular lighting but not on the diffuse lighting
+#ifdef _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    // In the case of _BLENDMODE_ALPHA the code should be float4(diffuseLighting + (specularLighting / max(opacity, 0.01)), opacity)
+    // However this have precision issue when reaching 0, so we change the blend mode and apply src * src_a inside the shader instead
+    #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
+    return float4(diffuseLighting * opacity + specularLighting, opacity);
+    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    return float4(diffuseLighting + specularLighting, opacity);
+    #endif
+#else
+    #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
+    return float4((diffuseLighting + specularLighting) * opacity, opacity);
+    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    return float4(diffuseLighting + specularLighting, opacity);
+    #endif
+#endif
+}
+
+float4 ApplyBlendMode(float3 color, float opacity)
+{
+    return ApplyBlendMode(color, float3(0.0, 0.0, 0.0), opacity);
+}
+
+//-----------------------------------------------------------------------------
 // Fog sampling function for materials
 //-----------------------------------------------------------------------------
 
 // Used for transparent object. input color is color + alpha of the original transparent pixel.
+// This must be call after ApplyBlendMode to work correctly
 float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 {
     float4 result = inputColor;
@@ -32,8 +66,8 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
     float4 fog = EvaluateAtmosphericScattering(posInput);
 
     #if defined(_BLENDMODE_ALPHA)
-    // Regular alpha blend only need a lerp to work
-    result.rgb = lerp(result.rgb, fog.rgb, fog.a);
+    // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
+    result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
     #elif defined(_BLENDMODE_ADD)
     // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
     result.rgb = result.rgb * (1.0 - fog.a);
@@ -44,7 +78,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
     // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
     result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
     #endif
-
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
     // but this funtction is called in generic forward shader code so we need it to be neutral in this case.

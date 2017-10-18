@@ -24,30 +24,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opacity)
-{
-    // ref: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
-    // Lit transparent object should have reflection and tramission.
-    // Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
-    // However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
-    // This is the purpose of following function, "Cancel" the blend mode effect on the specular lighting but not on the diffuse lighting
-#ifdef _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-
-    #ifdef _BLENDMODE_ALPHA
-    return float4(diffuseLighting + (specularLighting / max(opacity, 0.01)), opacity);
-    #elif defined(_BLENDMODE_ADD) || defined(_BLENDMODE_PRE_MULTIPLY)
-    return float4(diffuseLighting * opacity + specularLighting, opacity);
-    #else
-    return float4(diffuseLighting + specularLighting, opacity);
-    #endif
-
-#else
-
-    return float4(diffuseLighting + specularLighting, opacity);
-
-#endif
-}
-
 void Frag(PackedVaryingsToPS packedInput,
           out float4 outColor : SV_Target0
       #ifdef _DEPTHOFFSET_ON

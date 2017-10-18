@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
+            public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
@@ -171,7 +172,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mode = (BlendMode)blendMode.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.Popup(StylesBaseUnlit.blendModeText, (int)mode, StylesBaseUnlit.blendModeNames);
+            mode = (BlendMode)EditorGUILayout.IntPopup(StylesBaseUnlit.blendModeText, (int)mode, StylesBaseUnlit.blendModeNames, StylesBaseUnlit.blendModeValues);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
@@ -326,21 +327,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     switch (blendMode)
                     {
+                        // Alpha
+                        // color: src * src_a + dst * (1 - src_a)
+                        // src * src_a is done in the shader as it allow to reduce precision issue when using _BLENDMODE_PRESERVE_SPECULAR_LIGHTING (See Material.hlsl)
                         case BlendMode.Alpha:
-                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             break;
 
+                        // Additive
+                        // color: src * src_a + dst
+                        // src * src_a is done in the shader
                         case BlendMode.Additive:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             break;
 
+                        // Multiplicative
+                        // color: src * dst
                         case BlendMode.Multiplicative:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                             break;
 
+                        // PremultipliedAlpha
+                        // color: src * src_a + dst * (1 - src_a)
+                        // src is supposed to have been multiplied by alpha in the texture on artists side.
                         case BlendMode.PremultipliedAlpha:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
