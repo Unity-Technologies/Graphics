@@ -92,8 +92,6 @@
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
-            #include "UnityCG.cginc"
-            #include "UnityStandardInput.cginc"
             #include "LightweightPassLit.cginc"
             ENDCG
         }
