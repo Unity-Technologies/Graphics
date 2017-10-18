@@ -26,8 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");
-            public static GUIContent enableTransparentFogText = new GUIContent("Enable Fog");
-            public static GUIContent enableBlendModeAccurateLightingText = new GUIContent("Blend only diffuse lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
+            public static GUIContent enableTransparentFogText = new GUIContent("Enable fog", "Enable fog on transparent material");
+            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Blend preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
@@ -98,10 +98,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
         protected MaterialProperty preRefractionPass = null;
         protected const string kPreRefractionPass = "_PreRefractionPass";
-        protected MaterialProperty enableTransparentFog = null;
-        protected const string kEnableTransparentFog = "_EnableTransparentFog";
-        protected MaterialProperty enableBlendModeAccurateLighting = null;
-        protected const string kEnableBlendModeAccurateLighting = "_EnableBlendModeAccurateLighting";
+        protected MaterialProperty enableFogOnTransparent = null;
+        protected const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
+        protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
+        protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
         
 
         // See comment in LitProperties.hlsl
@@ -145,8 +145,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
             preRefractionPass = FindProperty(kPreRefractionPass, props, false);
 
-            enableTransparentFog = FindProperty(kEnableTransparentFog, props, false);
-            enableBlendModeAccurateLighting = FindProperty(kEnableBlendModeAccurateLighting, props, false);            
+            enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
+            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);            
         }
 
         void SurfaceTypePopup()
@@ -192,10 +192,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 BlendModePopup();
 
             EditorGUI.indentLevel++;
-            if (enableBlendModeAccurateLighting != null && blendMode != null && showBlendModePopup)
-                m_MaterialEditor.ShaderProperty(enableBlendModeAccurateLighting, StylesBaseUnlit.enableBlendModeAccurateLightingText);
-            if (enableTransparentFog != null)
-                m_MaterialEditor.ShaderProperty(enableTransparentFog, StylesBaseUnlit.enableTransparentFogText);
+            if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                m_MaterialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, StylesBaseUnlit.enableBlendModePreserveSpecularLightingText);
+            if (enableFogOnTransparent != null)
+                m_MaterialEditor.ShaderProperty(enableFogOnTransparent, StylesBaseUnlit.enableTransparentFogText);
             if (preRefractionPass != null)
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
             EditorGUI.indentLevel--;
@@ -291,8 +291,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
-            bool enableBlendModeAccurateLighting = material.HasProperty(kEnableBlendModeAccurateLighting) && material.GetFloat(kEnableBlendModeAccurateLighting) > 0.0f;
-            SetKeyword(material, "_BLENDMODE_ACCURATE_LIGHTING", enableBlendModeAccurateLighting);
+            bool enableBlendModePreserveSpecularLighting = material.HasProperty(kEnableBlendModePreserveSpecularLighting) && material.GetFloat(kEnableBlendModePreserveSpecularLighting) > 0.0f;
+            SetKeyword(material, "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING", enableBlendModePreserveSpecularLighting);
 
             // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
             SetKeyword(material, "_BLENDMODE_ALPHA", false);
@@ -361,8 +361,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
 
 
-            bool fogEnabled = material.HasProperty(kEnableTransparentFog) && material.GetFloat(kEnableTransparentFog) > 0.0f;
-            SetKeyword(material, "_ENABLE_TRANSPARENT_FOG", fogEnabled);
+            bool fogEnabled = material.HasProperty(kEnableFogOnTransparent) && material.GetFloat(kEnableFogOnTransparent) > 0.0f && surfaceType == SurfaceType.Transparent;
+            SetKeyword(material, "_ENABLE_FOG_ON_TRANSPARENT", fogEnabled);
 
             if (material.HasProperty(kDistortionEnable))
             {
