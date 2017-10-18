@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var attribute in linked.GetData().GetAttributes())
                     {
-                        if (attribute.attrib.location == VFXAttributeLocation.Source)
+                        if ((attribute.mode & VFXAttributeMode.ReadSource) != 0)
                         {
                             eventAttributeDescs.Add(new VFXLayoutElementDesc()
                             {

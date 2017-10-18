@@ -23,8 +23,8 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var attribute = VFXAttribute.Find(this.attribute, location);
-            var expression = new VFXAttributeExpression(attribute);
+            var attribute = VFXAttribute.Find(this.attribute);
+            var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }
 

@@ -190,7 +190,7 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var referenceAttribute = VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
+                var referenceAttribute = VFXAttribute.Find(attribute);
                 var reference = new VFXAttributeExpression(referenceAttribute);
                 Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
                 Assert.AreEqual(reference, b.outputSlots[0].GetExpression());
