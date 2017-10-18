@@ -16,8 +16,8 @@
 // .Shader need to define:
 // - _SURFACE_TYPE_TRANSPARENT if they use a transparent material
 // - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, _BLENDMODE_PRE_MULTIPLY for blend mode
-// - _BLENDMODE_ACCURATE_LIGHTING for correct lighting when blend mode are use with a Lit material
-// - _ENABLE_TRANSPARENT_FOG if fog is enable on transparent surface
+// - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
+// - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 
 //-----------------------------------------------------------------------------
 // Fog sampling function for materials
@@ -28,22 +28,22 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 {
     float4 result = inputColor;
 
-#ifdef _ENABLE_TRANSPARENT_FOG
+#ifdef _ENABLE_FOG_ON_TRANSPARENT
     float4 fog = EvaluateAtmosphericScattering(posInput);
 
-#if defined(_BLENDMODE_ALPHA)
+    #if defined(_BLENDMODE_ALPHA)
     // Regular alpha blend only need a lerp to work
     result.rgb = lerp(result.rgb, fog.rgb, fog.a);
-#elif defined(_BLENDMODE_ADD)
+    #elif defined(_BLENDMODE_ADD)
     // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
     result.rgb = result.rgb * (1.0 - fog.a);
-#elif defined(_BLENDMODE_MULTIPLY)
+    #elif defined(_BLENDMODE_MULTIPLY)
     // For multiplicative, we just need to fade to white with fog density (white * background == background color == fog color)
     result.rgb = lerp(result.rgb, float3(1.0, 1.0, 1.0), fog.a);
-#elif defined(_BLENDMODE_PRE_MULTIPLY)
+    #elif defined(_BLENDMODE_PRE_MULTIPLY)
     // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
     result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
-#endif
+    #endif
 
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
