@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -25,7 +26,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
 
     public class ColorControlView : VisualElement
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
@@ -35,19 +35,21 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
             m_PropertyInfo = propertyInfo;
             if (propertyInfo.PropertyType != typeof(Color))
                 throw new ArgumentException("Property must be of type Color.", "propertyInfo");
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
-            Add(new IMGUIContainer(OnGUIHandler));
+            label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
+
+            if (!string.IsNullOrEmpty(label))
+                Add(new Label(label));
+
+            var colorField = new ColorField { value = (Color) m_PropertyInfo.GetValue(m_Node, null) };
+            colorField.OnValueChanged(OnChange);
+            Add(colorField);
         }
 
-        void OnGUIHandler()
+        void OnChange(ChangeEvent<Color> evt)
         {
-            var value = (Color) m_PropertyInfo.GetValue(m_Node, null);
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
-            {
-                value = EditorGUILayout.ColorField(m_Label, value);
-                if (changeCheckScope.changed)
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-            }
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Color Change");
+            m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
+            Dirty(ChangeType.Repaint);
         }
     }
 }

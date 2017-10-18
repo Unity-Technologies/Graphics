@@ -248,9 +248,8 @@ namespace UnityEngine.MaterialGraph
             {
                 var attribute = GetSlotAttribute(par);
 
-                slots.Add(new MaterialSlot(attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
-                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden));
-
+                slots.Add(MaterialSlot.CreateMaterialSlot(ConvertTypeToSlotValueType(par), attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
+                    attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden));
 
                 m_Slots.Add(attribute);
             }
@@ -358,7 +357,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetSlots<MaterialSlot>())
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                var replacement = GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
             return result;

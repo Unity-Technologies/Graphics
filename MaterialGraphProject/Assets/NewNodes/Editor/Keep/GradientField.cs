@@ -10,14 +10,12 @@ public static class GUIGradientField
     #region Initial Setup
 
     private static MethodInfo s_miGradientField1;
-    private static MethodInfo s_miGradientField2;
 
     static GUIGradientField()
     {
         // Get our grubby hands on hidden "GradientField" :)
         Type tyEditorGUILayout = typeof(EditorGUILayout);
         s_miGradientField1 = tyEditorGUILayout.GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), GradientWrapper.s_tyGradient, typeof(GUILayoutOption[]) }, null);
-        s_miGradientField2 = tyEditorGUILayout.GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { GradientWrapper.s_tyGradient, typeof(GUILayoutOption[]) }, null);
     }
 
     #endregion

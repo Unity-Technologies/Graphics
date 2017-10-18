@@ -143,13 +143,29 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             m_LastUpdate = updateTime;
 
-            PropagateNodeSet(m_DirtyShaders);
-            foreach (var nodeGuid in m_DirtyShaders)
+            if (m_DirtyShaders.Any())
             {
-                UpdateShader(nodeGuid);
+                PropagateNodeSet(m_DirtyShaders);
+                var count = m_DirtyShaders.Count;
+                try
+                {
+                    var i = 0;
+                    EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
+                    foreach (var nodeGuid in m_DirtyShaders)
+                    {
+                        UpdateShader(nodeGuid);
+                        i++;
+                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
+                    }
+                }
+                finally
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+
+                m_DirtyPreviews.UnionWith(m_DirtyShaders);
+                m_DirtyShaders.Clear();
             }
-            m_DirtyPreviews.UnionWith(m_DirtyShaders);
-            m_DirtyShaders.Clear();
 
             m_DirtyPreviews.UnionWith(m_TimeDependentPreviews);
             PropagateNodeSet(m_DirtyPreviews);

@@ -7,7 +7,6 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractSubGraphNode : AbstractMaterialNode
         , IGeneratesFunction
-        , IOnAssetEnabled
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -42,7 +41,7 @@ namespace UnityEngine.MaterialGraph
             get { return null; }
         }
 
-        public virtual void OnEnable()
+        public virtual void UpdateSlots()
         {
             var validNames = new List<int>();
             if (referencedGraph == null)
@@ -91,7 +90,7 @@ namespace UnityEngine.MaterialGraph
                 }
 
                 var id = prop.guid.GetHashCode();
-                AddSlot(new MaterialSlot(id, prop.displayName, prop.referenceName, SlotType.Input, slotType, prop.defaultValue));
+                AddSlot(MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue));
                 validNames.Add(id);
             }
 
@@ -100,7 +99,7 @@ namespace UnityEngine.MaterialGraph
             {
                 foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
                 {
-                    AddSlot(new MaterialSlot(slot.id, slot.displayName, slot.shaderOutputName, SlotType.Output, slot.valueType, slot.defaultValue));
+                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.displayName, slot.shaderOutputName, SlotType.Output, Vector4.zero));
                     validNames.Add(slot.id);
                 }
             }

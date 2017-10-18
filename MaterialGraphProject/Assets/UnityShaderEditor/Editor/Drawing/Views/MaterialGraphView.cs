@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -58,62 +57,30 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<NodeAnchor>();
-
-            MaterialSlot startSlot = null;
-
-            var startAnchorPresenter = startAnchor.presenter as GraphAnchorPresenter;
-            if (startAnchorPresenter != null && startAnchor.dependsOnPresenter)
-            {
-                startSlot = startAnchorPresenter.slot as MaterialSlot;
-            }
-            else
-            {
-                startSlot = startAnchor.userData as MaterialSlot;
-            }
-
+            var startSlot = startAnchor.userData as MaterialSlot;
             if (startSlot == null)
                 return compatibleAnchors;
 
-            var goingBackwards = startSlot.isOutputSlot;
             var startStage = startSlot.shaderStage;
             if (startStage == ShaderStage.Dynamic)
                 startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
 
             foreach (var candidateAnchor in anchors.ToList())
             {
-                MaterialSlot candidateSlot = null;
-
-                var candidateAnchorPresenter = candidateAnchor.presenter as GraphAnchorPresenter;
-                if (candidateAnchorPresenter != null && candidateAnchor.dependsOnPresenter)
-                {
-                    if (!candidateAnchorPresenter.IsConnectable())
-                        continue;
-                    if (candidateAnchorPresenter.orientation != startAnchor.orientation)
-                        continue;
-                    if (candidateAnchorPresenter.direction == startAnchor.direction)
-                        continue;
-                    if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
-                        continue;
-                    candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
-                }
-                else
-                {
-                    if (!candidateAnchor.IsConnectable())
-                        continue;
-                    if (candidateAnchor.orientation != startAnchor.orientation)
-                        continue;
-                    if (candidateAnchor.direction == startAnchor.direction)
-                        continue;
-                    if (nodeAdapter.GetAdapter(candidateAnchor.source, startAnchor.source) == null)
-                        continue;
-                    candidateSlot = candidateAnchor.userData as MaterialSlot;
-                }
-
+                if (!candidateAnchor.IsConnectable())
+                    continue;
+                if (candidateAnchor.orientation != startAnchor.orientation)
+                    continue;
+                if (candidateAnchor.direction == startAnchor.direction)
+                    continue;
+                if (nodeAdapter.GetAdapter(candidateAnchor.source, startAnchor.source) == null)
+                    continue;
+                var candidateSlot = candidateAnchor.userData as MaterialSlot;
                 if (candidateSlot == null)
                     continue;
                 if (candidateSlot.owner == startSlot.owner)
                     continue;
-                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.valueType))
+                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.concreteValueType))
                     continue;
 
                 if (startStage != ShaderStage.Dynamic)

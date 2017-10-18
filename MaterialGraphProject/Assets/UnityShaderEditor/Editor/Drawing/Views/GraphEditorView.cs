@@ -23,9 +23,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         MaterialGraphPresenter m_GraphPresenter;
 
-        [SerializeField]
-        GraphInspectorPresenter m_GraphInspectorPresenter;
-
         public Action onUpdateAssetClick { get; set; }
         public Action onConvertToSubgraphClick { get; set; }
         public Action onShowInProjectClick { get; set; }
@@ -47,12 +44,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_GraphPresenter = value; }
         }
 
-        public GraphInspectorPresenter graphInspectorPresenter
-        {
-            get { return m_GraphInspectorPresenter; }
-            set { m_GraphInspectorPresenter = value; }
-        }
-
         public PreviewSystem previewSystem
         {
             get { return m_PreviewSystem; }
@@ -64,9 +55,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewSystem = new PreviewSystem(graph);
-
-            m_GraphInspectorPresenter = ScriptableObject.CreateInstance<GraphInspectorPresenter>();
-            m_GraphInspectorPresenter.Initialize(assetName, previewSystem, container);
 
             m_ToolbarView = new ToolbarView { name = "TitleBar" };
             {
@@ -129,7 +117,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             content.name = "content";
             {
                 m_GraphView = new MaterialGraphView { name = "GraphView", presenter = m_GraphPresenter };
-                m_GraphInspectorView = new GraphInspectorView() { name = "inspector", presenter = m_GraphInspectorPresenter};
+                m_GraphInspectorView = new GraphInspectorView(assetName, previewSystem, graph) { name = "inspector" };
+                m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
                 content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
 
@@ -137,7 +126,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             m_GraphPresenter.Initialize(m_GraphView, graph, container, previewSystem);
-            m_GraphPresenter.onSelectionChanged += m_GraphInspectorPresenter.UpdateSelection;
+            m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
 
             Add(content);
         }
@@ -173,7 +162,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 graphViewChange.edgesToCreate.Clear();
             }
 
-            if (graphViewChange.movedElements != null)  
+            if (graphViewChange.movedElements != null)
             {
                 foreach (GraphElement element in graphViewChange.movedElements)
                 {
@@ -196,11 +185,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
-            if (m_GraphInspectorPresenter != null)
-            {
-                m_GraphInspectorPresenter.Dispose();
-                m_GraphInspectorPresenter = null;
-            }
             if (previewSystem != null)
             {
                 previewSystem.Dispose();
