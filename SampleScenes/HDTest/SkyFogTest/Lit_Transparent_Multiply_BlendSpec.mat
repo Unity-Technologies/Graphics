@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Lit_Transparent_PreMultipliedAlpha
+  m_Name: Lit_Transparent_Multiply_BlendSpec
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_PRE_MULTIPLY _ENABLEBLENDMODEPRESERVESPECULARLIGHTING_OFF
     _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
