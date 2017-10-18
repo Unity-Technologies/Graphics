@@ -807,7 +807,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.anisoGGXPreLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
-        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, abs(bsdfData.anisotropy));
+        // Reduce stretching for (perceptualRoughness < 0.2).
+        float  stretch = abs(bsdfData.anisotropy) * saturate(5 * bsdfData.perceptualRoughness);
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, stretch);
 
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
@@ -830,8 +832,23 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
     else
     {
-        preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, bsdfData.roughness, NdotV);
-        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+        float minRoughness, minPerceptualRoughness;
+
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+        {
+            // Use the min roughness, and bias it for higher values of anisotropy and roughness.
+            float roughnessBias    = 0.075 * bsdfData.anisotropy * bsdfData.roughness;
+            minRoughness           = saturate(min(bsdfData.roughnessT, bsdfData.roughnessB) + roughnessBias);
+            minPerceptualRoughness = RoughnessToPerceptualRoughness(minRoughness);
+        }
+        else
+        {
+            minRoughness           = bsdfData.roughness;
+            minPerceptualRoughness = bsdfData.perceptualRoughness;
+        }
+
+        preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, minRoughness, NdotV);
+        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(minPerceptualRoughness);
     }
 
     // Area light
