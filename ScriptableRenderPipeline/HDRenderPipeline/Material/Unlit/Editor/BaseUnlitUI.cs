@@ -187,9 +187,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (showBlendModePopup)
                     BlendModePopup();
 
+                EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(enableFog, StylesBaseUnlit.enableFogText);
-
                 m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
+                EditorGUI.indentLevel--;
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
             if (alphaCutoffEnable.floatValue == 1.0f)
