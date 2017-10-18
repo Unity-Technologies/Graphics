@@ -409,7 +409,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
-            bool refractionEnable = refractionMode.floatValue > 0.0f && preRefractionPass.floatValue == 0.0f;
+            bool refractionEnable = (material.HasProperty(kRefractionMode) && refractionMode.floatValue > 0.0f) && (material.HasProperty(kPreRefractionPass) && preRefractionPass.floatValue == 0.0f);
 
             m_MaterialEditor.TexturePropertySingleLine(refractionEnable ? Styles.baseColorRefractionMaskText : Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
