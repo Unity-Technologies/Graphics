@@ -1,7 +1,80 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LightweightCore.cginc"
+#include "LightweightLighting.cginc"
+
+struct LightweightVertexInput
+{
+    float4 vertex : POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD0;
+    float2 lightmapUV : TEXCOORD1;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct LightweightVertexOutput
+{
+    float4 uv01     : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
+    float4 posWS    : TEXCOORD1;
+#if _NORMALMAP
+    half3 tangent   : TEXCOORD2;
+    half3 binormal  : TEXCOORD3;
+    half3 normal    : TEXCOORD4;
+#else
+    half3 normal    : TEXCOORD2;
+#endif
+    half4 viewDir   : TEXCOORD5; // xyz: viewDir
+    half4 ambient   : TEXCOORD6; // x: fogCoord, yzw: vertex/SH color
+    float4 clipPos  : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out SurfaceData outSurfaceData)
+{
+    float2 uv = IN.uv01.xy;
+    half4 albedoAlpha = tex2D(_MainTex, uv);
+
+    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
+    outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
+
+#if _METALLIC_SETUP
+    outSurfaceData.metallic = specGloss.r;
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+#else
+    outSurfaceData.metallic = 1.0h;
+    outSurfaceData.specular = specGloss.rgb;
+#endif
+
+    outSurfaceData.smoothness = specGloss.a;
+    outSurfaceData.normal = Normal(uv);
+    outSurfaceData.occlusion = OcclusionLW(uv);
+    outSurfaceData.emission = EmissionLW(uv);
+    outSurfaceData.alpha = Alpha(albedoAlpha.a);
+    outSurfaceData.ambient = IN.ambient.yzw;
+}
+
+void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
+{
+#if LIGHTMAP_ON
+    outSurfaceInput.lightmapUV = float4(IN.uv01.zw, 0.0, 0.0);
+#else
+    outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
+#endif
+
+#if _NORMALMAP
+    outSurfaceInput.tangentWS = IN.tangent;
+    outSurfaceInput.bitangentWS = IN.binormal;
+#else
+    outSurfaceInput.tangentWS = half3(1.0h, 0.0h, 0.0h);
+    outSurfaceInput.bitangentWS = half3(0.0h, 1.0h, 0.0h);
+#endif
+
+    outSurfaceInput.normalWS = IN.normal;
+    outSurfaceInput.positionWS = IN.posWS;
+    outSurfaceInput.viewDirectionWS = IN.viewDir;
+    outSurfaceInput.fogFactor = IN.ambient.x;
+}
 
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
@@ -25,11 +98,15 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
 #if _NORMALMAP
     half sign = v.tangent.w * unity_WorldTransformParams.w;
-    o.tangent = normalize(mul((float3x3)unity_ObjectToWorld, v.tangent.xyz));
+    o.tangent = normalize(mul((half3x3)unity_ObjectToWorld, v.tangent.xyz));
     o.binormal = cross(normal, o.tangent) * sign;
     o.normal = normal;
 #else
     o.normal = normal;
+#endif
+
+#if !defined(LIGHTMAP_ON)
+    o.ambient.yzw = SHEvalLinearL2(half4(normal, 1.0));
 #endif
 
     // TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
@@ -48,85 +125,25 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 //
 //        half3 lightDirection;
 //        half atten = ComputeLightAttenuationVertex(lightInput, normal, worldPos, lightDirection);
-//        o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
+//        o.ambient.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
 //    }
 //#endif
 
-#if !defined(LIGHTMAP_ON)
-    o.fogCoord.yzw = SHEvalLinearL2(half4(normal, 1.0));
-#endif
-
-    o.hpos = UnityObjectToClipPos(v.vertex);
-    o.fogCoord.x = ComputeFogFactor(o.hpos.z);
+    float4 clipPos = UnityObjectToClipPos(v.vertex);
+    o.ambient.x = ComputeFogFactor(clipPos.z);
+    o.clipPos = clipPos;
     return o;
-}
-
-// NdotV, reflectVec (view tangent space)
-// NdotL, (light in tangent space)
-
-half4 LightweightFragmentPBR(SurfaceInput surfaceInput, SurfaceData surfaceData)
-{
-    BRDFData brdfData;
-    InitializeBRDFData(surfaceData, brdfData);
-
-    half3 viewDir = surfaceInput.viewDir;
-    float3 posWS = surfaceInput.worldPos;
-
-#if _NORMALMAP
-    half3 normalWorld = TangentToWorldNormal(surfaceData.normal, surfaceInput.tangent, surfaceInput.binormal, surfaceInput.normal);
-#else
-    half3 normalWorld = normalize(surfaceInput.normal);
-#endif
-
-    half3 reflectVec = reflect(-viewDir, normalWorld);
-    half roughness2 = brdfData.roughness * brdfData.roughness;
-    UnityIndirect indirectLight = LightweightGI(surfaceInput.lightmapUV, surfaceData.ambient, normalWorld, reflectVec, surfaceData.occlusion, brdfData.perceptualRoughness);
-
-    // PBS
-    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWorld, viewDir)));
-    half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
-    half3 lightDirection;
-
-#ifdef _MAIN_LIGHT
-    LightInput light;
-    INITIALIZE_MAIN_LIGHT(light);
-    half lightAtten = ComputeMainLightAttenuation(light, normalWorld, posWS, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(posWS, normalize(surfaceInput.normal), _ShadowLightDirection.xyz);
-
-    half NdotL = saturate(dot(normalWorld, lightDirection));
-    half3 radiance = light.color * (lightAtten * NdotL);
-    color += LightweightBDRF(brdfData, roughness2, normalWorld, lightDirection, viewDir) * radiance;
-#endif
-
-#ifdef _ADDITIONAL_PIXEL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
-    {
-        LightInput light;
-        INITIALIZE_LIGHT(light, lightIter);
-        half lightAtten = ComputeLightAttenuation(light, normalWorld, posWS, lightDirection);
-
-        half NdotL = saturate(dot(normalWorld, lightDirection));
-        half3 radiance = light.color * (lightAtten * NdotL);
-        color += LightweightBDRF(brdfData, roughness2, normalWorld, lightDirection, viewDir) * radiance;
-    }
-#endif
-
-    color += surfaceData.emission;
-
-    // Computes fog factor per-vertex
-    ApplyFog(color, surfaceInput.fogFactor);
-    return OutputColor(color, surfaceData.alpha);
 }
 
 half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 {
     SurfaceData surfaceData;
-    InitializeSurfaceData(IN, surfaceData);
+    InitializeStandardLitSurfaceData(IN, surfaceData);
 
     SurfaceInput surfaceInput;
     InitializeSurfaceInput(IN, surfaceInput);
-    return LightweightFragmentPBR(surfaceInput, surfaceData);
+
+    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, surfaceInput.normalWS, surfaceInput.tangentWS, surfaceInput.bitangentWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.normal, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha, surfaceData.ambient);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
@@ -167,7 +184,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 #if defined(LIGHTMAP_ON)
     half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)) * diffuse;
 #else
-    half3 color = (SHEvalLinearL0L1(half4(normalWorld, 1.0)) + IN.fogCoord.yzw) * diffuse;
+    half3 color = (SHEvalLinearL0L1(half4(normalWorld, 1.0)) + IN.ambient.yzw) * diffuse;
 #endif
 
 #ifdef _MAIN_LIGHT
@@ -176,7 +193,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half lightAtten = ComputeMainLightAttenuation(lightInput, normalWorld, worldPos, lightDirection);
     lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(worldPos, normalize(IN.normal), _ShadowLightDirection.xyz);
 
-#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightInput.color;
 #else
     color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightInput.color;
@@ -192,7 +209,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
         INITIALIZE_LIGHT(lightData, lightIter);
         half lightAtten = ComputeLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
 
-#ifdef LIGHTWEIGHT_SPECULAR_HIGHLIGHTS
+#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
         color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightData.color;
 #else
         color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightData.color;
@@ -204,7 +221,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     color += EmissionLW(uv);
 
     // Computes Fog Factor per vextex
-    ApplyFog(color, IN.fogCoord.x);
+    ApplyFog(color, IN.ambient.x);
     return OutputColor(color, alpha);
 };
 
