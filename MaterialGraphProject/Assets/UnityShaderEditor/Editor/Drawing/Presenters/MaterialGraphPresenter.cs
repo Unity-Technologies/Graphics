@@ -7,12 +7,15 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Graphing;
+using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
     public class MaterialGraphPresenter : GraphViewPresenter
     {
+        private GraphView m_GraphView;
+
         PreviewSystem m_PreviewSystem;
 
         public IGraph graph { get; private set; }
@@ -73,9 +76,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theElements = m_Elements.OfType<MaterialNodePresenter>().ToList();
-                var found = theElements.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in found)
+                var theViews = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
+                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
+                foreach (var drawableNodeData in viewsFound)
                     drawableNodeData.OnModified(scope);
             }
 
@@ -83,8 +86,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 //            if (scope == ModificationScope.Topological)
         }
 
-        public virtual void Initialize(IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
+        public virtual void Initialize(GraphView graphView, IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
         {
+            m_GraphView = graphView;
+
             m_PreviewSystem = previewSystem;
             this.graph = graph;
 
@@ -106,18 +111,19 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-            var nodePresenter = CreateInstance<MaterialNodePresenter>();
+            var nodeView = new MaterialNodeView();
             change.node.onModified += OnNodeChanged;
-            nodePresenter.Initialize(change.node, m_PreviewSystem);
-            m_Elements.Add(nodePresenter);
+            nodeView.Initialize(change.node, m_PreviewSystem);
+            m_GraphView.AddElement(nodeView);
         }
 
         void NodeRemoved(NodeRemovedGraphChange change)
         {
             change.node.onModified -= OnNodeChanged;
-            var nodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(p => p.node.guid == change.node.guid);
-            if (nodePresenter != null)
-                m_Elements.Remove(nodePresenter);
+
+            var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == change.node.guid);
+            if (nodeView != null)
+                m_GraphView.RemoveElement(nodeView);
         }
 
         void EdgeAdded(EdgeAddedGraphChange change)
@@ -126,31 +132,36 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var sourceNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-            var sourceNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == sourceNode);
-            var sourceAnchorPresenter = sourceNodePresenter.outputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
 
             var targetNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
             var targetSlot = targetNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-            var targetNodePresenter = m_Elements.OfType<MaterialNodePresenter>().FirstOrDefault(x => x.node == targetNode);
-            var targetAnchor = targetNodePresenter.inputAnchors.OfType<GraphAnchorPresenter>().FirstOrDefault(x => x.slot.Equals(targetSlot));
 
-            var edgePresenter = CreateInstance<GraphEdgePresenter>();
-            edgePresenter.Initialize(edge);
-            edgePresenter.output = sourceAnchorPresenter;
-            edgePresenter.output.Connect(edgePresenter);
-            edgePresenter.input = targetAnchor;
-            edgePresenter.input.Connect(edgePresenter);
-            m_Elements.Add(edgePresenter);
+            var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
+            if (sourceNodeView == null)
+                return;
+
+            var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
+
+            var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
+            var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
+
+            var edgeView = new Edge();
+            edgeView.userData = edge;
+            edgeView.output = sourceAnchor;
+            edgeView.output.Connect(edgeView);
+            edgeView.input = targetAnchor;
+            edgeView.input.Connect(edgeView);
+            m_GraphView.AddElement(edgeView);
         }
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
         {
-            var edgePresenter = m_Elements.OfType<GraphEdgePresenter>().FirstOrDefault(p => p.edge == change.edge);
-            if (edgePresenter != null)
+            var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && (IEdge)p.userData == change.edge);
+            if (edgeView != null)
             {
-                edgePresenter.output.Disconnect(edgePresenter);
-                edgePresenter.input.Disconnect(edgePresenter);
-                m_Elements.Remove(edgePresenter);
+                edgeView.output.Disconnect(edgeView);
+                edgeView.input.Disconnect(edgeView);
+                m_GraphView.RemoveElement(edgeView);
             }
         }
 
@@ -160,37 +171,43 @@ namespace UnityEditor.MaterialGraph.Drawing
             graph.AddNode(node);
         }
 
-        public void RemoveElements(IEnumerable<MaterialNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
+        public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
         {
-            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.edge));
+            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));  
             graph.ValidateGraph();
         }
 
-        public void Connect(GraphAnchorPresenter left, GraphAnchorPresenter right)
+        public void Connect(NodeAnchor left, NodeAnchor right)
         {
             if (left != null && right != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Connect Edge");
-                graph.Connect(left.slot.slotReference, right.slot.slotReference);
+                var leftSlot = left.userData as ISlot;
+                var rightSlot = right.userData as ISlot;
+
+                if (leftSlot == null || rightSlot == null)
+                    return;
+
+                graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
             }
         }
 
-        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
+        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
         {
             var graph = new CopyPasteGraph();
-            foreach (var presenter in selection)
+            foreach (var element in selection)
             {
-                var nodePresenter = presenter as MaterialNodePresenter;
-                if (nodePresenter != null)
+                var nodeView = element as MaterialNodeView;
+                if (nodeView != null)
                 {
-                    graph.AddNode(nodePresenter.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodePresenter.node))
+                    graph.AddNode(nodeView.node);
+                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
                         graph.AddEdge(edge);
                 }
 
-                var edgePresenter = presenter as GraphEdgePresenter;
-                if (edgePresenter != null)
-                    graph.AddEdge(edgePresenter.edge);
+                var edgeView = element as Edge;
+                if (edgeView != null)
+                    graph.AddEdge(edgeView.userData as IEdge);
             }
             return graph;
         }
@@ -256,12 +273,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public bool canCopy
         {
-            get { return elements.Any(e => e.selected); }
+            get { return elements.Any(e => e.selected) || (m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected)); }
         }
 
         public void Copy()
         {
-            var graph = CreateCopyPasteGraph(elements.Where(e => e.selected));
+            var graph = CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>());
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
         }
 
@@ -274,7 +291,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             Copy();
             graph.owner.RegisterCompleteObjectUndo("Cut");
-            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RemoveElements(
+                m_GraphView.selection.OfType<MaterialNodeView>(),
+                m_GraphView.selection.OfType<Edge>());
         }
 
         public bool canPaste
@@ -296,7 +315,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Duplicate()
         {
-            var deserializedGraph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(elements.Where(e => e.selected)), true));
+            var deserializedGraph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
             graph.owner.RegisterCompleteObjectUndo("Duplicate");
             InsertCopyPasteGraph(deserializedGraph);
         }
@@ -309,24 +328,21 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Delete()
         {
             graph.owner.RegisterCompleteObjectUndo("Delete");
-            RemoveElements(elements.OfType<MaterialNodePresenter>().Where(e => e.selected), elements.OfType<GraphEdgePresenter>().Where(e => e.selected));
+            RemoveElements(
+                m_GraphView.selection.OfType<MaterialNodeView>(),
+                m_GraphView.selection.OfType<Edge>());
         }
 
-        public override void AddElement(EdgePresenter edge)
-        {
-            Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
-        }
-
-        public delegate void OnSelectionChanged(IEnumerable<INode> presenters);
+        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
 
         public OnSelectionChanged onSelectionChanged;
 
-        public void UpdateSelection(IEnumerable<MaterialNodePresenter> presenters)
+        public void UpdateSelection(IEnumerable<MaterialNodeView> nodes)
         {
             if (graph == null)
                 return;
             if (onSelectionChanged != null)
-                onSelectionChanged(presenters.Select(x => x.node as INode));
+                onSelectionChanged(nodes.Select(x => x.userData as INode));
         }
 
         public override void AddElement(GraphElementPresenter element)
