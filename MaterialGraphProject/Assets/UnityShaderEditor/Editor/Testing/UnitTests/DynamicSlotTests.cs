@@ -42,7 +42,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             }
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
             Debug.unityLogger.logHandler = new ConsoleLogHandler();

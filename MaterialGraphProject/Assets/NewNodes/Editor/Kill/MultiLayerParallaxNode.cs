@@ -105,35 +105,15 @@ namespace UnityEngine.MaterialGraph
         {
             return kOutputSlotShaderName;
         }
-
-        private string input1Dimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputDepthSlotId).concreteValueType); }
-        }
-
-        private string input2Dimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputFadeRateSlotId).concreteValueType); }
-        }
-        private string input3Dimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputLayerCountSlotId).concreteValueType); }
-        }
-
-        public string outputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
-        }
-
+        
         protected virtual string GetFunctionPrototype(string depth, string fadeRate, string layerCount, string tex, string UVs, string viewTangentSpace)
         {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " (" +
-                precision + input1Dimension + " " + depth + ", " +
-                precision + input2Dimension + " " + fadeRate + ", " +
-                precision + input3Dimension + " " + layerCount + ", " +
-                "sampler2D "                      + tex + ", " +
-                precision + "2 "                  + UVs + ", " +
-                precision + "3 "                  + viewTangentSpace + ")";
+            var input1 = ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputDepthSlotId).concreteValueType);
+            var input2 = ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputFadeRateSlotId).concreteValueType);
+            var input3 = ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputLayerCountSlotId).concreteValueType);
+            var output = ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
+
+            return string.Format("inline {0} {1} ({2} {3}, {4} {5}, {6} {7}, " + "sampler2D {8}, {9}2 {10}, {9}3 {11})", output, GetFunctionName(), input1, depth, input2, fadeRate, input3, layerCount, tex, precision, UVs, viewTangentSpace);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -143,10 +123,9 @@ namespace UnityEngine.MaterialGraph
             string fadeRateValue = GetSlotValue(InputFadeRateSlotId, generationMode);
             string layerCountValue = GetSlotValue(InputLayerCountSlotId, generationMode);
             string textureValue = GetSlotValue(TextureSlotId, generationMode);
-
-            visitor.AddShaderChunk(
-                precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) +
-                " = " + GetFunctionCallBody(depthValue, fadeRateValue, layerCountValue, textureValue) + ";", true);
+            
+            var output = ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};", output, GetVariableNameForSlot(OutputSlotId), GetFunctionCallBody(depthValue, fadeRateValue, layerCountValue, textureValue)), true);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -159,8 +138,9 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk(precision + "2 texcoord = UVs;", false);
             outputString.AddShaderChunk(precision + "2 offset = -viewTangentSpace.xy * depth / layerCount;", false);
 
-            outputString.AddShaderChunk(precision + outputDimension + " result = 0.0f;", false);
-            outputString.AddShaderChunk(precision + outputDimension + " fade = 1.0f;", false);
+            var output = ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
+            outputString.AddShaderChunk(output + " result = 0.0f;", false);
+            outputString.AddShaderChunk(output + " fade = 1.0f;", false);
             outputString.AddShaderChunk(precision + " alpha = 0.0f;", false);
 
             outputString.AddShaderChunk("for (int i = 0; i < 10; i++) {", false);

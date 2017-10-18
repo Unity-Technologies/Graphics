@@ -302,11 +302,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 edge => edge.outputSlot,
                 edge => edge,
                 (key, edges) => new {slotRef = key, edges = edges.ToList()});
-            var inputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueInputEdges)
             {
-                var inputNode = new PropertyNode();
-
                 var sr = group.slotRef;
                 var fromNode = graphPresenter.graph.GetNodeFromGuid(sr.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);

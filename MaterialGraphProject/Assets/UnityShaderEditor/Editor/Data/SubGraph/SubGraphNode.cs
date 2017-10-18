@@ -91,14 +91,8 @@ namespace UnityEngine.MaterialGraph
             //var validOutputSlots = NodeUtils.GetSlotsThatOutputToNodeRecurse(this, (graph as BaseMaterialGraph).masterNode);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-
-                outputString.AddShaderChunk(
-                    "float"
-                    + outDimension
-                    + " "
-                    + GetVariableNameForSlot(slot.id)
-                    + " = 0;", false);
+                var outDimension = ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+                outputString.AddShaderChunk(string.Format("{0} {1} = 0;", outDimension, GetVariableNameForSlot(slot.id)), false);
             }
 
             // Step 2...

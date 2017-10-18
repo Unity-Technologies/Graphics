@@ -91,7 +91,6 @@ namespace UnityEngine.MaterialGraph
                 if (!path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase))
                     return false;
 
-                var name = Path.GetFileNameWithoutExtension(path);
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
                 var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
                 if (graph == null)

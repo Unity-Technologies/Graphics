@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             }
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
             Debug.unityLogger.logHandler = new ConsoleLogHandler();
@@ -67,15 +67,15 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
-            Assert.AreEqual(string.Empty, AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector1));
-            Assert.AreEqual("2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector2));
-            Assert.AreEqual("3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector3));
-            Assert.AreEqual("4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector4));
-            Assert.AreEqual("Texture2D", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Texture2D));
-            Assert.AreEqual("2x2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix2));
-            Assert.AreEqual("3x3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix3));
-            Assert.AreEqual("4x4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Matrix4));
-            Assert.AreEqual("SamplerState", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.SamplerState));
+            Assert.AreEqual(string.Empty, AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Vector1));
+            Assert.AreEqual("2", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Vector2));
+            Assert.AreEqual("3", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Vector3));
+            Assert.AreEqual("4", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Vector4));
+            Assert.AreEqual("Texture2D", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Texture2D));
+            Assert.AreEqual("2x2", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Matrix2));
+            Assert.AreEqual("3x3", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Matrix3));
+            Assert.AreEqual("4x4", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.Matrix4));
+            Assert.AreEqual("SamplerState", AbstractMaterialNode.GetSlotDimension(ConcreteSlotValueType.SamplerState));
         }
 
         [Test]

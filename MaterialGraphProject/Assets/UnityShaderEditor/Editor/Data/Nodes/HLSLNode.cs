@@ -357,7 +357,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetSlots<MaterialSlot>())
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                var replacement = GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
             return result;

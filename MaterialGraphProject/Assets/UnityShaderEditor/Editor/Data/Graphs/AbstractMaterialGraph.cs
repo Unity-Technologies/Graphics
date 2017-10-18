@@ -82,12 +82,6 @@ namespace UnityEngine.MaterialGraph
             return result;
         }
 
-        class IndexedProperty
-        {
-            public int index;
-            public IShaderProperty property;
-        }
-
         public override void ReplaceWith(IGraph other)
         {
             var otherMG = other as AbstractMaterialGraph;

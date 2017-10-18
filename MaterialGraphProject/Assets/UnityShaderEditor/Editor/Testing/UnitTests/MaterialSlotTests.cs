@@ -39,7 +39,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             }
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
             Debug.unityLogger.logHandler = new ConsoleLogHandler();
@@ -58,8 +58,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void SlotDisplayNameIsCorrect()
         {
             var displayName = "New Display Name";
-
-            var slot = m_NodeA.slot1;
             
             Assert.AreEqual(displayName + "(1)", m_NodeA.slot1.displayName);
 
