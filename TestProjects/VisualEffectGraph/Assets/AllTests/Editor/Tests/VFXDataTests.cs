@@ -153,15 +153,15 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(data.IsAttributeLocal(attrib3));
             Assert.IsTrue(data.IsAttributeLocal(attrib4));
 
-            Assert.IsTrue(data.IsAttributeRead(attrib1));
-            Assert.IsTrue(data.IsAttributeRead(attrib2));
-            Assert.IsTrue(data.IsAttributeRead(attrib3));
-            Assert.IsFalse(data.IsAttributeRead(attrib4));
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib1));
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib2));
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib3));
+            Assert.IsFalse(data.IsCurrentAttributeRead(attrib4));
 
-            Assert.IsTrue(data.IsAttributeWritten(attrib1));
-            Assert.IsTrue(data.IsAttributeWritten(attrib2));
-            Assert.IsFalse(data.IsAttributeWritten(attrib3));
-            Assert.IsTrue(data.IsAttributeWritten(attrib4));
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib1));
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib2));
+            Assert.IsFalse(data.IsCurrentAttributeWritten(attrib3));
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib4));
         }
     }
 }
