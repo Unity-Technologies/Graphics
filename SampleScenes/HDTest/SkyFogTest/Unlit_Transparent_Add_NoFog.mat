@@ -122,6 +122,7 @@ Material:
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnableFog: 0
+    - _EnableFogOnTransparent: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 0
