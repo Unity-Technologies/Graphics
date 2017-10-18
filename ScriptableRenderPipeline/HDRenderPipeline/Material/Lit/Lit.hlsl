@@ -798,6 +798,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ggxPreLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
+    // For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference. 
+    // We use a single fetch, and we stretch the normal to use based on various criteria.
+    // result are far away from the reference but better than nothing
     preLightData.TdotV = 0.0;
     preLightData.BdotV = 0.0;
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
