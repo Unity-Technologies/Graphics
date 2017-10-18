@@ -1,4 +1,4 @@
-﻿#if SHADERPASS != SHADERPASS_FORWARD_UNLIT
+#if SHADERPASS != SHADERPASS_FORWARD_UNLIT
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -42,7 +42,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
-    float4 outColor = float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
+    float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
     outColor = EvaluateAtmosphericScattering(posInput, outColor);
 
 #ifdef DEBUG_DISPLAY
