@@ -146,16 +146,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (m_DirtyShaders.Any())
             {
                 PropagateNodeSet(m_DirtyShaders);
-                EditorUtility.DisplayProgressBar("Shader Graph", "Compiling preview shaders", 0f);
                 var count = m_DirtyShaders.Count;
                 try
                 {
                     var i = 0;
+                    EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
                     foreach (var nodeGuid in m_DirtyShaders)
                     {
                         UpdateShader(nodeGuid);
                         i++;
-                        EditorUtility.DisplayProgressBar("Shader Graph", "Compiling preview shaders", (float)i / count);
+                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
                     }
                 }
                 finally
