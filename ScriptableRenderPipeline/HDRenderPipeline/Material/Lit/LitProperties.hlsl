@@ -72,8 +72,11 @@ PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
-PROP_DECL_TEX2D(_HeightMap);
 PROP_DECL_TEX2D(_DetailMap);
+PROP_DECL_TEX2D(_HeightMap);
+
+PROP_DECL_TEX2D(_SubsurfaceRadiusMap);
+PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
@@ -195,6 +198,10 @@ PROP_DECL(float, _DetailSmoothnessScale);
 
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);
+
+PROP_DECL(int, _SubsurfaceProfile);
+PROP_DECL(float, _SubsurfaceRadius);
+PROP_DECL(float, _Thickness);
 
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
