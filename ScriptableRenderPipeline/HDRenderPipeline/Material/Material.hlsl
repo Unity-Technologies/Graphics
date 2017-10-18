@@ -11,10 +11,13 @@
 #include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
-// Guidelines
-// .Shader need to define _SURFACE_TYPE_TRANSPARENT if they use a transparent material
-// Also when transparent material object use a blend mode, it must define the blend mode (Note: Rough Refraction don't use blend mode)
-// _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, (_BLENDMODE_PRE_MULTIPLY)
+// Guidelines for Material Keyword.
+// There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
+// .Shader need to define:
+// - _SURFACE_TYPE_TRANSPARENT if they use a transparent material
+// - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, _BLENDMODE_PRE_MULTIPLY for blend mode
+// - _BLENDMODE_ACCURATE_LIGHTING for correct lighting when blend mode are use with a Lit material
+// - _ENABLE_TRANSPARENT_FOG if fog is enable on transparent surface
 
 //-----------------------------------------------------------------------------
 // Fog sampling function for materials
@@ -25,7 +28,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 {
     float4 result = inputColor;
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG)
+#ifdef _ENABLE_TRANSPARENT_FOG
     float4 fog = EvaluateAtmosphericScattering(posInput);
 
 #if defined(_BLENDMODE_ALPHA)

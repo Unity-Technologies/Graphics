@@ -124,6 +124,7 @@ Material:
     - _EnableFog: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
+    - _EnableTransparentFog: 0
     - _EnableVertexDisplacement: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01

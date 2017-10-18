@@ -6,10 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Lit_Transparent_PreMultipliedAlpha
+  m_Name: Rough_Refraction_Transparent_No_Fog
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _BLENDMODE_ACCURATE_LIGHTING _BLENDMODE_PRE_MULTIPLY _ENABLE_TRANSPARENT_FOG
-    _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _BLENDMODE_ACCURATE_LIGHTING _BLENDMODE_ALPHA _NORMALMAP_TANGENT_SPACE
+    _REFRACTION_THICKPLANE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -91,7 +91,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _Anisotropy: 0
-    - _BlendMode: 4
+    - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
@@ -125,14 +125,14 @@ Material:
     - _EnableFog: 1
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
-    - _EnableTransparentFog: 1
+    - _EnableTransparentFog: 0
     - _EnableVertexDisplacement: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMax: 1
     - _HeightMin: -1
-    - _IOR: 1
+    - _IOR: 1.631
     - _InitialBend: 1
     - _InvTilingScale: 1
     - _LinkDetailsWithBase: 1
@@ -147,13 +147,13 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _PerPixelDisplacementObjectScale: 1
     - _PreRefractionPass: 0
-    - _RefractionMode: 0
+    - _RefractionMode: 1
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 1
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
-    - _SrcBlend: 1
+    - _SrcBlend: 5
     - _StencilRef: 2
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
@@ -169,12 +169,12 @@ Material:
     - _ZTestMode: 8
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 0, b: 0, a: 0.741}
+    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
-    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 0.48820543, g: 0.86764705, b: 0.30622834, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

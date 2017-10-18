@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Unlit_Transparent_Multiply
   m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
-  m_ShaderKeywords: _BLENDMODE_MULTIPLY _ENABLE_FOG _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _BLENDMODE_MULTIPLY _ENABLE_TRANSPARENT_FOG _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -124,6 +124,7 @@ Material:
     - _EnableFog: 1
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
+    - _EnableTransparentFog: 1
     - _EnableVertexDisplacement: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
