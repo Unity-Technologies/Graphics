@@ -22,9 +22,9 @@ half SpecularReflectivity(half3 specular)
 #endif
 }
 
-inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData outSurfaceData)
+inline void InitializeSurfaceData(LightweightVertexOutput IN, out SurfaceData outSurfaceData)
 {
-    float2 uv = i.uv01.xy;
+    float2 uv = IN.uv01.xy;
     half4 albedoAlpha = tex2D(_MainTex, uv);
 
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
@@ -42,7 +42,30 @@ inline void InitializeSurfaceData(LightweightVertexOutput i, out SurfaceData out
     outSurfaceData.normal = Normal(uv);
     outSurfaceData.occlusion = OcclusionLW(uv);
     outSurfaceData.emission = EmissionLW(uv);
+    outSurfaceData.ambient = IN.fogCoord.yzw;
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
+}
+
+void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
+{
+#if LIGHTMAP_ON
+    outSurfaceInput.lightmapUV = float4(IN.uv01.zw, 0.0, 0.0);
+#else
+    outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
+#endif
+
+#if _NORMALMAP
+    outSurfaceInput.tangent = IN.tangent;
+    outSurfaceInput.binormal = IN.binormal;
+#else
+    outSurfaceInput.tangent = half3(1.0h, 0.0h, 0.0h);
+    outSurfaceInput.binormal = half3(0.0h, 1.0h, 0.0h);
+#endif
+
+    outSurfaceInput.normal = IN.normal;
+    outSurfaceInput.worldPos = IN.posWS;
+    outSurfaceInput.viewDir = IN.viewDir;
+    outSurfaceInput.fogFactor = IN.fogCoord.x;
 }
 
 inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData)
@@ -78,16 +101,10 @@ inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData outBRDFData
 #endif
 }
 
-half3 TangentToWorldNormal(half3 normalTangent, LightweightVertexOutput IN)
+half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
-#if _NORMALMAP
-    // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
-    // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
-    // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    return normalize(half3(dot(normalTangent, IN.tangentToWorld0), dot(normalTangent, IN.tangentToWorld1), dot(normalTangent, IN.tangentToWorld2)));
-#else
-    return normalize(IN.normal);
-#endif
+    half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
+    return normalize(mul(normalTangent, tangentToWorld));
 }
 
 float ComputeFogFactor(float z)
@@ -121,7 +138,7 @@ void ApplyFog(inout half3 color, float fogFactor)
 half4 OutputColor(half3 color, half alpha)
 {
 #if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON)
-    return LIGHTWEIGHT_LINEAR_TO_GAMMA(half4(color, alpha));
+    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), alpha);
 #else
     return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);
 #endif

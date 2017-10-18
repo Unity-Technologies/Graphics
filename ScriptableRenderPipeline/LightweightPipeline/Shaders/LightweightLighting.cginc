@@ -51,11 +51,11 @@ half3 LightweightBRDFIndirect(BRDFData brdfData, UnityIndirect indirect, half ro
     return c;
 }
 
-UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
+UnityIndirect LightweightGI(float4 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
 {
     UnityIndirect o = (UnityIndirect)0;
 #ifdef LIGHTMAP_ON
-    ambientColor = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)));
+    ambientColor += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy)));
 #else
     ambientColor += SHEvalLinearL0L1(half4(normalWorld, 1.0));
     ambientColor = max(half3(0.0, 0.0, 0.0), ambientColor);
