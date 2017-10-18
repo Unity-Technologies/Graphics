@@ -119,6 +119,31 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
+        _SubsurfaceProfile0("Subsurface Profile0", Int) = 0
+        _SubsurfaceProfile1("Subsurface Profile1", Int) = 0
+        _SubsurfaceProfile2("Subsurface Profile2", Int) = 0
+        _SubsurfaceProfile3("Subsurface Profile3", Int) = 0
+
+        _SubsurfaceRadius0("Subsurface Radius0", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius1("Subsurface Radius1", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius2("Subsurface Radius2", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius3("Subsurface Radius3", Range(0.0, 1.0)) = 1.0
+
+        _SubsurfaceRadiusMap0("Subsurface Radius Map0", 2D) = "white" {}
+        _SubsurfaceRadiusMap1("Subsurface Radius Map1", 2D) = "white" {}
+        _SubsurfaceRadiusMap2("Subsurface Radius Map2", 2D) = "white" {}
+        _SubsurfaceRadiusMap3("Subsurface Radius Map3", 2D) = "white" {}
+
+        _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness2("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness3("Thickness", Range(0.0, 1.0)) = 1.0
+
+        _ThicknessMap0("Thickness Map", 2D) = "white" {}
+        _ThicknessMap1("Thickness Map", 2D) = "white" {}
+        _ThicknessMap2("Thickness Map", 2D) = "white" {}
+        _ThicknessMap3("Thickness Map", 2D) = "white" {}
+
         // All the following properties exist only in layered lit material
 
         // Layer blending options
@@ -176,7 +201,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting (fixed at compile time)
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -194,6 +219,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
+    	[Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
         [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
@@ -319,14 +345,23 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
     #pragma shader_feature _DETAIL_MAP0
     #pragma shader_feature _DETAIL_MAP1
     #pragma shader_feature _DETAIL_MAP2
     #pragma shader_feature _DETAIL_MAP3
+    #pragma shader_feature _HEIGHTMAP0
+    #pragma shader_feature _HEIGHTMAP1
+    #pragma shader_feature _HEIGHTMAP2
+    #pragma shader_feature _HEIGHTMAP3
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP0
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP1
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP2
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP3
+    #pragma shader_feature _THICKNESSMAP0
+    #pragma shader_feature _THICKNESSMAP1
+    #pragma shader_feature _THICKNESSMAP2
+    #pragma shader_feature _THICKNESSMAP3
+
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _INFLUENCEMASK_MAP
@@ -339,6 +374,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+
+    // MaterialId are used as shader feature to allow compiler to optimize properly
+    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
+    #pragma shader_feature _ _MATID_SSS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED

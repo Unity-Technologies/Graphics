@@ -243,6 +243,18 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.metallic *= ADD_IDX(_Metallic);
 
+    surfaceData.subsurfaceProfile = ADD_IDX(_SubsurfaceProfile);
+    surfaceData.subsurfaceRadius = ADD_IDX(_SubsurfaceRadius);
+    surfaceData.thickness = ADD_IDX(_Thickness);
+
+#ifdef _SUBSURFACE_RADIUS_MAP_IDX
+    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), SAMPLER_SUBSURFACE_RADIUSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#endif
+
+#ifdef _THICKNESSMAP_IDX
+    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#endif
+
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
@@ -278,18 +290,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.anisotropy = 1.0;
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
-
-    surfaceData.subsurfaceProfile = _SubsurfaceProfile;
-    surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
-    surfaceData.thickness         = _Thickness;
-
-#ifdef _SUBSURFACE_RADIUS_MAP
-    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
-#endif
-
-#ifdef _THICKNESSMAP
-    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
-#endif
 
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP
@@ -327,9 +327,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
-    surfaceData.subsurfaceRadius = 0.0;
-    surfaceData.thickness = 0.0;
-    surfaceData.subsurfaceProfile = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
     surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
     surfaceData.coatCoverage = 0.0f;
