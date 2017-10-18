@@ -15,25 +15,6 @@ void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float r
     roughnessB = roughness * (1 - anisotropy);
 }
 
-// Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
-// The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to the normal.
-// The returned normal is NOT normalized.
-float3 ComputeGrainNormal(float3 grainDir, float3 V)
-{
-    float3 B = cross(-V, grainDir);
-    return cross(B, grainDir);
-}
-
-// Fake anisotropy by distorting the normal (non-negative anisotropy values only).
-// The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to N.
-// Anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
-float3 GetAnisotropicModifiedNormal(float3 grainDir, float3 N, float3 V, float anisotropy)
-{
-    float3 grainNormal = ComputeGrainNormal(grainDir, V);
-    // TODO: test whether normalizing 'grainNormal' is worth it.
-    return normalize(lerp(N, grainNormal, anisotropy));
-}
-
 //-----------------------------------------------------------------------------
 // Helper function for perceptual roughness
 //-----------------------------------------------------------------------------
