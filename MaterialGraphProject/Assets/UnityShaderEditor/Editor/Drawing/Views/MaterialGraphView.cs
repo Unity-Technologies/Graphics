@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -6,7 +7,6 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Experimental.UIElements;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -23,10 +23,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             this.AddManipulator(new ClickSelector());
 
             Insert(0, new GridBackground());
-
-            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeView);
-            typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
-            typeFactory[typeof(EdgePresenter)] = typeof(Edge);
 
             AddStyleSheetPath("Styles/MaterialGraph");
         }
@@ -56,6 +52,49 @@ namespace UnityEditor.MaterialGraph.Drawing
                 gm.ShowAsContext();
             }
             evt.StopPropagation();
+        }
+
+        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        {
+            var compatibleAnchors = new List<NodeAnchor>();
+            var startSlot = startAnchor.userData as MaterialSlot;
+            if (startSlot == null)
+                return compatibleAnchors;
+
+            var startStage = startSlot.shaderStage;
+            if (startStage == ShaderStage.Dynamic)
+                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
+
+            foreach (var candidateAnchor in anchors.ToList())
+            {
+                if (!candidateAnchor.IsConnectable())
+                    continue;
+                if (candidateAnchor.orientation != startAnchor.orientation)
+                    continue;
+                if (candidateAnchor.direction == startAnchor.direction)
+                    continue;
+                if (nodeAdapter.GetAdapter(candidateAnchor.source, startAnchor.source) == null)
+                    continue;
+                var candidateSlot = candidateAnchor.userData as MaterialSlot;
+                if (candidateSlot == null)
+                    continue;
+                if (candidateSlot.owner == startSlot.owner)
+                    continue;
+                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.concreteValueType))
+                    continue;
+
+                if (startStage != ShaderStage.Dynamic)
+                {
+                    var candidateStage = candidateSlot.shaderStage;
+                    if (candidateStage == ShaderStage.Dynamic)
+                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
+                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
+                        continue;
+                }
+
+                compatibleAnchors.Add(candidateAnchor);
+            }
+            return compatibleAnchors;
         }
 
         class AddNodeCreationObject
@@ -105,7 +144,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphPresenter == null)
                 return;
 
-            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter)x.presenter);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
             graphPresenter.UpdateSelection(selectedNodes);
         }
 

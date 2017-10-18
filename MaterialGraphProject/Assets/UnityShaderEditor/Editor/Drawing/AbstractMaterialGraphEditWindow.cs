@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
+using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -232,21 +233,22 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var graphPresenter = graphEditorView.graphPresenter;
-            var selected = graphPresenter.elements.Where(e => e.selected);
+            var graphView = graphEditorView.graphView;
+            var selection = graphView.selection.OfType<GraphElement>();
 
-            var filtered = new List<GraphElementPresenter>();
+            var filtered = new List<GraphElement>();
 
-            foreach (var presenter in selected)
+            foreach (var element in selection)
             {
-                var nodePresenter = presenter as MaterialNodePresenter;
-                if (nodePresenter != null)
+                var nodeView = element as MaterialNodeView;
+                if (nodeView != null)
                 {
-                    if (!(nodePresenter.node is PropertyNode))
-                        filtered.Add(nodePresenter);
+                    if (!(nodeView.node is PropertyNode))
+                        filtered.Add(nodeView);
                 }
                 else
                 {
-                    filtered.Add(presenter);
+                    filtered.Add(element);
                 }
             }
 
@@ -374,8 +376,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 graphPresenter.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
-            var toDelete = graphPresenter.elements.Where(e => e.selected).OfType<MaterialNodePresenter>();
-            graphPresenter.RemoveElements(toDelete, new List<GraphEdgePresenter>());
+            var toDelete = graphView.selection.OfType<MaterialNodeView>();
+            graphPresenter.RemoveElements(toDelete, new List<Edge>());
         }
 
         private void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
