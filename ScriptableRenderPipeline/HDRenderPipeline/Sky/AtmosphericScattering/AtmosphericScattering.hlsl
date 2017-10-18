@@ -19,17 +19,17 @@ float4  _LinearFogParameters;
 float4  _ExpFogParameters;
 CBUFFER_END
 
-#define _MipFogNear         _MipFogParameters.x
-#define _MipFogFar          _MipFogParameters.y
-#define _MipFogMaxMip       _MipFogParameters.z
+#define _MipFogNear             _MipFogParameters.x
+#define _MipFogFar              _MipFogParameters.y
+#define _MipFogMaxMip           _MipFogParameters.z
 
-#define _LinearFogStart     _LinearFogParameters.x
-#define _LinearFogEnd       _LinearFogParameters.y
-#define _LinearFogOoRange   _LinearFogParameters.z
-#define _LinearFogDensity   _LinearFogParameters.w
+#define _LinearFogStart         _LinearFogParameters.x
+#define _LinearFogEnd           _LinearFogParameters.y
+#define _LinearFogOneOverRange  _LinearFogParameters.z
+#define _LinearFogDensity       _LinearFogParameters.w
 
-#define _ExpFogDistance     _ExpFogParameters.x
-#define _ExpFogDensity      _ExpFogParameters.y
+#define _ExpFogDistance         _ExpFogParameters.x
+#define _ExpFogDensity          _ExpFogParameters.y
 
 float3 GetFogColor(PositionInputs posInput)
 {
@@ -60,7 +60,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)
     {
         float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _LinearFogDensity * saturate((posInput.depthVS - _LinearFogStart) * _LinearFogOoRange);
+        float fogFactor = _LinearFogDensity * saturate((posInput.depthVS - _LinearFogStart) * _LinearFogOneOverRange);
         return float4(fogColor, fogFactor);
     }
     else // NONE

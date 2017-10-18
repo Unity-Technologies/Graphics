@@ -296,19 +296,20 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
 
-#ifdef HAS_REFRACTION
+#if HAS_REFRACTION
     surfaceData.ior = _IOR;
     surfaceData.transmittanceColor = _TransmittanceColor;
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;
-    surfaceData.refractionMask = 1.0 - alpha;
-    alpha = 1.0; // Transparency is done with refraction, not blending
+    // Rough refraction don't use opacity. Instead we use opacity as a refraction mask. 
+    surfaceData.refractionMask = alpha;
+    alpha = 1.0;
 #else
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1.0;
-    surfaceData.refractionMask = 0.0;
+    surfaceData.refractionMask = 1.0;
 #endif
 
     surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
