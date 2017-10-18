@@ -208,7 +208,7 @@ namespace UnityEngine.Graphing
                 Debug.LogWarning("Node does not exist");
                 return Enumerable.Empty<IEdge>();
             }
-            ISlot slot = slot = node.FindSlot<ISlot>(s.slotId);
+            ISlot slot = node.FindSlot<ISlot>(s.slotId);
 
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))

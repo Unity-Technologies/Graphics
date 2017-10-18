@@ -10,7 +10,7 @@ namespace UnityEditor.Graphing.UnitTests
     [TestFixture]
     public class SerializableGraphTests
     {
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
             Debug.unityLogger.logHandler = new ConsoleLogHandler();

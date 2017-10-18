@@ -3,6 +3,7 @@ using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
+using UnityEngine.MaterialGraph;
 using Debug = System.Diagnostics.Debug;
 
 [CustomEditor(typeof(MasterRemapGraphImporter))]
@@ -18,9 +19,12 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
         }
     }
 
-    private static void ShowGraphEditWindow(string path)
+    private static bool ShowGraphEditWindow(string path)
     {
-        var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+        var asset = AssetDatabase.LoadAssetAtPath<Object>(path) as MasterRemapGraphAsset;
+        if (asset == null)
+            return false;
+
         var windows = Resources.FindObjectsOfTypeAll<MasterReampGraphEditWindow>();
         bool foundWindow = false;
         foreach (var w in windows)
@@ -38,13 +42,13 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
             window.Show();
             window.ChangeSelection(asset);
         }
+        return true;
     }
 
     [OnOpenAsset]
     static bool OnOpenAsset(int instanceID, int line)
     {
         var path = AssetDatabase.GetAssetPath(instanceID);
-        ShowGraphEditWindow(path);
-        return true;
+        return ShowGraphEditWindow(path);
     }
 }

@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialOptions; }
         }
 
-        public virtual PreviewMode previewMode
+        public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
         }

@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class MaterialGraphTests
     {
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
             Debug.unityLogger.logHandler = new ConsoleLogHandler();

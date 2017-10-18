@@ -302,9 +302,8 @@ namespace UnityEngine.MaterialGraph
         {
             return false;
         }
-
-        [Obsolete("Call new override", false)]
-        public static string ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType slotValue)
+        
+        public static string GetSlotDimension(ConcreteSlotValueType slotValue)
         {
             switch (slotValue)
             {
@@ -316,16 +315,12 @@ namespace UnityEngine.MaterialGraph
                     return "3";
                 case ConcreteSlotValueType.Vector4:
                     return "4";
-                case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
                 case ConcreteSlotValueType.Matrix2:
                     return "2x2";
                 case ConcreteSlotValueType.Matrix3:
                     return "3x3";
                 case ConcreteSlotValueType.Matrix4:
                     return "4x4";
-                case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
                 default:
                     return "Error";
             }

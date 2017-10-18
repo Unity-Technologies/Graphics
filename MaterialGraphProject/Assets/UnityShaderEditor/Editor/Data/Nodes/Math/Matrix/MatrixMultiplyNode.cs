@@ -74,9 +74,7 @@ namespace UnityEngine.MaterialGraph
 
         protected string GetFunctionPrototype(string arg1Name, string arg2Name)
         {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
-                + precision + input1Dimension + " " + arg1Name + ", "
-                + precision + input2Dimension + " " + arg2Name + ")";
+            return string.Format("inline {0} {1} ({2} {3}, {4} {5})", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType), GetFunctionName(), ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType), arg1Name, ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType), arg2Name);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -84,27 +82,12 @@ namespace UnityEngine.MaterialGraph
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlot1Id, InputSlot2Id }, new[] { OutputSlotId });
             string input1Value = GetSlotValue(InputSlot1Id, generationMode);
             string input2Value = GetSlotValue(InputSlot2Id, generationMode);
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + GetFunctionCallBody(input1Value, input2Value) + ";", true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType), GetVariableNameForSlot(OutputSlotId), GetFunctionCallBody(input1Value, input2Value)), true);
         }
 
         protected string GetFunctionCallBody(string input1Value, string input2Value)
         {
             return GetFunctionName() + " (" + input1Value + ", " + input2Value + ")";
-        }
-
-        public string outputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType); }
-        }
-
-        private string input1Dimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType); }
-        }
-
-        private string input2Dimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType); }
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

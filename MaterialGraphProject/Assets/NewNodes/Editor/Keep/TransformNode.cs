@@ -185,7 +185,10 @@ namespace UnityEngine.MaterialGraph
             if (requiresTangentTransform)
                 visitor.AddShaderChunk("float3x3 tangentTransform = float3x3( worldSpaceTangent, worldSpaceBitangent, worldSpaceNormal);", false);
 
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + transformString + ";", true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
+                GetVariableNameForSlot(OutputSlotId),
+                transformString), true);
         }
 
         //float3x3 tangentTransform = float3x3( i.tangentDir, i.bitangentDir, i.normalDir);------
@@ -205,16 +208,6 @@ namespace UnityEngine.MaterialGraph
         //mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_V ).xyz - view to world
         //mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_MV ).xyz - view to local
         //mul( tangentTransform, mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_V ).xyz ).xyz - view to tangent
-
-
-        public string outputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
-        }
-        private string inputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
-        }
 
         public NeededCoordinateSpace RequiresTangent()
         {
