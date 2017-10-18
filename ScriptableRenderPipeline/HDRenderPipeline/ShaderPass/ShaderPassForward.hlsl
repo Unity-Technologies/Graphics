@@ -48,12 +48,6 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
 #endif
 }
 
-
-float4 ApplyBlendModePerserveSpecularLighting(float3 diffuseLighting, float3 specularLighting, float opacity)
-{
-
-}
-
 void Frag(PackedVaryingsToPS packedInput,
           out float4 outColor : SV_Target0
       #ifdef _DEPTHOFFSET_ON
