@@ -228,7 +228,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
     float smoothnessOverlay = (detailSmoothness < 0.5) ?
                                 surfaceData.perceptualSmoothness * PositivePow(2.0 * detailSmoothness, ADD_IDX(_DetailSmoothnessScale)) :
-                                1.0 - (1.0 - surfaceData.baseColor) * PositivePow(2.0 * (1.0 - detailSmoothness), ADD_IDX(_DetailSmoothnessScale));
+                                1.0 - (1.0 - surfaceData.perceptualSmoothness) * PositivePow(2.0 * (1.0 - detailSmoothness), ADD_IDX(_DetailSmoothnessScale));
     // Lerp with details mask
     surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 #endif
