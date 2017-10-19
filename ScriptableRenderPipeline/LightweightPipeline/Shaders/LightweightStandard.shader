@@ -1,4 +1,4 @@
-﻿Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (PBS)"
+﻿Shader "LightweightPipeline/Standard (Physically Based)"
 {
     Properties
     {

@@ -31,11 +31,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
-        public static readonly string m_SimpleLightShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
-        public static readonly string m_PBSShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
-        public static readonly string m_BlitShaderPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit";
-        public static readonly string m_CopyDephPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/CopyDepth";
-        private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
+        public static readonly string m_SimpleLightShaderPath = "LightweightPipeline/Standard (Simple Lighting)";
+        public static readonly string m_StandardShaderPath = "LightweightPipeline/Standard (Physically Based)";
+        public static readonly string m_BlitShaderPath = "Hidden/LightweightPipeline/Blit";
+        public static readonly string m_CopyDephPath = "Hidden/LightweightPipeline/CopyDepth";
+        private static readonly string m_PipelineFolder = "Assets/LightweightPipeline";
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
         [SerializeField] private int m_MaxAdditionalPixelLights = 1;
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_DefaultShader;
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RenderPipeline/LightweightPipeline/Create Pipeline Asset", false, 15)]
+        [UnityEditor.MenuItem("RenderPipeline/Lightweight Pipeline/Create Pipeline Asset", false, 15)]
         static void CreateLightweightPipeline()
         {
             var instance = ScriptableObject.CreateInstance<LightweightPipelineAsset>();

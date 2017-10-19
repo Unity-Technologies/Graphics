@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public StandardUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, LightweightPipelineAsset.m_PBSShaderPath);
+            RenameShader(oldShaderName, LightweightPipelineAsset.m_StandardShaderPath);
         }
     }
 
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public TerrainUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, LightweightPipelineAsset.m_PBSShaderPath);
+            RenameShader(oldShaderName, LightweightPipelineAsset.m_StandardShaderPath);
             SetFloat("_Shininess", 1.0f);
         }
     }

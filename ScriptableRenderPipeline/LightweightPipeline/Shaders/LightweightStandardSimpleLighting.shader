@@ -1,5 +1,5 @@
 // Shader targeted for low end devices. Single Pass Forward Rendering. Shader Model 2
-Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
+Shader "LightweightPipeline/Standard (Simple Lighting)"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
