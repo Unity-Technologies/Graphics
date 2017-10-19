@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 using System.Linq;
 
@@ -622,6 +623,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
 
                 SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
+
+                SetKeyword(material, "_SUBSURFACE_RADIUS_MAP" + i, material.GetTexture(kSubsurfaceRadiusMap + i));
+                SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
 
             SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
@@ -657,6 +661,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
             }
             SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+
+            Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
+
+            SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
+            //SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
         }
         private void DoEmissiveGUI(Material material)
         {
