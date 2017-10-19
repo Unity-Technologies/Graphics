@@ -367,6 +367,32 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
     return acc / sampleCount;
 }
 
+float ComputeGgxEnergyCompensationFactor(float3 V, float3 N, float roughness, uint sampleCount = 4096)
+{
+    float NdotV = saturate(dot(N, V));
+    float total = 0;
+
+    float3x3 localToWorld = GetLocalFrame(N);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u = Golden2dSeq(i, sampleCount);
+
+        float3 L;
+        float VdotH, NdotL, weight;
+
+        // Compute Weight = BSDF * NdotL / PDF.
+        ImportanceSampleGGX(u, V, localToWorld, roughness, NdotV, L, VdotH, NdotL, weight);
+
+        if (NdotL > 0.0)
+        {
+            total += weight * rcp(sampleCount);
+        }
+    }
+
+    return saturate(total);
+}
+
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 {
     uint sampleCount = 0;

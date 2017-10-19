@@ -74,6 +74,7 @@ CBUFFER_END
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
+TEXTURE2D(_GgxEnergyCompensationFactors);
 TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_GGX_MATRIX_INDEX 0 // RGBA
 #define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
@@ -1036,6 +1037,14 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #endif
     }
     specularLighting += F * DV;
+
+#define MS_GGX 1
+
+#if MS_GGX
+    float ecV = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
+    float ecL = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotL, bsdfData.perceptualRoughness), 0).r;
+    specularLighting += F * ecV * ecL;
+#endif
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
