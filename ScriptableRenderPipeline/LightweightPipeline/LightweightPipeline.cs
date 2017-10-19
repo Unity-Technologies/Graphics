@@ -563,13 +563,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Vector4 dir = light.localToWorld.GetColumn(2);
                 lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
-                // Spot light attenuation with a smooth angle border is computed as follows:
-                // ( dot(spotDir, lightDir) - cosOuterAngle ) / smoothAngleRange
-                // we can rewrite that as
-                // invSmoothAngleRange = 1.0 / smoothAngleRange
-                // dot(spotDir, lightDir) * invSmoothAngleRange + (-cosOuterAngle * invSmoothAngleRange)
-                // and this will fit into a single MAD instruction
-
                 // Spot Attenuation with a linear falloff can be defined as
                 // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
                 // This can be rewritten as
