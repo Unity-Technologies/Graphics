@@ -972,14 +972,14 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
     #if defined(_VERTEX_WIND)
-        // For multiplicative vertex color blend mask. 1.0f is the neutral value
-        maskVertexColor.a = 1.0f;
-        blendMasks *= maskVertexColor;
+    // For multiplicative vertex color blend mask. 1.0f is the neutral value
+    maskVertexColor.a = 1.0f;
     #endif
+    blendMasks *= maskVertexColor;
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
     #if defined(_VERTEX_WIND)
-        // For additive vertex color blend mask. 0.5f is the neutral value (0.5 * 2.0 - 1.0 = 0.0)
-        maskVertexColor.a = 0.5f;
+    // For additive vertex color blend mask. 0.5f is the neutral value (0.5 * 2.0 - 1.0 = 0.0)
+    maskVertexColor.a = 0.5f;
     #endif
     blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
 #endif
