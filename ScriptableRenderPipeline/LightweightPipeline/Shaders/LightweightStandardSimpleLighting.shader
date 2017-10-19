@@ -78,6 +78,7 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)"
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple
+            #include "UnityStandardInput.cginc"
             #include "LightweightPassLit.cginc"
             ENDCG
         }

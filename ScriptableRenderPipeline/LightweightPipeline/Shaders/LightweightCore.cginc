@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
 #include "UnityCG.cginc"
-#include "UnityStandardInput.cginc"
 
 #define MAX_VISIBLE_LIGHTS 16
 
