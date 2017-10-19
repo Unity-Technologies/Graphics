@@ -189,17 +189,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
 
             SurfaceTypePopup();
-            if (blendMode != null && showBlendModePopup)
-                BlendModePopup();
+            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+            {
+                if (blendMode != null && showBlendModePopup)
+                    BlendModePopup();
 
-            EditorGUI.indentLevel++;
-            if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
-                m_MaterialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, StylesBaseUnlit.enableBlendModePreserveSpecularLightingText);
-            if (enableFogOnTransparent != null)
-                m_MaterialEditor.ShaderProperty(enableFogOnTransparent, StylesBaseUnlit.enableTransparentFogText);
-            if (preRefractionPass != null)
-                m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
-            EditorGUI.indentLevel--;
+                EditorGUI.indentLevel++;
+                if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                    m_MaterialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, StylesBaseUnlit.enableBlendModePreserveSpecularLightingText);
+                if (enableFogOnTransparent != null)
+                    m_MaterialEditor.ShaderProperty(enableFogOnTransparent, StylesBaseUnlit.enableTransparentFogText);
+                if (preRefractionPass != null)
+                    m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
+                EditorGUI.indentLevel--;
+            }
 
             if (alphaCutoffEnable != null)
                 m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
