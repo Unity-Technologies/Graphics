@@ -118,25 +118,20 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #endif
 
     o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
-    // TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
-//#if defined(_VERTEX_LIGHTS) && defined(_MULTIPLE_LIGHTS)
-//    half3 diffuse = half3(1.0, 1.0, 1.0);
-//    // pixel lights shaded = min(pixelLights, perObjectLights)
-//    // vertex lights shaded = min(vertexLights, perObjectLights) - pixel lights shaded
-//    // Therefore vertexStartIndex = pixelLightCount;  vertexEndIndex = min(vertexLights, perObjectLights)
-//    int vertexLightStart = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-//    int vertexLightEnd = min(globalLightCount.y, unity_LightIndicesOffsetAndCount.y);
-//    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
-//    {
-//        int lightIndex = unity_4LightIndices0[lightIter];
-//        LightInput lightInput;
-//        INITIALIZE_LIGHT(lightInput, lightIndex);
-//
-//        half3 lightDirection;
-//        half atten = ComputeLightAttenuationVertex(lightInput, normal, worldPos, lightDirection);
-//        o.ambient.yzw += LightingLambert(diffuse, lightDirection, normal, atten);
-//    }
-//#endif
+#if defined(_VERTEX_LIGHTS)
+    half3 diffuse = half3(1.0, 1.0, 1.0);
+    int vertexLightStart = _AdditionalLightCount.x;
+    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+    {
+        LightInput lightData;
+        INITIALIZE_LIGHT(lightData, lightIter);
+
+        half3 lightDirection;
+        half atten = ComputeVertexLightAttenuation(lightData, normal, worldPos, lightDirection);
+        o.fogFactorAndVertexLight.yzw += LightingLambert(diffuse, lightDirection, normal, atten) * lightData.color;
+    }
+#endif
 
     float4 clipPos = UnityObjectToClipPos(v.vertex);
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
@@ -209,13 +204,13 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
 #endif
 
-#ifdef _ADDITIONAL_PIXEL_LIGHTS
+#ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput lightData;
         INITIALIZE_LIGHT(lightData, lightIter);
-        half lightAtten = ComputeLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
+        half lightAtten = ComputePixelLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
         color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightData.color;
@@ -224,7 +219,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 #endif
     }
 
-#endif // _ADDITIONAL_PIXEL_LIGHTS
+#endif // _ADDITIONAL_LIGHTS
 
     color += EmissionLW(uv);
     color += IN.fogFactorAndVertexLight.yzw;

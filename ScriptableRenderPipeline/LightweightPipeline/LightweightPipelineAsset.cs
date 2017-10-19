@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
-        [SerializeField] private int m_MaxPixelLights = 1;
+        [SerializeField] private int m_MaxAdditionalPixelLights = 1;
         [SerializeField] private bool m_SupportsVertexLight = true;
         [SerializeField] private bool m_SupportSoftParticles = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
@@ -96,9 +96,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return ShadowSetting != ShadowType.NO_SHADOW;
         }
 
-        public int MaxSupportedPixelLights
+        public int MaxAdditionalPixelLights
         {
-            get { return m_MaxPixelLights; }
+            get { return m_MaxAdditionalPixelLights; }
         }
 
         public bool SupportsVertexLight

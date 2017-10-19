@@ -197,53 +197,45 @@ UnityIndirect LightweightGI(float4 lightmapUV, half3 ambientColor, half3 normalW
     return o;
 }
 
-inline half ComputeLightAttenuationVertex(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
+{
+    // attenuationParams.x = cos(spotAngle * 0.5)
+    // attenuationParams.y = cos(innerSpotAngle * 0.5)
+    half SdotL = saturate(dot(spotDirection, lightDirection));
+    return saturate((SdotL - attenuationParams.x) / attenuationParams.y);
+}
+
+// In per-vertex falloff there's no smooth falloff to light range. A hard cut will be noticed
+inline half ComputeVertexLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float4 attenuationParams = lightInput.atten;
-    float3 posToLightVec = lightInput.pos - worldPos;
+    float3 posToLightVec = lightInput.pos - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
-
-    //// attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    //// attenuationParams.w = lightRange * lightRange
-    //// TODO: we can precompute 1.0 / (attenuationParams.w * 0.64 - attenuationParams.w)
-    //// falloff is computed from 80% light range squared
-    float lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
 
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-    half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
-    lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-
-    return half(lightAtten);
+    // attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
+    // attenuationParams.w = lightRange * lightRange
+    half lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
+    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
+    return lightAtten;
 }
 
-inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+// In per-pixel falloff attenuation smoothly decreases to light range.
+inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float4 attenuationParams = lightInput.atten;
-
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
-#ifdef _ATTENUATION_TEXTURE
-    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
-    float lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
-#else
-    //// attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    //// attenuationParams.w = lightRange * lightRange
-    //// TODO: we can precompute 1.0 / (attenuationParams.w * 0.64 - attenuationParams.w)
-    //// falloff is computed from 80% light range squared
-    float lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
-    float falloff = saturate((distanceSqr - attenuationParams.w) / (attenuationParams.w * 0.64 - attenuationParams.w));
-    lightAtten *= half(falloff);
-#endif
-
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-    half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
-    lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-    return half(lightAtten);
+    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
+    half lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
+    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
+    return lightAtten;
 }
 
 inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
@@ -253,7 +245,7 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, flo
     lightDirection = lightInput.pos;
     return 1.0;
 #else
-    return ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
+    return ComputePixelLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #endif
 }
 
@@ -308,13 +300,13 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
     color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
 #endif
 
-#ifdef _ADDITIONAL_PIXEL_LIGHTS
+#ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
         LightInput light;
         INITIALIZE_LIGHT(light, lightIter);
-        half lightAtten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+        half lightAtten = ComputePixelLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
 
         half NdotL = saturate(dot(normalWS, lightDirectionWS));
         half3 radiance = light.color * (lightAtten * NdotL);
