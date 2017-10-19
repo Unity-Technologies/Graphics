@@ -76,21 +76,7 @@ namespace  UnityEditor.VFX.UI
 
         protected override GraphViewPresenter BuildPresenters()
         {
-            if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
-            {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-                return VFXViewPresenter.Manager.GetPresenter(asset, false);
-            }
-            return null;
-        }
-
-        protected new void OnEnable()
-        {
-            base.OnEnable();
             var objs = Selection.objects;
-
-            autoCompile = true;
-
 
             VFXAsset selectedAsset = null;
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
@@ -103,6 +89,31 @@ namespace  UnityEditor.VFX.UI
 
                 selectedAsset = asset;
             }
+            if (selectedAsset != null)
+            {
+                if (presenter != null)
+                {
+                    if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
+                        if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
+                        {
+                            GetPresenter<VFXViewPresenter>().useCount--;
+                        }
+                }
+            }
+
+            if (selectedAsset != null)
+            {
+                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, false);
+            }
+            return null;
+        }
+
+        protected new void OnEnable()
+        {
+            base.OnEnable();
+
+            autoCompile = true;
+
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -116,18 +127,6 @@ namespace  UnityEditor.VFX.UI
             }
 
             currentWindow = this;
-
-            if (selectedAsset != null)
-            {
-                if (graphView.presenter != null)
-                {
-                    if (graphView.GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
-                    {
-                        graphView.GetPresenter<VFXViewPresenter>().useCount--;
-                    }
-                }
-                graphView.presenter = VFXViewPresenter.Manager.GetPresenter(selectedAsset);
-            }
         }
 
         protected new void OnDisable()
@@ -162,11 +161,11 @@ namespace  UnityEditor.VFX.UI
 
                 if (presenter != newPresenter)
                 {
-                    if (presenter != null)
-                        presenter.useCount--;
                     this.presenter = newPresenter;
                     graphView.presenter = newPresenter;
                     newPresenter.useCount++;
+                    if (presenter != null)
+                        presenter.useCount--;
                 }
             }
         }

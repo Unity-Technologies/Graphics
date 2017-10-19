@@ -64,6 +64,8 @@ public class VFXAssetEditor : Editor
             m_Presenter = VFXViewPresenter.Manager.GetPresenter(asset);
             m_Presenter.useCount++;
         }
+        if (m_Presenter == null)
+            return;
 
 
         var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();

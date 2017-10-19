@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 
 namespace UnityEditor.VFX.UI
@@ -136,6 +137,8 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
+        VisualElement m_NoAssetLabel;
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -181,14 +184,20 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (d.modelDescriptor == null)
                     {
-                        var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
-                        var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
-                        var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
-                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Point Output"));
+                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                        if (presenter != null)
+                        {
+                            var contexts = VFXLibrary.GetContexts().ToArray();
+                            var spawnerDesc = contexts.FirstOrDefault(t => t.name == "Spawner");
+                            var spawner = presenter.AddVFXContext(tPos, spawnerDesc);
+                            var initialize = presenter.AddVFXContext(tPos + new Vector2(0, 200), contexts.FirstOrDefault(t => t.name == "Initialize"));
+                            var update = presenter.AddVFXContext(tPos + new Vector2(0, 400), contexts.FirstOrDefault(t => t.name == "Update"));
+                            var output = presenter.AddVFXContext(tPos + new Vector2(0, 600), contexts.FirstOrDefault(t => t.name == "Point Output"));
 
-                        spawner.LinkTo(initialize);
-                        initialize.LinkTo(update);
-                        update.LinkTo(output);
+                            spawner.LinkTo(initialize);
+                            initialize.LinkTo(update);
+                            update.LinkTo(output);
+                        }
                     }
                     else
                     {
@@ -248,6 +257,19 @@ namespace UnityEditor.VFX.UI
             button.text = "Compile";
             button.AddToClassList("toolbarButton");
             toolbar.Add(button);
+
+
+            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel.style.positionType = PositionType.Absolute;
+            m_NoAssetLabel.style.positionLeft = 0;
+            m_NoAssetLabel.style.positionRight = 0;
+            m_NoAssetLabel.style.positionTop = 0;
+            m_NoAssetLabel.style.positionBottom = 0;
+            m_NoAssetLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_NoAssetLabel.style.fontSize = 72;
+            m_NoAssetLabel.style.textColor = Color.white * 0.75f;
+
+            Add(m_NoAssetLabel);
         }
 
         void OnToggleCompile()
@@ -319,7 +341,8 @@ namespace UnityEditor.VFX.UI
         public EventPropagation Resync()
         {
             var presenter = GetPresenter<VFXViewPresenter>();
-            presenter.ForceReload();
+            if (presenter != null)
+                presenter.ForceReload();
             return EventPropagation.Stop;
         }
 
@@ -389,6 +412,38 @@ namespace UnityEditor.VFX.UI
                 foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input, output))
                 {
                     yield return anchor;
+                }
+            }
+        }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            if (presenter != null)
+            {
+                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                VFXAsset asset = presenter.GetVFXAsset();
+                if (asset == null)
+                {
+                    VFXViewPresenter.Manager.RemovePresenter(presenter);
+
+                    VFXViewWindow.currentWindow.presenter = null;
+                    this.presenter = null; // this recall OnDataChanged recursively;
+                    return;
+                }
+            }
+
+            if (presenter != null)
+            {
+                m_NoAssetLabel.RemoveFromHierarchy();
+            }
+            else
+            {
+                if (m_NoAssetLabel.parent == null)
+                {
+                    Add(m_NoAssetLabel);
                 }
             }
         }
