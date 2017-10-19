@@ -34,11 +34,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string m_SimpleLightShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_PBSShaderPath = "ScriptableRenderPipeline/LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_BlitShaderPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit";
+        public static readonly string m_CopyDephPath = "Hidden/ScriptableRenderPipeline/LightweightPipeline/CopyDepth";
         private static readonly string m_PipelineFolder = "Assets/ScriptableRenderPipeline/LightweightPipeline";
         private static readonly string m_AssetName = "LightweightPipelineAsset.asset";
 
         [SerializeField] private int m_MaxPixelLights = 1;
         [SerializeField] private bool m_SupportsVertexLight = true;
+        [SerializeField] private bool m_SupportSoftParticles = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality.Disabled;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -97,13 +99,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int MaxSupportedPixelLights
         {
             get { return m_MaxPixelLights; }
-            private set { m_MaxPixelLights = value; }
         }
 
         public bool SupportsVertexLight
         {
             get { return m_SupportsVertexLight; }
-            private set { m_SupportsVertexLight = value; }
+        }
+
+        public bool SupportsSoftParticles
+        {
+            get { return m_SupportSoftParticles; }
         }
 
         public int MSAASampleCount
@@ -219,6 +224,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader BlitShader
         {
             get { return Shader.Find(LightweightPipelineAsset.m_BlitShaderPath); }
+        }
+
+        public Shader CopyDepthShader
+        {
+            get { return Shader.Find(LightweightPipelineAsset.m_CopyDephPath); }
         }
     }
 }

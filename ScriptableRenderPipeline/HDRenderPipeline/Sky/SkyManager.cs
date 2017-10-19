@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
+        Material                m_OpaqueAtmScatteringMaterial;
 
         IBLFilterGGX            m_iblFilterGgx;
 
@@ -253,7 +254,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The texture being set is the sky (environment) map pre-convolved with GGX.
         public void SetGlobalSkyTexture()
         {
-            Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
+            Shader.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
+            float mipCount = Mathf.Clamp(Mathf.Log((float)m_SkyboxGGXCubemapRT.width, 2.0f) + 1, 0.0f, 6.0f);
+            Shader.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
         public void Resize(float nearPlane, float farPlane)
@@ -272,6 +275,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
 
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.blitCubemap);
+
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.opaqueAtmosphericScattering);
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -303,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
 
                 CoreUtils.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.None, 0, (CubemapFace)i);
-                m_Renderer.RenderSky(builtinParams, skySettings, true);
+                m_Renderer.RenderSky(builtinParams, true);
             }
 
             // Generate mipmap for our cubemap
@@ -444,12 +449,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd, DebugDisplaySettings debugSettings)
         {
             using (new ProfilingSample(cmd, "Sky Pass"))
             {
                 if (IsSkyValid())
                 {
+                    // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
+                    m_SkySettings.atmosphericScatteringSettings.PushShaderParameters(cmd, debugSettings.renderingDebugSettings);
+
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
@@ -460,7 +468,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
                     m_Renderer.SetRenderTargets(m_BuiltinParameters);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skySettings, false);
+                    m_Renderer.RenderSky(m_BuiltinParameters, false);
+                }
+            }
+        }
+
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
+            {
+                if(skySettings != null && skySettings.atmosphericScatteringSettings.NeedFogRendering())
+                {
+                    CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
                 }
             }
         }

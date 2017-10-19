@@ -112,6 +112,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                 }
             }
+
+            if (selected)
+            {
+                DrawVerticalRay();
+            }
+        }
+
+        // Trace a ray down to better locate the light location
+        private void DrawVerticalRay()
+        {
+            Ray ray = new Ray(transform.position, Vector3.down);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
+            {
+                Handles.color = Color.green;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                Handles.DrawLine(transform.position, hit.point);
+                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
+
+                Handles.color = Color.red;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                Handles.DrawLine(transform.position, hit.point);
+                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
+            }
         }
 
         private void OnDrawGizmos()

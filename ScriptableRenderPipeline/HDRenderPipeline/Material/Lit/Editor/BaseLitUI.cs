@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
-            // Per pixel displacement            
+            // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
@@ -148,7 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
 
             // MaterialID
-            materialID = FindProperty(kMaterialID, props, false); // LayeredLit is force to be standard for now, so materialID could not exist
+            materialID = FindProperty(kMaterialID, props);
 
             displacementMode = FindProperty(kDisplacementMode, props);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
@@ -160,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
             ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
-            invPrimScale = FindProperty(kInvPrimScale, props);            
+            invPrimScale = FindProperty(kInvPrimScale, props);
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
@@ -210,8 +210,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            if (materialID != null)
-                m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
+            m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
             if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
@@ -315,12 +314,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if (material.HasProperty(kMaterialID))
+            if ((int)material.GetFloat(kMaterialID) == (int)Lit.MaterialId.LitSSS)
             {
-                if ((int)material.GetFloat(kMaterialID) == (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS)
-                {
-                    stencilRef = (int)StencilLightingUsage.SplitLighting;
-                }
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
             material.SetInt(kStencilRef, stencilRef);
 
@@ -340,7 +336,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
             SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
             SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
-         
+
             bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
             SetKeyword(material, "_VERTEX_WIND", windEnabled);
 
