@@ -683,13 +683,10 @@ struct PreLightData
     // General
     float NdotV;                         // Geometric version (could be negative)
 
-    // GGX iso
-    float ggxPreLambdaV;
-
-    // GGX Aniso
+    // GGX
+    float partLambdaV;
     float TdotV;
     float BdotV;
-    float anisoGGXPreLambdaV;
 
     // Clear coat
     float coatNdotV;
@@ -782,31 +779,32 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
     float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
-    float3 iblR = reflect(-V, iblNormalWS);
+    float3 iblR;
 
     float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
-    // GGX iso
-    preLightData.ggxPreLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
-
     // GGX aniso
-    preLightData.TdotV = 0.0;
-    preLightData.BdotV = 0.0;
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
-        preLightData.TdotV = dot(bsdfData.tangentWS, V);
-        preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXPreLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.TdotV       = dot(bsdfData.tangentWS, V);
+        preLightData.BdotV       = dot(bsdfData.bitangentWS, V);
+        preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
-        // Reduce stretching for (perceptualRoughness < 0.2).
+        // Reduce stretching for (perceptualRoughness < 0.2). This is a ad-hoc tweak.
         float  stretch = abs(bsdfData.anisotropy) * saturate(5 * bsdfData.perceptualRoughness);
-        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, stretch);
-
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, stretch);
         iblR = reflect(-V, anisoIblNormalWS);
+    }
+    else // GGX iso
+    {
+        preLightData.TdotV       = 0;
+        preLightData.BdotV       = 0;
+        preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughness);
+        iblR                     = reflect(-V, iblNormalWS);
     }
 
     // IBL
@@ -824,23 +822,24 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
     else
     {
-        float minRoughness, minPerceptualRoughness;
+        // Note: this is a ad-hoc tweak.
+        float iblRoughness, iblPerceptualRoughness;
 
         if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
         {
             // Use the min roughness, and bias it for higher values of anisotropy and roughness.
             float roughnessBias    = 0.075 * bsdfData.anisotropy * bsdfData.roughness;
-            minRoughness           = saturate(min(bsdfData.roughnessT, bsdfData.roughnessB) + roughnessBias);
-            minPerceptualRoughness = RoughnessToPerceptualRoughness(minRoughness);
+            iblRoughness           = saturate(min(bsdfData.roughnessT, bsdfData.roughnessB) + roughnessBias);
+            iblPerceptualRoughness = RoughnessToPerceptualRoughness(iblRoughness);
         }
         else
         {
-            minRoughness           = bsdfData.roughness;
-            minPerceptualRoughness = bsdfData.perceptualRoughness;
+            iblRoughness           = bsdfData.roughness;
+            iblPerceptualRoughness = bsdfData.perceptualRoughness;
         }
 
-        preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, minRoughness, NdotV);
-        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(minPerceptualRoughness);
+        preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, iblRoughness, NdotV);
+        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }
 
     // Area light
@@ -1008,7 +1007,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-                                 , preLightData.preLambdaV);
+                                 , preLightData.partLambdaV);
         #else
                                    );
         #endif
@@ -1019,7 +1018,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughness
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-                            , preLightData preLambdaV);
+                            , preLightData partLambdaV);
         #else
                               );
         #endif

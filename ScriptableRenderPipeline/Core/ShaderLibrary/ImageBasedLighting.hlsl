@@ -407,8 +407,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     float3x3 localToWorld = GetLocalFrame(N);
 
 #ifndef USE_KARIS_APPROXIMATION
-    float NdotV      = 1; // N == V
-    float preLambdaV = GetSmithJointGGXPreLambdaV(NdotV, roughness);
+    float NdotV       = 1; // N == V
+    float partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
 #endif
 
     float3 lightInt = float3(0.0, 0.0, 0.0);
@@ -490,7 +490,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     #ifndef USE_KARIS_APPROXIMATION
         // The choice of the Fresnel factor does not appear to affect the result.
         float F = 1; // F_Schlick(F0, LdotH);
-        float V = V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
+        float V = V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV);
         float G = V * NdotL * NdotV; // 4 cancels out
 
         lightInt += F * G * val;
