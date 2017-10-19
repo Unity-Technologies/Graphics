@@ -42,9 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum RefractionMode
         {
             None = 0,
-            ThickPlane = 1,
-            ThickSphere = 2,
-            ThinPlane = 3
+            Plane = 1,
+            Sphere = 2
         };
 
         //-----------------------------------------------------------------------------

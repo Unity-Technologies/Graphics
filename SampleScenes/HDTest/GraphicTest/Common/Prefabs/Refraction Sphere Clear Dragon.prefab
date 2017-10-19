@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33235095751850106}
   - component: {fileID: 23359103481084912}
   m_Layer: 0
-  m_Name: Refraction ThinPlane Mapped Dragon
+  m_Name: Refraction Sphere Clear Dragon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55,7 +55,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 98719af927a6fd0469e8f9531fb1be03, type: 2}
+  - {fileID: 2100000, guid: 58398dc86b4cff94aa31270c3d8d2863, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

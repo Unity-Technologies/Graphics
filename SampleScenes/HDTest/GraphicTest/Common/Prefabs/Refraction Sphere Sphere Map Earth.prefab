@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33235095751850106}
   - component: {fileID: 23359103481084912}
   m_Layer: 0
-  m_Name: Refraction ThickPlane Sphere Clear
+  m_Name: Refraction Sphere Sphere Map Earth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55,7 +55,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 19eca733d53dfd64f873fc8ff6fc10e6, type: 2}
+  - {fileID: 2100000, guid: 8c6442ce9ad0de9428c7adb28112f20a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
