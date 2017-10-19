@@ -563,17 +563,34 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Vector4 dir = light.localToWorld.GetColumn(2);
                 lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
+                // Spot light attenuation with a smooth angle border is computed as follows:
+                // ( dot(spotDir, lightDir) - cosOuterAngle ) / smoothAngleRange
+                // we can rewrite that as
+                // invSmoothAngleRange = 1.0 / smoothAngleRange
+                // dot(spotDir, lightDir) * invSmoothAngleRange + (-cosOuterAngle * invSmoothAngleRange)
+                // and this will fit into a single MAD instruction
+
+                // Spot Attenuation with a linear falloff can be defined as
+                // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+                // This can be rewritten as
+                // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+                // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+                // If we precompute the terms in a MAD instruction
                 float spotAngle = Mathf.Deg2Rad * light.spotAngle;
                 float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
                 float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
-                float angleRange = cosInneAngle - cosOuterAngle;
-                lightAttenuationParams = new Vector4(cosOuterAngle,
-                    Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+                float smoothAngleRange = cosInneAngle - cosOuterAngle;
+                if (Mathf.Approximately(smoothAngleRange, 0.0f))
+                    smoothAngleRange = 1.0f;
+
+                float invAngleRange = 1.0f / smoothAngleRange;
+                float add = -cosOuterAngle * invAngleRange;
+                lightAttenuationParams = new Vector4(invAngleRange, add, quadAtten, rangeSq);
             }
             else
             {
                 lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-                lightAttenuationParams = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+                lightAttenuationParams = new Vector4(0.0f, 1.0f, quadAtten, rangeSq);
             }
         }
 

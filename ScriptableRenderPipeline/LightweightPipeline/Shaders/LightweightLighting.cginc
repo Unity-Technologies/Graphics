@@ -191,10 +191,17 @@ UnityIndirect LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectV
 
 half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
 {
-    // attenuationParams.x = cos(spotAngle * 0.5)
-    // attenuationParams.y = cos(innerSpotAngle * 0.5)
-    half SdotL = saturate(dot(spotDirection, lightDirection));
-    return saturate((SdotL - attenuationParams.x) / attenuationParams.y);
+    // Spot Attenuation with a linear falloff can be defined as
+    // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+    // This can be rewritten as
+    // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+    // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+    // If we precompute the terms in a MAD instruction
+    half SdotL = dot(spotDirection, lightDirection);
+
+    // attenuationParams.x = invAngleRange
+    // attenuationParams.y = (-cosOuterAngle  invAngleRange)
+    return saturate(SdotL * attenuationParams.x + attenuationParams.y);
 }
 
 // In per-vertex falloff there's no smooth falloff to light range. A hard cut will be noticed
