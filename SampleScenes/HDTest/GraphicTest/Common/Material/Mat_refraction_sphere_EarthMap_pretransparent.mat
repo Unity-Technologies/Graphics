@@ -6,14 +6,14 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Mat_refraction_thinplane_EarthMap
+  m_Name: Mat_refraction_sphere_EarthMap_pretransparent
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MASKMAP _NORMALMAP_TANGENT_SPACE _REFRACTION_THINPLANE _SURFACE_TYPE_TRANSPARENT
+    _MASKMAP _NORMALMAP_TANGENT_SPACE _REFRACTION_THICKSPHERE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2750
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
@@ -209,11 +209,11 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
     - _PerPixelDisplacementObjectScale: 1
-    - _PreRefractionPass: 0
-    - _PreTransparentPass: 0
+    - _PreRefractionPass: 1
+    - _PreTransparentPass: 1
     - _RefractionAbsorptionEnable: 0
     - _RefractionEnable: 0
-    - _RefractionMode: 3
+    - _RefractionMode: 2
     - _RoughRefractionEnable: 1
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
@@ -241,7 +241,7 @@ Material:
     - _ZTestMode: 8
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0.078431375}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

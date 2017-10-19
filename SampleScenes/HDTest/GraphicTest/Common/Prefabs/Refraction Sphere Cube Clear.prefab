@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33235095751850106}
   - component: {fileID: 23359103481084912}
   m_Layer: 0
-  m_Name: Refraction ThickSphere Sphere Clear
+  m_Name: Refraction Sphere Cube Clear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -81,4 +81,4 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1329294594657462}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
