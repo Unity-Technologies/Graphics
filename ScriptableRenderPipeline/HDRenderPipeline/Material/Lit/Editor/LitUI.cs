@@ -600,16 +600,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         blendMode.floatValue = (float)BlendMode.Alpha;
 
-                        if (mode != Lit.RefractionMode.ThinPlane)
-                        {
-                            if (thicknessMap[0].textureValue == null)
-                                m_MaterialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
-                            m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
+                        if (thicknessMap[0].textureValue == null)
+                            m_MaterialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
 
-                            ++EditorGUI.indentLevel;
-                            m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
-                            --EditorGUI.indentLevel;
-                        }
+                        ++EditorGUI.indentLevel;
+                        m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                        --EditorGUI.indentLevel;
 
                         m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
                         ++EditorGUI.indentLevel;
@@ -729,9 +726,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var refractionModeValue = (Lit.RefractionMode)material.GetFloat(kRefractionMode);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
-            SetKeyword(material, "_REFRACTION_THINPLANE", (refractionModeValue == Lit.RefractionMode.ThinPlane) && canHaveRefraction);
-            SetKeyword(material, "_REFRACTION_THICKPLANE", (refractionModeValue == Lit.RefractionMode.ThickPlane) && canHaveRefraction);
-            SetKeyword(material, "_REFRACTION_THICKSPHERE", (refractionModeValue == Lit.RefractionMode.ThickSphere) && canHaveRefraction);
+            SetKeyword(material, "_REFRACTION_PLANE", (refractionModeValue == Lit.RefractionMode.Plane) && canHaveRefraction);
+            SetKeyword(material, "_REFRACTION_SPHERE", (refractionModeValue == Lit.RefractionMode.Sphere) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor
