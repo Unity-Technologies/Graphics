@@ -112,7 +112,7 @@ float D_GGX_Visible(float NdotH, float NdotV, float VdotH, float roughness)
 }
 
 // Precompute part of lambdaV
-float GetSmithJointGGXPreLambdaV(float NdotV, float roughness)
+float GetSmithJointGGXPartLambdaV(float NdotV, float roughness)
 {
     float a2 = roughness * roughness;
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
@@ -120,7 +120,7 @@ float GetSmithJointGGXPreLambdaV(float NdotV, float roughness)
 
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
-float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float preLambdaV)
+float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float partLambdaV)
 {
     float a2 = roughness * roughness;
 
@@ -130,7 +130,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float preLambda
     // G        = 1 / (1 + lambda_v + lambda_l);
 
     // Reorder code to be more optimal:
-    float lambdaV = NdotL * preLambdaV;
+    float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
@@ -139,18 +139,18 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float preLambda
 
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {
-    float preLambdaV = GetSmithJointGGXPreLambdaV(NdotV, roughness);
-    return V_SmithJointGGX(NdotL, NdotV, roughness, preLambdaV);
+    float partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
+    return V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV);
 }
 
 // Inline D_GGX() * V_SmithJointGGX() together for better code generation.
-float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness, float preLambdaV)
+float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness, float partLambdaV)
 {
     float a2 = roughness * roughness;
     float  f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     float2 D = float2(a2, f * f);            // Fraction without the constant (1/Pi)
 
-    float lambdaV = NdotL * preLambdaV;
+    float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     float2 G = float2(1, lambdaV + lambdaL); // Fraction without the constant (0.5)
@@ -160,8 +160,8 @@ float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness, f
 
 float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness)
 {
-    float preLambdaV = GetSmithJointGGXPreLambdaV(NdotV, roughness);
-    return DV_SmithJointGGX(NdotH, NdotL, NdotV, roughness, preLambdaV);
+    float partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
+    return DV_SmithJointGGX(NdotH, NdotL, NdotV, roughness, partLambdaV);
 }
 
 // Precompute a part of LambdaV.
@@ -169,17 +169,17 @@ float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness)
 // Exact for roughness values of 0 and 1. Also, exact when the cosine is 0 or 1.
 // Otherwise, the worst case relative error is around 10%.
 // https://www.desmos.com/calculator/wtp8lnjutx
-float GetSmithJointGGXPreLambdaVApprox(float NdotV, float roughness)
+float GetSmithJointGGXPartLambdaVApprox(float NdotV, float roughness)
 {
     float a = roughness;
     return NdotV * (1 - a) + a;
 }
 
-float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float preLambdaV)
+float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float partLambdaV)
 {
     float a = roughness;
 
-    float lambdaV = NdotL * preLambdaV;
+    float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * (NdotL * (1 - a) + a);
 
     return 0.5 / (lambdaV + lambdaL);
@@ -187,8 +187,8 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float pre
 
 float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness)
 {
-    float preLambdaV = GetSmithJointGGXPreLambdaVApprox(NdotV, roughness);
-    return V_SmithJointGGXApprox(NdotL, NdotV, roughness, preLambdaV);
+    float partLambdaV = GetSmithJointGGXPartLambdaVApprox(NdotV, roughness);
+    return V_SmithJointGGXApprox(NdotL, NdotV, roughness, partLambdaV);
 }
 
 // roughnessT -> roughness in tangent direction
@@ -207,7 +207,7 @@ float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float 
     return INV_PI * D_GGXAnisoNoPI(TdotH, BdotH, NdotH, roughnessT, roughnessB);
 }
 
-float GetSmithJointGGXAnisoPreLambdaV(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
+float GetSmithJointGGXAnisoPartLambdaV(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
 {
     float aT2 = roughnessT * roughnessT;
     float aB2 = roughnessB * roughnessB;
@@ -217,12 +217,12 @@ float GetSmithJointGGXAnisoPreLambdaV(float TdotV, float BdotV, float NdotV, flo
 
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
-float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB, float preLambdaV)
+float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB, float partLambdaV)
 {
     float aT2 = roughnessT * roughnessT;
     float aB2 = roughnessB * roughnessB;
 
-    float lambdaV = NdotL * preLambdaV;
+    float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
 
     return 0.5 / (lambdaV + lambdaL);
@@ -230,15 +230,15 @@ float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, f
 
 float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB)
 {
-    float preLambdaV = GetSmithJointGGXAnisoPreLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
-    return V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB, preLambdaV);
+    float partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
+    return V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB, partLambdaV);
 }
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
 float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
                             float TdotV, float BdotV, float NdotV,
                             float TdotL, float BdotL, float NdotL,
-                            float roughnessT, float roughnessB, float preLambdaV)
+                            float roughnessT, float roughnessB, float partLambdaV)
 {
     float aT2 = roughnessT * roughnessT;
     float aB2 = roughnessB * roughnessB;
@@ -246,7 +246,7 @@ float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
     float  f = TdotH * TdotH / aT2 + BdotH * BdotH / aB2 + NdotH * NdotH;
     float2 D = float2(1, roughnessT * roughnessB * f * f); // Fraction without the constant (1/Pi)
 
-    float lambdaV = NdotL * preLambdaV;
+    float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
 
     float2 G = float2(1, lambdaV + lambdaL);               // Fraction without the constant (0.5)
@@ -259,11 +259,11 @@ float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
                             float TdotL, float BdotL, float NdotL,
                             float roughnessT, float roughnessB)
 {
-    float preLambdaV = GetSmithJointGGXAnisoPreLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
+    float partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
     return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
                                  TdotV, BdotV, NdotV,
                                  TdotL, BdotL, NdotL,
-                                 roughnessT, roughnessB, preLambdaV);
+                                 roughnessT, roughnessB, partLambdaV);
 }
 
 //-----------------------------------------------------------------------------
