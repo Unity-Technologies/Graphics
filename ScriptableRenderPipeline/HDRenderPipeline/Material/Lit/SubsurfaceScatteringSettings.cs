@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public class SssConstants
     {
-        public const int SSS_N_PROFILES           = 8;  // Max. number of profiles, including the slot taken by the neutral profile
+        public const int SSS_N_PROFILES           = 16;  // Max. number of profiles, including the slot taken by the neutral profile
         public const int SSS_NEUTRAL_PROFILE_ID   = SSS_N_PROFILES - 1; // Does not result in blurring
         public const int SSS_N_SAMPLES_NEAR_FIELD = 55; // Used for extreme close ups; must be a Fibonacci number
         public const int SSS_N_SAMPLES_FAR_FIELD  = 21; // Used at a regular distance; must be a Fibonacci number
@@ -412,12 +412,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref shapeParams,       SssConstants.SSS_N_PROFILES);
             ValidateArray(ref transmissionTints, SssConstants.SSS_N_PROFILES);
             ValidateArray(ref filterKernels,     SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
-            
+
             // Old SSS Model >>>
             ValidateArray(ref halfRcpWeightedVariances,   SssConstants.SSS_N_PROFILES);
             ValidateArray(ref halfRcpVariancesAndWeights, SssConstants.SSS_N_PROFILES * 2);
             ValidateArray(ref filterKernelsBasic,         SssConstants.SSS_N_PROFILES * SssConstants.SSS_BASIC_N_SAMPLES);
-            
+
             Debug.Assert(SssConstants.SSS_NEUTRAL_PROFILE_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles.");
 
             UpdateCache();
@@ -431,8 +431,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCache()
         {
-            texturingModeFlags = transmissionFlags = 0;
-
             for (int i = 0; i < SssConstants.SSS_N_PROFILES - 1; i++)
             {
                 UpdateCache(i);
@@ -465,8 +463,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCache(int i)
         {
-            texturingModeFlags  |= (int)profiles[i].texturingMode    << i;
-            transmissionFlags   |= (int)profiles[i].transmissionMode << i * 2;
+            // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
+            int mask = 1 << i;
+            texturingModeFlags &= ~mask;
+            mask = 3 << i * 2;
+            transmissionFlags &= ~mask;
+
+            texturingModeFlags |= (int)profiles[i].texturingMode        << i;
+            transmissionFlags   |= (int)profiles[i].transmissionMode    << i * 2;
 
             thicknessRemaps[i]   = new Vector4(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x, 0f, 0f);
             worldScales[i]       = new Vector4(profiles[i].worldScale, 0f, 0f, 0f);

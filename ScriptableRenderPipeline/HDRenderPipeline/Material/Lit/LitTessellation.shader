@@ -23,7 +23,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units
         _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
@@ -50,8 +51,6 @@ Shader "HDRenderPipeline/LitTessellation"
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
@@ -61,20 +60,31 @@ Shader "HDRenderPipeline/LitTessellation"
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
-        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+        [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
+        [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
+        [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurSrcBlend("Distortion Blur Blend Src", Int) = 0
+        [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
+        _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionBlurScale("Distortion Blur Scale", Float) = 1
+        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
+        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         // Transparency
-        [Enum(None, 0, ThickPlane, 1, ThickSphere, 2, ThinPlane, 3)]_RefractionMode("Refraction Mode", Int) = 0
+        [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
         _IOR("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _ATDistance("Transmittance Absorption Distance", Float) = 1.0
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -87,6 +97,9 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
+
+        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
+        [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
@@ -103,6 +116,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -160,6 +174,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _TESSELLATION_PHONG
+    #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
@@ -178,7 +193,11 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
@@ -429,7 +448,8 @@ Shader "HDRenderPipeline/LitTessellation"
             Name "Distortion" // Name is not used
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
-            Blend One One
+            Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
+            BlendOp Add, [_DistortionBlurBlendOp]
             ZTest [_ZTestMode]
             ZWrite off
             Cull [_CullMode]

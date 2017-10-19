@@ -10,7 +10,7 @@ void DoAlphaTest(float alpha, float alphaCutoff)
     // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4)
     // For Forward
     // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
-#if !(SHADERPASS == SHADERPASS_FORWARD && defined(SURFACE_TYPE_OPAQUE)) && !(SHADERPASS == SHADERPASS_GBUFFER && defined(_BYPASS_ALPHA_TEST))
+#if !(SHADERPASS == SHADERPASS_FORWARD && !defined(_SURFACE_TYPE_TRANSPARENT)) && !(SHADERPASS == SHADERPASS_GBUFFER && defined(_BYPASS_ALPHA_TEST))
     clip(alpha - alphaCutoff);
 #endif
 }
@@ -59,7 +59,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
     builtinData.velocity = float2(0.0, 0.0);
 
-#if (SHADERPASS == SHADERPASS_DISTORTION)
+#if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
@@ -187,6 +187,9 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
+#define SAMPLER_SUBSURFACE_RADIUSMAP_IDX sampler_SubsurfaceRadiusMap
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap
+
 // include LitDataInternal to define GetSurfaceData
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
@@ -199,6 +202,12 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
 #endif
 #ifdef _DETAIL_MAP
 #define _DETAIL_MAP_IDX
+#endif
+#ifdef _SUBSURFACE_RADIUS_MAP
+#define _SUBSURFACE_RADIUS_MAP_IDX
+#endif
+#ifdef _THICKNESSMAP
+#define _THICKNESSMAP_IDX
 #endif
 #ifdef _MASKMAP
 #define _MASKMAP_IDX
@@ -559,6 +568,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap3
 #endif
 
+#if defined(_SUBSURFACE_RADIUS_MAP0)
+#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap0
+#elif defined(_SUBSURFACE_RADIUS_MAP1)
+#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap1
+#elif defined(_SUBSURFACE_RADIUS_MAP2)
+#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap2
+#elif defined(_SUBSURFACE_RADIUS_MAP3)
+#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap3
+#endif
+
+#if defined(_THICKNESSMAP0)
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap0
+#elif defined(_THICKNESSMAP1)
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap1
+#elif defined(_THICKNESSMAP2)
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap2
+#elif defined(_THICKNESSMAP3)
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap3
+#endif
+
 // Define a helper macro
 
 #define ADD_ZERO_IDX(Name) Name##0
@@ -575,6 +604,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DETAIL_MAP0
 #define _DETAIL_MAP_IDX
 #endif
+#ifdef _SUBSURFACE_RADIUS_MAP0
+#define _SUBSURFACE_RADIUS_MAP_IDX
+#endif
+#ifdef _THICKNESSMAP0
+#define _THICKNESSMAP_IDX
+#endif
 #ifdef _MASKMAP0
 #define _MASKMAP_IDX
 #endif
@@ -587,6 +622,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
+#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
 
@@ -601,6 +638,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DETAIL_MAP1
 #define _DETAIL_MAP_IDX
 #endif
+#ifdef _SUBSURFACE_RADIUS_MAP1
+#define _SUBSURFACE_RADIUS_MAP_IDX
+#endif
+#ifdef _THICKNESSMAP1
+#define _THICKNESSMAP_IDX
+#endif
 #ifdef _MASKMAP1
 #define _MASKMAP_IDX
 #endif
@@ -613,6 +656,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
+#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
 
@@ -627,6 +672,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DETAIL_MAP2
 #define _DETAIL_MAP_IDX
 #endif
+#ifdef _SUBSURFACE_RADIUS_MAP2
+#define _SUBSURFACE_RADIUS_MAP_IDX
+#endif
+#ifdef _THICKNESSMAP2
+#define _THICKNESSMAP_IDX
+#endif
 #ifdef _MASKMAP2
 #define _MASKMAP_IDX
 #endif
@@ -639,6 +690,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
+#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
 
@@ -653,6 +706,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DETAIL_MAP3
 #define _DETAIL_MAP_IDX
 #endif
+#ifdef _SUBSURFACE_RADIUS_MAP3
+#define _SUBSURFACE_RADIUS_MAP_IDX
+#endif
+#ifdef _THICKNESSMAP3
+#define _THICKNESSMAP_IDX
+#endif
 #ifdef _MASKMAP3
 #define _MASKMAP_IDX
 #endif
@@ -665,6 +724,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
+#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
 
@@ -698,8 +759,30 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
+// In the case of subsurface profile index, the goal is to take the index with the hights weights.
+// Or the last found in case of equality.
+float BlendLayeredSSSprofile(float x0, float x1, float x2, float x3, float weight[4])
+{
+    int sssProfileIndex = x0;
+    float currentMax = weight[0];
+
+    sssProfileIndex = currentMax < weight[1] ? x1 : sssProfileIndex;
+    currentMax = max(currentMax, weight[1]);
+
+#if _LAYER_COUNT >= 3
+    sssProfileIndex = currentMax < weight[2] ? x2 : sssProfileIndex;
+    currentMax = max(currentMax, weight[2]);
+#endif
+#if _LAYER_COUNT >= 4
+    sssProfileIndex = currentMax < weight[3] ? x3 : sssProfileIndex;
+#endif
+
+    return sssProfileIndex;
+}
+
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
+#define SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, name, mask) BlendLayeredSSSprofile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
@@ -883,10 +966,22 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
+    // Wind uses vertex alpha as an intensity parameter.
+    // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
+    // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
+    float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= vertexColor;
+    #if defined(_VERTEX_WIND)
+    // For multiplicative vertex color blend mask. 1.0f is the neutral value
+    maskVertexColor.a = 1.0f;
+    #endif
+    blendMasks *= maskVertexColor;
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
+    #if defined(_VERTEX_WIND)
+    // For additive vertex color blend mask. 0.5f is the neutral value (0.5 * 2.0 - 1.0 = 0.0)
+    maskVertexColor.a = 0.5f;
+    #endif
+    blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
 #endif
 
     return blendMasks;
@@ -1431,7 +1526,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #ifdef _INFLUENCEMASK_MAP
     float influenceMask = GetInfluenceMask(layerTexCoord);
     #else
-    float influenceMask = 0.0;
+    float influenceMask = 1.0;
     #endif
 
     if (influenceMask > 0.0f)
@@ -1452,12 +1547,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
+    surfaceData.subsurfaceRadius = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceRadius, weights);
+    surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
+    surfaceData.subsurfaceProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, subsurfaceProfile, weights);
+
+    // Layered shader support either SSS or standard (can't mix them)
+#ifdef _MATID_SSS
+    surfaceData.materialId = MATERIALID_LIT_SSS;
+#else // Default
+    surfaceData.materialId = MATERIALID_LIT_STANDARD;
+#endif
+
     // Init other parameters
-    surfaceData.materialId = 1; // MaterialId.LitStandard
     surfaceData.anisotropy = 0;
-    surfaceData.subsurfaceRadius = 1.0;
-    surfaceData.thickness = 0.0;
-    surfaceData.subsurfaceProfile = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
     surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
     surfaceData.coatCoverage = 0.0f;
@@ -1468,6 +1570,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
+    surfaceData.refractionMask = 0.0;
 
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available

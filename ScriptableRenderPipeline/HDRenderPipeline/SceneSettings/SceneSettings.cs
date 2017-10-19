@@ -17,15 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_SkySettings; }
         }
 
-        public ScreenSpaceAmbientOcclusionSettings ssaoSettings
-        {
-            set { m_SsaoSettings = value; }
-            get { return m_SsaoSettings; }
-        }
-
         [SerializeField] private CommonSettings m_CommonSettings = null;
         [SerializeField] private SkySettings    m_SkySettings = null;
-        [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_SsaoSettings = null;
 
         // Use this for initialization
         void OnEnable()

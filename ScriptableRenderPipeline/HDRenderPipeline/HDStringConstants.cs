@@ -133,8 +133,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CosTime = Shader.PropertyToID("_CosTime");
         public static readonly int unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
-        public static readonly int _AmbientOcclusionDirectLightStrenght = Shader.PropertyToID("_AmbientOcclusionDirectLightStrenght");
+        public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
         public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
+        public static readonly int _SkyTextureMipCount = Shader.PropertyToID("_SkyTextureMipCount");
 
         public static readonly int _UseDisneySSS = Shader.PropertyToID("_UseDisneySSS");
         public static readonly int _EnableSSSAndTransmission = Shader.PropertyToID("_EnableSSSAndTransmission");

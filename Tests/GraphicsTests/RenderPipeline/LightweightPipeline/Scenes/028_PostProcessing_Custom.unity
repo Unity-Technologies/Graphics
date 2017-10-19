@@ -193,8 +193,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 1
   m_OcclusionCulling: 1
@@ -229,36 +229,20 @@ MonoBehaviour:
   volumeLayer:
     serializedVersion: 2
     m_Bits: 1
-  stopNaNPropagation: 1
-  antialiasingMode: 1
+  stopNaNPropagation: 0
+  antialiasingMode: 0
   temporalAntialiasing:
     jitterSpread: 0.75
-    sharpen: 0.25
+    sharpness: 0.25
     stationaryBlending: 0.95
     motionBlending: 0.85
   fastApproximateAntialiasing:
-    mobileOptimized: 1
+    mobileOptimized: 0
     keepAlpha: 0
-  ambientOcclusion:
-    enabled: 0
-    mode: 1
-    ambientOnly: 0
-    scalableAO:
-      intensity: 0.5
-      radius: 0.25
-      quality: 2
-      color: {r: 0, g: 0, b: 0, a: 1}
-    multiScaleVO:
-      noiseFilterTolerance: 0
-      blurTolerance: -4.6
-      upsampleTolerance: -12
-      thicknessModifier: 1
-      intensity: 1
-      color: {r: 0, g: 0, b: 0, a: 1}
   fog:
     enabled: 1
     excludeSkybox: 1
-  monitors:
+  debugLayer:
     lightMeter:
       width: 512
       height: 256
@@ -273,12 +257,18 @@ MonoBehaviour:
     vectorscope:
       size: 256
       exposure: 0.12
+    overlaySettings:
+      motionColorIntensity: 4
+      motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
-  m_ShowRenderingFeatures: 0
   m_ShowToolkit: 0
   m_ShowCustomSorter: 1
   breakBeforeColorGrading: 0
-  m_BeforeTransparentBundles: []
+  m_BeforeTransparentBundles:
+  - assemblyQualifiedName: InvertOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   m_BeforeStackBundles:
   - assemblyQualifiedName: HalfToneOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null

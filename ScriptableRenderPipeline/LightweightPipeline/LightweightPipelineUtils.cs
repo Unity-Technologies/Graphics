@@ -12,16 +12,56 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
     }
 
+    public class LightComparer : IComparer<VisibleLight>
+    {
+        public Camera CurrCamera { get; set; }
+
+        // Sorts on the following priority:
+        // Directionals have priority over local lights
+        // ShadowLight type
+        // Has Cookie
+        // Intensity if Directional, Distance to camera otherwise
+        public int Compare(VisibleLight lhs, VisibleLight rhs)
+        {
+            Light lhsLight = lhs.light;
+            Light rhsLight = rhs.light;
+
+            if (lhs.lightType != rhs.lightType)
+            {
+                if (lhs.lightType == LightType.Directional) return -1;
+                if (rhs.lightType == LightType.Directional) return 1;
+            }
+
+            // In the following priority: Soft, Hard, None
+            if (lhsLight.shadows != rhsLight.shadows)
+                return (int)rhsLight.shadows - (int)lhsLight.shadows;
+
+            if (lhsLight.cookie != rhsLight.cookie)
+                return (lhsLight.cookie != null) ? -1 : 1;
+
+            if (lhs.lightType == LightType.Directional)
+                return (int)(lhsLight.intensity*100.0f) - (int)(rhsLight.intensity*100.0f);
+            else
+                return (int)(SquaredDistanceToCamera(lhsLight.transform.position) - SquaredDistanceToCamera(rhsLight.transform.position));
+        }
+
+        public float SquaredDistanceToCamera(Vector3 lightPos)
+        {
+            Vector3 lightCameraVector = lightPos - CurrCamera.transform.position;
+            return Vector3.Dot(lightCameraVector, lightCameraVector);
+        }
+    }
+
     [Flags]
-    public enum RenderingConfiguration
+    public enum FrameRenderingConfiguration
     {
         None = 0,
         Stereo = (1 << 0),
         Msaa = (1 << 1),
         PostProcess = (1 << 2),
-        DefaultViewport = (1 << 3),
-        IntermediateTexture = (1 << 4),
-        IntermediateTextureArray = (1 << 5),
+        RequireDepth = (1 << 3),
+        DefaultViewport = (1 << 4),
+        IntermediateTexture = (1 << 5),
     }
 
     public static class LightweightUtils
@@ -48,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
         }
 
-        public static bool HasFlag(RenderingConfiguration mask, RenderingConfiguration flag)
+        public static bool HasFlag(FrameRenderingConfiguration mask, FrameRenderingConfiguration flag)
         {
             return (mask & flag) != 0;
         }

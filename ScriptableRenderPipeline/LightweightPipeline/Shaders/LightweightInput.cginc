@@ -11,11 +11,14 @@
     light.spotDir = _MainLightSpotDir;
 
 // Indexing might have a performance hit for old mobile hardware
-#define INITIALIZE_LIGHT(light, lightIndex) \
-                            light.pos = _AdditionalLightPosition[lightIndex]; \
-                            light.color = _AdditionalLightColor[lightIndex]; \
-                            light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
-                            light.spotDir = _AdditionalLightSpotDir[lightIndex]
+#define INITIALIZE_LIGHT(light, i) \
+    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1; \
+    int index = (i < 4) ? i : i - 4; \
+    int lightIndex = indices[index]; \
+    light.pos = _AdditionalLightPosition[lightIndex]; \
+    light.color = _AdditionalLightColor[lightIndex]; \
+    light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
+    light.spotDir = _AdditionalLightSpotDir[lightIndex]
 
 #if (defined(_MAIN_DIRECTIONAL_LIGHT) || defined(_MAIN_SPOT_LIGHT) || defined(_MAIN_POINT_LIGHT))
 #define _MAIN_LIGHT
@@ -46,6 +49,7 @@ struct LightInput
 CBUFFER_START(_PerObject)
 half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
+half4 unity_4LightIndices1;
 half _Shininess;
 CBUFFER_END
 

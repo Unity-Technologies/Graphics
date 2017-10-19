@@ -10,7 +10,6 @@
 
         // Lighting resources
         public Shader deferredShader;
-        public Shader screenSpaceAmbientOcclusionShader;
         public ComputeShader subsurfaceScatteringCS;
         public ComputeShader volumetricLightingCS;
         public ComputeShader gaussianPyramidCS;
@@ -41,6 +40,7 @@
         public ComputeShader buildProbabilityTables;
         public ComputeShader computeGgxIblSampleData;
         public Shader GGXConvolve;
+        public Shader opaqueAtmosphericScattering;
 
         public Shader skyboxCubemap;
 

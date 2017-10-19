@@ -8,10 +8,10 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Unlit_Gray_127
   m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF
-    _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
@@ -75,12 +75,23 @@ Material:
     - _CullMode: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
+    - _DistortionBlendMode: 0
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 1
+    - _DistortionBlurRemapMax: 1
+    - _DistortionBlurRemapMin: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
+    - _DistortionDstBlend: 1
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DistortionScale: 1
+    - _DistortionSrcBlend: 1
     - _DoubleSidedEnable: 0
     - _DstBlend: 0
     - _EmissiveIntensity: 0
+    - _EnableFogOnTransparent: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -88,6 +99,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _PreRefractionPass: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
