@@ -131,7 +131,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Preview = previewSystem.GetPreview(inNode);
             m_Preview.onPreviewChanged += OnPreviewChanged;
 
-            node.onReplaced += OnReplaced; 
+            node.onReplaced += OnReplaced;
 
             // From OnDataChange()
 
@@ -228,7 +228,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnResize(Vector2 deltaSize)
         {
-            float updatedWidth = Mathf.Min(leftContainer.layout.width + deltaSize.x, 1000f);
+            float updatedWidth = leftContainer.layout.width + deltaSize.x;
             float updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
 
             PreviewNode previewNode = node as PreviewNode;
@@ -248,7 +248,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdatePreviewTexture(Texture previewTexture)
         {
-            if (previewTexture == null) 
+            if (previewTexture == null)
             {
                 m_PreviewImage.visible = false;
                 m_PreviewImage.RemoveFromClassList("visible");
