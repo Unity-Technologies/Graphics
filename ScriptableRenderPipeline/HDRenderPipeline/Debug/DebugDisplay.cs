@@ -156,6 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Atmospheric Scattering",() => renderingDebugSettings.enableAtmosphericScattering, (value) => renderingDebugSettings.enableAtmosphericScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => renderingDebugSettings.enableDistortion, (value) => renderingDebugSettings.enableDistortion = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSSAndTransmission, (value) => renderingDebugSettings.enableSSSAndTransmission = (bool)value);
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
@@ -473,6 +474,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDistortion = true;
         public bool enableGaussianPyramid = true;
         public bool enableSSSAndTransmission = true;
+        public bool enableAtmosphericScattering = true;
     }
 
     public enum ShadowMapDebugMode

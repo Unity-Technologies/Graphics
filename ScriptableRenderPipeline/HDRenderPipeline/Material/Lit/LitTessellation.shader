@@ -98,6 +98,9 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
+        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
+        [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
+
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
@@ -172,7 +175,6 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _TESSELLATION_PHONG
     #pragma shader_feature _ _REFRACTION_THINPLANE _REFRACTION_THICKPLANE _REFRACTION_THICKSPHERE
-    #pragma shader_feature _REFRACTION_ON
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
@@ -191,7 +193,11 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD

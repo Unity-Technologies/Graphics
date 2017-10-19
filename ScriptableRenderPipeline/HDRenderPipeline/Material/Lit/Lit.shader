@@ -62,7 +62,6 @@ Shader "HDRenderPipeline/Lit"
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
         [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
         [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
@@ -97,6 +96,9 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
+
+        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
+        [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
@@ -146,7 +148,7 @@ Shader "HDRenderPipeline/Lit"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
-    // #pragma enable_d3d11_debug_symbols
+    //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -161,7 +163,6 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _REFRACTION_THINPLANE _REFRACTION_THICKPLANE _REFRACTION_THICKSPHERE
-    #pragma shader_feature _REFRACTION_ON
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
@@ -180,7 +181,11 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialId are used as shader feature to allow compiler to optimize properly
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
