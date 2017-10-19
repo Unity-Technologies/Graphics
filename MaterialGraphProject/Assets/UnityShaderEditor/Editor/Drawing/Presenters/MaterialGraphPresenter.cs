@@ -192,40 +192,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
-        {
-            var graph = new CopyPasteGraph();
-            foreach (var element in selection)
-            {
-                var nodeView = element as MaterialNodeView;
-                if (nodeView != null)
-                {
-                    graph.AddNode(nodeView.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
-                        graph.AddEdge(edge);
-                }
-
-                var edgeView = element as Edge;
-                if (edgeView != null)
-                    graph.AddEdge(edgeView.userData as IEdge);
-            }
-            return graph;
-        }
-
-        internal static CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
-        {
-            try
-            {
-                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
-            }
-            catch
-            {
-                // ignored. just means copy buffer was not a graph :(
-                return null;
-            }
-        }
-
-        void InsertCopyPasteGraph(CopyPasteGraph copyGraph)
+        internal void InsertCopyPasteGraph(CopyPasteGraph copyGraph)
         {
             if (copyGraph == null || graph == null)
                 return;
@@ -269,68 +236,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             graph.ValidateGraph();
             if (onSelectionChanged != null)
                 onSelectionChanged(addedNodes);
-        }
-
-        public bool canCopy
-        {
-            get { return elements.Any(e => e.selected) || (m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected)); }
-        }
-
-        public void Copy()
-        {
-            var graph = CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>());
-            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
-        }
-
-        public bool canCut
-        {
-            get { return canCopy; }
-        }
-
-        public void Cut()
-        {
-            Copy();
-            graph.owner.RegisterCompleteObjectUndo("Cut");
-            RemoveElements(
-                m_GraphView.selection.OfType<MaterialNodeView>(),
-                m_GraphView.selection.OfType<Edge>());
-        }
-
-        public bool canPaste
-        {
-            get { return DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer) != null; }
-        }
-
-        public void Paste()
-        {
-            var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
-            graph.owner.RegisterCompleteObjectUndo("Paste");
-            InsertCopyPasteGraph(pastedGraph);
-        }
-
-        public bool canDuplicate
-        {
-            get { return canCopy; }
-        }
-
-        public void Duplicate()
-        {
-            var deserializedGraph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
-            graph.owner.RegisterCompleteObjectUndo("Duplicate");
-            InsertCopyPasteGraph(deserializedGraph);
-        }
-
-        public bool canDelete
-        {
-            get { return canCopy; }
-        }
-
-        public void Delete()
-        {
-            graph.owner.RegisterCompleteObjectUndo("Delete");
-            RemoveElements(
-                m_GraphView.selection.OfType<MaterialNodeView>(),
-                m_GraphView.selection.OfType<Edge>());
         }
 
         public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
