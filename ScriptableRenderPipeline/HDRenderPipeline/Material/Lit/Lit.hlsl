@@ -1038,13 +1038,19 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     }
     specularLighting += F * DV;
 
-#define MS_GGX 1
+#define MS_GGX            1
+#define MS_GGX_IMAGEWORKS 0
 
 #if MS_GGX
+#if MS_GGX_IMAGEWORKS
     float ecV = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
     float ecL = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotL, bsdfData.perceptualRoughness), 0).r;
     specularLighting += F * ecV * ecL;
-#endif
+#else
+    float ecV = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
+    specularLighting += F * DV * ecV;
+#endif // MS_GGX_IMAGEWORKS
+#endif // MS_GGX
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();

@@ -44,6 +44,10 @@ Shader "Hidden/HDRenderPipeline/ComputeGgxEnergyCompensationFactors"
                 float3 V         = float3(sqrt(1 - NdotV * NdotV), 0, NdotV);
 
                 float fDir = ComputeGgxEnergyCompensationFactor(V, N, roughness);
+
+            #define MS_GGX_IMAGEWORKS 0
+
+            #if MS_GGX_IMAGEWORKS
                 float fAvg = 0;
 
                 const uint numSamples = 128;
@@ -56,9 +60,13 @@ Shader "Hidden/HDRenderPipeline/ComputeGgxEnergyCompensationFactors"
                     fAvg += ComputeGgxEnergyCompensationFactor(V, N, roughness) * NdotV * (2 * rcp(numSamples));
                 }
 
-                float f = (1 - fDir) * rsqrt(PI * (1 - fAvg));
-
                 // f_ms = f[NdotV, perceptualRoughness] * f[NdotL, perceptualRoughness].
+                float f = (1 - fDir) * rsqrt(PI * (1 - fAvg));
+            #else
+                // f_ms = f[NdotV, perceptualRoughness] * f_ss.
+                float f = 1 / fDir - 1;
+            #endif
+
                 return f.xxxx;
             }
 
