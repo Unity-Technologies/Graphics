@@ -2059,6 +2059,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                             Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+                            float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
                             for (int variant = 0; variant < numVariants; variant++)
                             {
@@ -2124,6 +2125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
+                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                                 // Set SSS parameters.
                                 cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);

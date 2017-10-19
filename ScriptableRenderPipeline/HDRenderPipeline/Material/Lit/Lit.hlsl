@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
@@ -14,6 +14,9 @@
     #include "../../ShaderVariables.hlsl"
     #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 #endif
+
+// Define refraction keyword helpers
+#define HAS_REFRACTION (defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE))
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -52,16 +55,21 @@ SamplerState s_trilinear_clamp_sampler;
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
-float4 _GaussianPyramidColorMipSize;
 TEXTURE2D(_GaussianPyramidColorTexture);
-
 // Depth pyramid (width, height, lodcount, Unused)
-float4 _PyramidDepthMipSize;
 TEXTURE2D(_PyramidDepthTexture);
+
+CBUFFER_START(UnityGaussianPyramidParameters)
+float4 _GaussianPyramidColorMipSize;
+float4 _PyramidDepthMipSize;
+CBUFFER_END
 
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
+
+CBUFFER_START(UnityAmbientOcclusionParameters)
 float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
+CBUFFER_END
 
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
@@ -373,10 +381,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         FillMaterialIdClearCoatData(surfaceData.coatNormalWS, surfaceData.coatCoverage, surfaceData.coatIOR, bsdfData);
     }
 
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
     FillMaterialIdTransparencyData(
-        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.refractionMask, 
+        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.refractionMask,
         bsdfData);
 #endif
 
@@ -789,9 +797,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.TdotV       = dot(bsdfData.tangentWS, V);
         preLightData.BdotV       = dot(bsdfData.bitangentWS, V);
         preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+
+        // For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference.
+        // We use a single fetch, and we stretch the normal to use based on various criteria.
+        // result are far away from the reference but better than nothing
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
-        // Reduce stretching for (perceptualRoughness < 0.2). This is a ad-hoc tweak.
+        // Reduce stretching for (perceptualRoughness < 0.2).
         float  stretch = abs(bsdfData.anisotropy) * saturate(5 * bsdfData.perceptualRoughness);
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
@@ -1105,7 +1117,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0)
     {
-#ifdef SURFACE_TYPE_TRANSPARENT
+#ifdef _SURFACE_TYPE_TRANSPARENT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.unPositionSS).x;
@@ -1539,11 +1551,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     specularLighting = float3(0.0, 0.0, 0.0);
     weight = float2(0.0, 0.0);
 
-#if !defined(_REFRACTION_ON)
-    return;
-#endif
-
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#if HAS_REFRACTION
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
     //  2. We calculate the screen space position of the refracted point
@@ -1666,11 +1674,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
     diffuseLighting *= transmittance;
-
-#else
-    // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
-#endif
+#endif // HAS_REFRACTION
 }
 
 //-----------------------------------------------------------------------------

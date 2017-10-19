@@ -243,6 +243,18 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.metallic *= ADD_IDX(_Metallic);
 
+    surfaceData.subsurfaceProfile = ADD_IDX(_SubsurfaceProfile);
+    surfaceData.subsurfaceRadius = ADD_IDX(_SubsurfaceRadius);
+    surfaceData.thickness = ADD_IDX(_Thickness);
+
+#ifdef _SUBSURFACE_RADIUS_MAP_IDX
+    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), SAMPLER_SUBSURFACE_RADIUSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#endif
+
+#ifdef _THICKNESSMAP_IDX
+    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#endif
+
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
@@ -279,36 +291,25 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
-    surfaceData.subsurfaceProfile = _SubsurfaceProfile;
-    surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
-    surfaceData.thickness         = _Thickness;
-
-#ifdef _SUBSURFACE_RADIUS_MAP
-    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
-#endif
-
-#ifdef _THICKNESSMAP
-    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
-#endif
-
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
 
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#if HAS_REFRACTION
     surfaceData.ior = _IOR;
     surfaceData.transmittanceColor = _TransmittanceColor;
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;
-    surfaceData.refractionMask = 1.0 - alpha;
-    alpha = 1.0; // Transparency is done with refraction, not blending
+    // Rough refraction don't use opacity. Instead we use opacity as a refraction mask. 
+    surfaceData.refractionMask = alpha;
+    alpha = 1.0;
 #else
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1.0;
-    surfaceData.refractionMask = 0.0;
+    surfaceData.refractionMask = 1.0;
 #endif
 
     surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
@@ -326,9 +327,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
-    surfaceData.subsurfaceRadius = 0.0;
-    surfaceData.thickness = 0.0;
-    surfaceData.subsurfaceProfile = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
     surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
     surfaceData.coatCoverage = 0.0f;

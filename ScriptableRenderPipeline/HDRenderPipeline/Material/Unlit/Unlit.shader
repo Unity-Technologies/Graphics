@@ -39,6 +39,7 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
+        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 0.0
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
@@ -52,7 +53,7 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal  // TEMP: until we go further in dev
-    // #pragma enable_d3d11_debug_symbols
+    //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -63,7 +64,10 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
     //-------------------------------------------------------------------------------------
     // Define

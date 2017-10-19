@@ -93,6 +93,7 @@ Material:
     - _DoubleSidedMode: 0
     - _DstBlend: 0
     - _EmissiveIntensity: 0
+    - _EnableFogOnTransparent: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

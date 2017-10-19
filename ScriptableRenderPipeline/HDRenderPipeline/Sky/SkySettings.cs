@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                    updatePeriod = 0.0f;
         public Cubemap                  lightingOverride = null;
 
+        public AtmosphericScatteringSettings atmosphericScatteringSettings = new AtmosphericScatteringSettings();
+
         public override int GetHashCode()
         {
             unchecked
