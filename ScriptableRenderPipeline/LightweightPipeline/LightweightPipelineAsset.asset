@@ -23,7 +23,6 @@ MonoBehaviour:
   m_ShadowCascades: 1
   m_Cascade2Split: 0.25
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
-  m_LinearRendering: 1
   m_AttenuationTexture: {fileID: 2800000, guid: ee420ad43ff580149a07f10ad66c49ff,
     type: 3}
   m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d,

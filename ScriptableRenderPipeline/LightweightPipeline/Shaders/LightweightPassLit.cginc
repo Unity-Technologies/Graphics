@@ -190,7 +190,6 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half3 color = (SHEvalLinearL0L1(half4(normalWorld, 1.0)) + IN.ambientOrLightmapUV.xyz) * diffuse;
 #endif
 
-#ifdef _MAIN_LIGHT
     LightInput lightInput;
     INITIALIZE_MAIN_LIGHT(lightInput);
     half lightAtten = ComputeMainLightAttenuation(lightInput, normalWorld, worldPos, lightDirection);
@@ -200,8 +199,6 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightInput.color;
 #else
     color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightInput.color;
-#endif
-
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS

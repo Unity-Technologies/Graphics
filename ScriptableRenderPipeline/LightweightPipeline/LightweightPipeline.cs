@@ -529,13 +529,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightSpotDir,
             out Vector4 lightAttenuationParams)
         {
-            lightPos = Vector4.zero;
+            lightPos = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
             lightColor = Color.black;
             lightAttenuationParams = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 
-            // When no lights are available in the pipeline or maxPixelLights is set to 0
-            // In this case we want to initialize the lightData to default values and return
+            // When no lights are visible, main light will be set to -1.
+            // In this case we initialize it to default values and return
             if (lightIndex < 0)
                 return;
 
@@ -594,12 +594,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
-            if (lightData.mainLightIndex != -1)
-            {
-                SetupMainLightConstants (cmd, lights, lightData.mainLightIndex, ref context);
-                if (lightData.shadowsRendered)
-                    SetupShadowShaderConstants (cmd, ref context, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
-            }
+            SetupMainLightConstants(cmd, lights, lightData.mainLightIndex, ref context);
+            if (lightData.shadowsRendered)
+                SetupShadowShaderConstants(cmd, ref context, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
 
             if (lightData.totalAdditionalLightsCount > 0)
                 SetupAdditionalListConstants(cmd, lights, ref lightData, ref context);
@@ -689,11 +686,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
-            LightweightUtils.SetKeyword(cmd, "_LIGHTWEIGHT_FORCE_LINEAR", m_Asset.ForceLinearRendering);
             LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
 
             int mainLightIndex = lightData.mainLightIndex;
-            LightweightUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Directional);
+            LightweightUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
             LightweightUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
             LightweightUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);
             LightweightUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);

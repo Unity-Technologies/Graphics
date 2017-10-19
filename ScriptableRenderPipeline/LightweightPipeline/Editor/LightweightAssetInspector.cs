@@ -10,7 +10,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent defaults = new GUIContent("Defaults");
-            public static GUIContent linearRenderingLabel = new GUIContent("Force Linear Colorspace", "When enabled Lightweight shader will perform gamma to linear conversion in the shader when linear rendering is not supported or disabled");
 
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Allows game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
 
@@ -62,7 +61,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         private int kMaxSupportedAdditionalPixelLights = 8;
-        private SerializedProperty m_LinearRenderingProperty;
         private SerializedProperty m_RenderScale;
         private SerializedProperty m_MaxAdditionalPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
@@ -85,7 +83,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void OnEnable()
         {
-            m_LinearRenderingProperty = serializedObject.FindProperty("m_LinearRendering");
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
             m_MaxAdditionalPixelLights = serializedObject.FindProperty("m_MaxAdditionalPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
@@ -114,7 +111,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_LinearRenderingProperty, Styles.linearRenderingLabel);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.renderScaleLabel);
             m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, 0.1f, 1.0f);

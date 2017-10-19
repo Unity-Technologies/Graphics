@@ -24,10 +24,6 @@
     light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
     light.spotDir = _AdditionalLightSpotDir[lightIndex]
 
-#if (defined(_MAIN_DIRECTIONAL_LIGHT) || defined(_MAIN_SPOT_LIGHT) || defined(_MAIN_POINT_LIGHT))
-#define _MAIN_LIGHT
-#endif
-
 struct LightInput
 {
     float4 pos;
@@ -289,7 +285,6 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
     half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
     half3 lightDirectionWS;
 
-#ifdef _MAIN_LIGHT
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
     half lightAtten = ComputeMainLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
@@ -298,7 +293,6 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = light.color * (lightAtten * NdotL);
     color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
-#endif
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);

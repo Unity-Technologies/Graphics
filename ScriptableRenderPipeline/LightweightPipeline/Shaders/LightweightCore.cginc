@@ -6,7 +6,7 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
-#if defined(UNITY_COLORSPACE_GAMMA) && defined(_LIGHTWEIGHT_FORCE_LINEAR)
+#if defined(UNITY_COLORSPACE_GAMMA)
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
 #else
