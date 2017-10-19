@@ -53,12 +53,6 @@ inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out Sur
     outSurfaceData.emission = EmissionLW(uv);
     outSurfaceData.emission += IN.fogFactorAndVertexLight.yzw;
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
-
-#if LIGHTMAP_ON
-    outSurfaceData.ambient = half4(0.0h, 0.0h, 0.0h, 0.0h);
-#else
-    outSurfaceData.ambient = half4(IN.ambientOrLightmapUV);
-#endif
 }
 
 void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
@@ -113,8 +107,11 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.ambientOrLightmapUV.xy = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
     // TODO: Dynamic Lightmap
     o.ambientOrLightmapUV.zw = float2(0.0, 0.0);
-#else
-    o.ambientOrLightmapUV = half4(SHEvalLinearL2(half4(normal, 1.0)), 0.0h);
+
+    // TODO: Currently there's no way to pass in ambient contribution to fragmentPBR.
+    // We should allow to create custom ambient computation for things like SH evaluation, lightmap, ambient color etc.
+//#else
+//    o.ambientOrLightmapUV = half4(SHEvalLinearL2(half4(normal, 1.0)), 0.0h);
 #endif
 
     o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
@@ -147,7 +144,7 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     SurfaceInput surfaceInput;
     InitializeSurfaceInput(IN, surfaceInput);
 
-    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, surfaceInput.normalWS, surfaceInput.tangentWS, surfaceInput.bitangentWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.normal, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha, surfaceData.ambient);
+    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, surfaceInput.normalWS, surfaceInput.tangentWS, surfaceInput.bitangentWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.normal, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
@@ -187,7 +184,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 #if defined(LIGHTMAP_ON)
     half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.ambientOrLightmapUV.xy)) * diffuse;
 #else
-    half3 color = (SHEvalLinearL0L1(half4(normalWorld, 1.0)) + IN.ambientOrLightmapUV.xyz) * diffuse;
+    half3 color = (ShadeSH9(half4(normalWorld, 1.0)) + IN.ambientOrLightmapUV.xyz) * diffuse;
 #endif
 
     LightInput lightInput;

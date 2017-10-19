@@ -42,7 +42,6 @@ struct SurfaceData
     half3 emission;
     half  occlusion;
     half  alpha;
-    half3 ambient;
 };
 
 struct SurfaceInput
@@ -75,7 +74,6 @@ inline void InitializeSurfaceData(out SurfaceData outSurfaceData)
     outSurfaceData.occlusion = 1.0h;
     outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
     outSurfaceData.alpha = 1.0h;
-    outSurfaceData.ambient = half3(0.0h, 0.0h, 0.0h);
 }
 
 half SpecularReflectivity(half3 specular)
@@ -169,17 +167,15 @@ half3 LightweightBRDFIndirect(BRDFData brdfData, UnityIndirect indirect, half ro
     return c;
 }
 
-UnityIndirect LightweightGI(float4 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
+UnityIndirect LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
 {
     UnityIndirect o = (UnityIndirect)0;
-#ifdef LIGHTMAP_ON
-    ambientColor += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy)));
-#else
-    ambientColor += SHEvalLinearL0L1(half4(normalWorld, 1.0));
-    ambientColor = max(half3(0.0, 0.0, 0.0), ambientColor);
-#endif
 
-    o.diffuse = ambientColor * occlusion;
+#ifdef LIGHTMAP_ON
+    o.diffuse += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy))) * occlusion;
+#else
+    o.diffuse = ShadeSH9(half4(normalWorld, 1.0)) * occlusion;
+#endif
 
 #ifndef _GLOSSYREFLECTIONS_OFF
     Unity_GlossyEnvironmentData g;
@@ -264,7 +260,7 @@ inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 l
 
 half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS, half3 tangentWS, half3 bitangentWS,
     half3 viewDirectionWS, half fogFactor, half3 albedo, half metallic, half3 specular, half smoothness,
-    half3 normalTS, half ambientOcclusion, half3 emission, half alpha, half3 ambient)
+    half3 normalTS, half ambientOcclusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
@@ -278,7 +274,7 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
 
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, ambient, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness);
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness);
 
     // PBS
     half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
