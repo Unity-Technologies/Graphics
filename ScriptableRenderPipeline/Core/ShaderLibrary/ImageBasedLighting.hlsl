@@ -78,7 +78,6 @@ float3 ComputeGrainNormal(float3 grainDir, float3 V)
 float3 GetAnisotropicModifiedNormal(float3 grainDir, float3 N, float3 V, float anisotropy)
 {
     float3 grainNormal = ComputeGrainNormal(grainDir, V);
-    // TODO: test whether normalizing 'grainNormal' is worth it.
     return normalize(lerp(N, grainNormal, anisotropy));
 }
 
