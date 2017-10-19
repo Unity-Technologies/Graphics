@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Experimental.UIElements;
 using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
+using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -15,6 +17,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public MaterialGraphView()
         {
+            focusIndex = 0;
+
             RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());
@@ -165,5 +169,66 @@ namespace UnityEditor.MaterialGraph.Drawing
             base.ClearSelection();
             PropagateSelection();
         }
+
+        protected override string SerializeCopyPasteData(IEnumerable<GraphElement> elements)
+        {
+            var graph = CreateCopyPasteGraph(elements);
+            return JsonUtility.ToJson(graph, true);
+        }
+
+        protected override bool CanPasteSerializedData(string serializedData)
+        {
+            return DeserializeCopyBuffer(serializedData) != null;
+        }
+
+        protected override void UnserializeAndPasteOperation(string operationName, string serializedData)
+        {
+            var mgp = GetPresenter<MaterialGraphPresenter>();
+            mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
+            var pastedGraph = DeserializeCopyBuffer(serializedData);
+            mgp.InsertCopyPasteGraph(pastedGraph);
+        }
+
+        protected override void DeleteSelectionOperation(string operationName)
+        {
+            var mgp = GetPresenter<MaterialGraphPresenter>();
+            mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
+            mgp.RemoveElements(selection.OfType<MaterialNodeView>(), selection.OfType<Edge>());
+        }
+
+        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
+        {
+            var graph = new CopyPasteGraph();
+            foreach (var element in selection)
+            {
+                var nodeView = element as MaterialNodeView;
+                if (nodeView != null)
+                {
+                    graph.AddNode(nodeView.node);
+                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
+                        graph.AddEdge(edge);
+                }
+
+                var edgeView = element as Edge;
+                if (edgeView != null)
+                    graph.AddEdge(edgeView.userData as IEdge);
+            }
+            return graph;
+        }
+
+        internal static CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
+        {
+            try
+            {
+                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
+            }
+            catch
+            {
+                // ignored. just means copy buffer was not a graph :(
+                return null;
+            }
+        }
+
+
     }
 }

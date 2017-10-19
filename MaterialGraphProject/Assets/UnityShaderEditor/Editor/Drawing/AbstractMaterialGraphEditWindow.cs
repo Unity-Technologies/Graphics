@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -97,6 +98,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
                     m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+                    m_GraphEditorView.RegisterCallback<AttachToPanelEvent, GraphEditorView>(OnEnterPanel, m_GraphEditorView);
+                    m_GraphEditorView.RegisterCallback<DetachFromPanelEvent, GraphEditorView>(OnLeavePanel, m_GraphEditorView);
+
                     rootVisualContainer.Add(graphEditorView);
                 }
             }
@@ -146,53 +150,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             Undo.ClearUndo(graphObject);
             DestroyImmediate(graphObject);
             graphEditorView = null;
-        }
-
-        void OnGUI()
-        {
-            if (graphEditorView == null)
-                return;
-
-            var presenter = graphEditorView.graphPresenter;
-            var e = Event.current;
-
-            if (e.type == EventType.ValidateCommand && (
-                    e.commandName == "Copy" && presenter.canCopy
-                    || e.commandName == "Paste" && presenter.canPaste
-                    || e.commandName == "Duplicate" && presenter.canDuplicate
-                    || e.commandName == "Cut" && presenter.canCut
-                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
-            {
-                e.Use();
-            }
-
-            if (e.type == EventType.ExecuteCommand)
-            {
-                if (e.commandName == "Copy")
-                    presenter.Copy();
-                if (e.commandName == "Paste")
-                    presenter.Paste();
-                if (e.commandName == "Duplicate")
-                    presenter.Duplicate();
-                if (e.commandName == "Cut")
-                    presenter.Cut();
-                if (e.commandName == "Delete" || e.commandName == "SoftDelete")
-                    presenter.Delete();
-            }
-
-            if (e.type == EventType.KeyDown)
-            {
-                if (e.keyCode == KeyCode.A)
-                    graphEditorView.graphView.FrameAll();
-                if (e.keyCode == KeyCode.F)
-                    graphEditorView.graphView.FrameSelection();
-                if (e.keyCode == KeyCode.O)
-                    graphEditorView.graphView.FrameOrigin();
-                if (e.keyCode == KeyCode.Tab)
-                    graphEditorView.graphView.FrameNext();
-                if (e.keyCode == KeyCode.Tab && e.modifiers == EventModifiers.Shift)
-                    graphEditorView.graphView.FramePrev();
-            }
         }
 
         public override void PingAsset()
@@ -252,7 +209,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
             }
 
-            var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(filtered)));
+            var deserialized = MaterialGraphView.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphView.CreateCopyPasteGraph(filtered)));
 
             if (deserialized == null)
                 return;
@@ -460,6 +417,18 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             graphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
             graphEditorView.graphView.FrameAll();
+        }
+
+        void OnEnterPanel(AttachToPanelEvent e, GraphEditorView view)
+        {
+            VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualContainer.parent.AddManipulator(view.shortcutHandler);
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e, GraphEditorView view)
+        {
+            VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
+            rootVisualContainer.parent.RemoveManipulator(view.shortcutHandler);
         }
     }
 }
