@@ -131,8 +131,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Preview = previewSystem.GetPreview(inNode);
             m_Preview.onPreviewChanged += OnPreviewChanged;
 
-            node.onReplaced += OnReplaced;
-
             // From OnDataChange()
 
             m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
