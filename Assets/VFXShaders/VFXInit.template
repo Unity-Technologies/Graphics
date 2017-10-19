@@ -3,6 +3,7 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 RWByteAddressBuffer attributeBuffer;
+ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
     uint nbSpawned;		// Numbers of particle spawned
