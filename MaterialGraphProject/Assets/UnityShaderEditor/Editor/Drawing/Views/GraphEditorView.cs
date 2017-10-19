@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.MaterialGraph.Drawing;
@@ -7,7 +8,6 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Graphing;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -17,6 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
+        ToolbarButtonView m_CopyToClipboardButton;
 
         PreviewSystem m_PreviewSystem;
 
@@ -106,6 +107,21 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_TimeButton.text = "Preview rate: " + previewRate;
                 }));
                 m_ToolbarView.Add(m_TimeButton);
+
+                m_ToolbarView.Add(new ToolbarSeparatorView());
+
+                m_CopyToClipboardButton = new ToolbarButtonView() { text = "Copy shader to clipboard" };
+                m_CopyToClipboardButton.AddManipulator(new Clickable(() =>
+                    {
+                        AbstractMaterialNode masterNode = graph.GetNodes<MasterNode>().First();
+                        var textureInfo = new List<PropertyCollector.TextureInfo>();
+                        PreviewMode previewMode;
+                        string shader = graph.GetShader(masterNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode);
+                        GUIUtility.systemCopyBuffer = shader;
+                    }
+                ));
+
+                m_ToolbarView.Add(m_CopyToClipboardButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
             }
