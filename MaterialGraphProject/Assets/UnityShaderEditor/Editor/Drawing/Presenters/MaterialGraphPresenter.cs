@@ -20,9 +20,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public IGraph graph { get; private set; }
 
-        protected MaterialGraphPresenter()
-        {
-        }
+        protected MaterialGraphPresenter() { }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
         {
@@ -106,7 +104,21 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnChange(GraphChange change)
         {
-            change.Match(NodeAdded, NodeRemoved, EdgeAdded, EdgeRemoved);
+            var nodeAdded = change as NodeAddedGraphChange;
+            if (nodeAdded != null)
+                NodeAdded(nodeAdded);
+
+            var nodeRemoved = change as NodeRemovedGraphChange;
+            if (nodeRemoved != null)
+                NodeRemoved(nodeRemoved);
+
+            var edgeAdded = change as EdgeAddedGraphChange;
+            if (edgeAdded != null)
+                EdgeAdded(edgeAdded);
+
+            var edgeRemoved = change as EdgeRemovedGraphChange;
+            if (edgeRemoved != null)
+                EdgeRemoved(edgeRemoved);
         }
 
         void NodeAdded(NodeAddedGraphChange change)
