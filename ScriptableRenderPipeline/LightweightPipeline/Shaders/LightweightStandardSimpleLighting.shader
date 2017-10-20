@@ -78,7 +78,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple
-            #include "UnityStandardInput.cginc"
             #include "LightweightPassLit.cginc"
             ENDCG
         }
@@ -133,8 +132,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             CGPROGRAM
             #define UNITY_SETUP_BRDF_INPUT SpecularSetup
-            #pragma vertex vert_meta
-            #pragma fragment frag_meta_ld
+            #pragma vertex LightweightVertexMeta
+            #pragma fragment LightweightFragmentMeta
 
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
@@ -142,15 +141,42 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature ___ _DETAIL_MULX2
             #pragma shader_feature EDITOR_VISUALIZATION
 
-            #include "UnityStandardMeta.cginc"
             #include "LightweightPassLit.cginc"
+            #include "UnityMetaPass.cginc"
 
-            fixed4 frag_meta_ld(v2f_meta i) : SV_Target
+            struct MetaVertexInput
+            {
+                float4 vertex   : POSITION;
+                half3 normal    : NORMAL;
+                float2 uv0      : TEXCOORD0;
+                float2 uv1      : TEXCOORD1;
+                float2 uv2      : TEXCOORD2;
+#ifdef _TANGENT_TO_WORLD
+                half4 tangent   : TANGENT;
+#endif
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct MetaVertexOuput
+            {
+                float4 pos      : SV_POSITION;
+                float2 uv       : TEXCOORD0;
+            };
+
+            MetaVertexOuput LightweightVertexMeta(MetaVertexInput v)
+            {
+                MetaVertexOuput o;
+                o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+                o.uv = TRANSFORM_TEX(v.uv0, _MainTex);
+                return o;
+            }
+
+            fixed4 LightweightFragmentMeta(MetaVertexOuput i) : SV_Target
             {
                 UnityMetaInput o;
                 UNITY_INITIALIZE_OUTPUT(UnityMetaInput, o);
 
-                o.Albedo = Albedo(i.uv);
+                o.Albedo = _Color.rgb * tex2D(_MainTex, i.uv).rgb;
 
                 half4 specularColor;
                 SpecularGloss(i.uv.xy, 1.0, specularColor);

@@ -7,6 +7,10 @@
 #define PI 3.14159265359f
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
+#ifndef UNITY_SPECCUBE_LOD_STEPS
+#define UNITY_SPECCUBE_LOD_STEPS 6
+#endif
+
 // Main light initialized without indexing
 #define INITIALIZE_MAIN_LIGHT(light) \
     light.pos = _MainLightPosition; \
@@ -28,7 +32,6 @@ CBUFFER_START(_PerObject)
 half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
 half4 unity_4LightIndices1;
-half _Shininess;
 CBUFFER_END
 
 CBUFFER_START(_PerCamera)
@@ -100,6 +103,15 @@ half SpecularReflectivity(half3 specular)
 #endif
 }
 
+half3 GlossyEnvironment(UNITY_ARGS_TEXCUBE(tex), half4 hdr, half perceptualRoughness, half3 reflectVec)
+{
+    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+    half mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(tex, reflectVec, mip);
+
+    return DecodeHDR(rgbm, hdr);
+}
+
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
 {
     // BRDF SETUP
@@ -141,7 +153,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDirection, half3 viewDir)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
-    half3 halfDir = Unity_SafeNormalize(lightDirection + viewDir);
+    half3 halfDir = SafeNormalize(lightDirection + viewDir);
 
     half NoH = saturate(dot(normal, halfDir));
     half LoH = saturate(dot(lightDirection, halfDir));
@@ -172,34 +184,28 @@ half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 li
 #endif
 }
 
-half3 LightweightBRDFIndirect(BRDFData brdfData, UnityIndirect indirect, half roughness2, half fresnelTerm)
+half3 LightweightBRDFIndirect(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
 {
-    half3 c = indirect.diffuse * brdfData.diffuse;
+    half3 c = indirectDiffuse * brdfData.diffuse;
     float surfaceReduction = 1.0 / (roughness2 + 1.0);
-    c += surfaceReduction * indirect.specular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
+    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
     return c;
 }
 
-UnityIndirect LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
+void LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness, out half3 indirectDiffuse, out half3 indirectSpecular)
 {
-    UnityIndirect o = (UnityIndirect)0;
-
 #ifdef LIGHTMAP_ON
-    o.diffuse += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy))) * occlusion;
+    indirectDiffuse = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy))) * occlusion;
 #else
-    o.diffuse = ShadeSH9(half4(normalWorld, 1.0)) * occlusion;
+    indirectDiffuse = ShadeSH9(half4(normalWorld, 1.0)) * occlusion;
 #endif
 
 #ifndef _GLOSSYREFLECTIONS_OFF
-    Unity_GlossyEnvironmentData g;
-    g.roughness = perceptualRoughness;
-    g.reflUVW = reflectVec;
-    o.specular = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, g) * occlusion;
+    indirectSpecular = GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, perceptualRoughness, reflectVec);
+    indirectSpecular *= occlusion;
 #else
-    o.specular = _GlossyEnvironmentColor * occlusion;
+    indirectSpecular = _GlossyEnvironmentColor * occlusion;
 #endif
-
-    return o;
 }
 
 half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
@@ -267,14 +273,14 @@ inline half3 LightingLambert(half3 diffuseColor, half3 lightDir, half3 normal, h
     return diffuseColor * (NdotL * atten);
 }
 
-inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 lightDir, half3 normal, half3 viewDir, half atten)
+inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 lightDir, half3 normal, half3 viewDir, half atten, half shininess)
 {
     half NdotL = saturate(dot(normal, lightDir));
     half3 diffuse = diffuseColor * NdotL;
 
     half3 halfVec = normalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
-    half3 specular = specularGloss.rgb * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
+    half3 specular = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
     return (diffuse + specular) * atten;
 }
 
@@ -294,11 +300,13 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
 
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    UnityIndirect indirectLight = LightweightGI(lightmapUV, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness);
+    half3 indirectDiffuse;
+    half3 indirectSpecular;
+    LightweightGI(lightmapUV, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness, indirectDiffuse, indirectSpecular);
 
     // PBS
     half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
-    half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
+    half3 color = LightweightBRDFIndirect(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
     half3 lightDirectionWS;
 
     LightInput light;
