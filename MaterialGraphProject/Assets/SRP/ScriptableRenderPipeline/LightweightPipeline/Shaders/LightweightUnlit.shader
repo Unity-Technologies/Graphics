@@ -1,9 +1,9 @@
-﻿Shader "ScriptableRenderPipeline/LightweightPipeline/Unlit"
+﻿Shader "LightweightPipeline/Unlit"
 {
     Properties
     {
         _MainTex("Texture", 2D) = "white" {}
-        _Color("Color", Color) = (1, 1, 1, 1)
+        _MainColor("MainColor", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
         // BlendMode
@@ -23,29 +23,64 @@
         Pass
         {
             CGPROGRAM
-            
+            #pragma vertex vert
+            #pragma fragment frag
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile_fog
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
 
             #include "UnityCG.cginc"
-			#include "CGIncludes/LightweightUnlit.cginc"
 
-			#pragma vertex LightweightVertexUnlit
-            #pragma fragment LightweightFragmentUnlit
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
 
-			void DefineSurface(LightweightVertexOutputUnlit i, inout SurfaceUnlit s)
-			{
-				// Albedo
-				float4 c = tex2D(_MainTex, i.meshUV0);
-				s.Color = c.rgb * _Color.rgb;
-				// Alpha
-				s.Alpha = c.a * _Color.a;
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                UNITY_FOG_COORDS(1)
+                float4 vertex : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            half4 _MainColor;
+            half _Cutoff;
+
+            v2f vert(appdata v)
+            {
+                v2f o;
+
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                UNITY_TRANSFER_FOG(o,o.vertex);
+                return o;
+            }
+
+            fixed4 frag(v2f i) : SV_Target
+            {
+                fixed4 texColor = tex2D(_MainTex, i.uv);
+                fixed alpha = texColor.a * _MainColor.a;
+                fixed3 color = texColor.rgb * _MainColor.rgb;
+
 #ifdef _ALPHATEST_ON
-				clip(s.Alpha - _Cutoff);
+                clip(alpha - _Cutoff);
 #endif
-			}
-            
+                UNITY_APPLY_FOG(i.fogCoord, color);
+
+#ifdef _ALPHABLEND_ON
+                return fixed4(color, alpha);
+#else
+                return fixed4(color, 1.0);
+#endif
+            }
             ENDCG
         }
     }

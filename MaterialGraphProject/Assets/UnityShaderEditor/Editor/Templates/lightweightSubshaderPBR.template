@@ -16,25 +16,24 @@ SubShader
 		CGPROGRAM
 		#pragma target 3.0
 		
-		#pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
-		#pragma multi_compile _ LIGHTWEIGHT_LINEAR
-		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-		#pragma multi_compile _ LIGHTMAP_ON
-		#pragma multi_compile _ _LIGHT_PROBES_ON
-		#pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
-		#pragma multi_compile _ _VERTEX_LIGHTS
-		#pragma multi_compile_fog
-		#pragma multi_compile_instancing
+        #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
+        #pragma multi_compile _ _ADDITIONAL_LIGHTS
+        #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+        #pragma multi_compile _ LIGHTMAP_ON
+        #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
+        #pragma multi_compile _ _VERTEX_LIGHTS
 
+        #pragma multi_compile_fog
+        #pragma multi_compile_instancing
         #pragma vertex vert
 		#pragma fragment frag
+		
 		#pragma glsl
 		#pragma debug
 		
 		${Defines}
 
-		#include "UnityCG.cginc"
-		#include "CGIncludes/LightweightPBR.cginc"
+		#include "LightweightLighting.cginc"
 		
 		struct GraphVertexOutput
         {
@@ -116,14 +115,14 @@ SubShader
            	Emission = Emission * Emission;
 #endif
 
-			return FragmentLightingPBR(
+			return LightweightFragmentPBR(
 				IN.lwCustom,
 				worldSpacePosition,
 				worldSpaceNormal,
 				worldSpaceTangent,
 				worldSpaceBiTangent,
 				worldSpaceViewDirection,
-				IN.fogCoord, 
+				IN.fogCoord.x, 
 				
 				Albedo,
 				Metallic,
@@ -139,30 +138,43 @@ SubShader
 	}
 	
 	Pass
-	{
-		Tags{"Lightmode" = "ShadowCaster"}
-		ZWrite On ZTest LEqual
+    {
+        Tags{"Lightmode" = "ShadowCaster"}
 
-		CGPROGRAM
-		#pragma target 2.0
-		#include "UnityCG.cginc"
-		#include "CGIncludes/LightweightPass.cginc"
-		#pragma vertex shadowVert
-		#pragma fragment shadowFrag
-		ENDCG
-	}
+        ZWrite On ZTest LEqual
 
-	Pass
-	{
-		Tags{"Lightmode" = "DepthOnly"}
-		ZWrite On
+        CGPROGRAM
+        #pragma target 2.0
+        #pragma vertex ShadowPassVertex
+        #pragma fragment ShadowPassFragment
 
-		CGPROGRAM
-		#pragma target 2.0
-		#include "UnityCG.cginc"
-		#include "CGIncludes/LightweightPass.cginc"
-		#pragma vertex depthVert
-		#pragma fragment depthFrag
-		ENDCG
-	}
+        #include "UnityCG.cginc"
+        #include "LightweightPassShadow.cginc"
+        ENDCG
+    }
+
+    Pass
+    {
+        Tags{"Lightmode" = "DepthOnly"}
+
+        ZWrite On
+
+        CGPROGRAM
+        #pragma target 2.0
+        #pragma vertex vert
+        #pragma fragment frag
+
+        #include "UnityCG.cginc"
+
+        float4 vert(float4 pos : POSITION) : SV_POSITION
+        {
+            return UnityObjectToClipPos(pos);
+        }
+
+        half4 frag() : SV_TARGET
+        {
+            return 0;
+        }
+        ENDCG
+    }
 }
