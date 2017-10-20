@@ -6,7 +6,7 @@
 void DoAlphaTest(float alpha, float alphaCutoff)
 {
     // Don't do the clip when rendering forward opaque (unlit). Forward opaque always have a prepass (with depth test on)
-#if !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && defined(SURFACE_TYPE_OPAQUE))
+#if !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT))
     clip(alpha - alphaCutoff);
 #endif
 }
@@ -36,7 +36,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.velocity = float2(0.0, 0.0);
 
-#if (SHADERPASS == SHADERPASS_DISTORTION)
+#if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;

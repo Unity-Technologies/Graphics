@@ -39,7 +39,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.debugFullScreenShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader");
 
             instance.deferredShader = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader");
-            instance.screenSpaceAmbientOcclusionShader = Load<Shader>(HDRenderPipelinePath + "Lighting/AmbientOcclusion/ScreenSpaceAmbientOcclusion.Shader");
             instance.subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/Lit/Resources/SubsurfaceScattering.compute");
             instance.volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/Resources/VolumetricLighting.compute");
             instance.gaussianPyramidCS = Load<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
@@ -70,6 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             instance.buildProbabilityTables = Load<ComputeShader>(HDRenderPipelinePath + "Sky/BuildProbabilityTables.compute");
             instance.computeGgxIblSampleData = Load<ComputeShader>(HDRenderPipelinePath + "Sky/ComputeGgxIblSampleData.compute");
             instance.GGXConvolve = Load<Shader>(HDRenderPipelinePath + "Sky/GGXConvolve.shader");
+            instance.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Sky/OpaqueAtmosphericScattering.shader");
 
             // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
             instance.skyboxCubemap = Shader.Find("Skybox/Cubemap");

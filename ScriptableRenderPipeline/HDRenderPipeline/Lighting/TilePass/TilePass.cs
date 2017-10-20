@@ -1073,12 +1073,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
                 envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-                envLightData.envShapeType = EnvShapeType.None;
-
                 // TODO: Support sphere influence in UI
-                if (probe.boxProjection != 0)
+                if (probe.boxProjection == 0)
                 {
                     envLightData.envShapeType = EnvShapeType.Box;
+                    // If user request to have no projection, then setup a high number for minProjectionDistance
+                    // this will mimic infinite shape projection
+                    envLightData.minProjectionDistance = 65504.0f;
+                }
+                else
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    envLightData.minProjectionDistance = 0.0f;
                 }
 
                 // remove scale from the matrix (Scale in this matrix is use to scale the widget)
@@ -2041,7 +2047,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
                             Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
                             int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
-                            float ambientOcclusionDirectLightStrenght = Shader.GetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght);
+                            Vector4 ambientOcclusionParam = Shader.GetGlobalVector(HDShaderIDs._AmbientOcclusionParam);
 
                             int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
                             int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
@@ -2053,6 +2059,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                             Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+                            float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
                             for (int variant = 0; variant < numVariants; variant++)
                             {
@@ -2115,9 +2122,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._CosTime, cosTime);
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs.unity_DeltaTime, unity_DeltaTime);
                                 cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._EnvLightSkyEnabled, envLightSkyEnabled);
-                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionDirectLightStrenght, ambientOcclusionDirectLightStrenght);
+                                cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
+                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                                 // Set SSS parameters.
                                 cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);

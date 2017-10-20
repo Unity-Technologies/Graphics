@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/ScriptableRenderPipeline/HDRenderPipeline/Material/Lit/Lit.cs.  Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand.
 //
 
 #ifndef LIT_CS_HLSL
@@ -59,13 +59,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_IOR (1016)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1017)
 #define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1018)
-
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+TransmissionType:  static fields
-//
-#define TRANSMISSIONTYPE_NONE (0)
-#define TRANSMISSIONTYPE_REGULAR (1)
-#define TRANSMISSIONTYPE_THIN_OBJECT (2)
+#define DEBUGVIEW_LIT_SURFACEDATA_REFRACTION_MASK (1019)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
@@ -93,6 +87,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1050)
 #define DEBUGVIEW_LIT_BSDFDATA_IOR (1051)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1052)
+#define DEBUGVIEW_LIT_BSDFDATA_REFRACTION_MASK (1053)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -122,6 +117,7 @@ struct SurfaceData
     float ior;
     float3 transmittanceColor;
     float atDistance;
+    float refractionMask;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
@@ -151,6 +147,7 @@ struct BSDFData
     float coatIOR;
     float ior;
     float3 absorptionCoefficient;
+    float refractionMask;
 };
 
 //
@@ -218,6 +215,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE:
             result = surfacedata.atDistance.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_REFRACTION_MASK:
+            result = surfacedata.refractionMask.xxx;
             break;
     }
 }
@@ -298,6 +298,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
             result = bsdfdata.absorptionCoefficient;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_REFRACTION_MASK:
+            result = bsdfdata.refractionMask.xxx;
             break;
     }
 }

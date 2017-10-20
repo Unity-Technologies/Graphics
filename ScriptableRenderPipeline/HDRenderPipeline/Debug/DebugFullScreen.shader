@@ -107,10 +107,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
                 }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAOBEFORE_FILTERING)
-                {
-                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
-                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                 #if UNITY_UV_STARTS_AT_TOP
@@ -182,6 +178,17 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
                     return float4(color.rgb, 0.0);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
+                    || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
+                {
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+                    return float4(color.rgb, 1.0);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
+                {
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+                    return float4(color.rrr / (color.rrr + 1), 1.0);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

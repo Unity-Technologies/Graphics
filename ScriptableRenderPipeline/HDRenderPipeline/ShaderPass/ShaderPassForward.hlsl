@@ -1,4 +1,4 @@
-﻿#if SHADERPASS != SHADERPASS_FORWARD
+#if SHADERPASS != SHADERPASS_FORWARD
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -53,13 +53,14 @@ void Frag(PackedVaryingsToPS packedInput,
     if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
 #endif
     {
-    uint featureFlags = 0xFFFFFFFF;
-    float3 diffuseLighting;
-    float3 specularLighting;
-    float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
+        uint featureFlags = 0xFFFFFFFF;
+        float3 diffuseLighting;
+        float3 specularLighting;
+        float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
+        LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
-    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+        outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, outColor);
     }
 
 #ifdef _DEPTHOFFSET_ON
@@ -67,6 +68,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef DEBUG_DISPLAY
+    // Same code in ShaderPassForwardUnlit.shader
     if (_DebugViewMaterial != 0)
     {
         float3 result = float3(1.0, 0.0, 1.0);

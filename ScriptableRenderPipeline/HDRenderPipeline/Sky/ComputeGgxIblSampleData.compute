@@ -16,9 +16,10 @@ RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 [numthreads(MAX_IBL_SAMPLE_CNT, UNITY_SPECCUBE_LOD_STEPS, 1)]
 void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 {
-    uint sampleIndex = groupThreadId.x;
-    uint mipLevel    = groupThreadId.y + 1;
-    uint sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
+    uint  sampleIndex = groupThreadId.x;
+    uint  mipLevel    = groupThreadId.y + 1;
+    float roughness   = PerceptualRoughnessToRoughness(MipmapLevelToPerceptualRoughness(mipLevel));
+    uint  sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
 
     if (sampleIndex >= sampleCount)
     {
@@ -26,28 +27,48 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
         return;
     }
 
-    float perceptualRoughness = MipmapLevelToPerceptualRoughness(mipLevel);
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-
-    float bias = 0.5 * roughness;
-
-    float2 u = Fibonacci2d(sampleIndex, sampleCount);
-    u.x = lerp(u.x, 0, bias);
+    float3 V     = float3(0, 0, 1);
+    float  NdotV = 1;
 
     float3 localL;
-    float  NdotL, NdotH, VdotH;
+    float  NdotL, NdotH, LdotH;
 
-    SampleGGXDir(u, float3(0, 0, 1), k_identity3x3, roughness, localL, NdotL, NdotH, VdotH, true);
+    const int validSampleCount = sampleCount;
 
-    if (NdotL <= 0)
+    while (true)
     {
-        // We are not supposed to generate wasteful samples.
-        output[groupThreadId.xy] = float4(0, 0, 0, 0);
-        return;
+        int acceptedSampleCount = 0;
+        int shiftedSampleIndex  = 0;
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            // We switch to the Golden sequence instead of the Fibonacci sequence
+            // since the sample count is not guaranteed to be a Fibonacci number.
+            float2 u = Golden2dSeq(i, sampleCount);
+            SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+
+            if (NdotL > 0)
+            {
+                if (acceptedSampleCount == sampleIndex) shiftedSampleIndex = i;
+                acceptedSampleCount++;
+            }
+        }
+
+        if (acceptedSampleCount == validSampleCount)
+        {
+            sampleIndex = shiftedSampleIndex;
+            break;
+        }
+
+        sampleCount++;
     }
 
-    float pdf    = D_GGX(NdotH, roughness) * 0.25;
-    float omegaS = rcp(sampleCount * pdf);
+    float2 u = Golden2dSeq(sampleIndex, sampleCount);
+
+    SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+
+    float pdf    = 0.25 * D_GGX(NdotH, roughness);
+    float omegaS = rcp(sampleCount) * rcp(pdf);
 
     output[groupThreadId.xy] = float4(localL, omegaS);
 }
