@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Gradient")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode
     {
-        Gradient m_Gradient;
+        Gradient m_Gradient = new Gradient();
 
         [SerializeField]
         Vector4[] m_SerializableColorKeys = { new Vector4(1f, 1f, 1f, 0f), new Vector4(0f, 0f, 0f, 1f), };
@@ -96,9 +96,17 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new Vector1MaterialSlot(BOutputSlotId, k_BOutputSlotName, k_BOutputSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(AOutputSlotId, k_AOutputSlotName, k_AOutputSlotName, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { TimeInputSlotId, RGBAOutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId });
+
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
             m_Gradient = new Gradient();
             var colorKeys = m_SerializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();
             var alphaKeys = m_SerializableAlphaKeys.Select(k => new GradientAlphaKey(k.x, k.y)).ToArray();
+            m_SerializableAlphaKeys = null;
+            m_SerializableColorKeys = null;
             m_Gradient.SetKeys(colorKeys, alphaKeys);
         }
 
