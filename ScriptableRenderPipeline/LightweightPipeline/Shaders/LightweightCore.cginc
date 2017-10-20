@@ -13,6 +13,23 @@
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
 #endif
 
+half Pow4(half x)
+{
+    return x * x * x * x;
+}
+
+half LerpOneTo(half b, half t)
+{
+    half oneMinusT = 1 - t;
+    return oneMinusT + b * t;
+}
+
+half3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(1.e-4h, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
 {
     half sign = vertexTangent.w * unity_WorldTransformParams.w;
@@ -57,10 +74,6 @@ void ApplyFog(inout half3 color, half fogFactor)
 
 half4 OutputColor(half3 color, half alpha)
 {
-#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON)
     return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), alpha);
-#else
-    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);
-#endif
 }
 #endif
