@@ -31,6 +31,5 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         public UpgradeBlendMode blendMode;
         public SpecularSource specularSource;
         public GlossinessSource glosinessSource;
-        public ReflectionSource reflectionSource;
     }
 }

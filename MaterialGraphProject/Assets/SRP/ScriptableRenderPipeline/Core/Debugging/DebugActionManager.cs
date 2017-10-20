@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
@@ -184,8 +183,8 @@ namespace UnityEngine.Experimental.Rendering
             persistent.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.MakePersistent, persistent);
 
-            AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f });
-            AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f });
+            AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.4f });
+            AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.4f });
         }
 
         DebugActionManager()
@@ -287,97 +286,25 @@ namespace UnityEngine.Experimental.Rendering
         void RegisterInputs()
         {
 #if UNITY_EDITOR
-            // Grab reference to input manager
-            var currentSelection = UnityEditor.Selection.activeObject;
-            UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Project Settings/Input");
-            var inputManager = UnityEditor.Selection.activeObject;
-
-            // Wrap in serialized object
-            var soInputManager = new UnityEditor.SerializedObject(inputManager);
-            var spAxes = soInputManager.FindProperty("m_Axes");
+            List <InputManagerEntry > inputEntries = new List<InputManagerEntry>();
 
             // Add new bindings
-            new InputManagerEntry { name = kEnableDebugBtn1, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl", altBtnPositive = "joystick button 8" }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kEnableDebugBtn2, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace", altBtnPositive = "joystick button 9" }.WriteEntry(spAxes);
+            inputEntries.Add(new InputManagerEntry { name = kEnableDebugBtn1, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl", altBtnPositive = "joystick button 8" });
+            inputEntries.Add(new InputManagerEntry { name = kEnableDebugBtn2, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace", altBtnPositive = "joystick button 9" });
+            
+            inputEntries.Add(new InputManagerEntry { name = kDebugNextBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page down", altBtnPositive = "joystick button 5" });
+            inputEntries.Add(new InputManagerEntry { name = kDebugPreviousBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up", altBtnPositive = "joystick button 4" });
 
-            new InputManagerEntry { name = kDebugNextBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page down", altBtnPositive = "joystick button 5" }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kDebugPreviousBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up", altBtnPositive = "joystick button 4" }.WriteEntry(spAxes);
+            inputEntries.Add(new InputManagerEntry { name = kDPadHorizontal, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right", btnNegative = "left", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+            inputEntries.Add(new InputManagerEntry { name = kDPadHorizontal, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Sixth, btnPositive = "right", btnNegative = "left", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+            inputEntries.Add(new InputManagerEntry { name = kDPadVertical, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "up", btnNegative = "down", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+            inputEntries.Add(new InputManagerEntry { name = kDPadVertical, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Seventh, btnPositive = "up", btnNegative = "down", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+            
+            inputEntries.Add(new InputManagerEntry { name = kValidateBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "return", altBtnPositive = "joystick button 0" });
+            inputEntries.Add(new InputManagerEntry { name = kPersistentBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right shift", altBtnPositive = "joystick button 2" });
 
-            new InputManagerEntry { name = kDPadHorizontal, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right", btnNegative = "left", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kDPadHorizontal, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Sixth, btnPositive = "right", btnNegative = "left", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kDPadVertical, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "up", btnNegative = "down", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kDPadVertical, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Seventh, btnPositive = "up", btnNegative = "down", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f }.WriteEntry(spAxes);
-
-            new InputManagerEntry { name = kValidateBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "return", altBtnPositive = "joystick button 0" }.WriteEntry(spAxes);
-            new InputManagerEntry { name = kPersistentBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right shift", altBtnPositive = "joystick button 2" }.WriteEntry(spAxes);
-
-            // Commit
-            soInputManager.ApplyModifiedProperties();
-
-            UnityEditor.Selection.activeObject = currentSelection;
+            InputRegistering.RegisterInputs(inputEntries);
 #endif
         }
-
-
-#if UNITY_EDITOR
-        class InputManagerEntry
-        {
-            public enum Kind { KeyOrButton, Mouse, Axis }
-            public enum Axis { X, Y, Third, Fourth, Fifth, Sixth, Seventh, Eigth }
-            public enum Joy { All, First, Second }
-
-            public string	name = "";
-            public string	desc = "";
-            public string	btnNegative = "";
-            public string	btnPositive = "";
-            public string	altBtnNegative = "";
-            public string	altBtnPositive = "";
-            public float	gravity = 0.0f;
-            public float	deadZone = 0.0f;
-            public float	sensitivity = 0.0f;
-            public bool		snap = false;
-            public bool		invert = false;
-            public Kind		kind = Kind.Axis;
-            public Axis		axis = Axis.X;
-            public Joy		joystick = Joy.All;
-
-            bool InputAlreadyRegistered(string name, Kind kind, UnityEditor.SerializedProperty spAxes)
-            {
-                for (var i = 0; i < spAxes.arraySize; ++i )
-                {
-                    var spAxis = spAxes.GetArrayElementAtIndex(i);
-                    var axisName = spAxis.FindPropertyRelative("m_Name").stringValue;
-                    var kindValue = spAxis.FindPropertyRelative("type").intValue;
-                    if (axisName == name && (int)kind == kindValue)
-                        return true;
-                }
-
-                return false;
-            }
-
-            public void WriteEntry(UnityEditor.SerializedProperty spAxes)
-            {
-                if(InputAlreadyRegistered(name, kind, spAxes))
-                    return;
-
-                spAxes.InsertArrayElementAtIndex(spAxes.arraySize);
-                var spAxis = spAxes.GetArrayElementAtIndex(spAxes.arraySize - 1);
-                spAxis.FindPropertyRelative("m_Name").stringValue = name;
-                spAxis.FindPropertyRelative("descriptiveName").stringValue = desc;
-                spAxis.FindPropertyRelative("negativeButton").stringValue = btnNegative;
-                spAxis.FindPropertyRelative("altNegativeButton").stringValue = altBtnNegative;
-                spAxis.FindPropertyRelative("positiveButton").stringValue = btnPositive;
-                spAxis.FindPropertyRelative("altPositiveButton").stringValue = altBtnPositive;
-                spAxis.FindPropertyRelative("gravity").floatValue = gravity;
-                spAxis.FindPropertyRelative("dead").floatValue = deadZone;
-                spAxis.FindPropertyRelative("sensitivity").floatValue = sensitivity;
-                spAxis.FindPropertyRelative("snap").boolValue = snap;
-                spAxis.FindPropertyRelative("invert").boolValue = invert;
-                spAxis.FindPropertyRelative("type").intValue = (int)kind;
-                spAxis.FindPropertyRelative("axis").intValue = (int)axis;
-                spAxis.FindPropertyRelative("joyNum").intValue = (int)joystick;
-            }
-        }
-#endif
     }
 }

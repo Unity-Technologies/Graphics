@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -105,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering
             if(m_DebugMenuState != null && m_DebugMenuStateDirty)
             {
                 m_DebugMenuStateDirty = false;
-                m_DebugMenuState.UpdateAllDebugItems();
+                m_DebugMenuState.ReInitializeDebugItemStates();
             }
 
             m_DebugMenuUI.Update();
