@@ -1,0 +1,28 @@
+﻿using UnityEngine;
+using System.Collections.Generic;
+
+namespace UnityEditor.VFX.Block
+{
+    [VFXInfo(category = "Category")]
+    class %CLASSNAME% : VFXBlock
+    {
+        public override string name { get { return "%CLASSNAME%"; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+		
+
+        public class InputProperties
+        {
+		
+        }
+
+        public override string source
+        {
+            get
+            {
+                string outSource = @"";
+                return outSource;
+            }
+        }
+    }
+}
