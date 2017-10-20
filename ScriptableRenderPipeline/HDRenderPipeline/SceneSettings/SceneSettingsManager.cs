@@ -63,13 +63,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CommonSettingsSingleton.overrideSettings = settings.commonSettings;
                 SkySettingsSingleton.overrideSettings = settings.skySettings;
-                ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings = settings.ssaoSettings;
             }
             else
             {
                 CommonSettingsSingleton.overrideSettings = null;
                 SkySettingsSingleton.overrideSettings = null;
-                ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings = null;
             }
         }
     }

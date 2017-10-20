@@ -8,9 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: 007_LitShaderMaps_01_BaseWhite
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF
-    _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF
-    _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE _SPECULAR_COLOR
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -149,15 +147,27 @@ Material:
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
+    - _DistortionBlendMode: 0
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 1
+    - _DistortionBlurRemapMax: 1
+    - _DistortionBlurRemapMin: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
+    - _DistortionDstBlend: 1
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DistortionScale: 1
+    - _DistortionSrcBlend: 1
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
+    - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableFogOnTransparent: 1
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _GlossMapScale: 1
@@ -184,6 +194,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
+    - _PreRefractionPass: 0
     - _ReflectionSource: 0
     - _RefractionMode: 0
     - _Shininess: 0.5

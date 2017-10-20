@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/SRP/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Volumetrics/VolumetricLighting.cs.  Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand.
 //
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL

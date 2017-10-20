@@ -55,4 +55,6 @@ MonoBehaviour:
   computeGgxIblSampleData: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445,
     type: 3}
   GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
+  opaqueAtmosphericScattering: {fileID: 4800000, guid: 326059e48e5735e46a98047eff4f0295,
+    type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}

@@ -1,10 +1,10 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
-#include "SubsurfaceScatteringProfile.cs.hlsl"
+#include "SubsurfaceScatteringSettings.cs.hlsl"
 
 // Enables attenuation of light source contributions by participating media (fog).
 #define VOLUMETRIC_SHADOWING_ENABLED
@@ -14,6 +14,9 @@
     #include "../../ShaderVariables.hlsl"
     #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 #endif
+
+// Define refraction keyword helpers
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -46,17 +49,29 @@
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
 
-// Color pyramid (width, height, lodcount, Unused)
-float4 _GaussianPyramidColorMipSize;
-TEXTURE2D(_GaussianPyramidColorTexture);
+// Sampler use by area light, gaussian pyramid, ambient occlusion etc...
+SamplerState s_linear_clamp_sampler;
+SamplerState s_trilinear_clamp_sampler;
 
+// Rough refraction texture
+// Color pyramid (width, height, lodcount, Unused)
+TEXTURE2D(_GaussianPyramidColorTexture);
 // Depth pyramid (width, height, lodcount, Unused)
-float4 _PyramidDepthMipSize;
 TEXTURE2D(_PyramidDepthTexture);
 
-// Area light textures specific constant
-SamplerState ltc_linear_clamp_sampler;
-SamplerState ltc_trilinear_clamp_sampler;
+CBUFFER_START(UnityGaussianPyramidParameters)
+float4 _GaussianPyramidColorMipSize;
+float4 _PyramidDepthMipSize;
+CBUFFER_END
+
+// Ambient occlusion texture
+TEXTURE2D(_AmbientOcclusionTexture);
+
+CBUFFER_START(UnityAmbientOcclusionParameters)
+float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
+CBUFFER_END
+
+// Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
 TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
@@ -67,9 +82,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
-
-// Subsurface scattering specific constant
+// Subsurface scattering constant
 #define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
@@ -86,6 +99,9 @@ float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unu
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
 float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
+
+// General constant
+#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -264,17 +280,14 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float refractionMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
     // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
     bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
-#if defined(_REFRACTION_THINPLANE)
-    bsdfData.thickness = 0.03;
-#else
-    bsdfData.thickness = max(0.000001, thickness);
-#endif
+    bsdfData.refractionMask = refractionMask;
+    bsdfData.thickness = max(thickness, 0.0001);
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -286,7 +299,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, ltc_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -364,9 +377,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         FillMaterialIdClearCoatData(surfaceData.coatNormalWS, surfaceData.coatCoverage, surfaceData.coatIOR, bsdfData);
     }
 
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
-    FillMaterialIdTransparencyData(surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, bsdfData);
+    FillMaterialIdTransparencyData(
+        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.refractionMask,
+        bsdfData);
 #endif
 
     return bsdfData;
@@ -672,13 +687,10 @@ struct PreLightData
     // General
     float NdotV;                         // Geometric version (could be negative)
 
-    // GGX iso
-    float ggxPreLambdaV;
-
-    // GGX Aniso
+    // GGX
+    float partLambdaV;
     float TdotV;
     float BdotV;
-    float anisoGGXPreLambdaV;
 
     // Clear coat
     float coatNdotV;
@@ -749,9 +761,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
                                                                                        // Note we load the matrix transpose (avoid to have to transpose it in shader)
         preLightData.ltcXformClearCoat = 0.0;
         preLightData.ltcXformClearCoat._m22 = 1.0;
-        preLightData.ltcXformClearCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+        preLightData.ltcXformClearCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
-        float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+        float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
         float ltcClearCoatFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
         float ltcClearCoatFresnelMagnitude = ltcMagnitude.g;
         preLightData.ltcClearCoatFresnelTerm = preLightData.coatFresnel0 * ltcClearCoatFresnelMagnitudeDiff + ltcClearCoatFresnelMagnitude;
@@ -771,29 +783,36 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
     float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
-    float3 iblR = reflect(-V, iblNormalWS);
+    float3 iblR;
 
     float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
-    // GGX iso
-    preLightData.ggxPreLambdaV = GetSmithJointGGXPreLambdaV(NdotV, bsdfData.roughness);
-
     // GGX aniso
-    preLightData.TdotV = 0.0;
-    preLightData.BdotV = 0.0;
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
-        preLightData.TdotV = dot(bsdfData.tangentWS, V);
-        preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXPreLambdaV = GetSmithJointGGXAnisoPreLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.TdotV       = dot(bsdfData.tangentWS, V);
+        preLightData.BdotV       = dot(bsdfData.bitangentWS, V);
+        preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+
+        // For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference.
+        // We use a single fetch, and we stretch the normal to use based on various criteria.
+        // result are far away from the reference but better than nothing
         // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
-        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, abs(bsdfData.anisotropy));
-
+        // Reduce stretching for (perceptualRoughness < 0.2).
+        float  stretch = abs(bsdfData.anisotropy) * saturate(5 * bsdfData.perceptualRoughness);
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, stretch);
         iblR = reflect(-V, anisoIblNormalWS);
+    }
+    else // GGX iso
+    {
+        preLightData.TdotV       = 0;
+        preLightData.BdotV       = 0;
+        preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughness);
+        iblR                     = reflect(-V, iblNormalWS);
     }
 
     // IBL
@@ -811,8 +830,24 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
     else
     {
-        preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, bsdfData.roughness, NdotV);
-        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+        // Note: this is a ad-hoc tweak.
+        float iblRoughness, iblPerceptualRoughness;
+
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+        {
+            // Use the min roughness, and bias it for higher values of anisotropy and roughness.
+            float roughnessBias    = 0.075 * bsdfData.anisotropy * bsdfData.roughness;
+            iblRoughness           = saturate(min(bsdfData.roughnessT, bsdfData.roughnessB) + roughnessBias);
+            iblPerceptualRoughness = RoughnessToPerceptualRoughness(iblRoughness);
+        }
+        else
+        {
+            iblRoughness           = bsdfData.roughness;
+            iblPerceptualRoughness = bsdfData.perceptualRoughness;
+        }
+
+        preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, iblRoughness, NdotV);
+        preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }
 
     // Area light
@@ -827,21 +862,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // Get the inverse LTC matrix for Disney Diffuse
     preLightData.ltcTransformDiffuse      = 0.0;
     preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
+    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
 #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformSpecular      = 0.0;
     preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
     preLightData.orthoBasisViewNormal[2] = bsdfData.normalWS;
     preLightData.orthoBasisViewNormal[1] = normalize(cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]));
 
-    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, ltc_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
     float  ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
     float  ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     float  ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
@@ -980,7 +1015,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-                                 , preLightData.preLambdaV);
+                                 , preLightData.partLambdaV);
         #else
                                    );
         #endif
@@ -991,7 +1026,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughness
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-                            , preLightData preLambdaV);
+                            , preLightData partLambdaV);
         #else
                               );
         #endif
@@ -1078,7 +1113,7 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0)
     {
-#ifdef SURFACE_TYPE_TRANSPARENT
+#ifdef _SURFACE_TYPE_TRANSPARENT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.unPositionSS).x;
@@ -1168,12 +1203,13 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 }
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                            float3 V, PositionInputs posInput,
+                            PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
                             out float3 diffuseLighting,
                             out float3 specularLighting)
 {
     float3 positionWS = posInput.positionWS;
-    int    lightType  = lightData.lightType;
+    int    lightType  = GPULightType;
 
     // All punctual light type in the same formula, attenuation is neutral depends on light type.
     // light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
@@ -1486,10 +1522,10 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
 #endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
-void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-    float3 V, PositionInputs posInput,
-    PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
-    out float3 diffuseLighting, out float3 specularLighting)
+void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
+                        out float3 diffuseLighting, out float3 specularLighting)
 {
     if (GPULightType == GPULIGHTTYPE_LINE)
     {
@@ -1511,7 +1547,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     specularLighting = float3(0.0, 0.0, 0.0);
     weight = float2(0.0, 0.0);
 
-#if defined(_REFRACTION_THINPLANE) || defined(_REFRACTION_THICKPLANE) || defined(_REFRACTION_THICKSPHERE)
+#if HAS_REFRACTION
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
     //  2. We calculate the screen space position of the refracted point
@@ -1519,7 +1555,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    weight.x = 1.0;
+    weight.x = bsdfData.refractionMask;
 
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;
@@ -1529,30 +1565,31 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // For all refraction approximation, to calculate the refracted point in world space,
     //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
     //   (We avoid to raymarch the depth texture to get the refracted point.)
-#if defined(_REFRACTION_THICKPLANE)
-    // Thick plane shape model:
-    //  We approximate locally the shape of the object as halfspace defined by the normal {bsdfData.normallWS} at {bsdfData.positionWS}
-    //  Thus, the light is refracted once.
-    //  It approximate cubic filled shapes
-    //
-    // However, we can't approximate the optical depth of the object, so we use a constant as parameter ({bsdfData.thickness})
-    
-    // Refracted ray
+#if defined(_REFRACTION_PLANE)
+    // Plane shape model: 
+    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS} 
+    //  with a thickness {bsdfData.thickness} 
+
+    // Refracted ray 
     float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
 
-    // Get the depth of the approximated back plane
+    // Get the depth of the approximated back plane 
     float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
-    // Distance from point to the back plane
+    // Distance from point to the back plane 
     float distFromP = depth - posInput.depthVS;
 
-    float VoR = dot(-V, R);
-    refractedBackPointWS = posInput.positionWS + R * distFromP / VoR;
-    opticalDepth = bsdfData.thickness;
+    // Optical depth within the thin plane 
+    opticalDepth = bsdfData.thickness / dot(R, -bsdfData.normalWS);
 
-#elif defined(_REFRACTION_THICKSPHERE)
-    // Thick sphere shape model:
+    // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior) 
+    float VoR = dot(-V, R);
+    float VoN = dot(V, bsdfData.normalWS);
+    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
+
+#elif defined(_REFRACTION_SPHERE)
+    // Sphere shape model:
     //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
     //  The sphere has a diameter of {bsdfData.thickness}
     //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
@@ -1588,28 +1625,6 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Refracted source point
     refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
 
-#elif defined(_REFRACTION_THINPLANE)
-    // Thin plane shape model:
-    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
-    //  with a thickness {bsdfData.thickness}
-
-    // Refracted ray
-    float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float distFromP = depth - posInput.depthVS;
-
-    // Optical depth within the thin plane
-    opticalDepth = bsdfData.thickness / dot(R, -bsdfData.normalWS);
-
-    // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior)
-    float VoR = dot(-V, R);
-    float VoN = dot(V, bsdfData.normalWS);
-    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
 #endif
 
     // Calculate screen space coordinates of refracted point in back plane
@@ -1623,22 +1638,18 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
         return;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
     float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
     diffuseLighting *= transmittance;
-
-#else
-    // Use perfect flat transparency when we cannot fetch the correct pixel color for the refracted point
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, ltc_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
-#endif
+#endif // HAS_REFRACTION
 }
 
 //-----------------------------------------------------------------------------
@@ -1647,9 +1658,11 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
-                        float3 V, PositionInputs posInput, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType,
                         out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
+    weight = float2(0.0, 1.0);
     float3 positionWS = posInput.positionWS;
 
 #ifdef LIT_DISPLAY_REFERENCE_IBL
@@ -1665,42 +1678,40 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 */
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
-    weight = float2(0.0, 1.0);
-
 #else
-    // TODO: factor this code in common, so other material authoring don't require to rewrite everything,
-    // also think about how such a loop can handle 2 cubemap at the same time as old unity. Macro can allow to do that
-    // but we need to have UNITY_SAMPLE_ENV_LOD replace by a true function instead that is define by the lighting arcitecture.
-    // Also not sure how to deal with 2 intersection....
-    // Box and sphere are related to light property (but we have also distance based roughness etc...)
 
+    // TODO: factor this code in common, so other material authoring don't require to rewrite everything,
     // TODO: test the strech from Tomasz
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
 
-    // In this code we redefine a bit the behavior of the reflcetion proble. We separate the projection volume (the proxy of the scene) form the influence volume (what pixel on the screen is affected)
-
-    // 1. First determine the projection volume
-
-    // In Unity the cubemaps are capture with the localToWorld transform of the component.
-    // This mean that location and oritention matter. So after intersection of proxy volume we need to convert back to world.
-
-    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
-    // the center of the bounding box is thus in locals space: positionLS - offsetLS
-    // We use this formulation as it is the one of legacy unity that was using only AABB box.
+    // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
+    // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
+    // It allow to have more coherence for the dynamic if in shader code.
+    // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
+    // that simulate effect of no shape projection
 
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
 
+    // In Unity the cubemaps are capture with the localToWorld transform of the component.
+    // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
+
+    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
+    // the center of the bounding box is thus in locals space: positionLS - offsetLS
+    // We use this formulation as it is the one of legacy unity that was using only AABB box.
     float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
     float3 positionLS = positionWS - lightData.positionWS;
     positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
-    if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
+    // Note: using envShapeType instead of lightData.envShapeType allow to make compiler optimization in case the type is know (like for sky)
+    if (envShapeType == ENVSHAPETYPE_SPHERE)
     {
+        // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
         float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-
+        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + dist * R) - lightData.positionWS;
 
         // Test again for clear code
@@ -1710,13 +1721,17 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
             coatR = (positionWS + dist * coatR) - lightData.positionWS;
         }
+
+        // 2. Process the influence
+        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
+        weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
-    else if (lightData.envShapeType == ENVSHAPETYPE_BOX)
+    else if (envShapeType == ENVSHAPETYPE_BOX)
     {
         float3 dirLS = mul(R, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
         float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-
+        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + dist * R) - lightData.positionWS;
@@ -1730,27 +1745,14 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
             coatR = (positionWS + dist * coatR) - lightData.positionWS;
         }
-    }
 
-    // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
-    // TODO: In the future we could have an influence volume inside the projection volume (so with a different transform, in this case we will need another transform)
-    weight.y = 1.0;
-
-    if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
-    {
-        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
-        weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
-    }
-    else if (lightData.envShapeType == ENVSHAPETYPE_BOX ||
-             lightData.envShapeType == ENVSHAPETYPE_NONE)
-    {
+        // Influence volume
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
         float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
         weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
 
     // Smooth weighting
-    weight.x = 0.0;
     weight.y = Smoothstep01(weight.y);
 
     float3 F = 1.0;
@@ -1781,21 +1783,49 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 // PostEvaluateBSDF
 // ----------------------------------------------------------------------------
 
-void PostEvaluateBSDF(  LightLoopContext lightLoopContext, PreLightData preLightData, BSDFData bsdfData, LightLoopAccumulatedLighting accLighting, float3 bakeDiffuseLighting,
+void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, LightLoopAccumulatedLighting accLighting, BSDFData bsdfData, float3 bakeDiffuseLighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
-    bakeDiffuseLighting *= GTAOMultiBounce(lightLoopContext.indirectAmbientOcclusion, bsdfData.diffuseColor);
+    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
+#define GTAO_MULTIBOUNCE_APPROX 1
 
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, lightLoopContext.indirectAmbientOcclusion, bsdfData.roughness);
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+
+    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
+    // Ambient occlusion use for direct lighting (directional, punctual, area)
+    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
+#if GTAO_MULTIBOUNCE_APPROX
+    bakeDiffuseLighting *= GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+#else
+    bakeDiffuseLighting *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
+#endif
+
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, indirectAmbientOcclusion, bsdfData.roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
+#if GTAO_MULTIBOUNCE_APPROX
     accLighting.envSpecularLighting *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
+#else
+    accLighting.envSpecularLighting *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
+#endif
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
-    // envDiffuseLighting is used for refraction
-    diffuseLighting = accLighting.envDiffuseLighting * accLighting.envDiffuseLightingWeight + (1.0 - accLighting.envDiffuseLightingWeight) * ((accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting) * GTAOMultiBounce(lightLoopContext.directAmbientOcclusion, bsdfData.diffuseColor) + bakeDiffuseLighting);
+    float3 directDiffuseLighting = (accLighting.dirDiffuseLighting + accLighting.punctualDiffuseLighting + accLighting.areaDiffuseLighting)
+#if GTAO_MULTIBOUNCE_APPROX
+                                    * GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
+#else
+                                    * lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
+#endif
+    // envDiffuseLighting is used for refraction in this Lit material. Use the weight to balance between transmission and reflection
+    diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
 }
 
