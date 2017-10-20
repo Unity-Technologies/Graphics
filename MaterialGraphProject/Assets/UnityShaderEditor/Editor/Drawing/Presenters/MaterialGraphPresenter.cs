@@ -111,9 +111,9 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void NodeAdded(NodeAddedGraphChange change)
         {
-            var nodeView = new MaterialNodeView();
+            var nodeView = new MaterialNodeView(change.node as AbstractMaterialNode, m_PreviewSystem);
+            nodeView.userData = change.node;
             change.node.onModified += OnNodeChanged;
-            nodeView.Initialize(change.node, m_PreviewSystem);
             m_GraphView.AddElement(nodeView);
         }
 
@@ -173,7 +173,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
         {
-            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));  
+            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));
             graph.ValidateGraph();
         }
 
