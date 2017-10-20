@@ -1,0 +1,176 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+
+[CustomEditor(typeof(MultiMaterialPlacer))]
+public class MultiMaterialPlacerEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if ( GUILayout.Button("Place") )
+        {
+            foreach ( Object obj in targets)
+            {
+                MultiMaterialPlacer m = obj as MultiMaterialPlacer;
+                Material[] materials = PlaceObjects(m);
+                foreach (Material mat in materials)
+                {
+                    UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
+                }
+            }
+        }
+    }
+
+    public Material[] PlaceObjects(MultiMaterialPlacer _target)
+    {
+        //clear hierarchy
+        for (int i=_target.transform.childCount-1; i>=0; --i)
+        {
+            //DestroyImmediate(_target.transform.GetChild(i).GetComponent<Renderer>().sharedMaterial);
+            DestroyImmediate(_target.transform.GetChild(i).gameObject);
+        }
+
+        if (_target.prefabObject == null) return null;
+
+        List<Material> outMats = new List<Material>(); ;
+
+        Renderer refObject = Instantiate(_target.prefabObject.gameObject).GetComponent<Renderer>();
+        if (_target.material != null)
+            refObject.sharedMaterial = Instantiate( _target.material );
+        else
+            refObject.sharedMaterial = Instantiate(_target.prefabObject.sharedMaterial);
+
+        for (int i = 0; i < _target.commonParameters.Length; i++)
+        {
+            ApplyParameterToMaterial(refObject.sharedMaterial, _target.commonParameters[i]);
+        }
+
+        float x = 0f;
+        float y = 0f;
+
+        if (_target.is2D)
+        {
+            if (_target.instanceParameters.Length < 2) return null;
+            if (!(_target.instanceParameters[0].multi && _target.instanceParameters[1].multi)) return null;
+
+            for (int i = 0; i < _target.instanceParameters[0].count; i++)
+            {
+                for (int j = 0; j < _target.instanceParameters[1].count; j++)
+                {
+                    Renderer tmp = CopyObject(refObject, x, y, _target.transform);
+                    tmp.gameObject.name = _target.prefabObject.name+"_"+ ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[0], i);
+                    tmp.gameObject.name += "_"+ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[1], j);
+                    outMats.Add(tmp.sharedMaterial);
+                    y -= _target.offset;
+                }
+                x += _target.offset;
+                y = 0f;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _target.instanceParameters.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(_target.instanceParameters[i].parameter))
+                {
+                    if (_target.instanceParameters[i].multi)
+                    {
+                        for (int j = 0; j < _target.instanceParameters[i].count; j++)
+                        {
+                            if (j>0)
+                                x += _target.offset;
+
+                            Renderer tmp = CopyObject(refObject, x, y, _target.transform);
+                            tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[i], j);
+                            outMats.Add(tmp.sharedMaterial);
+                        }
+                    }
+                    else
+                    {
+                        Renderer tmp = CopyObject(refObject, x, y, _target.transform);
+                        tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[i]);
+                        outMats.Add(tmp.sharedMaterial);
+                    }
+                }
+
+                x += _target.offset;
+            }
+        }
+
+        DestroyImmediate(refObject.gameObject);
+
+        return outMats.ToArray();
+    }
+
+    Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent )
+    {
+        Renderer o = Instantiate(_target.gameObject).GetComponent<Renderer>();
+        o.sharedMaterial = Instantiate(_target.sharedMaterial);
+        o.transform.parent = _parent;
+        o.transform.localPosition = new Vector3(_x, _y, 0f);
+        o.transform.localRotation = Quaternion.identity;
+        o.transform.localScale = Vector3.one;
+        return o;
+    }
+
+    string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param)
+    {
+        if (_param.multi) return null;
+        string o = _param.parameter + "_";
+        switch (_param.paramType)
+        {
+            case MaterialParameterVariation.ParamType.Bool:
+                _mat.SetFloat(_param.parameter, _param.b_Value ? 1f : 0f);
+                o += _param.b_Value.ToString();
+                break;
+            case MaterialParameterVariation.ParamType.Float:
+                _mat.SetFloat(_param.parameter, _param.f_Value);
+                o += string.Format("{0:0.00}", _param.f_Value);
+                break;
+            case MaterialParameterVariation.ParamType.Int:
+                _mat.SetInt(_param.parameter, _param.i_Value);
+                o += _param.i_Value.ToString();
+                break;
+            case MaterialParameterVariation.ParamType.Vector:
+                _mat.SetVector(_param.parameter, _param.v_Value);
+                o += _param.v_Value.ToString();
+                break;
+        }
+
+        return o;
+    }
+
+    string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param, int _num)
+    {
+        if (!_param.multi) return null;
+        if ((_num < 0) || (_num > _param.count)) return null;
+        if ((_param.paramType == MaterialParameterVariation.ParamType.Bool) && (_num > 1)) return null;
+
+        float f = 1.0f * _num / (_param.count - 1.0f);
+        string o = _param.parameter+"_";
+
+        switch (_param.paramType)
+        {
+            case MaterialParameterVariation.ParamType.Bool:
+                _mat.SetFloat(_param.parameter, _num);
+                o += (_num==1)?"true":"false";
+                break;
+            case MaterialParameterVariation.ParamType.Float:
+                _mat.SetFloat(_param.parameter, Mathf.Lerp(_param.f_Value, _param.f_Value_Max, f));
+                o += string.Format("{0:0.00}", Mathf.Lerp(_param.f_Value, _param.f_Value_Max, f));
+                break;
+            case MaterialParameterVariation.ParamType.Int:
+                _mat.SetInt(_param.parameter, Mathf.RoundToInt(Mathf.Lerp(_param.i_Value, _param.i_Value_Max, f)));
+                o += Mathf.RoundToInt(Mathf.Lerp(_param.i_Value, _param.i_Value_Max, f)).ToString();
+                break;
+            case MaterialParameterVariation.ParamType.Vector:
+                _mat.SetVector(_param.parameter, Vector4.Lerp(_param.v_Value, _param.v_Value_Max, f));
+                o += Vector4.Lerp(_param.v_Value, _param.v_Value_Max, f).ToString();
+                break;
+        }
+
+        return o;
+    }
+}

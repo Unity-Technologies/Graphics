@@ -9,6 +9,17 @@ public class ObjectToMaterialArray : MonoBehaviour
     enum ArrayType { _1D, _2D };
     [SerializeField] ArrayType arrayType = ArrayType._1D;
 
+    [Header("List of parameters:")]
+    [Header("- name:type:value")]
+    [Header("- supported types : float (f), vector (v)")]
+    [SerializeField] string[] globalParams;
+    [Header("- use \";\" to use multiple parameters")]
+    [Header("- value can be \"min_max_count\"")]
+    [Header("- leave empty for a space")]
+    [SerializeField] string[] matParams;
+
+    [SerializeField] float spacing = 1.5f;
+
     [SerializeField] bool generateObjects = false;
 
     private void OnDrawGizmosSelected()
@@ -22,7 +33,64 @@ public class ObjectToMaterialArray : MonoBehaviour
             {
                 DestroyImmediate(transform);
             }
+
+            if (arrayType == ArrayType._1D)
+            {
+                for (int i=0; i<matParams.Length; i++)
+                {
+                    string[] paramsArr = matParams[i].Split(";"[0]);
+                    for (int j = 0; j < paramsArr.Length; j++)
+                    {
+                        string[] paramStrings = matParams[j].Split(":"[0]);
+
+                        System.Type type;
+                        if (paramStrings[1] == "f")
+                            type = typeof(float);
+                        else if (paramStrings[1] == "v")
+                            type = typeof(Vector4);
+                        else return;
+
+                        if (paramStrings[2].Contains("_")) // min, max, count
+                        {
+                            string[] valueParams = paramStrings[2].Split("_"[0]);
+                            if (valueParams.Length != 3) return;
+                            //var min;
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    /*
+    System.Array ParseParams( string _in )
+    {
+        string[] paramsArr = _in.Split(":"[0]);
+
+        System.Array o;
+
+        if (paramsArr.Length > 3)
+        {
+            o = new System.Array[2 + int.Parse(paramsArr[paramsArr.Length - 1])];
+        }
+        else
+            o = new System.Array[3];
+
+        o[0] = paramsArr[0];
+
+    }
+    */
+
+    Vector4 ParseVector(string _inV)
+    {
+        Vector4 o = new Vector4();
+        string[] strings = _inV.Split(","[0]);
+        o.x = float.Parse(strings[0]);
+        o.y = float.Parse(strings[1]);
+        o.z = float.Parse(strings[2]);
+        o.w = float.Parse(strings[3]);
+
+        return o;
     }
 
     [System.Serializable]
