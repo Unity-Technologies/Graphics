@@ -280,13 +280,13 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float refractionMask, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float opacityMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
     // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
     bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
-    bsdfData.refractionMask = refractionMask;
+    bsdfData.opacityMask = opacityMask;
     bsdfData.thickness = max(thickness, 0.0001);
 }
 
@@ -380,7 +380,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 #if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
     FillMaterialIdTransparencyData(
-        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.refractionMask,
+        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.opacityMask,
         bsdfData);
 #endif
 
@@ -1555,7 +1555,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    weight.x = bsdfData.refractionMask;
+    weight.x = bsdfData.opacityMask;
 
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;
