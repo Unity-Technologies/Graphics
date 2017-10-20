@@ -143,7 +143,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "UnityStandardMeta.cginc"
-            #include "LightweightCore.cginc"
+            #include "LightweightPassLit.cginc"
 
             fixed4 frag_meta_ld(v2f_meta i) : SV_Target
             {

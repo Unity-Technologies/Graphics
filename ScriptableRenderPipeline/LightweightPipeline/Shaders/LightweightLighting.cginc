@@ -24,6 +24,31 @@
     light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
     light.spotDir = _AdditionalLightSpotDir[lightIndex]
 
+CBUFFER_START(_PerObject)
+half4 unity_LightIndicesOffsetAndCount;
+half4 unity_4LightIndices0;
+half4 unity_4LightIndices1;
+half _Shininess;
+CBUFFER_END
+
+CBUFFER_START(_PerCamera)
+float4 _MainLightPosition;
+half4 _MainLightColor;
+float4 _MainLightAttenuationParams;
+half4 _MainLightSpotDir;
+
+half4 _AdditionalLightCount;
+float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightAttenuationParams[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
+CBUFFER_END
+
+CBUFFER_START(_PerFrame)
+half4 _GlossyEnvironmentColor;
+sampler2D _AttenuationTexture;
+CBUFFER_END
+
 struct LightInput
 {
     float4 pos;
@@ -63,18 +88,6 @@ struct BRDFData
     half roughness;
     half grazingTerm;
 };
-
-inline void InitializeSurfaceData(out SurfaceData outSurfaceData)
-{
-    outSurfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
-    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-    outSurfaceData.metallic = 1.0h;
-    outSurfaceData.smoothness = 0.5h;
-    outSurfaceData.normal = half3(0.0h, 0.0h, 1.0h);
-    outSurfaceData.occlusion = 1.0h;
-    outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
-    outSurfaceData.alpha = 1.0h;
-}
 
 half SpecularReflectivity(half3 specular)
 {

@@ -3,6 +3,12 @@
 
 #include "LightweightLighting.cginc"
 
+#ifdef _SPECULAR_SETUP
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_SpecGlossMap, uv)
+#else
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
+#endif
+
 struct LightweightVertexInput
 {
     float4 vertex : POSITION;
@@ -30,6 +36,99 @@ struct LightweightVertexOutput
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
+
+inline half Alpha(half albedoAlpha)
+{
+#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
+    half alpha = _Color.a;
+#else
+    half alpha = albedoAlpha * _Color.a;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    clip(alpha - _Cutoff);
+#endif
+
+    return alpha;
+}
+
+half3 Normal(float2 uv)
+{
+#if _NORMALMAP
+    return UnpackNormal(tex2D(_BumpMap, uv));
+#else
+    return half3(0.0h, 0.0h, 1.0h);
+#endif
+}
+
+inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
+{
+    specularGloss = half4(0, 0, 0, 1);
+#ifdef _SPECGLOSSMAP
+    specularGloss = tex2D(_SpecGlossMap, uv);
+    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
+#elif defined(_SPECULAR_COLOR)
+    specularGloss = _SpecColor;
+#endif
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.a = alpha;
+#endif
+}
+
+half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
+{
+    half4 specGloss;
+
+#ifdef _METALLICSPECGLOSSMAP
+    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    specGloss.a = albedoAlpha * _GlossMapScale;
+#else
+    specGloss.a *= _GlossMapScale;
+#endif
+
+#else // _METALLICSPECGLOSSMAP
+#if _METALLIC_SETUP
+    specGloss.rgb = _Metallic.rrr;
+#else
+    specGloss.rgb = _SpecColor.rgb;
+#endif
+
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    specGloss.a = albedoAlpha * _GlossMapScale;
+#else
+    specGloss.a = _Glossiness;
+#endif
+#endif
+
+    return specGloss;
+}
+
+half OcclusionLW(float2 uv)
+{
+#ifdef _OCCLUSIONMAP
+#if (SHADER_TARGET < 30)
+    // SM20: instruction count limitation
+    // SM20: simpler occlusion
+    return tex2D(_OcclusionMap, uv).g;
+#else
+    half occ = tex2D(_OcclusionMap, uv).g;
+    return LerpOneTo(occ, _OcclusionStrength);
+#endif
+#else
+    return 1.0;
+#endif
+}
+
+half3 EmissionLW(float2 uv)
+{
+#ifndef _EMISSION
+    return 0;
+#else
+    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
+}
 
 inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out SurfaceData outSurfaceData)
 {
@@ -92,15 +191,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
     o.viewDir.xyz = viewDir;
 
-    half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
-
 #if _NORMALMAP
-    half sign = v.tangent.w * unity_WorldTransformParams.w;
-    o.tangent = normalize(mul((half3x3)unity_ObjectToWorld, v.tangent.xyz));
-    o.binormal = cross(normal, o.tangent) * sign;
-    o.normal = normal;
+    OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
-    o.normal = normal;
+    o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 #endif
 
 #ifdef LIGHTMAP_ON
