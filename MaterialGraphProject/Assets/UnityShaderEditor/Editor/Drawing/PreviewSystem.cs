@@ -52,11 +52,21 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnGraphChange(GraphChange change)
         {
-            change.Match(
-                nodeAdded: c => AddPreview(c.node),
-                nodeRemoved: c => RemovePreview(c.node),
-                edgeAdded: c => m_DirtyShaders.Add(c.edge.inputSlot.nodeGuid),
-                edgeRemoved: c => m_DirtyShaders.Add(c.edge.inputSlot.nodeGuid));
+            var nodeAdded = change as NodeAddedGraphChange;
+            if (nodeAdded != null)
+                AddPreview(nodeAdded.node);
+
+            var nodeRemoved = change as NodeRemovedGraphChange;
+            if (nodeRemoved != null)
+                RemovePreview(nodeRemoved.node);
+
+            var edgeAdded = change as EdgeAddedGraphChange;
+            if (edgeAdded != null)
+                m_DirtyShaders.Add(edgeAdded.edge.inputSlot.nodeGuid);
+
+            var edgeRemoved = change as EdgeRemovedGraphChange;
+            if (edgeRemoved != null)
+                m_DirtyShaders.Add(edgeRemoved.edge.inputSlot.nodeGuid);
         }
 
         void AddPreview(INode node)
