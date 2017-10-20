@@ -123,9 +123,12 @@ namespace UnityEditor.VFX
             {
                 name = o.Key.name,
                 type = o.Key.type,
-                offsetIndex = (uint)m_BucketSizes[o.Value.bucket],
-                offsetCapacity = (uint)m_BucketOffsets[o.Value.bucket],
-                offsetRelative = (uint)o.Value.offset
+                offset = new VFXLayoutOffset()
+                {
+                    structure = (uint)m_BucketSizes[o.Value.bucket],
+                    bucket = (uint)m_BucketOffsets[o.Value.bucket],
+                    element = (uint)o.Value.offset
+                }
             });
             return new VFXBufferDesc(ComputeBufferType.Raw, GetBufferSize(capacity), 4, layout.ToArray());
         }

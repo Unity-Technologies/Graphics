@@ -187,6 +187,18 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            uint structureLayoutSize = 0u;
+            eventAttributeDescs.ForEach(o =>
+                {
+                    o.offset.element = structureLayoutSize;
+                    structureLayoutSize += (uint)VFXExpression.TypeToSize(o.type);
+                });
+
+            eventAttributeDescs.ForEach(o =>
+                {
+                    o.offset.structure = structureLayoutSize;
+                });
         }
 
         private static List<VFXContext> CollectContextParentRecursively(List<VFXContext> inputList)
@@ -219,7 +231,7 @@ namespace UnityEditor.VFX
             public int systemIndex;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> eventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
@@ -227,8 +239,9 @@ namespace UnityEditor.VFX
                 outContextSpawnToSpawnInfo.Add(it.spawner, new SpawnInfo() { bufferIndex = outCpuBufferDescs.Count, systemIndex = it.index });
                 outCpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
-                    capacity = 1,
-                    layout = eventAttributeDescs.ToArray()
+                    capacity = 1u,
+                    stride = globalEventAttributeDescs.Last().offset.structure + (uint)VFXExpression.TypeToSize(globalEventAttributeDescs.Last().type),
+                    layout = globalEventAttributeDescs.ToArray()
                 });
             }
             foreach (var spawnContext in spawners)
@@ -486,9 +499,8 @@ namespace UnityEditor.VFX
 
                 var exposedParameterDescs = new List<VFXExposedDesc>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models);
-
-                var eventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
-                FillEventAttributeDescs(eventAttributeDescs, m_ExpressionGraph, models);
+                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
+                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, models);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
                 foreach (var data in models.OfType<VFXData>())
@@ -516,8 +528,14 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
 
+                cpuBufferDescs.Add(new VFXCPUBufferDesc()
+                {
+                    capacity = 1u,
+                    layout = globalEventAttributeDescs.ToArray(),
+                    stride = globalEventAttributeDescs.Last().offset.structure + (uint)VFXExpression.TypeToSize(globalEventAttributeDescs.Last().type)
+                });
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, eventAttributeDescs, contextToCompiledData);
+                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData);
 
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, models);
