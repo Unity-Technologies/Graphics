@@ -3,6 +3,7 @@ MaterialGraphProject/.vscode
 MaterialGraphProject/Library
 MaterialGraphProject/obj
 MaterialGraphProject/MaterialGraphProject.CSharp.csproj
+MaterialGraphProject/MaterialGraphProject.sln.DotSettings.user
 *.csproj
 MaterialGraphProject/MaterialGraphProject.sln
 MaterialGraphProject/Temp
@@ -12,4 +13,5 @@ MaterialGraphProject/Assets/Plugins*
 .DS_Store
 MaterialGraphProject/Assets/_MingWai/New Custom Texture.asset.meta
 MaterialGraphProject/Packages/*
+MaterialGraphProject/GeneratedShader.shader
 !MaterialGraphProject/Packages/manifest.json
