@@ -40,14 +40,15 @@
 
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
 #ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
-//#define LIT_DISPLAY_REFERENCE_AREA
-//#define LIT_DISPLAY_REFERENCE_IBL
+// #define LIT_DISPLAY_REFERENCE_AREA
+// #define LIT_DISPLAY_REFERENCE_IBL
 #endif
 // Use Lambert diffuse instead of Disney diffuse
-// #define LIT_DIFFUSE_LAMBERT_BRDF
+#define LIT_DIFFUSE_LAMBERT_BRDF
 // Use optimization of Precomputing LambdaV
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
+#define LIT_USE_GGX_ENERGY_COMPENSATION
 
 // Sampler use by area light, gaussian pyramid, ambient occlusion etc...
 SamplerState s_linear_clamp_sampler;
@@ -694,6 +695,7 @@ struct PreLightData
 
     // GGX
     float partLambdaV;
+    float3 energyCompensation;
     float TdotV;
     float BdotV;
 
@@ -854,6 +856,26 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, iblRoughness, NdotV);
         preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }
+
+#ifdef LIT_USE_GGX_ENERGY_COMPENSATION
+
+#if 1 // Evgenii's horrible hack to match Eric's results for gold in Mitsuba
+    float3 cbsdfInt                 = preLightData.specularFGD;
+    float3 Kms                      = 1 / cbsdfInt - 1;
+    float3 Fms                      = Sqr(bsdfData.fresnel0);
+    preLightData.energyCompensation = (1 + Fms * Kms);
+    preLightData.specularFGD        = lerp(Fms, 1, cbsdfInt); // Equivalent to (specularFGD * energyCompensation)
+#else // Emmanuel's reference implementation for metals
+    float  cbsdfInt                 = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
+    float  Kms                      = 1 / cbsdfInt - 1;
+    float3 Fms                      = bsdfData.fresnel0;
+    preLightData.energyCompensation = (1 + Fms * Kms);
+    preLightData.specularFGD       *= preLightData.energyCompensation;
+#endif
+
+#else
+    preLightData.energyCompensation = 1;
+#endif // LIT_USE_GGX_ENERGY_COMPENSATION
 
     // Area light
     // UVs for sampling the LUTs
@@ -1036,21 +1058,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                               );
         #endif
     }
-    specularLighting += F * DV;
+    specularLighting += F * DV * preLightData.energyCompensation;
 
-#define MS_GGX            1
-#define MS_GGX_IMAGEWORKS 0
-
-#if MS_GGX
-#if MS_GGX_IMAGEWORKS
-    float ecV = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
-    float ecL = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotL, bsdfData.perceptualRoughness), 0).r;
-    specularLighting += F * ecV * ecL;
-#else
-    float ecV = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
-    specularLighting += F * DV * ecV;
-#endif // MS_GGX_IMAGEWORKS
-#endif // MS_GGX
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();

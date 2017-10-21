@@ -254,5 +254,5 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         }
     }
 
-    return acc / sampleCount;
+    return acc * preLightData.energyCompensation / sampleCount;
 }
