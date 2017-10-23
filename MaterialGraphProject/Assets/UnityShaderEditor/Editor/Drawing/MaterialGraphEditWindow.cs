@@ -325,8 +325,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                 graphPresenter.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
-            var toDelete = graphView.selection.OfType<MaterialNodeView>();
-            graphPresenter.RemoveElements(toDelete, new List<Edge>());
+            graphPresenter.graph.RemoveElements(
+                graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode),
+                Enumerable.Empty<IEdge>());
+            graphPresenter.graph.ValidateGraph();
         }
 
         void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph

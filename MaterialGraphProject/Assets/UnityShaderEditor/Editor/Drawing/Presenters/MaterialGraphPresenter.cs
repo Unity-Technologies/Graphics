@@ -20,23 +20,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public IGraph graph { get; private set; }
 
-        void OnNodeChanged(INode inNode, ModificationScope scope)
-        {
-            var dependentNodes = new List<INode>();
-            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
-            foreach (var node in dependentNodes)
-            {
-                var theViews = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in viewsFound)
-                    drawableNodeData.OnModified(scope);
-            }
-
-            // We might need to do something here
-//            if (scope == ModificationScope.Topological)
-        }
-
-        public void Initialize(MaterialGraphView graphView, IGraph graph, PreviewSystem previewSystem)
+        public MaterialGraphPresenter(MaterialGraphView graphView, IGraph graph, PreviewSystem previewSystem)
         {
             m_GraphView = graphView;
             m_PreviewSystem = previewSystem;
@@ -50,10 +34,23 @@ namespace UnityEditor.MaterialGraph.Drawing
             foreach (var edge in graph.edges)
                 EdgeAdded(new EdgeAddedGraphChange(edge));
 
-            this.graph.onChange += OnChange;
+            this.graph.onChange += OnGraphChange;
         }
 
-        void OnChange(GraphChange change)
+        void OnNodeChanged(INode inNode, ModificationScope scope)
+        {
+            var dependentNodes = new List<INode>();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
+            foreach (var node in dependentNodes)
+            {
+                var theViews = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
+                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
+                foreach (var drawableNodeData in viewsFound)
+                    drawableNodeData.OnModified(scope);
+            }
+        }
+
+        void OnGraphChange(GraphChange change)
         {
             var nodeAdded = change as NodeAddedGraphChange;
             if (nodeAdded != null)
@@ -126,12 +123,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 edgeView.input.Disconnect(edgeView);
                 m_GraphView.RemoveElement(edgeView);
             }
-        }
-
-        public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
-        {
-            graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));
-            graph.ValidateGraph();
         }
     }
 }
