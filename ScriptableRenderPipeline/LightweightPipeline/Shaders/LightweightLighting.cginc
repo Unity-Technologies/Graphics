@@ -1,7 +1,123 @@
 ﻿#ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
+#include "LightweightCore.cginc"
+#include "LightweightShadows.cginc"
+
 #define PI 3.14159265359f
+#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+
+// Main light initialized without indexing
+#define INITIALIZE_MAIN_LIGHT(light) \
+    light.pos = _MainLightPosition; \
+    light.color = _MainLightColor; \
+    light.atten = _MainLightAttenuationParams; \
+    light.spotDir = _MainLightSpotDir;
+
+// Indexing might have a performance hit for old mobile hardware
+#define INITIALIZE_LIGHT(light, i) \
+    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1; \
+    int index = (i < 4) ? i : i - 4; \
+    int lightIndex = indices[index]; \
+    light.pos = _AdditionalLightPosition[lightIndex]; \
+    light.color = _AdditionalLightColor[lightIndex]; \
+    light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
+    light.spotDir = _AdditionalLightSpotDir[lightIndex]
+
+struct LightInput
+{
+    float4 pos;
+    half4 color;
+    float4 atten;
+    half4 spotDir;
+};
+
+struct SurfaceData
+{
+    half3 albedo;
+    half3 specular;
+    half  metallic;
+    half  smoothness;
+    half3 normal;
+    half3 emission;
+    half  occlusion;
+    half  alpha;
+};
+
+struct SurfaceInput
+{
+    float4  lightmapUV;
+    half3   normalWS;
+    half3   tangentWS;
+    half3   bitangentWS;
+    float3  positionWS;
+    half3   viewDirectionWS;
+    half    fogFactor;
+};
+
+struct BRDFData
+{
+    half3 diffuse;
+    half3 specular;
+    half perceptualRoughness;
+    half roughness;
+    half grazingTerm;
+};
+
+inline void InitializeSurfaceData(out SurfaceData outSurfaceData)
+{
+    outSurfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+    outSurfaceData.metallic = 1.0h;
+    outSurfaceData.smoothness = 0.5h;
+    outSurfaceData.normal = half3(0.0h, 0.0h, 1.0h);
+    outSurfaceData.occlusion = 1.0h;
+    outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+    outSurfaceData.alpha = 1.0h;
+}
+
+half SpecularReflectivity(half3 specular)
+{
+#if (SHADER_TARGET < 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: simplified SpecularStrength
+    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+#else
+    return max(max(specular.r, specular.g), specular.b);
+#endif
+}
+
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+{
+    // BRDF SETUP
+#ifdef _METALLIC_SETUP
+    // We'll need oneMinusReflectivity, so
+    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
+    // store (1-dielectricSpec) in kDieletricSpec.a, then
+    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
+    //                  = alpha - metallic * alpha
+    half oneMinusDielectricSpec = kDieletricSpec.a;
+    half oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+    half reflectivity = 1.0 - oneMinusReflectivity;
+
+    outBRDFData.diffuse = albedo * oneMinusReflectivity;
+    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
+#else
+    half reflectivity = SpecularReflectivity(specular);
+
+    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.specular = specular;
+#endif
+
+    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
+    outBRDFData.perceptualRoughness = 1.0h - smoothness;
+    outBRDFData.roughness = outBRDFData.perceptualRoughness * outBRDFData.perceptualRoughness;
+
+#ifdef _ALPHAPREMULTIPLY_ON
+    outBRDFData.diffuse *= alpha;
+    alpha = reflectivity + alpha * (1.0 - reflectivity);
+#endif
+}
 
 // Based on Minimalist CookTorrance BRDF
 // Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
@@ -51,17 +167,15 @@ half3 LightweightBRDFIndirect(BRDFData brdfData, UnityIndirect indirect, half ro
     return c;
 }
 
-UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
+UnityIndirect LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness)
 {
     UnityIndirect o = (UnityIndirect)0;
-#ifdef LIGHTMAP_ON
-    ambientColor = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV)));
-#else
-    ambientColor += SHEvalLinearL0L1(half4(normalWorld, 1.0));
-    ambientColor = max(half3(0.0, 0.0, 0.0), ambientColor);
-#endif
 
-    o.diffuse = ambientColor * occlusion;
+#ifdef LIGHTMAP_ON
+    o.diffuse += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy))) * occlusion;
+#else
+    o.diffuse = ShadeSH9(half4(normalWorld, 1.0)) * occlusion;
+#endif
 
 #ifndef _GLOSSYREFLECTIONS_OFF
     Unity_GlossyEnvironmentData g;
@@ -75,53 +189,52 @@ UnityIndirect LightweightGI(float2 lightmapUV, half3 ambientColor, half3 normalW
     return o;
 }
 
-inline half ComputeLightAttenuationVertex(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
+{
+    // Spot Attenuation with a linear falloff can be defined as
+    // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+    // This can be rewritten as
+    // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+    // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+    // If we precompute the terms in a MAD instruction
+    half SdotL = dot(spotDirection, lightDirection);
+
+    // attenuationParams.x = invAngleRange
+    // attenuationParams.y = (-cosOuterAngle  invAngleRange)
+    return saturate(SdotL * attenuationParams.x + attenuationParams.y);
+}
+
+// In per-vertex falloff there's no smooth falloff to light range. A hard cut will be noticed
+inline half ComputeVertexLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float4 attenuationParams = lightInput.atten;
-    float3 posToLightVec = lightInput.pos - worldPos;
+    float3 posToLightVec = lightInput.pos - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
-
-    //// attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    //// attenuationParams.w = lightRange * lightRange
-    //// TODO: we can precompute 1.0 / (attenuationParams.w * 0.64 - attenuationParams.w)
-    //// falloff is computed from 80% light range squared
-    float lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
 
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-    half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
-    lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-
-    return half(lightAtten);
+    // attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
+    // attenuationParams.w = lightRange * lightRange
+    half lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
+    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
+    return lightAtten;
 }
 
-inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+// In per-pixel falloff attenuation smoothly decreases to light range.
+inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float4 attenuationParams = lightInput.atten;
-
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
-#ifdef _ATTENUATION_TEXTURE
-    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
-    float lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
-#else
-    //// attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    //// attenuationParams.w = lightRange * lightRange
-    //// TODO: we can precompute 1.0 / (attenuationParams.w * 0.64 - attenuationParams.w)
-    //// falloff is computed from 80% light range squared
-    float lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
-    float falloff = saturate((distanceSqr - attenuationParams.w) / (attenuationParams.w * 0.64 - attenuationParams.w));
-    lightAtten *= half(falloff);
-#endif
-
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
 
-    half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDirection));
-    lightAtten *= saturate((SdotL - attenuationParams.x) / attenuationParams.y);
-    return half(lightAtten);
+    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
+    half lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
+    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
+    return lightAtten;
 }
 
 inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
@@ -131,7 +244,7 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, flo
     lightDirection = lightInput.pos;
     return 1.0;
 #else
-    return ComputeLightAttenuation(lightInput, normal, worldPos, lightDirection);
+    return ComputePixelLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #endif
 }
 
@@ -152,4 +265,56 @@ inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 l
     return (diffuse + specular) * atten;
 }
 
+half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS, half3 tangentWS, half3 bitangentWS,
+    half3 viewDirectionWS, half fogFactor, half3 albedo, half metallic, half3 specular, half smoothness,
+    half3 normalTS, half ambientOcclusion, half3 emission, half alpha)
+{
+    BRDFData brdfData;
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+
+    half3 vertexNormal = normalWS;
+#if _NORMALMAP
+    normalWS = TangentToWorldNormal(normalTS, tangentWS, bitangentWS, normalWS);
+#else
+    normalWS = normalize(normalWS);
+#endif
+
+    half3 reflectVec = reflect(-viewDirectionWS, normalWS);
+    half roughness2 = brdfData.roughness * brdfData.roughness;
+    UnityIndirect indirectLight = LightweightGI(lightmapUV, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness);
+
+    // PBS
+    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
+    half3 color = LightweightBRDFIndirect(brdfData, indirectLight, roughness2, fresnelTerm);
+    half3 lightDirectionWS;
+
+    LightInput light;
+    INITIALIZE_MAIN_LIGHT(light);
+    half lightAtten = ComputeMainLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalize(vertexNormal), _ShadowLightDirection.xyz);
+
+    half NdotL = saturate(dot(normalWS, lightDirectionWS));
+    half3 radiance = light.color * (lightAtten * NdotL);
+    color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+
+#ifdef _ADDITIONAL_LIGHTS
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
+    {
+        LightInput light;
+        INITIALIZE_LIGHT(light, lightIter);
+        half lightAtten = ComputePixelLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+
+        half NdotL = saturate(dot(normalWS, lightDirectionWS));
+        half3 radiance = light.color * (lightAtten * NdotL);
+        color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    }
+#endif
+
+    color += emission;
+
+    // Computes fog factor per-vertex
+    ApplyFog(color, fogFactor);
+    return OutputColor(color, alpha);
+}
 #endif
