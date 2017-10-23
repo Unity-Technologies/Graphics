@@ -48,8 +48,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_PreviewSystem = value; }
         }
 
-        public ShortcutHandler shortcutHandler { get; set; }
-
         public GraphEditorView(AbstractMaterialGraph graph, HelperMaterialGraphEditWindow container, string assetName)
         {
             AddStyleSheetPath("Styles/MaterialGraph");
@@ -119,15 +117,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView = new MaterialGraphView { name = "GraphView", presenter = m_GraphPresenter };
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewSystem, graph) { name = "inspector" };
                 m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
-
-                shortcutHandler = new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-                    {
-                        { Event.KeyboardEvent("a"), m_GraphView.FrameAll },
-                        { Event.KeyboardEvent("o"), m_GraphView.FrameOrigin },
-                        { Event.KeyboardEvent("["), m_GraphView.FramePrev },
-                        { Event.KeyboardEvent("]"), m_GraphView.FrameNext }
-                    });
 
                 content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
