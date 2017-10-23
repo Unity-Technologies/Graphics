@@ -7,7 +7,7 @@ public struct MaterialParameterVariation
 {
     public string parameter;
 
-    public enum ParamType { Float, Bool, Int, Vector }
+    public enum ParamType { Float, Bool, Int, Vector, Texture }
     public ParamType paramType;
 
     public bool multi;
@@ -20,6 +20,8 @@ public struct MaterialParameterVariation
     public int i_Value_Max;
     public float f_Value_Max;
     public Vector4 v_Value_Max;
+
+    public Texture t_Value;
 
     public int count;
 }

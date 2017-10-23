@@ -38,7 +38,7 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
         Rect valueRect = new Rect();
         Rect maxRect = new Rect();
         Rect countRect = new Rect();
-        if (!isMulti)
+        if (!isMulti || (type == MaterialParameterVariation.ParamType.Texture) )
         {
             valueRect = new Rect(cellStart, position.y, remainingWidth, position.height);
         }
@@ -55,8 +55,6 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
 
         if (GUI.Button(multiRect, isMulti ? "∞" : "1"))
             property.FindPropertyRelative("multi").boolValue = !isMulti;
-
-        if (!isMulti) valueRect.width = remainingWidth * 3f;
 
         EditorGUI.PropertyField(paramRect, property.FindPropertyRelative("parameter"), GUIContent.none);
         EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("paramType"), GUIContent.none);
@@ -83,8 +81,11 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
                 if (isMulti)
                     EditorGUI.PropertyField(maxRect, property.FindPropertyRelative("i_Value_Max"), GUIContent.none);
                 break;
+            case MaterialParameterVariation.ParamType.Texture:
+                EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("t_Value"), GUIContent.none);
+                break;
         }
-        if (isMulti && (type != MaterialParameterVariation.ParamType.Bool) )
+        if (isMulti && (type != MaterialParameterVariation.ParamType.Bool) && (type != MaterialParameterVariation.ParamType.Texture) )
             EditorGUI.PropertyField(countRect, property.FindPropertyRelative("count"), GUIContent.none);
 
         // Set indent back to what it was

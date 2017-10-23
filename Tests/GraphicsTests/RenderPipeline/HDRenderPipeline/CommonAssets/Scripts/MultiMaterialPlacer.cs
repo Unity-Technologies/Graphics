@@ -15,4 +15,5 @@ public class MultiMaterialPlacer : MonoBehaviour
     public MaterialParameterVariation[] instanceParameters;
 
     public float offset = 1.5f;
+    public float scale = 1f;
 }
