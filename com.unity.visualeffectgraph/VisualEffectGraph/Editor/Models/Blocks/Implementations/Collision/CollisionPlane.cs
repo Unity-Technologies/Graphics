@@ -3,14 +3,14 @@ using UnityEngine;
 namespace UnityEditor.VFX.BlockLibrary
 {
     [VFXInfo(category = "Collision")]
-    class CollisionSphere : CollisionBase
+    class CollisionPlane : CollisionBase
     {
-        public override string name { get { return "Collider (Sphere)"; } }
+        public override string name { get { return "Collider (Plane)"; } }
 
         public class InputProperties
         {
-            [Tooltip("The collision sphere.")]
-            public Sphere Sphere = new Sphere() { radius = 1.0f };
+            [Tooltip("The collision plane.")]
+            public Plane Plane = new Plane() { normal = Vector3.up };
         }
 
         public override string source
@@ -19,17 +19,16 @@ namespace UnityEditor.VFX.BlockLibrary
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 dir = nextPos - Sphere_center;
-float sqrLength = dot(dir, dir);
-if (sign * sqrLength <= sign * Sphere_radius * Sphere_radius)
+float3 n = Plane_normal * sign;
+float w = dot(Plane_position, n);
+float distToPlane = dot(nextPos, n) - w;
+if (distToPlane < 0.0f)
 {
-    float dist = sqrt(sqrLength);
-    float3 n = sign * dir / dist;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * (dist - Sphere_radius);
+    position -= n * distToPlane;
 }";
                 return Source;
             }
