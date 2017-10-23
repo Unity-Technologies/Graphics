@@ -3,8 +3,6 @@
 
 #include "UnityCG.cginc"
 
-#define MAX_VISIBLE_LIGHTS 16
-
 #if defined(UNITY_COLORSPACE_GAMMA)
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
@@ -13,12 +11,12 @@
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
 #endif
 
-half Pow4(half x)
+half _Pow4(half x)
 {
     return x * x * x * x;
 }
 
-half LerpOneTo(half b, half t)
+half _LerpOneTo(half b, half t)
 {
     half oneMinusT = 1 - t;
     return oneMinusT + b * t;
@@ -28,6 +26,29 @@ half3 SafeNormalize(half3 inVec)
 {
     half dp3 = max(1.e-4h, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+half3 EvaluateSHPerVertex(half3 normalWS)
+{
+#if defined(EVALUATE_SH_FULLY_VERTEX)
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+#elif defined(EVALUATE_SH_MIXED)
+    // no max since this is only L2 contribution
+    return SHEvalLinearL2(half4(normalWS, 1.0));
+#else
+    // Fully per-pixel. Nothing to compute.
+    return half3(0.0, 0.0, 0.0);
+#endif
+}
+
+half3 EvaluateSHPerPixel(half3 normalWS, half3 L2Term)
+{
+#ifdef EVALUATE_SH_MIXED
+    return = max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
+#else
+    // Default: Evaluate SH fully per-pixel
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+#endif
 }
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
