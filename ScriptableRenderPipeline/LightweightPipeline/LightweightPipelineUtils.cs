@@ -32,6 +32,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (rhs.lightType == LightType.Directional) return 1;
             }
 
+            // Particle Lights have the Light reference set to null
+            // They are at the end of the priority
+            if (lhsLight == null) return 1;
+            if (rhsLight == null) return -1;
+
             // In the following priority: Soft, Hard, None
             if (lhsLight.shadows != rhsLight.shadows)
                 return (int)rhsLight.shadows - (int)lhsLight.shadows;

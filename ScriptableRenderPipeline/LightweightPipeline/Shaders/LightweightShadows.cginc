@@ -11,9 +11,9 @@
 #endif
 
 #ifdef _SHADOWS
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(vertexOutput, shadowDir) ComputeShadowAttenuation(vertexOutput, shadowDir)
+#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) ComputeShadowAttenuation(posWorld, vertexNormal, shadowDir)
 #else
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(vertexOutput, shadowDir) 1.0h
+#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) 1.0h
 #endif
 
 sampler2D_float _ShadowMap;
@@ -66,18 +66,12 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half ComputeShadowAttenuation(LightweightVertexOutput i, half3 shadowDir)
+inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
 {
-#if _NORMALMAP
-    half3 vertexNormal = half3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
-#else
-    half3 vertexNormal = i.normal;
-#endif
-
     half NdotL = dot(vertexNormal, shadowDir);
     half bias = saturate(1.0 - NdotL) * _ShadowData.z;
 
-    float3 posWorldOffsetNormal = i.posWS + vertexNormal * bias;
+    float3 posWorldOffsetNormal = posWorld + vertexNormal * bias;
 
     int cascadeIndex = 0;
 #ifdef _SHADOW_CASCADES
