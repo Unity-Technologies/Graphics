@@ -315,7 +315,7 @@ void ImportanceSampleAnisoGGX(float2   u,
 // ----------------------------------------------------------------------------
 
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 4096)
+float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 8192)
 {
     float NdotV     = saturate(dot(N, V));
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
@@ -353,13 +353,15 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 
         if (NdotL > 0.0)
         {
-            float3 H = normalize(L + V);
-            float LdotH = dot(L, H);
-            float disneyDiffuse = DisneyDiffuseNoPI(NdotV, NdotL, LdotH, RoughnessToPerceptualRoughness(roughness));
+            float LdotV = dot(L, V);
+            float disneyDiffuse = DisneyDiffuseNoPI(NdotV, NdotL, LdotV, RoughnessToPerceptualRoughness(roughness));
 
             acc.z += disneyDiffuse * weightOverPdf;
         }
     }
+
+    // Remap from [0, 1.5] to [0, 1] range.
+    acc.z /= 1.5;
 
     return acc / sampleCount;
 }
