@@ -62,5 +62,18 @@ namespace UnityEditor.Graphing.Util
                 m_Edges.Add(edge);
             m_SerializableEdges = null;
         }
+
+        internal static CopyPasteGraph FromJson(string copyBuffer)
+        {
+            try
+            {
+                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
+            }
+            catch
+            {
+                // ignored. just means copy buffer was not a graph :(
+                return null;
+            }
+        }
     }
 }

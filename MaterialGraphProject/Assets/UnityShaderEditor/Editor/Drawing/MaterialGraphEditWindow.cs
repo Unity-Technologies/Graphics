@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -13,65 +15,7 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public interface IMaterialGraphEditWindow
-    {
-        void PingAsset();
-
-        void UpdateAsset();
-
-        void Repaint();
-
-        void ToSubGraph();
-
-        void Show();
-        void Focus();
-        Object selected { get; set; }
-        void ChangeSelection(Object newSelection);
-    }
-
-    public abstract class HelperMaterialGraphEditWindow : EditorWindow, IMaterialGraphEditWindow
-    {
-        public abstract AbstractMaterialGraph GetMaterialGraph();
-        public abstract void PingAsset();
-        public abstract void UpdateAsset();
-        public abstract void ToSubGraph();
-        public abstract Object selected { get; set; }
-        public abstract void ChangeSelection(Object newSelection);
-    }
-
-    public class MaterialGraphEditWindow : AbstractMaterialGraphEditWindow<UnityEngine.MaterialGraph.MaterialGraph>
-    {
-        public override AbstractMaterialGraph GetMaterialGraph()
-        {
-            return graphObject == null ? null : graphObject.graph as AbstractMaterialGraph;
-        }
-    }
-
-    public class SubGraphEditWindow : AbstractMaterialGraphEditWindow<SubGraph>
-    {
-        public override AbstractMaterialGraph GetMaterialGraph()
-        {
-            return graphObject == null ? null : graphObject.graph as AbstractMaterialGraph;
-        }
-    }
-
-    public class MasterReampGraphEditWindow : AbstractMaterialGraphEditWindow<MasterRemapGraph>
-    {
-        public override AbstractMaterialGraph GetMaterialGraph()
-        {
-            return graphObject == null ? null : graphObject.graph as AbstractMaterialGraph;
-        }
-    }
-
-    public class LayeredGraphEditWindow : AbstractMaterialGraphEditWindow<LayeredShaderGraph>
-    {
-        public override AbstractMaterialGraph GetMaterialGraph()
-        {
-            return graphObject == null ? null : graphObject.graph as AbstractMaterialGraph;
-        }
-    }
-
-    public abstract class AbstractMaterialGraphEditWindow<TGraphType> : HelperMaterialGraphEditWindow where TGraphType : AbstractMaterialGraph
+    public class MaterialGraphEditWindow : EditorWindow
     {
         [SerializeField]
         Object m_Selected;
@@ -102,7 +46,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        protected SerializableGraphObject graphObject
+        SerializableGraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -113,7 +57,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public override Object selected
+        public Object selected
         {
             get { return m_Selected; }
             set { m_Selected = value; }
@@ -121,13 +65,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Update()
         {
-            var materialGraph = GetMaterialGraph();
+            var materialGraph = graphObject.graph as AbstractMaterialGraph;
             if (materialGraph == null)
                 return;
             if (graphEditorView == null || graphEditorView.graphPresenter == null)
-            {
-                graphEditorView = new GraphEditorView(materialGraph, this, selected.name);
-            }
+                graphEditorView = new GraphEditorView(materialGraph, selected.name);
             if (graphEditorView != null)
                 graphEditorView.previewSystem.Update();
         }
@@ -190,18 +132,18 @@ namespace UnityEditor.MaterialGraph.Drawing
                     graphEditorView.graphView.FrameOrigin();
                 if (e.keyCode == KeyCode.Tab)
                     graphEditorView.graphView.FrameNext();
-                if (e.keyCode == KeyCode.Tab && e.modifiers == EventModifiers.Shift)
+                if (e.keyCode == KeyCode.Tab && (e.modifiers & EventModifiers.Shift) > 0)
                     graphEditorView.graphView.FramePrev();
             }
         }
 
-        public override void PingAsset()
+        public void PingAsset()
         {
             if (selected != null)
                 EditorGUIUtility.PingObject(selected);
         }
 
-        public override void UpdateAsset()
+        public void UpdateAsset()
         {
             if (selected != null && graphObject != null)
             {
@@ -211,23 +153,23 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return;
                 }
 
-                if (typeof(TGraphType) == typeof(UnityEngine.MaterialGraph.MaterialGraph))
+                if (m_GraphObject.graph.GetType() == typeof(UnityEngine.MaterialGraph.MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
-                if (typeof(TGraphType) == typeof(LayeredShaderGraph))
+                if (m_GraphObject.graph.GetType() == typeof(LayeredShaderGraph))
                     UpdateShaderGraphOnDisk(path);
 
-                if (typeof(TGraphType) == typeof(SubGraph))
+                if (m_GraphObject.graph.GetType() == typeof(SubGraph))
                     UpdateAbstractSubgraphOnDisk<SubGraph>(path);
 
-                if (typeof(TGraphType) == typeof(MasterRemapGraph))
+                if (m_GraphObject.graph.GetType() == typeof(MasterRemapGraph))
                     UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
             }
         }
 
-        public override void ToSubGraph()
+        public void ToSubGraph()
         {
-            string path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", "ShaderSubGraph", "");
+            var path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", "ShaderSubGraph", "");
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -236,7 +178,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var graphView = graphEditorView.graphView;
             var selection = graphView.selection.OfType<GraphElement>();
 
-            var filtered = new List<GraphElement>();
+            var copyPasteGraph = new CopyPasteGraph();
 
             foreach (var element in selection)
             {
@@ -244,16 +186,15 @@ namespace UnityEditor.MaterialGraph.Drawing
                 if (nodeView != null)
                 {
                     if (!(nodeView.node is PropertyNode))
-                        filtered.Add(nodeView);
+                        copyPasteGraph.AddNode(nodeView.node);
                 }
-                else
-                {
-                    filtered.Add(element);
-                }
+
+                var edgeView = element as Edge;
+                if (edgeView != null)
+                    copyPasteGraph.AddEdge(edgeView.userData as IEdge);
             }
 
-            var deserialized = MaterialGraphPresenter.DeserializeCopyBuffer(JsonUtility.ToJson(MaterialGraphPresenter.CreateCopyPasteGraph(filtered)));
-
+            var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
                 return;
 
@@ -380,7 +321,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphPresenter.RemoveElements(toDelete, new List<Edge>());
         }
 
-        private void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
+        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
         {
             var graph = graphObject.graph as T;
             if (graph == null)
@@ -390,7 +331,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
-        private void UpdateShaderGraphOnDisk(string path)
+        void UpdateShaderGraphOnDisk(string path)
         {
             var graph = graphObject.graph as IShaderGraph;
             if (graph == null)
@@ -432,7 +373,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
 
 
-        public override void ChangeSelection(Object newSelection)
+        public void ChangeSelection(Object newSelection, Type graphType)
         {
             if (!EditorUtility.IsPersistent(newSelection))
                 return;
@@ -446,11 +387,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graphObject = CreateInstance<SerializableGraphObject>();
             graphObject.hideFlags = HideFlags.HideAndDontSave;
-            graphObject.graph = JsonUtility.FromJson<TGraphType>(textGraph);
+            graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
+            Assert.IsNotNull(graphObject.graph);
             graphObject.graph.OnEnable();
             graphObject.graph.ValidateGraph();
 
-            graphEditorView = new GraphEditorView(GetMaterialGraph(), this, selected.name);
+            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected.name);
             titleContent = new GUIContent(selected.name);
 
             Repaint();

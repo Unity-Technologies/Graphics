@@ -84,7 +84,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 //            if (scope == ModificationScope.Topological)
         }
 
-        public virtual void Initialize(GraphView graphView, IGraph graph, IMaterialGraphEditWindow container, PreviewSystem previewSystem)
+        public void Initialize(GraphView graphView, IGraph graph, PreviewSystem previewSystem)
         {
             m_GraphView = graphView;
 
@@ -224,19 +224,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             return graph;
         }
 
-        internal static CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
-        {
-            try
-            {
-                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
-            }
-            catch
-            {
-                // ignored. just means copy buffer was not a graph :(
-                return null;
-            }
-        }
-
         void InsertCopyPasteGraph(CopyPasteGraph copyGraph)
         {
             if (copyGraph == null || graph == null)
@@ -310,12 +297,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public bool canPaste
         {
-            get { return DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer) != null; }
+            get { return CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer) != null; }
         }
 
         public void Paste()
         {
-            var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
+            var pastedGraph = CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer);
             graph.owner.RegisterCompleteObjectUndo("Paste");
             InsertCopyPasteGraph(pastedGraph);
         }
@@ -327,7 +314,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Duplicate()
         {
-            var deserializedGraph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
+            var deserializedGraph = CopyPasteGraph.FromJson(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
             graph.owner.RegisterCompleteObjectUndo("Duplicate");
             InsertCopyPasteGraph(deserializedGraph);
         }
