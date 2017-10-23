@@ -14,6 +14,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class GraphEditorView : VisualElement, IDisposable
     {
+        AbstractMaterialGraph m_Graph;
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
@@ -54,6 +55,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public GraphEditorView(AbstractMaterialGraph graph, string assetName)
         {
+            m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewSystem = new PreviewSystem(graph);
@@ -132,10 +134,17 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(m_GraphPresenter) { name = "GraphView" };
+                m_GraphView = new MaterialGraphView() { name = "GraphView" };
+                m_GraphView.SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
+                m_GraphView.AddManipulator(new ContentDragger());
+                m_GraphView.AddManipulator(new RectangleSelector());
+                m_GraphView.AddManipulator(new SelectionDragger());
+                m_GraphView.AddManipulator(new ClickSelector());
+                m_GraphView.AddManipulator(new NodeCreator(graph));
+                content.Add(m_GraphView);
+
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewSystem, graph) { name = "inspector" };
                 m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
-                content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
@@ -152,7 +161,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 foreach (var edge in graphViewChange.edgesToCreate)
                 {
-                    m_GraphPresenter.Connect(edge.output, edge.input);
+                    m_Graph.owner.RegisterCompleteObjectUndo("Connect Edge");
+                    var leftSlot = edge.output.userData as ISlot;
+                    var rightSlot = edge.input.userData as ISlot;
+                    if (leftSlot != null && rightSlot != null)
+                        m_Graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
                 }
                 graphViewChange.edgesToCreate.Clear();
             }

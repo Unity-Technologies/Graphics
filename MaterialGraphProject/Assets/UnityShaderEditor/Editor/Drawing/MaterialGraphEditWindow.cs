@@ -99,12 +99,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             var presenter = graphEditorView.graphPresenter;
             var e = Event.current;
 
+            var graphViewHasSelection = graphEditorView.graphView.selection.Any();
             if (e.type == EventType.ValidateCommand && (
-                e.commandName == "Copy" && presenter.canCopy
-                || e.commandName == "Paste" && presenter.canPaste
-                || e.commandName == "Duplicate" && presenter.canDuplicate
-                || e.commandName == "Cut" && presenter.canCut
-                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
+                e.commandName == "Copy" && graphViewHasSelection
+                || e.commandName == "Paste" && CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer) != null
+                || e.commandName == "Duplicate" && graphViewHasSelection
+                || e.commandName == "Cut" && graphViewHasSelection
+                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && graphViewHasSelection))
             {
                 e.Use();
             }

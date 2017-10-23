@@ -578,6 +578,16 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
+        public bool IsCompatibleWith(MaterialSlot otherSlot)
+        {
+            return otherSlot != null
+                && otherSlot.owner != owner
+                && otherSlot.isInputSlot != isInputSlot
+                && (isInputSlot
+                    ? otherSlot.IsCompatibleWithInputSlotType(concreteValueType)
+                    : IsCompatibleWithInputSlotType(otherSlot.concreteValueType));
+        }
+
         public virtual string GetDefaultValue(GenerationMode generationMode)
         {
             var matOwner = owner as AbstractMaterialNode;
