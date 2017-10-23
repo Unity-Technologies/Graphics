@@ -301,14 +301,16 @@ void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float 
 void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD)
 {
     // Pre-integrate GGX FGD
-    //  _PreIntegratedFGD.x = Gv * (1 - Fc)  with Fc = (1 - H.L)^5
-    //  _PreIntegratedFGD.y = Gv * Fc
+    // Integral{BSDF * <N,L> dw} =
+    // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
+    // F0 * Integral{(BSDF / F) * <N,L> dw} +
+    // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} =
+    // F0 * y + (1 - F0) * x = lerp(x, y, F0)
     // Pre integrate DisneyDiffuse FGD:
-    // _PreIntegratedFGD.z = DisneyDiffuse
+    // z = DisneyDiffuse
     float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
-    // f0 * Gv * (1 - Fc) + Gv * Fc
-    specularFGD = fresnel0 * preFGD.x + preFGD.y;
+    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
