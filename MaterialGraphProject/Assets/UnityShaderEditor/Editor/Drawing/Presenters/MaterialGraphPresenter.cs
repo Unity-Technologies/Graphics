@@ -40,7 +40,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Initialize(GraphView graphView, IGraph graph, PreviewSystem previewSystem)
         {
             m_GraphView = graphView;
-
             m_PreviewSystem = previewSystem;
             this.graph = graph;
 
@@ -125,7 +124,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
         {
-            var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && (IEdge)p.userData == change.edge);
+            var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, change.edge));
             if (edgeView != null)
             {
                 edgeView.output.Disconnect(edgeView);
@@ -134,34 +133,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void AddNode(INode node)
-        {
-            graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
-            graph.AddNode(node);
-        }
-
         public void RemoveElements(IEnumerable<MaterialNodeView> nodes, IEnumerable<Edge> edges)
         {
             graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));
             graph.ValidateGraph();
         }
 
-        public void Connect(NodeAnchor left, NodeAnchor right)
-        {
-            if (left != null && right != null)
-            {
-                graph.owner.RegisterCompleteObjectUndo("Connect Edge");
-                var leftSlot = left.userData as ISlot;
-                var rightSlot = right.userData as ISlot;
-
-                if (leftSlot == null || rightSlot == null)
-                    return;
-
-                graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
-            }
-        }
-
-        static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
+        static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<ISelectable> selection)
         {
             var graph = new CopyPasteGraph();
             foreach (var element in selection)
@@ -228,20 +206,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_AddToSelection = false;
         }
 
-        public bool canCopy
-        {
-            get { return m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected); }
-        }
-
         public void Copy()
         {
-            var graph = CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>());
-            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
-        }
-
-        public bool canCut
-        {
-            get { return canCopy; }
+            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection), true);
         }
 
         public void Cut()
@@ -253,33 +220,16 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView.selection.OfType<Edge>());
         }
 
-        public bool canPaste
-        {
-            get { return CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer) != null; }
-        }
-
         public void Paste()
         {
-            var pastedGraph = CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer);
             graph.owner.RegisterCompleteObjectUndo("Paste");
-            InsertCopyPasteGraph(pastedGraph);
-        }
-
-        public bool canDuplicate
-        {
-            get { return canCopy; }
+            InsertCopyPasteGraph(CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer));
         }
 
         public void Duplicate()
         {
-            var deserializedGraph = CopyPasteGraph.FromJson(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection.OfType<GraphElement>()), true));
             graph.owner.RegisterCompleteObjectUndo("Duplicate");
-            InsertCopyPasteGraph(deserializedGraph);
-        }
-
-        public bool canDelete
-        {
-            get { return canCopy; }
+            InsertCopyPasteGraph(CopyPasteGraph.FromJson(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection), false)));
         }
 
         public void Delete()

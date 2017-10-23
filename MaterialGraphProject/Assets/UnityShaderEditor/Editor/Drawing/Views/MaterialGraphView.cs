@@ -13,28 +13,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
-        MaterialGraphPresenter m_Presenter;
-
-        public MaterialGraphView(MaterialGraphPresenter presenter)
-        {
-            m_Presenter = presenter;
-            RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
-            SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
-            this.AddManipulator(new ContentDragger());
-            this.AddManipulator(new RectangleSelector());
-            this.AddManipulator(new SelectionDragger());
-            this.AddManipulator(new ClickSelector());
-
-            Insert(0, new GridBackground());
-
-            AddStyleSheetPath("Styles/MaterialGraph");
-        }
-
-        public bool CanAddToNodeMenu(Type type)
-        {
-            return true;
-        }
-
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<NodeAnchor>();
@@ -48,20 +26,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             foreach (var candidateAnchor in anchors.ToList())
             {
-                if (!candidateAnchor.IsConnectable())
-                    continue;
-                if (candidateAnchor.orientation != startAnchor.orientation)
-                    continue;
-                if (candidateAnchor.direction == startAnchor.direction)
-                    continue;
-                if (nodeAdapter.GetAdapter(candidateAnchor.source, startAnchor.source) == null)
-                    continue;
                 var candidateSlot = candidateAnchor.userData as MaterialSlot;
-                if (candidateSlot == null)
-                    continue;
-                if (candidateSlot.owner == startSlot.owner)
-                    continue;
-                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.concreteValueType))
+                if (!startSlot.IsCompatibleWith(candidateSlot))
                     continue;
 
                 if (startStage != ShaderStage.Dynamic)
@@ -76,68 +42,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 compatibleAnchors.Add(candidateAnchor);
             }
             return compatibleAnchors;
-        }
-
-        void DoContextMenu(MouseUpEvent evt)
-        {
-            if (evt.button == (int)MouseButton.RightMouse)
-            {
-                var gm = new GenericMenu();
-                foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
-                {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
-                    {
-                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                        if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
-                        {
-                            gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
-                        }
-                    }
-                }
-
-                gm.ShowAsContext();
-            }
-            evt.StopPropagation();
-        }
-
-        class AddNodeCreationObject
-        {
-            public Vector2 m_Pos;
-            public readonly Type m_Type;
-
-            public AddNodeCreationObject(Type t, Vector2 p)
-            {
-                m_Type = t;
-                m_Pos = p;
-            }
-        };
-
-        void AddNode(object obj)
-        {
-            var posObj = obj as AddNodeCreationObject;
-            if (posObj == null)
-                return;
-
-            INode node;
-            try
-            {
-                node = Activator.CreateInstance(posObj.m_Type) as INode;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Could not construct instance of: {0} - {1}", posObj.m_Type, e);
-                return;
-            }
-
-            if (node == null)
-                return;
-            var drawstate = node.drawState;
-
-            Vector3 localPos = contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(posObj.m_Pos);
-            drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
-            node.drawState = drawstate;
-
-            m_Presenter.AddNode(node);
         }
 
         public delegate void OnSelectionChanged(IEnumerable<INode> nodes);

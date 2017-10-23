@@ -21,6 +21,10 @@ GraphEditorView > #content > #inspector {
     width: 400;
 }
 
+MaterialGraphView {
+    background-color: rgb(20, 21, 21);
+}
+
 MaterialNodeView > .mainContainer > #left > #preview.active {
     width: 200;
 }
@@ -61,14 +65,6 @@ MaterialNodeView > #resize:hover {
 
 MaterialNodeView > #resize:active {
     background-color: rgb(0, 225, 25);
-}
-
-GridBackground {
-	grid-background-color: rgb(20, 21, 21);
-	line-color: rgb(20, 21, 21);
-	thick-line-color: rgb(20, 21, 21);
-	spacing: 75.0;
-	thick-lines: 10;
 }
 
 GraphInspectorView {
