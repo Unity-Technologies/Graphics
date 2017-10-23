@@ -24,6 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         SerializableGraphObject m_GraphObject;
 
         GraphEditorView m_GraphEditorView;
+
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -50,7 +51,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             get { return m_GraphObject; }
             set
-        {
+            {
                 if (m_GraphObject != null)
                     DestroyImmediate(m_GraphObject);
                 m_GraphObject = value;
@@ -99,11 +100,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             var e = Event.current;
 
             if (e.type == EventType.ValidateCommand && (
-                    e.commandName == "Copy" && presenter.canCopy
-                    || e.commandName == "Paste" && presenter.canPaste
-                    || e.commandName == "Duplicate" && presenter.canDuplicate
-                    || e.commandName == "Cut" && presenter.canCut
-                    || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
+                e.commandName == "Copy" && presenter.canCopy
+                || e.commandName == "Paste" && presenter.canPaste
+                || e.commandName == "Duplicate" && presenter.canDuplicate
+                || e.commandName == "Cut" && presenter.canCut
+                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && presenter.canDelete))
             {
                 e.Use();
             }
@@ -230,6 +231,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     graph.Connect(outputSlotRef, inputSlotRef);
                 }
+
                 // one edge needs to go to outside world
                 else if (outputRemapExists)
                 {
@@ -244,7 +246,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var uniqueInputEdges = onlyOutputInternallyConnected.GroupBy(
                 edge => edge.outputSlot,
                 edge => edge,
-                (key, edges) => new {slotRef = key, edges = edges.ToList()});
+                (key, edges) => new { slotRef = key, edges = edges.ToList() });
             foreach (var group in uniqueInputEdges)
             {
                 var sr = group.slotRef;
@@ -279,7 +281,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var uniqueOutputEdges = onlyInputInternallyConnected.GroupBy(
                 edge => edge.inputSlot,
                 edge => edge,
-                (key, edges) => new {slot = key, edges = edges.ToList()});
+                (key, edges) => new { slot = key, edges = edges.ToList() });
 
             var outputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutputEdges)
@@ -307,10 +309,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphPresenter.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
-          /*  foreach (var edgeMap in inputsNeedingConnection)
-            {
-                graphPresenter.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
-            }*/
+            /*  foreach (var edgeMap in inputsNeedingConnection)
+              {
+                  graphPresenter.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
+              }*/
 
             foreach (var edgeMap in outputsNeedingConnection)
             {
@@ -371,7 +373,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
         }
-
 
         public void ChangeSelection(Object newSelection, Type graphType)
         {
