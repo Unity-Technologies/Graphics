@@ -68,6 +68,18 @@ half4 _GlossyEnvironmentColor;
 sampler2D _AttenuationTexture;
 CBUFFER_END
 
+struct SurfaceData
+{
+    half3 albedo;
+    half3 specular;
+    half  metallic;
+    half  smoothness;
+    half3 normal;
+    half3 emission;
+    half  occlusion;
+    half  alpha;
+};
+
 struct LightInput
 {
     float4 pos;
@@ -107,8 +119,12 @@ half3 GlossyEnvironment(UNITY_ARGS_TEXCUBE(tex), half4 hdr, half perceptualRough
 
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
 {
-    // BRDF SETUP
-#ifdef _METALLIC_SETUP
+#ifdef _SPECULAR_SETUP
+    half reflectivity = SpecularReflectivity(specular);
+
+    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.specular = specular;
+#else
     // We'll need oneMinusReflectivity, so
     //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
     // store (1-dielectricSpec) in kDieletricSpec.a, then
@@ -120,11 +136,6 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 
     outBRDFData.diffuse = albedo * oneMinusReflectivity;
     outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
-#else
-    half reflectivity = SpecularReflectivity(specular);
-
-    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
 #endif
 
     outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
