@@ -40,9 +40,7 @@ namespace UnityEditor.VFX
             {
                 var block = attribBlocks.FirstOrDefault(b => b.Sum(a => VFXValue.TypeToSize(a.type)) + VFXValue.TypeToSize(value.type) <= 4);
                 if (block != null)
-                    value = (value + kThreadPerGroup - 1u) & ~(kThreadPerGroup - 1u); // multiple of kThreadPerGroup
-                m_Capacity = (value + 3u) & ~3u;
-                attribBlocks.Add(new List<VFXAttribute>() { value });
+                    attribBlocks.Add(new List<VFXAttribute>() { value });
             }
 
             int currentOffset = 0;
@@ -156,11 +154,7 @@ namespace UnityEditor.VFX
                 const uint kThreadPerGroup = 64;
                 if (value > kThreadPerGroup)
                     value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                else if (value > 4)
-                    value = (uint)Mathf.Ceil(Mathf.Log(value) / Mathf.Log(2));
-                else
-                    value = 4;
-                m_Capacity = value;
+                m_Capacity = (value + 3u) & ~3u;
             }
         }
 
