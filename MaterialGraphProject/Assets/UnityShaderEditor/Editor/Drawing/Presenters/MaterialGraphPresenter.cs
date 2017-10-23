@@ -12,61 +12,14 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class MaterialGraphPresenter : GraphViewPresenter
+    public class MaterialGraphPresenter
     {
         private GraphView m_GraphView;
 
         PreviewSystem m_PreviewSystem;
+        bool m_AddToSelection;
 
         public IGraph graph { get; private set; }
-
-        protected MaterialGraphPresenter() { }
-
-        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
-        {
-            var compatibleAnchors = new List<NodeAnchorPresenter>();
-            var startAnchorPresenter = startAnchor as GraphAnchorPresenter;
-            if (startAnchorPresenter == null)
-                return compatibleAnchors;
-            var startSlot = startAnchorPresenter.slot as MaterialSlot;
-            if (startSlot == null)
-                return compatibleAnchors;
-
-            var startStage = startSlot.shaderStage;
-            if (startStage == ShaderStage.Dynamic)
-                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
-
-            foreach (var candidateAnchorPresenter in allChildren.OfType<GraphAnchorPresenter>())
-            {
-                if (!candidateAnchorPresenter.IsConnectable())
-                    continue;
-                if (candidateAnchorPresenter.orientation != startAnchor.orientation)
-                    continue;
-                if (candidateAnchorPresenter.direction == startAnchor.direction)
-                    continue;
-                if (nodeAdapter.GetAdapter(candidateAnchorPresenter.source, startAnchor.source) == null)
-                    continue;
-                var candidateSlot = candidateAnchorPresenter.slot as MaterialSlot;
-                if (candidateSlot == null)
-                    continue;
-                if (candidateSlot.owner == startSlot.owner)
-                    continue;
-                if (!startSlot.IsCompatibleWithInputSlotType(candidateSlot.concreteValueType))
-                    continue;
-
-                if (startStage != ShaderStage.Dynamic)
-                {
-                    var candidateStage = candidateSlot.shaderStage;
-                    if (candidateStage == ShaderStage.Dynamic)
-                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
-                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
-                        continue;
-                }
-
-                compatibleAnchors.Add(candidateAnchorPresenter);
-            }
-            return compatibleAnchors;
-        }
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
         {
@@ -127,6 +80,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             nodeView.userData = change.node;
             change.node.onModified += OnNodeChanged;
             m_GraphView.AddElement(nodeView);
+            if (m_AddToSelection)
+                m_GraphView.AddToSelection(nodeView);
         }
 
         void NodeRemoved(NodeRemovedGraphChange change)
@@ -164,6 +119,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             edgeView.input = targetAnchor;
             edgeView.input.Connect(edgeView);
             m_GraphView.AddElement(edgeView);
+            if (m_AddToSelection)
+                m_GraphView.AddToSelection(edgeView);
         }
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
@@ -204,7 +161,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
+        static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
         {
             var graph = new CopyPasteGraph();
             foreach (var element in selection)
@@ -229,6 +186,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (copyGraph == null || graph == null)
                 return;
 
+            m_GraphView.ClearSelection();
+            m_AddToSelection = true;
             var addedNodes = new List<INode>();
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in copyGraph.GetNodes<INode>())
@@ -266,13 +225,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             graph.ValidateGraph();
-            if (onSelectionChanged != null)
-                onSelectionChanged(addedNodes);
+            m_AddToSelection = false;
         }
 
         public bool canCopy
         {
-            get { return elements.Any(e => e.selected) || (m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected)); }
+            get { return m_GraphView != null && m_GraphView.selection.OfType<GraphElement>().Any(e => e.selected); }
         }
 
         public void Copy()
@@ -330,28 +288,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             RemoveElements(
                 m_GraphView.selection.OfType<MaterialNodeView>(),
                 m_GraphView.selection.OfType<Edge>());
-        }
-
-        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
-
-        public OnSelectionChanged onSelectionChanged;
-
-        public void UpdateSelection(IEnumerable<MaterialNodeView> nodes)
-        {
-            if (graph == null)
-                return;
-            if (onSelectionChanged != null)
-                onSelectionChanged(nodes.Select(x => x.userData as INode));
-        }
-
-        public override void AddElement(GraphElementPresenter element)
-        {
-            throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
-        }
-
-        public override void RemoveElement(GraphElementPresenter element)
-        {
-            throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
         }
     }
 }
