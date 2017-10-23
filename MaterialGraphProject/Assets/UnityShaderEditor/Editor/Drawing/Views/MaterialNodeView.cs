@@ -132,8 +132,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as ISlot)));
 
-                inputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
-                outputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
+                if (inputContainer.childCount > 0)
+                    inputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
+                if (outputContainer.childCount > 0)
+                    outputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
             }
         }
 
