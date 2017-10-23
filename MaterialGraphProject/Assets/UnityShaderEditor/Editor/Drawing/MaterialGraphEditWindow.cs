@@ -69,8 +69,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             var materialGraph = graphObject.graph as AbstractMaterialGraph;
             if (materialGraph == null)
                 return;
-            if (graphEditorView == null || graphEditorView.graphPresenter == null)
-                graphEditorView = new GraphEditorView(materialGraph, selected.name);
+            if (graphEditorView == null)
+                graphEditorView = new GraphEditorView(materialGraph, selected);
             if (graphEditorView != null)
                 graphEditorView.previewSystem.Update();
         }
@@ -96,7 +96,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphEditorView == null)
                 return;
 
-            var presenter = graphEditorView.graphPresenter;
             var e = Event.current;
 
             var graphView = graphEditorView.graphView;
@@ -194,7 +193,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (path.Length == 0)
                 return;
 
-            var graphPresenter = graphEditorView.graphPresenter;
             var graphView = graphEditorView.graphView;
 
             var copyPasteGraph = new CopyPasteGraph(
@@ -256,7 +254,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             foreach (var group in uniqueInputEdges)
             {
                 var sr = group.slotRef;
-                var fromNode = graphPresenter.graph.GetNodeFromGuid(sr.nodeGuid);
+                var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
 
                 switch (fromSlot.concreteValueType)
@@ -312,23 +310,23 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var subGraphNode = new SubGraphNode();
-            graphPresenter.graph.AddNode(subGraphNode);
+            graphObject.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = subGraph;
 
             /*  foreach (var edgeMap in inputsNeedingConnection)
               {
-                  graphPresenter.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
+                  graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
               }*/
 
             foreach (var edgeMap in outputsNeedingConnection)
             {
-                graphPresenter.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
+                graphObject.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
-            graphPresenter.graph.RemoveElements(
+            graphObject.graph.RemoveElements(
                 graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode),
                 Enumerable.Empty<IEdge>());
-            graphPresenter.graph.ValidateGraph();
+            graphObject.graph.ValidateGraph();
         }
 
         void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
@@ -397,11 +395,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphObject = CreateInstance<SerializableGraphObject>();
             graphObject.hideFlags = HideFlags.HideAndDontSave;
             graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
-            Assert.IsNotNull(graphObject.graph);
             graphObject.graph.OnEnable();
             graphObject.graph.ValidateGraph();
 
-            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected.name);
+            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected);
             titleContent = new GUIContent(selected.name);
 
             Repaint();
