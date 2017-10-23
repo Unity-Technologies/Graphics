@@ -6,9 +6,9 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Velocity")]
-    class VelocityLinear : VFXBlock
+    class VelocityDirection : VFXBlock
     {
-        public override string name { get { return "Velocity (Linear)"; } }
+        public override string name { get { return "Velocity (Direction)"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
