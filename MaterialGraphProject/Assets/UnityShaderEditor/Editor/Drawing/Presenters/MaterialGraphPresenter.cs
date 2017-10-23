@@ -14,10 +14,9 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MaterialGraphPresenter
     {
-        private GraphView m_GraphView;
+        private MaterialGraphView m_GraphView;
 
         PreviewSystem m_PreviewSystem;
-        bool m_AddToSelection;
 
         public IGraph graph { get; private set; }
 
@@ -37,7 +36,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 //            if (scope == ModificationScope.Topological)
         }
 
-        public void Initialize(GraphView graphView, IGraph graph, PreviewSystem previewSystem)
+        public void Initialize(MaterialGraphView graphView, IGraph graph, PreviewSystem previewSystem)
         {
             m_GraphView = graphView;
             m_PreviewSystem = previewSystem;
@@ -79,8 +78,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             nodeView.userData = change.node;
             change.node.onModified += OnNodeChanged;
             m_GraphView.AddElement(nodeView);
-            if (m_AddToSelection)
-                m_GraphView.AddToSelection(nodeView);
         }
 
         void NodeRemoved(NodeRemovedGraphChange change)
@@ -118,8 +115,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             edgeView.input = targetAnchor;
             edgeView.input.Connect(edgeView);
             m_GraphView.AddElement(edgeView);
-            if (m_AddToSelection)
-                m_GraphView.AddToSelection(edgeView);
         }
 
         void EdgeRemoved(EdgeRemovedGraphChange change)
@@ -137,107 +132,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             graph.RemoveElements(nodes.Select(x => x.node as INode), edges.Select(x => x.userData as IEdge));
             graph.ValidateGraph();
-        }
-
-        static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<ISelectable> selection)
-        {
-            var graph = new CopyPasteGraph();
-            foreach (var element in selection)
-            {
-                var nodeView = element as MaterialNodeView;
-                if (nodeView != null)
-                {
-                    graph.AddNode(nodeView.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
-                        graph.AddEdge(edge);
-                }
-
-                var edgeView = element as Edge;
-                if (edgeView != null)
-                    graph.AddEdge(edgeView.userData as IEdge);
-            }
-            return graph;
-        }
-
-        void InsertCopyPasteGraph(CopyPasteGraph copyGraph)
-        {
-            if (copyGraph == null || graph == null)
-                return;
-
-            m_GraphView.ClearSelection();
-            m_AddToSelection = true;
-            var addedNodes = new List<INode>();
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in copyGraph.GetNodes<INode>())
-            {
-                var oldGuid = node.guid;
-                var newGuid = node.RewriteGuid();
-                nodeGuidMap[oldGuid] = newGuid;
-
-                var drawState = node.drawState;
-                var position = drawState.position;
-                position.x += 30;
-                position.y += 30;
-                drawState.position = position;
-                node.drawState = drawState;
-                graph.AddNode(node);
-                addedNodes.Add(node);
-            }
-
-            // only connect edges within pasted elements, discard
-            // external edges.
-            foreach (var edge in copyGraph.edges)
-            {
-                var outputSlot = edge.outputSlot;
-                var inputSlot = edge.inputSlot;
-
-                Guid remappedOutputNodeGuid;
-                Guid remappedInputNodeGuid;
-                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
-                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
-                {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    graph.Connect(outputSlotRef, inputSlotRef);
-                }
-            }
-
-            graph.ValidateGraph();
-            m_AddToSelection = false;
-        }
-
-        public void Copy()
-        {
-            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection), true);
-        }
-
-        public void Cut()
-        {
-            Copy();
-            graph.owner.RegisterCompleteObjectUndo("Cut");
-            RemoveElements(
-                m_GraphView.selection.OfType<MaterialNodeView>(),
-                m_GraphView.selection.OfType<Edge>());
-        }
-
-        public void Paste()
-        {
-            graph.owner.RegisterCompleteObjectUndo("Paste");
-            InsertCopyPasteGraph(CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer));
-        }
-
-        public void Duplicate()
-        {
-            graph.owner.RegisterCompleteObjectUndo("Duplicate");
-            InsertCopyPasteGraph(CopyPasteGraph.FromJson(JsonUtility.ToJson(CreateCopyPasteGraph(m_GraphView.selection), false)));
-        }
-
-        public void Delete()
-        {
-            graph.owner.RegisterCompleteObjectUndo("Delete");
-            RemoveElements(
-                m_GraphView.selection.OfType<MaterialNodeView>(),
-                m_GraphView.selection.OfType<Edge>());
         }
     }
 }
