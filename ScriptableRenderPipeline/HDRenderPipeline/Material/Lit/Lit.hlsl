@@ -44,7 +44,7 @@
 // #define LIT_DISPLAY_REFERENCE_IBL
 #endif
 // Use Lambert diffuse instead of Disney diffuse
-#define LIT_DIFFUSE_LAMBERT_BRDF
+// #define LIT_DIFFUSE_LAMBERT_BRDF
 // Use optimization of Precomputing LambdaV
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
