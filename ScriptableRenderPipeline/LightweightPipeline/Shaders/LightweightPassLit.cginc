@@ -54,18 +54,6 @@ struct LightweightVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-struct SurfaceData
-{
-    half3 albedo;
-    half3 specular;
-    half  metallic;
-    half  smoothness;
-    half3 normal;
-    half3 emission;
-    half  occlusion;
-    half  alpha;
-};
-
 struct SurfaceInput
 {
     float4  lightmapUV;
@@ -130,10 +118,10 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 #endif
 
 #else // _METALLICSPECGLOSSMAP
-#if _METALLIC_SETUP
-    specGloss.rgb = _Metallic.rrr;
-#else
+#if _SPECUALR_SETUP
     specGloss.rgb = _SpecColor.rgb;
+#else
+    specGloss.rgb = _Metallic.rrr;
 #endif
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
