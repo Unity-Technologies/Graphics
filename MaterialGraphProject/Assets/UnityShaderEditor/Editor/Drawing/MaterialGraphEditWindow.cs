@@ -99,7 +99,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             var presenter = graphEditorView.graphPresenter;
             var e = Event.current;
 
-            var graphViewHasSelection = graphEditorView.graphView.selection.Any();
+            var graphView = graphEditorView.graphView;
+            var graphViewHasSelection = graphView.selection.Any();
             if (e.type == EventType.ValidateCommand && (
                 e.commandName == "Copy" && graphViewHasSelection
                 || e.commandName == "Paste" && CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer) != null
@@ -113,29 +114,46 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (e.type == EventType.ExecuteCommand)
             {
                 if (e.commandName == "Copy")
-                    presenter.Copy();
+                {
+                    EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), true);
+                }
                 if (e.commandName == "Paste")
-                    presenter.Paste();
+                {
+                    graphObject.RegisterCompleteObjectUndo("Paste");
+                    graphView.InsertCopyPasteGraph(CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer));
+                }
                 if (e.commandName == "Duplicate")
-                    presenter.Duplicate();
+                {
+                    graphObject.RegisterCompleteObjectUndo("Duplicate");
+                    graphView.InsertCopyPasteGraph(CopyPasteGraph.FromJson(JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), false)));
+                }
                 if (e.commandName == "Cut")
-                    presenter.Cut();
+                {
+                    graphObject.RegisterCompleteObjectUndo("Cut");
+                    EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), true);
+                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+                    graphObject.graph.ValidateGraph();
+                }
                 if (e.commandName == "Delete" || e.commandName == "SoftDelete")
-                    presenter.Delete();
+                {
+                    graphObject.RegisterCompleteObjectUndo("Delete");
+                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+                    graphObject.graph.ValidateGraph();
+                }
             }
 
             if (e.type == EventType.KeyDown)
             {
                 if (e.keyCode == KeyCode.A)
-                    graphEditorView.graphView.FrameAll();
+                    graphView.FrameAll();
                 if (e.keyCode == KeyCode.F)
-                    graphEditorView.graphView.FrameSelection();
+                    graphView.FrameSelection();
                 if (e.keyCode == KeyCode.O)
-                    graphEditorView.graphView.FrameOrigin();
+                    graphView.FrameOrigin();
                 if (e.keyCode == KeyCode.Tab)
-                    graphEditorView.graphView.FrameNext();
+                    graphView.FrameNext();
                 if (e.keyCode == KeyCode.Tab && (e.modifiers & EventModifiers.Shift) > 0)
-                    graphEditorView.graphView.FramePrev();
+                    graphView.FramePrev();
             }
         }
 
@@ -178,23 +196,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var graphPresenter = graphEditorView.graphPresenter;
             var graphView = graphEditorView.graphView;
-            var selection = graphView.selection.OfType<GraphElement>();
 
-            var copyPasteGraph = new CopyPasteGraph();
-
-            foreach (var element in selection)
-            {
-                var nodeView = element as MaterialNodeView;
-                if (nodeView != null)
-                {
-                    if (!(nodeView.node is PropertyNode))
-                        copyPasteGraph.AddNode(nodeView.node);
-                }
-
-                var edgeView = element as Edge;
-                if (edgeView != null)
-                    copyPasteGraph.AddEdge(edgeView.userData as IEdge);
-            }
+            var copyPasteGraph = new CopyPasteGraph(
+                graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
+                graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)

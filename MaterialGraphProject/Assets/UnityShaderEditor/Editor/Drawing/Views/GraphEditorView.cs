@@ -134,7 +134,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView() { name = "GraphView" };
+                m_GraphView = new MaterialGraphView(graph) { name = "GraphView" };
                 m_GraphView.SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());

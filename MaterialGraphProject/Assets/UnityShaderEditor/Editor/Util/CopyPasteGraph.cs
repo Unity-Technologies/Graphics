@@ -8,13 +8,13 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.Util
 {
     [Serializable]
-    internal class CopyPasteGraph : ISerializationCallbackReceiver
+    sealed class CopyPasteGraph : ISerializationCallbackReceiver
     {
         [NonSerialized]
-        private HashSet<IEdge> m_Edges = new HashSet<IEdge>();
+        HashSet<IEdge> m_Edges = new HashSet<IEdge>();
 
         [NonSerialized]
-        private HashSet<INode> m_Nodes = new HashSet<INode>();
+        HashSet<INode> m_Nodes = new HashSet<INode>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
@@ -22,7 +22,22 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
 
-        public virtual void AddNode(INode node)
+        public CopyPasteGraph() { }
+
+        public CopyPasteGraph(IEnumerable<INode> nodes, IEnumerable<IEdge> edges)
+        {
+            foreach (var node in nodes)
+            {
+                AddNode(node);
+                foreach (var edge in NodeUtils.GetAllEdges(node))
+                    AddEdge(edge);
+            }
+
+            foreach (var edge in edges)
+                AddEdge(edge);
+        }
+
+        public void AddNode(INode node)
         {
             m_Nodes.Add(node);
         }
@@ -42,13 +57,55 @@ namespace UnityEditor.Graphing.Util
             get { return m_Edges; }
         }
 
-        public virtual void OnBeforeSerialize()
+        public void InsertInGraph(IGraph graph, List<INode> remappedNodes, List<IEdge> remappedEdges)
+        {
+            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            foreach (var node in GetNodes<INode>())
+            {
+                var oldGuid = node.guid;
+                var newGuid = node.RewriteGuid();
+                nodeGuidMap[oldGuid] = newGuid;
+
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x += 30;
+                position.y += 30;
+                drawState.position = position;
+                node.drawState = drawState;
+                remappedNodes.Add(node);
+                graph.AddNode(node);
+            }
+
+            // only connect edges within pasted elements, discard
+            // external edges.
+            foreach (var edge in edges)
+            {
+                var outputSlot = edge.outputSlot;
+                var inputSlot = edge.inputSlot;
+
+                Guid remappedOutputNodeGuid;
+                Guid remappedInputNodeGuid;
+                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
+                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
+                {
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
+                    remappedEdges.Add(graph.Connect(outputSlotRef, inputSlotRef));
+                }
+            }
+
+            m_Nodes.Clear();
+            m_Edges.Clear();
+            graph.ValidateGraph();
+        }
+
+        public void OnBeforeSerialize()
         {
             m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
         }
 
-        public virtual void OnAfterDeserialize()
+        public void OnAfterDeserialize()
         {
             var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, null);
             m_Nodes.Clear();
