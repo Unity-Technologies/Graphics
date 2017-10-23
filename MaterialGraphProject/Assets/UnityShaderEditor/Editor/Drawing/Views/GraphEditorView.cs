@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_PreviewSystem = value; }
         }
 
-        public GraphEditorView(AbstractMaterialGraph graph, HelperMaterialGraphEditWindow container, string assetName)
+        public GraphEditorView(AbstractMaterialGraph graph, string assetName)
         {
             AddStyleSheetPath("Styles/MaterialGraph");
 
@@ -141,7 +141,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
 
-            m_GraphPresenter.Initialize(m_GraphView, graph, container, previewSystem);
+            m_GraphPresenter.Initialize(m_GraphView, graph, previewSystem);
             m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
 
             Add(content);

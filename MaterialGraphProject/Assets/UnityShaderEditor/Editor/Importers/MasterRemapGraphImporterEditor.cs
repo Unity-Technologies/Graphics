@@ -19,15 +19,14 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
         }
     }
 
-    private static bool ShowGraphEditWindow(string path)
+    static bool ShowGraphEditWindow(string path)
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path) as MasterRemapGraphAsset;
         if (asset == null)
             return false;
 
-        var windows = Resources.FindObjectsOfTypeAll<MasterReampGraphEditWindow>();
-        bool foundWindow = false;
-        foreach (var w in windows)
+        var foundWindow = false;
+        foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
         {
             if (w.selected == asset)
             {
@@ -38,9 +37,9 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
 
         if (!foundWindow)
         {
-            var window = CreateInstance<MasterReampGraphEditWindow>();
+            var window = CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelection(asset);
+            window.ChangeSelection(asset, typeof(MasterRemapGraph));
         }
         return true;
     }
