@@ -7,8 +7,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 {
     public class ShaderLayerView : VisualElement
     {
-        public LayeredShaderGraph graph { get; }
-        public LayeredShaderGraph.Layer layer { get; }
+        public LayeredShaderGraph graph { get; private set; }
+        public LayeredShaderGraph.Layer layer { get; private set; }
 
         public ShaderLayerView(LayeredShaderGraph graph, LayeredShaderGraph.Layer layer)
         {

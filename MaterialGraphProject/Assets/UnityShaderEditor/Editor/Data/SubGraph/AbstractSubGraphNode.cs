@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireTime
     {
 
-        protected virtual AbstractSubGraph referencedGraph { get; }
+        protected abstract AbstractSubGraph referencedGraph { get; }
 
         public override bool hasPreview
         {
