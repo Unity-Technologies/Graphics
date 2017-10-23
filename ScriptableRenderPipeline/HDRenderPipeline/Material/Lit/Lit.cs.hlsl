@@ -58,7 +58,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_IOR (1016)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1017)
 #define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1018)
-#define DEBUGVIEW_LIT_SURFACEDATA_OPACITY_MASK (1019)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1019)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
@@ -86,7 +86,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1050)
 #define DEBUGVIEW_LIT_BSDFDATA_IOR (1051)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1052)
-#define DEBUGVIEW_LIT_BSDFDATA_OPACITY_MASK (1053)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1053)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -116,7 +116,7 @@ struct SurfaceData
     float ior;
     float3 transmittanceColor;
     float atDistance;
-    float opacityMask;
+    float transmittanceMask;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
@@ -146,7 +146,7 @@ struct BSDFData
     float coatIOR;
     float ior;
     float3 absorptionCoefficient;
-    float opacityMask;
+    float transmittanceMask;
 };
 
 //
@@ -215,8 +215,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE:
             result = surfacedata.atDistance.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_OPACITY_MASK:
-            result = surfacedata.opacityMask.xxx;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
+            result = surfacedata.transmittanceMask.xxx;
             break;
     }
 }
@@ -298,8 +298,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
             result = bsdfdata.absorptionCoefficient;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_OPACITY_MASK:
-            result = bsdfdata.opacityMask.xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
+            result = bsdfdata.transmittanceMask.xxx;
             break;
     }
 }
