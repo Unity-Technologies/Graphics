@@ -24,6 +24,12 @@ namespace UnityEditor.VFX.UI
             m_ViewPresenter = viewPresenter;
 
             base.position = new Rect(model.position, Vector2.one);
+            UpdateTitle();
+        }
+
+        public virtual void UpdateTitle()
+        {
+            title = model.name;
         }
 
         public override Rect position

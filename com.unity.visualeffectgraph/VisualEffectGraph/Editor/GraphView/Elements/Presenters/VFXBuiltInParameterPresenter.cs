@@ -10,6 +10,10 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
+        }
+
+        public override void UpdateTitle()
+        {
             title = builtInParameter.expressionOp.ToString();
         }
     }

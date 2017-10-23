@@ -136,12 +136,6 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
-        public EventPropagation ToggleLogEvent()
-        {
-            EventDispatcher.logEvents = !EventDispatcher.logEvents;
-            return EventPropagation.Stop;
-        }
-
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -190,7 +184,7 @@ namespace UnityEditor.VFX.UI
                         var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
                         var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
                         var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
-                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Output"));
+                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Point Output"));
 
                         spawner.LinkTo(initialize);
                         initialize.LinkTo(update);
@@ -233,7 +227,7 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
-            Button button = new Button(()=>{Resync();});
+            Button button = new Button(() => {Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarButton");
             toolbar.Add(button);
@@ -258,12 +252,13 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleCompile()
         {
-            VFXViewWindow.currentWindow.autoCompile = ! VFXViewWindow.currentWindow.autoCompile;
+            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
         }
+
         void OnCompile()
         {
             var graph = VFXViewPresenter.viewPresenter.GetGraph();
-
+            graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 

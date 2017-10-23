@@ -104,13 +104,17 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-            title = parameter.outputSlots[0].property.type.UserFriendlyName();
 
             exposed = parameter.exposed;
             exposedName = parameter.exposedName;
 
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+        }
+
+        public override void UpdateTitle()
+        {
+            title = parameter.outputSlots[0].property.type.UserFriendlyName();
         }
 
         public int CreateSubPresenters()

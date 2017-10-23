@@ -99,7 +99,6 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();

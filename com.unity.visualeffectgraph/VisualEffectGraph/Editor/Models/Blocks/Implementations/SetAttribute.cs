@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute")]
+    [VFXInfo(category = "Attribute", autoRegister = false)]
     class SetAttribute : VFXBlock
     {
         [VFXSetting]
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
-        public override string name { get { return "Set Attribute"; } }
+        public override string name { get { return "Set Attribute " + attribute; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
+                return VFXAttribute.Find(attribute);
             }
         }
     }

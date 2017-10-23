@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    interface IStringProvider
-    {
-        string[] GetAvailableString();
-    }
-
     class AttributeProvider : IStringProvider
     {
         public string[] GetAvailableString()
@@ -23,10 +18,13 @@ namespace UnityEditor.VFX
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
+
+        override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var attribute = VFXAttribute.Find(this.attribute, location);
-            var expression = new VFXAttributeExpression(attribute);
+            var attribute = VFXAttribute.Find(this.attribute);
+            var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }
 

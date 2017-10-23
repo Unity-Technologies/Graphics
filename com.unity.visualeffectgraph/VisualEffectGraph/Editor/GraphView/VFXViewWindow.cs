@@ -27,7 +27,6 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("#tab"), view.FramePrev },
                 { Event.KeyboardEvent("tab"), view.FrameNext },
                 {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
-                {Event.KeyboardEvent("#e"), view.ToggleLogEvent},     // TEST
                 {Event.KeyboardEvent("#r"), view.Resync},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
@@ -135,7 +134,7 @@ namespace  UnityEditor.VFX.UI
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
-        public bool autoCompile{get;set;}
+        public bool autoCompile {get; set; }
 
         void Update()
         {
@@ -148,8 +147,7 @@ namespace  UnityEditor.VFX.UI
                     filename += "*";
                 }
                 titleContent.text = filename;
-                if( autoCompile )
-                    graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(!autoCompile);
             }
             VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }

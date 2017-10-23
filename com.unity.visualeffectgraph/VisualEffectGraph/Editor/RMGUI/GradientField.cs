@@ -19,7 +19,6 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallback<AttachToPanelEvent>(OnAttach);
         }
 
-
         void OnAttach(AttachToPanelEvent e)
         {
             ValueToGUI();

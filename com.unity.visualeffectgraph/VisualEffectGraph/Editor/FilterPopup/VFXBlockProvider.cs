@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.UI
 {

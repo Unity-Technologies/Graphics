@@ -30,8 +30,8 @@ namespace UnityEditor.VFX
             {
                 const uint kThreadPerGroup = 64;
                 if (value > kThreadPerGroup)
-                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                m_Capacity = value;
+                    value = (value + kThreadPerGroup - 1u) & ~(kThreadPerGroup - 1u); // multiple of kThreadPerGroup
+                m_Capacity = (value + 3u) & ~3u;
             }
         }
 
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
             m_BucketOffsets.Clear();
 
             var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
-            foreach (var kvp in m_StoredAttributes)
+            foreach (var kvp in m_StoredCurrentAttributes)
             {
                 List<VFXAttribute> attributes;
                 if (!attributeBuckets.ContainsKey(kvp.Value))
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
 
         public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
         {
-            if (m_StoredAttributes.Count == 0)
+            if (m_StoredCurrentAttributes.Count == 0)
                 return string.Empty;
             else if ((mode & VFXAttributeMode.Write) != 0)
                 return "RWByteAddressBuffer attributeData;";
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
 
         public override string GetLoadAttributeCode(VFXAttribute attrib)
         {
-            if (!m_StoredAttributes.ContainsKey(attrib))
+            if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
 
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
 
         public override string GetStoreAttributeCode(VFXAttribute attrib, string value)
         {
-            if (!m_StoredAttributes.ContainsKey(attrib))
+            if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
             return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");

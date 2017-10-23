@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
         public VFXStandaloneSlotContainerUI()
         {
             this.AddManipulator(new Collapser());
-            
+
             m_EdgeDrawer = new VFXEdgeDrawer();
             m_EdgeDrawer.style.positionType = PositionType.Absolute;
             m_EdgeDrawer.style.positionLeft = 0;
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class VFXOperatorUI : VFXStandaloneSlotContainerUI, IKeyFocusBlocker
+    class VFXOperatorUI : VFXStandaloneSlotContainerUI
     {
         public VFXOperatorUI()
         {

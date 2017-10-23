@@ -5,7 +5,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class LabeledField<T, U> : VisualElement, IControl<U> where T : VisualElement, IControl<U>, new()
+    class LabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
     {
         protected VisualElement m_Label;
         protected T m_Control;
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UIElements
         {
             if (typeof(U) == typeof(double))
             {
-                m_Label.AddManipulator(new UIDragValueManipulator<double>((IControl<double> )m_Control));
+                m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
             }/*
             else if (typeof(U) == typeof(float))
             {
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UIElements
             }*/
             else if (typeof(U) == typeof(long))
             {
-                m_Label.AddManipulator(new UIDragValueManipulator<long>((IControl<long>)m_Control));
+                m_Label.AddManipulator(new UIDragValueManipulator<long>((INotifyValueChanged<long>)m_Control));
             }/*
             else if (typeof(U) == typeof(int))
             {
@@ -63,14 +63,14 @@ namespace UnityEditor.VFX.UIElements
             SetupLabel();
         }
 
-        public void OnChange(EventCallback<ChangeEvent<U>> callback)
+        public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
         {
-            (m_Control as IControl<U> ).OnChange(callback);
+            (m_Control as INotifyValueChanged<U> ).OnValueChanged(callback);
         }
 
-        public void UpdateValue(U newValue)
+        public void SetValueAndNotify(U newValue)
         {
-            (m_Control as IControl<U>).UpdateValue(newValue);
+            (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
         }
 
         public U value

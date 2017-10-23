@@ -10,7 +10,11 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
-            title = attributeParameter.location == VFXAttributeLocation.Current ? "Current" : "Source";
+        }
+
+        public override void UpdateTitle()
+        {
+            title = attributeParameter.name;//attributeParameter.location == VFXAttributeLocation.Current ? "Current" : "Source";
         }
     }
 }
