@@ -3,22 +3,22 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 using System.Linq;
+using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXFlowAnchor : NodeAnchor, IEdgeConnectorListener
     {
-        // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static VFXFlowAnchor Create<TEdgePresenter>(VFXFlowAnchorPresenter presenter) where TEdgePresenter : VFXFlowEdgePresenter
+        public static VFXFlowAnchor Create(VFXFlowAnchorPresenter presenter)
         {
-            var anchor = new VFXFlowAnchor();
-            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
+            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            anchor.m_EdgeConnector = new EdgeConnector<VFXFlowEdge>(anchor);
             anchor.AddManipulator(anchor.m_EdgeConnector);
             anchor.presenter = presenter;
             return anchor;
         }
 
-        protected VFXFlowAnchor()
+        protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
             AddToClassList("EdgeConnector");
         }
@@ -48,7 +48,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
+        void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
+        {
+            VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
+            edge.presenter = edgePresenter;
+            edgePresenter.input = edge.input.GetPresenter<VFXFlowAnchorPresenter>();
+            edgePresenter.output = edge.output.GetPresenter<VFXFlowAnchorPresenter>();
+
+            graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
+        }
+
+        void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)
         {
             VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
 

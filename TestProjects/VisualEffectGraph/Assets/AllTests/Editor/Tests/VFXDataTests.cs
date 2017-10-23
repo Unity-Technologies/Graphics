@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.TestTools;
 using System.Collections.Generic;
 
@@ -9,6 +10,11 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXDataTests
     {
+        private static VFXAttribute attrib1 = new VFXAttribute("attrib1", VFXValueType.kFloat);
+        private static VFXAttribute attrib2 = new VFXAttribute("attrib2", VFXValueType.kFloat2);
+        private static VFXAttribute attrib3 = new VFXAttribute("attrib3", VFXValueType.kFloat3);
+        private static VFXAttribute attrib4 = new VFXAttribute("attrib4", VFXValueType.kFloat4);
+
         private class ContextTestSpawn : VFXContext
         {
             public ContextTestSpawn() : base(VFXContextType.kInit, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
@@ -17,16 +23,42 @@ namespace UnityEditor.VFX.Test
         private class ContextTestInit : VFXContext
         {
             public ContextTestInit() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
+            public override IEnumerable<VFXAttributeInfo> attributes
+            {
+                get
+                {
+                    yield return new VFXAttributeInfo(attrib2, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(attrib3, VFXAttributeMode.Read);
+                }
+            }
         }
 
         private class ContextTestUpdate : VFXContext
         {
             public ContextTestUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
+            public override IEnumerable<VFXAttributeInfo> attributes
+            {
+                get
+                {
+                    yield return new VFXAttributeInfo(attrib1, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(attrib3, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(attrib4, VFXAttributeMode.Write);
+                }
+            }
         }
 
         private class ContextTestOutput : VFXContext
         {
             public ContextTestOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
+            public override IEnumerable<VFXAttributeInfo> attributes
+            {
+                get
+                {
+                    yield return new VFXAttributeInfo(attrib2, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(attrib3, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(attrib4, VFXAttributeMode.Write);
+                }
+            }
         }
 
         [Test]
@@ -83,8 +115,7 @@ namespace UnityEditor.VFX.Test
 
             update1.LinkTo(output1);
             init.LinkTo(update1); // this will unlink update0
-
-            init.Unlink(update1);
+            init.UnlinkTo(update1);
 
             var particleData0 = init.GetData();
             var particleData1 = update0.GetData();
@@ -100,6 +131,37 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(particleData1, output0.GetData());
             Assert.AreEqual(particleData2, output1.GetData());
+        }
+
+        [Test]
+        public void CheckAttributes()
+        {
+            var init = ScriptableObject.CreateInstance<ContextTestInit>();
+            var update = ScriptableObject.CreateInstance<ContextTestUpdate>();
+            var output = ScriptableObject.CreateInstance<ContextTestOutput>();
+
+            init.LinkTo(update);
+            update.LinkTo(output);
+
+            VFXData data = init.GetData();
+            data.CollectAttributes();
+
+            Assert.AreEqual(4, data.GetNbAttributes());
+
+            Assert.IsTrue(data.IsAttributeStored(attrib1));
+            Assert.IsTrue(data.IsAttributeStored(attrib2));
+            Assert.IsTrue(data.IsAttributeLocal(attrib3));
+            Assert.IsTrue(data.IsAttributeLocal(attrib4));
+
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib1));
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib2));
+            Assert.IsTrue(data.IsCurrentAttributeRead(attrib3));
+            Assert.IsFalse(data.IsCurrentAttributeRead(attrib4));
+
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib1));
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib2));
+            Assert.IsFalse(data.IsCurrentAttributeWritten(attrib3));
+            Assert.IsTrue(data.IsCurrentAttributeWritten(attrib4));
         }
     }
 }

@@ -63,6 +63,9 @@ namespace UnityEditor.VFX
                 if (val == null)
                     return false;
 
+                if (val.m_Mode != Mode.Constant)
+                    return false;
+
                 if (valueType != val.valueType)
                     return false;
 

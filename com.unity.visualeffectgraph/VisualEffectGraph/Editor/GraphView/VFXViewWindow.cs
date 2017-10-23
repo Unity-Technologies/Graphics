@@ -27,7 +27,6 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("#tab"), view.FramePrev },
                 { Event.KeyboardEvent("tab"), view.FrameNext },
                 {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
-                {Event.KeyboardEvent("e"), view.ToggleLogEvent},     // TEST
                 {Event.KeyboardEvent("#r"), view.Resync},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
@@ -66,6 +65,8 @@ namespace  UnityEditor.VFX.UI
             base.OnEnable();
             var objs = Selection.objects;
 
+            autoCompile = true;
+
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
                 VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
@@ -97,8 +98,11 @@ namespace  UnityEditor.VFX.UI
 
         protected new void OnDisable()
         {
-            graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            if (graphView != null)
+            {
+                graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
+                graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            }
             VFXViewPresenter.viewPresenter.SetVFXAsset(null, false);
             base.OnDisable();
             currentWindow = null;
@@ -130,6 +134,8 @@ namespace  UnityEditor.VFX.UI
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
+        public bool autoCompile {get; set; }
+
         void Update()
         {
             var graph = VFXViewPresenter.viewPresenter.GetGraph();
@@ -141,7 +147,7 @@ namespace  UnityEditor.VFX.UI
                     filename += "*";
                 }
                 titleContent.text = filename;
-                graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(!autoCompile);
             }
             VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }

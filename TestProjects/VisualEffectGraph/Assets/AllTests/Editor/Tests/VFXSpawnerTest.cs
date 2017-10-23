@@ -22,15 +22,15 @@ namespace UnityEditor.VFX.Test
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
-            var blockBurst = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
-            var slotCount = blockBurst.GetInputSlot(0);
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
 
             var spawnCountValue = 753.0f;
             slotCount.value = spawnCountValue;
 
-            spawnerContext.AddChild(blockBurst);
+            spawnerContext.AddChild(blockConstantRate);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
             spawnerInit.LinkFrom(spawnerContext);
@@ -55,6 +55,73 @@ namespace UnityEditor.VFX.Test
 
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
+            UnityEngine.Object.DestroyImmediate(gameObj);
+        }
+
+        [UnityTest]
+        [Timeout(1000 * 10)]
+        public IEnumerator CreateEventStartAndStop()
+        {
+            EditorApplication.ExecuteMenuItem("Window/Game");
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStart.eventName = "Custom_Start";
+            var eventStop = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStop.eventName = "Custom_Stop";
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var slotCount = blockConstantRate.GetInputSlot(0);
+
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+
+            var spawnCountValue = 1984.0f;
+            slotCount.value = spawnCountValue;
+
+            spawnerContext.AddChild(blockConstantRate);
+            graph.AddChild(eventStart);
+            graph.AddChild(eventStop);
+            graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            spawnerInit.LinkFrom(spawnerContext);
+            spawnerContext.LinkFrom(eventStart, 0, 0);
+            spawnerContext.LinkFrom(eventStop, 0, 1);
+
+            graph.vfxAsset = new VFXAsset();
+            graph.RecompileIfNeeded();
+            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+
+            var gameObj = new GameObject("CreateAssetAndComponentSpawner");
+            var vfxComponent = gameObj.AddComponent<VFXComponent>();
+            vfxComponent.vfxAsset = graph.vfxAsset;
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null; //wait for exactly one more update if visible
+
+            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
+
+            vfxComponent.SendEvent("Custom_Start");
+            for (int i = 0; i < 16; ++i) yield return null;
+
+            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
+
+            vfxComponent.SendEvent("Custom_Stop");
+            for (int i = 0; i < 16; ++i) yield return null;
+
+            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
+
             UnityEngine.Object.DestroyImmediate(gameObj);
         }
 

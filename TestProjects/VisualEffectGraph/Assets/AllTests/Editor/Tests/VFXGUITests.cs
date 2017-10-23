@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Test
             var updateContext = m_ViewPresenter.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
             var updateContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First(t => t.model == updateContext) as VFXContextPresenter;
 
-            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Output").First();
+            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
             var outputContext = m_ViewPresenter.AddVFXContext(new Vector2(300, 1000), outputContextDesc);
             var outputContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First(t => t.model == outputContext) as VFXContextPresenter;
 
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextPresenter CreateAllOutputBlocks()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Output").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(300, 2000), initContextDesc);
 

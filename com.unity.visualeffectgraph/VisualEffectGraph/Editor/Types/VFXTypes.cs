@@ -39,6 +39,20 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct ArcCircle : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the circle.")]
+        public Vector3 center;
+        [Tooltip("The radius of the circle.")]
+        public float radius;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used.")]
+        public float arc;
+    }
+
+    [VFXType]
     struct Sphere : ISpaceable
     {
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
@@ -51,6 +65,20 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct ArcSphere : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the sphere.")]
+        public Vector3 center;
+        [Tooltip("The radius of the sphere.")]
+        public float radius;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
+        public float arc;
+    }
+
+    [VFXType]
     struct OrientedBox : ISpaceable
     {
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
@@ -58,7 +86,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The centre of the box.")]
         public Vector3 center;
-        [Tooltip("The oritentation of the box.")]
+        [Angle, Tooltip("The orientation of the box.")]
         public Vector3 angles;
         [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
@@ -111,14 +139,32 @@ namespace UnityEditor.VFX
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
-        [Tooltip("The position of the cone.")]
-        public Vector3 position;
+        [Tooltip("The center of the cone.")]
+        public Vector3 center;
         [Tooltip("The first radius of the cone.")]
         public float radius0;
         [Tooltip("The second radius of the cone.")]
         public float radius1;
         [Tooltip("The height of the cone.")]
         public float height;
+    }
+
+    [VFXType]
+    struct ArcCone : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The center of the cone.")]
+        public Vector3 center;
+        [Tooltip("The first radius of the cone.")]
+        public float radius0;
+        [Tooltip("The second radius of the cone.")]
+        public float radius1;
+        [Tooltip("The height of the cone.")]
+        public float height;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used.")]
+        public float arc;
     }
 
     [VFXType]
@@ -133,6 +179,22 @@ namespace UnityEditor.VFX
         public float majorRadius;
         [Tooltip("The thickness of the torus ring.")]
         public float minorRadius;
+    }
+
+    [VFXType]
+    struct ArcTorus : ISpaceable
+    {
+        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        [Tooltip("The centre of the torus.")]
+        public Vector3 center;
+        [Tooltip("The radius of the torus ring.")]
+        public float majorRadius;
+        [Tooltip("The thickness of the torus ring.")]
+        public float minorRadius;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the torus is used.")]
+        public float arc;
     }
 
     [VFXType]
@@ -155,7 +217,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The transform position.")]
         public Vector3 position;
-        [Tooltip("The eulter angles of the transform.")]
+        [Angle, Tooltip("The euler angles of the transform.")]
         public Vector3 angles;
         [Tooltip("The scale of the transform along each axis.")]
         public Vector3 scale;

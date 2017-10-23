@@ -5,6 +5,81 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
+    class LabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
+    {
+        protected VisualElement m_Label;
+        protected T m_Control;
+        public LabeledField(VisualElement existingLabel)
+        {
+            m_Label = existingLabel;
+
+            CreateControl();
+            SetupLabel();
+        }
+
+        void SetupLabel()
+        {
+            if (typeof(U) == typeof(double))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
+            }/*
+            else if (typeof(U) == typeof(float))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<float>(m_Control));
+            }*/
+            else if (typeof(U) == typeof(long))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<long>((INotifyValueChanged<long>)m_Control));
+            }/*
+            else if (typeof(U) == typeof(int))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<int>(m_Control));
+            }*/
+        }
+
+        void CreateControl()
+        {
+            m_Control = new T();
+            Add(m_Control);
+        }
+
+        public T control
+        {
+            get { return m_Control; }
+        }
+
+        LabeledField(string label)
+        {
+            if (!string.IsNullOrEmpty(label))
+            {
+                m_Label = new VisualElement() { text = label };
+                m_Label.AddToClassList("label");
+
+                Add(m_Label);
+            }
+            style.flexDirection = FlexDirection.Row;
+
+            CreateControl();
+            SetupLabel();
+        }
+
+        public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
+        {
+            (m_Control as INotifyValueChanged<U> ).OnValueChanged(callback);
+        }
+
+        public void SetValueAndNotify(U newValue)
+        {
+            (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
+        }
+
+        public U value
+        {
+            get { return m_Control.value; }
+            set { m_Control.value = value; }
+        }
+    }
+
     abstract class ValueControl<T> : VisualElement
     {
         protected VisualElement m_Label;
@@ -37,7 +112,19 @@ namespace UnityEditor.VFX.UIElements
             ValueToGUI();
         }
 
+        public T value
+        {
+            get { return GetValue(); }
+            set { SetValue(value); }
+        }
+
+        public void SetMultiplier(T multiplier)
+        {
+            m_Multiplier = multiplier;
+        }
+
         protected T m_Value;
+        protected T m_Multiplier;
 
         public System.Action OnValueChanged;
 
@@ -53,7 +140,8 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
-            m_TextField.OnTextChanged = OnTextChanged;
+            m_TextField.dynamicUpdate = true;
+            m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
             m_TextField.RegisterCallback<BlurEvent>(OnLostFocus);
         }
 
@@ -62,6 +150,8 @@ namespace UnityEditor.VFX.UIElements
             CreateFields();
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
             Add(m_TextField);
+
+            m_Multiplier = 1.0f;
         }
 
         void OnLostFocus(BlurEvent evt)
@@ -70,10 +160,11 @@ namespace UnityEditor.VFX.UIElements
             ValueToGUI();
         }
 
-        void OnTextChanged(string str)
+        void OnTextChanged(ChangeEvent<string> e)
         {
             m_Value = 0;
             float.TryParse(m_TextField.text, out m_Value);
+            m_Value *= m_Multiplier;
 
             if (OnValueChanged != null)
             {
@@ -87,6 +178,8 @@ namespace UnityEditor.VFX.UIElements
             Add(m_TextField);
 
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
+
+            m_Multiplier = 1.0f;
         }
 
         float IValueChangeListener<float>.GetValue(object userData)
@@ -112,7 +205,10 @@ namespace UnityEditor.VFX.UIElements
         protected override void ValueToGUI()
         {
             if (!m_TextField.hasFocus)
-                m_TextField.text = m_Value.ToString("0.###");
+            {
+                float value = m_Value / m_Multiplier;
+                m_TextField.text = value.ToString("0.###");
+            }
         }
     }
 }

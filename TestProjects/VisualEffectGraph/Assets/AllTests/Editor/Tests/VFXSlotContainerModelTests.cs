@@ -1,7 +1,9 @@
-using System;
 using NUnit.Framework;
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.VFX;
+using UnityEngine;
 
 namespace UnityEditor.VFX.Test
 {
@@ -20,6 +22,44 @@ namespace UnityEditor.VFX.Test
             {
                 public Vector2 v2;
                 public Vector3 v3;
+            }
+        }
+
+        private class DynamicSlotContainer : VFXSlotContainerModel<VFXModel, VFXModel>
+        {
+            [VFXSetting]
+            public int slotSetting = 0;
+
+            public class InputProperties1
+            {
+                public float f = 1.0f;
+            }
+
+            public class InputProperties2
+            {
+                public Vector3 v = Vector3.one;
+                public float f = 2.0f;
+            }
+
+            private static IEnumerable<VFXPropertyWithValue> ProceduralProperties()
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector3), "v"));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "v2"));
+            }
+
+            protected override IEnumerable<VFXPropertyWithValue> inputProperties
+            {
+                get
+                {
+                    switch (slotSetting)
+                    {
+                        case 0:     return PropertiesFromType("InputProperties1");
+                        case 1:     return PropertiesFromType("InputProperties2");
+                        case 2:     return PropertiesFromType("InputProperties1").Concat(PropertiesFromType("InputProperties2"));
+                        case 3:     return ProceduralProperties();
+                        default:    return PropertiesFromSlots(inputSlots);
+                    }
+                }
             }
         }
 
@@ -98,6 +138,52 @@ namespace UnityEditor.VFX.Test
             model.RemoveSlot(outputSlot);
             Assert.IsNull(outputSlot.owner);
             Assert.AreEqual(1, model.GetNbOutputSlots());
+        }
+
+        [Test]
+        public void DynamicSlots()
+        {
+            var model = ScriptableObject.CreateInstance<DynamicSlotContainer>();
+
+            Assert.AreEqual(1, model.GetNbInputSlots());
+            Assert.AreEqual(new VFXProperty(typeof(float), "f"), model.GetInputSlot(0).property);
+            Assert.AreEqual(1.0f, model.GetInputSlot(0).value);
+
+            model.SetSettingValue("slotSetting", 1);
+            Assert.AreEqual(2, model.GetNbInputSlots());
+            Assert.AreEqual(new VFXProperty(typeof(Vector3), "v"), model.GetInputSlot(0).property);
+            Assert.AreEqual(Vector3.one, model.GetInputSlot(0).value);
+            Assert.AreEqual(new VFXProperty(typeof(float), "f"), model.GetInputSlot(1).property);
+            Assert.AreEqual(1.0f, model.GetInputSlot(1).value); // Must have conserve the value from previous slot
+
+            model.SetSettingValue("slotSetting", 2);
+            Assert.AreEqual(3, model.GetNbInputSlots());
+            Assert.AreEqual(new VFXProperty(typeof(float), "f"), model.GetInputSlot(0).property);
+            Assert.AreEqual(1.0f, model.GetInputSlot(0).value);
+            Assert.AreEqual(new VFXProperty(typeof(Vector3), "v"), model.GetInputSlot(1).property);
+            Assert.AreEqual(Vector3.one, model.GetInputSlot(1).value);
+            Assert.AreEqual(new VFXProperty(typeof(float), "f"), model.GetInputSlot(2).property);
+            Assert.AreEqual(2.0f, model.GetInputSlot(2).value);
+
+            var outputSlot = VFXSlot.Create(new VFXProperty(typeof(Vector3), "o"), VFXSlot.Direction.kOutput);
+            model.GetInputSlot(1).Link(outputSlot);
+            model.GetInputSlot(1).value = new Vector3(1.0f, 2.0f, 3.0f);
+
+            model.SetSettingValue("slotSetting", 3);
+            Assert.AreEqual(2, model.GetNbInputSlots());
+            Assert.AreEqual(new VFXProperty(typeof(Vector3), "v"), model.GetInputSlot(0).property);
+            Assert.AreEqual(new Vector3(1.0f, 2.0f, 3.0f), model.GetInputSlot(0).value);
+            Assert.AreEqual(1, model.GetInputSlot(0).GetNbLinks());
+            Assert.AreEqual(new VFXProperty(typeof(Vector2), "v2"), model.GetInputSlot(1).property);
+            Assert.AreEqual(Vector2.zero, model.GetInputSlot(1).value);
+
+            model.SetSettingValue("slotSetting", 4);
+            Assert.AreEqual(2, model.GetNbInputSlots());
+            Assert.AreEqual(new VFXProperty(typeof(Vector3), "v"), model.GetInputSlot(0).property);
+            Assert.AreEqual(new Vector3(1.0f, 2.0f, 3.0f), model.GetInputSlot(0).value);
+            Assert.AreEqual(1, model.GetInputSlot(0).GetNbLinks());
+            Assert.AreEqual(new VFXProperty(typeof(Vector2), "v2"), model.GetInputSlot(1).property);
+            Assert.AreEqual(Vector2.zero, model.GetInputSlot(1).value);
         }
     }
 }

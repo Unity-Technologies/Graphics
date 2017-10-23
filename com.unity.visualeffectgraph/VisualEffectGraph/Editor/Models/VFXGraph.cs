@@ -290,29 +290,36 @@ namespace UnityEditor.VFX
             return compiledData.FindReducedExpressionIndexFromSlotCPU(slot);
         }
 
-        public void RecompileIfNeeded()
+        public void SetExpressionGraphDirty()
         {
-            if (m_ExpressionGraphDirty)
+            m_ExpressionGraphDirty = true;
+        }
+
+        public void RecompileIfNeeded(bool preventRecompilation = false)
+        {
+            bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
+            if (considerGraphDirty)
             {
                 compiledData.Compile();
             }
-            else if (m_ExpressionValuesDirty)
+            else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
                 compiledData.UpdateValues();
             }
 
-            if (m_ExpressionGraphDirty || m_ExpressionValuesDirty)
+            if (considerGraphDirty || m_ExpressionValuesDirty)
             {
                 foreach (var component in VFXComponent.GetAllActive())
                 {
                     if (component.vfxAsset == compiledData.vfxAsset)
                     {
-                        component.SetVfxAssetDirty(m_ExpressionGraphDirty);
+                        component.SetVfxAssetDirty(considerGraphDirty);
                     }
                 }
             }
 
-            m_ExpressionGraphDirty = false;
+            if (considerGraphDirty)
+                m_ExpressionGraphDirty = false;
             m_ExpressionValuesDirty = false;
         }
 

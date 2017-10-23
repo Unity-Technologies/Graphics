@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -15,6 +16,8 @@ namespace UnityEditor.VFX
             copy.Init(m_expressionOp);
             return copy as T;
         }
+
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
 
         public VFXExpressionOp expressionOp
         {

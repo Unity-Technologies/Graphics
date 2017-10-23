@@ -28,7 +28,8 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent evt)
         {
-            Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
+            if (!VFXComponentEditor.s_IsEditingAsset)
+                Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
         }
     }
 
@@ -135,12 +136,6 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
-        public EventPropagation ToggleLogEvent()
-        {
-            EventDispatcher.logEvents = !EventDispatcher.logEvents;
-            return EventPropagation.Stop;
-        }
-
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -189,7 +184,7 @@ namespace UnityEditor.VFX.UI
                         var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
                         var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
                         var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
-                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Output"));
+                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Point Output"));
 
                         spawner.LinkTo(initialize);
                         initialize.LinkTo(update);
@@ -226,6 +221,45 @@ namespace UnityEditor.VFX.UI
             AddLayer(2);
 
             focusIndex = 0;
+
+            VisualElement toolbar = new VisualElement();
+            toolbar.AddToClassList("toolbar");
+            Add(toolbar);
+
+
+            Button button = new Button(() => {Resync(); });
+            button.text = "Refresh";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+
+
+            VisualElement spacer = new VisualElement();
+            spacer.style.flex = 1;
+            toolbar.Add(spacer);
+
+
+            Toggle toggle = new Toggle(OnToggleCompile);
+            //toggle.AddToClassList("toolbarButton");
+            toggle.text = "AutoCompile";
+            toggle.on = true;
+            toolbar.Add(toggle);
+
+            button = new Button(OnCompile);
+            button.text = "Compile";
+            button.AddToClassList("toolbarButton");
+            toolbar.Add(button);
+        }
+
+        void OnToggleCompile()
+        {
+            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
+        }
+
+        void OnCompile()
+        {
+            var graph = VFXViewPresenter.viewPresenter.GetGraph();
+            graph.SetExpressionGraphDirty();
+            graph.RecompileIfNeeded();
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
@@ -322,6 +356,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        {
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
+
+            if (startAnchor is VFXDataAnchor)
+            {
+                return presenters.Select(t => (NodeAnchor)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+            }
+            else
+            {
+                return presenters.Select(t => (NodeAnchor)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+            }
+        }
+
         public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input, bool output)
         {
             foreach (var context in GetAllContexts())
@@ -338,6 +388,13 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return null;
             return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+        }
+
+        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
+        {
+            if (presenter == null)
+                return null;
+            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
         }
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
@@ -455,15 +512,18 @@ namespace UnityEditor.VFX.UI
 
         void SelectionUpdated()
         {
-            var contextSelected = selection.OfType<VFXContextUI>();
+            if (!VFXComponentEditor.s_IsEditingAsset)
+            {
+                var contextSelected = selection.OfType<VFXContextUI>();
 
-            if (contextSelected.Count() > 0)
-            {
-                Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
-            }
-            else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
-            {
-                Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                if (contextSelected.Count() > 0)
+                {
+                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                }
+                else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+                {
+                    Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                }
             }
         }
 

@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
 
         public IVFXSlotContainer slotContainer { get { return model as IVFXSlotContainer; } }
 
-        public IEnumerable<VFXSettingPresenter> settings
+        public VFXSettingPresenter[] settings
         {
             get { return m_Settings; }
         }

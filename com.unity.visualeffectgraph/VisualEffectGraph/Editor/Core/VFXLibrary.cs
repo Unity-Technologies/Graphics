@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.VFX;
 using Object = System.Object;
@@ -37,6 +38,7 @@ namespace UnityEditor.VFX
         public VFXModelDescriptor(T template)
         {
             m_Template = template;
+            m_Template.hideFlags = HideFlags.HideAndDontSave;
         }
 
         virtual public string name { get { return m_Template.name; } }
@@ -50,10 +52,12 @@ namespace UnityEditor.VFX
 
         virtual public T CreateInstance()
         {
-            return (T)ScriptableObject.CreateInstance(m_Template.GetType());
+            T instance = (T)ScriptableObject.CreateInstance(m_Template.GetType());
+
+            return instance;
         }
 
-        protected T m_Template;
+        public T m_Template;
     }
 
     class VFXModelDescriptorCustomSpawnerBlock : VFXModelDescriptor<VFXBlock>
@@ -70,6 +74,22 @@ namespace UnityEditor.VFX
             var vfxSpawnerTemplate = m_Template as VFXSpawnerCustomWrapper;
             vfxSpawnerInstance.Init(vfxSpawnerTemplate.customBehavior);
             return vfxSpawnerInstance;
+        }
+    }
+
+    class VFXModelDescriptorAttributeBlock : VFXModelDescriptor<VFXBlock>
+    {
+        public VFXModelDescriptorAttributeBlock(string parameter) : base(ScriptableObject.CreateInstance<UnityEditor.VFX.Block.SetAttribute>())
+        {
+            (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute = parameter;
+        }
+
+        public override VFXBlock CreateInstance()
+        {
+            var instance = base.CreateInstance() as UnityEditor.VFX.Block.SetAttribute;
+            instance.attribute = (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute;
+            instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            return instance;
         }
     }
 
@@ -206,6 +226,13 @@ namespace UnityEditor.VFX
                 {
                     m_BlockDescs.Add(new VFXModelDescriptorCustomSpawnerBlock(customSpawnerType));
                 }
+
+                // add all Set Attributes something to blocks.
+                System.Array.ForEach(VFXAttribute.All,
+                    t =>
+                    {
+                        m_BlockDescs.Add(new VFXModelDescriptorAttributeBlock(t));
+                    });
 
                 m_OperatorDescs = LoadModels<VFXOperator>();
 

@@ -23,17 +23,22 @@ namespace UnityEditor.VFX.UI
 
 
         const float handleSize = 0.1f;
+        const float arcHandleSizeMultiplier = 1.25f;
 
         static VFXValueGizmo()
         {
             s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
 
+            s_DrawFunctions[typeof(ArcCircle)] = OnDrawArcCircleDataAnchorGizmo;
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
+            s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
             s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
             s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
             s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
             s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
+            s_DrawFunctions[typeof(ArcTorus)] = OnDrawArcTorusDataAnchorGizmo;
+            s_DrawFunctions[typeof(ArcCone)] = OnDrawArcConeDataAnchorGizmo;
 
             foreach (Type type in typeof(VFXValueGizmo).Assembly.GetTypes())
             {
@@ -149,6 +154,81 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static void OnDrawArcCircleDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcCircle circle = (ArcCircle)anchor.value;
+
+            Vector3 center = circle.center;
+            float radius = circle.radius;
+            float arc = circle.arc * Mathf.Rad2Deg;
+            if (circle.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            // Draw circle around the arc
+            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
+
+            if (PositionGizmo(component, circle.space, ref circle.center))
+            {
+                anchor.value = circle;
+            }
+
+            // Radius controls
+            foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
+            {
+                EditorGUI.BeginChangeCheck();
+                Vector3 sliderPos = center + dist * radius;
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    circle.radius = (result - center).magnitude;
+
+                    if (float.IsNaN(circle.radius))
+                    {
+                        circle.radius = 0;
+                    }
+
+                    anchor.value = circle;
+                }
+                EditorGUI.EndChangeCheck();
+            }
+
+            Handles.DrawLine(Vector3.zero, Vector3.up * radius);
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    circle.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = circle;
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
         static void OnDrawSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
         {
             Sphere sphere = (Sphere)anchor.value;
@@ -188,6 +268,224 @@ namespace UnityEditor.VFX.UI
                 }
                 EditorGUI.EndChangeCheck();
             }
+        }
+
+        static void OnDrawArcSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcSphere sphere = (ArcSphere)anchor.value;
+
+            Vector3 center = sphere.center;
+            float radius = sphere.radius;
+            float arc = sphere.arc * Mathf.Rad2Deg;
+            if (sphere.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            // Draw semi-circles at 90 degree angles
+            for (int i = 0; i < 4; i++)
+            {
+                float currentArc = (float)(i * 90);
+                if (currentArc <= arc)
+                    Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, currentArc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+            }
+
+            // Draw an extra semi-circle at the arc angle
+            if (sphere.arc < Mathf.PI * 2.0f)
+                Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, arc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+
+            // Draw 3rd circle around the arc
+            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
+
+            if (PositionGizmo(component, sphere.space, ref sphere.center))
+            {
+                anchor.value = sphere;
+            }
+
+            // Radius controls
+            foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.forward })
+            {
+                EditorGUI.BeginChangeCheck();
+                Vector3 sliderPos = center + dist * radius;
+                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    sphere.radius = (result - center).magnitude;
+
+                    if (float.IsNaN(sphere.radius))
+                    {
+                        sphere.radius = 0;
+                    }
+
+                    anchor.value = sphere;
+                }
+                EditorGUI.EndChangeCheck();
+            }
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    sphere.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = sphere;
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
+        static void OnDrawArcTorusDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            ArcTorus torus = (ArcTorus)anchor.value;
+
+            Vector3 center = torus.center;
+            float majorRadius = torus.majorRadius;
+            float minorRadius = torus.minorRadius;
+            float arc = torus.arc * Mathf.Rad2Deg;
+            if (torus.space == CoordinateSpace.Local)
+            {
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            if (PositionGizmo(component, torus.space, ref torus.center))
+            {
+                anchor.value = torus;
+            }
+
+            Handles.DrawLine(Vector3.zero, Vector3.up * majorRadius);
+
+            // Arc handle control
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * majorRadius;
+                EditorGUI.BeginChangeCheck();
+                {
+                    arcHandlePosition = Handles.Slider2D(
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                    arc += Mathf.DeltaAngle(arc, newArc);
+                    arc = Mathf.Repeat(arc, 360.0f);
+                    torus.arc = arc * Mathf.Deg2Rad;
+
+                    anchor.value = torus;
+                }
+            }
+
+            // Donut extents
+            float excessAngle = arc % 360f;
+            float angle = Mathf.Abs(arc) >= 360f ? 360f : excessAngle;
+
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            {
+                Handles.DrawWireArc(new Vector3(0.0f, minorRadius, 0.0f), Vector3.up, Vector3.forward, angle, majorRadius);
+                Handles.DrawWireArc(new Vector3(0.0f, -minorRadius, 0.0f), Vector3.up, Vector3.forward, angle, majorRadius);
+                Handles.DrawWireArc(Vector3.zero, Vector3.up, Vector3.forward, angle, majorRadius + minorRadius);
+                Handles.DrawWireArc(Vector3.zero, Vector3.up, Vector3.forward, angle, majorRadius - minorRadius);
+
+                foreach (var arcAngle in new float[] { 0.0f, 90.0f, 180.0f, 270.0f, arc }.Where(a => a <= arc))
+                {
+                    Quaternion arcRotation = Quaternion.AngleAxis(arcAngle, Vector3.up);
+                    Vector3 capCenter = arcRotation * Vector3.forward * majorRadius;
+                    Handles.DrawWireDisc(capCenter, arcRotation * Vector3.right, minorRadius);
+
+                    if (arcAngle != arc)
+                    {
+                        // Minor radius
+                        foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
+                        {
+                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * dist;
+
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 sliderPos = capCenter + distRotated * minorRadius;
+                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                            if (GUI.changed)
+                            {
+                                torus.minorRadius = (result - capCenter).magnitude;
+
+                                if (float.IsNaN(torus.minorRadius))
+                                {
+                                    torus.minorRadius = 0;
+                                }
+
+                                anchor.value = torus;
+                            }
+                            EditorGUI.EndChangeCheck();
+                        }
+
+                        // Major radius
+                        {
+                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * Vector3.left;
+
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 sliderPos = center + distRotated * majorRadius;
+                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+
+                            if (GUI.changed)
+                            {
+                                torus.majorRadius = (result - center).magnitude;
+
+                                if (float.IsNaN(torus.majorRadius))
+                                {
+                                    torus.majorRadius = 0;
+                                }
+
+                                anchor.value = torus;
+                            }
+                            EditorGUI.EndChangeCheck();
+                        }
+                    }
+                }
+            }
+
+            Handles.matrix = oldMatrix;
+        }
+
+        private static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            Handles.DrawLine(Vector3.zero, position);
+
+            // draw a cylindrical "hammer head" to indicate the direction the handle will move
+            Vector3 worldPosition = Handles.matrix.MultiplyPoint3x4(position);
+            Vector3 normal = worldPosition - Handles.matrix.MultiplyPoint3x4(Vector3.zero);
+            Vector3 tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
+            rotation = Quaternion.LookRotation(tangent, normal);
+            Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
+            using (new Handles.DrawingScope(matrix))
+                Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
 
         static void OnDrawAABoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
@@ -505,6 +803,112 @@ namespace UnityEditor.VFX.UI
 
 
             return changed;
+        }
+
+        static void OnDrawArcConeDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        {
+            ArcCone cone = (ArcCone)anchor.value;
+
+            Vector3 center = cone.center;
+            Vector3 normal = Vector3.up;
+
+            Vector3 worldNormal = normal;
+
+            Vector3 topCap = cone.height * Vector3.up;
+            Vector3 bottomCap = Vector3.zero;
+
+            Vector3[] extremities = new Vector3[8];
+
+            extremities[0] = topCap + Vector3.forward * cone.radius1;
+            extremities[1] = topCap - Vector3.forward * cone.radius1;
+
+            extremities[2] = topCap + Vector3.left * cone.radius1;
+            extremities[3] = topCap - Vector3.left * cone.radius1;
+
+            extremities[4] = bottomCap + Vector3.forward * cone.radius0;
+            extremities[5] = bottomCap - Vector3.forward * cone.radius0;
+
+            extremities[6] = bottomCap + Vector3.left * cone.radius0;
+            extremities[7] = bottomCap - Vector3.left * cone.radius0;
+
+            Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up, normal);
+
+            for (int i = 0; i < extremities.Length; ++i)
+            {
+                extremities[i] = normalRotation * extremities[i];
+            }
+
+            topCap = normalRotation * topCap;
+            bottomCap = normalRotation * bottomCap;
+
+            for (int i = 0; i < extremities.Length; ++i)
+            {
+                extremities[i] = center + extremities[i];
+            }
+
+            topCap += center;
+            bottomCap += center;
+
+            if (cone.space == CoordinateSpace.Local)
+            {
+                Matrix4x4 mat = component.transform.localToWorldMatrix;
+
+                center = mat.MultiplyPoint(center);
+                topCap = mat.MultiplyPoint(topCap);
+                bottomCap = mat.MultiplyPoint(bottomCap);
+
+                worldNormal = mat.MultiplyVector(normal).normalized;
+
+                for (int i = 0; i < extremities.Length; ++i)
+                {
+                    extremities[i] = mat.MultiplyPoint(extremities[i]);
+                }
+            }
+
+            Handles.DrawWireDisc(topCap, worldNormal, cone.radius1);
+            Handles.DrawWireDisc(bottomCap, worldNormal, cone.radius0);
+
+            for (int i = 0; i < extremities.Length / 2; ++i)
+            {
+                Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
+            }
+
+            if (PositionGizmo(component, cone.space, ref cone.center))
+            {
+                anchor.value = cone;
+            }
+
+            Vector3 result;
+            for (int i = 0; i < extremities.Length; ++i)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                Vector3 pos = extremities[i];
+                result = Handles.Slider(pos, pos - center, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
+
+                if (GUI.changed)
+                {
+                    if (i >= extremities.Length / 2)
+                        cone.radius0 = (result - center).magnitude;
+                    else
+                        cone.radius1 = (result - topCap).magnitude;
+                    anchor.value = cone;
+                }
+
+                EditorGUI.EndChangeCheck();
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            result = Handles.Slider(topCap, topCap - center, handleSize * HandleUtility.GetHandleSize(topCap), Handles.CubeHandleCap, 0);
+
+            if (GUI.changed)
+            {
+                cone.height = (result - center).magnitude;
+                anchor.value = cone;
+            }
+
+            EditorGUI.EndChangeCheck();
         }
     }
 

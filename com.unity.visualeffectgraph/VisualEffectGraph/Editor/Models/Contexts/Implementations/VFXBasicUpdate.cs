@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
-        public override string codeGeneratorTemplate { get { return "VFXUpdate"; } }
+        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
 
@@ -31,10 +31,10 @@ namespace UnityEditor.VFX
             {
                 var data = GetData();
 
-                if (integration != VFXIntegrationMode.None && data.IsAttributeWritten(VFXAttribute.Velocity))
+                if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
                     yield return CreateInstance<EulerIntegration>();
 
-                if (GetData().IsAttributeWritten(VFXAttribute.Lifetime))
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime))
                     yield return CreateInstance<AgeAndDie>();
             }
         }

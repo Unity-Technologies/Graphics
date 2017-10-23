@@ -13,7 +13,8 @@ namespace UnityEditor.VFX.UIElements
         {
             m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
-            m_TextField.OnTextChanged = OnTextChanged;
+            m_TextField.dynamicUpdate = true;
+            m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
         }
 
         public UintField(string label) : base(label)
@@ -34,7 +35,7 @@ namespace UnityEditor.VFX.UIElements
                 m_Label.AddManipulator(new DragValueManipulator<uint>(this, null));
         }
 
-        void OnTextChanged(string str)
+        void OnTextChanged(ChangeEvent<string> e)
         {
             m_Value = 0;
             uint.TryParse(m_TextField.text, out m_Value);

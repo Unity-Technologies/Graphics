@@ -64,8 +64,14 @@ namespace UnityEditor.VFX
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
             //Max(Min(x, max), min))
-            var maxExp = new VFXExpressionMax(input, min);
-            return new VFXExpressionMin(maxExp, max);
+            var maxExp = new VFXExpressionMax(input, CastFloat(min, input.valueType));
+            return new VFXExpressionMin(maxExp, CastFloat(max, input.valueType));
+        }
+
+        static public VFXExpression Saturate(VFXExpression input)
+        {
+            //Max(Min(x, 1.0f), 0.0f))
+            return Clamp(input, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
         }
 
         static public VFXExpression Frac(VFXExpression input)
@@ -170,6 +176,11 @@ namespace UnityEditor.VFX
             result = (result * t);
 
             return result;
+        }
+
+        static public VFXExpression Discretize(VFXExpression value, VFXExpression granularity)
+        {
+            return new VFXExpressionFloor(value / granularity) * granularity;
         }
 
         static public VFXExpression ColorLuma(VFXExpression color)

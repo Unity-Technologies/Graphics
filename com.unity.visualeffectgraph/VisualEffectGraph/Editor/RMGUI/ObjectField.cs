@@ -106,8 +106,6 @@ namespace UnityEditor.VFX.UIElements
 
             Object value = GetValue();
 
-            if (value != null) ;
-
             Selection.activeObject = value;
             EditorGUIUtility.PingObject(value);
         }

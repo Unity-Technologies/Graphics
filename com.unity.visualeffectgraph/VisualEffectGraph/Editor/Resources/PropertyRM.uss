@@ -166,10 +166,11 @@ IntPropertyRM IntField
     flex:1;
 }
 
-CurveField .curve
+
+CurveField
 {
-    flex:1;
-    height:13;
+	height:26;
+	background-color:rgb(86, 86, 86);
 	border-left-width:1;
 	border-right-width:1;
 	border-top-width:1;

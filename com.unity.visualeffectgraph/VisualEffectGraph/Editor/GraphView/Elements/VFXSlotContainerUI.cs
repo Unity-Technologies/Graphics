@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.UI
     class VFXSlotContainerUI : VFXNodeUI
     {
         public VisualElement m_SettingsContainer;
+        private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
         public bool collapse
         {
@@ -28,13 +29,16 @@ namespace UnityEditor.VFX.UI
 
         public VFXSlotContainerUI()
         {
-            this.AddManipulator(new Collapser());
         }
 
         public override void OnDataChanged()
         {
-            base.OnDataChanged();
             var presenter = GetPresenter<VFXSlotContainerPresenter>();
+            // update the title in the presenter before it is used somewhere in base.OnDataChanged();
+            presenter.UpdateTitle();
+
+            base.OnDataChanged();
+
 
             if (presenter == null)
                 return;
@@ -54,11 +58,19 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                for (int i = 0; i < m_SettingsContainer.childCount; ++i)
+                var activeSettings = presenter.model.activeSettings;
+
+                for (int i = 0; i < m_Settings.Count; ++i)
+                    m_Settings[i].RemoveFromHierarchy();
+
+                for (int i = 0; i < m_Settings.Count; ++i)
                 {
-                    PropertyRM prop = m_SettingsContainer.ElementAt(i) as PropertyRM;
-                    if (prop != null)
+                    PropertyRM prop = m_Settings[i];
+                    if (prop != null && activeSettings.Any(s => s.Name == presenter.settings[i].name))
+                    {
+                        m_SettingsContainer.Add(prop);
                         prop.Update();
+                    }
                 }
             }
 
@@ -72,7 +84,7 @@ namespace UnityEditor.VFX.UI
                     foreach (var edge in allEdges.Where(t =>
                         {
                             var pres = t.GetPresenter<EdgePresenter>();
-                            return pres.output == anchor.presenter || pres.input == anchor.presenter;
+                            return pres != null && (pres.output == anchor.presenter || pres.input == anchor.presenter);
                         }))
                     {
                         edge.OnDataChanged();
@@ -96,7 +108,7 @@ namespace UnityEditor.VFX.UI
             var rm = PropertyRM.Create(setting, 100);
             if (rm != null)
             {
-                m_SettingsContainer.Add(rm);
+                m_Settings.Add(rm);
             }
             else
             {

@@ -265,6 +265,12 @@ VFXDataEdge.typeanimationcurve
 	border-color : #84e4e7;
 }
 
+
+.VFXDataAnchor
+{
+	anchor-color : #787878;
+}
+
 .VFXDataAnchor.typesingle
 {
 	anchor-color : #6be6b0;

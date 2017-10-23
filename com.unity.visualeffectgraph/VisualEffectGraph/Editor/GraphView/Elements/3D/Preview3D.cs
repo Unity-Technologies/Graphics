@@ -31,8 +31,6 @@ namespace UnityEditor.VFX.UI
         Element3D m_Element;
 
 
-        public override int layer { get { return 2; } }
-
         public Preview3D()
         {
             style.flexDirection = FlexDirection.Column;
@@ -52,6 +50,8 @@ namespace UnityEditor.VFX.UI
 
 
             m_Element.AddManipulator(new Rotate3DManipulator(m_Element));
+
+            layer = 2;
         }
 
         public override void OnDataChanged()

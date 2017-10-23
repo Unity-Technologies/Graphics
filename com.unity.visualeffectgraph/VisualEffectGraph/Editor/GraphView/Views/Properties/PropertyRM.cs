@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
+        public virtual void SetMultiplier(object obj) {}
 
         public VisualElement m_Icon;
 
@@ -57,6 +58,9 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
+            if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
+
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
@@ -104,6 +108,9 @@ namespace UnityEditor.VFX.UI
             }
 
             m_Icon.style.backgroundImage = m_IconStates[0];
+
+            if (VFXPropertyAttribute.IsAngle(provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
 
             string labelText = provider.name;
             string labelTooltip = null;
@@ -248,6 +255,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
             UpdateGUI();
         }
 
@@ -303,6 +311,56 @@ namespace UnityEditor.VFX.UI
             if (m_Field != null)
                 m_Field.SetEnabled(value);
         }*/
+        public override bool showsEverything { get { return true; } }
+
+        public override void SetMultiplier(object obj)
+        {
+            try
+            {
+                m_Field.SetMultiplier((T)obj);
+            }
+            catch (System.Exception)
+            {
+            }
+        }
+    }
+
+
+    abstract class SimpleUIPropertyRM<T, U> : PropertyRM<T>
+    {
+        public abstract INotifyValueChanged<U> CreateField();
+
+        public SimpleUIPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+            m_Field = CreateField();
+
+            VisualElement fieldElement = m_Field as VisualElement;
+            fieldElement.AddToClassList("fieldContainer");
+            fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
+            Add(fieldElement);
+        }
+
+        public void OnValueChanged(ChangeEvent<U> e)
+        {
+            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+            if (!newValue.Equals(m_Value))
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        protected override void UpdateEnabled()
+        {
+            (m_Field as VisualElement).SetEnabled(propertyEnabled);
+        }
+
+        INotifyValueChanged<U> m_Field;
+        public override void UpdateGUI()
+        {
+            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

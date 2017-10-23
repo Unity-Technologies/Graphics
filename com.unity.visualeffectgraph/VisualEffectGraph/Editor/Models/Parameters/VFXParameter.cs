@@ -64,6 +64,8 @@ namespace UnityEditor.VFX
             set { outputSlots[0].value = value; }
         }
 
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
+
         public void Init(Type _type)
         {
             if (_type != null && outputSlots.Count == 0)

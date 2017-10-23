@@ -9,6 +9,11 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
+    interface IEdgeDrawerOwner
+    {
+        void DirtyDrawer();
+    }
+
     class Collapser : Manipulator
     {
         public Collapser()
@@ -35,17 +40,19 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
+    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
     {
         public VFXStandaloneSlotContainerUI()
         {
+            this.AddManipulator(new Collapser());
+
             m_EdgeDrawer = new VFXEdgeDrawer();
             m_EdgeDrawer.style.positionType = PositionType.Absolute;
             m_EdgeDrawer.style.positionLeft = 0;
             m_EdgeDrawer.style.positionRight = 0;
             m_EdgeDrawer.style.positionBottom = 0;
             m_EdgeDrawer.style.positionTop = 0;
-
+            m_EdgeDrawer.element = this;
             Add(m_EdgeDrawer);
         }
 
@@ -55,17 +62,10 @@ namespace UnityEditor.VFX.UI
         {
             m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-
-            m_EdgeDrawer.presenter = GetPresenter<VFXSlotContainerPresenter>();
-        }
     }
 
 
-    class VFXOperatorUI : VFXStandaloneSlotContainerUI, IKeyFocusBlocker
+    class VFXOperatorUI : VFXStandaloneSlotContainerUI
     {
         public VFXOperatorUI()
         {

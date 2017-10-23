@@ -10,17 +10,44 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+//using CurveField = UnityEditor.VFX.UIElements.CurveField;
+
 namespace UnityEditor.VFX
 {
+    interface IStringProvider
+    {
+        string[] GetAvailableString();
+    }
+
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public class StringProviderAttribute : PropertyAttribute
     {
         public StringProviderAttribute(Type providerType)
         {
-            m_ProviderType = providerType;
+            if (!typeof(IStringProvider).IsAssignableFrom(providerType))
+                throw new InvalidCastException("StringProviderAttribute excepts a type which implements interface IStringProvider : " + providerType);
+            this.providerType = providerType;
         }
 
-        public Type m_ProviderType;
+        public Type providerType { get; private set; }
+    }
+
+    interface IPushButtonBehavior
+    {
+        void OnClicked(string currentValue);
+    }
+
+    [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public class PushButtonAttribute : PropertyAttribute
+    {
+        public PushButtonAttribute(Type pushButtonProvider)
+        {
+            if (!typeof(IPushButtonBehavior).IsAssignableFrom(pushButtonProvider))
+                throw new InvalidCastException("PushButtonAttribute excepts a type which implements interface IPushButtonBehavior : " + pushButtonProvider);
+            this.pushButtonProvider = pushButtonProvider;
+        }
+
+        public Type pushButtonProvider { get; private set; }
     }
 }
 
@@ -70,6 +97,7 @@ namespace UnityEditor.VFX.UI
         public override ValueControl<float> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+
             if (range == Vector2.zero)
                 return new FloatField(m_Label);
             else
@@ -85,7 +113,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<AnimationCurve> CreateField()
         {
-            return new CurveField(m_Label);
+            return new VFX.UIElements.CurveField(m_Label);//LabeledField<UnityEditor.Experimental.UIElements.CurveField,AnimationCurve>(m_Label);
         }
     }
 
@@ -139,12 +167,26 @@ namespace UnityEditor.VFX.UI
                 {
                     if (attribute is StringProviderAttribute)
                     {
-                        var instance = Activator.CreateInstance((attribute as StringProviderAttribute).m_ProviderType);
-                        if (instance is IStringProvider)
-                        {
-                            var stringProvider = instance as IStringProvider;
-                            return () => stringProvider.GetAvailableString();
-                        }
+                        var instance = Activator.CreateInstance((attribute as StringProviderAttribute).providerType);
+                        var stringProvider = instance as IStringProvider;
+                        return () => stringProvider.GetAvailableString();
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static Action<string> FindPushButtonBehavior(object[] customAttributes)
+        {
+            if (customAttributes != null)
+            {
+                foreach (var attribute in customAttributes)
+                {
+                    if (attribute is PushButtonAttribute)
+                    {
+                        var instance = Activator.CreateInstance((attribute as PushButtonAttribute).pushButtonProvider);
+                        var pushButtonBehavior = instance as IPushButtonBehavior;
+                        return (a) => pushButtonBehavior.OnClicked(a);
                     }
                 }
             }
@@ -154,9 +196,14 @@ namespace UnityEditor.VFX.UI
         public override ValueControl<string> CreateField()
         {
             var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
             if (stringProvider != null)
             {
                 return new StringFieldProvider(m_Label, stringProvider);
+            }
+            else if (pushButtonProvider != null)
+            {
+                return new StringFieldPushButton(m_Label, pushButtonProvider);
             }
             else
             {

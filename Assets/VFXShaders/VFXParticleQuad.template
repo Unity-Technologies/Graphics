@@ -31,18 +31,31 @@ Shader "Hidden/VFX/ParticleQuads"
 #if USE_SOFT_PARTICLE
 				sampler2D_float _CameraDepthTexture;
 #endif
+
+#if USE_FLIPBOOK
+				float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
+				{
+					float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
+					return (tile + uv) * invDim;
+				}
+#endif
 				
 				struct ps_input
 				{
 					float4 pos : SV_POSITION;
 #if VFX_NEEDS_COLOR_INTERPOLATOR
 					nointerpolation float4 color : COLOR0;
+#endif				
+#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+// x: inverse soft particles fade distance
+// y: alpha threshold
+// z: frame blending factor
+					nointerpolation float3 builtInInterpolants : TEXCOORD0;
 #endif
-					float2 uv : TEXCOORD0;
 #if USE_SOFT_PARTICLE
-					nointerpolation float invSoftParticlesFadeDistance : TEXCOORD1;
-					float4 projPos : TEXCOORD2;			
+					float4 projPos : TEXCOORD1;	
 #endif
+					float4 uv : TEXCOORD2;
 				};
 				
 				struct ps_output
@@ -62,11 +75,28 @@ Shader "Hidden/VFX/ParticleQuads"
 							${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 							${VFXProcessBlocks}
 							
-							float2 offsets = (float2)0;
 							o.uv.x = float(id & 1);
 							o.uv.y = float((id & 2) >> 1);
-							position.xy += (2.0f * o.uv - 1.0f) * size * 0.5f;
 							
+							float2 offsets = size.xy * (o.uv - pivot.xy - 0.5f);
+														
+							float2 sincosA;
+							sincos(radians(angle), sincosA.x, sincosA.y);
+							const float c = sincosA.y;
+							const float s = sincosA.x;
+							const float t = 1.0 - c;
+							const float x = front.x;
+							const float y = front.y;
+							const float z = front.z;
+					
+							float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+								t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+								t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+							
+							position += mul(rot,side * offsets.x);
+							position += mul(rot,up * offsets.y);
+							position -= front * pivot.z;
+
 							o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
 
 #if VFX_NEEDS_COLOR_INTERPOLATOR
@@ -79,10 +109,28 @@ Shader "Hidden/VFX/ParticleQuads"
 #endif
 #endif
 
-#if USE_SOFT_PARTICLE
-							o.projPos = ComputeScreenPos(o.pos);		
+#if USE_SOFT_PARTICLE				
 							${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-							o.invSoftParticlesFadeDistance = invSoftParticlesFadeDistance;
+							o.builtInInterpolants.x = invSoftParticlesFadeDistance;
+							o.projPos = ComputeScreenPos(o.pos);
+#endif
+#if USE_ALPHA_TEST
+							${VFXLoadParameter:{alphaThreshold}}
+							o.builtInInterpolants.y = alphaThreshold;
+#endif
+#if USE_FLIPBOOK
+							${VFXLoadParameter:{flipBookSize}}
+							${VFXLoadParameter:{invFlipBookSize}}
+							
+							float frameBlend = frac(texIndex);
+							float frameIndex = texIndex - frameBlend;
+							
+#if USE_FLIPBOOK_INTERPOLATION
+							o.builtInInterpolants.z = frameBlend;
+							o.uv.zw = GetSubUV(frameIndex + 1,o.uv.xy,flipBookSize,invFlipBookSize);
+							
+#endif
+							o.uv.xy = GetSubUV(frameIndex,o.uv.xy,flipBookSize,invFlipBookSize);
 #endif
 						}
 					}
@@ -97,15 +145,23 @@ Shader "Hidden/VFX/ParticleQuads"
 #if VFX_NEEDS_COLOR_INTERPOLATOR
 					o.color *= i.color;
 #endif
-					o.color *= texture_texture.Sample(samplertexture_texture,i.uv);
 
+					float4 texColor = texture_texture.Sample(samplertexture_texture,i.uv.xy);			
+#if USE_FLIPBOOK_INTERPOLATION
+					float4 texColor2 = texture_texture.Sample(samplertexture_texture,i.uv.zw);	
+					texColor = lerp(texColor,texColor2,i.builtInInterpolants.z);
+#endif
+					o.color *= texColor;
+					
 #if USE_SOFT_PARTICLE
 					float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
-					float fade = saturate(i.invSoftParticlesFadeDistance * (sceneZ - i.projPos.w));
+					float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
 					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 					o.color.a *= fade;
 #endif
-					clip(o.color.a - 0.5f);
+#if USE_ALPHA_TEST
+					clip(o.color.a - i.builtInInterpolants.y);
+#endif
 
 					return o;
 				}

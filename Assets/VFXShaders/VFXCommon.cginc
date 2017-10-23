@@ -63,50 +63,6 @@ float VFXNearPlaneDist(float3 position) { return -mul(UNITY_MATRIX_MV,float4(pos
 float4x4 VFXModelViewProj()             { return UNITY_MATRIX_MVP; }
 #endif
 
-// Macros to use Sphere semantic type directly
-#define VFXPositionOnSphere(SphereName,cosPhi,theta,rNorm)  PositionOnSphere(SphereName##_center,SphereName##_radius,cosPhi,theta,rNorm)
-#define VFXPositionOnSphereSurface(SphereName,cosPhi,theta) PositionOnSphereSurface(SphereName##_center,SphereName##_radius,cosPhi,theta)
-
-// center,radius: Sphere description
-// cosPhi: cosine of Phi angle (we used the cosine directly as it used for uniform distribution)
-// theta: theta angle
-// rNorm: normalized radius in the sphere where the point lies
-float3 PositionOnSphere(float3 center,float radius,float cosPhi,float theta,float rNorm)
-{
-    float2 sincosTheta;
-    sincos(theta,sincosTheta.x,sincosTheta.y);
-    sincosTheta *= sqrt(1.0 - cosPhi*cosPhi);
-    return float3(sincosTheta,cosPhi) * (rNorm * radius) + center;
-}
-
-float3 PositionOnSphereSurface(float3 center,float radius,float cosPhi,float theta)
-{
-    return PositionOnSphere(center,radius,cosPhi,theta,1.0f);
-}
-
-// Macros to use Cylinder semantic type directly
-#define VFXPositionOnCylinder(CylinderName,hNorm,theta,rNorm)   PositionOnCylinder(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta,rNorm)
-#define VFXPositionOnCylinderSurface(CylinderName,hNorm,theta)  PositionOnCylinderSurface(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta)
-
-// pos,dir,height,radius: Cylinder description
-// hNorm: normalized height for the point in [-0.5,0.5]
-// theta: theta angle
-// rNorm: normalise radius for the point
-float3 PositionOnCylinder(float3 pos,float3 dir,float height,float radius,float hNorm,float theta,float rNorm)
-{
-    float2 sincosTheta;
-    sincos(theta,sincosTheta.x,sincosTheta.y);
-    sincosTheta *= rNorm * radius;
-    float3 normal = normalize(cross(dir,dir.zxy));
-    float3 binormal = cross(normal,dir);
-    return normal * sincosTheta.x + binormal * sincosTheta.y + dir * (hNorm * height) + pos;
-}
-
-float3 PositionOnCylinderSurface(float3 pos,float3 dir,float height,float radius,float hNorm,float theta)
-{
-    return PositionOnCylinder(pos,dir,height,radius,hNorm,theta,1.0f);
-}
-
 float4 SampleTexture(VFXSampler2D s,float2 coords)
 {
     return s.t.SampleLevel(s.s,coords,0.0f);
