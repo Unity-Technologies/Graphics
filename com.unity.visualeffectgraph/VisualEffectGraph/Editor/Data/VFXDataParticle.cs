@@ -55,6 +55,11 @@ namespace UnityEditor.VFX
             set { m_WorldSpace = value; }
         }
 
+        public override bool CanBeCompiled()
+        {
+            return m_Owners.Count != 0 && m_Owners[0].contextType == VFXContextType.kInit;
+        }
+
         public override void GenerateAttributeLayout()
         {
             m_BucketSizes.Clear();

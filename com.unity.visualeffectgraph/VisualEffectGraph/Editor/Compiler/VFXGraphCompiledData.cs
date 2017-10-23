@@ -120,7 +120,7 @@ namespace UnityEditor.VFX
 
         private static void FillSemanticsDescs(List<VFXExpressionSemanticDesc> outExpressionSementics, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
-            foreach (var context in models.OfType<VFXContext>())
+            foreach (var context in models.OfType<VFXContext>().Where(c => c.CanBeCompiled()))
             {
                 uint contextId = (uint)context.GetParent().GetIndex(context);
                 var cpuMapper = graph.BuildCPUMapper(context);
@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
             {
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
 
-                foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
+                foreach (var context in models.OfType<VFXContext>().Where(model => model.CanBeCompiled() && model.contextType != VFXContextType.kSpawner))
                 {
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
                     if (codeGeneratorTemplate != null)
@@ -464,7 +464,7 @@ namespace UnityEditor.VFX
                 m_Graph.CollectDependencies(models);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);
-                foreach (var data in models.OfType<VFXData>())
+                foreach (var data in models.OfType<VFXData>().Where(d => d.CanBeCompiled()))
                     data.CollectAttributes();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
@@ -477,7 +477,7 @@ namespace UnityEditor.VFX
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
-                foreach (var context in models.OfType<VFXContext>())
+                foreach (var context in models.OfType<VFXContext>().Where(c => c.CanBeCompiled()))
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
@@ -523,7 +523,7 @@ namespace UnityEditor.VFX
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, models);
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
-                foreach (var data in models.OfType<VFXDataParticle>())
+                foreach (var data in models.OfType<VFXDataParticle>().Where(d => d.CanBeCompiled()))
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);

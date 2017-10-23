@@ -31,9 +31,11 @@ namespace UnityEditor.VFX
 
             if (m_Owners == null)
                 m_Owners = new List<VFXContext>();
+        }
 
-            if (m_TestId == 0)
-                m_TestId = UnityEngine.Random.Range(0, int.MaxValue);
+        public virtual bool CanBeCompiled()
+        {
+            return true;
         }
 
         // Never call this directly ! Only context must call this through SetData
@@ -364,9 +366,6 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected List<VFXContext> m_Owners;
-
-        //[NonSerialized]
-        public int m_TestId;
 
         [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();

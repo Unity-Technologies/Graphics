@@ -84,7 +84,7 @@ namespace UnityEditor.VFX
 
                 var models = new HashSet<Object>();
                 graph.CollectDependencies(models);
-                var contexts = models.OfType<VFXContext>();
+                var contexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
 
                 CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);

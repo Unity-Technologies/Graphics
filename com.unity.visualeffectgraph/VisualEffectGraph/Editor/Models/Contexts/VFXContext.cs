@@ -107,6 +107,11 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
+        public bool CanBeCompiled()
+        {
+            return m_Data != null && m_Data.CanBeCompiled();
+        }
+
         public override void CollectDependencies(HashSet<Object> objs)
         {
             base.CollectDependencies(objs);
@@ -126,7 +131,9 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                Invalidate(InvalidationCause.kExpressionGraphChanged);
+                var data = GetData();
+                if (data != null && data.CanBeCompiled())
+                    Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
 
@@ -148,13 +155,15 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            if (CanBeCompiled())
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            if (CanBeCompiled())
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         public static bool CanLink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0)
