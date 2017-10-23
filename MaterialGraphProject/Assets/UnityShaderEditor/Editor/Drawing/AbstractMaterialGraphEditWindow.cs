@@ -98,8 +98,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
                     m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-                    m_GraphEditorView.RegisterCallback<AttachToPanelEvent, GraphEditorView>(OnEnterPanel, m_GraphEditorView);
-                    m_GraphEditorView.RegisterCallback<DetachFromPanelEvent, GraphEditorView>(OnLeavePanel, m_GraphEditorView);
 
                     rootVisualContainer.Add(graphEditorView);
                 }
@@ -417,18 +415,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             graphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
             graphEditorView.graphView.FrameAll();
-        }
-
-        void OnEnterPanel(AttachToPanelEvent e, GraphEditorView view)
-        {
-            VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualContainer.parent.AddManipulator(view.shortcutHandler);
-        }
-
-        void OnLeavePanel(DetachFromPanelEvent e, GraphEditorView view)
-        {
-            VisualElement rootVisualContainer = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualContainer.parent.RemoveManipulator(view.shortcutHandler);
         }
     }
 }

@@ -30,10 +30,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             AddStyleSheetPath("Styles/MaterialGraph");
 
-            serializeCopyPasteData = SerializeCopyPasteDataImplementation;
+            serializeGraphElements = SerializeGraphElementsImplementation;
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+
+            isReframable = true;
         }
 
         public bool CanAddToNodeMenu(Type type)
@@ -175,7 +177,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             PropagateSelection();
         }
 
-        string SerializeCopyPasteDataImplementation(IEnumerable<GraphElement> elements)
+        string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var graph = CreateCopyPasteGraph(elements);
             return JsonUtility.ToJson(graph, true);
