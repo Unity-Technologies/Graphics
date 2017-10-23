@@ -215,9 +215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // For image based lighting
         Material      m_InitPreFGD;
-        Material      m_ComputeGgxEnergyCompensationFactors;
         RenderTexture m_PreIntegratedFGD;
-        RenderTexture m_GgxEnergyCompensationFactors;
 
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
         Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 2: m_LtcDisneyDiffuseMatrix - RGBA, 3: m_LtcMultiGGXFresnelDisneyDiffuse - RGB, A unused
@@ -283,7 +281,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Build(RenderPipelineResources renderPipelineResources)
         {
             m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
-            m_ComputeGgxEnergyCompensationFactors = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/ComputeGgxEnergyCompensationFactors");
 
             // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
             m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
@@ -291,12 +288,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
             m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
             m_PreIntegratedFGD.Create();
-
-            m_GgxEnergyCompensationFactors = new RenderTexture(128, 128, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-            m_GgxEnergyCompensationFactors.filterMode = FilterMode.Bilinear;
-            m_GgxEnergyCompensationFactors.wrapMode = TextureWrapMode.Clamp;
-            m_GgxEnergyCompensationFactors.hideFlags = HideFlags.DontSave;
-            m_GgxEnergyCompensationFactors.Create();
 
             m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
             {
@@ -318,7 +309,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Cleanup()
         {
             CoreUtils.Destroy(m_InitPreFGD);
-            CoreUtils.Destroy(m_ComputeGgxEnergyCompensationFactors);
 
             // TODO: how to delete RenderTexture ? or do we need to do it ?
             m_isInit = false;
@@ -334,18 +324,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
 
-            using (new ProfilingSample(cmd, "Compute GGX Energy Compensation Factors"))
-            {
-                CoreUtils.DrawFullScreen(cmd, m_ComputeGgxEnergyCompensationFactors, new RenderTargetIdentifier(m_GgxEnergyCompensationFactors));
-            }
-
             m_isInit = true;
         }
 
         public override void Bind()
         {
             Shader.SetGlobalTexture("_PreIntegratedFGD", m_PreIntegratedFGD);
-            Shader.SetGlobalTexture("_GgxEnergyCompensationFactors", m_GgxEnergyCompensationFactors);
             Shader.SetGlobalTexture("_LtcData", m_LtcData);
         }
     }

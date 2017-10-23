@@ -75,7 +75,6 @@ CBUFFER_END
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
-TEXTURE2D(_GgxEnergyCompensationFactors);
 TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_GGX_MATRIX_INDEX 0 // RGBA
 #define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
@@ -298,14 +297,14 @@ void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float 
 
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
-void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD)
+void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD, out float reflectivity)
 {
     // Pre-integrate GGX FGD
     // Integral{BSDF * <N,L> dw} =
     // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
     // F0 * Integral{(BSDF / F) * <N,L> dw} +
     // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} =
-    // F0 * y + (1 - F0) * x = lerp(x, y, F0)
+    // (1 - F0) * x + F0 * y = lerp(x, y, F0)
     // Pre integrate DisneyDiffuse FGD:
     // z = DisneyDiffuse
     float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
@@ -317,6 +316,8 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 #else
     diffuseFGD = preFGD.z;
 #endif
+
+    reflectivity = preFGD.y;
 }
 
 void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
@@ -697,7 +698,7 @@ struct PreLightData
 
     // GGX
     float partLambdaV;
-    float3 energyCompensation;
+    float energyCompensation;
     float TdotV;
     float BdotV;
 
@@ -824,8 +825,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         iblR                     = reflect(-V, iblNormalWS);
     }
 
+    float reflectivity;
+
     // IBL
-    GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
+    GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
 
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -860,23 +863,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
-
-#if 1 // Evgenii's horrible hack to match Eric's results for gold in Mitsuba
-    float3 cbsdfInt                 = preLightData.specularFGD;
-    float3 Kms                      = 1 / cbsdfInt - 1;
-    float3 Fms                      = Sqr(bsdfData.fresnel0);
-    preLightData.energyCompensation = (1 + Fms * Kms);
-    preLightData.specularFGD        = lerp(Fms, 1, cbsdfInt); // Equivalent to (specularFGD * energyCompensation)
-#else // Emmanuel's reference implementation for metals
-    float  cbsdfInt                 = SAMPLE_TEXTURE2D_LOD(_GgxEnergyCompensationFactors, s_linear_clamp_sampler, float2(NdotV, bsdfData.perceptualRoughness), 0).r;
-    float  Kms                      = 1 / cbsdfInt - 1;
-    float3 Fms                      = bsdfData.fresnel0;
-    preLightData.energyCompensation = (1 + Fms * Kms);
-    preLightData.specularFGD       *= preLightData.energyCompensation;
-#endif
-
+    // Ref: Practical multiple scattering compensation for microfacet models.
+    // We only apply the formulation for metals.
+    // For dielectrics, the change of reflectance is negligible.
+    // We deem the intensity difference of a couple of percent for high values of roughness
+    // to not be worth the cost of another precomputed table.
+    // Note: this formulation bakes the BSDF non-symmetric!
+    preLightData.energyCompensation = 1 / reflectivity - 1;
 #else
-    preLightData.energyCompensation = 1;
+    preLightData.energyCompensation = 0;
 #endif // LIT_USE_GGX_ENERGY_COMPENSATION
 
     // Area light
@@ -1060,7 +1055,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                               );
         #endif
     }
-    specularLighting += F * DV * preLightData.energyCompensation;
+    specularLighting += F * DV * (1 + bsdfData.fresnel0 * preLightData.energyCompensation);
 
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
@@ -1878,6 +1873,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // envDiffuseLighting is used for refraction in this Lit material. Use the weight to balance between transmission and reflection
     diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
+    specularLighting *= 1 + bsdfData.fresnel0 * preLightData.energyCompensation;
 }
 
 
