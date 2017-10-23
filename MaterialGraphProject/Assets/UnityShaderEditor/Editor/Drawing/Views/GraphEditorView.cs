@@ -124,8 +124,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView" };
-                m_GraphView.persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
@@ -295,6 +294,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             onUpdateAssetClick = null;
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
+            m_Graph.onChange -= OnGraphChange;
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
             if (previewSystem != null)
             {
