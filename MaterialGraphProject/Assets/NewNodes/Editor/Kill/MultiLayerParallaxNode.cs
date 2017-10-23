@@ -169,7 +169,7 @@ namespace UnityEngine.MaterialGraph
                 layerCountValue + ", " +
                 texValue + ", " +
                 UVChannel.uv0.GetUVName() + ", " +
-                ShaderGeneratorNames.TangentSpaceViewDirection + ")";
+                CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent) + ")";
         }
 
         public bool RequiresMeshUV(UVChannel channel)

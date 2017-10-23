@@ -105,7 +105,7 @@ namespace UnityEngine.MaterialGraph
             return GetFunctionName() + " (" +
                 inputValue1 + ", " +
                 channel.GetUVName() + ", " +
-                ShaderGeneratorNames.TangentSpaceViewDirection + ")";
+                CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent) + ")";
         }
 
         public bool RequiresMeshUV(UVChannel channel)

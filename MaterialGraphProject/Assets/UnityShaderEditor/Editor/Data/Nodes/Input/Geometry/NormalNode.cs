@@ -32,12 +32,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.ObjectSpaceNormal;
+            return CoordinateSpace.World.ToVariableName(InterpolatorType.Normal);
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            return NeededCoordinateSpace.Object;
+            return NeededCoordinateSpace.World;
         }
     }
 }

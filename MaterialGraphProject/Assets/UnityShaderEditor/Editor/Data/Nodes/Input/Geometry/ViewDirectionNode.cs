@@ -29,8 +29,8 @@ namespace UnityEngine.MaterialGraph
         {
             AddSlot(new Vector3MaterialSlot(
                     kOutputSlotId,
-                    ShaderGeneratorNames.WorldSpaceViewDirection,
-                    ShaderGeneratorNames.WorldSpaceViewDirection,
+                    CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection),
+                    CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection),
                     SlotType.Output,
                     Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
@@ -38,7 +38,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpaceViewDirection;
+            return CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection);
         }
 
         public NeededCoordinateSpace RequiresViewDirection()
