@@ -54,6 +54,30 @@ struct LightweightVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct SurfaceData
+{
+    half3 albedo;
+    half3 specular;
+    half  metallic;
+    half  smoothness;
+    half3 normal;
+    half3 emission;
+    half  occlusion;
+    half  alpha;
+};
+
+struct SurfaceInput
+{
+    float4  lightmapUV;
+    half4   ambient;
+    half3   normalWS;
+    half3   tangentWS;
+    half3   bitangentWS;
+    float3  positionWS;
+    half3   viewDirectionWS;
+    half    fogFactor;
+};
+
 inline half Alpha(half albedoAlpha)
 {
 #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
@@ -131,7 +155,7 @@ half Occlusion(float2 uv)
     return tex2D(_OcclusionMap, uv).g;
 #else
     half occ = tex2D(_OcclusionMap, uv).g;
-    return LerpOneTo(occ, _OcclusionStrength);
+    return _LerpOneTo(occ, _OcclusionStrength);
 #endif
 #else
     return 1.0;
@@ -175,8 +199,10 @@ void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurf
 {
 #if LIGHTMAP_ON
     outSurfaceInput.lightmapUV = float4(IN.ambientOrLightmapUV.xy, 0.0, 0.0);
+    outSurfaceInput.ambient = half4(0.0, 0.0, 0.0, 0.0);
 #else
     outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
+    outSurfaceInput.ambient = half4(IN.ambientOrLightmapUV);
 #endif
 
 #if _NORMALMAP
@@ -218,11 +244,8 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.ambientOrLightmapUV.xy = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
     // TODO: Dynamic Lightmap
     o.ambientOrLightmapUV.zw = float2(0.0, 0.0);
-
-    // TODO: Currently there's no way to pass in ambient contribution to fragmentPBR.
-    // We should allow to create custom ambient computation for things like SH evaluation, lightmap, ambient color etc.
-//#else
-//    o.ambientOrLightmapUV = half4(SHEvalLinearL2(half4(normal, 1.0)), 0.0h);
+#else
+    o.ambientOrLightmapUV = half4(EvaluateSHPerVertex(o.normal), 0.0);
 #endif
 
     o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
@@ -236,14 +259,15 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
         INITIALIZE_LIGHT(lightData, lightIter);
 
         half3 lightDirection;
-        half atten = ComputeVertexLightAttenuation(lightData, normal, worldPos, lightDirection);
-        o.fogFactorAndVertexLight.yzw += LightingLambert(diffuse, lightDirection, normal, atten) * lightData.color;
+        half atten = ComputeVertexLightAttenuation(lightData, o.normal, worldPos, lightDirection);
+        o.fogFactorAndVertexLight.yzw += LightingLambert(diffuse, lightDirection, o.normal, atten) * lightData.color;
     }
 #endif
 
     float4 clipPos = UnityObjectToClipPos(v.vertex);
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
     o.clipPos = clipPos;
+
     return o;
 }
 
@@ -255,7 +279,13 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     SurfaceInput surfaceInput;
     InitializeSurfaceInput(IN, surfaceInput);
 
-    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, surfaceInput.normalWS, surfaceInput.tangentWS, surfaceInput.bitangentWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.normal, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+#if _NORMALMAP
+    half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
+#else
+    half3 normalWS = normalize(IN.normal);
+#endif
+
+    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, normalWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceInput.ambient, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
@@ -295,7 +325,8 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 #if defined(LIGHTMAP_ON)
     half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.ambientOrLightmapUV.xy)) * diffuse;
 #else
-    half3 color = (ShadeSH9(half4(normalWorld, 1.0)) + IN.ambientOrLightmapUV.xyz) * diffuse;
+    half3 ambient = IN.ambientOrLightmapUV.xyz;
+    half3 color = EvaluateSHPerPixel(normalWorld, ambient) * diffuse;
 #endif
 
     half shininess = _Shininess * 128.0h;

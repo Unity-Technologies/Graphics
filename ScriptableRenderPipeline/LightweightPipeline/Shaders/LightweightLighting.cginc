@@ -7,8 +7,24 @@
 #define PI 3.14159265359f
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
+#define MAX_VISIBLE_LIGHTS 16
+
 #ifndef UNITY_SPECCUBE_LOD_STEPS
 #define UNITY_SPECCUBE_LOD_STEPS 6
+#endif
+
+#if SHADER_TARGET < 30
+#define EVALUATE_SH_FULLY_VERTEX
+#else
+#define EVALUATE_SH_MIXED
+#endif
+
+#ifdef NO_LIGHTMAP
+#undef LIGHTMAP_ON
+#endif
+
+#ifdef NO_ADDITIONAL_LIGHTS
+#undef _ADDITIONAL_LIGHTS
 #endif
 
 // Main light initialized without indexing
@@ -58,29 +74,6 @@ struct LightInput
     half4 color;
     float4 atten;
     half4 spotDir;
-};
-
-struct SurfaceData
-{
-    half3 albedo;
-    half3 specular;
-    half  metallic;
-    half  smoothness;
-    half3 normal;
-    half3 emission;
-    half  occlusion;
-    half  alpha;
-};
-
-struct SurfaceInput
-{
-    float4  lightmapUV;
-    half3   normalWS;
-    half3   tangentWS;
-    half3   bitangentWS;
-    float3  positionWS;
-    half3   viewDirectionWS;
-    half    fogFactor;
 };
 
 struct BRDFData
@@ -192,12 +185,12 @@ half3 LightweightBRDFIndirect(BRDFData brdfData, half3 indirectDiffuse, half3 in
     return c;
 }
 
-void LightweightGI(float4 lightmapUV, half3 normalWorld, half3 reflectVec, half occlusion, half perceptualRoughness, out half3 indirectDiffuse, out half3 indirectSpecular)
+void LightweightGI(float4 lightmapUV, half4 ambient, half3 normalWS, half3 reflectVec, half occlusion, half perceptualRoughness, out half3 indirectDiffuse, out half3 indirectSpecular)
 {
 #ifdef LIGHTMAP_ON
     indirectDiffuse = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy))) * occlusion;
 #else
-    indirectDiffuse = ShadeSH9(half4(normalWorld, 1.0)) * occlusion;
+    indirectDiffuse = EvaluateSHPerPixel(normalWS, ambient) * occlusion;
 #endif
 
 #ifndef _GLOSSYREFLECTIONS_OFF
@@ -284,28 +277,21 @@ inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 l
     return (diffuse + specular) * atten;
 }
 
-half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS, half3 tangentWS, half3 bitangentWS,
-    half3 viewDirectionWS, half fogFactor, half3 albedo, half metallic, half3 specular, half smoothness,
-    half3 normalTS, half ambientOcclusion, half3 emission, half alpha)
+half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half4 ambient, half3 albedo, half metallic, half3 specular, half smoothness, half ambientOcclusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
+    // TODO: When refactoring shadows remove dependency from vertex normal
     half3 vertexNormal = normalWS;
-#if _NORMALMAP
-    normalWS = TangentToWorldNormal(normalTS, tangentWS, bitangentWS, normalWS);
-#else
-    normalWS = normalize(normalWS);
-#endif
-
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
     half3 indirectDiffuse;
     half3 indirectSpecular;
-    LightweightGI(lightmapUV, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness, indirectDiffuse, indirectSpecular);
+    LightweightGI(lightmapUV, ambient, normalWS, reflectVec, ambientOcclusion, brdfData.perceptualRoughness, indirectDiffuse, indirectSpecular);
 
     // PBS
-    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
+    half fresnelTerm = _Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
     half3 color = LightweightBRDFIndirect(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
     half3 lightDirectionWS;
 
