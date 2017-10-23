@@ -8,12 +8,13 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.MaterialGraph;
 using UnityEngine.Graphing;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     public class GraphEditorView : VisualElement, IDisposable
     {
-        GraphView m_GraphView;
+        MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
@@ -28,7 +29,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public Action onConvertToSubgraphClick { get; set; }
         public Action onShowInProjectClick { get; set; }
 
-        public GraphView graphView
+        public MaterialGraphView graphView
         {
             get { return m_GraphView; }
         }
@@ -127,14 +128,13 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             Add(m_ToolbarView);
 
-            m_GraphPresenter = ScriptableObject.CreateInstance<MaterialGraphPresenter>();
+            m_GraphPresenter = new MaterialGraphPresenter();
 
-            var content = new VisualElement();
-            content.name = "content";
+            var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView { name = "GraphView", presenter = m_GraphPresenter };
+                m_GraphView = new MaterialGraphView(m_GraphPresenter) { name = "GraphView" };
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewSystem, graph) { name = "inspector" };
-                m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
+                m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
                 content.Add(m_GraphView);
                 content.Add(m_GraphInspectorView);
 
@@ -142,33 +142,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             m_GraphPresenter.Initialize(m_GraphView, graph, previewSystem);
-            m_GraphPresenter.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
 
             Add(content);
         }
 
-        private GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
+        GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
         {
-            /*
-            if (graphViewChange.elementsToRemove != null)
-            {
-                graphViewChange.elementsToRemove.To
-                foreach (GraphElement element in graphViewChange.elementsToRemove)
-                {
-                    if (element is Node)
-                    {
-                        m_GraphPresenter.RemoveElements(
-                            m_GraphView.selection.OfType<MaterialNodeView>().Where(e => e.selected && e.presenter == null),
-                            m_GraphView.selection.OfType<Edge>().Where(e => e.selected));
-                    }
-                    else if (element is Edge)
-                    {
-                        EdgeDisconnected(element as Edge);
-                    }
-                }
-            }
-            */
-
             if (graphViewChange.edgesToCreate != null)
             {
                 foreach (var edge in graphViewChange.edgesToCreate)
@@ -180,7 +159,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (graphViewChange.movedElements != null)
             {
-                foreach (GraphElement element in graphViewChange.movedElements)
+                foreach (var element in graphViewChange.movedElements)
                 {
                     var node = element.userData as INode;
                     if (node == null)

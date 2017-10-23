@@ -61,7 +61,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public Object selected
         {
             get { return m_Selected; }
-            set { m_Selected = value; }
+            private set { m_Selected = value; }
         }
 
         void Update()

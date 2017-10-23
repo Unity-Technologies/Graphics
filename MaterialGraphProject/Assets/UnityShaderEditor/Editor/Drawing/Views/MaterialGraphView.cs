@@ -13,8 +13,11 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
-        public MaterialGraphView()
+        MaterialGraphPresenter m_Presenter;
+
+        public MaterialGraphView(MaterialGraphPresenter presenter)
         {
+            m_Presenter = presenter;
             RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());
@@ -30,28 +33,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         public bool CanAddToNodeMenu(Type type)
         {
             return true;
-        }
-
-        void DoContextMenu(MouseUpEvent evt)
-        {
-            if (evt.button == (int)MouseButton.RightMouse)
-            {
-                var gm = new GenericMenu();
-                foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
-                {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
-                    {
-                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                        if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
-                        {
-                            gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
-                        }
-                    }
-                }
-
-                gm.ShowAsContext();
-            }
-            evt.StopPropagation();
         }
 
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
@@ -97,6 +78,28 @@ namespace UnityEditor.MaterialGraph.Drawing
             return compatibleAnchors;
         }
 
+        void DoContextMenu(MouseUpEvent evt)
+        {
+            if (evt.button == (int)MouseButton.RightMouse)
+            {
+                var gm = new GenericMenu();
+                foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
+                {
+                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
+                    {
+                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
+                        if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
+                        {
+                            gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
+                        }
+                    }
+                }
+
+                gm.ShowAsContext();
+            }
+            evt.StopPropagation();
+        }
+
         class AddNodeCreationObject
         {
             public Vector2 m_Pos;
@@ -134,36 +137,36 @@ namespace UnityEditor.MaterialGraph.Drawing
             drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
             node.drawState = drawstate;
 
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            graphDataSource.AddNode(node);
+            m_Presenter.AddNode(node);
         }
 
-        void PropagateSelection()
-        {
-            var graphPresenter = GetPresenter<MaterialGraphPresenter>();
-            if (graphPresenter == null)
-                return;
+        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
 
+        public OnSelectionChanged onSelectionChanged;
+
+        void SelectionChanged()
+        {
             var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
-            graphPresenter.UpdateSelection(selectedNodes);
+            if (onSelectionChanged != null)
+                onSelectionChanged(selectedNodes.Select(x => x.userData as INode));
         }
 
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
-            PropagateSelection();
+            SelectionChanged();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
         {
             base.RemoveFromSelection(selectable);
-            PropagateSelection();
+            SelectionChanged();
         }
 
         public override void ClearSelection()
         {
             base.ClearSelection();
-            PropagateSelection();
+            SelectionChanged();
         }
     }
 }
