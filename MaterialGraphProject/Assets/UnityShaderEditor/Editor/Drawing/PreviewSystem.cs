@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
-            m_PreviewMaterial.hideFlags = HideFlags.HideInHierarchy;
+            m_PreviewMaterial.hideFlags = HideFlags.HideAndDontSave;
             m_PreviewPropertyBlock = new MaterialPropertyBlock();
             m_ErrorTexture = new Texture2D(2, 2);
             m_ErrorTexture.SetPixel(0, 0, Color.magenta);

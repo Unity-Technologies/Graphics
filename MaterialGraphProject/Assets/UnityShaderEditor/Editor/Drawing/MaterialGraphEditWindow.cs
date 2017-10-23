@@ -41,7 +41,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_GraphEditorView.onUpdateAssetClick += UpdateAsset;
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
-                    m_GraphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                     rootVisualContainer.Add(graphEditorView);
                 }
             }
@@ -70,7 +69,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (materialGraph == null)
                 return;
             if (graphEditorView == null)
-                graphEditorView = new GraphEditorView(materialGraph, selected);
+                graphEditorView = new GraphEditorView(materialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
             if (graphEditorView != null)
                 graphEditorView.previewSystem.Update();
         }
@@ -398,7 +397,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphObject.graph.OnEnable();
             graphObject.graph.ValidateGraph();
 
-            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected);
+            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
+            graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
             titleContent = new GUIContent(selected.name);
 
             Repaint();
