@@ -310,7 +310,8 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
 #else
-    diffuseFGD = preFGD.z;
+    // Remap from [0, 1] to [0, 1.5] range.
+    diffuseFGD = 1.5 * preFGD.z;
 #endif
 
     reflectivity = preFGD.y;
