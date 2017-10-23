@@ -130,7 +130,13 @@ namespace UnityEditor.VFX
                     element = (uint)o.Value.offset
                 }
             });
-            return new VFXBufferDesc(ComputeBufferType.Raw, GetBufferSize(capacity), 4, layout.ToArray());
+            return new VFXBufferDesc()
+            {
+                type = ComputeBufferType.Raw,
+                sizeInUInt32 = GetBufferSize(capacity),
+                capacity = capacity,
+                layout = layout.ToArray()
+            };
         }
 
         private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
@@ -150,6 +156,10 @@ namespace UnityEditor.VFX
                 const uint kThreadPerGroup = 64;
                 if (value > kThreadPerGroup)
                     value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                else if (value > 4)
+                    value = (uint)Mathf.Ceil(Mathf.Log(value) / Mathf.Log(2));
+                else
+                    value = 4;
                 m_Capacity = value;
             }
         }
@@ -280,11 +290,11 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, capacity, 4));
+                outBufferDescs.Add(new VFXBufferDesc() { type = ComputeBufferType.Append, sizeInUInt32 = capacity });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, 1, 4));
+                outBufferDescs.Add(new VFXBufferDesc() { type = ComputeBufferType.Raw, sizeInUInt32 = 1 });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
