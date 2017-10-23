@@ -37,7 +37,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.ObjectSpaceTangent;
+            return CoordinateSpace.World.ToVariableName(InterpolatorType.Tangent);
         }
 
         public NeededCoordinateSpace RequiresTangent()
