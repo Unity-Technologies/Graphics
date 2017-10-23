@@ -29,7 +29,7 @@ if (sign * sqrLength <= sign * Sphere_radius * Sphere_radius)
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * (dist - Sphere_radius);
+    position -= n * (dist - Sphere_radius) * sign;
 }";
                 return Source;
             }
