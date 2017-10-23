@@ -43,8 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None = 0,
             Plane = 1,
-            Sphere = 2,
-            Box = 3
+            Sphere = 2
         };
 
         //-----------------------------------------------------------------------------

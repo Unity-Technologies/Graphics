@@ -44,48 +44,6 @@ float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxM
     return min(min(rbminmax.x, rbminmax.y), rbminmax.z);
 }
 
-// This simplified version assume that we care about the result only when we are inside the box
-// Assume dir is normalize
-// return the hit normal
-float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax, out float3 n)
-{
-    float3 invDir = 1.0 / dir;
-
-    // Find the ray intersection with box plane
-    float3 firstPlaneIntersect = (boxMin - start) * invDir;
-    float3 secondPlaneIntersect = (boxMax - start) * invDir;
-
-    float dist = firstPlaneIntersect.x;
-    n = float3(boxMin.x - boxMax.x, 0.0, 0.0);
-    if (firstPlaneIntersect.y < dist)
-    {
-        dist = firstPlaneIntersect.y;
-        n = float3(0.0, boxMin.y - boxMax.y, 0.0);
-    }
-    if (firstPlaneIntersect.z < dist)
-    {
-        dist = firstPlaneIntersect.z;
-        n = float3(0.0, 0.0, boxMin.z - boxMax.z);
-    }
-    if (secondPlaneIntersect.x < dist)
-    {
-        dist = secondPlaneIntersect.x;
-        n = float3(boxMax.x - boxMin.x, 0.0, 0.0);
-    }
-    if (secondPlaneIntersect.y < dist)
-    {
-        dist = secondPlaneIntersect.y;
-        n = float3(0.0, boxMax.y - boxMin.y, 0.0);
-    }
-    if (secondPlaneIntersect.z < dist)
-    {
-        dist = secondPlaneIntersect.z;
-        n = float3(0.0, 0.0, boxMax.z - boxMin.z);
-    }
-
-    return dist;
-}
-
 // Assume Sphere is at the origin (i.e start = position - spherePosition)
 float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool intersect)
 {

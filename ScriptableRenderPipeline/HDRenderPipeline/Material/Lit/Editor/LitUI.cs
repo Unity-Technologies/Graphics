@@ -728,7 +728,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
             SetKeyword(material, "_REFRACTION_PLANE", (refractionModeValue == Lit.RefractionMode.Plane) && canHaveRefraction);
             SetKeyword(material, "_REFRACTION_SPHERE", (refractionModeValue == Lit.RefractionMode.Sphere) && canHaveRefraction);
-            SetKeyword(material, "_REFRACTION_BOX", (refractionModeValue == Lit.RefractionMode.Box) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor
