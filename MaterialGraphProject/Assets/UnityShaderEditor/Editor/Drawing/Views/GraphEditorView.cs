@@ -130,7 +130,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             Add(m_ToolbarView);
 
-            m_GraphPresenter = new MaterialGraphPresenter();
 
             var content = new VisualElement { name = "content" };
             {
@@ -150,7 +149,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
 
-            m_GraphPresenter.Initialize(m_GraphView, graph, previewSystem);
+            m_GraphPresenter = new MaterialGraphPresenter(m_GraphView, graph, previewSystem);
 
             Add(content);
         }
