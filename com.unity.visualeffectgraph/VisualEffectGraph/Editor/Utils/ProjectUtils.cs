@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UnityEditor.VFX
 {
-    public class ProjectUtils
+    public static class ProjectUtils
     {
         [MenuItem("Assets/Create/VFX Editor/NodeBlock (C#)", priority = 0)]
         public static void MenuCreateVFXBlock()
@@ -15,8 +15,7 @@ namespace UnityEditor.VFX
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateVFXBlockAsset>(), "NewVFXBlock.cs", icon, null);
         }
 
-
-        internal class DoCreateVFXBlockAsset : EndNameEditAction
+        private class DoCreateVFXBlockAsset : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
@@ -32,11 +31,11 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("Error","VFX Nodeblocks can only be created inside an Editor subfolder","OK");
+                    EditorUtility.DisplayDialog("Error", "VFX Nodeblocks can only be created inside an Editor subfolder", "OK");
                 }
             }
 
-            public string GetClassName(string path)
+            private static string GetClassName(string path)
             {
                 string str = Path.GetFileNameWithoutExtension(path);
                 StringBuilder sb = new StringBuilder();
@@ -53,5 +52,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-
-
