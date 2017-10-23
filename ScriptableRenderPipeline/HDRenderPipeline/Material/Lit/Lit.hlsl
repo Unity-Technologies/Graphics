@@ -1055,8 +1055,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                               );
         #endif
     }
-    specularLighting += F * DV * (1 + bsdfData.fresnel0 * preLightData.energyCompensation);
-
+    specularLighting += F * DV;
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
