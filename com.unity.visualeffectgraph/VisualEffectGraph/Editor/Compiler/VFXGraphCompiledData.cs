@@ -188,17 +188,19 @@ namespace UnityEditor.VFX
                 }
             }
 
-            uint structureLayoutSize = 0u;
-            eventAttributeDescs.ForEach(o =>
+            var structureLayoutTotalSize = (uint)eventAttributeDescs.Sum(e => (long)VFXExpression.TypeToSize(e.type));
+            var currentLayoutSize = 0u;
+            var listWithOffset = new List<VFXLayoutElementDesc>();
+            eventAttributeDescs.ForEach(e =>
                 {
-                    o.offset.element = structureLayoutSize;
-                    structureLayoutSize += (uint)VFXExpression.TypeToSize(o.type);
+                    e.offset.element = currentLayoutSize;
+                    e.offset.structure = structureLayoutTotalSize;
+                    currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
+                    listWithOffset.Add(e);
                 });
 
-            eventAttributeDescs.ForEach(o =>
-                {
-                    o.offset.structure = structureLayoutSize;
-                });
+            eventAttributeDescs.Clear();
+            eventAttributeDescs.AddRange(listWithOffset);
         }
 
         private static List<VFXContext> CollectContextParentRecursively(List<VFXContext> inputList)
@@ -240,7 +242,7 @@ namespace UnityEditor.VFX
                 outCpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
-                    stride = globalEventAttributeDescs.Last().offset.structure + (uint)VFXExpression.TypeToSize(globalEventAttributeDescs.Last().type),
+                    stride = globalEventAttributeDescs.First().offset.structure,
                     layout = globalEventAttributeDescs.ToArray()
                 });
             }
@@ -532,7 +534,7 @@ namespace UnityEditor.VFX
                 {
                     capacity = 1u,
                     layout = globalEventAttributeDescs.ToArray(),
-                    stride = globalEventAttributeDescs.Last().offset.structure + (uint)VFXExpression.TypeToSize(globalEventAttributeDescs.Last().type)
+                    stride = globalEventAttributeDescs.First().offset.structure
                 });
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData);
