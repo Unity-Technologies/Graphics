@@ -40,9 +40,9 @@ namespace UnityEditor.VFX
             {
                 var block = attribBlocks.FirstOrDefault(b => b.Sum(a => VFXValue.TypeToSize(a.type)) + VFXValue.TypeToSize(value.type) <= 4);
                 if (block != null)
-                    block.Add(value);
-                else
-                    attribBlocks.Add(new List<VFXAttribute>() { value });
+                    value = (value + kThreadPerGroup - 1u) & ~(kThreadPerGroup - 1u); // multiple of kThreadPerGroup
+                m_Capacity = (value + 3u) & ~3u;
+                attribBlocks.Add(new List<VFXAttribute>() { value });
             }
 
             int currentOffset = 0;
