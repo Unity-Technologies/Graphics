@@ -108,8 +108,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
             public float atDistance;
-            [SurfaceDataAttributes("Opacity mask")]
-            public float opacityMask;
+            [SurfaceDataAttributes("Transmittance mask")]
+            public float transmittanceMask;
         };
 
         //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float ior;
             // Reuse thickness from SSS
             public Vector3 absorptionCoefficient;
-            public float opacityMask;
+            public float transmittanceMask;
         };
 
         //-----------------------------------------------------------------------------
