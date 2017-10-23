@@ -322,6 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
+
             m_isInit = true;
         }
 
