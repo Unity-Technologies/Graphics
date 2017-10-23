@@ -29,6 +29,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             Insert(0, new GridBackground());
 
             AddStyleSheetPath("Styles/MaterialGraph");
+
+            serializeCopyPasteData = SerializeCopyPasteDataImplementation;
+            canPasteSerializedData = CanPasteSerializedDataImplementation;
+            unserializeAndPaste = UnserializeAndPasteImplementation;
+            deleteSelection = DeleteSelectionImplementation;
         }
 
         public bool CanAddToNodeMenu(Type type)
@@ -170,18 +175,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             PropagateSelection();
         }
 
-        protected override string SerializeCopyPasteData(IEnumerable<GraphElement> elements)
+        string SerializeCopyPasteDataImplementation(IEnumerable<GraphElement> elements)
         {
             var graph = CreateCopyPasteGraph(elements);
             return JsonUtility.ToJson(graph, true);
         }
 
-        protected override bool CanPasteSerializedData(string serializedData)
+        bool CanPasteSerializedDataImplementation(string serializedData)
         {
             return DeserializeCopyBuffer(serializedData) != null;
         }
 
-        protected override void UnserializeAndPasteOperation(string operationName, string serializedData)
+        void UnserializeAndPasteImplementation(string operationName, string serializedData)
         {
             var mgp = GetPresenter<MaterialGraphPresenter>();
             mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
@@ -189,7 +194,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             mgp.InsertCopyPasteGraph(pastedGraph);
         }
 
-        protected override void DeleteSelectionOperation(string operationName)
+        void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
             var mgp = GetPresenter<MaterialGraphPresenter>();
             mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
