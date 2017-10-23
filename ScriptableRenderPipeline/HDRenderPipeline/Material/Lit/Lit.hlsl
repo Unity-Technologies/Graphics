@@ -16,7 +16,7 @@
 #endif
 
 // Define refraction keyword helpers
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_BOX))
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -1592,7 +1592,7 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
     // Sphere shape model:
     //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
     //  The sphere has a diameter of {bsdfData.thickness}
-    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
+    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness} * 0.5
     //
     //  So the light is refracted twice: in and out of the tangent sphere
 
@@ -1624,6 +1624,45 @@ void EvaluateBSDF_SSL(float3 V, PositionInputs posInput, BSDFData bsdfData, out 
 
     // Refracted source point
     refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
+
+#elif defined(_REFRACTION_BOX)
+    // Box shape model:
+    //  We approximate locally the shape of the object as box, that is tangent to the shape.
+    //  The box has a size of {bsdfData.thickness}
+    //  The center of the box is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness} * 0.5
+    //
+    //  So the light is refracted twice: in and out of the tangent box
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float depthFromPosition = depth - posInput.depthVS;
+
+    // First refraction (tangent box in)
+    // Refracted ray
+    float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+
+    float3 R1LS = float3(dot(R1, bsdfData.tangentWS), dot(R1, bsdfData.bitangentWS), dot(R1, bsdfData.normalWS));
+    float3 boxSize = float3(bsdfData.thickness, bsdfData.thickness, bsdfData.thickness) * 0.5;
+
+    // Second interface hit
+    float3 N2LS = float3(0.0, 0.0, 0.0);
+    opticalDepth = BoxRayIntersectSimple(float3(0.0, 0.0, 0.0), R1LS, -boxSize, boxSize, N2LS);
+    float3 N2WS = N2LS.x * bsdfData.tangentWS + N2LS.y * bsdfData.bitangentWS + N2LS.z * bsdfData.normalWS;
+    float3 P2 = posInput.positionWS + R1 * opticalDepth;
+
+    // Second refraction
+    float3 R2 = refract(R1, N2WS, bsdfData.ior);
+
+    float NoR1 = dot(bsdfData.normalWS, R1);
+    float NoR2 = dot(bsdfData.normalWS, R2);
+    float N2oR2 = dot(N2WS, R2);
+    float VoR1 = dot(V, R1);
+
+    // Refracted source point
+    refractedBackPointWS = P2 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N2oR2;
 
 #endif
 
