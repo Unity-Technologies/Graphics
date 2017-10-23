@@ -12,7 +12,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Inputs";
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
-            public static GUIContent baseColorRefractionMaskText = new GUIContent("Base Color + RefractionMask", "Albedo (RGB) and Refraction mask (A)");
 
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
@@ -409,9 +408,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
 
-            bool refractionEnable = (material.HasProperty(kRefractionMode) && refractionMode.floatValue > 0.0f) && (material.HasProperty(kPreRefractionPass) && preRefractionPass.floatValue == 0.0f);
-
-            m_MaterialEditor.TexturePropertySingleLine(refractionEnable ? Styles.baseColorRefractionMaskText : Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
             if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
             {
