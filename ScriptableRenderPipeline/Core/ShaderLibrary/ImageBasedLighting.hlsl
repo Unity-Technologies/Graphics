@@ -342,10 +342,10 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
             // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
             // F0 * Integral{(BSDF / F) * <N,L> dw} +
             // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} =
-            // F0 * y + (1 - F0) * x = lerp(x, y, F0)
+            // (1 - F0) * x + F0 * y = lerp(x, y, F0)
 
-            acc.x += weightOverPdf;
-            acc.y += weightOverPdf * pow(1 - VdotH, 5);
+            acc.x += weightOverPdf * pow(1 - VdotH, 5);
+            acc.y += weightOverPdf;
         }
 
         // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
