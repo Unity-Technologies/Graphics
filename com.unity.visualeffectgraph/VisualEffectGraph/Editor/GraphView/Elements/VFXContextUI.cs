@@ -222,39 +222,37 @@ namespace UnityEditor.VFX.UI
 
         public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
         {
-            if (m_DragDisplay.parent != null)
-                m_BlockContainer.Remove(m_DragDisplay);
+            m_DragDisplay.RemoveFromHierarchy();
+
             if (!CanDrop(blocks, target))
             {
                 return;
             }
 
-            Vector2 position;
+            float y = 0;
             if (target != null)
             {
-                position = target.layout.position;
+                y = target.layout.position.y;
                 if (after)
                 {
-                    position.y += target.layout.height;
+                    y += target.layout.height;
                 }
             }
             else
             {
                 if (after)
                 {
-                    position.y = m_BlockContainer.layout.height;
+                    y = m_BlockContainer.layout.height - 2;
                 }
                 else
                 {
-                    position.y = 0;
+                    y = 0;
                 }
             }
-            m_DragDisplay.style.positionTop = position.y;
+            Debug.Log("m_DragDisplay.y" + y);
+            m_DragDisplay.style.positionTop = y;
 
-            if (m_DragDisplay.parent == null)
-            {
-                m_BlockContainer.Add(m_DragDisplay);
-            }
+            m_BlockContainer.Add(m_DragDisplay);
         }
 
         public void DragFinished()
@@ -277,7 +275,11 @@ namespace UnityEditor.VFX.UI
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            DraggingBlocks(blocksUI, null, true);
+            Vector2 mousePosition = evt.imguiEvent.mousePosition;
+
+            bool after = mousePosition.y > layout.height * 0.5f;
+
+            DraggingBlocks(blocksUI, null, after);
             if (!m_DragStarted)
             {
                 // TODO: Do something on first DragUpdated event (initiate drag)
@@ -295,16 +297,22 @@ namespace UnityEditor.VFX.UI
         EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             DragFinished();
+
+            Vector2 mousePosition = evt.imguiEvent.mousePosition;
+
+            bool after = mousePosition.y > layout.height * 0.5f;
+
             IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
             if (!CanDrop(blocksUI, null))
                 return EventPropagation.Stop;
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
 
+            int cpt = 0;
             foreach (var blockui in blocksUI)
             {
                 VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                presenter.AddBlock(-1, blockPres.block);
+                presenter.AddBlock(after ? -1 : cpt++, blockPres.block);
             }
 
             m_DragStarted = false;
