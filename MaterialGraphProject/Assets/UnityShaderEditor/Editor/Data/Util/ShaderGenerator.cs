@@ -214,7 +214,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_ShaderChunks.Count; }
         }
 
- public enum InputType
+        public enum InputType
         {
             Position,
             Vector,
@@ -228,16 +228,19 @@ namespace UnityEngine.MaterialGraph
                 this.name = name;
                 transpose = false;
             }
+
             public TransformDesc(string name, bool transpose)
             {
                 this.name = name;
                 this.transpose = transpose;
             }
+
             public string name;
             public bool transpose;
         }
 
         static TransformDesc[,][] m_transforms = null;
+
         static TransformDesc[] GetTransformPath(CoordinateSpace from, CoordinateSpace to)
         {
             if (m_transforms[(int) from, (int) to] != null)
@@ -249,37 +252,37 @@ namespace UnityEngine.MaterialGraph
             var queue = new List<CoordinateSpace>();
             foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
             {
-                distance[(int)space] = int.MaxValue;
-                prev[(int)space] = null;
-                queue.Add((CoordinateSpace)space);
+                distance[(int) space] = int.MaxValue;
+                prev[(int) space] = null;
+                queue.Add((CoordinateSpace) space);
             }
-            distance[(int)from] = 0;
+            distance[(int) from] = 0;
             List<CoordinateSpace> path = null;
             while (queue.Count != 0)
             {
-                queue.Sort((x, y) => distance[(int)x] - distance[(int)y]);
+                queue.Sort((x, y) => distance[(int) x] - distance[(int) y]);
                 var min = queue[0];
                 queue.Remove(min);
                 if (min == to)
                 {
                     path = new List<CoordinateSpace>();
-                    while (prev[(int)min] != null)
+                    while (prev[(int) min] != null)
                     {
                         path.Add(min);
-                        min = prev[(int)min].Value;
+                        min = prev[(int) min].Value;
                     }
                     break;
                 }
-                if (distance[(int)min] == int.MaxValue)
+                if (distance[(int) min] == int.MaxValue)
                 {
                     break;
                 }
                 foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
                 {
-                    int index = (int)space;
-                    if (m_transforms[(int)min, index] != null)
+                    int index = (int) space;
+                    if (m_transforms[(int) min, index] != null)
                     {
-                        var alt = distance[(int)min] + m_transforms[(int)min, index].Length;
+                        var alt = distance[(int) min] + m_transforms[(int) min, index].Length;
                         if (alt < distance[index])
                         {
                             distance[index] = alt;
@@ -289,15 +292,14 @@ namespace UnityEngine.MaterialGraph
                 }
             }
             path.Reverse();
-            var matrixList = new TransformDesc[path.Count];
-            int idx = 0;
+            var matrixList = new List<TransformDesc>();
             foreach (var node in path)
             {
-                matrixList[idx] = m_transforms[(int)from, (int)node][0];
+                matrixList.AddRange(m_transforms[(int) from, (int) node]);
                 from = node;
-                idx++;
             }
-            return matrixList;
+
+            return matrixList.ToArray();
         }
 
         static void InitTransforms()
@@ -305,35 +307,36 @@ namespace UnityEngine.MaterialGraph
             if (m_transforms == null)
             {
                 m_transforms = new TransformDesc[4, 4][];
-                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.Object] = new TransformDesc[] { };
-                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.View] = new TransformDesc[] { };
-                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] { };
-                m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] { };
-                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World] 
-                    = new TransformDesc[] { new TransformDesc("unity_ObjectToWorld") };
-                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World] 
-                    = new TransformDesc[] { new TransformDesc("UNITY_MATRIX_I_V") };
-                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.Object] 
-                    = new TransformDesc[] { new TransformDesc("unity_WorldToObject") };
-                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.View] 
-                    = new TransformDesc[] { new TransformDesc("UNITY_MATRIX_V") };
+                m_transforms[(int) CoordinateSpace.Object, (int) CoordinateSpace.Object] = new TransformDesc[] { };
+                m_transforms[(int) CoordinateSpace.View, (int) CoordinateSpace.View] = new TransformDesc[] { };
+                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.World] = new TransformDesc[] { };
+                m_transforms[(int) CoordinateSpace.Tangent, (int) CoordinateSpace.Tangent] = new TransformDesc[] { };
+                m_transforms[(int) CoordinateSpace.Object, (int) CoordinateSpace.World]
+                    = new TransformDesc[] {new TransformDesc("unity_ObjectToWorld")};
+                m_transforms[(int) CoordinateSpace.View, (int) CoordinateSpace.World]
+                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_I_V")};
+                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.Object]
+                    = new TransformDesc[] {new TransformDesc("unity_WorldToObject")};
+                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.View]
+                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_V")};
                 for (var from = CoordinateSpace.Object; from != CoordinateSpace.Tangent; from++)
                 {
                     for (var to = CoordinateSpace.Object; to != CoordinateSpace.Tangent; to++)
                     {
-                        if (m_transforms[(int)from, (int)to] == null)
+                        if (m_transforms[(int) from, (int) to] == null)
                         {
-                            m_transforms[(int)from, (int)to] = GetTransformPath(from, to);
+                            m_transforms[(int) from, (int) to] = GetTransformPath(from, to);
                         }
                     }
                 }
             }
             for (var k = CoordinateSpace.Object; k != CoordinateSpace.Tangent; k++)
             {
-                m_transforms[(int)CoordinateSpace.Tangent, (int)k] = null;
-                m_transforms[(int)k, (int)CoordinateSpace.Tangent] = null;
+                m_transforms[(int) CoordinateSpace.Tangent, (int) k] = null;
+                m_transforms[(int) k, (int) CoordinateSpace.Tangent] = null;
             }
         }
+
         public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool inverseTranspose)
         {
             if (inverseTranspose)
@@ -358,7 +361,8 @@ namespace UnityEngine.MaterialGraph
             return variable;
         }
 
-        public static string ConvertBetweenSpace(string variable, CoordinateSpace from, CoordinateSpace to, InputType inputType, CoordinateSpace tangentMatrixSpace = CoordinateSpace.Object)
+        public static string ConvertBetweenSpace(string variable, CoordinateSpace from, CoordinateSpace to,
+            InputType inputType, CoordinateSpace tangentMatrixSpace = CoordinateSpace.Object)
         {
             if (from == to)
             {
@@ -374,16 +378,18 @@ namespace UnityEngine.MaterialGraph
                 inputType = InputType.Vector;
                 isNormal = true;
             }
-            m_transforms[(int)CoordinateSpace.Tangent, (int)tangentMatrixSpace] = new[] { new TransformDesc("tangentSpaceTransform") };
-            m_transforms[(int)tangentMatrixSpace, (int)CoordinateSpace.Tangent] = new[] { new TransformDesc("tangentSpaceTransform", true) };
+            m_transforms[(int) CoordinateSpace.Tangent, (int) tangentMatrixSpace] =
+                new[] {new TransformDesc("tangentSpaceTransform")};
+            m_transforms[(int) tangentMatrixSpace, (int) CoordinateSpace.Tangent] = new[]
+                {new TransformDesc("tangentSpaceTransform", true)};
             if (from == CoordinateSpace.Tangent)
             {
                 // if converting from tangent space, reuse the underlying space
                 from = tangentMatrixSpace;
                 variable = EmitTransform(
-                                GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
-                                GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
-                                variable, affine, !isNormal);
+                    GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
+                    GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
+                    variable, affine, !isNormal);
                 if (to == tangentMatrixSpace)
                 {
                     return variable;
