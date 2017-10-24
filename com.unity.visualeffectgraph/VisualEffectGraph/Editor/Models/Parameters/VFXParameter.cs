@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
                 if (m_exposedName != value)
                 {
                     m_exposedName = value;
-                    Invalidate(InvalidationCause.kParamChanged);
+                    Invalidate(InvalidationCause.kParamChanged); // TODO needs a special event for that
                 }
             }
         }
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
                 if (m_exposed != value)
                 {
                     m_exposed = value;
-                    Invalidate(InvalidationCause.kParamChanged);
+                    Invalidate(InvalidationCause.kExpressionGraphChanged); // Tmp
                 }
             }
         }
