@@ -38,18 +38,20 @@ struct LightweightVertexInput
 
 struct LightweightVertexOutput
 {
-    float2 uv                       : TEXCOORD0;
-    float4 ambientOrLightmapUV      : TEXCOORD1; // xy: lightmapUV, zw: dynamicLightmapUV OR color from SH
-    float4 posWS                    : TEXCOORD2;
+    float4 uv01                     : TEXCOORD0; // xy: main UV, zw: lightmap UV (directional / non-directional)
+    float4 posWS                    : TEXCOORD1;
 #if _NORMALMAP
-    half3 tangent                   : TEXCOORD3;
-    half3 binormal                  : TEXCOORD4;
-    half3 normal                    : TEXCOORD5;
+    half3 tangent                   : TEXCOORD2;
+    half3 binormal                  : TEXCOORD3;
+    half3 normal                    : TEXCOORD4;
 #else
-    half3 normal                    : TEXCOORD3;
+    half3 normal                    : TEXCOORD2;
 #endif
-    half4 viewDir                   : TEXCOORD6; // xyz: viewDir
-    half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
+    half4 viewDir                   : TEXCOORD5; // xyz: viewDir
+    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    half4 vertexSH                  : TEXCOORD7;
+#endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -161,7 +163,7 @@ half3 Emission(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out SurfaceData outSurfaceData)
 {
-    float2 uv = IN.uv;
+    float2 uv = IN.uv01.xy;
     half4 albedoAlpha = tex2D(_MainTex, uv);
 
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
@@ -186,11 +188,11 @@ inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out Sur
 void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
 {
 #if LIGHTMAP_ON
-    outSurfaceInput.lightmapUV = float4(IN.ambientOrLightmapUV.xy, 0.0, 0.0);
+    outSurfaceInput.lightmapUV = float4(IN.uv01.zw, 0.0, 0.0);
     outSurfaceInput.ambient = half4(0.0, 0.0, 0.0, 0.0);
 #else
     outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
-    outSurfaceInput.ambient = half4(IN.ambientOrLightmapUV);
+    outSurfaceInput.ambient = half4(IN.vertexSH);
 #endif
 
 #if _NORMALMAP
@@ -214,7 +216,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+    o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
+#ifdef LIGHTMAP_ON
+    o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+#endif
 
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     o.posWS.xyz = worldPos;
@@ -228,12 +233,8 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 #endif
 
-#ifdef LIGHTMAP_ON
-    o.ambientOrLightmapUV.xy = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
-    // TODO: Dynamic Lightmap
-    o.ambientOrLightmapUV.zw = float2(0.0, 0.0);
-#else
-    o.ambientOrLightmapUV = half4(EvaluateSHPerVertex(o.normal), 0.0);
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    o.vertexSH = half4(EvaluateSHPerVertex(o.normal), 0.0);
 #endif
 
     o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
@@ -278,7 +279,8 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
-    float2 uv = IN.uv;
+    float2 uv = IN.uv01.xy;
+    float2 lightmapUV = IN.uv01.zw;
 
     half4 diffuseAlpha = tex2D(_MainTex, uv);
     half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
@@ -289,8 +291,6 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half alpha = diffuseAlpha.a * _Color.a;
 #endif
 
-    // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
-    // due overdraw performance impact.
 #ifdef _ALPHATEST_ON
     clip(alpha - _Cutoff);
 #endif
@@ -311,10 +311,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half3 lightDirection;
 
 #if defined(LIGHTMAP_ON)
-    half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.ambientOrLightmapUV.xy)) * diffuse;
+    half3 color = SampleLightmap(lightmapUV, normalWorld) * diffuse;
 #else
-    half3 ambient = IN.ambientOrLightmapUV.xyz;
-    half3 color = EvaluateSHPerPixel(normalWorld, ambient) * diffuse;
+    half3 color = EvaluateSHPerPixel(normalWorld, IN.vertexSH) * diffuse;
 #endif
 
     half shininess = _Shininess * 128.0h;

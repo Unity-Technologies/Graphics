@@ -30,25 +30,38 @@ half3 SafeNormalize(half3 inVec)
 
 half3 EvaluateSHPerVertex(half3 normalWS)
 {
-#if defined(EVALUATE_SH_FULLY_VERTEX)
+#if defined(EVALUATE_SH_VERTEX)
     return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
 #elif defined(EVALUATE_SH_MIXED)
     // no max since this is only L2 contribution
     return SHEvalLinearL2(half4(normalWS, 1.0));
-#else
+#endif
+
     // Fully per-pixel. Nothing to compute.
     return half3(0.0, 0.0, 0.0);
-#endif
 }
 
 half3 EvaluateSHPerPixel(half3 normalWS, half3 L2Term)
 {
 #ifdef EVALUATE_SH_MIXED
     return = max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
-#else
+#endif
+
     // Default: Evaluate SH fully per-pixel
     return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+}
+
+half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
+{
+    half4 encodedBakedColor = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
+    half3 bakedColor = DecodeLightmap(encodedBakedColor);
+
+#if DIRLIGHTMAP_COMBINED
+    half4 bakedDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+    bakedColor += DecodeDirectionalLightmap(bakedColor, bakedDirection, normalWS);
 #endif
+
+    return bakedColor;
 }
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
