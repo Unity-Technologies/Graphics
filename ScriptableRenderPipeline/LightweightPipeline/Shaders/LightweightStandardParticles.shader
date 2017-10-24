@@ -151,7 +151,6 @@
                 SurfaceOutputStandard surfaceData;
                 InitializeSurfaceData(IN, surfaceData);
 
-                half4 zero = half4(0.0h, 0.0h, 0.0h, 0.0h);
                 float3 positionWS = IN.posWS.xyz;
                 half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
                 half fogFactor = IN.posWS.w;
@@ -162,7 +161,9 @@
                 half3 normalWS = normalize(IN.normal);
 #endif
 
-                return LightweightFragmentPBR(zero, positionWS, normalWS, viewDirWS, fogFactor, zero, surfaceData.Albedo, surfaceData.Metallic, zero, surfaceData.Smoothness, surfaceData.Occlusion, surfaceData.Emission, surfaceData.Alpha);
+                half3 zero = half3(0.0, 0.0, 0.0);
+                return LightweightFragmentPBR(positionWS, normalWS, viewDirWS, fogFactor, /*diffuseGI*/ zero, surfaceData.Albedo,
+                    surfaceData.Metallic, /* specularColor */ zero, surfaceData.Smoothness, surfaceData.Occlusion, surfaceData.Emission, surfaceData.Alpha);
             }
             ENDCG
         }

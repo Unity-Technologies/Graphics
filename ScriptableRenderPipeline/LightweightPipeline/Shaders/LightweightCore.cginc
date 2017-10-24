@@ -41,6 +41,11 @@ half3 EvaluateSHPerVertex(half3 normalWS)
     return half3(0.0, 0.0, 0.0);
 }
 
+half3 EvaluateSHPerPixel(half3 normalWS)
+{
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+}
+
 half3 EvaluateSHPerPixel(half3 normalWS, half3 L2Term)
 {
 #ifdef EVALUATE_SH_MIXED

@@ -39,7 +39,7 @@ struct LightweightVertexInput
 struct LightweightVertexOutput
 {
     float4 uv01                     : TEXCOORD0; // xy: main UV, zw: lightmap UV (directional / non-directional)
-    float4 posWS                    : TEXCOORD1;
+    float3 posWS                    : TEXCOORD1;
 #if _NORMALMAP
     half3 tangent                   : TEXCOORD2;
     half3 binormal                  : TEXCOORD3;
@@ -47,25 +47,13 @@ struct LightweightVertexOutput
 #else
     half3 normal                    : TEXCOORD2;
 #endif
-    half4 viewDir                   : TEXCOORD5; // xyz: viewDir
+    half3 viewDir                   : TEXCOORD5;
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
     half4 vertexSH                  : TEXCOORD7;
 #endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
-};
-
-struct SurfaceInput
-{
-    float4  lightmapUV;
-    half4   ambient;
-    half3   normalWS;
-    half3   tangentWS;
-    half3   bitangentWS;
-    float3  positionWS;
-    half3   viewDirectionWS;
-    half    fogFactor;
 };
 
 inline half Alpha(half albedoAlpha)
@@ -181,32 +169,7 @@ inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out Sur
     outSurfaceData.normal = Normal(uv);
     outSurfaceData.occlusion = Occlusion(uv);
     outSurfaceData.emission = Emission(uv);
-    outSurfaceData.emission += IN.fogFactorAndVertexLight.yzw;
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
-}
-
-void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
-{
-#if LIGHTMAP_ON
-    outSurfaceInput.lightmapUV = float4(IN.uv01.zw, 0.0, 0.0);
-    outSurfaceInput.ambient = half4(0.0, 0.0, 0.0, 0.0);
-#else
-    outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
-    outSurfaceInput.ambient = half4(IN.vertexSH);
-#endif
-
-#if _NORMALMAP
-    outSurfaceInput.tangentWS = IN.tangent;
-    outSurfaceInput.bitangentWS = IN.binormal;
-#else
-    outSurfaceInput.tangentWS = half3(1.0h, 0.0h, 0.0h);
-    outSurfaceInput.bitangentWS = half3(0.0h, 1.0h, 0.0h);
-#endif
-
-    outSurfaceInput.normalWS = IN.normal;
-    outSurfaceInput.positionWS = IN.posWS;
-    outSurfaceInput.viewDirectionWS = IN.viewDir;
-    outSurfaceInput.fogFactor = IN.fogFactorAndVertexLight.x;
 }
 
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
@@ -222,10 +185,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #endif
 
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-    o.posWS.xyz = worldPos;
+    o.posWS = worldPos;
 
     half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
-    o.viewDir.xyz = viewDir;
+    o.viewDir = viewDir;
 
 #if _NORMALMAP
     OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
@@ -265,16 +228,24 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(IN, surfaceData);
 
-    SurfaceInput surfaceInput;
-    InitializeSurfaceInput(IN, surfaceInput);
-
 #if _NORMALMAP
     half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
 #else
     half3 normalWS = normalize(IN.normal);
 #endif
 
-    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, normalWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceInput.ambient, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+#if LIGHTMAP_ON
+    half3 diffuseGI = SampleLightmap(IN.uv01.zw, normalWS);
+#else
+    half3 diffuseGI = EvaluateSHPerPixel(normalWS, IN.vertexSH);
+#endif
+
+#if _VERTEX_LIGHTS
+    diffuseGI += IN.fogFactorAndVertexLight.yzw;
+#endif
+
+    float fogFactor = IN.fogFactorAndVertexLight.x;
+    return LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, fogFactor, diffuseGI, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
