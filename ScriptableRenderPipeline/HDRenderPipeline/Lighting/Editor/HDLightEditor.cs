@@ -46,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty spotLightShape;
             public SerializedProperty shapeLength;
             public SerializedProperty shapeWidth;
+            public SerializedProperty aspectRatio;
             public SerializedProperty shapeRadius;
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
@@ -159,6 +160,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 spotLightShape = o.Find(x => x.spotLightShape),
                 shapeLength = o.Find(x => x.shapeLength),
                 shapeWidth = o.Find(x => x.shapeWidth),
+                aspectRatio = o.Find(x => x.aspectRatio),
                 shapeRadius = o.Find(x => x.shapeRadius),
                 maxSmoothness = o.Find(x => x.maxSmoothness),
                 applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
@@ -293,8 +295,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // TODO : replace with angle and ratio
                     else if (spotLightShape == SpotLightShape.Pyramid)
                     {
-                        EditorGUILayout.Slider(m_AdditionalLightData.shapeLength, 0.01f, 10f, s_Styles.shapeLengthPyramid);
-                        EditorGUILayout.Slider(m_AdditionalLightData.shapeWidth, 0.01f, 10f, s_Styles.shapeWidthPyramid);
+                        EditorGUILayout.Slider(m_BaseData.spotAngle, 0f, 179.9f, s_Styles.spotAngle);
+                        EditorGUILayout.Slider(m_AdditionalLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
                     }
                     else if (spotLightShape == SpotLightShape.Box)
                     {
