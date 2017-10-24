@@ -104,7 +104,7 @@ SubShader
 			float Metallic = 0;
 			float3 Normal = float3(0, 0, 1);
 			float3 Emission = 0;
-			float Smoothness = 0;
+			float Smoothness = 0.5;
 			float Occlusion = 1;
 			float Alpha = 1;
 
@@ -117,11 +117,11 @@ SubShader
 
 			return LightweightFragmentPBR(
 				IN.lwCustom,
-				worldSpacePosition,
-				worldSpaceNormal,
-				worldSpaceTangent,
-				worldSpaceBiTangent,
-				worldSpaceViewDirection,
+				WorldSpacePosition,
+				WorldSpaceNormal,
+				WorldSpaceTangent,
+				WorldSpaceBiTangent,
+				WorldSpaceViewDirection,
 				IN.fogCoord.x, 
 				
 				Albedo,

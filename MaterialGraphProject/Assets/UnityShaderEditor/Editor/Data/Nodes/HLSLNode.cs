@@ -83,37 +83,37 @@ namespace UnityEngine.MaterialGraph
                 case Binding.None:
                     return "ERROR!";
                 case Binding.ObjectSpaceNormal:
-                    return ShaderGeneratorNames.ObjectSpaceNormal;
+                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal);
                 case Binding.ObjectSpaceTangent:
-                    return ShaderGeneratorNames.ObjectSpaceTangent;
+                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent);
                 case Binding.ObjectSpaceBitangent:
-                    return ShaderGeneratorNames.ObjectSpaceBiTangent;
+                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.BiTangent);
                 case Binding.ObjectSpacePosition:
-                    return ShaderGeneratorNames.ObjectSpacePosition;
+                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Position);
                 case Binding.ViewSpaceNormal:
-                    return ShaderGeneratorNames.ViewSpaceNormal;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Normal);
                 case Binding.ViewSpaceTangent:
-                    return ShaderGeneratorNames.ViewSpaceTangent;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent);
                 case Binding.ViewSpaceBitangent:
-                    return ShaderGeneratorNames.ViewSpaceBiTangent;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.BiTangent);
                 case Binding.ViewSpacePosition:
-                    return ShaderGeneratorNames.ViewSpacePosition;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Position);
                 case Binding.WorldSpaceNormal:
-                    return ShaderGeneratorNames.WorldSpaceNormal;
+                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Normal);
                 case Binding.WorldSpaceTangent:
-                    return ShaderGeneratorNames.WorldSpaceTangent;
+                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Tangent);
                 case Binding.WorldSpaceBitangent:
-                    return ShaderGeneratorNames.WorldSpaceBiTangent;
+                    return CoordinateSpace.World.ToVariableName(InterpolatorType.BiTangent);
                 case Binding.WorldSpacePosition:
-                    return ShaderGeneratorNames.WorldSpacePosition;
+                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Position);
                 case Binding.TangentSpaceNormal:
-                    return ShaderGeneratorNames.TangentSpaceNormal;
+                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Normal);
                 case Binding.TangentSpaceTangent:
-                    return ShaderGeneratorNames.TangentSpaceTangent;
+                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Tangent);
                 case Binding.TangentSpaceBitangent:
-                    return ShaderGeneratorNames.TangentSpaceBiTangent;
+                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.BiTangent);
                 case Binding.TangentSpacePosition:
-                    return ShaderGeneratorNames.TangentSpacePosition;
+                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Position);
                 case Binding.MeshUV0:
                     return UVChannel.uv0.GetUVName();
                 case Binding.MeshUV1:
@@ -125,13 +125,13 @@ namespace UnityEngine.MaterialGraph
                 case Binding.ScreenPosition:
                     return ShaderGeneratorNames.ScreenPosition;
                 case Binding.ObjectSpaceViewDirection:
-                    return ShaderGeneratorNames.ObjectSpaceViewDirection;
+                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.ViewDirection);
                 case Binding.ViewSpaceViewDirection:
-                    return ShaderGeneratorNames.ViewSpaceViewDirection;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
                 case Binding.WorldSpaceViewDirection:
-                    return ShaderGeneratorNames.WorldSpaceViewDirection;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
                 case Binding.TangentSpaceViewDirection:
-                    return ShaderGeneratorNames.TangentSpaceViewDirection;
+                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
                 case Binding.VertexColor:
                     return ShaderGeneratorNames.VertexColor;
                 default:
