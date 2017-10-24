@@ -33,9 +33,12 @@ public class MultiMaterialPlacerEditor : Editor
             {
                 MultiMaterialPlacer m = obj as MultiMaterialPlacer;
                 Material[] materials = PlaceObjects(m);
-                foreach (Material mat in materials)
+                if (materials != null)
                 {
-                    UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
+                    foreach (Material mat in materials)
+                    {
+                        UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
+                    }
                 }
             }
         }
@@ -176,6 +179,7 @@ public class MultiMaterialPlacerEditor : Editor
         o.transform.localPosition = new Vector3(_x, _y, 0f);
         o.transform.localRotation = Quaternion.identity;
         o.transform.localScale = Vector3.one * _placer.scale;
+        o.transform.localEulerAngles = _placer.rotation;
         return o;
     }
 
@@ -204,6 +208,10 @@ public class MultiMaterialPlacerEditor : Editor
             case MaterialParameterVariation.ParamType.Texture:
                 _mat.SetTexture(_param.parameter, _param.t_Value);
                 o += _param.t_Value.ToString();
+                break;
+            case MaterialParameterVariation.ParamType.Color:
+                _mat.SetColor(_param.parameter, _param.c_Value);
+                o += _param.c_Value.ToString();
                 break;
         }
 
@@ -237,6 +245,10 @@ public class MultiMaterialPlacerEditor : Editor
             case MaterialParameterVariation.ParamType.Vector:
                 _mat.SetVector(_param.parameter, Vector4.Lerp(_param.v_Value, _param.v_Value_Max, f));
                 o += Vector4.Lerp(_param.v_Value, _param.v_Value_Max, f).ToString();
+                break;
+            case MaterialParameterVariation.ParamType.Color:
+                _mat.SetColor(_param.parameter, Color.Lerp(_param.c_Value, _param.c_Value_Max, f));
+                o += Color.Lerp(_param.c_Value, _param.c_Value_Max, f).ToString();
                 break;
         }
 

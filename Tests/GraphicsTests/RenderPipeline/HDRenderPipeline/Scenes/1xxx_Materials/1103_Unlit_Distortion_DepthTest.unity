@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.82940066, g: 0.8213112, b: 0.8508185, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -2106,9 +2106,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -2118,9 +2120,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -2130,9 +2134,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -2144,9 +2150,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -2156,9 +2164,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -5008,9 +5018,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -5020,9 +5032,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -5034,9 +5048,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -5046,9 +5062,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -6647,9 +6665,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -6659,9 +6679,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -6671,9 +6693,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -6685,9 +6709,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -6697,9 +6723,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -7387,9 +7415,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -7399,9 +7429,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -7413,9 +7445,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -7425,9 +7459,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -7770,9 +7806,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -7782,9 +7820,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -7796,9 +7836,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -7808,9 +7850,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -8847,9 +8891,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -8859,9 +8905,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -8873,9 +8921,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -8885,9 +8935,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -9121,9 +9173,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -9133,9 +9187,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -9145,9 +9201,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -9159,9 +9217,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -9171,9 +9231,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -12181,9 +12243,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -12193,9 +12257,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -12205,9 +12271,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -12219,9 +12287,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -12231,9 +12301,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -13474,9 +13546,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -13486,9 +13560,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -13500,9 +13576,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -13512,9 +13590,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -13573,9 +13653,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -13585,9 +13667,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -13597,9 +13681,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -13611,9 +13697,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -13623,9 +13711,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -13685,9 +13775,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -13697,9 +13789,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -13709,9 +13803,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -13723,9 +13819,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -13735,9 +13833,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -14370,9 +14470,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -14382,9 +14484,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -14396,9 +14500,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -14408,9 +14514,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -14962,9 +15070,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -14974,9 +15084,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -14988,9 +15100,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -15000,9 +15114,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -16180,9 +16296,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -16192,9 +16310,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -16204,9 +16324,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -16218,9 +16340,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -16230,9 +16354,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -17347,9 +17473,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -17359,9 +17487,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -17371,9 +17501,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -17385,9 +17517,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -17397,9 +17531,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -19066,9 +19202,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -19078,9 +19216,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -19090,9 +19230,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -19104,9 +19246,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -19116,9 +19260,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -19249,9 +19395,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -19261,9 +19409,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -19275,9 +19425,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -19287,9 +19439,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -20362,9 +20516,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -20374,9 +20530,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -20386,9 +20544,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -20400,9 +20560,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -20412,9 +20574,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -20895,9 +21059,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -20907,9 +21073,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -20921,9 +21089,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -20933,9 +21103,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -21559,9 +21731,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -21571,9 +21745,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -21585,9 +21761,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -21597,9 +21775,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -22664,9 +22844,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -22676,9 +22858,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -22690,9 +22874,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -22702,9 +22888,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -23370,9 +23558,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -23382,9 +23572,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -23396,9 +23588,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -23408,9 +23602,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -23595,9 +23791,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -23607,9 +23805,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -23621,9 +23821,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -23633,9 +23835,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -24170,9 +24374,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -24182,9 +24388,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -24196,9 +24404,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -24208,9 +24418,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -25349,9 +25561,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -25361,9 +25575,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -25373,9 +25589,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -25387,9 +25605,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -25399,9 +25619,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -28263,9 +28485,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -28275,9 +28499,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -28287,9 +28513,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -28301,9 +28529,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -28313,9 +28543,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -29113,9 +29345,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -29125,9 +29359,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -29137,9 +29373,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -29151,9 +29389,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -29163,9 +29403,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -30223,9 +30465,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -30235,9 +30479,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -30249,9 +30495,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -30261,9 +30509,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -32957,9 +33207,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -32969,9 +33221,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -32981,9 +33235,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -32995,9 +33251,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -33007,9 +33265,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -35366,9 +35626,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -35378,9 +35640,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -35390,9 +35654,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -35404,9 +35670,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -35416,9 +35684,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -37126,9 +37396,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -37138,9 +37410,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -37152,9 +37426,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -37164,9 +37440,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -37225,9 +37503,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -37237,9 +37517,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -37251,9 +37533,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -37263,9 +37547,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -37827,9 +38113,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -37839,9 +38127,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -37851,9 +38141,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -37865,9 +38157,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -37877,9 +38171,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -38327,9 +38623,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -38339,9 +38637,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -38353,9 +38653,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -38365,9 +38667,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -38785,9 +39089,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -38797,9 +39103,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -38811,9 +39119,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -38823,9 +39133,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -39946,9 +40258,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -39958,9 +40272,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -39970,9 +40286,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -39984,9 +40302,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -39996,9 +40316,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -41012,9 +41334,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -41024,9 +41348,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -41036,9 +41362,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -41050,9 +41378,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -41062,9 +41392,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -42275,9 +42607,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -42287,9 +42621,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -42301,9 +42637,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -42313,9 +42651,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -45665,9 +46005,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -45677,9 +46019,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -45689,9 +46033,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -45703,9 +46049,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -45715,9 +46063,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -46514,9 +46864,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -46526,9 +46878,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -46538,9 +46892,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -46552,9 +46908,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -46564,9 +46922,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -46697,9 +47057,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -46709,9 +47071,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -46723,9 +47087,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -46735,9 +47101,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -47269,9 +47637,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -47281,9 +47651,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -47293,9 +47665,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -47307,9 +47681,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -47319,9 +47695,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -49772,9 +50150,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -49784,9 +50164,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -49798,9 +50180,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -49810,9 +50194,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -50118,9 +50504,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -50130,9 +50518,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -50144,9 +50534,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -50156,9 +50548,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -51704,9 +52098,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -51716,9 +52112,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -51728,9 +52126,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -51742,9 +52142,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -51754,9 +52156,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -54561,9 +54965,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -54573,9 +54979,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -54587,9 +54995,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -54599,9 +55009,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -56180,9 +56592,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -56192,9 +56606,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -56206,9 +56622,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -56218,9 +56636,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -57940,9 +58360,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -57952,9 +58374,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -57966,9 +58390,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -57978,9 +58404,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -60741,9 +61169,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -60753,9 +61183,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -60765,9 +61197,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -60779,9 +61213,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -60791,9 +61227,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -60852,9 +61290,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -60864,9 +61304,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -60876,9 +61318,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -60890,9 +61334,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -60902,9 +61348,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -61034,9 +61482,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -61046,9 +61496,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -61058,9 +61510,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -61072,9 +61526,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -61084,9 +61540,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -61217,9 +61675,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -61229,9 +61689,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -61241,9 +61703,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -61255,9 +61719,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -61267,9 +61733,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -61513,9 +61981,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -61525,9 +61995,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -61537,9 +62009,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -61551,9 +62025,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -61563,9 +62039,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -61625,9 +62103,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -61637,9 +62117,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -61649,9 +62131,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -61663,9 +62147,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -61675,9 +62161,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -62054,9 +62542,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -62066,9 +62556,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -62080,9 +62572,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -62092,9 +62586,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -62256,9 +62752,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -62268,9 +62766,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -62282,9 +62782,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -62294,9 +62796,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -63157,9 +63661,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -63169,9 +63675,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -63181,9 +63689,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -63195,9 +63705,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -63207,9 +63719,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -64683,9 +65197,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -64695,9 +65211,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -64709,9 +65227,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -64721,9 +65241,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -66071,9 +66593,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -66083,9 +66607,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -66097,9 +66623,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -66109,9 +66637,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -67737,9 +68267,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -67749,9 +68281,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -67761,9 +68295,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -67775,9 +68311,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -67787,9 +68325,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -67849,9 +68389,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -67861,9 +68403,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -67873,9 +68417,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -67887,9 +68433,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -67899,9 +68447,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -68358,9 +68908,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -68370,9 +68922,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -68384,9 +68938,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -68396,9 +68952,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -70697,9 +71255,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -70709,9 +71269,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -70721,9 +71283,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -70735,9 +71299,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -70747,9 +71313,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -71054,9 +71622,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -71066,9 +71636,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -71078,9 +71650,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -71092,9 +71666,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -71104,9 +71680,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -71350,9 +71928,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -71362,9 +71942,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -71374,9 +71956,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -71388,9 +71972,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -71400,9 +71986,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -71882,9 +72470,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -71894,9 +72484,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -71908,9 +72500,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -71920,9 +72514,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -72426,9 +73022,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -72438,9 +73036,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -72452,9 +73052,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -72464,9 +73066,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -77460,9 +78064,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -77472,9 +78078,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -77486,9 +78094,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -77498,9 +78108,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -77734,9 +78346,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -77746,9 +78360,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -77758,9 +78374,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -77772,9 +78390,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -77784,9 +78404,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -78982,9 +79604,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -78994,9 +79618,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -79006,9 +79632,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -79020,9 +79648,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -79032,9 +79662,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -80999,9 +81631,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -81011,9 +81645,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -81023,9 +81659,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -81037,9 +81675,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -81049,9 +81689,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -84610,9 +85252,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -84622,9 +85266,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -84634,9 +85280,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -84648,9 +85296,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -84660,9 +85310,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -85294,9 +85946,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -85306,9 +85960,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -85320,9 +85976,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -85332,9 +85990,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -86131,9 +86791,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -86143,9 +86805,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -86155,9 +86819,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -86169,9 +86835,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -86181,9 +86849,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -86948,9 +87618,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -86960,9 +87632,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -86972,9 +87646,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -86986,9 +87662,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -86998,9 +87676,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -89482,9 +90162,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -89494,9 +90176,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -89508,9 +90192,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -89520,9 +90206,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -90673,9 +91361,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -90685,9 +91375,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -90697,9 +91389,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -90711,9 +91405,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -90723,9 +91419,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -93666,9 +94364,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -93678,9 +94378,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -93690,9 +94392,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -93704,9 +94408,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -93716,9 +94422,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -93990,9 +94698,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -94002,9 +94712,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -94016,9 +94728,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -94028,9 +94742,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -94389,9 +95105,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -94401,9 +95119,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -94415,9 +95135,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -94427,9 +95149,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -94735,9 +95459,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -94747,9 +95473,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -94761,9 +95489,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -94773,9 +95503,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -96276,9 +97008,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -96288,9 +97022,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -96302,9 +97038,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -96314,9 +97052,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -99515,9 +100255,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -99527,9 +100269,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -99541,9 +100285,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -99553,9 +100299,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -99789,9 +100537,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -99801,9 +100551,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -99815,9 +100567,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -99827,9 +100581,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -99889,9 +100645,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -99901,9 +100659,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -99913,9 +100673,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -99927,9 +100689,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -99939,9 +100703,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -101945,9 +102711,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -101957,9 +102725,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -101971,9 +102741,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -101983,9 +102755,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -103590,9 +104364,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -103602,9 +104378,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -103616,9 +104394,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -103628,9 +104408,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -105175,9 +105957,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -105187,9 +105971,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -105201,9 +105987,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -105213,9 +106001,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -105257,9 +106047,7 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1985226109}
-  m_Text: 'Emission
-
-    Texture'
+  m_Text: Distortion Only
   m_OffsetZ: 0
   m_CharacterSize: 0.2
   m_LineSpacing: 1
@@ -106695,9 +107483,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -106707,9 +107497,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -106719,9 +107511,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -106733,9 +107527,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -106745,9 +107541,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -108465,9 +109263,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -108477,9 +109277,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -108489,9 +109291,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -108503,9 +109307,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -108515,9 +109321,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -109117,9 +109925,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -109129,9 +109939,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -109143,9 +109955,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -109155,9 +109969,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -109462,9 +110278,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -109474,9 +110292,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -109488,9 +110308,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -109500,9 +110322,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -109910,9 +110734,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -109922,9 +110748,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -109934,9 +110762,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -109948,9 +110778,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -109960,9 +110792,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -111465,9 +112299,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -111477,9 +112313,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -111489,9 +112327,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -111503,9 +112343,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -111515,9 +112357,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -111762,9 +112606,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -111774,9 +112620,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: f330dd40525168e41af9843c1433c8ec, type: 2}
     count: 0
   is2D: 0
@@ -111788,9 +112636,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -111800,9 +112650,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2
@@ -112671,9 +113523,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _DistortionBlendMode
@@ -112683,9 +113537,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   - parameter: _PreRefractionPass
@@ -112695,9 +113551,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 1
     v_Value: {x: 0, y: 0, z: 0, w: 0}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 0
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 0, z: 0, w: 0}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 8400000, guid: a1152b229cc705549a16715f1107cab8, type: 2}
     count: 0
   is2D: 0
@@ -112709,9 +113567,11 @@ MonoBehaviour:
     i_Value: 0
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.33333334}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 1
     f_Value_Max: 0
     v_Value_Max: {x: 1, y: 0, z: 0, w: 1}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   - parameter: _BlendMode
@@ -112721,9 +113581,11 @@ MonoBehaviour:
     i_Value: 3
     f_Value: 0
     v_Value: {x: 1, y: 0, z: 0, w: 0.5}
+    c_Value: {r: 0, g: 0, b: 0, a: 0}
     i_Value_Max: 4
     f_Value_Max: 0
     v_Value_Max: {x: 0, y: 1, z: 0, w: 0.5}
+    c_Value_Max: {r: 0, g: 0, b: 0, a: 0}
     t_Value: {fileID: 0}
     count: 2
   offset: 2

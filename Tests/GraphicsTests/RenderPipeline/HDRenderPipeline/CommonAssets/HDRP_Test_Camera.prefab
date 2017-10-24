@@ -106,5 +106,5 @@ MonoBehaviour:
   cameraToUse: {fileID: 20109210616973140}
   hdr: 1
   msaaSamples: 1
-  width: 1280
-  height: 720
+  width: 1920
+  height: 1080
