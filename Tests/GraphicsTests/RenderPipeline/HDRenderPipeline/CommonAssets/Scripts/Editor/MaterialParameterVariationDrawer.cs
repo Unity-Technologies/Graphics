@@ -84,6 +84,11 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
             case MaterialParameterVariation.ParamType.Texture:
                 EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("t_Value"), GUIContent.none);
                 break;
+            case MaterialParameterVariation.ParamType.Color:
+                EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("c_Value"), GUIContent.none);
+                if (isMulti)
+                    EditorGUI.PropertyField(maxRect, property.FindPropertyRelative("c_Value_Max"), GUIContent.none);
+                break;
         }
         if (isMulti && (type != MaterialParameterVariation.ParamType.Bool) && (type != MaterialParameterVariation.ParamType.Texture) )
             EditorGUI.PropertyField(countRect, property.FindPropertyRelative("count"), GUIContent.none);

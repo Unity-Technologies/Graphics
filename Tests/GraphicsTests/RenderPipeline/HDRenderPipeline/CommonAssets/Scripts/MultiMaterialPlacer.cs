@@ -15,5 +15,6 @@ public class MultiMaterialPlacer : MonoBehaviour
     public MaterialParameterVariation[] instanceParameters;
 
     public float offset = 1.5f;
+    public Vector3 rotation = Vector3.zero;
     public float scale = 1f;
 }
