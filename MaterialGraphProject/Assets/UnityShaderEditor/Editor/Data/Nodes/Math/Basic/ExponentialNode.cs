@@ -7,8 +7,8 @@ namespace UnityEngine.MaterialGraph
 {
     public enum ExponentialType
     {
-        Exp,
-        Exp2
+        Exponential,
+        Exponential2
     };
 
     [Title("Math/Basic/Exponential")]
@@ -19,14 +19,8 @@ namespace UnityEngine.MaterialGraph
             name = "Exponential";
         }
 
-        static Dictionary<ExponentialType, string> m_ExponentialTypes = new Dictionary<ExponentialType, string>
-        {
-            {ExponentialType.Exp, "" },
-            {ExponentialType.Exp2, "2" },
-        };
-
         [SerializeField]
-        private static ExponentialType m_ExponentialType = ExponentialType.Exp;
+        private ExponentialType m_ExponentialType = ExponentialType.Exponential;
 
         [EnumControl("")]
         public ExponentialType exponentialType
@@ -45,9 +39,15 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        string GetCurrentType()
+        {
+            return System.Enum.GetName(typeof(ExponentialType), m_ExponentialType);
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Exponential", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod(string.Format("Unity_{0}", GetCurrentType()),
+                BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Exponential(
@@ -57,7 +57,19 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    Out = exp"+m_ExponentialTypes[m_ExponentialType] +@"(In);
+    Out = exp(In);
+}
+";
+        }
+
+        static string Unity_Exponential2(
+    [Slot(0, Binding.None)] DynamicDimensionVector In,
+    [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        {
+            return
+                @"
+{
+    Out = exp2(In);
 }
 ";
         }

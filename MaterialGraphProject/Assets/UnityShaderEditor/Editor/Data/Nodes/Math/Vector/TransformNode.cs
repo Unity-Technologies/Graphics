@@ -8,17 +8,23 @@ namespace UnityEngine.MaterialGraph
     public class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal
     {
         [SerializeField]
-        private SimpleMatrixType m_spaceListFrom;
+        private CoordinateSpace m_spaceListFrom;
         [SerializeField]
-        private SimpleMatrixType m_spaceListTo;
+        private CoordinateSpace m_spaceListTo;
 
         private const int InputSlotId = 0;
         private const int OutputSlotId = 1;
-        private const string kInputSlotName = "Input";
-        private const string kOutputSlotName = "Output";
+        private const string kInputSlotName = "In";
+        private const string kOutputSlotName = "Out";
+
+        public TransformNode()
+        {
+            name = "Transform";
+            UpdateNodeAfterDeserialization();
+        }
 
         [EnumControl("From")]
-        public SimpleMatrixType spaceFrom
+        public CoordinateSpace spaceFrom
         {
             get { return m_spaceListFrom; }
             set
@@ -34,13 +40,8 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override bool hasPreview
-        {
-            get { return false; }
-        }
-
         [EnumControl("To")]
-        public SimpleMatrixType spaceTo
+        public CoordinateSpace spaceTo
         {
             get { return m_spaceListTo; }
             set
@@ -55,11 +56,10 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-
-        public TransformNode()
+        
+        public override bool hasPreview
         {
-            name = "Transform";
-            UpdateNodeAfterDeserialization();
+            get { return true; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -76,22 +76,12 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new Vector3MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, Vector3.zero);
+            return new Vector3MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector3.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new Vector3MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotName, SlotType.Output, Vector4.zero);
-        }
-
-        protected virtual string GetInputSlotName()
-        {
-            return "Input";
-        }
-
-        protected virtual string GetOutputSlotName()
-        {
-            return "Output";
+            return new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -101,89 +91,89 @@ namespace UnityEngine.MaterialGraph
             string transformString = "";
             bool requiresTangentTransform = false;
 
-            if (spaceFrom == SimpleMatrixType.World)
+            if (spaceFrom == CoordinateSpace.World)
             {
-                if (spaceTo == SimpleMatrixType.World)
+                if (spaceTo == CoordinateSpace.World)
                 {
                     transformString = inputValue;
                 }
-                else if (spaceTo == SimpleMatrixType.Local)
+                else if (spaceTo == CoordinateSpace.Object)
                 {
                     transformString = "mul(unity_WorldToObject, float4(" + inputValue + ", 0)).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Tangent)
+                else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
                     transformString = "mul(tangentTransform, " + inputValue + ").xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.View)
+                else if (spaceTo == CoordinateSpace.View)
                 {
                     transformString = "mul( UNITY_MATRIX_V, float4(" + inputValue + ", 0)).xyz";
                 }
             }
-            else if (spaceFrom == SimpleMatrixType.Local)
+            else if (spaceFrom == CoordinateSpace.Object)
             {
-                if (spaceTo == SimpleMatrixType.World)
+                if (spaceTo == CoordinateSpace.World)
                 {
                     transformString = "mul(unity_ObjectToWorld, float4(" + inputValue + ", 0)).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Local)
+                else if (spaceTo == CoordinateSpace.Object)
                 {
                     transformString = inputValue;
                 }
-                else if (spaceTo == SimpleMatrixType.Tangent)
+                else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
                     transformString = "mul( tangentTransform, mul( unity_ObjectToWorld, float4(" + inputValue + ", 0) ).xyz).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.View)
+                else if (spaceTo == CoordinateSpace.View)
                 {
                     transformString = "mul( UNITY_MATRIX_MV, float4(" + inputValue + ", 0)).xyz";
                 }
             }
-            else if (spaceFrom == SimpleMatrixType.Tangent)
+            else if (spaceFrom == CoordinateSpace.Tangent)
             {
                 requiresTangentTransform = true;
-                if (spaceTo == SimpleMatrixType.World)
+                if (spaceTo == CoordinateSpace.World)
                 {
                     transformString = "mul( " + inputValue + ", tangentTransform ).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Local)
+                else if (spaceTo == CoordinateSpace.Object)
                 {
                     transformString = "mul( unity_WorldToObject, float4(mul(" + inputValue + ", tangentTransform ),0) ).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Tangent)
+                else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     transformString = inputValue;
                 }
-                else if (spaceTo == SimpleMatrixType.View)
+                else if (spaceTo == CoordinateSpace.View)
                 {
                     transformString = "mul( UNITY_MATRIX_V, float4(mul(" + inputValue + ", tangentTransform ),0) ).xyz";
                 }
             }
-            else if (spaceFrom == SimpleMatrixType.View)
+            else if (spaceFrom == CoordinateSpace.View)
             {
-                if (spaceTo == SimpleMatrixType.World)
+                if (spaceTo == CoordinateSpace.World)
                 {
                     transformString = "mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Local)
+                else if (spaceTo == CoordinateSpace.Object)
                 {
                     transformString = "mul( float4(" + inputValue + ", 0), UNITY_MATRIX_MV ).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.Tangent)
+                else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
                     transformString = "mul( tangentTransform, mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz ).xyz";
                 }
-                else if (spaceTo == SimpleMatrixType.View)
+                else if (spaceTo == CoordinateSpace.View)
                 {
                     transformString = inputValue;
                 }
             }
 
             if (requiresTangentTransform)
-                visitor.AddShaderChunk("float3x3 tangentTransform = float3x3( worldSpaceTangent, worldSpaceBitangent, worldSpaceNormal);", false);
+                visitor.AddShaderChunk("float3x3 tangentTransform = float3x3("+ spaceFrom.ToString() + "SpaceTangent, "+ spaceFrom.ToString() + "SpaceBiTangent, "+ spaceFrom.ToString() + "SpaceNormal);", false);
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
@@ -191,37 +181,19 @@ namespace UnityEngine.MaterialGraph
                 transformString), true);
         }
 
-        //float3x3 tangentTransform = float3x3( i.tangentDir, i.bitangentDir, i.normalDir);------
-
-        //mul(unity_WorldToObject, float4(i.posWorld.rgb,0) ).xyz - world to local---------
-        //mul( tangentTransform, i.posWorld.rgb ).xyz - world to tangent-----------------
-        //mul( UNITY_MATRIX_V, float4(i.posWorld.rgb,0) ).xyz - world to view-------------
-
-        //mul( unity_ObjectToWorld, float4(i.posWorld.rgb,0) ).xyz - local to world--------
-        //mul( tangentTransform, mul( unity_ObjectToWorld, float4(i.posWorld.rgb,0) ).xyz - local to tangent------------
-        //mul( UNITY_MATRIX_MV, float4(i.posWorld.rgb,0) ).xyz - local to view--------------
-
-        //mul( i.posWorld.rgb, tangentTransform ).xyz - tangent to world---------
-        //mul( unity_WorldToObject, float4(mul( i.posWorld.rgb, tangentTransform ),0) ).xyz - tangent to local-----
-        //mul( UNITY_MATRIX_V, float4(mul( i.posWorld.rgb, tangentTransform ),0) ).xyz - tangent to view-------
-
-        //mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_V ).xyz - view to world
-        //mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_MV ).xyz - view to local
-        //mul( tangentTransform, mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_V ).xyz ).xyz - view to tangent
-
         public NeededCoordinateSpace RequiresTangent()
         {
-            return NeededCoordinateSpace.World;
+            return spaceFrom.ToNeededCoordinateSpace();
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
-            return NeededCoordinateSpace.World;
+            return spaceFrom.ToNeededCoordinateSpace();
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            return NeededCoordinateSpace.World;
+            return spaceFrom.ToNeededCoordinateSpace();
         }
     }
 }

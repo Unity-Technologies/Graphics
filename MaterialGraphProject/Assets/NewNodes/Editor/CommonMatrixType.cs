@@ -11,12 +11,4 @@ namespace UnityEngine.MaterialGraph
         ObjectToWorld,
         WorldToObject
     };
-
-    public enum SimpleMatrixType
-    {
-        World,
-        Local,
-        Tangent,
-        View
-    };
 }

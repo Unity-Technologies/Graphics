@@ -20,15 +20,8 @@ namespace UnityEngine.MaterialGraph
             name = "Log";
         }
 
-        static Dictionary<LogType, string> m_LogTypes = new Dictionary<LogType, string>
-        {
-            {LogType.Log, "" },
-            {LogType.Log2, "2" },
-            {LogType.Log10, "10" },
-        };
-
         [SerializeField]
-        private static LogType m_LogType = LogType.Log;
+        private LogType m_LogType = LogType.Log;
 
         [EnumControl("")]
         public LogType logType
@@ -47,9 +40,15 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        string GetCurrentType()
+        {
+            return System.Enum.GetName(typeof(LogType), m_LogType);
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Log", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod(string.Format("Unity_{0}", GetCurrentType()),
+                BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Log(
@@ -59,7 +58,31 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    Out = log"+ m_LogTypes[m_LogType] + @"(In);
+    Out = log(In);
+}
+";
+        }
+
+        static string Unity_Log2(
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        {
+            return
+                @"
+{
+    Out = log2(In);
+}
+";
+        }
+
+        static string Unity_Log10(
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        {
+            return
+                @"
+{
+    Out = log10(In);
 }
 ";
         }
