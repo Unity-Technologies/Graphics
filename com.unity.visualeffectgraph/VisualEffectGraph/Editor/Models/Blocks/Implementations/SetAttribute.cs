@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
+                return VFXAttribute.Find(attribute);
             }
         }
     }

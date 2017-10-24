@@ -88,6 +88,7 @@ namespace UnityEditor.VFX
         {
             var instance = base.CreateInstance() as UnityEditor.VFX.Block.SetAttribute;
             instance.attribute = (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute;
+            instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             return instance;
         }
     }
