@@ -1,23 +1,12 @@
-using System.ComponentModel;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IMayRequireViewDirection
-    {
-        NeededCoordinateSpace RequiresViewDirection();
-    }
-
     [Title("Input/Geometry/View Direction")]
-    public class ViewDirectionNode : AbstractMaterialNode, IMayRequireViewDirection
+    public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
-
-        public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
+        public const string kOutputSlotName = "ViewDirection";
 
         public ViewDirectionNode()
         {
@@ -27,24 +16,23 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(
+            AddSlot(new Vector3MaterialSlot(
                     kOutputSlotId,
-                    ShaderGeneratorNames.WorldSpaceViewDirection,
-                    ShaderGeneratorNames.WorldSpaceViewDirection,
+                    kOutputSlotName,
+                    kOutputSlotName,
                     SlotType.Output,
-                    SlotValueType.Vector3,
                     Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.WorldSpaceViewDirection;
+            return space.ToVariableName(InterpolatorType.ViewDirection);
         }
 
         public NeededCoordinateSpace RequiresViewDirection()
         {
-            return NeededCoordinateSpace.World;
+            return space.ToNeededCoordinateSpace();
         }
     }
 }

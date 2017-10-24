@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -28,7 +27,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.one));
+            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.one));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
