@@ -3,7 +3,7 @@
 #define EVSM_4			2
 #define MSM				3
 #define THREADS			16
-#define MAX_BLUR_SIZE	17
+#define MAX_BLUR_SIZE	(THREADS+1)
 
 #pragma kernel main_VSM_3			KERNEL_MAIN=main_VSM_3		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=1	BLUR_SIZE=3
 #pragma kernel main_VSM_5			KERNEL_MAIN=main_VSM_5		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=1	BLUR_SIZE=5
@@ -41,23 +41,56 @@
 #pragma kernel main_MSM_15			KERNEL_MAIN=main_MSM_15		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=1	BLUR_SIZE=15
 #pragma kernel main_MSM_17			KERNEL_MAIN=main_MSM_17		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=1	BLUR_SIZE=17
 
+#pragma kernel main_MSAA_VSM_3			KERNEL_MAIN=main_MSAA_VSM_3		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=3
+#pragma kernel main_MSAA_VSM_5			KERNEL_MAIN=main_MSAA_VSM_5		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=5
+#pragma kernel main_MSAA_VSM_7			KERNEL_MAIN=main_MSAA_VSM_7		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=7
+#pragma kernel main_MSAA_VSM_9			KERNEL_MAIN=main_MSAA_VSM_9		SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=9
+#pragma kernel main_MSAA_VSM_11			KERNEL_MAIN=main_MSAA_VSM_11	SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=11
+#pragma kernel main_MSAA_VSM_13			KERNEL_MAIN=main_MSAA_VSM_13	SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=13
+#pragma kernel main_MSAA_VSM_15			KERNEL_MAIN=main_MSAA_VSM_15	SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=15
+#pragma kernel main_MSAA_VSM_17			KERNEL_MAIN=main_MSAA_VSM_17	SHADOW_MOMENT_ALGORITHM=VSM			MAX_MSAA=8 BLUR_SIZE=17
+
+#pragma kernel main_MSAA_EVSM_2_3		KERNEL_MAIN=main_MSAA_EVSM_2_3	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=3
+#pragma kernel main_MSAA_EVSM_2_5		KERNEL_MAIN=main_MSAA_EVSM_2_5	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=5
+#pragma kernel main_MSAA_EVSM_2_7		KERNEL_MAIN=main_MSAA_EVSM_2_7	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=7
+#pragma kernel main_MSAA_EVSM_2_9		KERNEL_MAIN=main_MSAA_EVSM_2_9	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=9
+#pragma kernel main_MSAA_EVSM_2_11		KERNEL_MAIN=main_MSAA_EVSM_2_11	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=11
+#pragma kernel main_MSAA_EVSM_2_13		KERNEL_MAIN=main_MSAA_EVSM_2_13	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=13
+#pragma kernel main_MSAA_EVSM_2_15		KERNEL_MAIN=main_MSAA_EVSM_2_15	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=15
+#pragma kernel main_MSAA_EVSM_2_17		KERNEL_MAIN=main_MSAA_EVSM_2_17	SHADOW_MOMENT_ALGORITHM=EVSM_2		MAX_MSAA=8	BLUR_SIZE=17
+
+#pragma kernel main_MSAA_EVSM_4_3		KERNEL_MAIN=main_MSAA_EVSM_4_3	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=3
+#pragma kernel main_MSAA_EVSM_4_5		KERNEL_MAIN=main_MSAA_EVSM_4_5	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=5
+#pragma kernel main_MSAA_EVSM_4_7		KERNEL_MAIN=main_MSAA_EVSM_4_7	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=7
+#pragma kernel main_MSAA_EVSM_4_9		KERNEL_MAIN=main_MSAA_EVSM_4_9	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=9
+#pragma kernel main_MSAA_EVSM_4_11		KERNEL_MAIN=main_MSAA_EVSM_4_11	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=11
+#pragma kernel main_MSAA_EVSM_4_13		KERNEL_MAIN=main_MSAA_EVSM_4_13	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=13
+#pragma kernel main_MSAA_EVSM_4_15		KERNEL_MAIN=main_MSAA_EVSM_4_15	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=15
+#pragma kernel main_MSAA_EVSM_4_17		KERNEL_MAIN=main_MSAA_EVSM_4_17	SHADOW_MOMENT_ALGORITHM=EVSM_4		MAX_MSAA=8	BLUR_SIZE=17
+
+#pragma kernel main_MSAA_MSM_3			KERNEL_MAIN=main_MSAA_MSM_3		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=3
+#pragma kernel main_MSAA_MSM_5			KERNEL_MAIN=main_MSAA_MSM_5		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=5
+#pragma kernel main_MSAA_MSM_7			KERNEL_MAIN=main_MSAA_MSM_7		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=7
+#pragma kernel main_MSAA_MSM_9			KERNEL_MAIN=main_MSAA_MSM_9		SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=9
+#pragma kernel main_MSAA_MSM_11			KERNEL_MAIN=main_MSAA_MSM_11	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=11
+#pragma kernel main_MSAA_MSM_13			KERNEL_MAIN=main_MSAA_MSM_13	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=13
+#pragma kernel main_MSAA_MSM_15			KERNEL_MAIN=main_MSAA_MSM_15	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=15
+#pragma kernel main_MSAA_MSM_17			KERNEL_MAIN=main_MSAA_MSM_17	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=17
+
 #include "../../common.hlsl"
 #include "../ShadowMoments.hlsl"
 
-#define BLUR_BORDER (BLUR_SIZE / 2)
-#define LDS_SIZE	(THREADS + BLUR_BORDER + BLUR_BORDER)
-
-#if MAX_MSAA == 1
-Texture2D<float>			depthTex;
+#if MAX_MSAA > 1
+Texture2DMS<float> depthTex;
 #else
-Texture2DMS<float>			depthTex;
+Texture2D<float>   depthTex;
 #endif
 
-uniform uint4				srcRect; // .xy = offset, .zw = width/height
-uniform uint4				dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp, 4:= reversed z
+uniform uint4	srcRect; // .xy = offset, .zw = width/height
+uniform uint4	dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp, 4:= reversed z
 
-uniform float4 blurWeightsStorage[3]; // Unity expects float arrays to be tightly packed
-static float   blurWeights[12] = (float[12])blurWeightsStorage;
+uniform float4  blurWeightsStorage[3]; // Unity expects float arrays to be tightly packed
+static float    blurWeights[12] = (float[12])blurWeightsStorage;
 
 static const int kBits_16	 = 1; // 16 bits per channel
 static const int kChannels_2 = 2; // 2 channels per pixel
@@ -65,6 +98,7 @@ static const int kReversed_z = 4; // depth buffer contains reversed z
 
 #if (SHADOW_MOMENT_ALGORITHM == VSM)
 #	define SHADOW_MOMENTS 2
+
 	float2 DepthToMoments( float depth )
 	{
 		return float2( depth, depth * depth );
@@ -89,14 +123,13 @@ static const int kReversed_z = 4; // depth buffer contains reversed z
 		float2 moments = ShadowMoments_WarpDepth( depth, evsmExponents );
 		return float4( moments.xy, moments.xy * moments.xy );
 	}
-
 #elif SHADOW_MOMENT_ALGORITHM == MSM
 #	define SHADOW_MOMENTS 4
+
 	float4 DepthToMoments( float depth )
 	{
-		[branch]
 		if( (dstRect.w & kBits_16) != 0 )
-			return ShadowMoments_Encode16MSM( depth );
+			return ShadowMoments_Encode16MSM( depth  );
 		else
 		{
 			float dsq = depth * depth;
@@ -108,33 +141,72 @@ static const int kReversed_z = 4; // depth buffer contains reversed z
 #endif
 
 
-#define moment_t MERGE_NAME( float, SHADOW_MOMENTS )
+#define BLUR_BORDER (BLUR_SIZE / 2)
+#define LDS_STRIDE (THREADS + BLUR_BORDER + BLUR_BORDER)
+
+#define moment_t  MERGE_NAME( float, SHADOW_MOMENTS )
 RWTexture2DArray<moment_t>	outputTex;
-groupshared moment_t		moments[LDS_SIZE][LDS_SIZE];
 
+groupshared float  moments1[THREADS * LDS_STRIDE];  // contains the blurred first moment
+groupshared float  moments2[THREADS * LDS_STRIDE];  // contains the blurred second moment
+groupshared float  moments3[THREADS * LDS_STRIDE];  // contains the blurred third moment
+groupshared float  moments4[THREADS * LDS_STRIDE];  // contains the blurred fourth moment
 
+groupshared float  sampleWeights[MAX_MSAA];
+groupshared float  sumWeights;
+
+int getLDSIdx( int2 pos, int stride )
+{
+	// interleave two consecutive rows to avoid bank conflicts
+	return (pos.y >> 1) * (stride << 1) + (pos.x << 1) + (pos.y & 1);
+}
+
+void writeToShared( moment_t val, int2 pos, int stride )
+{
+	int idx = getLDSIdx( pos, stride );
+	moments1[idx] = val.x;
+	moments2[idx] = val.y;
+#if SHADOW_MOMENTS == 4
+	moments3[idx] = val.z;
+	moments4[idx] = val.w;
+#endif
+}
+
+moment_t readFromShared( int2 pos, int stride )
+{
+	int idx = getLDSIdx( pos, stride );
+	moment_t res;
+	res.x = moments1[idx];
+	res.y = moments2[idx];
+#if SHADOW_MOMENTS == 4
+	res.z = moments3[idx];
+	res.w = moments4[idx];
+#endif
+	return res;
+}
 
 [numthreads( THREADS, THREADS, 1 )]
-void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : SV_GroupThreadID)
+void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : SV_GroupThreadID )
 {
-	uint i, j; // because the compiler scopes like its 1999.
-
 #if MAX_MSAA > 1
 	uint width, height, sampleCnt;
-	depthTex.GetDimensions(width, height, sampleCnt);
-	sampleCnt = Clamp(0, MAX_MSAA, sampleCnt);
+	depthTex.GetDimensions( width, height, sampleCnt );
+	sampleCnt = Clamp( sampleCnt, 2, MAX_MSAA );
 	float sampleCntRcp = 1.0 / sampleCnt;
 
 	// calculate weights based on sample positions
-	float sumWeights = 0;
-	float sampleWeights[MAX_MSAA];
-	for (i = 0; i < sampleCnt; i++)
+	if( groupThreadId.x < sampleCnt )
 	{
-		float2 spos = depthTex.GetSamplePosition( i );
-		sampleWeights[i] = sampleCntRcp; // TODO: find a better weight filter
-		sumWeights += sampleWeights[i];
+		float2 spos = depthTex.GetSamplePosition( groupThreadId.x );
+		sampleWeights[groupThreadId.x] = sampleCntRcp;
 	}
-	sumWeights = 1.0 / sumWeights;
+	if( groupThreadId.x == 0 )
+	{
+		float sum = 0.0;
+		for( uint i = 0; i < sampleCnt; i++ )
+			sum += sampleWeights[i];
+		sumWeights = 1.0 / sum;
+	}
 #endif
 
 	// load moments into LDS
@@ -142,98 +214,96 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 	// us to fetch enough data around the border of the current tile.
 	// We assume that the blur filter's support does not exceed THREADS, so we fetch
 	// the data in 4 blocks.
+	const bool reverse_z  = (dstRect.w & kReversed_z) != 0;
 	const int  blurBorder = BLUR_BORDER;
-	const int2 ldsSize = int2( LDS_SIZE, LDS_SIZE );
-	const int2 threadsCnt = int2( THREADS, THREADS );
-	const int4 validSrc = int4( srcRect.xy, srcRect.xy + srcRect.zw - 1 );
-	int2 srcIdx = ((int2) dispatchId.xy) - blurBorder.xx + srcRect.xy;
+	const int2 validSrc   = (int2) (srcRect.xy + srcRect.zw - 1);
+
+	int2 srcIdx = ((int2) dispatchId.xy) - blurBorder.xx + (int2) srcRect.xy;
 	int2 ldsIdx = groupThreadId.xy;
-	const bool reverse_z = (dstRect.w & kReversed_z) != 0;
+	moment_t hblurredMoments[2];
 
-	// calculate an average moment over all samples for a given pixel and load the result into LDS
-	uint iw, ih, is;
 	[unroll]
-	for( ih = 0; ih < 2; ih++ )
+	for( int ih = 0; ih < 2; ih++ )
 	{
-		[branch]
-		if (ldsIdx.y >= ldsSize.y)
-			continue;
 		[unroll]
-		for( iw = 0; iw < 2; iw++ )
+		for( int iw = 0; iw < 2; iw++ )
 		{
-			[branch]
-			if (ldsIdx.x >= ldsSize.x)
-				continue;
-
-			moment_t avgMoments = 0.0;
-#if MAX_MSAA > 1
-			for( is = 0; is < sampleCnt; is++ )
+			if( ldsIdx.x < LDS_STRIDE )
 			{
-				float  depth = depthTex.Load( int3( Clamp( srcIdx, validSrc.xy, validSrc.zw ), is ) ).x;
-					   depth = reverse_z ? (1.0 - depth) : depth;
-				moment_t moments = DepthToMoments( depth );
-				avgMoments += sampleWeights[is] * moments;
-			}
-			avgMoments *= sumWeights;
-#else
-			float depth = depthTex.Load( int3( Clamp( srcIdx, validSrc.xy, validSrc.zw ), 0 ) ).x;
-			avgMoments = DepthToMoments( reverse_z ? (1.0-depth) : depth );
-#endif
-			moments[ldsIdx.y][ldsIdx.x] = avgMoments;
+#if MAX_MSAA > 1
+				moment_t avgMoments = 0.0;
+				[loop]
+				for( uint is = 0; is < sampleCnt; is++ )
+				{
+					float depth = depthTex.Load( min( srcIdx, validSrc ), is ).x;
+						  depth = reverse_z ? (1.0 - depth) : depth;
+#   if SHADOW_MOMENT_ALGORITHM == MSM
+						  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
+						  // The solver ShadowMoments_SolveMSM then ends up calculating infinities and nands, which produces different results
+						  // on different vendors' GPUs. So we're adding a small safety margin here.
+						  depth = Clamp( depth, 0.001, 0.999 );
+#   endif
+					avgMoments += sampleWeights[is] * DepthToMoments( depth );
+				}
+				avgMoments *= sumWeights;
 
-			ldsIdx.x += threadsCnt.x;
-			srcIdx.x += threadsCnt.x;
+				writeToShared( avgMoments, int2( ldsIdx.x, groupThreadId.y ), LDS_STRIDE );
+#else
+				float depth = depthTex.Load( int3( min( srcIdx, validSrc ), 0 ) ).x;
+					  depth = reverse_z ? (1.0 - depth) : depth;
+#   if SHADOW_MOMENT_ALGORITHM == MSM
+					  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
+					  // The solver ShadowMoments_SolveMSM then ends up calculating infinities and nands, which produces different results
+					  // on different vendors' GPUs. So we're adding a small safety margin here.
+					  depth = Clamp( depth, 0.001, 0.999 );
+#   endif
+				writeToShared( DepthToMoments( depth ), int2( ldsIdx.x, groupThreadId.y ), LDS_STRIDE );
+#endif
+				ldsIdx.x += THREADS;
+				srcIdx.x += THREADS;
+			}
 		}
+
+		GroupMemoryBarrierWithGroupSync();
+
+		hblurredMoments[ih] = 0;
+		int2 idx = { groupThreadId.x + blurBorder, groupThreadId.y };
+		[loop]
+		for( int blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
+		{
+			hblurredMoments[ih] += readFromShared( int2( idx.x + blurOffset, idx.y ), LDS_STRIDE ) * blurWeights[abs( blurOffset )];
+		}
+
+		GroupMemoryBarrierWithGroupSync();
+
 		ldsIdx.x  = groupThreadId.x;
 		srcIdx.x  = (int) dispatchId.x - blurBorder + srcRect.x;
-		ldsIdx.y += threadsCnt.y;
-		srcIdx.y += threadsCnt.y;
+		srcIdx.y += THREADS;
 	}
 
-	// sync across all threads so LDS contains the moments for each pixel that we need for the blur
-	GroupMemoryBarrierWithGroupSync();
+	// update LDS with horizontally blurred values
+	writeToShared( hblurredMoments[0], groupThreadId.xy, THREADS );
+	if( (groupThreadId.y + THREADS) < LDS_STRIDE )
+		writeToShared( hblurredMoments[1], int2( groupThreadId.x, groupThreadId.y + THREADS ), THREADS );
 
-	// first pass blurs horizontally
-	ldsIdx = groupThreadId.xy + int2( blurBorder, 0 );
-	moment_t hblurredMoment = 0.0, hblurredMoment2 = 0.0;
-	int blurOffset;
-	for( blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
-	{
-		hblurredMoment += moments[ldsIdx.y][ldsIdx.x + blurOffset] * blurWeights[abs( blurOffset )];
-	}
-	ldsIdx.y += threadsCnt.y;
-	[branch]
-	if( ldsIdx.y < ldsSize.y )
-	{
-		for( blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
-		{
-			hblurredMoment2 += moments[ldsIdx.y][ldsIdx.x + blurOffset] * blurWeights[abs(blurOffset)];
-		}
-	}
-
-	// make sure all reads/writes are done
+	// sync threads
 	GroupMemoryBarrierWithGroupSync();
-	// replace LDS values with the horizontally blurred values
-	moments[groupThreadId.y][ldsIdx.x] = hblurredMoment;
-	[branch]
-	if( ldsIdx.y < ldsSize.y )
-		moments[ldsIdx.y][ldsIdx.x] = hblurredMoment2;
-	GroupMemoryBarrierWithGroupSync();
-
 
 	// second pass blurs vertically
-	ldsIdx = groupThreadId.xy + blurBorder.xx;
+	ldsIdx = (int2) groupThreadId.xy + int2( 0, blurBorder );
 	moment_t vblurredMoment = 0.0;
-	for( blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
+
+	[unroll]
+	for( int blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
 	{
-		vblurredMoment += moments[ldsIdx.y + blurOffset][ldsIdx.x] * blurWeights[abs( blurOffset )];
+		vblurredMoment += readFromShared( int2( ldsIdx.x, ldsIdx.y + blurOffset ), THREADS ) * blurWeights[abs(blurOffset)];
 	}
 
 	// and write out the result
 	if( all( dispatchId.xy < srcRect.zw ) )
 	{
-		dispatchId.z = dstRect.z;
 		dispatchId.xy += dstRect.xy;
+		dispatchId.z   = dstRect.z;
 		outputTex[dispatchId] = vblurredMoment;
 	}
 }
