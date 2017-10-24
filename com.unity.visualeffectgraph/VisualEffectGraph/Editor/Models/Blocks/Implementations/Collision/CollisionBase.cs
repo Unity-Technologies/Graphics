@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.BlockLibrary
         [VFXSetting, Tooltip("Enable random bending of the collision normal to simulate collision with a rough surface.")]
         public bool roughSurface = false;
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.BlockLibrary
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
                 if (roughSurface)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(new VFXAttribute("mass", VFXValue.Constant(1.0f)), VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
