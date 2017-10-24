@@ -13,10 +13,6 @@
 #define UNITY_SPECCUBE_LOD_STEPS 6
 #endif
 
-#ifdef NO_LIGHTMAP
-#undef LIGHTMAP_ON
-#endif
-
 #ifdef NO_ADDITIONAL_LIGHTS
 #undef _ADDITIONAL_LIGHTS
 #endif
@@ -185,7 +181,7 @@ half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 li
 #endif
 }
 
-half3 LightweightBRDFIndirect(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
+half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
 {
     half3 c = indirectDiffuse * brdfData.diffuse;
     float surfaceReduction = 1.0 / (roughness2 + 1.0);
@@ -203,15 +199,6 @@ half3 GlossyEnvironment(half3 reflectVector, half perceptualRoughness)
 #endif
 
     return _GlossyEnvironmentColor;
-}
-
-half3 DiffuseGI(float2 lightmapUV, half3 ambient, half3 normalWS)
-{
-#ifdef LIGHTMAP_ON
-    return SampleLightmap(lightmapUV, normalWS);
-#endif
-
-    return EvaluateSHPerPixel(normalWS, ambient);
 }
 
 half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
@@ -273,7 +260,7 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, flo
 #endif
 }
 
-half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half4 ambient, half3 albedo, half metallic, half3 specular, half smoothness, half ambientOcclusion, half3 emission, half alpha)
+half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
@@ -282,12 +269,12 @@ half4 LightweightFragmentPBR(half4 lightmapUV, float3 positionWS, half3 normalWS
     half3 vertexNormal = normalWS;
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    half3 indirectDiffuse = DiffuseGI(lightmapUV.xy, ambient, normalWS) * ambientOcclusion;
-    half3 indirectSpecular = GlossyEnvironment(reflectVec, brdfData.perceptualRoughness) * ambientOcclusion;
+    half3 indirectDiffuse = diffuseGI * occlusion;
+    half3 indirectSpecular = GlossyEnvironment(reflectVec, brdfData.perceptualRoughness) * occlusion;
 
     // PBS
     half fresnelTerm = _Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
-    half3 color = LightweightBRDFIndirect(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
+    half3 color = LightweightEnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
     half3 lightDirectionWS;
 
     LightInput light;
