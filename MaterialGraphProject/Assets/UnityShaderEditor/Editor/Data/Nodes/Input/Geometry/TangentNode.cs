@@ -2,13 +2,8 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IMayRequireTangent
-    {
-        NeededCoordinateSpace RequiresTangent();
-    }
-
-    [Title("Input/Geometry/World Tangent")]
-    public class TangentNode : AbstractMaterialNode, IMayRequireTangent
+    [Title("Input/Geometry/Tangent")]
+    public class TangentNode : GeometryNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Tangent";
@@ -25,24 +20,14 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
-            return CoordinateSpace.World.ToVariableName(InterpolatorType.Tangent);
+            return space.ToVariableName(InterpolatorType.Tangent);
         }
 
         public NeededCoordinateSpace RequiresTangent()
         {
-            return NeededCoordinateSpace.Object;
+            return space.ToNeededCoordinateSpace();
         }
     }
 }

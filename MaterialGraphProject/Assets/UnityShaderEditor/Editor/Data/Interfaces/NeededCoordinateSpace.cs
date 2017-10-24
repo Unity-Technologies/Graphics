@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
         Tangent = 1 << 3
     }
     
-    public enum CoordinateSpace
+    public enum CoordinateSpace : int
     {
         Object,
         View,
@@ -34,6 +34,23 @@ namespace UnityEngine.MaterialGraph
         public static string ToVariableName(this CoordinateSpace space, InterpolatorType type)
         {
             return string.Format("{0}Space{1}", space, type);
+        }
+
+        public static NeededCoordinateSpace ToNeededCoordinateSpace(this CoordinateSpace space)
+        {
+            switch (space)
+            {
+                case CoordinateSpace.Object:
+                    return NeededCoordinateSpace.Object;
+                case CoordinateSpace.View:
+                    return NeededCoordinateSpace.View;
+                case CoordinateSpace.World:
+                    return NeededCoordinateSpace.World;
+                case CoordinateSpace.Tangent:
+                    return NeededCoordinateSpace.Tangent;
+                default:
+                    throw new ArgumentOutOfRangeException("space", space, null);
+            }
         }
     }
 }

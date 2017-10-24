@@ -214,30 +214,143 @@ namespace UnityEngine.MaterialGraph
             get { return m_ShaderChunks.Count; }
         }
 
-        public enum InputType
+ public enum InputType
         {
             Position,
             Vector,
             Normal
         }
-        
-        public static string EmitTransform(string[] matrices, string[] invMatrices, string variable, bool isAffine, bool inverseTranspose)
+
+        public struct TransformDesc
+        {
+            public TransformDesc(string name)
+            {
+                this.name = name;
+                transpose = false;
+            }
+            public TransformDesc(string name, bool transpose)
+            {
+                this.name = name;
+                this.transpose = transpose;
+            }
+            public string name;
+            public bool transpose;
+        }
+
+        static TransformDesc[,][] m_transforms = null;
+        static TransformDesc[] GetTransformPath(CoordinateSpace from, CoordinateSpace to)
+        {
+            if (m_transforms[(int) from, (int) to] != null)
+            {
+                return m_transforms[(int) from, (int) to];
+            }
+            var distance = new int[4];
+            var prev = new CoordinateSpace?[4];
+            var queue = new List<CoordinateSpace>();
+            foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
+            {
+                distance[(int)space] = int.MaxValue;
+                prev[(int)space] = null;
+                queue.Add((CoordinateSpace)space);
+            }
+            distance[(int)from] = 0;
+            List<CoordinateSpace> path = null;
+            while (queue.Count != 0)
+            {
+                queue.Sort((x, y) => distance[(int)x] - distance[(int)y]);
+                var min = queue[0];
+                queue.Remove(min);
+                if (min == to)
+                {
+                    path = new List<CoordinateSpace>();
+                    while (prev[(int)min] != null)
+                    {
+                        path.Add(min);
+                        min = prev[(int)min].Value;
+                    }
+                    break;
+                }
+                if (distance[(int)min] == int.MaxValue)
+                {
+                    break;
+                }
+                foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
+                {
+                    int index = (int)space;
+                    if (m_transforms[(int)min, index] != null)
+                    {
+                        var alt = distance[(int)min] + m_transforms[(int)min, index].Length;
+                        if (alt < distance[index])
+                        {
+                            distance[index] = alt;
+                            prev[index] = min;
+                        }
+                    }
+                }
+            }
+            path.Reverse();
+            var matrixList = new TransformDesc[path.Count];
+            int idx = 0;
+            foreach (var node in path)
+            {
+                matrixList[idx] = m_transforms[(int)from, (int)node][0];
+                from = node;
+                idx++;
+            }
+            return matrixList;
+        }
+
+        static void InitTransforms()
+        {
+            if (m_transforms == null)
+            {
+                m_transforms = new TransformDesc[4, 4][];
+                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.Object] = new TransformDesc[] { };
+                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.View] = new TransformDesc[] { };
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] { };
+                m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] { };
+                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World] 
+                    = new TransformDesc[] { new TransformDesc("unity_ObjectToWorld") };
+                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World] 
+                    = new TransformDesc[] { new TransformDesc("UNITY_MATRIX_I_V") };
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.Object] 
+                    = new TransformDesc[] { new TransformDesc("unity_WorldToObject") };
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.View] 
+                    = new TransformDesc[] { new TransformDesc("UNITY_MATRIX_V") };
+                for (var from = CoordinateSpace.Object; from != CoordinateSpace.Tangent; from++)
+                {
+                    for (var to = CoordinateSpace.Object; to != CoordinateSpace.Tangent; to++)
+                    {
+                        if (m_transforms[(int)from, (int)to] == null)
+                        {
+                            m_transforms[(int)from, (int)to] = GetTransformPath(from, to);
+                        }
+                    }
+                }
+            }
+            for (var k = CoordinateSpace.Object; k != CoordinateSpace.Tangent; k++)
+            {
+                m_transforms[(int)CoordinateSpace.Tangent, (int)k] = null;
+                m_transforms[(int)k, (int)CoordinateSpace.Tangent] = null;
+            }
+        }
+        public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool inverseTranspose)
         {
             if (inverseTranspose)
                 matrices = invMatrices;
-
             if (isAffine)
             {
                 variable = string.Format("float4({0},1.0)", variable);
             }
-
             foreach (var m in matrices)
             {
-                var matrix = m;
+                var matrix = m.name;
                 if (!isAffine)
                 {
                     matrix = "(float3x3)" + matrix;
                 }
+                if (m.transpose)
+                    inverseTranspose = !inverseTranspose;
                 variable = inverseTranspose
                     ? string.Format("mul({1},{0})", matrix, variable)
                     : string.Format("mul({0},{1})", matrix, variable);
@@ -245,99 +358,38 @@ namespace UnityEngine.MaterialGraph
             return variable;
         }
 
-        public static string EmitTransform(string matrix, string invMatrix, string variable, bool isAffine, bool inverseTranspose)
-        {
-            return EmitTransform(new[] { matrix }, new[] { invMatrix }, variable, isAffine, inverseTranspose);
-        }
-
-        public static string ConvertBetweenSpace(
-            string variable, 
-            CoordinateSpace from, 
-            CoordinateSpace to, 
-            InputType inputType, 
-            CoordinateSpace tangentMatrixSpace = CoordinateSpace.Object)
+        public static string ConvertBetweenSpace(string variable, CoordinateSpace from, CoordinateSpace to, InputType inputType, CoordinateSpace tangentMatrixSpace = CoordinateSpace.Object)
         {
             if (from == to)
             {
                 // nothing to do
                 return variable;
             }
-
+            // Ensure that the transform graph is initialized
+            InitTransforms();
             bool isNormal = false;
             bool affine = (inputType == InputType.Position);
             if (inputType == InputType.Normal)
+            {
+                inputType = InputType.Vector;
                 isNormal = true;
-
+            }
+            m_transforms[(int)CoordinateSpace.Tangent, (int)tangentMatrixSpace] = new[] { new TransformDesc("tangentSpaceTransform") };
+            m_transforms[(int)tangentMatrixSpace, (int)CoordinateSpace.Tangent] = new[] { new TransformDesc("tangentSpaceTransform", true) };
             if (from == CoordinateSpace.Tangent)
             {
-                // if converting from tangent space, reuse the object space code for now
+                // if converting from tangent space, reuse the underlying space
                 from = tangentMatrixSpace;
-                variable = EmitTransform("tangentSpaceTransform", "transpose(tangentSpaceTransform)", variable, affine, !isNormal);
-
+                variable = EmitTransform(
+                                GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
+                                GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
+                                variable, affine, !isNormal);
                 if (to == tangentMatrixSpace)
                 {
                     return variable;
                 }
             }
-
-
-            switch (from)
-            {
-                case CoordinateSpace.Object:
-                {
-                    switch (to)
-                    {
-                        case CoordinateSpace.View:
-                            return EmitTransform(new string[] { "unity_ObjectToWorld", "UNITY_MATRIX_V" }
-                                , new string[] { "UNITY_MATRIX_I_V", "unity_WorldToObject" }
-                                , variable, affine, isNormal);
-                        case CoordinateSpace.World:
-                            return EmitTransform("unity_ObjectToWorld", "unity_WorldToObject", variable, affine, isNormal);
-                        case CoordinateSpace.Tangent:
-                            return EmitTransform("tangentSpaceTransform", "transpose(tangentSpaceTransform)", variable, affine, isNormal);
-                        default:
-                            throw new ArgumentOutOfRangeException("from", @from, null);
-                    }
-                }
-
-                case CoordinateSpace.View:
-                {
-                    switch (to)
-                    {
-                        case CoordinateSpace.Object:
-                            return EmitTransform(new string[] { "UNITY_MATRIX_I_V", "unity_WorldToObject" }
-                                , new string[] { "unity_ObjectToWorld", "UNITY_MATRIX_V" }
-                                , variable, affine, isNormal);
-                        case CoordinateSpace.World:
-                            return EmitTransform("UNITY_MATRIX_I_V", "UNITY_MATRIX_V", variable, affine, isNormal);
-                        case CoordinateSpace.Tangent:
-                            return EmitTransform(new string[] { "UNITY_MATRIX_I_V", "unity_WorldToObject", "tangentSpaceTransform" },
-                                new string[] { "transpose(tangentSpaceTransform)", "unity_ObjectToWorld", "UNITY_MATRIX_V" },
-                                variable, affine, isNormal);
-                        default:
-                            throw new ArgumentOutOfRangeException("from", @from, null);
-                    }
-                }
-                case CoordinateSpace.World:
-                {
-                    switch (to)
-                    {
-                        case CoordinateSpace.Object:
-                            return EmitTransform("unity_WorldToObject", "unity_ObjectToWorld", variable, affine, isNormal);
-                        case CoordinateSpace.View:
-                            return EmitTransform("UNITY_MATRIX_V", "UNITY_MATRIX_I_V", variable, affine, isNormal);
-                        case CoordinateSpace.Tangent:
-                            return EmitTransform(new string[] { "unity_WorldToObject", "tangentSpaceTransform" },
-                                new string[] { "transpose(tangentSpaceTransform)", "unity_ObjectToWorld" },
-                                variable, affine, isNormal);
-                        default:
-                            throw new ArgumentOutOfRangeException("from", @from, null);
-                    }
-                }
-
-                default:
-                    throw new ArgumentOutOfRangeException("from", @from, null);
-            }
+            return EmitTransform(GetTransformPath(from, to), GetTransformPath(to, from), variable, affine, isNormal);
         }
 
         public static void GenerateSpaceTranslationSurfaceInputs(
@@ -549,27 +601,6 @@ namespace UnityEngine.MaterialGraph
                     string.Format("float{0} {1} = {2};", DimensionToString(dimension),
                         CoordinateSpace.Tangent.ToVariableName(type),
                         ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from)), false);
-        }
-
-        public static void GenerateCopyToSurfaceInputs(
-            NeededCoordinateSpace neededSpaces,
-            ShaderGenerator pixelShader,
-            string objectSpaceName,
-            string viewSpaceName,
-            string worldSpaceName,
-            string tangentSpaceName)
-        {
-            if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", objectSpaceName), false);
-
-            if ((neededSpaces & NeededCoordinateSpace.World) > 0)
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", worldSpaceName), false);
-
-            if ((neededSpaces & NeededCoordinateSpace.View) > 0)
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", viewSpaceName), false);
-
-            if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
-                pixelShader.AddShaderChunk(string.Format("surfaceInput.{0} = {0}", tangentSpaceName), false);
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
