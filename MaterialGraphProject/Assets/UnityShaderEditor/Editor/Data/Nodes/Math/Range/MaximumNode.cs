@@ -12,18 +12,18 @@ namespace UnityEngine.MaterialGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Max", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Maximum", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Max(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] DynamicDimensionVector second,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_Maximum(
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = max(first, second);
+    Out = max(A, B);
 }
 ";
         }

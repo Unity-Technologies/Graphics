@@ -2,12 +2,12 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Range/OneMinus")]
+    [Title("Math/Range/One Minus")]
     public class OneMinusNode : CodeFunctionNode
     {
         public OneMinusNode()
         {
-            name = "OneMinus";
+            name = "One Minus";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,13 +16,13 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_OneMinus(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = argument * -1 + 1;;
+    Out = 1 - In;
 }
 ";
         }

@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Basic/SquareRoot")]
+    [Title("Math/Basic/Square Root")]
     public class SquareRootNode : CodeFunctionNode
     {
         public SquareRootNode()
         {
-            name = "SquareRoot";
+            name = "Square Root";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Sqrt", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_SquareRoot", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Sqrt(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_SquareRoot(
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = sqrt(argument);
+    Out = sqrt(In);
 }
 ";
         }

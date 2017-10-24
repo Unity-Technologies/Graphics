@@ -1,21 +1,22 @@
+using System;
 using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Basic/Power")]
-    public class PowerNode : CodeFunctionNode
+    [Title("Math/Advanced/Modulo")]
+    public class ModuloNode : CodeFunctionNode
     {
-        public PowerNode()
+        public ModuloNode()
         {
-            name = "Power";
+            name = "Modulo";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Modulo", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Power(
+        static string Unity_Modulo(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
@@ -23,7 +24,7 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    Out = pow(A, B);
+    Out = fmod(A, B);
 }
 ";
         }

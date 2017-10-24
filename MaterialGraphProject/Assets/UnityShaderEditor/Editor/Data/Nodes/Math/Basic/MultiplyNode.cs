@@ -16,14 +16,14 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Multiply(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] DynamicDimensionVector second,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = first * second;
+    Out = A * B;
 }
 ";
         }
