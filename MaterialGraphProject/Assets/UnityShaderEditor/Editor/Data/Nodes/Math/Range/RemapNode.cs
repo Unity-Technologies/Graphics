@@ -16,15 +16,15 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Remap(
-            [Slot(0, Binding.None)] DynamicDimensionVector input,
-            [Slot(1, Binding.None)] Vector2 inMinMax,
-            [Slot(2, Binding.None)] Vector2 outMinMax,
-            [Slot(3, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] Vector2 InMinMax,
+            [Slot(2, Binding.None, 0, 1, 0, 0)] Vector2 OutMinMax,
+            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = outMinMax.x + (input - inMinMax.x) * (outMinMax.y - outMinMax.x) / (inMinMax.y - inMinMax.x);
+    Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);
 }
 ";
         }

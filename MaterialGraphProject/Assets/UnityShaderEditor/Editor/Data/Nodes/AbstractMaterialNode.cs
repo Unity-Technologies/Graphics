@@ -434,13 +434,19 @@ namespace UnityEngine.MaterialGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-
-            return GetVariableNameForNode() + "_" + slot.shaderOutputName;
+            return "_" + GetVariableNameForNode() + "_" + GetHLSLSafeName(slot.shaderOutputName);
         }
 
         public virtual string GetVariableNameForNode()
         {
-            return name + "_" + GuidEncoder.Encode(guid);
+            return GetHLSLSafeName(name) + "_" + GuidEncoder.Encode(guid);
+        }
+
+        public virtual string GetHLSLSafeName(string input)
+        {
+            char[] arr = input.ToCharArray();
+            arr = Array.FindAll<char>(arr, (c => (char.IsLetterOrDigit(c))));
+            return new string(arr);
         }
 
         public sealed override void AddSlot(ISlot slot)

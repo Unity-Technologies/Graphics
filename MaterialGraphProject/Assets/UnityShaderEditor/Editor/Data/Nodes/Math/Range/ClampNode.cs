@@ -12,19 +12,19 @@ namespace UnityEngine.MaterialGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Clamp", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Smoothstep(
-            [Slot(0, Binding.None)] DynamicDimensionVector input,
-            [Slot(1, Binding.None)] DynamicDimensionVector min,
-            [Slot(2, Binding.None)] DynamicDimensionVector max,
-            [Slot(3, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_Clamp(
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] DynamicDimensionVector Min,
+            [Slot(2, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector Max,
+            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = clamp(input, min, max);
+    Out = clamp(In, Min, Max);
 }";
         }
     }

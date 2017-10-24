@@ -12,18 +12,18 @@ namespace UnityEngine.MaterialGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Min", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Minimum", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Min(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] DynamicDimensionVector second,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_Minimum(
+            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector A,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = min(first, second);
+    Out = min(A, B);
 };";
         }
     }

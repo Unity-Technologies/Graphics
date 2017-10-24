@@ -16,13 +16,13 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Saturate(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = saturate(argument);
+    Out = saturate(In);
 }
 ";
         }

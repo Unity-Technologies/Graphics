@@ -3,11 +3,11 @@ using System.Reflection;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Reciprocal Square Root")]
-    public class ReciprocalSqrtNode : CodeFunctionNode
+    public class ReciprocalSquareRootNode : CodeFunctionNode
     {
-        public ReciprocalSqrtNode()
+        public ReciprocalSquareRootNode()
         {
-            name = "ReciprocalSquareRoot";
+            name = "Reciprocal Square Root";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,13 +16,13 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Rsqrt(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = rsqrt(argument);
+    Out = rsqrt(In);
 }
 ";
         }
