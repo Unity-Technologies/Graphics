@@ -213,8 +213,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawFrustumlightGizmo(Light frustumlight)
         {
-            DisableLightGizmos();
-
             var additionalLightData = frustumlight.GetComponent<HDAdditionalLightData>();
             if (additionalLightData == null) return;
 
