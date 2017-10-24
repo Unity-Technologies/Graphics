@@ -15,9 +15,15 @@ namespace UnityEngine.Experimental.Rendering
                 return DefaultShadowResolution;
         }
 
-        [Range(0.0F, 1.0F)]
+        [Range(0.0F, 1.0f)]
         public float shadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
+        [Range(0.0f, 1.0f)]
+        public float contactShadowLength = 0.0f;
+        [Range(0.0f, 1.0f)]
+        public float contactShadowDistanceScaleFactor = 0.5f;
+        public float contactShadowMaxDistance = 50.0f;
+        public float contactShadowFadeDistance = 5.0f;
 
         // shadow related parameters
         [System.Serializable]

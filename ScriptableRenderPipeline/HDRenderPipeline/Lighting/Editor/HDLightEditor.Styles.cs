@@ -53,11 +53,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent[] shapeNames;
 
             // Additional shadow data
+            public readonly GUIContent shadowCascades = new GUIContent("Cascades", "");
             public readonly GUIContent shadowCascadeCount = new GUIContent("Cascade Count", "");
             public readonly GUIContent[] shadowCascadeRatios = { new GUIContent("Cascade 1"), new GUIContent("Cascade 2"), new GUIContent("Cascade 3") };
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
+            public readonly GUIContent contactShadow = new GUIContent("Contact Shadows");
+            public readonly GUIContent contactShadowLength = new GUIContent("Length", "Length of rays used to gather contact shadows in world units.\nZero will disable the feature.");
+            public readonly GUIContent contactShadowDistanceScaleFactor = new GUIContent("Distance Scale Factor", "Contact Shadows are scaled up with distance. Use this parameter to dampen this effect.");
+            public readonly GUIContent contactShadowMaxDistance = new GUIContent("Max Distance", "Distance from the camera in world units at which contact shadows are faded out to zero.");
+            public readonly GUIContent contactShadowFadeDistance = new GUIContent("Fade Distance", "Distance in world units over which the contact shadows are faded out (see Max Distance).");
 
             public Styles()
             {

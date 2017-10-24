@@ -17,6 +17,11 @@ float4x4 GetWorldToObjectMatrix()
 }
 
 // Transform to homogenous clip space
+float4x4 GetViewToHClipMatrix()
+{
+    return UNITY_MATRIX_P;
+}
+
 float4x4 GetWorldToHClipMatrix()
 {
     return UNITY_MATRIX_VP;
@@ -70,6 +75,24 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
 float4 TransformWorldToHClip(float3 positionWS)
 {
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
+}
+
+// Tranforms vector from world space to homogenous space
+float3 TransformWorldToHClipDir(float3 directionWS)
+{
+    return mul((float3x3)GetWorldToHClipMatrix(), directionWS);
+}
+
+// Tranforms position from view space to homogenous space
+float4 TransformWViewToHClip(float3 positionVS)
+{
+    return mul(GetViewToHClipMatrix(), float4(positionVS, 1.0));
+}
+
+// Tranforms vector from world space to homogenous space
+float3 TransformViewToHClipDir(float3 directionVS)
+{
+    return mul((float3x3)GetViewToHClipMatrix(), directionVS);
 }
 
 float3 GetAbsolutePositionWS(float3 positionWS)
