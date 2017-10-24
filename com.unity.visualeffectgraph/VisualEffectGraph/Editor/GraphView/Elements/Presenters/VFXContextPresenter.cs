@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Deletable | Capabilities.SendToFrontOnSelection;
         }
 
-        protected void OnDisable()
+        public override void OnRemoveFromGraph()
         {
             if (viewPresenter != null)
             {
