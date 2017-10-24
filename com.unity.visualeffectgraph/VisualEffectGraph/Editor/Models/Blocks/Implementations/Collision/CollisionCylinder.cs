@@ -23,15 +23,15 @@ float3 dir = nextPos - Cylinder_center;
 if (abs(dir.y) <= Cylinder_height * 0.5f)
 {
     float sqrLength = dot(dir.xz, dir.xz);
-    if (sign * sqrLength <= sign * Cylinder_radius * Cylinder_radius)
+    if (colliderSign * sqrLength <= colliderSign * Cylinder_radius * Cylinder_radius)
     {
         float dist = sqrt(sqrLength);
-        float3 n = float3(sign * dir.xz / dist, 0.0f).xzy;
+        float3 n = float3(colliderSign * dir.xz / dist, 0.0f).xzy;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-        position.xz -= n.xz * (dist - Cylinder_radius) * sign;
+        position.xz -= n.xz * (dist - Cylinder_radius) * colliderSign;
     }
 }";
                 return Source;

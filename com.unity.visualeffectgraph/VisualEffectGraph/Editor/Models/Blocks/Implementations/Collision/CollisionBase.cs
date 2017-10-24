@@ -43,9 +43,9 @@ namespace UnityEditor.VFX.BlockLibrary
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
 
                 if (mode == Mode.Solid)
-                    yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "sign");
+                    yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
                 else
-                    yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "sign");
+                    yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "colliderSign");
             }
         }
 

@@ -21,15 +21,15 @@ namespace UnityEditor.VFX.BlockLibrary
 float3 nextPos = position + velocity * deltaTime;
 float3 dir = nextPos - Sphere_center;
 float sqrLength = dot(dir, dir);
-if (sign * sqrLength <= sign * Sphere_radius * Sphere_radius)
+if (colliderSign * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)
 {
     float dist = sqrt(sqrLength);
-    float3 n = sign * dir / dist;
+    float3 n = colliderSign * dir / dist;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * (dist - Sphere_radius) * sign;
+    position -= n * (dist - Sphere_radius) * colliderSign;
 }";
                 return Source;
             }

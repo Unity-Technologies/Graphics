@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.BlockLibrary
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 n = Plane_normal * sign;
+float3 n = Plane_normal * colliderSign;
 float w = dot(Plane_position, n);
 float distToPlane = dot(nextPos, n) - w;
 if (distToPlane < 0.0f)
