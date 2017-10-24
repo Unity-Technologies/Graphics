@@ -211,6 +211,7 @@ namespace UnityEngine.MaterialGraph
         {
             get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
         }
+
         private string inputDimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
@@ -218,17 +219,17 @@ namespace UnityEngine.MaterialGraph
 
         public NeededCoordinateSpace RequiresTangent()
         {
-            return NeededCoordinateSpace.World;
+            return NeededCoordinateSpace.Local;
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
-            return NeededCoordinateSpace.World;
+            return NeededCoordinateSpace.Local;
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            return NeededCoordinateSpace.World;
+            return NeededCoordinateSpace.Local;
         }
     }
 }
