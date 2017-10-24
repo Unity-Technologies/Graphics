@@ -656,6 +656,7 @@ namespace UnityEngine.Experimental.Rendering
         protected const int     k_BlurKernelDefSize             = (7 - k_BlurKernelMinSize) / 2;
         protected const int     k_BlurKernelMaxSize             = 17;
         protected const int     k_BlurKernelCount               = k_BlurKernelMaxSize / 2;
+        protected const int     k_MaxSampleCount                = 8;
         protected ComputeShader m_MomentBlurCS;
         protected int[]         m_KernelVSM    = new int[k_BlurKernelCount];
         protected int[]         m_KernelEVSM_2 = new int[k_BlurKernelCount];
@@ -698,23 +699,23 @@ namespace UnityEngine.Experimental.Rendering
                 return use_2_Channels ? RenderTextureFormat.RGFloat : RenderTextureFormat.ARGBFloat;
             }
         }
-        public ShadowVariance( ref AtlasInit init ) : base( ref init )
+        public ShadowVariance( ref AtlasInit init, int sampleCount ) : base( ref init )
         {
             m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.ARGBHalf || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf || base.m_ShadowmapFormat == RenderTextureFormat.ARGB64) ? Flags.bpp_16 : 0;
             m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.RGFloat  || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf) ? Flags.channels_2 : 0;
             m_Flags |= SystemInfo.usesReversedZBuffer ? Flags.reversed_z : 0;
 
-            m_SampleCount  = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
+            m_SampleCount  = sampleCount <= 0 ? 1 : (sampleCount > k_MaxSampleCount ? k_MaxSampleCount : sampleCount);
             m_MomentBlurCS = Resources.Load<ComputeShader>( "ShadowBlurMoments" );
 
             if( m_MomentBlurCS )
             {
                 for( int i = 0, blurSize = 3; i < k_BlurKernelCount; ++i, blurSize += 2 )
                 {
-                    m_KernelVSM[i]    = m_MomentBlurCS.FindKernel( "main_VSM_"      + blurSize );
-                    m_KernelEVSM_2[i] = m_MomentBlurCS.FindKernel( "main_EVSM_2_"   + blurSize );
-                    m_KernelEVSM_4[i] = m_MomentBlurCS.FindKernel( "main_EVSM_4_"   + blurSize );
-                    m_KernelMSM[i]    = m_MomentBlurCS.FindKernel( "main_MSM_"      + blurSize );
+                    m_KernelVSM[i]    = m_MomentBlurCS.FindKernel( "main" + (m_SampleCount > 1 ? "_MSAA_" : "_") + "VSM_"      + blurSize );
+                    m_KernelEVSM_2[i] = m_MomentBlurCS.FindKernel( "main" + (m_SampleCount > 1 ? "_MSAA_" : "_") + "EVSM_2_"   + blurSize );
+                    m_KernelEVSM_4[i] = m_MomentBlurCS.FindKernel( "main" + (m_SampleCount > 1 ? "_MSAA_" : "_") + "EVSM_4_"   + blurSize );
+                    m_KernelMSM[i]    = m_MomentBlurCS.FindKernel( "main" + (m_SampleCount > 1 ? "_MSAA_" : "_") + "MSM_"      + blurSize );
 
                     m_BlurWeights[i] = new float[2+i];
                     FillBlurWeights( i );
@@ -732,6 +733,8 @@ namespace UnityEngine.Experimental.Rendering
                     m_BlurWeights[i][j] *= weightSum;
             }
         }
+
+        public ShadowVariance( ref AtlasInit init ) : this( ref init, 1 ) {}
 
         override protected void CreateShadowmap( RenderTexture shadowmap )
         {
@@ -965,7 +968,15 @@ namespace UnityEngine.Experimental.Rendering
         override protected void PreUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice )
         {
             cb.SetRenderTarget( m_ShadowmapId, 0, (CubemapFace) 0, (int) rendertargetSlice );
-            cb.GetTemporaryRT( m_TempDepthId, (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Default, m_SampleCount );
+
+            RenderTextureDescriptor desc = new RenderTextureDescriptor( (int) m_Width, (int) m_Height, RenderTextureFormat.Shadowmap, (int) m_ShadowmapBits );
+            desc.autoGenerateMips   = false;
+            desc.enableRandomWrite  = false;
+            desc.msaaSamples        = m_SampleCount;
+            desc.shadowSamplingMode = ShadowSamplingMode.RawDepth;
+            desc.useMipMap          = false;
+            desc.bindMS             = true;
+            cb.GetTemporaryRT( m_TempDepthId, desc );
             cb.SetRenderTarget( new RenderTargetIdentifier( m_TempDepthId ) );
             cb.ClearRenderTarget( true, true, m_ClearColor );
         }
