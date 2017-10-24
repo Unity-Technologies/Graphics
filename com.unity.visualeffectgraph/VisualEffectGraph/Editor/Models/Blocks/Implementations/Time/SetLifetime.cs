@@ -14,12 +14,13 @@ namespace UnityEditor.VFX.Block
             Constant,
             Random,
             FromCurve,
+            FromCurveRandom,
         }
 
         [VFXSetting]
         public SetMode mode = SetMode.Random;
 
-        public override string name { get { return "Set Lifetime"; } }
+        public override string name { get { return "Set LifeTime : " + mode.ToString(); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInit; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
@@ -28,7 +29,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Write);
-                if (mode != SetMode.Constant)
+                if (mode != SetMode.Constant || mode != SetMode.FromCurve)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }
@@ -42,6 +43,7 @@ namespace UnityEditor.VFX.Block
                     case SetMode.Constant: return PropertiesFromType("InputPropertiesConstant");
                     case SetMode.Random: return PropertiesFromType("InputPropertiesRandom");
                     case SetMode.FromCurve: return PropertiesFromType("InputPropertiesCurve");
+                    case SetMode.FromCurveRandom: return PropertiesFromType("InputPropertiesCurveRandom");
                     default: throw new InvalidOperationException();
                 }
             }
@@ -54,15 +56,19 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesRandom
         {
-            public float MinValue = 0.5f;
-            public float MaxValue = 1.0f;
+            public float Min = 0.5f;
+            public float Max = 1.0f;
         }
 
         public class InputPropertiesCurve
         {
-            public AnimationCurve Curve;
+            public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+            public float CurveSample;
         }
-
+        public class InputPropertiesCurveRandom
+        {
+            public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        }
         public override string source
         {
             get
@@ -70,8 +76,9 @@ namespace UnityEditor.VFX.Block
                 switch (mode)
                 {
                     case SetMode.Constant:  return "lifetime = Value;";
-                    case SetMode.Random:    return "lifetime = lerp(MinValue,MaxValue,RAND);";
-                    case SetMode.FromCurve: return "lifetime = SampleCurve(Curve, RAND);";
+                    case SetMode.Random:    return "lifetime = lerp(Min,Max,RAND);";
+                    case SetMode.FromCurve: return "lifetime = SampleCurve(Curve, CurveSample);";
+                    case SetMode.FromCurveRandom: return "lifetime = SampleCurve(Curve, RAND);";
                     default: throw new InvalidOperationException();
                 }
             }
