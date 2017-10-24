@@ -804,11 +804,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 lightData.size = new Vector2(additionalLightData.shapeLength, additionalLightData.shapeWidth);
 
-                if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
+                if (lightData.lightType == GPULightType.ProjectorBox)
                 {
                     // Rescale for cookies and windowing.
-                    lightData.right *= 2 / additionalLightData.shapeLength;
-                    lightData.up    *= 2 / additionalLightData.shapeWidth;
+                    lightData.right *= 2.0f / additionalLightData.shapeLength;
+                    lightData.up    *= 2.0f / additionalLightData.shapeWidth;
+                }
+                else if (lightData.lightType == GPULightType.ProjectorPyramid)
+                {
+                    // Get width and height for the current frustum
+                    var spotAngle = light.spotAngle;
+
+                    float frustumHeight;
+                    float frustumWidth;
+                    if (additionalLightData.aspectRatio >= 1.0f)
+                    {
+                        frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumWidth = frustumHeight * additionalLightData.aspectRatio;
+                    }
+                    else
+                    {
+                        frustumWidth = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumHeight = frustumWidth / additionalLightData.aspectRatio;
+                    }
+
+                    lightData.size = new Vector2(frustumWidth, frustumHeight);
+
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2.0f / frustumWidth;
+                    lightData.up *= 2.0f / frustumHeight;
                 }
 
                 if (lightData.lightType == GPULightType.Spot)
