@@ -219,7 +219,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 	const int2 validSrc   = (int2) (srcRect.xy + srcRect.zw - 1);
 
 	int2 srcIdx = ((int2) dispatchId.xy) - blurBorder.xx + (int2) srcRect.xy;
-	int2 ldsIdx = groupThreadId.xy;
+	int2 ldsIdx = (int2) groupThreadId.xy;
 	moment_t hblurredMoments[2];
 
 	[unroll]
@@ -282,7 +282,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 	}
 
 	// update LDS with horizontally blurred values
-	writeToShared( hblurredMoments[0], groupThreadId.xy, THREADS );
+	writeToShared( hblurredMoments[0], (int2) groupThreadId.xy, THREADS );
 	if( (groupThreadId.y + THREADS) < LDS_STRIDE )
 		writeToShared( hblurredMoments[1], int2( groupThreadId.x, groupThreadId.y + THREADS ), THREADS );
 
