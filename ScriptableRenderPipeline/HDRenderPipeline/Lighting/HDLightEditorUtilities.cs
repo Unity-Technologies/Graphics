@@ -1,11 +1,15 @@
 #if UNITY_EDITOR
+using System;
+using System.Reflection;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
 #if UNITY_EDITOR
-    public static class EditorLightUtilities
+    public static class HDLightEditorUtilities
     {
         public static void DrawSpotlightGizmo(Light spotlight, bool selected)
         {
@@ -98,13 +102,134 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Gizmos.DrawWireSphere(spherelight.transform.position, spherelight.range);
         }
 
+        // Same as Gizmo.DrawFrustum except that when aspect is below one, fov represent fovX instead of fovY
+        // Use to match our light frustum pyramid behavior
+        public static void DrawLightPyramidFrustum(Vector3 center, float fov, float maxRange, float minRange, float aspect)
+        {
+            fov = Mathf.Deg2Rad * fov * 0.5f;
+            float tanfov = Mathf.Tan(fov);
+            Vector3 farEnd = new Vector3(0, 0, maxRange);
+            Vector3 endSizeX;
+            Vector3 endSizeY;
+
+            if (aspect >= 1.0f)
+            {
+                endSizeX = new Vector3(maxRange * tanfov * aspect, 0, 0);
+                endSizeY = new Vector3(0, maxRange * tanfov, 0);
+            }
+            else
+            {
+                endSizeX = new Vector3(maxRange * tanfov, 0, 0);
+                endSizeY = new Vector3(0, maxRange * tanfov / aspect, 0);
+            }
+
+            Vector3 s1, s2, s3, s4;
+            Vector3 e1 = farEnd + endSizeX + endSizeY;
+            Vector3 e2 = farEnd - endSizeX + endSizeY;
+            Vector3 e3 = farEnd - endSizeX - endSizeY;
+            Vector3 e4 = farEnd + endSizeX - endSizeY;
+            if (minRange <= 0.0f)
+            {
+                s1 = s2 = s3 = s4 = center;
+            }
+            else
+            {
+                Vector3 startSizeX;
+                Vector3 startSizeY;
+                if (aspect >= 1.0f)
+                {
+                    startSizeX = new Vector3(minRange * tanfov * aspect, 0, 0);
+                    startSizeY = new Vector3(0, minRange * tanfov, 0);
+                }
+                else
+                {
+                    startSizeY = new Vector3(minRange * tanfov / aspect, 0, 0);
+                    startSizeX = new Vector3(0, minRange * tanfov, 0);
+                }
+                Vector3 startPoint = center;
+                s1 =    startPoint + startSizeX + startSizeY;
+                s2 =    startPoint - startSizeX + startSizeY;
+                s3 =    startPoint - startSizeX - startSizeY;
+                s4 =    startPoint + startSizeX - startSizeY;
+                Gizmos.DrawLine(s1, s2);
+                Gizmos.DrawLine(s2, s3);
+                Gizmos.DrawLine(s3, s4);
+                Gizmos.DrawLine(s4, s1);
+            }
+
+            Gizmos.DrawLine(e1, e2);
+            Gizmos.DrawLine(e2, e3);
+            Gizmos.DrawLine(e3, e4);
+            Gizmos.DrawLine(e4, e1);
+
+            Gizmos.DrawLine(s1, e1);
+            Gizmos.DrawLine(s2, e2);
+            Gizmos.DrawLine(s3, e3);
+            Gizmos.DrawLine(s4, e4);
+        }
+
+        public static void DrawLightOrthoFrustum(Vector3 center, float width, float height, float maxRange, float minRange)
+        {
+            Vector3 farEnd = new Vector3(0, 0, maxRange);
+            Vector3 endSizeX = new Vector3(width, 0, 0);
+            Vector3 endSizeY = new Vector3(0, height, 0);
+
+            Vector3 s1, s2, s3, s4;
+            Vector3 e1 = farEnd + endSizeX + endSizeY;
+            Vector3 e2 = farEnd - endSizeX + endSizeY;
+            Vector3 e3 = farEnd - endSizeX - endSizeY;
+            Vector3 e4 = farEnd + endSizeX - endSizeY;
+            if (minRange <= 0.0f)
+            {
+                s1 = s2 = s3 = s4 = center;
+            }
+            else
+            {
+                Vector3 startSizeX = new Vector3(width, 0, 0);
+                Vector3 startSizeY = new Vector3(0, height, 0);
+
+                Vector3 startPoint = center;
+                s1 =    startPoint + startSizeX + startSizeY;
+                s2 =    startPoint - startSizeX + startSizeY;
+                s3 =    startPoint - startSizeX - startSizeY;
+                s4 =    startPoint + startSizeX - startSizeY;
+                Gizmos.DrawLine(s1, s2);
+                Gizmos.DrawLine(s2, s3);
+                Gizmos.DrawLine(s3, s4);
+                Gizmos.DrawLine(s4, s1);
+            }
+
+            Gizmos.DrawLine(e1, e2);
+            Gizmos.DrawLine(e2, e3);
+            Gizmos.DrawLine(e3, e4);
+            Gizmos.DrawLine(e4, e1);
+
+            Gizmos.DrawLine(s1, e1);
+            Gizmos.DrawLine(s2, e2);
+            Gizmos.DrawLine(s3, e3);
+            Gizmos.DrawLine(s4, e4);
+        }
+
+
         public static void DrawFrustumlightGizmo(Light frustumlight)
         {
             var additionalLightData = frustumlight.GetComponent<HDAdditionalLightData>();
             if (additionalLightData == null) return;
-            var frustumSize = new Vector3(additionalLightData.shapeLength / frustumlight.gameObject.transform.localScale.x, additionalLightData.shapeWidth / frustumlight.gameObject.transform.localScale.y, frustumlight.range - frustumlight.shadowNearPlane / frustumlight.gameObject.transform.localScale.z);
-            Gizmos.matrix = frustumlight.transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(Vector3.forward * (frustumSize.z * 0.5f + frustumlight.shadowNearPlane), frustumSize);
+
+            Matrix4x4 matrix = new Matrix4x4(frustumlight.transform.right, frustumlight.transform.up, frustumlight.transform.forward, frustumlight.transform.position);
+            Gizmos.matrix = matrix;
+            if (additionalLightData.spotLightShape == SpotLightShape.Pyramid)
+            {
+                DrawLightPyramidFrustum(Vector3.zero, frustumlight.spotAngle, frustumlight.range, 0.0f, additionalLightData.aspectRatio);
+            }
+            else // Ortho frustum
+            {
+                //DrawLightOrthoFrustum(Vector3.zero, additionalLightData.shapeLength, additionalLightData.shapeWidth, frustumlight.range, 0.0f);
+
+                Vector3 frustumCenter = new Vector3(0.0f, 0.0f, 0.5f * frustumlight.range);
+                Vector3 frustumsize = new Vector3(additionalLightData.shapeLength, additionalLightData.shapeWidth, frustumlight.range);
+                Gizmos.DrawWireCube(frustumCenter, frustumsize);
+            }
             Gizmos.matrix = Matrix4x4.identity;
         }
 
