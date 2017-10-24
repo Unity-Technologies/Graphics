@@ -315,7 +315,7 @@ void ImportanceSampleAnisoGGX(float2   u,
 // ----------------------------------------------------------------------------
 
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 4096)
+float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 8192)
 {
     float NdotV     = saturate(dot(N, V));
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
@@ -338,17 +338,14 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 
         if (NdotL > 0.0)
         {
-            // Integral is
-            //   1 / NumSample * \int[  L * fr * (N.L) / pdf ]  with pdf =  D(H) * (N.H) / (4 * (L.H)) and fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
-            // This is split  in two part:
-            //   A) \int[ L * (N.L) ]
-            //   B) \int[ F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) ] with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
-            //      = \int[ F(H) * weightOverPdf ]
+            // Integral{BSDF * <N,L> dw} =
+            // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
+            // F0 * Integral{(BSDF / F) * <N,L> dw} +
+            // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} =
+            // (1 - F0) * x + F0 * y = lerp(x, y, F0)
 
-            // Recombine at runtime with: ( f0 * weightOverPdf * (1 - Fc) + f90 * weightOverPdf * Fc ) with Fc =(1 - V.H)^5
-            float Fc            = pow(1.0 - VdotH, 5.0);
-            acc.x               += (1.0 - Fc) * weightOverPdf;
-            acc.y               += Fc * weightOverPdf;
+            acc.x += weightOverPdf * pow(1 - VdotH, 5);
+            acc.y += weightOverPdf;
         }
 
         // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
@@ -356,13 +353,15 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 
         if (NdotL > 0.0)
         {
-            float3 H = normalize(L + V);
-            float LdotH = dot(L, H);
-            float disneyDiffuse = DisneyDiffuseNoPI(NdotV, NdotL, LdotH, RoughnessToPerceptualRoughness(roughness));
+            float LdotV = dot(L, V);
+            float disneyDiffuse = DisneyDiffuseNoPI(NdotV, NdotL, LdotV, RoughnessToPerceptualRoughness(roughness));
 
             acc.z += disneyDiffuse * weightOverPdf;
         }
     }
+
+    // Remap from [0, 1.5] to [0, 1] range.
+    acc.z /= 1.5;
 
     return acc / sampleCount;
 }
