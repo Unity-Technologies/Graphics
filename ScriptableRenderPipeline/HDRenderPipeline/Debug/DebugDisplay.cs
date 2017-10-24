@@ -10,7 +10,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         None,
         DiffuseLighting,
         SpecularLighting,
-        VisualizeCascade
+        VisualizeCascade,
+        IndirectDiffuseOcclusionFromSsao,
+        IndirectDiffuseGtaoFromSsao,
+        IndirectSpecularOcclusionFromSsao,
+        IndirectSpecularGtaoFromSsao   
     }
 
     public class DebugDisplaySettings

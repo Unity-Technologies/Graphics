@@ -1849,6 +1849,31 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
     specularLighting *= 1 + bsdfData.fresnel0 * preLightData.energyCompensation;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
+    {
+        diffuseLighting = indirectAmbientOcclusion;
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO)
+    {
+        diffuseLighting = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, indirectAmbientOcclusion, bsdfData.roughness);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    #if GTAO_MULTIBOUNCE_APPROX
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO)
+    {
+        diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO)
+    {
+        diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    #endif
+#endif
 }
 
 
