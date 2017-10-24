@@ -208,7 +208,7 @@ namespace UnityEditor.VFX
 
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
         {
-            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.kInit).ToList();
+            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.kInit && o.CanBeCompiled()).ToList();
             var spawnerList = CollectContextParentRecursively(initContext);
             return spawnerList.Where(o => o.contextType == VFXContextType.kSpawner).Reverse().ToArray();
         }
@@ -476,7 +476,7 @@ namespace UnityEditor.VFX
                 FillEventAttributeDescs(eventAttributeDescs, m_ExpressionGraph, models);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
-                foreach (var data in models.OfType<VFXData>())
+                foreach (var data in models.OfType<VFXData>().Where(d => d.CanBeCompiled()))
                     data.GenerateAttributeLayout();
 
                 var expressionSheet = new VFXExpressionSheet();

@@ -505,6 +505,11 @@ namespace UnityEditor.VFX.UI
                 m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
             else
                 m_HeaderTitle.text = presenter.context.name;
+
+            // Debug only to display not compiled contexts
+            if (!presenter.context.CanBeCompiled())
+                m_HeaderTitle.text += " (X)";
+
             m_HeaderIcon.style.backgroundImage = GetIconForVFXType(presenter.context.inputType);
 
             VFXContextType contextType = presenter.context.contextType;
