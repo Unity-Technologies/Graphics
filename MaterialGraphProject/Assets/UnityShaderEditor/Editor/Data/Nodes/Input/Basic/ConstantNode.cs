@@ -1,20 +1,7 @@
-using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 {
-    public enum ConstantType
-    {
-        PI,
-        TAU,
-        PHI,
-        E,
-        SQRT2
-    };
-
-    [Title("Input/Basic/Constant")]
-    public class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Math/Constants")]
+    public class ConstantsNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
@@ -29,7 +16,7 @@ namespace UnityEngine.MaterialGraph
         private ConstantType m_constant = ConstantType.PI;
 
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Out";
+        private const string kOutputSlotName = "Constant";
 
         [EnumControl("")]
         public ConstantType constant
@@ -48,9 +35,9 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public ConstantNode()
+        public ConstantsNode()
         {
-            name = "Constant";
+            name = "MathConstant";
             UpdateNodeAfterDeserialization();
         }
 
@@ -63,11 +50,6 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant] + ";", true);
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
         }
     }
 }

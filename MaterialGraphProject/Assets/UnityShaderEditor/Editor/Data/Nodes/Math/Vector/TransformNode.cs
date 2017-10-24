@@ -71,17 +71,17 @@ namespace UnityEngine.MaterialGraph
 
         protected int[] validSlots
         {
-            get { return new[] {InputSlotId, OutputSlotId}; }
+            get { return new[] { InputSlotId, OutputSlotId }; }
         }
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero);
+            return new Vector3MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, Vector3.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
+            return new Vector3MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotName, SlotType.Output, Vector4.zero);
         }
 
         protected virtual string GetInputSlotName()
@@ -185,7 +185,10 @@ namespace UnityEngine.MaterialGraph
             if (requiresTangentTransform)
                 visitor.AddShaderChunk("float3x3 tangentTransform = float3x3( worldSpaceTangent, worldSpaceBitangent, worldSpaceNormal);", false);
 
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + transformString + ";", true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                GetVariableNameForSlot(OutputSlotId),
+                transformString), true);
         }
 
         //float3x3 tangentTransform = float3x3( i.tangentDir, i.bitangentDir, i.normalDir);------
@@ -206,30 +209,19 @@ namespace UnityEngine.MaterialGraph
         //mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_MV ).xyz - view to local
         //mul( tangentTransform, mul( float4(i.posWorld.rgb,0), UNITY_MATRIX_V ).xyz ).xyz - view to tangent
 
-
-        public string outputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
-        }
-
-        private string inputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
-        }
-
         public NeededCoordinateSpace RequiresTangent()
         {
-            return NeededCoordinateSpace.Local;
+            return NeededCoordinateSpace.World;
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
-            return NeededCoordinateSpace.Local;
+            return NeededCoordinateSpace.World;
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            return NeededCoordinateSpace.Local;
+            return NeededCoordinateSpace.World;
         }
     }
 }
