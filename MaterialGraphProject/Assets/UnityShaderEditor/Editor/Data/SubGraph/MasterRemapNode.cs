@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialOptions; }
         }
 
-        public virtual PreviewMode previewMode
+        public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
         }
@@ -64,7 +64,7 @@ namespace UnityEngine.MaterialGraph
                 var helper = new RemapGraphHelper();
                 helper.remapGraph = value;
                 m_SerializedRemapGraph = EditorJsonUtility.ToJson(helper, true);
-                OnEnable();
+                UpdateSlots();
 
                 if (onModified != null)
                     onModified(this, ModificationScope.Topological);

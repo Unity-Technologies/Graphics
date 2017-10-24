@@ -55,12 +55,15 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 }
 
 // This sample a 3D volume storing SH
-// Volume is store as 3D texture with 4 R, G, B, X set of 4 coefficient store atlas in same 3D texture. X unused.
-// TODO: the packing here is innefficient as we will fetch values far away from each other and they may not fit into the cache
-// Suggest we pack only RGB not X and continuous
-float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture, float texelSizeX)
+// Volume is store as 3D texture with 4 R, G, B, X set of 4 coefficient store atlas in same 3D texture. X is use for occlusion.
+// TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack only RGB continuously
+// TODO: The calcul of texcoord could be perform with a single matrix multicplication calcualted on C++ side that will fold probeVolumeMin and probeVolumeSizeInv into it and handle the identity case, no reasons to do it in C++ (ask Ionut about it)
+// It should also handle the camera relative path (if the render pipeline use it)
+float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture, 
+                            float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
 {
-    float3 texCoord = mul(WorldToTexture, float4(positionWS, 1.0)).xyz;
+    float3 position = (transformToLocal == 1.0f) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
+    float3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
     // Each component is store in the same texture 3D. Each use one quater on the x axis
     // Here we get R component then increase by step size (0.25) to get other component. This assume 4 component
     // but last one is not used.

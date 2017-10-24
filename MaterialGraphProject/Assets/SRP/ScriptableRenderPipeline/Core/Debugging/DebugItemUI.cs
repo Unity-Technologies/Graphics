@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -11,6 +9,8 @@ namespace UnityEngine.Experimental.Rendering
         protected DebugItem     m_DebugItem = null;
 
         public bool dynamicDisplay { get { return (m_DebugItem.flags & DebugItemFlag.DynamicDisplay) != 0; } }
+
+        public DebugItem debugItem { get { return m_DebugItem; } }
 
         protected DebugItemUI(DebugItem debugItem)
         {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 
@@ -125,6 +126,7 @@ namespace UnityEngine.Graphing
                 return null;
 
             var slotEdges = GetEdges(inputSlot).ToList();
+
             // remove any inputs that exits before adding
             foreach (var edge in slotEdges)
             {
@@ -206,7 +208,7 @@ namespace UnityEngine.Graphing
                 Debug.LogWarning("Node does not exist");
                 return Enumerable.Empty<IEdge>();
             }
-            ISlot slot = slot = node.FindSlot<ISlot>(s.slotId);
+            ISlot slot = node.FindSlot<ISlot>(s.slotId);
 
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
@@ -244,7 +246,7 @@ namespace UnityEngine.Graphing
                 AddEdgeToNodeEdges(edge);
 
             OnEnable();
-            ValidateGraph();
+            ValidateGraph(); 
         }
 
         public virtual void ValidateGraph()
@@ -253,8 +255,8 @@ namespace UnityEngine.Graphing
             //orphans. This can happen if a user
             //manually modifies serialized data
             //of if they delete a node in the inspector
-            //debug view.
-            foreach (var edge in edges.ToArray())
+            //debug view. 
+            foreach (var edge in edges.ToArray()) 
             {
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
@@ -288,39 +290,14 @@ namespace UnityEngine.Graphing
                     RemoveEdge(edge);
             }
 
+            // Remove all nodes and re-add them.
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
-            using (var replacedNodesPooledObject = ListPool<INode>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
-                var replacedNodes = replacedNodesPooledObject.value;
                 foreach (var node in m_Nodes.Values)
-                {
-                    if (!other.ContainsNodeGuid(node.guid))
-                        // Remove the node if it doesn't exist in the other graph.
-                        removedNodeGuids.Add(node.guid);
-                    else
-                        // Replace the node with the one from the other graph otherwise.
-                        replacedNodes.Add(node);
-                }
-
+                    removedNodeGuids.Add(node.guid);
                 foreach (var nodeGuid in removedNodeGuids)
                     RemoveNode(m_Nodes[nodeGuid]);
-
-                foreach (var node in replacedNodes)
-                {
-                    var currentNode = other.GetNodeFromGuid(node.guid);
-                    currentNode.owner = this;
-                    m_Nodes[node.guid] = currentNode;
-                    currentNode.onModified = node.onModified;
-                    currentNode.onReplaced = node.onReplaced;
-                    // Notify listeners that the reference has changed.
-                    if (node.onReplaced != null)
-                        node.onReplaced(node, currentNode);
-                    if (currentNode.onModified != null)
-                        currentNode.onModified(node, ModificationScope.Node);
-                    node.onModified = null;
-                    node.onReplaced = null;
-                }
             }
 
             // Add nodes from other graph which don't exist in this one.

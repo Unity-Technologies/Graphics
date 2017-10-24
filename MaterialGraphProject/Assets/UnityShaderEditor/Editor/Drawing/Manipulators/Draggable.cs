@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void OnMouseDown(MouseDownEvent evt)
         {
-            target.TakeCapture();
+            target.TakeMouseCapture();
             m_Active = true;
             evt.StopPropagation();
         }
@@ -54,7 +54,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnMouseUp(MouseUpEvent evt)
         {
             m_Active = false;
-            target.ReleaseCapture();
+            target.ReleaseMouseCapture();
             evt.StopPropagation();
         }
     }

@@ -19,7 +19,6 @@ namespace UnityEditor.MaterialGraph.Drawing
         private Material m_CheckerboardMaterial;
 
         private static readonly Mesh[] s_Meshes = { null, null, null, null, null };
-        private static Mesh s_PlaneMesh;
         private static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
         private static readonly GUIContent[] s_LightIcons = { null, null };
         private static readonly GUIContent[] s_TimeIcons = { null, null };
@@ -75,8 +74,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
-            m_CheckerboardMaterial.SetFloat("_X", 32);
-            m_CheckerboardMaterial.SetFloat("_Y", 32);
+            m_CheckerboardMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
+            m_CheckerboardMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             if (s_Meshes[0] == null)
             {
@@ -121,7 +120,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
-                s_PlaneMesh = quadMesh;
             }
         }
 
@@ -188,6 +186,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             RenderSettings.ambientProbe = ambientProbe;
 
             m_Camera.targetTexture = renderTexture;
+            var previousRenderTexure = RenderTexture.active;
             RenderTexture.active = renderTexture;
             GL.Clear(true, true, Color.black);
             Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
@@ -218,6 +217,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Camera.Render();
             Unsupported.useScriptableRenderPipeline = oldAllowPipes;
 
+            RenderTexture.active = previousRenderTexure;
             Unsupported.RestoreOverrideRenderSettings();
 
             Light0.enabled = false;
@@ -226,25 +226,25 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Dispose()
         {
-            if (Light0 == null)
+            if (Light0 != null)
             {
                 UnityEngine.Object.DestroyImmediate(Light0.gameObject);
                 Light0 = null;
             }
 
-            if (Light1 == null)
+            if (Light1 != null)
             {
                 UnityEngine.Object.DestroyImmediate(Light1.gameObject);
                 Light1 = null;
             }
 
-            if (m_Camera == null)
+            if (m_Camera != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_Camera.gameObject);
                 m_Camera = null;
             }
 
-            if (m_CheckerboardMaterial == null)
+            if (m_CheckerboardMaterial != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_CheckerboardMaterial);
                 m_CheckerboardMaterial = null;

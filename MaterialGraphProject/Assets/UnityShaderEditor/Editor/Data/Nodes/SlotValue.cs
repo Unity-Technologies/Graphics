@@ -27,8 +27,7 @@ namespace UnityEngine.MaterialGraph
         Vector4,
         Vector3,
         Vector2,
-        Vector1,
-        Error
+        Vector1
     }
 
     public static class SlotValueHelper

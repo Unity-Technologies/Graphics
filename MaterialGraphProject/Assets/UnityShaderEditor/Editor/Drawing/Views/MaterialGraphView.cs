@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
@@ -16,118 +15,106 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView
     {
-        public MaterialGraphView()
+        public AbstractMaterialGraph graph { get; private set; }
+
+        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
-            RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
-            SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
-            this.AddManipulator(new ContentDragger());
-            this.AddManipulator(new RectangleSelector());
-            this.AddManipulator(new SelectionDragger());
-            this.AddManipulator(new ClickSelector());
+            var compatibleAnchors = new List<NodeAnchor>();
+            var startSlot = startAnchor.userData as MaterialSlot;
+            if (startSlot == null)
+                return compatibleAnchors;
 
-            Insert(0, new GridBackground());
+            var startStage = startSlot.shaderStage;
+            if (startStage == ShaderStage.Dynamic)
+                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
 
-            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeView);
-            typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
-            typeFactory[typeof(EdgePresenter)] = typeof(Edge);
-
-            AddStyleSheetPath("Styles/MaterialGraph");
-        }
-
-        public bool CanAddToNodeMenu(Type type)
-        {
-            return true;
-        }
-
-        void DoContextMenu(MouseUpEvent evt)
-        {
-            if (evt.button == (int)MouseButton.RightMouse)
+            foreach (var candidateAnchor in anchors.ToList())
             {
-                var gm = new GenericMenu();
-                foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
+                var candidateSlot = candidateAnchor.userData as MaterialSlot;
+                if (!startSlot.IsCompatibleWith(candidateSlot))
+                    continue;
+
+                if (startStage != ShaderStage.Dynamic)
                 {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
-                    {
-                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                        if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
-                        {
-                            gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, evt.mousePosition));
-                        }
-                    }
+                    var candidateStage = candidateSlot.shaderStage;
+                    if (candidateStage == ShaderStage.Dynamic)
+                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
+                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
+                        continue;
                 }
 
-                gm.ShowAsContext();
+                compatibleAnchors.Add(candidateAnchor);
             }
-            evt.StopPropagation();
+            return compatibleAnchors;
         }
 
-        class AddNodeCreationObject
+        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
+
+        public OnSelectionChanged onSelectionChanged;
+
+        public MaterialGraphView(AbstractMaterialGraph graph)
         {
-            public Vector2 m_Pos;
-            public readonly Type m_Type;
-
-            public AddNodeCreationObject(Type t, Vector2 p)
-            {
-                m_Type = t;
-                m_Pos = p;
-            }
-        };
-
-        void AddNode(object obj)
-        {
-            var posObj = obj as AddNodeCreationObject;
-            if (posObj == null)
-                return;
-
-            INode node;
-            try
-            {
-                node = Activator.CreateInstance(posObj.m_Type) as INode;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Could not construct instance of: {0} - {1}", posObj.m_Type, e);
-                return;
-            }
-
-            if (node == null)
-                return;
-            var drawstate = node.drawState;
-
-            Vector3 localPos = contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(posObj.m_Pos);
-            drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
-            node.drawState = drawstate;
-
-            var graphDataSource = GetPresenter<MaterialGraphPresenter>();
-            graphDataSource.AddNode(node);
+            this.graph = graph;
         }
 
-        void PropagateSelection()
+        void SelectionChanged()
         {
-            var graphPresenter = GetPresenter<MaterialGraphPresenter>();
-            if (graphPresenter == null)
-                return;
-
-            var selectedNodes = selection.OfType<MaterialNodeView>().Select(x => (MaterialNodePresenter)x.presenter);
-            graphPresenter.UpdateSelection(selectedNodes);
+            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
+            if (onSelectionChanged != null)
+                onSelectionChanged(selectedNodes.Select(x => x.userData as INode));
         }
 
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
-            PropagateSelection();
+            SelectionChanged();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
         {
             base.RemoveFromSelection(selectable);
-            PropagateSelection();
+            SelectionChanged();
         }
 
         public override void ClearSelection()
         {
             base.ClearSelection();
-            PropagateSelection();
+            SelectionChanged();
+        }
+    }
+
+    public static class GraphViewExtensions
+    {
+        internal static CopyPasteGraph SelectionAsCopyPasteGraph(this MaterialGraphView graphView)
+        {
+            return new CopyPasteGraph(graphView.selection.OfType<MaterialNodeView>().Select(x => (INode) x.node), graphView.selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+        }
+
+        internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
+        {
+            if (copyGraph == null)
+                return;
+
+            using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
+            using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+            {
+                var remappedNodes = remappedNodesDisposable.value;
+                var remappedEdges = remappedEdgesDisposable.value;
+                copyGraph.InsertInGraph(graphView.graph, remappedNodes, remappedEdges);
+
+                // Add new elements to selection
+                graphView.ClearSelection();
+                graphView.graphElements.ForEach(element =>
+                {
+                    var edge = element as Edge;
+                    if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                        graphView.AddToSelection(edge);
+
+                    var nodeView = element as MaterialNodeView;
+                    if (nodeView != null && remappedNodes.Contains(nodeView.node))
+                        graphView.AddToSelection(nodeView);
+                });
+            }
         }
     }
 }
