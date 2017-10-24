@@ -1211,6 +1211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
+                // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
                     // 0. deal with shadows
