@@ -3,11 +3,11 @@ using System.Reflection;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/Cross Product")]
-    public class CrossNode : CodeFunctionNode
+    public class CrossProductNode : CodeFunctionNode
     {
-        public CrossNode()
+        public CrossProductNode()
         {
-            name = "CrossProduct";
+            name = "Cross Product";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,14 +16,14 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_CrossProduct(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] DynamicDimensionVector second,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = cross(first, second);
+    Out = cross(A, B);
 }
 ";
         }

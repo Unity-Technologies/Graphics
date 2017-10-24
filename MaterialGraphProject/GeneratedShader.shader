@@ -1,14 +1,13 @@
-Shader "hidden/preview/TangentToWorld_C47CCB6C"
+Shader "hidden/preview/PartialDerivative_CA98ACC1"
 {
 	Properties
 	{
 	}
 	CGINCLUDE
 	#include "UnityCG.cginc"
-			void Unity_TangentToWorld_float(float3 inVector, out float3 result, float3 tangent, float3 biTangent, float3 normal)
+			void Unity_DDX_Coarse_float(float In, out float Out)
 			{
-			    float3x3 tangentToWorld = transpose(float3x3(tangent, biTangent, normal));
-			    result= saturate(mul(tangentToWorld, normalize(inVector)));
+			    Out = ddx_coarse(In);
 			}
 	struct GraphVertexInput
 	{
@@ -20,34 +19,25 @@ Shader "hidden/preview/TangentToWorld_C47CCB6C"
 	     UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 			struct SurfaceInputs{
-				float3 WorldSpaceNormal;
-				float3 WorldSpaceTangent;
-				float3 WorldSpaceBiTangent;
 			};
 			struct SurfaceDescription{
-				float3 TangentToWorld_C47CCB6C_result;
+				float _PartialDerivative_CA98ACC1_Out;
 			};
 			void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){
-				surface.TangentToWorld_C47CCB6C_result = scale * surface.TangentToWorld_C47CCB6C_result;
+				surface._PartialDerivative_CA98ACC1_Out = scale * surface._PartialDerivative_CA98ACC1_Out;
 			};
 			void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){
-				base.TangentToWorld_C47CCB6C_result = base.TangentToWorld_C47CCB6C_result + add.TangentToWorld_C47CCB6C_result;
+				base._PartialDerivative_CA98ACC1_Out = base._PartialDerivative_CA98ACC1_Out + add._PartialDerivative_CA98ACC1_Out;
 			};
-			float4 TangentToWorld_C47CCB6C_inVector;
-			float4 TangentToWorld_C47CCB6C_tangent;
-			float4 TangentToWorld_C47CCB6C_biTangent;
-			float4 TangentToWorld_C47CCB6C_normal;
+			float Vector1_13AB6CC;
 			GraphVertexInput PopulateVertexData(GraphVertexInput v){
 				return v;
 			}
 			SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
-				float3 WorldSpaceNormal = IN.WorldSpaceNormal;
-				float3 WorldSpaceTangent = IN.WorldSpaceTangent;
-				float3 WorldSpaceBiTangent = IN.WorldSpaceBiTangent;
-				float3 TangentToWorld_C47CCB6C_result;
-				Unity_TangentToWorld_float(TangentToWorld_C47CCB6C_inVector, TangentToWorld_C47CCB6C_result, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
+				float _PartialDerivative_CA98ACC1_Out;
+				Unity_DDX_Coarse_float(Vector1_13AB6CC, _PartialDerivative_CA98ACC1_Out);
 				SurfaceDescription surface = (SurfaceDescription)0;
-				surface.TangentToWorld_C47CCB6C_result = TangentToWorld_C47CCB6C_result;
+				surface._PartialDerivative_CA98ACC1_Out = _PartialDerivative_CA98ACC1_Out;
 				return surface;
 			}
 	ENDCG
@@ -64,31 +54,23 @@ Shader "hidden/preview/TangentToWorld_C47CCB6C"
 	        struct GraphVertexOutput
 	        {
 	            float4 position : POSITION;
-	            float3 WorldSpaceNormal : TEXCOORD0;
-	float3 WorldSpaceTangent : TEXCOORD1;
-	float3 WorldSpaceBiTangent : TEXCOORD2;
+	            
 	        };
 	        GraphVertexOutput vert (GraphVertexInput v)
 	        {
 	            v = PopulateVertexData(v);
 	            GraphVertexOutput o;
 	            o.position = UnityObjectToClipPos(v.vertex);
-	            o.WorldSpaceNormal = mul(v.normal,(float3x3)unity_WorldToObject);
-	o.WorldSpaceTangent = mul((float3x3)unity_ObjectToWorld,v.tangent);
-	o.WorldSpaceBiTangent = normalize(cross(o.WorldSpaceNormal, o.WorldSpaceTangent.xyz) * v.tangent.w);
+	            
 	            return o;
 	        }
 	        fixed4 frag (GraphVertexOutput IN) : SV_Target
 	        {
-	            float3 WorldSpaceNormal = normalize(IN.WorldSpaceNormal);
-	float3 WorldSpaceTangent = IN.WorldSpaceTangent;
-	float3 WorldSpaceBiTangent = IN.WorldSpaceBiTangent;
+	            
 	            SurfaceInputs surfaceInput = (SurfaceInputs)0;;
-	            surfaceInput.WorldSpaceNormal = WorldSpaceNormal;
-	surfaceInput.WorldSpaceTangent = WorldSpaceTangent;
-	surfaceInput.WorldSpaceBiTangent = WorldSpaceBiTangent;
+	            
 	            SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-	            return half4(surf.TangentToWorld_C47CCB6C_result.x, surf.TangentToWorld_C47CCB6C_result.y, surf.TangentToWorld_C47CCB6C_result.z, 1.0);
+	            return half4(surf._PartialDerivative_CA98ACC1_Out, surf._PartialDerivative_CA98ACC1_Out, surf._PartialDerivative_CA98ACC1_Out, 1.0);
 	        }
 	        ENDCG
 	    }
