@@ -71,7 +71,7 @@ namespace UnityEngine.MaterialGraph
 
         protected int[] validSlots
         {
-            get { return new[] { InputSlotId, OutputSlotId }; }
+            get { return new[] {InputSlotId, OutputSlotId}; }
         }
 
         protected virtual MaterialSlot GetInputSlot()
@@ -186,7 +186,7 @@ namespace UnityEngine.MaterialGraph
                 visitor.AddShaderChunk("float3x3 tangentTransform = float3x3( worldSpaceTangent, worldSpaceBitangent, worldSpaceNormal);", false);
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
                 GetVariableNameForSlot(OutputSlotId),
                 transformString), true);
         }
