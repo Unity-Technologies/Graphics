@@ -37,7 +37,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
             {
                 var value = EditorGUILayout.Popup("Property", currentSelectedIndex, properties.Select(x => x.displayName).ToArray());
                 if (changeCheckScope.changed)
+                {
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     m_Node.propertyGuid = propertiesGUID[value];
+                }
             }
         }
     }

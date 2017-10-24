@@ -1,4 +1,5 @@
 using System.Linq;
+using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -28,15 +29,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (!slots.Any())
                 return ModificationScope.Nothing;
 
-            EditorGUI.BeginChangeCheck();
             GUILayout.Label("Default Slot Values", EditorStyles.boldLabel);
 
+            var modified = false;
             foreach (var slot in node.GetSlots<MaterialSlot>())
-                slot.currentValue = EditorGUILayout.Vector4Field(slot.displayName, slot.currentValue);
-
+                modified |= IMGUISlotEditorView.SlotField(slot);
+                
             GUILayout.Space(10);
 
-            return EditorGUI.EndChangeCheck() ? ModificationScope.Node : ModificationScope.Nothing;
+            return modified ? ModificationScope.Node : ModificationScope.Nothing;
         }
     }
 }

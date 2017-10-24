@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Property Node")]
-    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IOnAssetEnabled
     {
         private Guid m_PropertyGuid;
 
@@ -37,39 +37,39 @@ namespace UnityEngine.MaterialGraph
 
             if (property is FloatShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "float", "float", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, "float", "float", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector2ShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "V2", "V2", SlotType.Output, SlotValueType.Vector2, Vector4.zero));
+                AddSlot(new Vector2MaterialSlot(OutputSlotId, "V2", "V2", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector3ShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "V3", "V3", SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+                AddSlot(new Vector3MaterialSlot(OutputSlotId, "V3", "V3", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector4ShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "V4", "V4", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, "V4", "V4", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is ColorShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "Color", "Color", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Color", "Color", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is TextureShaderProperty)
             {
-                AddSlot(new MaterialSlot(OutputSlotId, "RGBA", "RGBA", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-                AddSlot(new MaterialSlot(ROutputSlotId, "R", "R", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(GOutputSlotId, "G", "G", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(BOutputSlotId, "B", "B", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(AOutputSlotId, "A", "A", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(TOutputSlotId, "T", "T", SlotType.Output, SlotValueType.Texture2D, Vector4.zero));
-                AddSlot(new MaterialSlot(UVInput, "UV", "UV", SlotType.Input, SlotValueType.Vector2, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId, TOutputSlotId,UVInput});
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, "RGBA", "RGBA", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector1MaterialSlot(ROutputSlotId, "R", "R", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(GOutputSlotId, "G", "G", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(BOutputSlotId, "B", "B", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(AOutputSlotId, "A", "A", SlotType.Output, 0));
+                AddSlot(new Texture2DMaterialSlot(TOutputSlotId, "T", "T", SlotType.Output));
+                AddSlot(new Vector2MaterialSlot(UVInput, "UV", "UV", SlotType.Input, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId, TOutputSlotId, UVInput});
             }
         }
 
@@ -180,11 +180,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
-        {
-            base.UpdateNodeAfterDeserialization();
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
             if (slotId != TOutputSlotId)
@@ -216,6 +211,11 @@ namespace UnityEngine.MaterialGraph
             base.OnAfterDeserialize();
             if (!string.IsNullOrEmpty(m_PropertyGuidSerialized))
                 m_PropertyGuid = new Guid(m_PropertyGuidSerialized);
+        }
+
+        public void OnEnable()
+        {
+            UpdateNode();
         }
     }
 }

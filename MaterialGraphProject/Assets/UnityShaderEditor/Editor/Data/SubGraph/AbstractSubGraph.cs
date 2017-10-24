@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
     {
-        public virtual IEnumerable<AbstractMaterialNode> activeNodes { get; }
+        public virtual IEnumerable<AbstractMaterialNode> activeNodes { get { return Enumerable.Empty<AbstractMaterialNode>(); } }
 
         public PreviewMode previewMode
         {

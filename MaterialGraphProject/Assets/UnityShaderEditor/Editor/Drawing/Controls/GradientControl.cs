@@ -73,7 +73,10 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
                 EditorGUILayout.PropertyField(m_SerializedProperty, m_Label, true, null);
                 m_SerializedObject.ApplyModifiedProperties();
                 if (changeCheckScope.changed)
+                {
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
+                }
             }
 
             var e = Event.current;
@@ -82,7 +85,6 @@ namespace UnityEditor.MaterialGraph.Drawing.Controls
             {
                 m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
                 m_PrevWindow = EditorWindow.focusedWindow.ToString();
-                Debug.Log("Update Gradient Shader");
             }
         }
     }

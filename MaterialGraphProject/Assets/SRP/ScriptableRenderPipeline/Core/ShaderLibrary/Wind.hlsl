@@ -95,28 +95,28 @@ WindData GetAnalyticalWind(float3 WorldPosition, float3 PivotPosition, float dra
 
 
 
-void ApplyWind( inout float3    worldPos,
-                inout float3    worldNormal,
-                float3          rootWP,
-                float           stiffness,
-                float           drag,
-                float           shiverDrag,
-                float           shiverDirectionality,
-                float           initialBend,
-                float           shiverMask,
-                float4          time)
+void ApplyWindDisplacement( inout float3    positionWS,
+                            float3          normalWS,
+                            float3          rootWP,
+                            float           stiffness,
+                            float           drag,
+                            float           shiverDrag,
+                            float           shiverDirectionality,
+                            float           initialBend,
+                            float           shiverMask,
+                            float4          time)
 {
-    WindData wind = GetAnalyticalWind(worldPos, rootWP, drag, shiverDrag, initialBend, time);
+    WindData wind = GetAnalyticalWind(positionWS, rootWP, drag, shiverDrag, initialBend, time);
 
-    if(wind.Strength > 0.0f)
+    if (wind.Strength > 0.0f)
     {
-        float att = AttenuateTrunk(distance(worldPos, rootWP), stiffness);
+        float att = AttenuateTrunk(distance(positionWS, rootWP), stiffness);
         float3 rotAxis = cross(float3(0, 1, 0), wind.Direction);
 
-        worldPos = Rotate(rootWP, worldPos, rotAxis, (wind.Strength) * 0.001 * att);
+        positionWS = Rotate(rootWP, positionWS, rotAxis, (wind.Strength) * 0.001 * att);
 
-        float3 shiverDirection = normalize(lerp(worldNormal, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
-        worldPos += wind.ShiverStrength * shiverDirection * shiverMask;
+        float3 shiverDirection = normalize(lerp(normalWS, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
+        positionWS += wind.ShiverStrength * shiverDirection * shiverMask;
     }
 
 }

@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new UnityEngine.MaterialGraph.MaterialGraph();
-//            graph.AddNode(new MetallicMasterNode());
+            graph.AddNode(new LightweightMetallicMasterNode());
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();
         }

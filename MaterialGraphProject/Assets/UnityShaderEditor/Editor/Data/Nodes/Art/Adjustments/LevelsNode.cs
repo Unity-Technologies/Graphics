@@ -7,17 +7,6 @@ namespace UnityEngine.MaterialGraph
     [Title("Art/Adjustments/Levels")]
     public class LevelsNode : CodeFunctionNode
     {
-        [SerializeField]
-        private float m_InputMin = 0.0f;
-        [SerializeField]
-        private float m_InputMax = 1.0f;
-        [SerializeField]
-        private float m_InputGamma = 1.0f;
-        [SerializeField]
-        private float m_OutputMin = 0.0f;
-        [SerializeField]
-        private float m_OutputMax = 1.0f;
-
         public LevelsNode()
         {
             name = "Levels";

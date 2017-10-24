@@ -201,31 +201,6 @@ namespace UnityEngine.Experimental.Rendering
     {
         protected int m_NumMipLevels;
 
-#if UNITY_EDITOR
-        static int s_TextureCacheIdGenerator = 0;
-        int m_TextureCacheId = 0;
-
-        static bool s_ForceReinjectGlobalFirst = false;
-        static bool s_ForceReinjectGlobalSecond = false;
-        static int s_GlobalSecondSetByTexCacheID = -1;
-        
-
-        // here we receive the in-editor updated textures. These must be reinjected into 
-        // any texture cache which has a stale copy of it. However, we don't have a this-pointer to the texture cache
-        // so instead we defer this to NewFrame() where we force reinject.
-        // Ideally we'd build up a list here of textures which are to be reinjected but unfortunately the texture we receive
-        // is an intermediate one and not the final compressed one. So instead we will have to reinject all in NewFrame().
-        internal class AssetReloader : UnityEditor.AssetPostprocessor
-        {
-            void OnPostprocessTexture(Texture texture)
-            {
-                s_ForceReinjectGlobalFirst = true;
-                s_ForceReinjectGlobalSecond = false;
-                s_GlobalSecondSetByTexCacheID = -1;
-            }
-        }
-#endif
-
         public static bool isMobileBuildTarget
         {
             get
@@ -283,8 +258,11 @@ namespace UnityEngine.Experimental.Rendering
 
         private struct SSliceEntry
         {
-            public uint texId;
-            public uint countLRU;
+            public uint    texId;
+            public uint    countLRU;
+        #if UNITY_EDITOR
+            public Hash128 hash;
+        #endif
         };
 
         private int m_NumTextures;
@@ -304,6 +282,9 @@ namespace UnityEngine.Experimental.Rendering
                 return sliceIndex;
 
             var texId = (uint)texture.GetInstanceID();
+        #if UNITY_EDITOR
+            var hash  = texture.imageContentsHash;
+        #endif
 
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
@@ -312,11 +293,16 @@ namespace UnityEngine.Experimental.Rendering
             var bFoundAvailOrExistingSlice = false;
 
             // search for existing copy
-            if (m_LocatorInSliceArray.ContainsKey(texId))
+            int cachedSlice;
+            if (m_LocatorInSliceArray.TryGetValue(texId, out cachedSlice))
             {
-                sliceIndex = m_LocatorInSliceArray[texId];
+                sliceIndex = cachedSlice;
+                Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
+
                 bFoundAvailOrExistingSlice = true;
-                //assert(m_SliceArray[sliceIndex].TexID==TexID);
+            #if UNITY_EDITOR
+                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].hash != hash);
+            #endif
             }
 
             // If no existing copy found in the array
@@ -350,15 +336,18 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-
             // wrap up
-            //assert(bFoundAvailOrExistingSlice);
+            Debug.Assert(bFoundAvailOrExistingSlice, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
             if (bFoundAvailOrExistingSlice)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
 
                 if (bSwapSlice) // if this was a miss
                 {
+                #if UNITY_EDITOR
+                    m_SliceArray[sliceIndex].hash = hash;
+                #endif
+
                     // transfer new slice to sliceIndex from source texture
                     TransferToSlice(sliceIndex, texture);
                 }
@@ -399,49 +388,12 @@ namespace UnityEngine.Experimental.Rendering
 
             //for(int q=1; q<m_numTextures; q++)
             //    assert(m_SliceArray[m_SortedIdxArray[q-1]].CountLRU>=m_SliceArray[m_SortedIdxArray[q]].CountLRU);
-
-
-#if UNITY_EDITOR
-            // one or more textures got updated in editor. Unfortunately we do not know exactly which since
-            // OnPostprocessTexture() receives intermediate uncompressed textures. So we will have to reinject all slices to force an update.
-            if(s_ForceReinjectGlobalSecond && s_GlobalSecondSetByTexCacheID==m_TextureCacheId)
-            {
-                s_ForceReinjectGlobalSecond = false;
-                s_GlobalSecondSetByTexCacheID = -1;
-            }
-
-            if(s_ForceReinjectGlobalFirst)
-            {
-                s_ForceReinjectGlobalSecond = true;
-                s_GlobalSecondSetByTexCacheID = m_TextureCacheId;
-                s_ForceReinjectGlobalFirst = false;
-            }
-            
-            if(s_ForceReinjectGlobalSecond)
-            {
-                // all texture caches must loop through and force a reinject on all entries when this is true.
-                for(int i = 0; i < m_NumTextures; i++)
-                {
-                    var texID = m_SliceArray[i].texId;
-                    if(texID!=g_InvalidTexID)
-                    {
-                        Texture texture = (Texture) EditorUtility.InstanceIDToObject((int) texID);
-                        if(texture!=null) TransferToSlice(i, texture);
-                    }
-                }
-            }
-#endif
         }
 
         protected TextureCache()
         {
             m_NumTextures = 0;
             m_NumMipLevels = 0;
-
-#if UNITY_EDITOR
-            m_TextureCacheId = s_TextureCacheIdGenerator;       // assign an ID so we can tell the caches apart
-            ++s_TextureCacheIdGenerator;        // static/global
-#endif
         }
 
         public virtual void TransferToSlice(int sliceIndex, Texture texture)
