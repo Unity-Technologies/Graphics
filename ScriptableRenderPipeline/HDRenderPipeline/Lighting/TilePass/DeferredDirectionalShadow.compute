@@ -6,9 +6,104 @@
 #include "../../Lighting/Lighting.hlsl" 
 
 RWTexture2D<float4> _DeferredShadowTextureUAV;
-float               _DirectionalShadowIndex;
+
+CBUFFER_START(DeferredShadowParameters)
+float   _DirectionalShadowIndex;
+float3  _LightDirection;
+float4  _ScreenSpaceShadowsParameters;
+CBUFFER_END
+
+#define _ContactShadowLength                _ScreenSpaceShadowsParameters.x
+#define _ContactShadowDistanceScaleFactor   _ScreenSpaceShadowsParameters.y
+#define _ContactShadowFadeEnd               _ScreenSpaceShadowsParameters.z
+#define _ContactShadowFadeOneOverRange      _ScreenSpaceShadowsParameters.w
 
 #define DEFERRED_SHADOW_TILE_SIZE 16
+
+// Return 1.0 if occluded 0.0 if not
+float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float rayLength)
+{
+    int stepCount = 8;
+
+    uint3 hashInput = uint3(abs(GetAbsolutePositionWS(positionWS))* 5000);
+    // Dither pattern is shifted by 0.5 because we want to jitter the ray starting position backward and forward (so we need values between -0.5 and 0.5)
+    float ditherBias = 0.5;
+    float dither = GenerateHashedRandomFloat(hashInput) - ditherBias;
+
+    float3 rayStartWS = positionWS;
+    float3 rayEndWS = rayStartWS + rayDirection * rayLength;
+
+    float4 rayStartCS = TransformWorldToHClip(rayStartWS);
+    float4 rayEndCS	= TransformWorldToHClip(rayEndWS);
+
+    // Here we compute a ray perpendicular to view space. This is the ray we use to compute the threshold for rejecting samples.
+    // This is done this way so that the threshold is less dependent of ray slope.
+    float4 rayOrthoViewSpace = rayStartCS + mul(GetViewToHClipMatrix(), float4(0, 0, rayLength, 0));
+    rayOrthoViewSpace = rayOrthoViewSpace / rayOrthoViewSpace.w;
+
+    rayStartCS.xyz = rayStartCS.xyz / rayStartCS.w;
+    rayEndCS.xyz = rayEndCS.xyz / rayEndCS.w;
+
+    // Pixel to light ray in clip space.
+    float3 rayCS = rayEndCS.xyz - rayStartCS.xyz;
+
+    // Depth at the start of the ray
+    float startDepth = rayStartCS.z;
+    // Depth range of the ray
+    float rayDepth = rayCS.z;
+
+    // Starting UV of the sampling loop
+    float2 startUV = rayStartCS.xy * 0.5f + 0.5f;
+    startUV.y = 1.0 - startUV.y;
+
+    // Pixel to light ray in 
+    float2 rayUV = rayCS.xy * 0.5f;
+    rayUV.y = -rayUV.y;
+
+    float step = 1.0 / stepCount;
+    float compareThreshold = abs( rayOrthoViewSpace.z - rayStartCS.z ) * step ;
+
+    float FirstHitTime = -1.0;
+
+    [unroll]
+    for( int i = 0; i < stepCount; i++ )
+    {
+        // Step for this sample
+        float sampleStep = ((i + 1) * step + step * dither);
+
+        // UVs for the current sample
+        float2 sampleUV = startUV + rayUV * sampleStep;
+        // Ray depth for this sample
+        float raySampleDepth = startDepth + rayDepth * sampleStep;
+
+        // Depth buffer depth for this sample
+        float sampleDepth = SAMPLE_TEXTURE2D_LOD(_MainDepthTexture, sampler_MainDepthTexture, sampleUV, 0.0).x;
+
+        bool Hit = false;
+        float depthDiff = sampleDepth - raySampleDepth;
+        Hit = depthDiff < compareThreshold && depthDiff > 0.0;// 1e-4;
+
+        FirstHitTime = (Hit && FirstHitTime < 0.0) ? 1.0 : FirstHitTime;
+    }
+
+    float occluded = FirstHitTime > 0.0 ? 1.0 : 0.0;
+
+    // Off screen masking
+    //float2 Vignette = max(6.0 * abs(RayStartScreen.xy + RayStepScreen.xy * FirstHitTime) - 5.0, 0.0);
+    //Shadow *= saturate( 1.0 - dot( Vignette, Vignette ) );
+
+    return occluded;
+}
+
+float hash( float2 input ) 
+{
+    return frac( 1.0e4 * sin( 17.0*input.x + 0.1*input.y ) *( 0.1 + abs( sin( 13.0*input.y + input.x ))));
+}
+
+float hash3D( float3 input ) 
+{
+    return hash( float2( hash( input.xy ), input.z ) );
+}
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
 void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -24,5 +119,9 @@ void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
     ShadowContext shadowContext = InitShadowContext();
     float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, float3(0.0, 0.0, 0.0));
 
-    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow.xxx, 0.0);
+    float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, normalize(_LightDirection), _ContactShadowLength * max(0.5, posInput.depthVS * _ContactShadowDistanceScaleFactor));
+    float contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.depthVS) * _ContactShadowFadeOneOverRange);
+
+    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow.x * contactShadow, 0.0, 0.0, 0.0);
+    //_DeferredShadowTextureUAV[pixelCoord] = contactShadow;
 }

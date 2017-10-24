@@ -1944,10 +1944,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "Deferred Directional"))
                 {
+                    AdditionalShadowData asd = m_CurrentSunLight.GetComponent<AdditionalShadowData>();
                     hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
                     m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
 
                     cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
+
+                    float contactShadowRange = Mathf.Clamp(asd.contactShadowFadeDistance, 0.0f, asd.contactShadowMaxDistance);
+                    float contactShadowFadeEnd = asd.contactShadowMaxDistance;
+                    float contactShadowOneOverFadeRange = 1.0f / (contactShadowRange);
+                    Vector4 contactShadowParams = new Vector4(asd.contactShadowLength, asd.contactShadowDistanceScaleFactor, contactShadowFadeEnd, contactShadowOneOverFadeRange);
+                    cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowParams, contactShadowParams);
+                    cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
                     cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
                     cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
