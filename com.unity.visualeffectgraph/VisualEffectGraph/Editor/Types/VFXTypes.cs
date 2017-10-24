@@ -114,8 +114,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The position of the plane.")]
         public Vector3 position;
-        [Tooltip("The direction of the plane.")]
-        [Normalize]
+        [Normalize, Tooltip("The direction of the plane.")]
         public Vector3 normal;
     }
 
