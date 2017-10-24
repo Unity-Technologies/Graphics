@@ -7,6 +7,8 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractLightweightMasterNode : MasterNode
     {
+        private const int kMaxInterpolators = 8;
+
         protected abstract IEnumerable<int> masterSurfaceInputs { get; }
         protected abstract IEnumerable<int> masterVertexInputs { get; }
         protected abstract string GetTemplateName();
@@ -85,12 +87,14 @@ namespace UnityEngine.MaterialGraph
 
             ShaderGenerator.GenerateStandardTransforms(
                 GetInterpolatorStartIndex(),
+                10,
                 interpolators,
                 vertexShader,
                 localPixelShader,
                 surfaceInputs,
                 graphRequirements,
-                GetNodeSpecificRequirements());
+                GetNodeSpecificRequirements(),
+                CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
             ShaderGenerator surfaceOutputRemap = new ShaderGenerator();
