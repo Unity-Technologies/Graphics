@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph

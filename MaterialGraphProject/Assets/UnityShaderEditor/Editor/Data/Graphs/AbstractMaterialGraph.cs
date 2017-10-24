@@ -77,7 +77,7 @@ namespace UnityEngine.MaterialGraph
                 fullName = "UnityEngine.MaterialGraph.WorldPosNode",
                 assemblyName = "Assembly-CSharp"
             };
-            result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(WorldSpacePositionNode));
+            result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(PositionNode));
 
             return result;
         }
