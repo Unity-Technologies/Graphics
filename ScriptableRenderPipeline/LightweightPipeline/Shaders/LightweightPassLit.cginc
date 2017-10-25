@@ -157,12 +157,12 @@ inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out Sur
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
     outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
 
-#if _METALLIC_SETUP
-    outSurfaceData.metallic = specGloss.r;
-    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-#else
+#if _SPECULAR_SETUP
     outSurfaceData.metallic = 1.0h;
     outSurfaceData.specular = specGloss.rgb;
+#else
+    outSurfaceData.metallic = specGloss.r;
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
 #endif
 
     outSurfaceData.smoothness = specGloss.a;

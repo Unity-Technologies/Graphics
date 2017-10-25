@@ -68,15 +68,16 @@
             #pragma target 3.0
 
             // -------------------------------------
-            #pragma shader_feature _METALLIC_SETUP _SPECULAR_SETUP
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature _OCCLUSIONMAP
+
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature _OCCLUSIONMAP
+            #pragma shader_feature _SPECULAR_SETUP
 
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
