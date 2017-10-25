@@ -64,6 +64,19 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 #endif
 }
 
+// This function must be use instead of clip instruction. It allow to manage in which case the clip is perform
+void DoAlphaTest(float alpha, float alphaCutoff)
+{
+    // For Deferred:
+    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+    // For Forward (Lit or Unlit)
+    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    // Also no alpha test for light transport
+#if !(SHADERPASS == SHADERPASS_FORWARD && !defined(_SURFACE_TYPE_TRANSPARENT)) && !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT)) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+    clip(alpha - alphaCutoff);
+#endif
+}
+
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
