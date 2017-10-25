@@ -239,6 +239,29 @@ inline half ComputeVertexLightAttenuation(LightInput lightInput, half3 normal, f
     return lightAtten;
 }
 
+half3 VertexLighting(float positionWS, half3 normalWS)
+{
+    half3 vertexLightColor = half3(0.0, 0.0, 0.0);
+
+#if defined(_VERTEX_LIGHTS)
+    half3 diffuse = half3(1.0, 1.0, 1.0);
+
+    int vertexLightStart = _AdditionalLightCount.x;
+    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+    {
+        LightInput lightData;
+        INITIALIZE_LIGHT(lightData, lightIter);
+
+        half3 lightDirection;
+        half atten = ComputeVertexLightAttenuation(lightData, normalWS, positionWS, lightDirection);
+        vertexLightColor += LightingLambert(diffuse, lightDirection, normalWS, atten) * lightData.color;
+    }
+#endif
+
+    return vertexLightColor;
+}
+
 // In per-pixel falloff attenuation smoothly decreases to light range.
 inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
