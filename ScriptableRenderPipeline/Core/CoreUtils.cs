@@ -18,6 +18,9 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
+        public const int editMenuPriority = 320;
+        public const int assetCreateMenuPriority = 230;
+
         // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {

@@ -18,7 +18,7 @@ public class BasicRenderPipeline : RenderPipelineAsset
     public bool UseIntermediateRenderTargetBlit;
 
 #if UNITY_EDITOR
-    [UnityEditor.MenuItem("RenderPipeline/Create BasicRenderPipeline")]
+    [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Basic/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority)]
     static void CreateBasicRenderPipeline()
     {
         var instance = ScriptableObject.CreateInstance<BasicRenderPipeline>();
@@ -110,7 +110,7 @@ public static class BasicRendering
         CommandBufferPool.Release(blitIntermediateRTCmd);
 
     }
-    
+
     // Main entry point for our scriptable render loop
 
     public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras, bool useIntermediateBlitPath)
