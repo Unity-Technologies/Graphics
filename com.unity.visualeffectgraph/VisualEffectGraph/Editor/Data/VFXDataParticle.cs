@@ -40,6 +40,8 @@ namespace UnityEditor.VFX
             {
                 var block = attribBlocks.FirstOrDefault(b => b.Sum(a => VFXValue.TypeToSize(a.type)) + VFXValue.TypeToSize(value.type) <= 4);
                 if (block != null)
+                    block.Add(value);
+                else
                     attribBlocks.Add(new List<VFXAttribute>() { value });
             }
 

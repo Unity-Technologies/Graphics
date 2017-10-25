@@ -12,7 +12,7 @@ CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT 
 ConsumeStructuredBuffer<uint> deadListIn;
-Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -22,7 +22,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	uint maxThreadId = nbSpawned;
 #if VFX_USE_ALIVE_CURRENT
-	maxThreadId = min(maxThreadId,deadListCount[0]);
+	maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
 #endif
 
     if (id.x < maxThreadId)
