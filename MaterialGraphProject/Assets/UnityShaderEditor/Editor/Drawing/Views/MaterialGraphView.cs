@@ -17,8 +17,6 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public MaterialGraphView()
         {
-            focusIndex = 0;
-
             RegisterCallback<MouseUpEvent>(DoContextMenu, Capture.Capture);
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());
@@ -34,8 +32,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
-
-            isReframable = true;
         }
 
         public bool CanAddToNodeMenu(Type type)
