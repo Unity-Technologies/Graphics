@@ -6,7 +6,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
     #include "../../../../Core/ShaderLibrary/Color.hlsl"
     #include "../../../../Core/ShaderLibrary/Common.hlsl"
