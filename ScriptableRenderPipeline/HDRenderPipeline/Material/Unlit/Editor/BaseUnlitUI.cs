@@ -419,6 +419,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
+
+            // DoubleSidedGI has to be synced with our double sided toggle
+            var serializedObject = new SerializedObject(material);
+            var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
+            doubleSidedGIppt.boolValue = doubleSidedEnable;
+            serializedObject.ApplyModifiedProperties();
         }
 
         static public void SetupBaseUnlitMaterialPass(Material material)
@@ -506,7 +512,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.EnableInstancingField();
-                m_MaterialEditor.DoubleSidedGIField();
                 EditorGUI.indentLevel--;
             }
 
