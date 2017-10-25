@@ -410,7 +410,6 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
             {
-                //var generatedShader = new List<Object>();
                 var currentCacheFolder = baseCacheFolder;
                 if (asset != null)
                 {
@@ -439,21 +438,7 @@ namespace UnityEditor.VFX
                     }
 
                     AssetDatabase.ImportAsset(path);
-                    Object imported = null;
-                    if (generated.computeShader)
-                    {
-                        imported = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
-                    }
-                    else
-                    {
-                        var importer = AssetImporter.GetAtPath(path) as ShaderImporter;
-                        imported = importer.GetShader();
-                    }
-                    if (hasChanged)
-                    {
-                        EditorUtility.SetDirty(imported);
-                    }
-                    //generatedShader.Add(imported);
+                    Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
 
                     var contextData = contextToCompiledData[generated.context];
                     contextData.processor = imported;
@@ -547,7 +532,7 @@ namespace UnityEditor.VFX
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
-                m_Graph.vfxAsset.SetSystem(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.vfxAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
             }
             catch (Exception e)
@@ -558,7 +543,7 @@ namespace UnityEditor.VFX
                 if (m_Graph.vfxAsset != null)
                 {
                     m_Graph.vfxAsset.ClearPropertyData();
-                    m_Graph.vfxAsset.SetSystem(null, null, null, null);
+                    m_Graph.vfxAsset.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
