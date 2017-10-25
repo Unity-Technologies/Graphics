@@ -25,6 +25,48 @@ namespace UnityEngine.Graphing
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
 
+        [NonSerialized]
+        List<INode> m_AddedNodes = new List<INode>();
+
+        [NonSerialized]
+        List<INode> m_RemovedNodes = new List<INode>();
+
+        [NonSerialized]
+        List<IEdge> m_AddedEdges = new List<IEdge>();
+
+        [NonSerialized]
+        List<IEdge> m_RemovedEdges = new List<IEdge>();
+
+        public IEnumerable<INode> addedNodes
+        {
+            get { return m_AddedNodes; }
+        }
+
+        public IEnumerable<INode> removedNodes
+        {
+            get { return m_RemovedNodes; }
+        }
+
+        public IEnumerable<IEdge> addedEdges
+        {
+            get { return m_AddedEdges; }
+        }
+
+        public IEnumerable<IEdge> removedEdges
+        {
+            get { return m_RemovedEdges; }
+        }
+
+        public IGraphObject owner { get; set; }
+
+        public virtual void ClearChanges()
+        {
+            m_AddedNodes.Clear();
+            m_RemovedNodes.Clear();
+            m_AddedEdges.Clear();
+            m_RemovedEdges.Clear();
+        }
+
         public IEnumerable<T> GetNodes<T>() where T : INode
         {
             return m_Nodes.Values.OfType<T>();
@@ -45,7 +87,7 @@ namespace UnityEngine.Graphing
         {
             m_Nodes.Add(node.guid, node);
             node.owner = this;
-            NotifyChange(new NodeAddedGraphChange(node));
+            m_AddedNodes.Add(node);
         }
 
         public virtual void RemoveNode(INode node)
@@ -54,7 +96,7 @@ namespace UnityEngine.Graphing
                 return;
 
             m_Nodes.Remove(node.guid);
-            NotifyChange(new NodeRemovedGraphChange(node));
+            m_RemovedNodes.Add(node);
             ValidateGraph();
         }
 
@@ -64,7 +106,7 @@ namespace UnityEngine.Graphing
                 return;
 
             m_Nodes.Remove(node.guid);
-            NotifyChange(new NodeRemovedGraphChange(node));
+            m_RemovedNodes.Add(node);
         }
 
         void AddEdgeToNodeEdges(IEdge edge)
@@ -135,7 +177,7 @@ namespace UnityEngine.Graphing
 
             var newEdge = new Edge(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
-            NotifyChange(new EdgeAddedGraphChange(newEdge));
+            m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
@@ -174,7 +216,7 @@ namespace UnityEngine.Graphing
             if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
-            NotifyChange(new EdgeRemovedGraphChange(e));
+            m_RemovedEdges.Add(e);
         }
 
         public INode GetNodeFromGuid(Guid guid)
@@ -246,7 +288,7 @@ namespace UnityEngine.Graphing
                 AddEdgeToNodeEdges(edge);
 
             OnEnable();
-            ValidateGraph(); 
+            ValidateGraph();
         }
 
         public virtual void ValidateGraph()
@@ -255,8 +297,8 @@ namespace UnityEngine.Graphing
             //orphans. This can happen if a user
             //manually modifies serialized data
             //of if they delete a node in the inspector
-            //debug view. 
-            foreach (var edge in edges.ToArray()) 
+            //debug view.
+            foreach (var edge in edges.ToArray())
             {
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
@@ -321,16 +363,6 @@ namespace UnityEngine.Graphing
             {
                 node.OnEnable();
             }
-        }
-
-        public OnGraphChange onChange { get; set; }
-
-        public IGraphObject owner { get; set; }
-
-        protected void NotifyChange(GraphChange change)
-        {
-            if (onChange != null)
-                onChange(change);
         }
     }
 }

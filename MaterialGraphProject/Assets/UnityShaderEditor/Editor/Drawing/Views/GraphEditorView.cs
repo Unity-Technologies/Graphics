@@ -45,6 +45,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             set { m_PreviewSystem = value; }
         }
 
+        public GraphInspectorView inspectorView
+        {
+            get { return m_GraphInspectorView; }
+        }
+
         public GraphEditorView(AbstractMaterialGraph graph, Object asset)
         {
             m_Graph = graph;
@@ -188,8 +193,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
             }
 
-            graph.onChange += OnGraphChange;
-
             Add(content);
         }
 
@@ -238,32 +241,36 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        void OnGraphChange(GraphChange change)
+        public void HandleGraphChanges()
         {
-            var nodeAdded = change as NodeAddedGraphChange;
-            if (nodeAdded != null)
+            foreach (var node in m_Graph.removedNodes)
             {
-                var nodeView = new MaterialNodeView(nodeAdded.node as AbstractMaterialNode, m_PreviewSystem);
-                nodeView.userData = nodeAdded.node;
-                nodeAdded.node.onModified += OnNodeChanged;
-                m_GraphView.AddElement(nodeView);
-            }
-
-            var nodeRemoved = change as NodeRemovedGraphChange;
-            if (nodeRemoved != null)
-            {
-                nodeRemoved.node.onModified -= OnNodeChanged;
-
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == nodeRemoved.node.guid);
+                node.onModified -= OnNodeChanged;
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                     m_GraphView.RemoveElement(nodeView);
             }
 
-            var edgeAdded = change as EdgeAddedGraphChange;
-            if (edgeAdded != null)
+            foreach (var node in m_Graph.addedNodes)
             {
-                var edge = edgeAdded.edge;
+                var nodeView = new MaterialNodeView(node as AbstractMaterialNode, m_PreviewSystem) { userData = node };
+                node.onModified += OnNodeChanged;
+                m_GraphView.AddElement(nodeView);
+            }
 
+            foreach (var edge in m_Graph.removedEdges)
+            {
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
+                if (edgeView != null)
+                {
+                    edgeView.output.Disconnect(edgeView);
+                    edgeView.input.Disconnect(edgeView);
+                    m_GraphView.RemoveElement(edgeView);
+                }
+            }
+
+            foreach (var edge in m_Graph.addedEdges)
+            {
                 var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var sourceSlot = sourceNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
 
@@ -287,18 +294,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_GraphView.AddElement(edgeView);
                 }
             }
-
-            var edgeRemoved = change as EdgeRemovedGraphChange;
-            if (edgeRemoved != null)
-            {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edgeRemoved.edge));
-                if (edgeView != null)
-                {
-                    edgeView.output.Disconnect(edgeView);
-                    edgeView.input.Disconnect(edgeView);
-                    m_GraphView.RemoveElement(edgeView);
-                }
-            }
         }
 
         public void Dispose()
@@ -306,7 +301,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             onUpdateAssetClick = null;
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
-            m_Graph.onChange -= OnGraphChange;
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
             if (previewSystem != null)
             {

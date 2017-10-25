@@ -38,12 +38,28 @@ namespace UnityEngine.MaterialGraph
         [NonSerialized]
         private List<Layer> m_Layers = new List<Layer>();
 
+        [NonSerialized]
+        List<Layer> m_AddedLayers = new List<Layer>();
+
+        [NonSerialized]
+        List<Guid> m_RemovedLayers = new List<Guid>();
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedLayers = new List<SerializationHelper.JSONSerializedElement>();
 
         public IEnumerable<Layer> layers
         {
             get { return m_Layers; }
+        }
+
+        public List<Layer> addedLayers
+        {
+            get { return m_AddedLayers; }
+        }
+
+        public List<Guid> removedLayers
+        {
+            get { return m_RemovedLayers; }
         }
 
         [NonSerialized]
@@ -61,6 +77,13 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        public override void ClearChanges()
+        {
+            base.ClearChanges();
+            m_AddedLayers.Clear();
+            m_RemovedLayers.Clear();
+        }
+
         public override void AddNode(INode node)
         {
             if (outputNode != null && node is LayerWeightsOutputNode)
@@ -76,7 +99,7 @@ namespace UnityEngine.MaterialGraph
         {
             var layer = new Layer();
             m_Layers.Add(layer);
-            NotifyChange(new LayerAdded(layer));
+            m_AddedLayers.Add(layer);
 
             if (outputNode != null)
                 outputNode.onModified(outputNode, ModificationScope.Graph);
@@ -123,7 +146,7 @@ namespace UnityEngine.MaterialGraph
 
             if (num > 0)
             {
-                NotifyChange(new LayerRemoved(id));
+                m_RemovedLayers.Add(id);
 
                 if (outputNode != null)
                     outputNode.onModified(outputNode, ModificationScope.Graph);

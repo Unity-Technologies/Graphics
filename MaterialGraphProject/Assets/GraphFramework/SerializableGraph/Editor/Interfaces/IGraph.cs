@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Graphing
 {
-    public delegate void OnGraphChange(GraphChange change);
-
     public interface IGraph : IOnAssetEnabled
     {
         IEnumerable<T> GetNodes<T>() where T : INode;
@@ -20,7 +18,11 @@ namespace UnityEngine.Graphing
         IEnumerable<IEdge> GetEdges(SlotReference s);
         void ValidateGraph();
         void ReplaceWith(IGraph other);
-        OnGraphChange onChange { get; set; }
         IGraphObject owner { get; set; }
+        IEnumerable<INode> addedNodes { get; }
+        IEnumerable<INode> removedNodes { get; }
+        IEnumerable<IEdge> addedEdges { get; }
+        IEnumerable<IEdge> removedEdges { get; }
+        void ClearChanges();
     }
 }
