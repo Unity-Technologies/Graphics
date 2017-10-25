@@ -98,7 +98,7 @@
 
         Pass
         {
-            Tags{"Lightmode" = "ShadowCaster"}
+            Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On ZTest LEqual
 
@@ -114,7 +114,7 @@
 
         Pass
         {
-            Tags{"Lightmode" = "DepthOnly"}
+            Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
 

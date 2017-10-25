@@ -184,39 +184,24 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 #endif
 
-    float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-    o.posWS = worldPos;
-
-    half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
-    o.viewDir = viewDir;
+    float3 positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+    half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
 
 #if _NORMALMAP
     OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
-    o.normal = normalize(UnityObjectToWorldNormal(v.normal));
+    o.normal = UnityObjectToWorldNormal(v.normal);
 #endif
+
+    float4 clipPos = UnityObjectToClipPos(v.vertex);
 
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
     o.vertexSH = half4(EvaluateSHPerVertex(o.normal), 0.0);
 #endif
 
-    o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
-#if defined(_VERTEX_LIGHTS)
-    half3 diffuse = half3(1.0, 1.0, 1.0);
-    int vertexLightStart = _AdditionalLightCount.x;
-    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
-    {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-
-        half3 lightDirection;
-        half atten = ComputeVertexLightAttenuation(lightData, o.normal, worldPos, lightDirection);
-        o.fogFactorAndVertexLight.yzw += LightingLambert(diffuse, lightDirection, o.normal, atten) * lightData.color;
-    }
-#endif
-
-    float4 clipPos = UnityObjectToClipPos(v.vertex);
+    o.posWS = positionWS;
+    o.viewDir = viewDirectionWS;
+    o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
     o.clipPos = clipPos;
 
