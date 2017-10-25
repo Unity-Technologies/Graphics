@@ -1,8 +1,4 @@
-using UnityEngine;
-using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+﻿using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -206,12 +202,12 @@ namespace UnityEngine.Experimental.Rendering
             get
             {
     #if UNITY_EDITOR
-                switch (EditorUserBuildSettings.activeBuildTarget)
+                switch (UnityEditor.EditorUserBuildSettings.activeBuildTarget)
                 {
-                    case BuildTarget.iOS:
-                    case BuildTarget.Android:
-                    case BuildTarget.Tizen:
-                    case BuildTarget.WSAPlayer:
+                    case UnityEditor.BuildTarget.iOS:
+                    case UnityEditor.BuildTarget.Android:
+                    case UnityEditor.BuildTarget.Tizen:
+                    case UnityEditor.BuildTarget.WSAPlayer:
                         // Note: We return true on purpose even if Windows Store Apps are running on Desktop.
                         return true;
                     default:
@@ -232,13 +228,8 @@ namespace UnityEngine.Experimental.Rendering
                 var probeFormat = TextureFormat.BC6H;
 
                 // On editor the texture is uncompressed when operating against mobile build targets
-//#if UNITY_2017_2_OR_NEWER
                 if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
                     format = probeFormat;
-//#else
-//                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
-//                    format = probeFormat;
-//#endif
 
                 return format;
             }
@@ -248,11 +239,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-//#if UNITY_2017_2_OR_NEWER
                 return !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_CUBEMAP_ARRAY);
-//#else
-//                return (SystemInfo.supportsCubemapArrayTextures && !TextureCache.isMobileBuildTarget);
-//#endif
             }
         }
 
@@ -260,9 +247,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public uint    texId;
             public uint    countLRU;
-        #if UNITY_EDITOR
-            public Hash128 hash;
-        #endif
+            public uint    updateCount;
         };
 
         private int m_NumTextures;
@@ -282,9 +267,7 @@ namespace UnityEngine.Experimental.Rendering
                 return sliceIndex;
 
             var texId = (uint)texture.GetInstanceID();
-        #if UNITY_EDITOR
-            var hash  = texture.imageContentsHash;
-        #endif
+            var updateCount  = texture.updateCount;
 
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
@@ -300,9 +283,7 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
 
                 bFoundAvailOrExistingSlice = true;
-            #if UNITY_EDITOR
-                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].hash != hash);
-            #endif
+                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].updateCount != updateCount);
             }
 
             // If no existing copy found in the array
@@ -344,9 +325,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (bSwapSlice) // if this was a miss
                 {
-                #if UNITY_EDITOR
-                    m_SliceArray[sliceIndex].hash = hash;
-                #endif
+                    m_SliceArray[sliceIndex].updateCount = updateCount;
 
                     // transfer new slice to sliceIndex from source texture
                     TransferToSlice(sliceIndex, texture);
@@ -385,9 +364,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (m_SliceArray[i].countLRU < g_MaxFrameCount) ++m_SliceArray[i].countLRU;     // next frame
             }
-
-            //for(int q=1; q<m_numTextures; q++)
-            //    assert(m_SliceArray[m_SortedIdxArray[q-1]].CountLRU>=m_SliceArray[m_SortedIdxArray[q]].CountLRU);
         }
 
         protected TextureCache()
