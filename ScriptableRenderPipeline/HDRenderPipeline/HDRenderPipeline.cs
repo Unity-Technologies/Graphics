@@ -445,14 +445,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Cleanup();
 
 #if UNITY_EDITOR
-            SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 #endif
         }
 
 #if UNITY_EDITOR
         static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
         {
-            reflectionProbe = SupportedRenderingFeatures.ReflectionProbe.Rotation
+            reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation
         };
 #endif
 
