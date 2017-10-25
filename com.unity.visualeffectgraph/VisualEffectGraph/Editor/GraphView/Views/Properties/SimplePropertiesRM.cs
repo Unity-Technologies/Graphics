@@ -73,7 +73,12 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<int> CreateField()
         {
-            return new IntField(m_Label);
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+
+            if (range == Vector2.zero)
+                return new IntField(m_Label);
+            else
+                return new IntSliderField(m_Label, range);
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
