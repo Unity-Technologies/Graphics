@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Interpolation/Smooth Hermite Interpolation")]
-    class SmoothHermiteInterpolationNode : CodeFunctionNode
+    [Title("Math/Interpolation/Smoothstep")]
+    class SmoothstepNode : CodeFunctionNode
     {
-        public SmoothHermiteInterpolationNode()
+        public SmoothstepNode()
         {
-            name = "Smooth Hermite Interpolation";
+            name = "Smoothstep";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_SmoothHermiteInterpolation", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_SmoothHermiteInterpolation(
+        static string Unity_Smoothstep(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] DynamicDimensionVector T,

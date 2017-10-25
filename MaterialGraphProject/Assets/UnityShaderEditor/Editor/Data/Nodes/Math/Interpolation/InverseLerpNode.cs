@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Interpolation/Linear Interpolation")]
-    public class LinearInterpolationNode : CodeFunctionNode
+    [Title("Math/Interpolation/Inverse Lerp")]
+    public class InverseLerpNode : CodeFunctionNode
     {
-        public LinearInterpolationNode()
+        public InverseLerpNode()
         {
-            name = "Linear Interpolation";
+            name = "Inverse Lerp";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_LinearInterpolation", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_InverseLerp", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_LinearInterpolation(
+        static string Unity_InverseLerp(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] DynamicDimensionVector T,
@@ -24,7 +24,7 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    Out = lerp(A, B, T);
+    Out = (T - A)/(B - A);
 }";
         }
     }

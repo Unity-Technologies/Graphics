@@ -16,17 +16,15 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Reflect(
-            [Slot(0, Binding.None)] Vector3 normal,
-            [Slot(1, Binding.None)] Vector3 direction,
-            [Slot(2, Binding.None)] out Vector3 reflection)
+            [Slot(0, Binding.None)] Vector3 In,
+            [Slot(1, Binding.None)] Vector3 Normal,
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
-            reflection = Vector3.one;
+            Out = Vector3.one;
 
             return @"
 {
-    {precision}3 vn = normalize(normal);
-    {precision}3 vd = normalize(direction);
-    reflection =  2 * dot(vn, vd) * vn - vd, 1.0;
+    Out = reflect(In, Normal);
 }";
         }
     }

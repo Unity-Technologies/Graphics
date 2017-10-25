@@ -3,26 +3,26 @@ using System.Reflection;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Trigonometry/ArcTan")]
-    public class ATanNode : CodeFunctionNode
+    public class ArcTanNode : CodeFunctionNode
     {
-        public ATanNode()
+        public ArcTanNode()
         {
             name = "ArcTan";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ATan", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_ArcTan", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ATan(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_ArcTan(
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = atan(argument);
+    Out = atan(In);
 }
 ";
         }

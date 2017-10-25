@@ -3,11 +3,11 @@ using System.Reflection;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/Dot Product")]
-    public class DotNode : CodeFunctionNode
+    public class DotProductNode : CodeFunctionNode
     {
-        public DotNode()
+        public DotProductNode()
         {
-            name = "DotProduct";
+            name = "Dot Product";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,14 +16,14 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_DotProduct(
-            [Slot(0, Binding.None)] Vector3 first,
-            [Slot(1, Binding.None)] Vector3 second,
-            [Slot(2, Binding.None)] out Vector1 result)
+            [Slot(0, Binding.None)] Vector3 A,
+            [Slot(1, Binding.None)] Vector3 B,
+            [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
                 @"
 {
-    result = dot(first, second);
+    Out = dot(A, B);
 }
 ";
         }

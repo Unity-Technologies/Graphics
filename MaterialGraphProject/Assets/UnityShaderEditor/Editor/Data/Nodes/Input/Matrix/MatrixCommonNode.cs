@@ -5,6 +5,18 @@ using UnityEditor.MaterialGraph.Drawing.Controls;
 
 namespace UnityEngine.MaterialGraph
 {
+    public enum CommonMatrixType
+    {
+        ModelView,
+        View,
+        Projection,
+        ViewProjection,
+        TransposeModelView,
+        InverseTransposeModelView,
+        ObjectToWorld,
+        WorldToObject
+    };
+
     [Title("Input/Matrix/CommonMatrix")]
     public class MatrixCommonNode : AbstractMaterialNode
     {
