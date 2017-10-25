@@ -26,8 +26,8 @@ MonoBehaviour:
     mipFogNear: 0
     mipFogFar: 1000
     linearFogDensity: 1
-    linearFogStart: 500
+    linearFogStart: 0
     linearFogEnd: 1000
     expFogDistance: 100
     expFogDensity: 1
-  skyHDRI: {fileID: 8900000, guid: 614ae0372d7dfb847a1926990e89fa06, type: 3}
+  skyHDRI: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
