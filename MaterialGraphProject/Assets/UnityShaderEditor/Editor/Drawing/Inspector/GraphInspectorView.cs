@@ -17,6 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
         VisualElement m_ContentContainer;
+        Experimental.UIElements.ObjectField m_PreviewMeshPicker;
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
@@ -91,6 +92,9 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
                 m_Preview = new PreviewView {name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_Preview);
+
+                m_PreviewMeshPicker = new Experimental.UIElements.ObjectField() { objectType = typeof(Mesh) };
+                bottomContainer.Add(m_PreviewMeshPicker);
             }
             Add(bottomContainer);
 
@@ -128,6 +132,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 if (m_MasterNode != null)
                 {
                     m_PreviewHandle = m_PreviewSystem.GetPreview(m_MasterNode);
+                    m_PreviewHandle.mesh = null;
                     m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
                 }
             }
@@ -164,6 +169,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         void OnPreviewChanged()
         {
             m_Preview.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewHandle.mesh = m_PreviewMeshPicker.value as Mesh;
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)

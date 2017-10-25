@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var modified = false;
             foreach (var slot in node.GetSlots<MaterialSlot>())
                 modified |= IMGUISlotEditorView.SlotField(slot);
-                
+
             GUILayout.Space(10);
 
             return modified ? ModificationScope.Node : ModificationScope.Nothing;

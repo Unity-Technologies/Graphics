@@ -161,7 +161,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void DoRenderPreview(RenderTexture renderTexture, Material mat, PreviewMode mode, bool allowSRP, float time, MaterialPropertyBlock properties = null)
+        public void DoRenderPreview(RenderTexture renderTexture, Material mat, Mesh mesh, PreviewMode mode, bool allowSRP, float time, MaterialPropertyBlock properties = null)
         {
             if (mat == null || mat.shader == null)
                 return;
@@ -195,8 +195,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.intensity = 1.0f;
             m_Camera.clearFlags = CameraClearFlags.Depth;
 
+            Mesh previewMesh = mesh == null ? s_Meshes[0] : mesh;
+
             Graphics.DrawMesh(
-                mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
+                mode == PreviewMode.Preview3D ? previewMesh : quad,
                 Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
                 mat,
                 1,
