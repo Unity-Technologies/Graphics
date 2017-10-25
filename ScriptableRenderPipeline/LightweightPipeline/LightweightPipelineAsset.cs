@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_DefaultShader;
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RenderPipeline/Lightweight Pipeline/Create Pipeline Asset", false, 15)]
+        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority)]
         static void CreateLightweightPipeline()
         {
             var instance = ScriptableObject.CreateInstance<LightweightPipelineAsset>();
