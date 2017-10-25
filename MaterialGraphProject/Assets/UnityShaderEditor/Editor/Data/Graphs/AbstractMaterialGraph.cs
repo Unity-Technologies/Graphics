@@ -14,9 +14,32 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
+        [NonSerialized]
+        List<IShaderProperty> m_AddedProperties = new List<IShaderProperty>();
+
+        [NonSerialized]
+        List<Guid> m_RemovedProperties = new List<Guid>();
+
         public IEnumerable<IShaderProperty> properties
         {
             get { return m_Properties; }
+        }
+
+        public IEnumerable<IShaderProperty> addedProperties
+        {
+            get { return m_AddedProperties; }
+        }
+
+        public IEnumerable<Guid> removedProperties
+        {
+            get { return m_RemovedProperties; }
+        }
+
+        public override void ClearChanges()
+        {
+            base.ClearChanges();
+            m_AddedProperties.Clear();
+            m_RemovedProperties.Clear();
         }
 
         public override void AddNode(INode node)
@@ -46,13 +69,13 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             m_Properties.Add(property);
-            NotifyChange(new ShaderPropertyAdded(property));
+            m_AddedProperties.Add(property);
         }
 
         public void RemoveShaderProperty(Guid guid)
         {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
-                NotifyChange(new ShaderPropertyRemoved(guid));
+                m_RemovedProperties.Add(guid);
         }
 
         public override Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()

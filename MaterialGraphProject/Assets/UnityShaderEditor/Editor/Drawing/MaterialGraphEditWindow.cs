@@ -72,8 +72,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
             if (graphEditorView == null)
                 graphEditorView = new GraphEditorView(materialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
-            if (graphEditorView != null)
-                graphEditorView.previewSystem.Update();
+
+            graphEditorView.previewSystem.HandleGraphChanges();
+            graphEditorView.previewSystem.RenderPreviews();
+            graphEditorView.HandleGraphChanges();
+            graphEditorView.inspectorView.HandleGraphChanges();
+            graphObject.graph.ClearChanges();
         }
 
         void OnDisable()
