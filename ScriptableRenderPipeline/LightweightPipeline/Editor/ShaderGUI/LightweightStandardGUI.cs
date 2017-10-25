@@ -399,7 +399,6 @@ namespace UnityEditor
                 hasGlossMap = material.GetTexture("_MetallicGlossMap");
 
             LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
-            LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", !isSpecularWorkFlow);
 
             LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
             LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap && isSpecularWorkFlow);
