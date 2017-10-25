@@ -19,7 +19,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
-        Image m_Preview;
+        PreviewView m_Preview;
 
         AbstractMaterialGraph m_Graph;
         PreviewSystem m_PreviewSystem;
@@ -88,7 +88,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                     bottomContainer.Add(layersContainer);
                 }
 
-                m_Preview = new Image {name = "preview", image = Texture2D.blackTexture};
+                m_Preview = new PreviewView {name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_Preview);
             }
             Add(bottomContainer);
