@@ -9,6 +9,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+using GradientField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.GradientField, UnityEngine.Gradient>;
+
 namespace UnityEditor.VFX.UI
 {
     class GradientPropertyRM : PropertyRM<Gradient>
@@ -18,7 +20,7 @@ namespace UnityEditor.VFX.UI
             VisualElement mainContainer = new VisualElement();
 
             m_GradientField = new GradientField(m_Label);
-            m_GradientField.OnValueChanged = OnValueChanged;
+            m_GradientField.RegisterCallback<ChangeEvent<Gradient>>(OnValueChanged);
 
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
@@ -27,9 +29,9 @@ namespace UnityEditor.VFX.UI
             Add(m_GradientField);
         }
 
-        public void OnValueChanged()
+        public void OnValueChanged(ChangeEvent<Gradient> e)
         {
-            Gradient newValue = m_GradientField.GetValue();
+            Gradient newValue = m_GradientField.value;
             m_Value = newValue;
             NotifyValueChanged();
         }
@@ -43,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI()
         {
-            m_GradientField.SetValue(m_Value);
+            m_GradientField.value = m_Value;
         }
 
         public override bool showsEverything { get { return true; } }
