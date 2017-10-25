@@ -360,10 +360,12 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
         }
     }
 
-    // Remap from [0, 1.5] to [0, 1] range.
-    acc.z /= 1.5;
+    acc /= sampleCount;
 
-    return acc / sampleCount;
+    // Remap from the [0.5, 1.5] to the [0, 1] range.
+    acc.z -= 0.5;
+
+    return acc;
 }
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
