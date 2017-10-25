@@ -177,7 +177,7 @@ CurveField
 	border-bottom-width:1;
     border-color:#000;
 }
-
+/*
 ObjectField
 {
 	flex-direction:row;
@@ -216,7 +216,7 @@ ObjectField #icon
 	margin-top:1;
 	margin-left:1;
 }
-
+*/
 GradientField
 {
     flex:1;
