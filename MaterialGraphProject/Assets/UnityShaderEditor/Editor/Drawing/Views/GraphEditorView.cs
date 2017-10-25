@@ -190,6 +190,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     edgeView.input.Connect(edgeView);
                     m_GraphView.AddElement(edgeView);
                     sourceNodeView.RefreshAnchors();
+                    targetNodeView.RefreshAnchors();
                 }
             }
 
@@ -292,6 +293,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                     edgeView.input = targetAnchor;
                     edgeView.input.Connect(edgeView);
                     m_GraphView.AddElement(edgeView);
+                    sourceNodeView.RefreshAnchors();
+                    targetNodeView.RefreshAnchors();
                 }
             }
         }

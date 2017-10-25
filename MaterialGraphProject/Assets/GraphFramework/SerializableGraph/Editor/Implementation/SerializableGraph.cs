@@ -127,7 +127,7 @@ namespace UnityEngine.Graphing
             return new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
         }
 
-        public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
+        IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             if (fromSlotRef == null || toSlotRef == null)
                 return null;
@@ -181,6 +181,12 @@ namespace UnityEngine.Graphing
             AddEdgeToNodeEdges(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
+            return newEdge;
+        }
+
+        public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
+        {
+            var newEdge = ConnectNoValidate(fromSlotRef, toSlotRef);
             ValidateGraph();
             return newEdge;
         }
@@ -329,7 +335,7 @@ namespace UnityEngine.Graphing
                         removedNodeEdges.Add(edge);
                 }
                 foreach (var edge in removedNodeEdges)
-                    RemoveEdge(edge);
+                    RemoveEdgeNoValidate(edge);
             }
 
             // Remove all nodes and re-add them.
@@ -339,22 +345,26 @@ namespace UnityEngine.Graphing
                 foreach (var node in m_Nodes.Values)
                     removedNodeGuids.Add(node.guid);
                 foreach (var nodeGuid in removedNodeGuids)
-                    RemoveNode(m_Nodes[nodeGuid]);
+                    RemoveNodeNoValidate(m_Nodes[nodeGuid]);
             }
+
+            ValidateGraph();
 
             // Add nodes from other graph which don't exist in this one.
             foreach (var node in other.GetNodes<INode>())
             {
                 if (!ContainsNodeGuid(node.guid))
-                    AddNode(node);
+                    AddNodeNoValidate(node);
             }
 
             // Add edges from other graph which don't exist in this one.
             foreach (var edge in other.edges)
             {
                 if (!GetEdges(edge.inputSlot).Any(otherEdge => otherEdge.outputSlot.Equals(edge.outputSlot)))
-                    Connect(edge.outputSlot, edge.inputSlot);
+                    ConnectNoValidate(edge.outputSlot, edge.inputSlot);
             }
+
+            ValidateGraph();
         }
 
         public void OnEnable()
