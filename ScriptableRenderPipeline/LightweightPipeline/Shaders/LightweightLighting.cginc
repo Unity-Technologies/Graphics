@@ -99,32 +99,38 @@ struct BRDFData
     half grazingTerm;
 };
 
-half SpecularReflectivity(half3 specular)
+half ReflectivitySpecular(half3 specular)
 {
 #if (SHADER_TARGET < 30)
     // SM2.0: instruction count limitation
-    // SM2.0: simplified SpecularStrength
     return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
 #else
     return max(max(specular.r, specular.g), specular.b);
 #endif
 }
 
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+half OneMinusReflectivityMetallic(half metallic)
 {
-#ifdef _SPECULAR_SETUP
-    half reflectivity = SpecularReflectivity(specular);
-
-    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
-#else
     // We'll need oneMinusReflectivity, so
     //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
     // store (1-dielectricSpec) in kDieletricSpec.a, then
     //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
     //                  = alpha - metallic * alpha
     half oneMinusDielectricSpec = kDieletricSpec.a;
-    half oneMinusReflectivity = oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+    return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+}
+
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+{
+#ifdef _SPECULAR_SETUP
+    half reflectivity = ReflectivitySpecular(specular);
+    half oneMinusReflectivity = 1.0 - reflectivity;
+
+    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.specular = specular;
+#else
+
+    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
     half reflectivity = 1.0 - oneMinusReflectivity;
 
     outBRDFData.diffuse = albedo * oneMinusReflectivity;
@@ -137,7 +143,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 
 #ifdef _ALPHAPREMULTIPLY_ON
     outBRDFData.diffuse *= alpha;
-    alpha = reflectivity + alpha * (1.0 - reflectivity);
+    alpha = alpha * oneMinusReflectivity + reflectivity;
 #endif
 }
 
