@@ -65,6 +65,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void Update()
         {
+            if (graphObject == null)
+                return;
             var materialGraph = graphObject.graph as AbstractMaterialGraph;
             if (materialGraph == null)
                 return;
