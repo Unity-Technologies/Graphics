@@ -241,7 +241,13 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 #endif
 
 #if _VERTEX_LIGHTS
-    diffuseGI += IN.fogFactorAndVertexLight.yzw;
+    #if _SPECULAR_SETUP
+        // monochrome reflectivity for vertex to save ALU. Most metals are redish/yellowish
+        half3 diffuse = surfaceData.albedo * (1.0 - ReflectivitySpecular(surfaceData.specular));
+    #else
+        half3 diffuse = surfaceData.albedo * OneMinusReflectivityMetallic(surfaceData.metallic);
+    #endif
+    diffuseGI += (diffuse * IN.fogFactorAndVertexLight.yzw);
 #endif
 
     float fogFactor = IN.fogFactorAndVertexLight.x;
@@ -282,10 +288,12 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half3 lightDirection;
 
 #if defined(LIGHTMAP_ON)
-    half3 color = SampleLightmap(lightmapUV, normalWorld) * diffuse;
+    half3 color = SampleLightmap(lightmapUV, normalWorld);
 #else
-    half3 color = EvaluateSHPerPixel(normalWorld, IN.vertexSH) * diffuse;
+    half3 color = EvaluateSHPerPixel(normalWorld, IN.vertexSH);
 #endif
+
+    color = (color + IN.fogFactorAndVertexLight.yzw) * diffuse;
 
     half shininess = _Shininess * 128.0h;
 
@@ -318,7 +326,6 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 #endif // _ADDITIONAL_LIGHTS
 
     color += Emission(uv);
-    color += IN.fogFactorAndVertexLight.yzw;
 
     // Computes Fog Factor per vextex
     ApplyFog(color, IN.fogFactorAndVertexLight.x);
