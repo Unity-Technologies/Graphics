@@ -298,7 +298,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define _BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
