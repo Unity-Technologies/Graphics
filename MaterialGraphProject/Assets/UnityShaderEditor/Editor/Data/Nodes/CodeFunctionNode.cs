@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine.Graphing;
@@ -76,69 +75,6 @@ namespace UnityEngine.MaterialGraph
             VertexColor,
         }
 
-        private static string BindChannelToShaderName(Binding channel)
-        {
-            switch (channel)
-            {
-                case Binding.None:
-                    return "ERROR!";
-                case Binding.ObjectSpaceNormal:
-                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal);
-                case Binding.ObjectSpaceTangent:
-                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent);
-                case Binding.ObjectSpaceBitangent:
-                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.BiTangent);
-                case Binding.ObjectSpacePosition:
-                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.Position);
-                case Binding.ViewSpaceNormal:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Normal);
-                case Binding.ViewSpaceTangent:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent);
-                case Binding.ViewSpaceBitangent:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.BiTangent);
-                case Binding.ViewSpacePosition:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.Position);
-                case Binding.WorldSpaceNormal:
-                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Normal);
-                case Binding.WorldSpaceTangent:
-                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Tangent);
-                case Binding.WorldSpaceBitangent:
-                    return CoordinateSpace.World.ToVariableName(InterpolatorType.BiTangent);
-                case Binding.WorldSpacePosition:
-                    return CoordinateSpace.World.ToVariableName(InterpolatorType.Position);
-                case Binding.TangentSpaceNormal:
-                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Normal);
-                case Binding.TangentSpaceTangent:
-                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Tangent);
-                case Binding.TangentSpaceBitangent:
-                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.BiTangent);
-                case Binding.TangentSpacePosition:
-                    return CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Position);
-                case Binding.MeshUV0:
-                    return UVChannel.uv0.GetUVName();
-                case Binding.MeshUV1:
-                    return UVChannel.uv1.GetUVName();
-                case Binding.MeshUV2:
-                    return UVChannel.uv2.GetUVName();
-                case Binding.MeshUV3:
-                    return UVChannel.uv3.GetUVName();
-                case Binding.ScreenPosition:
-                    return ShaderGeneratorNames.ScreenPosition;
-                case Binding.ObjectSpaceViewDirection:
-                    return CoordinateSpace.Object.ToVariableName(InterpolatorType.ViewDirection);
-                case Binding.ViewSpaceViewDirection:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
-                case Binding.WorldSpaceViewDirection:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
-                case Binding.TangentSpaceViewDirection:
-                    return CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection);
-                case Binding.VertexColor:
-                    return ShaderGeneratorNames.VertexColor;
-                default:
-                    throw new ArgumentOutOfRangeException("channel", channel, null);
-            }
-        }
-
         [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
         protected class SlotAttribute : Attribute
         {
@@ -169,19 +105,7 @@ namespace UnityEngine.MaterialGraph
                 defaultValue = new Vector4(defaultX, defaultY, defaultZ, defaultW);
             }
         }
-
-        protected static MethodInfo GetMethodInfo(LambdaExpression expression)
-        {
-            MethodCallExpression outermostExpression = expression.Body as MethodCallExpression;
-             
-            if (outermostExpression == null)
-            {
-                throw new ArgumentException("Invalid Expression. Expression should consist of a Method call only.");
-            }
-             
-            return outermostExpression.Method;
-        }
-
+        
         protected abstract MethodInfo GetFunctionToConvert();
 
         private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
@@ -248,8 +172,23 @@ namespace UnityEngine.MaterialGraph
             {
                 var attribute = GetSlotAttribute(par);
 
-                slots.Add(MaterialSlot.CreateMaterialSlot(ConvertTypeToSlotValueType(par), attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
-                    attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden));
+                MaterialSlot s;
+                if (attribute.binding == Binding.None || par.IsOut)
+                {
+                    s = MaterialSlot.CreateMaterialSlot(
+                            ConvertTypeToSlotValueType(par),
+                            attribute.slotId,
+                            par.Name,
+                            par.Name,
+                            par.IsOut ? SlotType.Output : SlotType.Input,
+                            attribute.defaultValue ?? Vector4.zero,
+                            hidden: attribute.hidden);
+                }
+                else
+                {
+                    s = CreateBoundSlot(attribute.binding, attribute.slotId, par.Name, par.Name, attribute.hidden);
+                }
+                slots.Add(s);
 
                 m_Slots.Add(attribute);
             }
@@ -258,6 +197,67 @@ namespace UnityEngine.MaterialGraph
                 AddSlot(slot);
             }
             RemoveSlotsNameNotMatching(slots.Select(x => x.id));
+        }
+
+        private static MaterialSlot CreateBoundSlot(Binding attributeBinding, int slotId, string displayName, string shaderOutputName, bool hidden)
+        {
+            switch (attributeBinding)
+            {
+                case Binding.ObjectSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
+                case Binding.ObjectSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
+                case Binding.ObjectSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
+                case Binding.ObjectSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
+                case Binding.ViewSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View);
+                case Binding.ViewSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View);
+                case Binding.ViewSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View);
+                case Binding.ViewSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View);
+                case Binding.WorldSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World);
+                case Binding.WorldSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World);
+                case Binding.WorldSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World);
+                case Binding.WorldSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World);
+                case Binding.TangentSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
+                case Binding.TangentSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
+                case Binding.TangentSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
+                case Binding.TangentSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
+                case Binding.MeshUV0:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv0);
+                case Binding.MeshUV1:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv1);
+                case Binding.MeshUV2:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv2);
+                case Binding.MeshUV3:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv3);
+                case Binding.ScreenPosition:
+                    return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName);
+                case Binding.ObjectSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
+                case Binding.ViewSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View);
+                case Binding.WorldSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World);
+                case Binding.TangentSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
+                case Binding.VertexColor:
+                    return new VertexColorMaterialSlot(slotId, displayName, shaderOutputName);
+                default:
+                    throw new ArgumentOutOfRangeException("attributeBinding", attributeBinding, null);
+            }
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -269,7 +269,7 @@ namespace UnityEngine.MaterialGraph
 
             string call = GetFunctionName() + "(";
             bool first = true;
-            foreach (var arg in GetSlots<MaterialSlot>().OrderBy(x => x.id))
+            foreach (var slot in GetSlots<MaterialSlot>().OrderBy(x => x.id))
             {
                 if (!first)
                 {
@@ -277,27 +277,10 @@ namespace UnityEngine.MaterialGraph
                 }
                 first = false;
 
-                if (arg.isInputSlot)
-                {
-                    var inEdges = owner.GetEdges(arg.slotReference);
-                    if (!inEdges.Any())
-                    {
-                        var info = m_Slots.FirstOrDefault(x => x.slotId == arg.id);
-                        if (info != null)
-                        {
-                            var bindingInfo = info.binding;
-                            if (bindingInfo != Binding.None)
-                            {
-                                call += BindChannelToShaderName(bindingInfo);
-                                continue;
-                            }
-                        }
-                    }
-
-                    call += GetSlotValue(arg.id, generationMode);
-                }
+                if (slot.isInputSlot)
+                    call += GetSlotValue(slot.id, generationMode);
                 else
-                    call += GetVariableNameForSlot(arg.id);
+                    call += GetVariableNameForSlot(slot.id);
             }
             call += ");";
 
@@ -369,32 +352,6 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk(function, true);
         }
 
-        private bool NodeRequiresBinding(Binding channel)
-        {
-            foreach (var slot in GetSlots<MaterialSlot>())
-            {
-                if (SlotRequiresBinding(channel, slot))
-                    return true;
-            }
-            return false;
-        }
-
-        private bool SlotRequiresBinding(Binding channel, [NotNull] MaterialSlot slot)
-        {
-            if (slot.isOutputSlot)
-                return false;
-
-            var inEdges = owner.GetEdges(slot.slotReference);
-            if (inEdges.Any())
-                return false;
-
-            var slotAttr = m_Slots.FirstOrDefault(x => x.slotId == slot.id);
-            if (slotAttr != null && slotAttr.binding == channel)
-                return true;
-
-            return false;
-        }
-
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)
         {
             var attrs = info.GetCustomAttributes(typeof(SlotAttribute), false).OfType<SlotAttribute>().ToList();
@@ -404,103 +361,72 @@ namespace UnityEngine.MaterialGraph
         public NeededCoordinateSpace RequiresNormal()
         {
             var binding = NeededCoordinateSpace.None;
-            if (NodeRequiresBinding(Binding.ObjectSpaceNormal))
-                binding |= NeededCoordinateSpace.Object;
-            if (NodeRequiresBinding(Binding.ViewSpaceNormal))
-                binding |= NeededCoordinateSpace.View;
-            if (NodeRequiresBinding(Binding.WorldSpaceNormal))
-                binding |= NeededCoordinateSpace.World;
-            if (NodeRequiresBinding(Binding.TangentSpaceNormal))
-                binding |= NeededCoordinateSpace.Tangent;
-
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireNormal>())
+                binding |= slot.RequiresNormal();
             return binding;
         }
-
-        public bool RequiresMeshUV(UVChannel channel)
-        {
-            switch (channel)
-            {
-                case UVChannel.uv0:
-                    return NodeRequiresBinding(Binding.MeshUV0);
-                case UVChannel.uv1:
-                    return NodeRequiresBinding(Binding.MeshUV1);
-                case UVChannel.uv2:
-                    return NodeRequiresBinding(Binding.MeshUV2);
-                case UVChannel.uv3:
-                    return NodeRequiresBinding(Binding.MeshUV3);
-                default:
-                    throw new ArgumentOutOfRangeException("channel", channel, null);
-            }
-        }
-
-        public bool RequiresScreenPosition()
-        {
-            return NodeRequiresBinding(Binding.ScreenPosition);
-        }
-
+        
         public NeededCoordinateSpace RequiresViewDirection()
         {
             var binding = NeededCoordinateSpace.None;
-            if (NodeRequiresBinding(Binding.ObjectSpaceViewDirection))
-                binding |= NeededCoordinateSpace.Object;
-            if (NodeRequiresBinding(Binding.ViewSpaceViewDirection))
-                binding |= NeededCoordinateSpace.View;
-            if (NodeRequiresBinding(Binding.WorldSpaceViewDirection))
-                binding |= NeededCoordinateSpace.World;
-            if (NodeRequiresBinding(Binding.TangentSpaceNormal))
-                binding |= NeededCoordinateSpace.Tangent;
-
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireViewDirection>())
+                binding |= slot.RequiresViewDirection();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresPosition()
         {
             var binding = NeededCoordinateSpace.None;
-            if (NodeRequiresBinding(Binding.ObjectSpacePosition))
-                binding |= NeededCoordinateSpace.Object;
-            if (NodeRequiresBinding(Binding.ViewSpacePosition))
-                binding |= NeededCoordinateSpace.View;
-            if (NodeRequiresBinding(Binding.WorldSpacePosition))
-                binding |= NeededCoordinateSpace.World;
-            if (NodeRequiresBinding(Binding.TangentSpacePosition))
-                binding |= NeededCoordinateSpace.Tangent;
-
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequirePosition>())
+                binding |= slot.RequiresPosition();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresTangent()
         {
             var binding = NeededCoordinateSpace.None;
-            if (NodeRequiresBinding(Binding.ObjectSpaceTangent))
-                binding |= NeededCoordinateSpace.Object;
-            if (NodeRequiresBinding(Binding.ViewSpaceTangent))
-                binding |= NeededCoordinateSpace.View;
-            if (NodeRequiresBinding(Binding.WorldSpaceTangent))
-                binding |= NeededCoordinateSpace.World;
-            if (NodeRequiresBinding(Binding.TangentSpaceTangent))
-                binding |= NeededCoordinateSpace.Tangent;
-
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireTangent>())
+                binding |= slot.RequiresTangent();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
             var binding = NeededCoordinateSpace.None;
-            if (NodeRequiresBinding(Binding.ObjectSpaceBitangent))
-                binding |= NeededCoordinateSpace.Object;
-            if (NodeRequiresBinding(Binding.ViewSpaceBitangent))
-                binding |= NeededCoordinateSpace.View;
-            if (NodeRequiresBinding(Binding.WorldSpaceBitangent))
-                binding |= NeededCoordinateSpace.World;
-            if (NodeRequiresBinding(Binding.TangentSpaceBitangent))
-                binding |= NeededCoordinateSpace.Tangent;
-
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireBitangent>())
+                binding |= slot.RequiresBitangent();
             return binding;
+        }
+
+        public bool RequiresMeshUV(UVChannel channel)
+        {
+            var binding = NeededCoordinateSpace.None;
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
+            {
+                if (slot.RequiresMeshUV(channel))
+                    return true;
+            }
+            return false;
+        }
+
+        public bool RequiresScreenPosition()
+        {
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireScreenPosition>())
+            {
+                if (slot.RequiresScreenPosition())
+                    return true;
+            }
+            return false;
         }
 
         public bool RequiresVertexColor()
         {
-            return NodeRequiresBinding(Binding.VertexColor);
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireVertexColor>())
+            {
+                if (slot.RequiresVertexColor())
+                    return true;
+            }
+            return false;
         }
     }
 }
