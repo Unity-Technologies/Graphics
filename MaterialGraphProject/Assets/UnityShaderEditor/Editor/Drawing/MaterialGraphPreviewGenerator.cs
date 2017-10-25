@@ -181,10 +181,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographic = true;
             }
 
-            var ambientProbe = RenderSettings.ambientProbe;
-            Unsupported.SetOverrideRenderSettings(m_Scene);
-            RenderSettings.ambientProbe = ambientProbe;
-
             m_Camera.targetTexture = renderTexture;
             var previousRenderTexure = RenderTexture.active;
             RenderTexture.active = renderTexture;
@@ -218,7 +214,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             Unsupported.useScriptableRenderPipeline = oldAllowPipes;
 
             RenderTexture.active = previousRenderTexure;
-            Unsupported.RestoreOverrideRenderSettings();
 
             Light0.enabled = false;
             Light1.enabled = false;
