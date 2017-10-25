@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Trigonometry/ArcCos")]
-    public class ArcCosNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Hyperbolic Sin")]
+    class HyperbolicSinNode : CodeFunctionNode
     {
-        public ArcCosNode()
+        public HyperbolicSinNode()
         {
-            name = "ArcCos";
+            name = "Hyperbolic Sin";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ArcCos", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_HyperbolicSin", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ArcCos(
+        static string Unity_HyperbolicSin(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = acos(In);
+    Out = sinh(In);
 }
 ";
         }

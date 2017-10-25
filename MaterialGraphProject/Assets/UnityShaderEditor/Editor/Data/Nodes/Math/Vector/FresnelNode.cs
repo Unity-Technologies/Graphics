@@ -16,14 +16,15 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Fresnel(
-            [Slot(0, Binding.None)] Vector3 first,
-            [Slot(1, Binding.None)] Vector3 second,
-            [Slot(2, Binding.None)] out Vector1 result)
+            [Slot(0, Binding.None)] Vector3 Normal,
+            [Slot(1, Binding.None)] Vector3 ViewDir,
+            [Slot(2, Binding.None, 1, 1, 1, 1)] Vector1 Power,
+            [Slot(3, Binding.None)] out Vector1 Out)
         {
             return
                 @"
 {
-    result = (1.0 - dot (normalize (first), normalize (second)));
+    Out = pow((1.0 - dot (normalize (Normal), normalize (ViewDir))), Power);
 }
 ";
         }

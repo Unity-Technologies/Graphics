@@ -16,13 +16,13 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Sin(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = sin(argument);
+    Out = sin(In);
 }
 ";
         }
