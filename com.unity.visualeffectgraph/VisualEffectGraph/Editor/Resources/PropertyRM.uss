@@ -181,13 +181,29 @@ CurveField
 ObjectField
 {
 	flex-direction:row;
+	slice-left:4;
+	slice-right:23;
+	slice-top:12;
+	slice-bottom:4;
 	background-image:resource("dropwell nothumb");
+}
+
+
+ObjectField #select
+{
+	width:23;
+}
+
+ObjectField #name
+{
+	flex:1;
 }
 
 ObjectField:focus
 {
 	background-image:resource("dropwell nothumb focus");
 }
+
 ObjectField * 
 {
 	text-color: #BBB;
@@ -195,6 +211,7 @@ ObjectField *
 
 ObjectField #icon
 {
+	width:12;
 	margin-bottom:1;
 	margin-top:1;
 	margin-left:1;
