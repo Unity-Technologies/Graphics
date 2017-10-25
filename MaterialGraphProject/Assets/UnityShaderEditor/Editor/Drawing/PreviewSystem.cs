@@ -231,7 +231,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
                 var node = m_Graph.GetNodeFromGuid(nodeGuid);
                 m_PreviewMaterial.shader = previewData.shader;
-                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
+                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.mesh, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
                 previewData.texture = previewData.renderTexture;
             }
 
@@ -360,6 +360,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     public class PreviewData
     {
         public Shader shader { get; set; }
+        public Mesh mesh { get; set; }
         public string shaderString { get; set; }
         public PreviewMode previewMode { get; set; }
         public RenderTexture renderTexture { get; set; }

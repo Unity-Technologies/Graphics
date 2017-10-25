@@ -157,7 +157,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             using (var generator = new MaterialGraphPreviewGenerator())
             {
                 var renderTexture = new RenderTexture(res, res, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                generator.DoRenderPreview(renderTexture, m_PreviewMaterial, PreviewMode.Preview3D, true, 10);
+                generator.DoRenderPreview(renderTexture, m_PreviewMaterial, null, PreviewMode.Preview3D, true, 10);
 
                 Assert.IsNotNull(renderTexture, "Render failed");
 
