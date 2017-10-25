@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace UnityEngine.Graphing
 {
@@ -112,6 +113,20 @@ namespace UnityEngine.Graphing
             unchecked
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
+            }
+        }
+
+        public bool isConnected
+        {
+            get
+            {
+                // node and graph respectivly
+                if (owner == null || owner.owner == null)
+                    return false;
+
+                var graph = owner.owner;
+                var edges = graph.GetEdges(slotReference);
+                return edges.Any();
             }
         }
     }
