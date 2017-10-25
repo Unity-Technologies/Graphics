@@ -108,10 +108,21 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_CopyToClipboardButton = new ToolbarButtonView() { text = "Copy shader to clipboard" };
                 m_CopyToClipboardButton.AddManipulator(new Clickable(() =>
                     {
-                        AbstractMaterialNode masterNode = graph.GetNodes<MasterNode>().First();
+                        AbstractMaterialNode copyFromNode = graph.GetNodes<MasterNode>().First();
+
+                        if (graphView.selection.Count == 1)
+                        {
+                            MaterialNodeView selectedNodeView = graphView.selection[0] as MaterialNodeView;
+
+                            if (selectedNodeView.node != null && selectedNodeView.node.hasPreview)
+                            {
+                                copyFromNode = selectedNodeView.node;
+                            }
+                        }
+
                         var textureInfo = new List<PropertyCollector.TextureInfo>();
                         PreviewMode previewMode;
-                        string shader = graph.GetShader(masterNode, GenerationMode.ForReals, asset.name, out textureInfo, out previewMode);
+                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, asset.name, out textureInfo, out previewMode);
                         GUIUtility.systemCopyBuffer = shader;
                     }
                 ));
