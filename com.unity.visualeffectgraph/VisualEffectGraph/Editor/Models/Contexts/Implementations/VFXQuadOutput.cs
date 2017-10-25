@@ -10,16 +10,14 @@ namespace UnityEditor.VFX
     class VFXQuadOutput : VFXAbstractParticleOutput
     {
         [VFXSetting, SerializeField]
-        private bool flipBook;
+        protected FlipbookMode flipBook;
 
-        public enum FrameInterpolationMode
+        public enum FlipbookMode
         {
-            NoInterpolation,
-            LinearInterpolation,
+            Off,
+            Flipbook,
+            FlipbookBlend,
         }
-
-        [VFXSetting, SerializeField]
-        private FrameInterpolationMode frameInterpolationMode;
 
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
@@ -32,10 +30,10 @@ namespace UnityEditor.VFX
                 foreach (var def in base.additionalDefines)
                     yield return def;
 
-                if (flipBook)
+                if (flipBook != FlipbookMode.Off)
                 {
                     yield return "USE_FLIPBOOK";
-                    if (frameInterpolationMode == FrameInterpolationMode.LinearInterpolation)
+                    if (flipBook == FlipbookMode.FlipbookBlend)
                         yield return "USE_FLIPBOOK_INTERPOLATION";
                 }
             }
@@ -56,7 +54,7 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
 
-                if (flipBook)
+                if (flipBook != FlipbookMode.Off)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
@@ -66,7 +64,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name == "texture")))
                 yield return exp;
 
-            if (flipBook)
+            if (flipBook != FlipbookMode.Off)
             {
                 var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
                 yield return flipBookSizeExp;
@@ -81,7 +79,7 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if (flipBook)
+                if (flipBook != FlipbookMode.Off)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), Vector2.one);
 
                 foreach (var property in base.inputProperties)
@@ -93,7 +91,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!flipBook)
+                if (flipBook == FlipbookMode.Off)
                     yield return "frameInterpolationMode";
             }
         }
