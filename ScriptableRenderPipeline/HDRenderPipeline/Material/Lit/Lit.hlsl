@@ -1687,9 +1687,7 @@ void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
-        // TODO: check with fred. If a pixel is in front of the object we should not sample at all and put hierarchyWeight to 1.0 so we discard the effect as it is occlusion
-        // Otherwise fallback on cubemap
+        // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return;
     }
 
@@ -1717,9 +1715,14 @@ void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType,
+                        PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
                         inout Lighting lighting, inout float hierarchyWeight)
 {
+#if !HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+        return ;
+#endif
+
     float3 positionWS = posInput.positionWS;
     float3 specularLighting = float3(0.0, 0.0, 0.0);
     float weight = 1.0;
@@ -1751,6 +1754,29 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+    {
+        // This is the same code than what is use in screen space refraction
+        // TODO: put this code into a function
+#if defined(_REFRACTION_PLANE)
+        R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+#elif defined(_REFRACTION_SPHERE)
+        float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+        // Center of the tangent sphere
+        float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
+        // Second refraction (tangent sphere out)
+        float NoR1 = dot(bsdfData.normalWS, R1);
+        // Optical depth within the sphere
+        float opticalDepth = -NoR1 * bsdfData.thickness;
+        // Out hit point in the tangent sphere
+        float3 P1 = posInput.positionWS + R1 * opticalDepth;
+        // Out normal
+        float3 N1 = normalize(C - P1);
+        // Out refracted ray
+        R = refract(R1, N1, bsdfData.ior);
+#endif
+    }
 
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
@@ -1835,7 +1861,12 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    lighting.envSpecular += specularLighting * weight;
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+        lighting.envSpecular += specularLighting * weight;
+    else
+        lighting.refraction += specularLighting * weight;
+
 }
 
 //-----------------------------------------------------------------------------
