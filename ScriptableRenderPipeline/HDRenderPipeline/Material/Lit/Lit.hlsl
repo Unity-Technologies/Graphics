@@ -981,7 +981,7 @@ struct DirectLighting
     float3 specular;
 };
 
-struct ImageBasedLighting
+struct IndirectLighting
 {
     float3 specularReflected;
     float3 specularTransmitted;
@@ -990,7 +990,7 @@ struct ImageBasedLighting
 struct AggregateLighting
 {
     DirectLighting   direct;
-    ImageBasedLighting ibl;
+    IndirectLighting indirect;
 };
 
 void AccumulateDirectLighting(AggregateLighting dst, DirectLighting src)
@@ -999,10 +999,10 @@ void AccumulateDirectLighting(AggregateLighting dst, DirectLighting src)
     dst.direct.specular += src.specular;
 }
 
-void AccumulateImageBasedLighting(AggregateLighting dst, ImageBasedLighting src)
+void AccumulateIndirectLighting(AggregateLighting dst, IndirectLighting src)
 {
-    dst.ibl.specularReflected += src.specularReflected;
-    dst.ibl.specularTransmitted += src.specularTransmitted;
+    dst.indirect.specularReflected += src.specularReflected;
+    dst.indirect.specularTransmitted += src.specularTransmitted;
 }
 
 //-----------------------------------------------------------------------------
@@ -1603,26 +1603,26 @@ DirectLighting EvaluateBSDF_Area(   LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
 
-ImageBasedLighting EvaluateBSDF_SSReflection(LightLoopContext lightLoopContext,
+IndirectLighting EvaluateBSDF_SSReflection(LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput,
                                             PreLightData preLightData, BSDFData bsdfData,
                                             inout float hierarchyWeight)
 {
-    ImageBasedLighting lighting;
-    ZERO_INITIALIZE(ImageBasedLighting, lighting);
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
 
     // TODO
 
     return lighting;
 }
 
-ImageBasedLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
+IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput,
                                             PreLightData preLightData, BSDFData bsdfData,
                                             inout float hierarchyWeight)
 {
-    ImageBasedLighting lighting;
-    ZERO_INITIALIZE(ImageBasedLighting, lighting);
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
 
 #if HAS_REFRACTION
     // Refraction process:
@@ -1743,13 +1743,13 @@ ImageBasedLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
-ImageBasedLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
+IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType,
                                     inout float hierarchyWeight)
 {
-    ImageBasedLighting lighting;
-    ZERO_INITIALIZE(ImageBasedLighting, lighting);
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
 
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
@@ -1866,6 +1866,8 @@ ImageBasedLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
     lighting.specularReflected *= weight;
+
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -1900,9 +1902,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
 #if GTAO_MULTIBOUNCE_APPROX
-    lighting.ibl.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
+    lighting.indirect.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
 #else
-    lighting.ibl.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
+    lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
@@ -1918,10 +1920,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
-    diffuseLighting = lerp(diffuseLighting, lighting.ibl.specularTransmitted, bsdfData.transmittanceMask);
+    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
 #endif
 
-    specularLighting = lighting.direct.specular + lighting.ibl.specularReflected;
+    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
