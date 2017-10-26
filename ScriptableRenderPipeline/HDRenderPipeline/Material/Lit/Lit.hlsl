@@ -310,8 +310,8 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
 #else
-    // Remap from [0, 1] to [0, 1.5] range.
-    diffuseFGD = 1.5 * preFGD.z;
+    // Remap from the [0, 1] to the [0.5, 1.5] range.
+    diffuseFGD = preFGD.z + 0.5;
 #endif
 
     reflectivity = preFGD.y;
@@ -1848,7 +1848,33 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // envDiffuseLighting is used for refraction in this Lit material. Use the weight to balance between transmission and reflection
     diffuseLighting = lerp(directDiffuseLighting + bakeDiffuseLighting, accLighting.envDiffuseLighting, accLighting.envDiffuseLightingWeight);
     specularLighting = accLighting.dirSpecularLighting + accLighting.punctualSpecularLighting + accLighting.areaSpecularLighting + accLighting.envSpecularLighting;
+    // Rescale the GGX to account for the multiple scattering.
     specularLighting *= 1 + bsdfData.fresnel0 * preLightData.energyCompensation;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
+    {
+        diffuseLighting = indirectAmbientOcclusion;
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO)
+    {
+        diffuseLighting = GetSpecularOcclusionFromAmbientOcclusion(preLightData.NdotV, indirectAmbientOcclusion, bsdfData.roughness);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    #if GTAO_MULTIBOUNCE_APPROX
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO)
+    {
+        diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO)
+    {
+        diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    #endif
+#endif
 }
 
 
