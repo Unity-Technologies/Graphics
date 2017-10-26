@@ -70,6 +70,7 @@ half4 _GlossyEnvironmentColor;
 sampler2D _AttenuationTexture;
 CBUFFER_END
 
+// Must match Lightweigth ShaderGraph master node
 struct SurfaceData
 {
     half3 albedo;
@@ -147,6 +148,26 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #endif
 }
 
+half3 GlossyEnvironment(half3 reflectVector, half perceptualRoughness)
+{
+#if !defined(_GLOSSYREFLECTIONS_OFF)
+    half roughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+    half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
+    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVector, mip);
+    return DecodeHDR(rgbm, unity_SpecCube0_HDR);
+#endif
+
+    return _GlossyEnvironmentColor;
+}
+
+half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
+{
+    half3 c = indirectDiffuse * brdfData.diffuse;
+    float surfaceReduction = 1.0 / (roughness2 + 1.0);
+    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
+    return c;
+}
+
 // Based on Minimalist CookTorrance BRDF
 // Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
 //
@@ -187,24 +208,18 @@ half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 li
 #endif
 }
 
-half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
+half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)
 {
-    half3 c = indirectDiffuse * brdfData.diffuse;
-    float surfaceReduction = 1.0 / (roughness2 + 1.0);
-    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
-    return c;
+    half NdotL = saturate(dot(normal, lightDir));
+    return lightColor * NdotL;
 }
 
-half3 GlossyEnvironment(half3 reflectVector, half perceptualRoughness)
+half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularGloss, half shininess)
 {
-#if !defined(_GLOSSYREFLECTIONS_OFF)
-    half roughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-    half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
-    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVector, mip);
-    return DecodeHDR(rgbm, unity_SpecCube0_HDR);
-#endif
-
-    return _GlossyEnvironmentColor;
+    half3 halfVec = SafeNormalize(lightDir + viewDir);
+    half NdotH = saturate(dot(normal, halfVec));
+    half3 specularReflection = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
+    return lightColor * specularReflection;
 }
 
 half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
@@ -239,29 +254,6 @@ inline half ComputeVertexLightAttenuation(LightInput lightInput, half3 normal, f
     return lightAtten;
 }
 
-half3 VertexLighting(float positionWS, half3 normalWS)
-{
-    half3 vertexLightColor = half3(0.0, 0.0, 0.0);
-
-#if defined(_VERTEX_LIGHTS)
-    half3 diffuse = half3(1.0, 1.0, 1.0);
-
-    int vertexLightStart = _AdditionalLightCount.x;
-    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
-    {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-
-        half3 lightDirection;
-        half atten = ComputeVertexLightAttenuation(lightData, normalWS, positionWS, lightDirection);
-        vertexLightColor += LightingLambert(diffuse, lightDirection, normalWS, atten) * lightData.color;
-    }
-#endif
-
-    return vertexLightColor;
-}
-
 // In per-pixel falloff attenuation smoothly decreases to light range.
 inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
@@ -287,6 +279,28 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, flo
 #else
     return ComputePixelLightAttenuation(lightInput, normal, worldPos, lightDirection);
 #endif
+}
+
+half3 VertexLighting(float positionWS, half3 normalWS)
+{
+    half3 vertexLightColor = half3(0.0, 0.0, 0.0);
+
+#if defined(_VERTEX_LIGHTS)
+    int vertexLightStart = _AdditionalLightCount.x;
+    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+    {
+        LightInput light;
+        INITIALIZE_LIGHT(light, lightIter);
+
+        half3 lightDirection;
+        half atten = ComputeVertexLightAttenuation(light, normalWS, positionWS, lightDirection);
+        half lightColor = light.color * atten;
+        vertexLightColor += LightingLambert(lightColor, lightDirection, normalWS);
+    }
+#endif
+
+    return vertexLightColor;
 }
 
 half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
@@ -336,20 +350,73 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     return OutputColor(color, alpha);
 }
 
-inline half3 LightingLambert(half3 diffuseColor, half3 lightDir, half3 normal, half atten)
+half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half3 emission, half alpha)
 {
-    half NdotL = saturate(dot(normal, lightDir));
-    return diffuseColor * (NdotL * atten);
+    half3 lightDirection;
+    half3 diffuseColor = diffuseGI;
+
+    LightInput mainLight;
+    INITIALIZE_MAIN_LIGHT(mainLight);
+    half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, _ShadowLightDirection.xyz);
+
+    half3 lightColor = mainLight.color * lightAtten;
+    diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+
+#ifdef _ADDITIONAL_LIGHTS
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
+    {
+        LightInput lightData;
+        INITIALIZE_LIGHT(lightData, lightIter);
+        lightAtten = ComputePixelLightAttenuation(lightData, normalWS, positionWS, lightDirection);
+        lightColor = lightData.color * lightAtten;
+
+        diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+    }
+#endif // _ADDITIONAL_LIGHTS
+
+    half3 finalColor = diffuseColor * diffuse + emission;
+
+    // Computes Fog Factor per vextex
+    ApplyFog(finalColor, fogFactor);
+    return OutputColor(finalColor, alpha);
 }
 
-inline half3 LightingBlinnPhong(half3 diffuseColor, half4 specularGloss, half3 lightDir, half3 normal, half3 viewDir, half atten, half shininess)
+half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
-    half NdotL = saturate(dot(normal, lightDir));
-    half3 diffuse = diffuseColor * NdotL;
+    half3 lightDirection;
+    half3 diffuseColor = diffuseGI;
+    half3 specularColor;
 
-    half3 halfVec = normalize(lightDir + viewDir);
-    half NdotH = saturate(dot(normal, halfVec));
-    half3 specular = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
-    return (diffuse + specular) * atten;
+    LightInput mainLight;
+    INITIALIZE_MAIN_LIGHT(mainLight);
+    half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
+    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, _ShadowLightDirection.xyz);
+
+    half3 lightColor = mainLight.color * lightAtten;
+    diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+    specularColor = LightingSpecular(lightColor, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
+
+#ifdef _ADDITIONAL_LIGHTS
+    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
+    {
+        LightInput lightData;
+        INITIALIZE_LIGHT(lightData, lightIter);
+        lightAtten = ComputePixelLightAttenuation(lightData, normalWS, positionWS, lightDirection);
+        lightColor = lightData.color * lightAtten;
+
+        diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+        specularColor += LightingSpecular(lightColor, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
+    }
+#endif // _ADDITIONAL_LIGHTS
+
+    half3 finalColor = diffuseColor * diffuse + emission;
+    finalColor += specularColor;
+
+    // Computes Fog Factor per vextex
+    ApplyFog(finalColor, fogFactor);
+    return OutputColor(finalColor, alpha);
 }
 #endif

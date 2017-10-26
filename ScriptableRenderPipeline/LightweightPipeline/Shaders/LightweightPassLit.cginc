@@ -80,9 +80,9 @@ half3 Normal(float2 uv)
 #endif
 }
 
-inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
+half SpecularGloss(half2 uv, half alpha)
 {
-    specularGloss = half4(0, 0, 0, 1);
+    half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = tex2D(_SpecGlossMap, uv);
     specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
@@ -93,6 +93,7 @@ inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
     specularGloss.a = alpha;
 #endif
+    return specularGloss;
 }
 
 half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
@@ -259,62 +260,35 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
 #if _NORMALMAP
     half3 normalTangent = Normal(uv);
-    half3 normalWorld = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
+    half3 normalWS = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
 #else
-    half3 normalWorld = normalize(IN.normal);
+    half3 normalWS = normalize(IN.normal);
 #endif
 
-    half4 specularGloss;
-    SpecularGloss(uv, alpha, specularGloss);
+    half3 emission = Emission(uv);
 
-    half3 viewDir = IN.viewDir.xyz;
-    float3 worldPos = IN.posWS.xyz;
-
-    half3 lightDirection;
+    half3 viewDirectionWS = SafeNormalize(IN.viewDir.xyz);
+    float3 positionWS = IN.posWS.xyz;
 
 #if defined(LIGHTMAP_ON)
-    half3 color = SampleLightmap(lightmapUV, normalWorld);
+    half3 diffuseGI = SampleLightmap(lightmapUV, normalWS);
 #else
-    half3 color = EvaluateSHPerPixel(normalWorld, IN.vertexSH);
+    half3 diffuseGI = EvaluateSHPerPixel(normalWS, IN.vertexSH);
 #endif
 
-    color = (color + IN.fogFactorAndVertexLight.yzw) * diffuse;
+#if _VERTEX_LIGHTS
+    diffuseGI += IN.fogFactorAndVertexLight.yzw;
+#endif
 
     half shininess = _Shininess * 128.0h;
-
-    LightInput lightInput;
-    INITIALIZE_MAIN_LIGHT(lightInput);
-    half lightAtten = ComputeMainLightAttenuation(lightInput, normalWorld, worldPos, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(worldPos, normalize(IN.normal), _ShadowLightDirection.xyz);
+    half fogFactor = IN.fogFactorAndVertexLight.x;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten, shininess) * lightInput.color;
+    half4 specularGloss = SpecularGloss(uv, alpha);
+    return LightweightFragmentBlinnPhong(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, specularGloss, shininess, emission, alpha);
 #else
-    color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightInput.color;
+    return LightweightFragmentLambert(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, emission, alpha);
 #endif
-
-#ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
-    {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-        half lightAtten = ComputePixelLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
-
-#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-        color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten, shininess) * lightData.color;
-#else
-        color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightData.color;
-#endif
-    }
-
-#endif // _ADDITIONAL_LIGHTS
-
-    color += Emission(uv);
-
-    // Computes Fog Factor per vextex
-    ApplyFog(color, IN.fogFactorAndVertexLight.x);
-    return OutputColor(color, alpha);
 };
 
 #endif
