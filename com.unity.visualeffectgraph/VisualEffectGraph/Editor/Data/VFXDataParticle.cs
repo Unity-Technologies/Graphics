@@ -227,8 +227,8 @@ namespace UnityEditor.VFX
                 var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
                 var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
 
-                int boundsCenterIndex = expressionGraph.GetFlattenedIndex(boundsCenterExp);
-                int boundsSizeIndex = expressionGraph.GetFlattenedIndex(boundsSizeExp);
+                int boundsCenterIndex = boundsCenterExp != null ? expressionGraph.GetFlattenedIndex(boundsCenterExp) : -1;
+                int boundsSizeIndex = boundsSizeExp != null ? expressionGraph.GetFlattenedIndex(boundsSizeExp) : -1;
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
