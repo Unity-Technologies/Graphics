@@ -100,18 +100,16 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                uint featureFlags = 0xFFFFFFFF;
-
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeDiffuseLighting);
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
