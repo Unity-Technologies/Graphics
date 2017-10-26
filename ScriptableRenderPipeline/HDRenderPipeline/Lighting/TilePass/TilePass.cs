@@ -182,12 +182,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum LightFeatureFlags
         {
             // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
-            Punctual    = 1 << 8,
-            Area        = 1 << 9,
-            Directional = 1 << 10,
-            Env         = 1 << 11,
-            Sky         = 1 << 12,
-            SSL         = 1 << 13  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
+            Punctual    = 1 << 12,
+            Area        = 1 << 13,
+            Directional = 1 << 14,
+            Env         = 1 << 15,
+            Sky         = 1 << 16,
+            SSRefraction = 1 << 17,
+            SSReflection = 1 << 18,
+            // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
         }
 
         [GenerateHLSL]
@@ -207,8 +209,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_NumFeatureVariants = 27;
 
             // Following define the maximum number of bits use in each feature category.
-            public static uint s_LightFeatureMaskFlags = 0xFF00;
-            public static uint s_MaterialFeatureMaskFlags = 0x00FF;   // don't use all bits just to be safe from signed and/or float conversions :/
+            public static uint s_LightFeatureMaskFlags = 0xFFF000;
+            public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
+            public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
+            public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
         }
 
         [GenerateHLSL]
