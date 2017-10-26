@@ -249,7 +249,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                 node.onModified -= OnNodeChanged;
                 var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
+                {
+                    nodeView.Dispose();
                     m_GraphView.RemoveElement(nodeView);
+                }
             }
 
             foreach (var node in m_Graph.addedNodes)
@@ -304,6 +307,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             onUpdateAssetClick = null;
             onConvertToSubgraphClick = null;
             onShowInProjectClick = null;
+            if (m_GraphView != null)
+            {
+                foreach (var node in m_GraphView.Children().OfType<MaterialNodeView>())
+                    node.Dispose();
+            }
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
             if (previewSystem != null)
             {
