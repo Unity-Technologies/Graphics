@@ -387,6 +387,7 @@ struct GraphVertexInput
      float4 vertex : POSITION;
      float3 normal : NORMAL;
      float4 tangent : TANGENT;
+     float4 color : COLOR;
      float4 texcoord0 : TEXCOORD0;
      float4 lightmapUV : TEXCOORD1;
      UNITY_VERTEX_INPUT_INSTANCE_ID

@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     public class NormalNode : GeometryNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
-        public const string kOutputSlotName = "Normal";
+        public const string kOutputSlotName = "Out";
 
         public NormalNode()
         {
