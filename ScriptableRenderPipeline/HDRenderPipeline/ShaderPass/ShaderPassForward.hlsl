@@ -53,7 +53,11 @@ void Frag(PackedVaryingsToPS packedInput,
     if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
 #endif
     {
-        uint featureFlags = 0xFFFFFFFF;
+#ifdef _SURFACE_TYPE_TRANSPARENT
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+#else
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+#endif
         float3 diffuseLighting;
         float3 specularLighting;
         float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
