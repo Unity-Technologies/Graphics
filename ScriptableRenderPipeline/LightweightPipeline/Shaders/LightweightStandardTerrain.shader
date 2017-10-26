@@ -56,10 +56,6 @@
             #define TERRAIN_STANDARD_SHADER
             #define TERRAIN_SURFACE_OUTPUT SurfaceOutputStandard
 
-            #ifdef _TERRAIN_NORMAL_MAP
-            #define _NORMALMAP
-            #endif
-
             half _Metallic0;
             half _Metallic1;
             half _Metallic2;

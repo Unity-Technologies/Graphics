@@ -178,10 +178,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
                 UNITY_INITIALIZE_OUTPUT(UnityMetaInput, o);
 
                 o.Albedo = _Color.rgb * tex2D(_MainTex, i.uv).rgb;
-
-                half4 specularColor;
-                SpecularGloss(i.uv.xy, 1.0, specularColor);
-                o.SpecularColor = specularColor;
+                o.SpecularColor = SpecularGloss(i.uv.xy, 1.0);
 
 #ifdef _EMISSION
                 o.Emission += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv).rgb) * _EmissionColor;
