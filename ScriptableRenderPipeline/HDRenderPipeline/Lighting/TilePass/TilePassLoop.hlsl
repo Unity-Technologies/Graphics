@@ -252,14 +252,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
     {
-        ImageBasedLighting lighting = EvaluateBSDF_SSRefraction(context, V, posInput, preLightData, bsdfData, refractionHierarchyWeight);
-        AccumulateImageBasedLighting(aggregateLighting, lighting);
+        IndirectLighting lighting = EvaluateBSDF_SSRefraction(context, V, posInput, preLightData, bsdfData, refractionHierarchyWeight);
+        AccumulateIndirectLighting(aggregateLighting, lighting);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
     {
-        ImageBasedLighting lighting = EvaluateBSDF_SSReflection(context, V, posInput, preLightData, bsdfData, reflectionHierarchyWeight);
-        AccumulateImageBasedLighting(aggregateLighting, lighting);
+        IndirectLighting lighting = EvaluateBSDF_SSReflection(context, V, posInput, preLightData, bsdfData, reflectionHierarchyWeight);
+        AccumulateIndirectLighting(aggregateLighting, lighting);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_ENV || featureFlags & LIGHTFEATUREFLAGS_SKY)
@@ -285,9 +285,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #else
                 uint envLightIndex = i;
             #endif
-                ImageBasedLighting lighting = EvaluateBSDF_Env( context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
+                IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
                                                                 reflectionHierarchyWeight);
-                AccumulateImageBasedLighting(aggregateLighting, lighting);
+                AccumulateIndirectLighting(aggregateLighting, lighting);
             }
         }
 
@@ -299,8 +299,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
                 context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
                 EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-                ImageBasedLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, reflectionHierarchyWeight);
-                AccumulateImageBasedLighting(aggregateLighting, lighting);
+                IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, reflectionHierarchyWeight);
+                AccumulateIndirectLighting(aggregateLighting, lighting);
             }
         }
     }
