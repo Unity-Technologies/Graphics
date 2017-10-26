@@ -203,6 +203,7 @@ PROP_DECL(float, _HeightCenter);
 PROP_DECL(int, _SubsurfaceProfile);
 PROP_DECL(float, _SubsurfaceRadius);
 PROP_DECL(float, _Thickness);
+PROP_DECL(float4, _ThicknessRemap);
 
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
