@@ -47,6 +47,11 @@ Shader "HDRenderPipeline/Unlit"
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
         // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
+        
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
