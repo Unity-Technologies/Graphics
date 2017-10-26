@@ -337,7 +337,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                         var sourceSlot = (MaterialSlot)edgeView.output.userData;
                         if (sourceSlot.valueType == SlotValueType.Dynamic)
                         {
-                            edgeView.UpdateClasses(targetSlot.concreteValueType, sourceSlot.concreteValueType);
+                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                             var connectedNodeView = edgeView.output.node as MaterialNodeView;
                             if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                             {
