@@ -44,6 +44,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
+        _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
         _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
         _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5

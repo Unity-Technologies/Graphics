@@ -144,6 +144,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _ThicknessMap2("Thickness Map", 2D) = "white" {}
         _ThicknessMap3("Thickness Map", 2D) = "white" {}
 
+        _ThicknessRemap0("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap1("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap2("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap3("Thickness Remap", Vector) = (0, 1, 0, 0)
+
         // All the following properties exist only in layered lit material
 
         // Layer blending options
