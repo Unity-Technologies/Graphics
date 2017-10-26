@@ -970,18 +970,40 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #ifdef HAS_LIGHTLOOP
 
 //-----------------------------------------------------------------------------
-//
+// Lighting structure for light accumulation
 //-----------------------------------------------------------------------------
 
-// This structure allow to accumulate lighting accross the Lit material
-// It is init to zero and transfer by the LightLoop, but the LightLoop can't access its content.
-struct Lighting
+// These structure allow to accumulate lighting accross the Lit material
+// AggregateLighting is init to zero and transfer to EvaluateBSDF, but the LightLoop can't access its content.
+struct DirectLighting
 {
-    float3 directDiffuse;
-    float3 directSpecular;
-    float3 refraction;
-    float3 envSpecular;
+    float3 diffuse;
+    float3 specular;
 };
+
+struct IndirectLighting
+{
+    float3 specularReflected;
+    float3 specularTransmitted;
+};
+
+struct AggregateLighting
+{
+    DirectLighting   direct;
+    IndirectLighting indirect;
+};
+
+void AccumulateDirectLighting(DirectLighting src, inout AggregateLighting dst)
+{
+    dst.direct.diffuse += src.diffuse;
+    dst.direct.specular += src.specular;
+}
+
+void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting dst)
+{
+    dst.indirect.specularReflected += src.specularReflected;
+    dst.indirect.specularTransmitted += src.specularTransmitted;
+}
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
@@ -1130,20 +1152,20 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     return cookie;
 }
 
-void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
-                              float3 V, PositionInputs posInput, PreLightData preLightData,
-                              DirectionalLightData lightData, BSDFData bsdfData,
-                              inout Lighting lighting)
+DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
+                                            float3 V, PositionInputs posInput, PreLightData preLightData,
+                                            DirectionalLightData lightData, BSDFData bsdfData)
 {
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
     float3 positionWS = posInput.positionWS;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
     float NdotL = dot(bsdfData.normalWS, L);
     float illuminance = saturate(NdotL);
 
-    float3 diffuseLighting  = float3(0, 0, 0);
-    float3 specularLighting = float3(0, 0, 0);
-    float shadow     = 1;
+    float shadow     = 1.0;
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -1168,10 +1190,10 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (illuminance > 0.0)
     {
-        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+        BSDF(V, L, positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
-        diffuseLighting  *= illuminance * lightData.diffuseScale;
-        specularLighting *= illuminance * lightData.specularScale;
+        lighting.diffuse *= illuminance * lightData.diffuseScale;
+        lighting.specular *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1181,15 +1203,14 @@ void EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
+        lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    diffuseLighting  *= lightData.color;
-    specularLighting *= lightData.color;
+    lighting.diffuse *= lightData.color;
+    lighting.specular *= lightData.color;
 
-    lighting.directDiffuse += diffuseLighting;
-    lighting.directSpecular += specularLighting;
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -1239,11 +1260,13 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
     return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
 }
 
-void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, PositionInputs posInput,
-                            PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
-                            inout Lighting lighting)
+DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
+                                        float3 V, PositionInputs posInput,
+                                        PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType)
 {
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
     float3 positionWS = posInput.positionWS;
     int    lightType  = GPULightType;
 
@@ -1266,8 +1289,6 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= attenuation;
     lightData.specularScale *= attenuation;
 
-    float3 diffuseLighting  = float3(0.0, 0.0, 0.0);
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
     float shadow = 1.0;
 
     [branch] if (lightData.shadowIndex >= 0)
@@ -1301,11 +1322,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (illuminance > 0.0)
     {
-        bsdfData.roughness = max(bsdfData.roughness, lightData.minRoughness); // Simulate that a punctual ligth have a radius with this hack
-        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+        bsdfData.roughness = max(bsdfData.roughness, lightData.minRoughness); // Simulate that a punctual light have a radius with this hack
+        BSDF(V, L, positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
-        diffuseLighting  *= illuminance * lightData.diffuseScale;
-        specularLighting *= illuminance * lightData.specularScale;
+        lighting.diffuse *= illuminance * lightData.diffuseScale;
+        lighting.specular *= illuminance * lightData.specularScale;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1315,15 +1336,14 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
+        lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    diffuseLighting  *= lightData.color;
-    specularLighting *= lightData.color;
+    lighting.diffuse *= lightData.color;
+    lighting.specular *= lightData.color;
 
-    lighting.directDiffuse += diffuseLighting;
-    lighting.directSpecular += specularLighting;
+    return lighting;
 }
 
 #include "LitReference.hlsl"
@@ -1332,18 +1352,18 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 // EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
-                       float3 V, PositionInputs posInput,
-                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                       inout Lighting lighting)
+DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
+                                    float3 V, PositionInputs posInput,
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData)
 {
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
     float3 positionWS = posInput.positionWS;
-    float3 diffuseLighting = float3(0.0, 0.0, 0.0);
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
-                          diffuseLighting, specularLighting);
+                          lighting.diffuse, lighting.specular);
 #else
     float  len = lightData.size.x;
     float3 T   = lightData.right;
@@ -1363,7 +1383,8 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
                                                         axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) return;
+    if (intensity == 0.0) 
+        return lighting;
 
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
@@ -1388,7 +1409,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     {
         ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
         ltcValue *= lightData.diffuseScale;
-        diffuseLighting = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1404,7 +1425,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, 1);
+        lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
     // Evaluate the coat part
@@ -1420,16 +1441,15 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     {
         ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
         ltcValue *= lightData.specularScale;
-        specularLighting += preLightData.ltcMagnitudeFresnel * ltcValue;
+        lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    diffuseLighting  *= lightData.color;
-    specularLighting *= lightData.color;
+    lighting.diffuse *= lightData.color;
+    lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
-    lighting.directDiffuse += diffuseLighting;
-    lighting.directSpecular += specularLighting;
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -1438,18 +1458,18 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
 // #define ELLIPSOIDAL_ATTENUATION
 
-void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
-                        float3 V, PositionInputs posInput,
-                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                        inout Lighting lighting)
+DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
+                                    float3 V, PositionInputs posInput,
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData)
 {
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
     float3 positionWS = posInput.positionWS;
-    float3 diffuseLighting = float3(0.0, 0.0, 0.0);
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
-                          diffuseLighting, specularLighting);
+                          lighting.diffuse, lighting.specular);
 #else
     float3 unL = lightData.positionWS - positionWS;
 
@@ -1457,7 +1477,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     if (dot(lightData.forward, unL) >= 0.0001)
     {
         // The light is back-facing.
-        return;
+        return lighting;
     }
 
     // Rotate the light direction into the light space.
@@ -1487,7 +1507,8 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
 #endif
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) return;
+    if (intensity == 0.0) 
+        return lighting;
 
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
@@ -1513,7 +1534,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
         ltcValue *= lightData.diffuseScale;
-        diffuseLighting = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1532,7 +1553,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        diffuseLighting += EvaluateTransmission(bsdfData, ltcValue, 1);
+        lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
     // Evaluate the coat part
@@ -1540,7 +1561,7 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
     {
         // TODO
         // ltcValue = LTCEvaluate(lightVerts, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
-        // specularLighting = preLightData.ltcClearCoatFresnelTerm  * (ltcValue * bsdfData.coatCoverage);
+        // lighting.specular = preLightData.ltcClearCoatFresnelTerm  * (ltcValue * bsdfData.coatCoverage);
 
         // modify matL value based on Fresnel transmission
         // matL = mul(matL, preLightData.ltcCoatT);
@@ -1553,30 +1574,28 @@ void EvaluateBSDF_Rect( LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
         ltcValue *= lightData.specularScale;
-        specularLighting += preLightData.ltcMagnitudeFresnel * ltcValue;
+        lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    diffuseLighting  *= lightData.color;
-    specularLighting *= lightData.color;
+    lighting.diffuse *= lightData.color;
+    lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
-    lighting.directDiffuse += diffuseLighting;
-    lighting.directSpecular += specularLighting;
+    return lighting;
 }
 
-void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
-                        float3 V, PositionInputs posInput,
-                        PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType,
-                        inout Lighting lighting)
+DirectLighting EvaluateBSDF_Area(   LightLoopContext lightLoopContext,
+                                    float3 V, PositionInputs posInput,
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType)
 {
     if (GPULightType == GPULIGHTTYPE_LINE)
     {
-        EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, lighting);
+        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData);
     }
     else
     {
-        EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, lighting);
+        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData);
     }
 }
 
@@ -1584,19 +1603,27 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
 
-void EvaluateBSDF_SSReflection( LightLoopContext lightLoopContext,
-                                float3 V, PositionInputs posInput,
-                                PreLightData preLightData, BSDFData bsdfData,
-                                inout Lighting lighting, inout float hierarchyWeight)
+IndirectLighting EvaluateBSDF_SSReflection(LightLoopContext lightLoopContext,
+                                            float3 V, PositionInputs posInput,
+                                            PreLightData preLightData, BSDFData bsdfData,
+                                            inout float hierarchyWeight)
 {
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+
     // TODO
+
+    return lighting;
 }
 
-void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
-                                float3 V, PositionInputs posInput,
-                                PreLightData preLightData, BSDFData bsdfData,
-                                inout Lighting lighting, inout float hierarchyWeight)
+IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
+                                            float3 V, PositionInputs posInput,
+                                            PreLightData preLightData, BSDFData bsdfData,
+                                            inout float hierarchyWeight)
 {
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+
 #if HAS_REFRACTION
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
@@ -1605,7 +1632,6 @@ void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    float3 diffuseLighting = float3(0.0, 0.0, 0.0);
     float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
     float opticalDepth = 0.0;
 
@@ -1688,24 +1714,26 @@ void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
         || any(refractedBackPointSS > 1.0))
     {
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
-        return;
+        return lighting;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
     float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    diffuseLighting = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
     float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
-    diffuseLighting *= transmittance;
+    lighting.specularTransmitted *= transmittance;
 
     float weight = 1.0;
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    lighting.refraction += diffuseLighting * weight;
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hiearchy priority
+    lighting.specularTransmitted *= weight;
 #else
     // No refraction, no need to go further
     hierarchyWeight = 1.0;
 #endif
+
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -1713,32 +1741,36 @@ void EvaluateBSDF_SSRefraction( LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
-void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
-                        float3 V, PositionInputs posInput,
-                        PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
-                        inout Lighting lighting, inout float hierarchyWeight)
+IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
+                                    float3 V, PositionInputs posInput,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
+                                    inout float hierarchyWeight)
 {
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
 #if !HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-        return ;
+        return lighting;
 #endif
 
+    float3 envLighting = float3(0.0, 0.0, 0.0);
     float3 positionWS = posInput.positionWS;
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
     float weight = 1.0;
 
 #ifdef LIT_DISPLAY_REFERENCE_IBL
 
-    specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+    envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 
-/*
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    lighting.directDiffuse += IntegrateLambertIBLRef(lightData, V, bsdfData);
-    #else
-    lighting.directDiffuse += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
-    #endif
-*/
-    hierarchyWeight = 0.0;
+    // TODO: Do refraction reference (is it even possible ?)
+
+
+//    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+//    envLighting += IntegrateLambertIBLRef(lightData, V, bsdfData);
+//    #else
+//    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+//    #endif
+
+    weight = 1.0;
 
 #else
 
@@ -1849,24 +1881,25 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // Evaluate the Clear Coat color
         float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
-        specularLighting += F * preLD.rgb * bsdfData.coatCoverage;
+        envLighting += F * preLD.rgb * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer.
         F = Sqr(-F * bsdfData.coatCoverage + 1.0);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
-    specularLighting += F * preLD.rgb * preLightData.specularFGD;
+    envLighting += F * preLD.rgb * preLightData.specularFGD;
 
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-        lighting.envSpecular += specularLighting * weight;
+        lighting.specularReflected = envLighting * weight;
     else
-        lighting.refraction += specularLighting * weight;
+        lighting.specularTransmitted = envLighting * weight;
 
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -1875,7 +1908,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFData bsdfData, float3 bakeDiffuseLighting, Lighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, float3 bakeDiffuseLighting, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
@@ -1901,28 +1934,28 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
 #if GTAO_MULTIBOUNCE_APPROX
-    lighting.envSpecular *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
+    lighting.indirect.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
 #else
-    lighting.envSpecular *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
+    lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
 
     // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
 
-    lighting.directDiffuse *=
+    lighting.direct.diffuse *=
 #if GTAO_MULTIBOUNCE_APPROX
                                 GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
 #else
                                 lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 #endif
 
-    diffuseLighting = lighting.directDiffuse + bakeDiffuseLighting;
+    diffuseLighting = lighting.direct.diffuse + bakeDiffuseLighting;
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
-    // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value varie
+    // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
-    diffuseLighting = lerp(diffuseLighting, lighting.refraction, bsdfData.transmittanceMask);
+    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
 #endif
 
-    specularLighting = lighting.directSpecular + lighting.envSpecular;
+    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
