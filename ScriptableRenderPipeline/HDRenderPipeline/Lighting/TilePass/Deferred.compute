@@ -112,7 +112,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 {
     uint2 tileCoord = (16 * groupId) / GetTileSize();
     uint2 pixelCoord = dispatchThreadId;
-	uint featureFlags = 0xFFFFFFFF;
+	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS;
 
 #endif
 
