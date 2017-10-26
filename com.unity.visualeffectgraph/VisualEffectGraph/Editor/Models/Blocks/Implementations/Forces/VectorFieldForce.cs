@@ -11,12 +11,12 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             public Texture3D VectorField;
-            public Transform FieldTransform;
+            public Transform FieldTransform = Transform.defaultValue;
             public float Intensity;
             public float DragCoefficient;
         }
 
-        public override string name { get { return "Vector Field Relative Force"; } }
+        public override string name { get { return "Vector Field Force"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes

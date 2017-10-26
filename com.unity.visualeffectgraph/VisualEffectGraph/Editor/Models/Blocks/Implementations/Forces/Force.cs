@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            public Vector Force = new Vector(0.0f, -9.81f, 0.0f);
+            public Vector3 Force = new Vector3(0.0f, -9.81f, 0.0f);
         }
 
         public override string source
@@ -50,11 +50,10 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string forceVector = "0.0";
-
                 switch (Mode)
                 {
-                    case ForceMode.Absolute: forceVector = "Force_vector"; break;
-                    case ForceMode.Relative: forceVector = "(Force_vector - velocity)"; break;
+                    case ForceMode.Absolute: forceVector = "Force"; break;
+                    case ForceMode.Relative: forceVector = "(Force - velocity)"; break;
                 }
 
                 return "velocity += " + forceVector + " * deltaTime;";

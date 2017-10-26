@@ -36,6 +36,8 @@ namespace UnityEditor.VFX
         public Vector3 center;
         [Tooltip("The radius of the circle.")]
         public float radius;
+
+        public static Circle defaultValue = new Circle() { radius = 1.0f }
     }
 
     [VFXType]
@@ -50,6 +52,8 @@ namespace UnityEditor.VFX
         public float radius;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used.")]
         public float arc;
+
+        public static ArcCircle defaultValue = new ArcCircle() { radius = 1.0f, arc = Mathf.PI / 3.0f }
     }
 
     [VFXType]
@@ -62,6 +66,8 @@ namespace UnityEditor.VFX
         public Vector3 center;
         [Tooltip("The radius of the sphere.")]
         public float radius;
+
+        public static Sphere defaultValue = new Sphere() { radius = 1.0f }
     }
 
     [VFXType]
@@ -76,6 +82,8 @@ namespace UnityEditor.VFX
         public float radius;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
         public float arc;
+
+        public static ArcSphere defaultValue = new ArcSphere() { radius = 1.0f , arc = Mathf.PI / 3.0f}
     }
 
     [VFXType]
@@ -90,6 +98,8 @@ namespace UnityEditor.VFX
         public Vector3 angles;
         [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
+
+        public static OrientedBox defaultValue = new OrientedBox() { size = Vector3.one }
     }
 
     [VFXType]
@@ -102,6 +112,8 @@ namespace UnityEditor.VFX
         public Vector3 center;
         [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
+
+        public static AABox defaultValue = new AABox() { size = Vector3.one }
     }
 
     [VFXType]
@@ -117,6 +129,8 @@ namespace UnityEditor.VFX
         [Tooltip("The direction of the plane.")]
         [Normalize]
         public Vector3 normal;
+
+        public static Plane defaultValue = new Plane() { normal = Vector3.up }
     }
 
     [VFXType]
@@ -131,6 +145,8 @@ namespace UnityEditor.VFX
         public float radius;
         [Tooltip("The height of the cylinder.")]
         public float height;
+
+        public static Cylinder defaultValue = new Cylinder() { radius = 1.0f, height = 1.0f }
     }
 
     [VFXType]
@@ -147,6 +163,8 @@ namespace UnityEditor.VFX
         public float radius1;
         [Tooltip("The height of the cone.")]
         public float height;
+
+        public static Cone defaultValue = new Cone() { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f }
     }
 
     [VFXType]
@@ -165,6 +183,8 @@ namespace UnityEditor.VFX
         public float height;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used.")]
         public float arc;
+
+        public static ArcCone defaultValue = new ArcCone() { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = Mathf.PI / 3.0f }
     }
 
     [VFXType]
@@ -179,6 +199,8 @@ namespace UnityEditor.VFX
         public float majorRadius;
         [Tooltip("The thickness of the torus ring.")]
         public float minorRadius;
+
+        public static Torus defaultValue = new Torus() { majorRadius = 1.0f, minorRadius = 0.1f }
     }
 
     [VFXType]
@@ -195,6 +217,8 @@ namespace UnityEditor.VFX
         public float minorRadius;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the torus is used.")]
         public float arc;
+
+        public static ArcTorus defaultValue = new ArcTorus() { majorRadius = 1.0f, minorRadius = 0.1f, arc = Mathf.PI / 3.0f }
     }
 
     [VFXType]
@@ -207,6 +231,8 @@ namespace UnityEditor.VFX
         public Vector3 start;
         [Tooltip("The end position of the line.")]
         public Vector3 end;
+
+        public static Line defaultValue = new Line() { start = Vector3.zero, end = Vector3.forward }
     }
 
     [VFXType]
@@ -221,6 +247,8 @@ namespace UnityEditor.VFX
         public Vector3 angles;
         [Tooltip("The scale of the transform along each axis.")]
         public Vector3 scale;
+
+        public static Transform defaultValue = new Transform() { scale = Vector3.one }
     }
 
     [VFXType]
@@ -231,6 +259,8 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The position.")]
         public Vector3 position;
+
+        public static Position defaultValue = new Position() { position = Vector3.zero }
     }
 
     [VFXType]
@@ -241,6 +271,8 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The normalized direction.")]
         public Vector3 direction;
+
+        public static DirectionType defaultValue = new DirectionType() { direction = Vector3.up }
     }
 
     [VFXType]
@@ -263,6 +295,8 @@ namespace UnityEditor.VFX
             vector = v;
             space = CoordinateSpace.Local;
         }
+
+        public static Vector defaultValue = new Vector();
     }
 
     [VFXType]
@@ -270,5 +304,7 @@ namespace UnityEditor.VFX
     {
         public int x;
         public int y;
+
+        public static FlipBook defaultValue = new FlipBook() { x = 4, y = 4 }
     }
 }

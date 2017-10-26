@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            foreach (var exp in base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name == "texture")))
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name != "flipBookSize")))
                 yield return exp;
 
             if (flipBook != FlipbookMode.Off)
