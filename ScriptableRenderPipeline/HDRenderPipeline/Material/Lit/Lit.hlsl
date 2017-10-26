@@ -1713,9 +1713,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
-        lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, posInput.positionSS, 0.0).rgb;
-        // TODO: check with fred. If a pixel is in front of the object we should not sample at all and put hierarchyWeight to 1.0 so we discard the effect as it is occlusion
-        // Otherwise fallback on cubemap
+        // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
     }
 
@@ -1745,27 +1743,34 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
+#if !HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+        return lighting;
+#endif
 
+    float3 envLighting = float3(0.0, 0.0, 0.0);
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
 
 #ifdef LIT_DISPLAY_REFERENCE_IBL
 
-    lighting.specularReflected = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+    envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 
-/*
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    lighting.directDiffuse += IntegrateLambertIBLRef(lightData, V, bsdfData);
-    #else
-    lighting.directDiffuse += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
-    #endif
-*/
-    hierarchyWeight = 0.0;
+    // TODO: Do refraction reference (is it even possible ?)
+
+
+//    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+//    envLighting += IntegrateLambertIBLRef(lightData, V, bsdfData);
+//    #else
+//    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+//    #endif
+
+    weight = 1.0;
 
 #else
 
@@ -1781,6 +1786,29 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+    {
+        // This is the same code than what is use in screen space refraction
+        // TODO: put this code into a function
+#if defined(_REFRACTION_PLANE)
+        R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+#elif defined(_REFRACTION_SPHERE)
+        float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
+        // Center of the tangent sphere
+        float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
+        // Second refraction (tangent sphere out)
+        float NoR1 = dot(bsdfData.normalWS, R1);
+        // Optical depth within the sphere
+        float opticalDepth = -NoR1 * bsdfData.thickness;
+        // Out hit point in the tangent sphere
+        float3 P1 = posInput.positionWS + R1 * opticalDepth;
+        // Out normal
+        float3 N1 = normalize(C - P1);
+        // Out refracted ray
+        R = refract(R1, N1, bsdfData.ior);
+#endif
+    }
 
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
@@ -1853,19 +1881,23 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // Evaluate the Clear Coat color
         float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
-        lighting.specularReflected += F * preLD.rgb * bsdfData.coatCoverage;
+        envLighting += F * preLD.rgb * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer.
         F = Sqr(-F * bsdfData.coatCoverage + 1.0);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
-    lighting.specularReflected += F * preLD.rgb * preLightData.specularFGD;
+    envLighting += F * preLD.rgb * preLightData.specularFGD;
 
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    lighting.specularReflected *= weight;
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+        lighting.specularReflected = envLighting * weight;
+    else
+        lighting.specularTransmitted = envLighting * weight;
 
     return lighting;
 }
