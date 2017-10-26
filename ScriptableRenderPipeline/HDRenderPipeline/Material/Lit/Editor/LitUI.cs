@@ -356,7 +356,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (int i = 0; i < profiles.Length; i++)
             {
                 names[i + 1] = new GUIContent(profiles[i].name);
-                values[i + 1] = i;
+                values[i + 1] = i + 1;
             }
 
             using (var scope = new EditorGUI.ChangeCheckScope())
