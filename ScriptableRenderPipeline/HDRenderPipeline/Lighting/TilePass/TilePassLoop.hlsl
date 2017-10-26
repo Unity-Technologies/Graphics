@@ -155,8 +155,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
-    Lighting lighting;
-    ZERO_INITIALIZE(Lighting, lighting); // LightLoop is in charge of initializing the struct
+    AggregateLighting aggregatelighting;
+    ZERO_INITIALIZE(AggregateLighting, aggregatelighting); // LightLoop is in charge of initializing the struct
 
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
@@ -164,7 +164,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
-            EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, lighting);
+            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData);
+            AccumulateDirectLighting(aggregatelighting, lighting);
         }
     }
 
@@ -180,14 +181,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < punctualLightCount; ++i)
         {
             int punctualIndex = FetchIndex(punctualLightStart, i);
-            EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, _LightDatas[punctualIndex].lightType, lighting);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, _LightDatas[punctualIndex].lightType);
+            AccumulateDirectLighting(aggregatelighting, lighting);
         }
 
         #else
 
         for (i = 0; i < _PunctualLightCount; ++i)
         {
-            EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType, lighting);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType);
+            AccumulateDirectLighting(aggregatelighting, lighting);
         }
 
         #endif
@@ -214,7 +217,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i < areaLightCount && lightType == GPULIGHTTYPE_LINE)
             {
-                EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE, lighting);
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE);
+                AccumulateDirectLighting(aggregatelighting, lighting);
+                
                 i++;
                 areaIndex = i < areaLightCount ? FetchIndex(areaLightStart, i) : 0;
                 lightType = i < areaLightCount ? _LightDatas[areaIndex].lightType : 0xFF;
@@ -222,7 +227,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i < areaLightCount && lightType == GPULIGHTTYPE_RECTANGLE)
             {
-                EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE, lighting);
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE);
+                AccumulateDirectLighting(aggregatelighting, lighting);
+
                 i++;
                 areaIndex = i < areaLightCount ? FetchIndex(areaLightStart, i) : 0;
                 lightType = i < areaLightCount ? _LightDatas[areaIndex].lightType : 0xFF;
@@ -233,7 +240,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         for (i = _PunctualLightCount; i < _PunctualLightCount + _AreaLightCount; ++i)
         {
-            EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType, lighting);
+            DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType);
+            AccumulateDirectLighting(aggregatelighting, lighting);
         }
 
         #endif
@@ -244,12 +252,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
     {
-        EvaluateBSDF_SSRefraction(context, V, posInput, preLightData, bsdfData, lighting, refractionHierarchyWeight);
+        ImageBasedLighting lighting = EvaluateBSDF_SSRefraction(context, V, posInput, preLightData, bsdfData, refractionHierarchyWeight);
+        AccumulateImageBasedLighting(aggregatelighting, lighting);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
     {
-        EvaluateBSDF_SSReflection(context, V, posInput, preLightData, bsdfData, lighting, reflectionHierarchyWeight);
+        ImageBasedLighting lighting = EvaluateBSDF_SSReflection(context, V, posInput, preLightData, bsdfData, reflectionHierarchyWeight);
+        AccumulateImageBasedLighting(aggregatelighting, lighting);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_ENV || featureFlags & LIGHTFEATUREFLAGS_SKY)
@@ -275,8 +285,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #else
                 uint envLightIndex = i;
             #endif
-                EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
-                                    lighting, reflectionHierarchyWeight);
+                ImageBasedLighting lighting = EvaluateBSDF_Env( context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
+                                                                reflectionHierarchyWeight);
+                AccumulateImageBasedLighting(aggregatelighting, lighting);
             }
         }
 
@@ -288,14 +299,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
                 context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
                 EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-                EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, lighting, reflectionHierarchyWeight);
+                ImageBasedLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, reflectionHierarchyWeight);
+                AccumulateImageBasedLighting(aggregatelighting, lighting);
             }
         }
     }
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, bakeDiffuseLighting, lighting,
+    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, bakeDiffuseLighting, aggregatelighting,
                         diffuseLighting, specularLighting);
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
