@@ -154,6 +154,7 @@ float _Anisotropy;
 int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
+float4 _ThicknessRemap;
 
 float _CoatCoverage;
 float _CoatIOR;
