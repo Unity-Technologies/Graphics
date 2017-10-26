@@ -10,7 +10,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-//using CurveField = UnityEditor.VFX.UIElements.CurveField;
+using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX
 {
@@ -73,7 +73,12 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<int> CreateField()
         {
-            return new IntField(m_Label);
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+
+            if (range == Vector2.zero)
+                return new IntField(m_Label);
+            else
+                return new IntSliderField(m_Label, range);
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
@@ -102,18 +107,6 @@ namespace UnityEditor.VFX.UI
                 return new FloatField(m_Label);
             else
                 return new SliderField(m_Label, range);
-        }
-    }
-
-    class CurvePropertyRM : SimplePropertyRM<AnimationCurve>
-    {
-        public CurvePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
-        {
-        }
-
-        public override ValueControl<AnimationCurve> CreateField()
-        {
-            return new VFX.UIElements.CurveField(m_Label);//LabeledField<UnityEditor.Experimental.UIElements.CurveField,AnimationCurve>(m_Label);
         }
     }
 

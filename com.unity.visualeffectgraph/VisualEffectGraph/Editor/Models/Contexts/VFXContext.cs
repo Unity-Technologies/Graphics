@@ -211,7 +211,7 @@ namespace UnityEditor.VFX
                 var slotsList = m_InputFlowSlot[slot].link;
                 while (m_InputFlowSlot[slot].link.Count > 0)
                 {
-                    var clean = m_OutputFlowSlot[slot].link.Last();
+                    var clean = m_InputFlowSlot[slot].link.Last();
                     InnerUnlink(clean.context, this, clean.slotIndex, slot);
                 }
             }

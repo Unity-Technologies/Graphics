@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
             {
                 System.Type type = anchorType;
 
-                FieldInfo[] fields = type.GetFields();
+                FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
                 int count = fields.Length;
 
