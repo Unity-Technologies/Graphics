@@ -4,29 +4,29 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector/Vector 2")]
-    public class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Input/Basic/Vector 4")]
+    public class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private Vector2 m_Value;
+        private Vector4 m_Value;
 
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
+        private const string kOutputSlotName = "Out";
 
-        public Vector2Node()
+        public Vector4Node()
         {
-            name = "Vector2";
+            name = "Vector 4";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [MultiFloatControl("")]
-        public Vector2 value
+        public Vector4 value
         {
             get { return m_Value; }
             set
@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new Vector2ShaderProperty()
+            properties.AddShaderProperty(new Vector4ShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -72,7 +72,7 @@ namespace UnityEngine.MaterialGraph
             properties.Add(new PreviewProperty()
             {
                 m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Vector2,
+                m_PropType = PropertyType.Vector4,
                 m_Vector4 = m_Value
             });
         }

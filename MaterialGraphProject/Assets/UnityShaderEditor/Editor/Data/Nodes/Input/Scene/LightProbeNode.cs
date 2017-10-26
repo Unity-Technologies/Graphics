@@ -1,22 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Scene Data/Light Probe")]
+    [Title("Input/Scene/Light Probe")]
     public class LightProbeNode : CodeFunctionNode
     {
-        public override bool hasPreview { get { return false; } }
+        //public override bool hasPreview { get { return false; } }
 
         public LightProbeNode()
         {
-            name = "LightProbe";
+            name = "Light Probe";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -25,14 +18,14 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_LightProbe(
-            [Slot(0, Binding.WorldSpaceNormal)] Vector3 worldSpaceNormal,
-            [Slot(1, Binding.None)] out Vector4 color)
+            [Slot(0, Binding.WorldSpaceNormal)] Vector3 Normal,
+            [Slot(1, Binding.None)] out Vector3 Out)
         {
-            color = Vector4.one;
+            Out = Vector3.one;
             return
                 @"
 {
-    color = ShadeSH9(float4(worlsSpaceNormal , 1));
+    Out = ShadeSH9(float4(Normal , 1));
 }
 ";
         }

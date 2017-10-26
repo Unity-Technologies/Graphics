@@ -1,57 +1,59 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector/Vector 3")]
-    public class Vector3Node : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Input/Basic/Color")]
+    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private Vector3 m_Value;
+        private Color m_Color;
 
-        public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
+        private const int kOutputSlotId = 0;
+        private const string kOutputSlotName = "Out";
 
-        public Vector3Node()
+        public ColorNode()
         {
-            name = "Vector3";
+            name = "Color";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        [MultiFloatControl("")]
-        public Vector3 value
+        [ColorControl("")]
+        public Color color
         {
-            get { return m_Value; }
+            get { return m_Color; }
             set
             {
-                if (m_Value == value)
+                if (m_Color == value)
                     return;
 
-                m_Value = value;
-
+                m_Color = value;
                 if (onModified != null)
+                {
                     onModified(this, ModificationScope.Node);
+                }
             }
         }
+
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new Vector3ShaderProperty()
+            properties.AddShaderProperty(new ColorShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
-                value = value
+                value = color,
+                HDR = false
             });
         }
 
@@ -60,7 +62,7 @@ namespace UnityEngine.MaterialGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -70,11 +72,11 @@ namespace UnityEngine.MaterialGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty()
+            properties.Add(new PreviewProperty
             {
                 m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Vector3,
-                m_Vector4 = m_Value
+                m_PropType = PropertyType.Color,
+                m_Color = color
             });
         }
     }

@@ -4,35 +4,29 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector/Vector 1")]
-    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Input/Basic/Vector 2")]
+    public class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private float m_Value;
-
-        /*[SerializeField]
-        private FloatPropertyChunk.FloatType m_floatType;*/
-
-       // [SerializeField]
-        //private Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
+        private Vector2 m_Value;
 
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Value";
+        private const string kOutputSlotName = "Out";
 
-        public Vector1Node()
+        public Vector2Node()
         {
-            name = "Vector1";
+            name = "Vector 2";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output,0));
+            AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [MultiFloatControl("")]
-        public float value
+        public Vector2 value
         {
             get { return m_Value; }
             set
@@ -47,42 +41,12 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-       /* public FloatPropertyChunk.FloatType floatType
-        {
-            get { return m_floatType; }
-            set
-            {
-                if (m_floatType == value)
-                    return;
-
-                m_floatType = value;
-
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
-        }*/
-
-      /*  public Vector3 rangeValues
-        {
-            get { return m_rangeValues; }
-            set
-            {
-                if (m_rangeValues == value)
-                    return;
-
-                m_rangeValues = value;
-
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
-        }
-*/
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new FloatShaderProperty()
+            properties.AddShaderProperty(new Vector2ShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -108,8 +72,8 @@ namespace UnityEngine.MaterialGraph
             properties.Add(new PreviewProperty()
             {
                 m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Float,
-                m_Float = m_Value
+                m_PropType = PropertyType.Vector2,
+                m_Vector4 = m_Value
             });
         }
     }
