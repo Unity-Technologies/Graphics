@@ -67,28 +67,46 @@ MaterialNodeView > #resize:active {
     background-color: rgb(0, 225, 25);
 }
 
-.edge.Matrix4, .edge.Matrix3, .edge.Matrix2 {
-    edge-color: #8FC1DF;
+.edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
+    edge-output-color: #8FC1DF;
+}
+.edge.toMatrix4, .edge.toMatrix3, .edge.toMatrix2 {
+    edge-input-color: #8FC1DF;
 }
 
-.edge.Texture2D {
-    edge-color: #FF8B8B;
+.edge.fromTexture2D {
+    edge-output-color: #FF8B8B;
+}
+.edge.toTexture2D {
+    edge-input-color: #FF8B8B;
 }
 
-.edge.Vector4 {
-    edge-color: #FBCBF4;
+.edge.fromVector4 {
+    edge-output-color: #FBCBF4;
+}
+.edge.toVector4 {
+    edge-input-color: #FBCBF4;
 }
 
-.edge.Vector3 {
-    edge-color: #F6FF9A;
+.edge.fromVector3 {
+    edge-output-color: #F6FF9A;
+}
+.edge.toVector3 {
+    edge-input-color: #F6FF9A;
 }
 
-.edge.Vector2 {
-    edge-color: #9AEF92;
+.edge.fromVector2 {
+    edge-output-color: #9AEF92;
+}
+.edge.toVector2 {
+    edge-input-color: #9AEF92;
 }
 
-.edge.Vector1 {
-    edge-color: #84E4E7;
+.edge.fromVector1 {
+    edge-output-color: #84E4E7;
+}
+.edge.toVector1 {
+    edge-input-color: #84E4E7;
 }
 
 GraphInspectorView {

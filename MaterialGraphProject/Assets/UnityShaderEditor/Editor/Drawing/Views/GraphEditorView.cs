@@ -281,13 +281,13 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
                 var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
 
-                var edgeView = new Edge
+                var edgeView = new GradientEdge
                 {
                     userData = edge,
                     output = sourceAnchor,
                     input = targetAnchor
                 };
-                edgeView.AddToClassList(sourceSlot.concreteValueType.ToString());
+                edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -311,22 +311,40 @@ namespace UnityEditor.MaterialGraph.Drawing
             while (nodeStack.Any())
             {
                 var nodeView = nodeStack.Pop();
-                nodeViews.Add(nodeView);
-                foreach (var child in nodeView.outputContainer.Children())
+                foreach (var anchorView in nodeView.outputContainer.Children().OfType<NodeAnchor>())
                 {
-                    var anchorView = child as NodeAnchor;
-                    if (anchorView == null)
-                        continue;
-                    var slot = (MaterialSlot)anchorView.userData;
-                    var className = slot.concreteValueType.ToString();
-                    foreach (var connection in anchorView.connections)
+                    var sourceSlot = (MaterialSlot)anchorView.userData;
+                    foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
                     {
-                        connection.ClearClassList();
-                        connection.AddToClassList("edge");
-                        connection.AddToClassList(className);
-                        var connectedNodeView = connection.input.node as MaterialNodeView;
-                        if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
-                            nodeStack.Push(connectedNodeView);
+                        var targetSlot = (MaterialSlot)edgeView.input.userData;
+                        if (targetSlot.valueType == SlotValueType.Dynamic)
+                        {
+                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
+                            var connectedNodeView = edgeView.input.node as MaterialNodeView;
+                            if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
+                            {
+                                nodeStack.Push(connectedNodeView);
+                                nodeViews.Add(connectedNodeView);
+                            }
+                        }
+                    }
+                }
+                foreach (var anchorView in nodeView.inputContainer.Children().OfType<NodeAnchor>())
+                {
+                    var targetSlot = (MaterialSlot)anchorView.userData;
+                    foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
+                    {
+                        var sourceSlot = (MaterialSlot)edgeView.output.userData;
+                        if (sourceSlot.valueType == SlotValueType.Dynamic)
+                        {
+                            edgeView.UpdateClasses(targetSlot.concreteValueType, sourceSlot.concreteValueType);
+                            var connectedNodeView = edgeView.output.node as MaterialNodeView;
+                            if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
+                            {
+                                nodeStack.Push(connectedNodeView);
+                                nodeViews.Add(connectedNodeView);
+                            }
+                        }
                     }
                 }
             }
