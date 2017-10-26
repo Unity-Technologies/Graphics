@@ -67,6 +67,30 @@ MaterialNodeView > #resize:active {
     background-color: rgb(0, 225, 25);
 }
 
+.edge.Matrix4, .edge.Matrix3, .edge.Matrix2 {
+    edge-color: #8FC1DF;
+}
+
+.edge.Texture2D {
+    edge-color: #FF8B8B;
+}
+
+.edge.Vector4 {
+    edge-color: #FBCBF4;
+}
+
+.edge.Vector3 {
+    edge-color: #F6FF9A;
+}
+
+.edge.Vector2 {
+    edge-color: #9AEF92;
+}
+
+.edge.Vector1 {
+    edge-color: #84E4E7;
+}
+
 GraphInspectorView {
     background-color: rgb(56, 56, 56);
     flex-direction: column;

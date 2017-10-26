@@ -222,6 +222,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Dispose()
         {
+            node = null;
             if (m_Preview != null)
             {
                 m_Preview.onPreviewChanged -= UpdatePreviewTexture;
