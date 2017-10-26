@@ -993,13 +993,13 @@ struct AggregateLighting
     IndirectLighting indirect;
 };
 
-void AccumulateDirectLighting(AggregateLighting dst, DirectLighting src)
+void AccumulateDirectLighting(DirectLighting src, inout AggregateLighting dst)
 {
     dst.direct.diffuse += src.diffuse;
     dst.direct.specular += src.specular;
 }
 
-void AccumulateIndirectLighting(AggregateLighting dst, IndirectLighting src)
+void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting dst)
 {
     dst.indirect.specularReflected += src.specularReflected;
     dst.indirect.specularTransmitted += src.specularTransmitted;
