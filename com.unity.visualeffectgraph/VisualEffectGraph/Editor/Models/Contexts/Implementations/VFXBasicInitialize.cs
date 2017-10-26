@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public AABox bounds = new AABox() { size = new Vector3(10000.0f, 10000.0f, 10000.0f) };
+            public AABox bounds = new AABox() { size = Vector3.one };
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
