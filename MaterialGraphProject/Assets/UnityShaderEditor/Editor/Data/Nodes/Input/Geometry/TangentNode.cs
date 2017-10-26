@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     public class TangentNode : GeometryNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
-        public const string kOutputSlotName = "Tangent";
+        public const string kOutputSlotName = "Out";
 
         public TangentNode()
         {

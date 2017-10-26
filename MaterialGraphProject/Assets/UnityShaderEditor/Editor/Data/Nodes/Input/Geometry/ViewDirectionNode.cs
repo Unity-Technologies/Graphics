@@ -6,11 +6,11 @@ namespace UnityEngine.MaterialGraph
     public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
-        public const string kOutputSlotName = "ViewDirection";
+        public const string kOutputSlotName = "Out";
 
         public ViewDirectionNode()
         {
-            name = "ViewDirection";
+            name = "View Direction";
             UpdateNodeAfterDeserialization();
         }
 

@@ -11,9 +11,10 @@ namespace UnityEngine.MaterialGraph
     public class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
     {
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "VertexColor";
+        private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return true; } }
+
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
@@ -21,7 +22,7 @@ namespace UnityEngine.MaterialGraph
 
         public VertexColorNode()
         {
-            name = "VertexColor";
+            name = "Vertex Color";
             UpdateNodeAfterDeserialization();
         }
 

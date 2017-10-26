@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     public class BitangentNode : GeometryNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
-        public const string kOutputSlotName = "Bitangent";
+        public const string kOutputSlotName = "Out";
 
         public BitangentNode()
         {
