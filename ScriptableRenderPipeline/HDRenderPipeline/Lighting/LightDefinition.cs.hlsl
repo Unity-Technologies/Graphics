@@ -16,6 +16,12 @@
 #define GPULIGHTTYPE_RECTANGLE (6)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.GPUImageBasedLightingType:  static fields
+//
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
