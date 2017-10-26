@@ -349,6 +349,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
                 SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
             }
+
+            SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)
