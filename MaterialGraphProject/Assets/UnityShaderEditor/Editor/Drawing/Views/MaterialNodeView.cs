@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         List<VisualElement> m_ControlViews;
         PreviewData m_Preview;
-        Image m_PreviewImage;
+        PreviewView m_PreviewImage;
         VisualElement m_PreviewToggle;
         VisualElement m_ControlsContainer;
 
@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             previewExpanded = node.previewExpanded;
             leftContainer.Add(m_PreviewToggle);
 
-            m_PreviewImage = new Image
+            m_PreviewImage = new PreviewView
             {
                 name = "preview",
                 pickingMode = PickingMode.Ignore,
@@ -74,6 +74,8 @@ namespace UnityEditor.MaterialGraph.Drawing
 
                 UpdateSize();
             }
+
+            clippingOptions = ClippingOptions.ClipContents;
         }
 
         public AbstractMaterialNode node { get; private set; }
@@ -220,6 +222,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Dispose()
         {
+            node = null;
             if (m_Preview != null)
             {
                 m_Preview.onPreviewChanged -= UpdatePreviewTexture;
