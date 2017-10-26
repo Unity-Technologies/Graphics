@@ -20,8 +20,6 @@ MonoBehaviour:
   debugFullScreenShader: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf,
     type: 3}
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
-  screenSpaceAmbientOcclusionShader: {fileID: 4800000, guid: cf0db7f5267ad944dbf4326b7102c9ca,
-    type: 3}
   subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
     type: 3}
   volumetricLightingCS: {fileID: 7200000, guid: 799166e2ee6a4b041bba9e74f6942097,
@@ -55,4 +53,6 @@ MonoBehaviour:
   computeGgxIblSampleData: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445,
     type: 3}
   GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
+  opaqueAtmosphericScattering: {fileID: 4800000, guid: 326059e48e5735e46a98047eff4f0295,
+    type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}

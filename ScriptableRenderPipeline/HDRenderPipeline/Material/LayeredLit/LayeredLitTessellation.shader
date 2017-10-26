@@ -463,7 +463,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -491,11 +491,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define _BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -526,7 +526,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -554,7 +554,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -579,7 +579,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -606,7 +606,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -630,7 +630,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -658,7 +658,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
@@ -688,7 +688,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
