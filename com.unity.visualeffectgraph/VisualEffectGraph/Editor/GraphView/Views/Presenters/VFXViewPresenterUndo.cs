@@ -38,8 +38,8 @@ namespace UnityEditor.VFX.UI
 
         public void IncrementGraphState()
         {
-            //    Undo.RecordObject(m_graphUndoCursor, "VFXGraph");
-            //    m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
+            Undo.RecordObject(m_graphUndoCursor, "VFXGraph");
+            m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
         }
 
         public bool IsDirtyState()

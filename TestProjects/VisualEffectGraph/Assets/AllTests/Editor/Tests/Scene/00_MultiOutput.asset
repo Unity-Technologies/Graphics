@@ -115,6 +115,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,7 +164,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114095934640662620}
-  m_TestId: 1269710556
 --- !u!114 &114051895635770072
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,6 +192,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114069458236294264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,7 +215,6 @@ MonoBehaviour:
   - {fileID: 114051895635770072}
   - {fileID: 114802777676336084}
   - {fileID: 114033350763109576}
-  m_TestId: 261905873
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1403,6 +1405,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114809451265799136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1910,7 +1914,7 @@ VFXAsset:
       data[0]: 0
       data[1]: -1
       data[2]: -1
-      data[3]: 0
+      data[3]: 2
     - op: 0
       valueIndex: 6
       data[0]: -1
@@ -2154,7 +2158,7 @@ VFXAsset:
         nameId: uniform_Lifetime_b
       - expressionIndex: 13
         nameId: uniform_Velocity_c
-      processor: {fileID: 7200000, guid: 51c97b46353369b469f168b5b0d8d4fa, type: 3}
+      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -2168,7 +2172,7 @@ VFXAsset:
         nameId: uniform_c
       - expressionIndex: 18
         nameId: uniform_deltaTime_c
-      processor: {fileID: 7200000, guid: d32aac3e1196b3243a9f4a0ef89c975b, type: 3}
+      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2176,7 +2180,7 @@ VFXAsset:
       values:
       - expressionIndex: 17
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: e5631421d904c1c42949ba8f653ede0e, type: 3}
+      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2186,7 +2190,7 @@ VFXAsset:
         nameId: uniform_b
       - expressionIndex: 16
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: a23330f3d03f8bf4e8ff3a504415de7d, type: 3}
+      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2198,7 +2202,7 @@ VFXAsset:
         nameId: uniform_c
       - expressionIndex: 12
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 58c16bb59ff2fc64dbd13c8d2d14f0c4, type: 3}
+      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

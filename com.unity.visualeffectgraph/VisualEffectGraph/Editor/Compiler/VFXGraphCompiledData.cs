@@ -454,7 +454,7 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction);
+                m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction, true);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
