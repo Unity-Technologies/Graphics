@@ -54,6 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Clear Coat
             public static GUIContent coatCoverageText = new GUIContent("Coat Coverage", "Percentage of clear coat coverage");
@@ -179,6 +180,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kThickness = "_Thickness";
         protected MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];
         protected const string kThicknessMap = "_ThicknessMap";
+        protected MaterialProperty[] thicknessRemap = new MaterialProperty[kMaxLayerCount];
+        protected const string kThicknessRemap = "_ThicknessRemap";
 
         protected MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
         protected const string kUVDetail = "_UVDetail";
@@ -278,6 +281,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 subsurfaceRadiusMap[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceRadiusMap, m_PropertySuffixes[i]), props);
                 thickness[i] = FindProperty(string.Format("{0}{1}", kThickness, m_PropertySuffixes[i]), props);
                 thicknessMap[i] = FindProperty(string.Format("{0}{1}", kThicknessMap, m_PropertySuffixes[i]), props);
+                thicknessRemap[i] = FindProperty(string.Format("{0}{1}", kThicknessRemap, m_PropertySuffixes[i]), props);
 
                 // Details
                 UVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, m_PropertySuffixes[i]), props);
@@ -378,8 +382,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius[layerIndex], Styles.subsurfaceRadiusText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap[layerIndex]);
-            m_MaterialEditor.ShaderProperty(thickness[layerIndex], Styles.thicknessText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
+            if (thicknessMap[layerIndex].textureValue != null)
+            {
+                // Display the remap of texture values.
+                Vector2 remap = thicknessRemap[layerIndex].vectorValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    thicknessRemap[layerIndex].vectorValue = remap;
+                }
+            }
+            else
+            {
+                // Allow the user to set the constant value of thickness if no thickness map is provided.
+                m_MaterialEditor.ShaderProperty(thickness[layerIndex], Styles.thicknessText);
+            }
         }
 
         protected void ShaderClearCoatInputGUI()
