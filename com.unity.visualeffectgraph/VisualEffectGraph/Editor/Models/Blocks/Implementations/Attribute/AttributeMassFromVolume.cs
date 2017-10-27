@@ -5,9 +5,9 @@ using System.Collections.Generic;
 namespace UnityEditor.VFX.BlockLibrary
 {
     [VFXInfo(category = "Attribute")]
-    class AttributeMass : VFXBlock
+    class AttributeMassFromVolume : VFXBlock
     {
-        public override string name { get { return "Calculate Mass"; } }
+        public override string name { get { return "Calculate Mass From Volume"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
