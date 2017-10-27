@@ -225,35 +225,11 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
     bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
-    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
-
-    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
-
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
-    bool enableSssAndTransmission = false;
-#elif defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
-    bool enableSssAndTransmission = true;
-#else
-    bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
-#endif
-
-    if (enableSssAndTransmission) // If we globally disable SSS effect, don't modify diffuseColor
-    {
-        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-        if (performPostScatterTexturing)
-        {
-        #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
-            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-        #endif
-        }
-        else
-        {
-            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
-        }
-    }
 
     if (bsdfData.enableTransmission)
     {
+        bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
+
         if (_UseDisneySSS)
         {
             bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
@@ -269,9 +245,44 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
                                                                  _TransmissionTints[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
-
-        bsdfData.transmittance *= bsdfData.diffuseColor; // Premultiply
     }
+}
+
+// Returns the modified albedo (diffuse color) for materials with subsurface scattering.
+// Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
+float3 ApplyDiffuseTexturingMode(BSDFData bsdfData)
+{
+    float3 albedo = bsdfData.diffuseColor;
+
+    if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    {
+    #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
+        // If the SSS pass is executed, we know we have SSS enabled.
+        bool enableSssAndTransmission = true;
+    #else
+        bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
+    #endif
+
+        if (enableSssAndTransmission)
+        {
+            bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
+
+            if (performPostScatterTexturing)
+            {
+                // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
+            #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
+                albedo = float3(1, 1, 1);
+            #endif
+            }
+            else
+            {
+                // Pre- and pos- scatter texturing mode.
+                albedo = sqrt(albedo);
+            }
+        }
+    }
+
+    return albedo;
 }
 
 void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float coatIOR, inout BSDFData bsdfData)
@@ -940,6 +951,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
 float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
+    bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
@@ -1098,7 +1111,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 #endif
 
-    diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    diffuseLighting = diffuseTerm;
 }
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
@@ -1203,6 +1217,7 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
@@ -1336,6 +1351,7 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
@@ -1409,7 +1425,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     {
         ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
         ltcValue *= lightData.diffuseScale;
-        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1425,6 +1442,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
@@ -1534,7 +1552,8 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
         ltcValue *= lightData.diffuseScale;
-        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1553,6 +1572,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
@@ -1939,8 +1959,6 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
 
-    // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
-
     lighting.direct.diffuse *=
 #if GTAO_MULTIBOUNCE_APPROX
                                 GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
@@ -1948,7 +1966,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                                 lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 #endif
 
-    diffuseLighting = lighting.direct.diffuse + bakeDiffuseLighting;
+    float3 modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+
+    // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
+    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
+
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
