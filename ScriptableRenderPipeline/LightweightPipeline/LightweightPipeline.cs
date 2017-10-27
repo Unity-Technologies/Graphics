@@ -125,10 +125,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._AttenuationTexture = Shader.PropertyToID("_AttenuationTexture");
 
+            // Lights are culled per-camera. Therefore we need to reset light buffers on each camera render
             PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
             PerCameraBuffer._MainLightAttenuationParams = Shader.PropertyToID("_MainLightAttenuationParams");
             PerCameraBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
+            PerCameraBuffer._MainLightCookie = Shader.PropertyToID("_MainLightCookie");
+            PerCameraBuffer._WorldToLight = Shader.PropertyToID("_WorldToLight");
             PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
             PerCameraBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
             PerCameraBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
@@ -448,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShaderConstants(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
-            SetupShaderLightConstants(cmd, visibleLights, ref lightData, ref m_CullResults, ref context);
+            SetupShaderLightConstants(cmd, visibleLights, ref lightData);
             SetShaderKeywords(cmd, ref lightData, visibleLights);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -462,9 +465,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.shadowsRendered = false;
             if (visibleLightsCount <= 1)
             {
-                // If there's exactly one visible light that will be picked as main light.
-                // Otherwise we disable main light by setting its index to -1.
-                lightData.mainLightIndex = visibleLightsCount - 1;
+                lightData.mainLightIndex = GetMainLight(visibleLights);
                 lightData.pixelAdditionalLightsCount = 0;
                 lightData.totalAdditionalLightsCount = 0;
                 return;
@@ -512,6 +513,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int totalVisibleLights = visibleLights.Length;
             bool shadowsEnabled = m_Asset.AreShadowsEnabled();
+
+            // Particle system lights have the light property as null. We sort lights so all particles lights
+            // come last. Therefore, if first light is particle light then all lights are particle lights.
+            // In this case we have no main light.
+            if (totalVisibleLights == 0 || visibleLights[0].light == null)
+                return -1;
 
             // If shadows are supported and the first visible light has shadows then this is main light
             if (shadowsEnabled && visibleLights[0].light.shadows != LightShadows.None)
@@ -600,19 +607,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release (cmd);
         }
 
-        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
         {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, lights, lightData.mainLightIndex, ref context);
+            SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
             if (lightData.shadowsRendered)
-                SetupShadowShaderConstants(cmd, ref context, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
+                SetupShadowShaderConstants(cmd, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
 
             if (lightData.totalAdditionalLightsCount > 0)
-                SetupAdditionalListConstants(cmd, lights, ref lightData, ref context);
+                SetupAdditionalListConstants(cmd, lights, ref lightData);
         }
 
-        private void SetupMainLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
+        private void SetupMainLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex)
         {
             Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
@@ -621,9 +628,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightAttenuationParams, lightAttenuationParams);
+
+            if (lightIndex >= 0 && LightweightUtils.IsSupportedCookieType(lights[lightIndex].lightType) && lights[lightIndex].light.cookie != null)
+            {
+                Matrix4x4 lightCookieMatrix;
+                LightweightUtils.GetLightCookieMatrix(lights[lightIndex], out lightCookieMatrix);
+                cmd.SetGlobalTexture(PerCameraBuffer._MainLightCookie, lights[lightIndex].light.cookie);
+                cmd.SetGlobalMatrix(PerCameraBuffer._WorldToLight, lightCookieMatrix);
+            }
         }
 
-        private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
+        private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
         {
             int additionalLightIndex = 0;
 
@@ -662,7 +677,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
         }
 
-        private void SetupShadowShaderConstants(CommandBuffer cmd, ref ScriptableRenderContext context, ref VisibleLight shadowLight, int cascadeCount)
+        private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
         {
             Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
 
@@ -699,6 +714,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
 
             int mainLightIndex = lightData.mainLightIndex;
+
+            // Currently only directional light cookie is supported
+            LightweightUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
             LightweightUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
             LightweightUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
             LightweightUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);

@@ -14,6 +14,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _MainLightColor;
         public static int _MainLightAttenuationParams;
         public static int _MainLightSpotDir;
+        public static int _MainLightCookie;
+        public static int _WorldToLight;
 
         public static int _AdditionalLightCount;
         public static int _AdditionalLightPosition;
