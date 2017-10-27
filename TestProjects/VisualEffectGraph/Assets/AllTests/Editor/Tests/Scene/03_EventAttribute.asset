@@ -3269,7 +3269,7 @@ VFXAsset:
       data[0]: 12
       data[1]: -1
       data[2]: -1
-      data[3]: 2
+      data[3]: 0
     - op: 0
       valueIndex: 26
       data[0]: -1
@@ -3915,7 +3915,7 @@ VFXAsset:
         nameId: uniform_Speed_f
       - expressionIndex: 46
         nameId: uniform_DirectionBlend_f
-      processor: {fileID: 7200000, guid: 140c192e1eb6cf84aad74216740c0d11, type: 3}
+      processor: {fileID: 7200000, guid: b0f9f28f7c551a74ca59a299cce3aa01, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -3925,7 +3925,7 @@ VFXAsset:
       values:
       - expressionIndex: 47
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: 06c5f422c7ee3504a904fe155194a133, type: 3}
+      processor: {fileID: 7200000, guid: 52999eb9dfd1b6e4f90f76a5ff1f6534, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -3939,7 +3939,7 @@ VFXAsset:
         nameId: uniform_d
       - expressionIndex: 44
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 3145b610b0073e8488d0198bb18b661d, type: 3}
+      processor: {fileID: 4800000, guid: c0440f717092acc4daf6475aa5aea14a, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000
