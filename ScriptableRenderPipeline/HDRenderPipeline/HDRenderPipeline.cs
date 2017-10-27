@@ -841,6 +841,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // YIBING BEGIN
                 RenderForwardOnlyOpaqueSplitLighting(m_CullResults, camera, renderContext, cmd);
+                // TEMP: We need to perform a second render of the stencil it to be take into account for SSS with Disney
+                // When we implement forward SSS i HD,be sure we do it correctly and don't duplicate copy
+                PrepareAndBindStencilTexture(cmd);
                 SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
 				// YIBING END
 
@@ -1344,6 +1347,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
                 // YIBING PROJECT Note: The shader don't use DoAlphaTest, let's don't care about performance and just redo the clip test here.
                 RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName), HDUtils.k_RendererConfigurationBakedLighting);
+
+                // We need to unset the multi render target before going further, because compute shader SSS pass will not be able to bind the Gbuffer set in write mode.
+                CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
             }
         }
 
