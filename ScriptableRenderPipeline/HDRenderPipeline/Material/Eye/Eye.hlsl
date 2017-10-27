@@ -12,7 +12,7 @@
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
 {
 	bsdfData.diffuseColor = baseColor*0.5;
-	bsdfData.fresnel0 =1;
+    bsdfData.fresnel0 = baseColor;
 
 	// TODO: encode specular
 

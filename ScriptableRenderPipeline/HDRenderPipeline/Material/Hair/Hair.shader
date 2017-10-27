@@ -280,5 +280,6 @@ Shader "HDRenderPipeline/ExperimentalHair"
         }
     }
 
-	CustomEditor "Experimental.Rendering.HDPipeline.HairGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.CharacterGUI"
+	//CustomEditor "Experimental.Rendering.HDPipeline.HairGUI"
 }
