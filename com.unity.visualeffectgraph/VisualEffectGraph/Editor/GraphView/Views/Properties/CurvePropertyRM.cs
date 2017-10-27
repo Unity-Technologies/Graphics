@@ -9,18 +9,18 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using GradientField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.GradientField, UnityEngine.Gradient>;
+using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {
-    class GradientPropertyRM : PropertyRM<Gradient>
+    class CurvePropertyRM : PropertyRM<AnimationCurve>
     {
-        public GradientPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public CurvePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             VisualElement mainContainer = new VisualElement();
 
-            m_GradientField = new GradientField(m_Label);
-            m_GradientField.RegisterCallback<ChangeEvent<Gradient>>(OnValueChanged);
+            m_GradientField = new CurveField(m_Label);
+            m_GradientField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
 
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
@@ -29,14 +29,14 @@ namespace UnityEditor.VFX.UI
             Add(m_GradientField);
         }
 
-        public void OnValueChanged(ChangeEvent<Gradient> e)
+        public void OnValueChanged(ChangeEvent<AnimationCurve> e)
         {
-            Gradient newValue = m_GradientField.value;
+            AnimationCurve newValue = m_GradientField.value;
             m_Value = newValue;
             NotifyValueChanged();
         }
 
-        GradientField m_GradientField;
+        CurveField m_GradientField;
 
         protected override void UpdateEnabled()
         {

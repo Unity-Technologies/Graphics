@@ -48,6 +48,14 @@ namespace UnityEditor.VFX.UI
                     {
                         selectedParameter.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
                     }
+                    else
+                    {
+                        VFXContextUI selectedContext = view.selection.OfType<VFXContextUI>().FirstOrDefault();
+                        if (selectedContext != null)
+                        {
+                            selectedContext.GetPresenter<VFXContextPresenter>().slotPresenter.DrawGizmos(comp);
+                        }
+                    }
                 }
             }
         }

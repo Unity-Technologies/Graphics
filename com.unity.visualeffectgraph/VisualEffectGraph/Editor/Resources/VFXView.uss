@@ -36,7 +36,12 @@ VFXView #VFXBackgroundGrid {
 	flex-direction:row;
 }
 
-.toolbarButton
+.toolbarItem
+{
+	text-color:#ababab;
+}
+
+Button.toolbarItem
 {
 	background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
 	slice-left:6;
@@ -48,6 +53,7 @@ VFXView #VFXBackgroundGrid {
 	margin-top:0;
 }
 
-Button:hover:active {
+Button.toolbarItem:hover:active
+{
 	background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
 }
