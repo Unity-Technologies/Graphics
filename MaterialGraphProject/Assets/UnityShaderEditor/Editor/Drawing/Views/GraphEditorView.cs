@@ -147,6 +147,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.AddManipulator(new NodeCreator(graph));
+                m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 content.Add(m_GraphView);
 
                 m_GraphInspectorView = new GraphInspectorView(asset.name, previewManager, graph) { name = "inspector" };
