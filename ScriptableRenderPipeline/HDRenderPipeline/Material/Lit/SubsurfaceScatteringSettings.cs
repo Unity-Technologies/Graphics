@@ -405,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int i = 0; i < profileArraySize; i++)
             {
                 if (profiles[i] == null)
-                    profiles[i] = new SubsurfaceScatteringProfile("Profile " + i + 1);
+                    profiles[i] = new SubsurfaceScatteringProfile("Profile " + (i + 1));
 
                 profiles[i].Validate();
             }
