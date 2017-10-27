@@ -764,6 +764,13 @@ struct PreLightData
     float    ltcClearCoatFresnelTerm;
     float3x3 ltcCoatT;
 
+    // Refraction
+    float3 transmissionRefractV;            // refracted view vector after exiting the shape
+    float3 transmissionPositionWS;          // start of the refracted ray after exiting the shape
+    float transmissionOpticalDepth;         // length of the transmission during refraction through the shape
+    float3 transmissionTransmittance;       // transmittance due to absorption
+    float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
+
 #ifdef VOLUMETRIC_SHADOWING_ENABLED
     float    globalFogExtinction;
 #endif
@@ -962,6 +969,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
 #ifdef VOLUMETRIC_SHADOWING_ENABLED
     preLightData.globalFogExtinction = _GlobalFog_Extinction;
+#endif
+
+#ifdef REFRACTION_MODEL
+    RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
+    preLightData.transmissionRefractV = refraction.rayWS;
+    preLightData.transmissionPositionWS = refraction.positionWS;
+    preLightData.transmissionOpticalDepth = refraction.opticalDepth;
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth);
+    preLightData.transmissionSSMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
+#else
+    preLightData.transmissionRefractV = -V;
+    preLightData.transmissionPositionWS = posInput.positionWS;
+    preLightData.transmissionOpticalDepth = 0;
+    preLightData.transmissionTransmittance = float3(1.0, 1.0, 1.0);
+    preLightData.transmissionSSMipLevel = 0;
 #endif
 
     return preLightData;
@@ -1668,9 +1690,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    RefractionModelResult refraction = REFRACTION_MODEL(V, posInputs, bsdfData);
-
-    float3 refractedBackPointWS = EstimateRaycast(V, posInputs, refraction.positionWS, refraction.rayWS);
+    float3 refractedBackPointWS = EstimateRaycast(V, posInputs, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
@@ -1689,12 +1709,10 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, preLightData.transmissionSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
-    float3 transmittance = exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth);
-    lighting.specularTransmitted *= transmittance;
+    lighting.specularTransmitted *= preLightData.transmissionTransmittance;
 
     float weight = 1.0;
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hiearchy priority
@@ -1757,17 +1775,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
-    float4 transmittance = float4(1.0, 1.0, 1.0, 1.0);
 
-#if defined(REFRACTION_MODEL)
-    RefractionModelResult refraction;
-    ZERO_INITIALIZE(RefractionModelResult, refraction);
+#if defined(HAS_REFRACTION)
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
-        refraction = REFRACTION_MODEL(V, posInput, bsdfData);
-        positionWS = refraction.positionWS;
-        R = refraction.rayWS;
-        transmittance = float4(exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth), 1.0);
+        positionWS = preLightData.transmissionPositionWS;
+        R = preLightData.transmissionRefractV;
     }
 #endif
 
@@ -1848,17 +1861,17 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         F = Sqr(-F * bsdfData.coatCoverage + 1.0);
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel) * transmittance;
-    envLighting += F * preLD.rgb * preLightData.specularFGD;
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
+    envLighting += F * preLD.rgb;
 
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-        lighting.specularReflected = envLighting * weight;
+        lighting.specularReflected = envLighting * preLightData.specularFGD * weight;
     else
-        lighting.specularTransmitted = envLighting * weight;
+        lighting.specularTransmitted = envLighting * preLightData.transmissionTransmittance * weight;
 
     return lighting;
 }
