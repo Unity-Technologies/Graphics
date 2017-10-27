@@ -11,29 +11,89 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3418a08abd15e9a49af3ccbc9e15b5ea, type: 3}
   m_Name: SSS Settings
   m_EditorClassIdentifier: 
-  useDisneySSS: 1
+  useDisneySSS: 0
   profiles:
-  - name: Skin
-    scatteringDistance: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
-    transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
+  - name: girl skin SSS
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 0.30882353, g: 0.12904185, b: -0.009083053, a: 1}
     texturingMode: 0
     transmissionMode: 2
-    thicknessRemap: {x: 0, y: 8.152544}
+    thicknessRemap: {x: 0, y: 31.125778}
     worldScale: 1
-    scatterDistance1: {r: 0.3019608, g: 0.20000002, b: 0.20000002, a: 0}
-    scatterDistance2: {r: 0.6, g: 0.20000002, b: 0.20000002, a: 0}
-    lerpWeight: 0.5
-  - name: Foliage
-    scatteringDistance: {r: 0.7568628, g: 0.7019608, b: 0.24313727, a: 1}
+    scatterDistance1: {r: 1, g: 0.75902635, b: 0.60294116, a: 0}
+    scatterDistance2: {r: 0.88235295, g: 0.08474346, b: 0.05, a: 0}
+    lerpWeight: 0.388
+  - name: eye test
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 14.300124}
+    worldScale: 1
+    scatterDistance1: {r: 0.9338235, g: 0.83239096, b: 0.50124353, a: 0}
+    scatterDistance2: {r: 1, g: 0.72636914, b: 0.47794116, a: 0}
+    lerpWeight: 0.586
+  - name: hoodie fabric
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 3.1851997}
+    worldScale: 1
+    scatterDistance1: {r: 0.83823526, g: 1, b: 0.78676474, a: 0}
+    scatterDistance2: {r: 0.7780933, g: 0.8235294, b: 0.05, a: 0}
+    lerpWeight: 0.712
+  - name: Foliage SSS
+    scatteringDistance: {r: 0.75735295, g: 0.7008203, b: 0.24502596, a: 1}
+    transmissionTint: {r: 0.62860185, g: 0.71323526, b: 0.24124135, a: 1}
     texturingMode: 0
     transmissionMode: 1
-    thicknessRemap: {x: 0, y: 0.2873168}
+    thicknessRemap: {x: 0, y: 10.9375}
     worldScale: 1
-    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
-    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    scatterDistance1: {r: 0.05, g: 0.7967537, b: 0.8308824, a: 0}
+    scatterDistance2: {r: 0.20000005, g: 1, b: 0.05, a: 0}
     lerpWeight: 0.5
-  - name: Profile 2
+  - name: SkinSSSProfile
+    scatteringDistance: {r: 0.6691177, g: 0.4336563, b: 0.3689987, a: 1}
+    transmissionTint: {r: 1, g: 0.6321458, b: 0.5294118, a: 1}
+    texturingMode: 1
+    transmissionMode: 2
+    thicknessRemap: {x: 0, y: 7.96165}
+    worldScale: 1
+    scatterDistance1: {r: 0.86764705, g: 0.395545, b: 0.395545, a: 0}
+    scatterDistance2: {r: 0.13235295, g: 0.05, b: 0.05, a: 0}
+    lerpWeight: 0.5
+  - name: Leaves LowSSSProfile
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 0.24773444, g: 0.28676468, b: 0.15814228, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0.01, y: 0.1}
+    worldScale: 1
+    scatterDistance1: {r: 0.05, g: 1, b: 0.7103448, a: 0}
+    scatterDistance2: {r: 0.862069, g: 1, b: 0.05, a: 0}
+    lerpWeight: 0.5
+  - name: leaves close up
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 0.99868155, g: 1, b: 0.9044118, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0.30539423, y: 17.054262}
+    worldScale: 1
+    scatterDistance1: {r: 0.7867041, g: 1.0220588, b: 0.7439987, a: 0}
+    scatterDistance2: {r: 0.95818, g: 1.0367647, b: 0.49551255, a: 0}
+    lerpWeight: 0.5
+  - name: skin SSS
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 0.43199998, b: 0, a: 1}
+    texturingMode: 0
+    transmissionMode: 2
+    thicknessRemap: {x: 1.5147563, y: 25}
+    worldScale: 1
+    scatterDistance1: {r: 0.9411765, g: 0.7540866, b: 0.5536332, a: 0}
+    scatterDistance2: {r: 0.66176474, g: 0.34001017, b: 0.16544119, a: 0}
+    lerpWeight: 0.51
+  - name: Profile 81
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
@@ -43,7 +103,7 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 3
+  - name: Profile 91
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
@@ -53,7 +113,7 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 4
+  - name: Profile 101
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
@@ -63,7 +123,7 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 5
+  - name: Profile 111
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
@@ -73,7 +133,27 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 6
+  - name: Profile 121
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 131
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 141
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
