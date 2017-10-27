@@ -51,6 +51,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var subGraphAsset = obj as MaterialSubGraphAsset;
             if (subGraphAsset != null)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Drag Sub-Graph");
                 var node = new SubGraphNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
