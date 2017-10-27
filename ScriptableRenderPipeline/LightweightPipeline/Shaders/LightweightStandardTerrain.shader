@@ -172,21 +172,16 @@
                 half3 normalWS = normalize(IN.normal);
 #endif
 
+                half3 indirectDiffuse = half3(0, 0, 0);
 #if LIGHTMAP_ON
                 float2 lightmapUV = IN.uv01.zw;
-                half3 diffuseGI = SampleLightmap(lightmapUV, normalWS);
-#else
-                half3 diffuseGI = EvaluateSHPerPixel(normalWS);
-#endif
-
-#if _VERTEX_LIGHTS
-                half3 diffuse = surfaceData.albedo * OneMinusReflectivityMetallic(surfaceData.metallic);
-                diffuseGI += (diffuse * IN.fogFactorAndVertexLight.yzw);
+                half3 indirectDiffuse = SampleLightmap(lightmapUV, normalWS);
 #endif
 
                 half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);
                 half fogFactor = IN.fogFactorAndVertexLight.x;
-                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, half3(0, 0, 0), alpha);
+                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, fogFactor, indirectDiffuse, 
+                    IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
                 return color;
             }
             ENDCG
