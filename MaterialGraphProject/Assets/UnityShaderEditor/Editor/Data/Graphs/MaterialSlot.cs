@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private Vector2 m_DefaultValue;
-        
+
         public Vector2MaterialSlot()
         {
         }
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private Vector3 m_DefaultValue;
-        
+
         public Vector3MaterialSlot()
         {
         }
@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph
             :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
-        
+
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             return precision + "2x2 (1,0,0,1)";
@@ -428,7 +428,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")"; 
+            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
         }
     }
 
@@ -442,7 +442,7 @@ namespace UnityEditor.ShaderGraph
         ShaderStage m_ShaderStage;
 
         private bool m_HasError;
-        
+
         protected MaterialSlot() { }
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
@@ -487,9 +487,9 @@ namespace UnityEditor.ShaderGraph
 
         public string RawDisplayName()
         {
-            return displayName;
+            return base.displayName;
         }
-        
+
         public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
         {
             switch (type)
