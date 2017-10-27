@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
-           
+
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
             public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseEmissiveColor,
             UseEmissiveMask,
         }
-			
+
         protected MaterialProperty UVBase = null;
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty TexWorldScale = null;
@@ -231,52 +231,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI(Material material)
         {
-            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var sssSettings = hdPipeline.sssSettings;
 
-            if (subsurfaceProfile == null)
+            if (sssSettings == null)
             {
-                // Attempt to load the profile from the SSS Settings.
+                EditorGUILayout.HelpBox("No Subsurface Scattering Settings have been assigned to the render pipeline asset.", MessageType.Warning);
+                return;
+            }
+
+            // TODO: Optimize me
+            var profiles = hdPipeline.sssSettings.profiles;
+            var names = new GUIContent[profiles.Length + 1];
+            names[0] = new GUIContent("None");
+
+            var values = new int[names.Length];
+            values[0] = SssConstants.SSS_NEUTRAL_PROFILE_ID;
+
+            for (int i = 0; i < profiles.Length; i++)
+            {
+                names[i + 1] = new GUIContent(profiles[i].name);
+                values[i + 1] = i + 1;
+            }
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
+            {
                 int profileID = (int)subsurfaceProfileID.floatValue;
 
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    // This is a valid profile ID.
-                    subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
+                    EditorGUILayout.PrefixLabel(Styles.subsurfaceProfileText);
 
-                    // Refresh the ID of the profile.
-                    hdPipeline.sssSettings.OnValidate();
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        profileID = EditorGUILayout.IntPopup(profileID, names, values);
+
+                        if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
+                            Selection.activeObject = sssSettings;
+                    }
                 }
-            }
 
-            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, typeof(SubsurfaceScatteringProfile), false) as SubsurfaceScatteringProfile;
-
-            bool validProfile = false;
-
-            // Set the profile ID.
-            if (subsurfaceProfile != null)
-            {
-                // Load the profile from the GUI field.
-                int profileID = subsurfaceProfile.settingsIndex;
-
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null &&
-                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
-                {
-                    validProfile = true;
-                    material.SetInt("_SubsurfaceProfile", profileID);
-                }
-                else
-                {
-                    subsurfaceProfile = null;
-                    Debug.LogError("The SSS Profile assigned to the material has an invalid index. First, add the Profile to the SSS Settings, and then reassign it to the material.");
-                }
-            }
-
-            if (!validProfile)
-            {
-                // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
+                if (scope.changed)
+                    subsurfaceProfileID.floatValue = profileID;
             }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
@@ -293,7 +289,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapOSText, tangentMapOS);
             }
-            
+
         }
 
         protected override void MaterialPropertiesGUI(Material material)
@@ -322,7 +318,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
-            
+
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
 
             // Triplanar only work with tangent space normal

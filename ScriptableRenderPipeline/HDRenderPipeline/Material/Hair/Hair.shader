@@ -97,7 +97,6 @@ Shader "HDRenderPipeline/ExperimentalHair"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
 
@@ -281,6 +280,5 @@ Shader "HDRenderPipeline/ExperimentalHair"
         }
     }
 
-	CustomEditor "Experimental.Rendering.HDPipeline.CharacterGUI"
-	//CustomEditor "Experimental.Rendering.HDPipeline.HairGUI"
+	CustomEditor "Experimental.Rendering.HDPipeline.HairGUI"
 }
