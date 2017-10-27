@@ -5,10 +5,10 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class GraphInspectorView : VisualElement, IDisposable
     {
@@ -24,16 +24,16 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         PreviewView m_Preview;
 
         AbstractMaterialGraph m_Graph;
-        PreviewSystem m_PreviewSystem;
+        PreviewManager m_PreviewManager;
         MasterNode m_MasterNode;
         PreviewData m_PreviewHandle;
 
         List<INode> m_SelectedNodes;
 
-        public GraphInspectorView(string assetName, PreviewSystem previewSystem, AbstractMaterialGraph graph)
+        public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_PreviewSystem = previewSystem;
+            m_PreviewManager = previewManager;
             m_SelectedNodes = new List<INode>();
 
             AddStyleSheetPath("Styles/MaterialGraph");
@@ -131,7 +131,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 m_MasterNode = value;
                 if (m_MasterNode != null)
                 {
-                    m_PreviewHandle = m_PreviewSystem.GetPreview(m_MasterNode);
+                    m_PreviewHandle = m_PreviewManager.GetPreview(m_MasterNode);
                     m_PreviewHandle.mesh = null;
                     m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
                 }

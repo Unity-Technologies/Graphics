@@ -1,6 +1,7 @@
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Time/Time")]
     public class TimeNode : AbstractMaterialNode, IMayRequireTime

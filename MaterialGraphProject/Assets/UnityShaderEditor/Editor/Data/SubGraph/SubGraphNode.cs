@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
-using UnityEditor.MaterialGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : AbstractSubGraphNode

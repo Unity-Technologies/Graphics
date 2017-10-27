@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PreviewSystem : IDisposable
+    public class PreviewManager : IDisposable
     {
         AbstractMaterialGraph m_Graph;
         Dictionary<Guid, PreviewData> m_Previews = new Dictionary<Guid, PreviewData>();
@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public PreviewRate previewRate { get; set; }
 
-        public PreviewSystem(AbstractMaterialGraph graph)
+        public PreviewManager(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -38,6 +38,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_ErrorTexture.SetPixel(0, 1, Color.black);
             m_ErrorTexture.SetPixel(1, 0, Color.black);
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
+            m_ErrorTexture.filterMode = FilterMode.Point;
             m_ErrorTexture.Apply();
 
             foreach (var node in m_Graph.GetNodes<INode>())
@@ -349,7 +350,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             GC.SuppressFinalize(this);
         }
 
-        ~PreviewSystem()
+        ~PreviewManager()
         {
             ReleaseUnmanagedResources();
         }

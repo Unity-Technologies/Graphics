@@ -1,7 +1,6 @@
-using System;
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Advanced/Modulo")]
     public class ModuloNode : CodeFunctionNode

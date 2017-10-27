@@ -1,7 +1,8 @@
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Matrix/Matrix 2x2")]
     public class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode

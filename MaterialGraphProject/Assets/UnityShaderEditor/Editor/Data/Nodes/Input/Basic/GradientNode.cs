@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Basic/Gradient")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode

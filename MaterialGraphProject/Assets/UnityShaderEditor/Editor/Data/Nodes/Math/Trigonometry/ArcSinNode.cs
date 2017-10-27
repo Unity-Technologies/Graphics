@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Trigonometry/ArcSin")]
     public class ArcSinNode : CodeFunctionNode

@@ -4,7 +4,7 @@ ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures:
-  - Texture_BBB67AA7: {fileID: 2800000, guid: 618126695341ad844ac048b062fd2688, type: 3}
+  - Texture_BBB67AA7: {fileID: 2800000, guid: bd7bebe6d50204bf5837af485488c872, type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

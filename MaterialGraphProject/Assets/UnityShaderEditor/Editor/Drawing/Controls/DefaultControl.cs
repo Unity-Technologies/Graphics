@@ -3,10 +3,10 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing.Controls
+namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class DefaultControlAttribute : Attribute, IControlAttribute

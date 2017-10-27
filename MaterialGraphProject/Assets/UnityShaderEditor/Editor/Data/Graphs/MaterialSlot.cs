@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public interface IMaterialSlotHasVaule<T>
     {
@@ -74,7 +75,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector2 m_DefaultValue;
-        
+
         public Vector2MaterialSlot()
         {
         }
@@ -130,7 +131,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector3 m_DefaultValue;
-        
+
         public Vector3MaterialSlot()
         {
         }
@@ -251,7 +252,7 @@ namespace UnityEngine.MaterialGraph
             :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
-        
+
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             return precision + "2x2 (1,0,0,1)";
@@ -427,7 +428,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")"; 
+            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
         }
     }
 
@@ -441,7 +442,7 @@ namespace UnityEngine.MaterialGraph
         ShaderStage m_ShaderStage;
 
         private bool m_HasError;
-        
+
         protected MaterialSlot() { }
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
@@ -486,9 +487,9 @@ namespace UnityEngine.MaterialGraph
 
         public string RawDisplayName()
         {
-            return displayName;
+            return base.displayName;
         }
-        
+
         public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
         {
             switch (type)

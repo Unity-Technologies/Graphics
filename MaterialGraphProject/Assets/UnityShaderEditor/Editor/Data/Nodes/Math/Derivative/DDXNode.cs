@@ -1,8 +1,9 @@
 using System.Reflection;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public enum PartialDerivativePrecision
     {

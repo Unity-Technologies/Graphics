@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine.WSA;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialNodeView : Node
     {
@@ -19,7 +20,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualElement m_PreviewToggle;
         VisualElement m_ControlsContainer;
 
-        public MaterialNodeView(AbstractMaterialNode inNode, PreviewSystem previewSystem)
+        public MaterialNodeView(AbstractMaterialNode inNode, PreviewManager previewManager)
         {
             AddToClassList("MaterialNode");
 
@@ -27,7 +28,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             node = inNode;
-            title = inNode.name;
+            UpdateTitle();
 
             m_ControlsContainer = new VisualElement
             {
@@ -50,7 +51,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 pickingMode = PickingMode.Ignore,
                 image = Texture2D.whiteTexture
             };
-            m_Preview = previewSystem.GetPreview(inNode);
+            m_Preview = previewManager.GetPreview(inNode);
             m_Preview.onPreviewChanged += UpdatePreviewTexture;
             UpdatePreviewTexture();
             leftContainer.Add(m_PreviewImage);
@@ -109,8 +110,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        void UpdateTitle()
+        {
+            var subGraphNode = node as SubGraphNode;
+            if (subGraphNode != null)
+                title = subGraphNode.subGraphAsset.name;
+            else
+                title = node.name;
+        }
+
         public void OnModified(ModificationScope scope)
         {
+            UpdateTitle();
             expanded = node.drawState.expanded;
 
             // Update slots to match node modification

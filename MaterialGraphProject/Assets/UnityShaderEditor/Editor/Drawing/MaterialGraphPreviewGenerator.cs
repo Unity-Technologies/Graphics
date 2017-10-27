@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class MaterialGraphPreviewGenerator : IDisposable
     {

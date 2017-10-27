@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public interface IGraph : IOnAssetEnabled
     {
