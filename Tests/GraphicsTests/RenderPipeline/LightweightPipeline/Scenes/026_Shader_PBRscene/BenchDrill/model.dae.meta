@@ -1,0 +1,414 @@
+fileFormatVersion: 2
+guid: b5a06fb0e23784434b6da1d52f2dd73d
+timeCreated: 1505136429
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: arm _1_low
+    100002: arm _1_low001
+    100004: arm _1_low002
+    100006: arm big_1_low
+    100008: arm big_1_low001
+    100010: arm big_1_low002
+    100012: arm big_4_low
+    100014: Body213_low
+    100016: Body219_low
+    100018: Body224_low
+    100020: Body225_low
+    100022: Body229_low
+    100024: Body229_low001
+    100026: Body57_low
+    100028: Body63_low
+    100030: bolt_2_low
+    100032: bolt_2_low001
+    100034: bolt_2_low002
+    100036: bolt_2_low003
+    100038: bolt_big_low
+    100040: bolt_big_low001
+    100042: bolt_low
+    100044: bolt_low001
+    100046: bolt_low002
+    100048: bolt_low003
+    100050: CABLE2_low
+    100052: CABLE_low
+    100054: glass_low
+    100056: korpus_low
+    100058: kozhuh_low
+    100060: lamp_1_low
+    100062: lamp_2_low
+    100064: //RootNode
+    100066: motor_low
+    100068: patron_low
+    100070: poosk_1_low
+    100072: poosk_2_low
+    100074: poosk_3_low
+    100076: pulley_1_low
+    100078: pulley_2_low
+    100080: ruler's_scale_low
+    100082: shplint_low
+    100084: spindle_low
+    100086: stanina_low
+    100088: stop_1_low
+    100090: strap_low
+    100092: top_2_low
+    100094: top_low
+    100096: UGOL_low
+    100098: val_low
+    100100: vk_1_low
+    100102: vk_2_low
+    100104: vk_3_low
+    100106: vk_r_low
+    100108: washer big_low
+    400000: arm _1_low
+    400002: arm _1_low001
+    400004: arm _1_low002
+    400006: arm big_1_low
+    400008: arm big_1_low001
+    400010: arm big_1_low002
+    400012: arm big_4_low
+    400014: Body213_low
+    400016: Body219_low
+    400018: Body224_low
+    400020: Body225_low
+    400022: Body229_low
+    400024: Body229_low001
+    400026: Body57_low
+    400028: Body63_low
+    400030: bolt_2_low
+    400032: bolt_2_low001
+    400034: bolt_2_low002
+    400036: bolt_2_low003
+    400038: bolt_big_low
+    400040: bolt_big_low001
+    400042: bolt_low
+    400044: bolt_low001
+    400046: bolt_low002
+    400048: bolt_low003
+    400050: CABLE2_low
+    400052: CABLE_low
+    400054: glass_low
+    400056: korpus_low
+    400058: kozhuh_low
+    400060: lamp_1_low
+    400062: lamp_2_low
+    400064: //RootNode
+    400066: motor_low
+    400068: patron_low
+    400070: poosk_1_low
+    400072: poosk_2_low
+    400074: poosk_3_low
+    400076: pulley_1_low
+    400078: pulley_2_low
+    400080: ruler's_scale_low
+    400082: shplint_low
+    400084: spindle_low
+    400086: stanina_low
+    400088: stop_1_low
+    400090: strap_low
+    400092: top_2_low
+    400094: top_low
+    400096: UGOL_low
+    400098: val_low
+    400100: vk_1_low
+    400102: vk_2_low
+    400104: vk_3_low
+    400106: vk_r_low
+    400108: washer big_low
+    2100000: stanina
+    2100002: stanina_vk
+    2100004: korpus
+    2100006: val
+    2100008: spindle
+    2100010: top
+    2100012: motor
+    2100014: kabel
+    2100016: kozhuh
+    2300000: arm _1_low
+    2300002: arm _1_low001
+    2300004: arm _1_low002
+    2300006: arm big_1_low
+    2300008: arm big_1_low001
+    2300010: arm big_1_low002
+    2300012: arm big_4_low
+    2300014: Body213_low
+    2300016: Body219_low
+    2300018: Body224_low
+    2300020: Body225_low
+    2300022: Body229_low
+    2300024: Body229_low001
+    2300026: Body57_low
+    2300028: Body63_low
+    2300030: bolt_2_low
+    2300032: bolt_2_low001
+    2300034: bolt_2_low002
+    2300036: bolt_2_low003
+    2300038: bolt_big_low
+    2300040: bolt_big_low001
+    2300042: bolt_low
+    2300044: bolt_low001
+    2300046: bolt_low002
+    2300048: bolt_low003
+    2300050: CABLE2_low
+    2300052: CABLE_low
+    2300054: glass_low
+    2300056: korpus_low
+    2300058: kozhuh_low
+    2300060: lamp_1_low
+    2300062: lamp_2_low
+    2300064: motor_low
+    2300066: patron_low
+    2300068: poosk_1_low
+    2300070: poosk_2_low
+    2300072: poosk_3_low
+    2300074: pulley_1_low
+    2300076: pulley_2_low
+    2300078: ruler's_scale_low
+    2300080: shplint_low
+    2300082: spindle_low
+    2300084: stanina_low
+    2300086: stop_1_low
+    2300088: strap_low
+    2300090: top_2_low
+    2300092: top_low
+    2300094: UGOL_low
+    2300096: val_low
+    2300098: vk_1_low
+    2300100: vk_2_low
+    2300102: vk_3_low
+    2300104: vk_r_low
+    2300106: washer big_low
+    3300000: arm _1_low
+    3300002: arm _1_low001
+    3300004: arm _1_low002
+    3300006: arm big_1_low
+    3300008: arm big_1_low001
+    3300010: arm big_1_low002
+    3300012: arm big_4_low
+    3300014: Body213_low
+    3300016: Body219_low
+    3300018: Body224_low
+    3300020: Body225_low
+    3300022: Body229_low
+    3300024: Body229_low001
+    3300026: Body57_low
+    3300028: Body63_low
+    3300030: bolt_2_low
+    3300032: bolt_2_low001
+    3300034: bolt_2_low002
+    3300036: bolt_2_low003
+    3300038: bolt_big_low
+    3300040: bolt_big_low001
+    3300042: bolt_low
+    3300044: bolt_low001
+    3300046: bolt_low002
+    3300048: bolt_low003
+    3300050: CABLE2_low
+    3300052: CABLE_low
+    3300054: glass_low
+    3300056: korpus_low
+    3300058: kozhuh_low
+    3300060: lamp_1_low
+    3300062: lamp_2_low
+    3300064: motor_low
+    3300066: patron_low
+    3300068: poosk_1_low
+    3300070: poosk_2_low
+    3300072: poosk_3_low
+    3300074: pulley_1_low
+    3300076: pulley_2_low
+    3300078: ruler's_scale_low
+    3300080: shplint_low
+    3300082: spindle_low
+    3300084: stanina_low
+    3300086: stop_1_low
+    3300088: strap_low
+    3300090: top_2_low
+    3300092: top_low
+    3300094: UGOL_low
+    3300096: val_low
+    3300098: vk_1_low
+    3300100: vk_2_low
+    3300102: vk_3_low
+    3300104: vk_r_low
+    3300106: washer big_low
+    4300000: stanina_low
+    4300002: stop_1_low
+    4300004: lamp_1_low
+    4300006: lamp_2_low
+    4300008: poosk_3_low
+    4300010: poosk_1_low
+    4300012: poosk_2_low
+    4300014: vk_2_low
+    4300016: vk_1_low
+    4300018: vk_3_low
+    4300020: vk_r_low
+    4300022: korpus_low
+    4300024: Body57_low
+    4300026: Body63_low
+    4300028: ruler's_scale_low
+    4300030: glass_low
+    4300032: val_low
+    4300034: washer big_low
+    4300036: arm big_1_low
+    4300038: Body224_low
+    4300040: arm big_4_low
+    4300042: Body219_low
+    4300044: arm big_1_low001
+    4300046: arm big_1_low002
+    4300048: Body225_low
+    4300050: arm _1_low
+    4300052: patron_low
+    4300054: spindle_low
+    4300056: arm _1_low001
+    4300058: arm _1_low002
+    4300060: UGOL_low
+    4300062: pulley_2_low
+    4300064: pulley_1_low
+    4300066: top_low
+    4300068: bolt_low
+    4300070: top_2_low
+    4300072: bolt_2_low
+    4300074: bolt_big_low
+    4300076: Body213_low
+    4300078: bolt_low001
+    4300080: bolt_low002
+    4300082: bolt_low003
+    4300084: bolt_big_low001
+    4300086: bolt_2_low001
+    4300088: bolt_2_low002
+    4300090: bolt_2_low003
+    4300092: motor_low
+    4300094: Body229_low
+    4300096: strap_low
+    4300098: CABLE_low
+    4300100: CABLE2_low
+    4300102: kozhuh_low
+    4300104: Body229_low001
+    4300106: shplint_low
+    9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kabel
+    second: {fileID: 2100000, guid: d48d7424d759248f3a84167043909ee3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: korpus
+    second: {fileID: 2100000, guid: ee053953614ac45dcb2e049f29059014, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kozhuh
+    second: {fileID: 2100000, guid: f72d0c4de7fd947d196374eb55cfa5c5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: motor
+    second: {fileID: 2100000, guid: 3dbad7529eeae448d97854275d8155ca, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: spindle
+    second: {fileID: 2100000, guid: c4276a812e3bc4116b7a924d48a1444f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stanina
+    second: {fileID: 2100000, guid: 64595c588352a47fab97bdf5e0309f71, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stanina_vk
+    second: {fileID: 2100000, guid: 986204317d56d4a3fb778409012db860, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: top
+    second: {fileID: 2100000, guid: 7ac7d17f897e9475bb9e2de495088413, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: val
+    second: {fileID: 2100000, guid: 678fc1c05df8b40da824410702d6fd3c, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
