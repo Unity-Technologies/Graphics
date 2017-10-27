@@ -303,7 +303,7 @@ half3 VertexLighting(float positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
-half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
+half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 indirectDiffuse, half3 vertexLighting, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
@@ -312,7 +312,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     half3 vertexNormal = normalWS;
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    half3 indirectDiffuse = diffuseGI * occlusion;
+    indirectDiffuse *= occlusion;
     half3 indirectSpecular = GlossyEnvironment(reflectVec, brdfData.perceptualRoughness) * occlusion;
 
     // PBS
@@ -328,6 +328,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = light.color * (lightAtten * NdotL);
     color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    color += vertexLighting * brdfData.diffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);

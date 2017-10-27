@@ -221,23 +221,13 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 #endif
 
 #if LIGHTMAP_ON
-    half3 diffuseGI = SampleLightmap(IN.uv01.zw, normalWS);
+    half3 indirectDiffuse = SampleLightmap(IN.uv01.zw, normalWS);
 #else
-    half3 diffuseGI = EvaluateSHPerPixel(normalWS, IN.vertexSH);
-#endif
-
-#if _VERTEX_LIGHTS
-    #if _SPECULAR_SETUP
-        // monochrome reflectivity for vertex to save ALU. Most metals are redish/yellowish
-        half3 diffuse = surfaceData.albedo * (1.0 - ReflectivitySpecular(surfaceData.specular));
-    #else
-        half3 diffuse = surfaceData.albedo * OneMinusReflectivityMetallic(surfaceData.metallic);
-    #endif
-    diffuseGI += (diffuse * IN.fogFactorAndVertexLight.yzw);
+    half3 indirectDiffuse = EvaluateSHPerPixel(normalWS, IN.vertexSH);
 #endif
 
     float fogFactor = IN.fogFactorAndVertexLight.x;
-    return LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, fogFactor, diffuseGI, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    return LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, fogFactor, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
