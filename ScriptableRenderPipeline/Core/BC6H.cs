@@ -5,6 +5,8 @@ namespace UnityEngine.Experimental.Rendering
 {
     public class BC6H
     {
+        public static BC6H DefaultInstance;
+
         static readonly int _Source = Shader.PropertyToID("_Source");
         static readonly int _Target = Shader.PropertyToID("_Target");
 
@@ -24,18 +26,6 @@ namespace UnityEngine.Experimental.Rendering
             m_KernelEncodeFastGroupSize = new[] { (int)x, (int)y, (int)z };
         }
 
-        public RenderTexture InstantiateTarget(int sourceWidth, int sourceHeight)
-        {
-            int targetWidth, targetHeight;
-            CalculateOutputSize(sourceWidth, sourceHeight, out targetWidth, out targetHeight);
-
-            var t = new RenderTexture(targetWidth, targetHeight, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-            t.Release();
-            t.enableRandomWrite = true;
-            t.Create();
-            return t;
-        }
-
         // Only use mode11 of BC6H encoding
         public void EncodeFast(CommandBuffer cmb, RenderTargetIdentifier source, int sourceWidth, int sourceHeight, RenderTargetIdentifier target)
         {
@@ -44,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
 
             cmb.SetComputeTextureParam(m_Shader, m_KernelEncodeFast, _Source, source);
             cmb.SetComputeTextureParam(m_Shader, m_KernelEncodeFast, _Target, target);
-            cmb.DispatchCompute(m_Shader, m_KernelEncodeFast, targetWidth / m_KernelEncodeFastGroupSize[0], targetHeight / m_KernelEncodeFastGroupSize[1], 1);
+            cmb.DispatchCompute(m_Shader, m_KernelEncodeFast, targetWidth, targetHeight, 1);
         }
 
         static void CalculateOutputSize(int swidth, int sheight, out int twidth, out int theight)
@@ -52,6 +42,14 @@ namespace UnityEngine.Experimental.Rendering
             // BC6H encode 4x4 blocks of 32bit in 128bit
             twidth = swidth >> 2;
             theight = sheight >> 2;
+        }
+    }
+
+    public static class BC6HExtensions
+    {
+        public static void BC6HEncodeFast(this CommandBuffer cmb, RenderTargetIdentifier source, int sourceWidth, int sourceHeight, RenderTargetIdentifier target)
+        {
+            BC6H.DefaultInstance.EncodeFast(cmb, source, sourceWidth, sourceHeight, target);
         }
     }
 }
