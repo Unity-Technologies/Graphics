@@ -2,7 +2,7 @@
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class PreviewView : VisualElement
     {

@@ -1,14 +1,14 @@
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.UnitTests
+namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
     public class FixedSlotTests
     {
-        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
+        private ShaderGraph.MaterialGraph m_Graph;
         private TestNode m_NodeA;
         private TestNode m_NodeB;
 
@@ -48,7 +48,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            m_Graph = new ShaderGraph.MaterialGraph();
             m_NodeA = new TestNode();
             m_NodeB = new TestNode();
             m_Graph.AddNode(m_NodeA);

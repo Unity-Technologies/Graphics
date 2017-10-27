@@ -1,8 +1,9 @@
 using System.Reflection;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Normal/Unpack Normal")]
     internal class UnpackNormalNode : CodeFunctionNode

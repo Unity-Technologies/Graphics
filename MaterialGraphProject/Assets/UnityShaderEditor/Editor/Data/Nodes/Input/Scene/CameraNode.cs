@@ -1,6 +1,7 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Scene/Camera")]
     public class CameraNode : AbstractMaterialNode

@@ -5,13 +5,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
-using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 using System.Text;
+using UnityEditor.ShaderGraph.Drawing;
 
-namespace UnityEditor.MaterialGraph.IntegrationTests
+namespace UnityEditor.ShaderGraph.IntegrationTests
 {
     public class ShaderGenerationTest
     {
@@ -88,7 +88,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             var filePath = Path.Combine(prjRelativeGraphsPath, file.Name);
 
             var textGraph = File.ReadAllText(filePath, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<UnityEngine.MaterialGraph.MaterialGraph>(textGraph);
+            var graph = JsonUtility.FromJson<ShaderGraph.MaterialGraph>(textGraph);
 
             Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 

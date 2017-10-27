@@ -1,6 +1,6 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
    /* [Title("Input/Toggle")]
     public class ToggleNode : PropertyNode, IGeneratesBodyCode

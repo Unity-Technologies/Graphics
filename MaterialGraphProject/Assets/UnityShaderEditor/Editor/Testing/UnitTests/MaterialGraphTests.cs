@@ -1,10 +1,10 @@
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.UnitTests
+namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
     public class MaterialGraphTests
@@ -18,7 +18,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void TestCreateMaterialGraph()
         {
-            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            var graph = new ShaderGraph.MaterialGraph();
 
             Assert.IsNotNull(graph);
 

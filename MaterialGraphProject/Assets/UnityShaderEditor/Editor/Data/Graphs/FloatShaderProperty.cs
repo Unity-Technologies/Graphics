@@ -1,7 +1,8 @@
 using System;
 using System.Text;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class FloatShaderProperty : AbstractShaderProperty<float>

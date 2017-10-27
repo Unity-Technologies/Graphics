@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     class ObjectPool<T> where T : new()
     {

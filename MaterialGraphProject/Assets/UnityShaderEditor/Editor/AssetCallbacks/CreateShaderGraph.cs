@@ -1,8 +1,8 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public class CreateShaderGraph : EndNameEditAction
     {
@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            var graph = new ShaderGraph.MaterialGraph();
             graph.AddNode(new LightweightMetallicMasterNode());
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();

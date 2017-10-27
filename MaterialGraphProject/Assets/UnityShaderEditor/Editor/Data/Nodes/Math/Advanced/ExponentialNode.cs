@@ -1,9 +1,9 @@
-using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
 using System.Reflection;
+using UnityEngine;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public enum ExponentialType
     {
@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         Exponential2
     };
 
-    [Title("Math/Basic/Exponential")]
+    [Title("Math/Advanced/Exponential")]
     public class ExponentialNode : CodeFunctionNode
     {
         public ExponentialNode()

@@ -1,9 +1,10 @@
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Utility/Heightmap To Normalmap")]
     public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV

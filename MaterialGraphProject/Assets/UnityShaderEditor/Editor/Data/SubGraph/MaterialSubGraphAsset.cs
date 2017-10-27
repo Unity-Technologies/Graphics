@@ -1,4 +1,6 @@
-namespace UnityEngine.MaterialGraph
+using UnityEngine;
+
+namespace UnityEditor.ShaderGraph
 {
     public class MaterialSubGraphAsset : ScriptableObject
     {

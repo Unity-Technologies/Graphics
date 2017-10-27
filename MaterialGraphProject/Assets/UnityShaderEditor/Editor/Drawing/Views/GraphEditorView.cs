@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing;
-using UnityEditor.MaterialGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class GraphEditorView : VisualElement, IDisposable
     {
@@ -22,7 +22,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
 
-        PreviewSystem m_PreviewSystem;
+        PreviewManager m_PreviewManager;
 
         public Action onUpdateAssetClick { get; set; }
         public Action onConvertToSubgraphClick { get; set; }
@@ -35,14 +35,14 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public PreviewRate previewRate
         {
-            get { return previewSystem.previewRate; }
-            set { previewSystem.previewRate = value; }
+            get { return previewManager.previewRate; }
+            set { previewManager.previewRate = value; }
         }
 
-        public PreviewSystem previewSystem
+        public PreviewManager previewManager
         {
-            get { return m_PreviewSystem; }
-            set { m_PreviewSystem = value; }
+            get { return m_PreviewManager; }
+            set { m_PreviewManager = value; }
         }
 
         public GraphInspectorView inspectorView
@@ -55,7 +55,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
 
-            previewSystem = new PreviewSystem(graph);
+            previewManager = new PreviewManager(graph);
 
             m_ToolbarView = new ToolbarView { name = "TitleBar" };
             {
@@ -147,9 +147,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.AddManipulator(new NodeCreator(graph));
+                m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 content.Add(m_GraphView);
 
-                m_GraphInspectorView = new GraphInspectorView(asset.name, previewSystem, graph) { name = "inspector" };
+                m_GraphInspectorView = new GraphInspectorView(asset.name, previewManager, graph) { name = "inspector" };
                 m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
                 content.Add(m_GraphInspectorView);
 
@@ -260,7 +261,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void AddNode(INode node)
         {
-            var nodeView = new MaterialNodeView(node as AbstractMaterialNode, m_PreviewSystem) { userData = node };
+            var nodeView = new MaterialNodeView(node as AbstractMaterialNode, m_PreviewManager) { userData = node };
             node.onModified += OnNodeChanged;
             m_GraphView.AddElement(nodeView);
         }
@@ -362,10 +363,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_GraphView = null;
             }
             if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
-            if (previewSystem != null)
+            if (previewManager != null)
             {
-                previewSystem.Dispose();
-                previewSystem = null;
+                previewManager.Dispose();
+                previewManager = null;
             }
         }
     }
