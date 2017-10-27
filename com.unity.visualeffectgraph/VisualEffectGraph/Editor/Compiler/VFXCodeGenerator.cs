@@ -305,6 +305,25 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, match, loadParameters.builder);
             }
 
+            //< Compute sourceIndex TODOPAUL : Clean and doesn't cast to VFXDataParticle
+            if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))
+            {
+                var r = new VFXShaderWriter();
+                r.WriteLine("int sourceIndex = id.x % 2 == 0 ? 0 : 1;");
+                var spawnLinkCount = (context.GetData() as VFXDataParticle).spawnerLinkedCount;
+                r.WriteLine("uint currentSumSpawnCount = 0u;");
+                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; ++sourceIndex)", spawnLinkCount);
+                r.EnterScope();
+                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
+                r.WriteLine("if (id.x < currentSumSpawnCount)");
+                r.EnterScope();
+                r.WriteLine("break;");
+                r.ExitScope();
+                r.ExitScope();
+
+                ReplaceMultiline(stringBuilder, "${VFXComputeSourceIndex}", r.builder);
+            }
+
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
             {

@@ -160,11 +160,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        private uint attributeSourceBufferSize
+        public uint spawnerLinkedCount
         {
             get
             {
-                return m_layoutAttributeSource.GetBufferSize(1);
+                var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+                return init != null ? (uint)init.inputContexts.Count() : 0u;
             }
         }
 
@@ -194,7 +195,7 @@ namespace UnityEditor.VFX
 
             var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
             readSourceAttribute.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat), (int)VFXAttributeMode.ReadSource);
-            m_layoutAttributeSource.GenerateAttributeLayout(1 /* TODOPAUL : based on spawnerLinked count */, readSourceAttribute);
+            m_layoutAttributeSource.GenerateAttributeLayout(spawnerLinkedCount, readSourceAttribute);
         }
 
         public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
@@ -229,13 +230,13 @@ namespace UnityEditor.VFX
         {
             var attributeStore = location == VFXAttributeLocation.Current ? m_layoutAttributeCurrent : m_layoutAttributeSource;
             var attributeBuffer = location == VFXAttributeLocation.Current ? "attributeBuffer" : "sourceAttributeBuffer";
-            var index = location == VFXAttributeLocation.Current ? "index" : "0";
+            var index = location == VFXAttributeLocation.Current ? "index" : "sourceIndex";
 
             if (location == VFXAttributeLocation.Current && !m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
-                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+            /*if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name)); TODOPAUL */
 
             return string.Format("{0}({3}.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), attributeStore.GetCodeOffset(attrib, index), attributeBuffer);
         }
@@ -272,10 +273,10 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
             }
 
-            if (attributeSourceBufferSize > 0)
+            if (m_layoutAttributeSource.GetBufferSize(spawnerLinkedCount) > 0u)
             {
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(1 /* TODOPAUL */);
+                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(spawnerLinkedCount);
                 outBufferDescs.Add(bufferDesc);
                 systemBufferMappings.Add(new VFXBufferMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
             }
@@ -294,6 +295,9 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
+            var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+            if (initContext != null)
+                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
 
             var taskDescs = new List<VFXTaskDesc>();
             var bufferMappings = new List<VFXBufferMapping>();
@@ -303,9 +307,6 @@ namespace UnityEditor.VFX
             {
                 //if (!contextToCompiledData.ContainsKey(context))
                 //    continue;
-
-                if (context.contextType == VFXContextType.kInit)
-                    systemBufferMappings.AddRange(context.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
 
                 var contextData = contextToCompiledData[context];
 

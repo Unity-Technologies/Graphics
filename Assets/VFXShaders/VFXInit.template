@@ -28,6 +28,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (id.x < maxThreadId)
     {
 		uint particleIndex = id.x + spawnIndex;
+		${VFXComputeSourceIndex}
         ${VFXLoadAttributes}
 				
 #if VFX_USE_PARTICLEID_CURRENT
