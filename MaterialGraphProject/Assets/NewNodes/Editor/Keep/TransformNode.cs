@@ -1,8 +1,9 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Vector/Transform")]
     public class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal

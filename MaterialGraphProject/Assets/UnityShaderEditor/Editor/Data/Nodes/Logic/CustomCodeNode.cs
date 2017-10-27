@@ -1,12 +1,12 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
 /*    [Title("Logic/CustomCode")]
     public class CustomCodeNode : FunctionNInNOut, IGeneratesFunction

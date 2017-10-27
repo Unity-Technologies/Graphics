@@ -1,6 +1,6 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public static class MaterialNodeExtensions
     {

@@ -4,9 +4,9 @@ using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /* [Title("Input/Texture/Sampler Asset")]
      public class SamplerAssetNode : PropertyNode

@@ -1,7 +1,7 @@
 using System.Reflection;
+using UnityEngine;
 
-
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("UV/SphericalIndentation")]
     public class SphericalIndentationNode : CodeFunctionNode

@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEditor;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public class SerializableGraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
     {

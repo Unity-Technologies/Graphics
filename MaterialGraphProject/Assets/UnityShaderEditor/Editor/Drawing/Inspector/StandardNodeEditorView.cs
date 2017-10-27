@@ -2,10 +2,10 @@
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class StandardNodeEditorView : AbstractNodeEditorView
     {

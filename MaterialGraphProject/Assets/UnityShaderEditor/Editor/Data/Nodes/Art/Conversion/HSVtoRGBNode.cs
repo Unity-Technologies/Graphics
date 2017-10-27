@@ -1,7 +1,8 @@
 using System.Reflection;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Art/Conversion/HSVtoRGB")]
     public class HSVtoRGBNode : CodeFunctionNode

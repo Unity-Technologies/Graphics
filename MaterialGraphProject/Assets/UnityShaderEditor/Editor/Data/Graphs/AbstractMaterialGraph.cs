@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public abstract class AbstractMaterialGraph : SerializableGraph, IGenerateProperties
@@ -83,22 +84,19 @@ namespace UnityEngine.MaterialGraph
             var result = base.GetLegacyTypeRemapping();
             var viewNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.ViewDirectionNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.ViewDirectionNode"
             };
             result[viewNode] = SerializationHelper.GetTypeSerializableAsString(typeof(ViewDirectionNode));
 
             var normalNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.NormalNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.NormalNode"
             };
             result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.WorldPosNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.WorldPosNode"
             };
             result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(PositionNode));
 

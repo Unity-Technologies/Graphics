@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class GraphDropTarget : Manipulator
     {

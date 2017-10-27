@@ -4,9 +4,9 @@ using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
    /* [Title("Input/Texture/Cubemap")]
     public class CubemapNode : PropertyNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal

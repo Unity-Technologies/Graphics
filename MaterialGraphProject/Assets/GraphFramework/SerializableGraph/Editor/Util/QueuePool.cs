@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public static class QueuePool<T>
     {

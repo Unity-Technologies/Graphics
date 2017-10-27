@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public interface IMaterialSlotHasVaule<T>
     {

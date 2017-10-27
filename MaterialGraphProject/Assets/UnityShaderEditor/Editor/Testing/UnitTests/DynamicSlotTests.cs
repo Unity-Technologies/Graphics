@@ -1,14 +1,14 @@
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.UnitTests
+namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
     public class DynamicSlotTests
     {
-        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
+        private ShaderGraph.MaterialGraph m_Graph;
         private DynamicNode m_DynamicNode;
         private TestNode m_StaticNode;
 
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            m_Graph = new ShaderGraph.MaterialGraph();
             m_DynamicNode = new DynamicNode();
             m_Graph.AddNode(m_DynamicNode);
             m_StaticNode = new TestNode();

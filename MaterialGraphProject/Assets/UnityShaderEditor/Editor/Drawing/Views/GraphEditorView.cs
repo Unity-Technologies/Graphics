@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing;
-using UnityEditor.MaterialGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class GraphEditorView : VisualElement, IDisposable
     {

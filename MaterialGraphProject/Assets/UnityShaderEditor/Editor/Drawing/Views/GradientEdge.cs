@@ -1,9 +1,9 @@
 ﻿using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class GradientEdge : Edge
     {

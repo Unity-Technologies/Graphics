@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialNodeView : Node
     {

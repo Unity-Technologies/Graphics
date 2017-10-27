@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.UnitTests
+namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
     public class ShaderGeneratorTests

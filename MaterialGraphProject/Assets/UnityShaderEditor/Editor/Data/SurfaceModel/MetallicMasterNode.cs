@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
   /*  [Serializable]
     [Title("Master/Metallic")]
