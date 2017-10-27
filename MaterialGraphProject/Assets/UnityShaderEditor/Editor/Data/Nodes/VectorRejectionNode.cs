@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Vector/Rejection Node")]
     public class VectorRejectionNode : CodeFunctionNode

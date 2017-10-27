@@ -4,8 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     [Serializable]
     public class SerializableGraph : IGraph, ISerializationCallbackReceiver

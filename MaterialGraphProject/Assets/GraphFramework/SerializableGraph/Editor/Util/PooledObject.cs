@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public class PooledObject<T> : IDisposable where T : new()
     {

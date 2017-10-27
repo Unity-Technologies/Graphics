@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public enum SlotValueType

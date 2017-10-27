@@ -1,7 +1,8 @@
 using System;
 using UnityEditor;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class SerializableTexture

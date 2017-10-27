@@ -1,9 +1,9 @@
 ﻿using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
-using UnityEditor.MaterialGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using Debug = System.Diagnostics.Debug;
 
 [CustomEditor(typeof(MasterRemapGraphImporter))]

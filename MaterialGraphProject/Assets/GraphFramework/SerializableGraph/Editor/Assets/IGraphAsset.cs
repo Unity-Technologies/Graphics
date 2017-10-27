@@ -1,3 +1,3 @@
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
 }

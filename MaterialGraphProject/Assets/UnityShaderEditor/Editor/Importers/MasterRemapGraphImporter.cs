@@ -2,7 +2,7 @@
 using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
 [ScriptedImporter(1, "ShaderRemapGraph")]
 public class MasterRemapGraphImporter : ScriptedImporter

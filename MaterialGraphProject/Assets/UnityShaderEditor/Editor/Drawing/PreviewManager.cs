@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class PreviewManager : IDisposable
     {
