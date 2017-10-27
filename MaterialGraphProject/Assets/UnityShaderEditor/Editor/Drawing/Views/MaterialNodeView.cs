@@ -8,6 +8,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine.WSA;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -27,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             node = inNode;
-            title = inNode.name;
+            UpdateTitle();
 
             m_ControlsContainer = new VisualElement
             {
@@ -109,8 +110,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void UpdateTitle()
+        {
+            var subGraphNode = node as SubGraphNode;
+            if (subGraphNode != null)
+                title = subGraphNode.subGraphAsset.name;
+            else
+                title = node.name;
+        }
+
         public void OnModified(ModificationScope scope)
         {
+            UpdateTitle();
             expanded = node.drawState.expanded;
 
             // Update slots to match node modification
