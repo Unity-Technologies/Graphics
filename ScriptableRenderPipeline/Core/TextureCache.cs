@@ -260,9 +260,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public uint    texId;
             public uint    countLRU;
-        #if UNITY_EDITOR
-            public Hash128 hash;
-        #endif
+            public uint    updateCount;
         };
 
         private int m_NumTextures;
@@ -282,9 +280,7 @@ namespace UnityEngine.Experimental.Rendering
                 return sliceIndex;
 
             var texId = (uint)texture.GetInstanceID();
-        #if UNITY_EDITOR
-            var hash  = texture.imageContentsHash;
-        #endif
+            var updateCount  = texture.updateCount;
 
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
@@ -300,9 +296,7 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
 
                 bFoundAvailOrExistingSlice = true;
-            #if UNITY_EDITOR
-                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].hash != hash);
-            #endif
+                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].updateCount != updateCount);
             }
 
             // If no existing copy found in the array
@@ -344,9 +338,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (bSwapSlice) // if this was a miss
                 {
-                #if UNITY_EDITOR
-                    m_SliceArray[sliceIndex].hash = hash;
-                #endif
+                    m_SliceArray[sliceIndex].updateCount = updateCount;
 
                     // transfer new slice to sliceIndex from source texture
                     TransferToSlice(sliceIndex, texture);
