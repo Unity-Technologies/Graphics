@@ -1,11 +1,12 @@
 using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Scene/Light Probe")]
     public class LightProbeNode : CodeFunctionNode
     {
-        //public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return false; } }
 
         public LightProbeNode()
         {

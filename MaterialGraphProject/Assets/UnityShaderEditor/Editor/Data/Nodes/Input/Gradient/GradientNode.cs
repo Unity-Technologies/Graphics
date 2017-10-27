@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Basic/Gradient")]
+    [Title("Input/Gradient/Gradient 2D")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         Gradient m_Gradient = new Gradient();

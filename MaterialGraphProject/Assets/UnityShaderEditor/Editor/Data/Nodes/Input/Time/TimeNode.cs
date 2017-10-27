@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    /*
     [Title("Input/Time/Time")]
     public class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
@@ -61,4 +62,5 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
     }
+    */
 }

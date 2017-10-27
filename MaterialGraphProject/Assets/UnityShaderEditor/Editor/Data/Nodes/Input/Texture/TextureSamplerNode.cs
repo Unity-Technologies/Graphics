@@ -5,7 +5,8 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Texture/Sample 2D")]
+    /*
+    [Title("Input/Texture/Sample 2D")]
     public class Sample2DTexture : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
@@ -116,5 +117,5 @@ namespace UnityEditor.ShaderGraph
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
             return edges.Count == 0;
         }
-    }
+    }*/
 }
