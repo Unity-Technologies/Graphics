@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
         WorldToObject
     };
 
-    [Title("Input/Matrix/CommonMatrix")]
+    [Title("Input/Matrix/Common Matrix")]
     public class MatrixCommonNode : AbstractMaterialNode
     {
         static Dictionary<CommonMatrixType, string> m_matrixList = new Dictionary<CommonMatrixType, string>
@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
         private CommonMatrixType m_matrix = CommonMatrixType.ModelView;
 
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Output";
+        private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return false; } }
 
