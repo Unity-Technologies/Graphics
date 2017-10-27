@@ -54,8 +54,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
         _ShiverDrag("Shiver Drag", float) = 0.2
         _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
 
@@ -63,9 +61,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -119,7 +114,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
@@ -309,28 +303,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "ShaderPass/EyeVelocityPass.hlsl"
             #include "EyeData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Distortion" // Name is not used
-            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
-
-            Blend One One
-            ZTest [_ZTestMode]
-            ZWrite off
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/EyeDistortionPass.hlsl"
-            #include "EyeData.hlsl"
-            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }

@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            
+
             m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, StylesBaseLit.enablePerPixelDisplacementText);
             if (enablePerPixelDisplacement.floatValue > 0.0f)
             {
@@ -321,33 +321,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static public void SetupBaseLitMaterialPass(Material material)
         {
-            bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
-            bool distortionOnly = material.GetFloat(kDistortionOnly) > 0.0f;
-
-            if (distortionEnable && distortionOnly)
-            {
-                // Disable all passes except distortion (setup in BaseUnlitUI.cs) and debug passes (to visualize distortion)
-                material.SetShaderPassEnabled("GBuffer", false);
-                material.SetShaderPassEnabled("GBufferDisplayDebug", true);
-                material.SetShaderPassEnabled("Meta", false);
-                material.SetShaderPassEnabled("ShadowCaster", false);
-                material.SetShaderPassEnabled("DepthOnly", false);
-                material.SetShaderPassEnabled("MotionVectors", false);
-                material.SetShaderPassEnabled("Forward", false);
-                material.SetShaderPassEnabled("ForwardDisplayDebug", true);
-            }
-            else
-            {
-                // Enable all passes except distortion (setup in BaseUnlitUI.cs)
-                material.SetShaderPassEnabled("GBuffer", true);
-                material.SetShaderPassEnabled("GBufferDisplayDebug", true);
-                material.SetShaderPassEnabled("Meta", true);
-                material.SetShaderPassEnabled("ShadowCaster", true);
-                material.SetShaderPassEnabled("DepthOnly", true);
-                material.SetShaderPassEnabled("MotionVectors", true);
-                material.SetShaderPassEnabled("Forward", true);
-                material.SetShaderPassEnabled("ForwardDisplayDebug", true);
-            }
         }
     }
 } // namespace UnityEditor

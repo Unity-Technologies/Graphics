@@ -787,12 +787,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
     preLightData.NdotV = dot(bsdfData.normalWS, V); // Store the unaltered (geometric) version
+    float NdotV = preLightData.NdotV;
 
     // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
-    float3 iblR;
+    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V); // Use non clamped NdotV
+    float3 iblR = reflect(-V, iblNormalWS);
 
-    float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX aniso
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
@@ -1383,7 +1384,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                                         axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) 
+    if (intensity == 0.0)
         return lighting;
 
     lightData.diffuseScale  *= intensity;
@@ -1507,7 +1508,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) 
+    if (intensity == 0.0)
         return lighting;
 
     lightData.diffuseScale  *= intensity;

@@ -243,102 +243,6 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
-	bool ppdEnable = false;
-	bool isPlanar = false;
-	bool isTriplanar = false;
-
-#if defined(_PER_PIXEL_DISPLACEMENT) &&  defined(_HEIGHTMAP)
-	// All variable are compile time value
-	ppdEnable = true;
-	isPlanar = layerTexCoord.base.mappingType == UV_MAPPING_PLANAR;
-	isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
-#endif
-
-	if (ppdEnable)
-	{
-		// See comment in layered version for details
-		float maxHeight = GetMaxDisplacement();
-		float2 minUvSize = GetMinUvSize(layerTexCoord);
-		float lod = ComputeTextureLOD(minUvSize);
-
-		PerPixelHeightDisplacementParam ppdParam;
-
-		float height; // final height processed
-		float NdotV;
-
-		// planar/triplanar
-		float2 uvXZ;
-		float2 uvXY;
-		float2 uvZY;
-		GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
-
-		// TODO: support object space planar/triplanar ?
-
-		// We need to calculate the texture space direction. It depends on the mapping.
-		if (isTriplanar)
-		{
-			float3 viewDirTS;
-			float planeHeight;
-			int numSteps;
-
-			// Perform a POM in each direction and modify appropriate texture coordinate
-			ppdParam.uv = layerTexCoord.base.uvZY;
-			viewDirTS = float3(V.x > 0.0 ? uvZY : -uvZY, V.x);
-			numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-			float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
-
-			// Apply offset to all triplanar UVSet
-			layerTexCoord.base.uvZY += offsetZY;
-			layerTexCoord.details.uvZY += offsetZY;
-			height = layerTexCoord.triplanarWeights.x * planeHeight;
-
-			ppdParam.uv = layerTexCoord.base.uvXZ;
-			viewDirTS = float3(V.y > 0.0 ? uvXZ : -uvXZ, V.y);
-			numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-			float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
-
-			layerTexCoord.base.uvXZ += offsetXZ;
-			layerTexCoord.details.uvXZ += offsetXZ;
-			height += layerTexCoord.triplanarWeights.y * planeHeight;
-
-			ppdParam.uv = layerTexCoord.base.uvXY;
-			viewDirTS = float3(V.z > 0.0 ? uvXY : -uvXY, V.z);
-			numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-			float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
-
-			layerTexCoord.base.uvXY += offsetXY;
-			layerTexCoord.details.uvXY += offsetXY;
-			height += layerTexCoord.triplanarWeights.z * planeHeight;
-
-			NdotV = 1; // TODO.
-		}
-		else
-		{
-			ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
-
-			float3x3 worldToTangent = input.worldToTangent;
-
-			// Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-			float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
-			NdotV = viewDirTS.z;
-
-			int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-
-			float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
-
-			// Apply offset to all UVSet0 / planar
-			layerTexCoord.base.uv += offset;
-			layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
-		}
-
-		// Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
-		// Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-		float verticalDisplacement = maxHeight - height * maxHeight;
-		// IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
-		float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
-		return tilingScale * verticalDisplacement / NdotV;
-	}
-
 	return 0.0;
 }
 
@@ -360,7 +264,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
 float2 EyeUvs(float2 uv, float irisDepth, float irisRadius, float IOR, float3 normalWS, float3 viewWS)
 {
 
-    float height = irisDepth * saturate( 1.0 - 0.736 * (1-irisRadius) * (1-irisRadius) ); 
+    float height = irisDepth * saturate( 1.0 - 0.736 * (1-irisRadius) * (1-irisRadius) );
 
 	// Refraction
 	float w = IOR * dot( normalWS, viewWS );
@@ -368,7 +272,7 @@ float2 EyeUvs(float2 uv, float irisDepth, float irisRadius, float IOR, float3 no
     float3 refractedW = ( w - k ) * normalWS - IOR * viewWS;
 
     float mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, uv).r;
-  
+
     float cosAlpha = dot(_frontNormalWS, -refractedW);
     float dist = height / cosAlpha;
 	float3 offsetW = dist * refractedW;
