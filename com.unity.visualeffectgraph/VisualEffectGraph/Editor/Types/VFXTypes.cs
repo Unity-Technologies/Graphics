@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
         public float arc;
 
-        public static ArcSphere defaultValue = new ArcSphere() { radius = 1.0f , arc = Mathf.PI / 3.0f}
+        public static ArcSphere defaultValue = new ArcSphere() { radius = 1.0f, arc = Mathf.PI / 3.0f }
     }
 
     [VFXType]

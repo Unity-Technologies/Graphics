@@ -8,14 +8,13 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Color")]
     class ColorOverLife : VFXBlock
     {
-        public enum ColorApplicationMode
-        {
-            Color = 1 << 0,
-            Alpha = 1 << 1,
-            ColorAndAlpha = Color | Alpha,
-        }
         [VFXSetting]
         public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
+        [VFXSetting]
+        public AttributeCompositionMode ColorComposition = AttributeCompositionMode.Scale;
+        [VFXSetting]
+        public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Scale;
+
 
         public override string name { get { return "Color over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
@@ -34,9 +33,43 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        private IEnumerable<string> skipInputProperties
+        {
+            get
+            {
+                if ((mode & ColorApplicationMode.Color) == 0 || ColorComposition != AttributeCompositionMode.Blend)
+                    yield return "BlendColor";
+
+                if ((mode & ColorApplicationMode.Alpha) == 0 || AlphaComposition != AttributeCompositionMode.Blend)
+                    yield return "BlendAlpha";
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                return base.inputProperties.Where(o => !skipInputProperties.Any(a => a == o.property.name));
+            }
+        }
+
         public class InputProperties
         {
             public Gradient gradient;
+            [Range(0.0f, 1.0f)]
+            public float BlendColor = 0.5f;
+            [Range(0.0f, 1.0f)]
+            public float BlendAlpha = 0.5f;
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (string setting in base.filteredOutSettings) yield return setting;
+                if ((mode & ColorApplicationMode.Color) == 0) yield return "ColorComposition";
+                if ((mode & ColorApplicationMode.Alpha) == 0) yield return "AlphaComposition";
+            }
         }
 
         public override string source
@@ -46,8 +79,8 @@ namespace UnityEditor.VFX.Block
                 string outSource = @"
 float4 sampledColor = SampleGradient(gradient, age/lifetime);
 ";
-                if ((mode & ColorApplicationMode.Color) != 0) outSource += "color = sampledColor.rgb;\n";
-                if ((mode & ColorApplicationMode.Alpha) != 0) outSource += "alpha = sampledColor.a;\n";
+                if ((mode & ColorApplicationMode.Color) != 0) outSource += string.Format(VFXBlockUtility.GetComposeFormatString(ColorComposition), "color", "sampledColor.rgb", "BlendColor") + "\n";
+                if ((mode & ColorApplicationMode.Alpha) != 0) outSource += string.Format(VFXBlockUtility.GetComposeFormatString(AlphaComposition), "alpha", "sampledColor.a", "BlendAlpha") + "\n";
 
                 return outSource;
             }
