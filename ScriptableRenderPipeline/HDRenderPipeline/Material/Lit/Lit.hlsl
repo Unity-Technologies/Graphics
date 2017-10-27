@@ -1675,7 +1675,7 @@ IndirectLighting EvaluateBSDF_SSReflection(LightLoopContext lightLoopContext,
 }
 
 IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
-                                            float3 V, PositionInputs posInputs,
+                                            float3 V, PositionInputs posInput,
                                             PreLightData preLightData, BSDFData bsdfData,
                                             inout float hierarchyWeight)
 {
@@ -1690,7 +1690,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    float3 refractedBackPointWS = EstimateRaycast(V, posInputs, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
+    float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
@@ -1700,7 +1700,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
-    if (refractedBackPointDepth < posInputs.depthVS
+    if (refractedBackPointDepth < posInput.depthVS
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
@@ -1776,13 +1776,11 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
 
-#if defined(HAS_REFRACTION)
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
         positionWS = preLightData.transmissionPositionWS;
         R = preLightData.transmissionRefractV;
     }
-#endif
 
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
