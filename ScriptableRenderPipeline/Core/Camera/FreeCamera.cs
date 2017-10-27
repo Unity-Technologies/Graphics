@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public float m_LookSpeedController = 120f;
         public float m_LookSpeedMouse = 10.0f;
-        public float m_MoveSpeed = 50.0f;
+        public float m_MoveSpeed = 10.0f;
         public float m_Turbo = 10.0f;
 
         private static string kMouseX = "Mouse X";

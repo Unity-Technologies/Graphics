@@ -104,7 +104,7 @@ namespace UnityEditor.Experimental.Rendering
                         guard = "_" + guard;
 
                     writer.Write("//\n");
-                    writer.Write("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.\n");
+                    writer.Write("// This file was automatically generated. Please don't edit by hand.\n");
                     writer.Write("//\n\n");
                     writer.Write("#ifndef " + guard + "\n");
                     writer.Write("#define " + guard + "\n");

@@ -42,7 +42,7 @@
 // The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
 
 // Structure definition that are share between C# and hlsl.
-// These structures need to be align on float4 to respectect various packing rules from sahder language.
+// These structures need to be align on float4 to respect various packing rules from sahder language.
 // This mean that these structure need to be padded.
 
 // Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
@@ -306,13 +306,23 @@ float3 Sqr(float3 x)
     return x * x;
 }
 
-// Acos in 14 cycles.
-// Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
-float FastACos(float inX)
+// Input [0, 1] and output [0, PI/2]
+// 9 VALU
+float FastACosPos(float inX)
 {
     float x = abs(inX);
     float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
     res *= sqrt(1.0 - x);
+
+    return res;
+}
+
+// Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
+// Input [-1, 1] and output [0, PI]
+// 12 VALU
+float FastACos(float inX)
+{
+    float res = FastACosPos(inX);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }

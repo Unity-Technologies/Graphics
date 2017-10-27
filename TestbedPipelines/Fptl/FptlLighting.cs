@@ -1003,7 +1003,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
             else
             {
+                #pragma warning disable 0162
                 BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+                #pragma warning restore 0162
             }
 
             CommandBuffer cmdShadow = CommandBufferPool.Get();
@@ -1022,7 +1024,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
             else
             {
+                #pragma warning disable 0162
                 PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+                #pragma warning restore 0162
             }
 
             // do deferred lighting

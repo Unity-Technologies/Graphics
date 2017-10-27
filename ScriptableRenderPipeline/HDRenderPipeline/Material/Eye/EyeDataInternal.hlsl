@@ -161,7 +161,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     #ifdef _DETAIL_MAP_IDX
     	alpha *= detailAlpha;
     #endif
-    alpha = alpha > _AlphaCutoffOpacityThreshold ? 1.0 : alpha;
      //Dither
     //----------------------------------
     float a0 = round(alpha);
@@ -206,7 +205,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #else
     surfaceData.ambientOcclusion = 1.0;
 #endif
-    
+
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 

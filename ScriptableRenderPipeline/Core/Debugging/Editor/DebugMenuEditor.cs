@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
@@ -46,9 +44,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             DebugItemState debugItemState = m_DebugMenuState.FindDebugItemState(item);
 
-            UnityEditor.Undo.RecordObject(debugItemState, "DebugMenu State Update");
-            debugItemState.SetValue(item.GetValue());
-            EditorUtility.SetDirty(m_DebugMenuState);
+            if(debugItemState != null)
+            {
+                UnityEditor.Undo.RecordObject(debugItemState, "DebugMenu State Update");
+                debugItemState.SetValue(item.GetValue());
+                EditorUtility.SetDirty(m_DebugMenuState);
+            }
         }
 
         void OnGUI()

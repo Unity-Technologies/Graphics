@@ -9,7 +9,7 @@ Shader "HDRenderPipeline/ExperimentalHair"
         _SecondarySpecularShift("SecondarySpecularShift", Range(-1.0, 1.0)) = 0.0
         _SpecularTint("SpecularTint", Color) = (1.0, 1.0, 1.0)
         _Scatter("Scatter", Range(0.0, 1.0)) = 0.7
-       
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -52,9 +52,8 @@ Shader "HDRenderPipeline/ExperimentalHair"
         [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 1.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffShadow("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        [ToggleOff] _TransparentDepthWritePrepassEnable("Alpha Cutoff Enable", Float) = 1.0
+        [ToggleOff] _TransparentDepthPrepassEnable("Alpha Cutoff Enable", Float) = 1.0
         _AlphaCutoffPrepass("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        _AlphaCutoffOpacityThreshold("Alpha Cutoff", Range(0.0, 1.0)) = 0.99     
 
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
@@ -117,7 +116,7 @@ Shader "HDRenderPipeline/ExperimentalHair"
     #pragma shader_feature _VERTEX_WIND
 
 	#pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
-	
+
     // Can we force a shader to not support lightmap ?
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -214,8 +213,8 @@ Shader "HDRenderPipeline/ExperimentalHair"
 
         Pass
         {
-            Name "TransparentDepthWrite"
-            Tags{ "LightMode" = "TransparentDepthWrite" }
+            Name "TransparentDepthPrepass"
+            Tags{ "LightMode" = "TransparentDepthPrepass" }
 
             Cull[_CullMode]
 
@@ -232,22 +231,22 @@ Shader "HDRenderPipeline/ExperimentalHair"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
-        } 
-        
+        }
+
         Pass
         {
             Name "ShadowCaster"
             Tags{ "LightMode" = "ShadowCaster" }
 
             Cull[_CullMode]
-            
+
             ZWrite On
             ZTest LEqual
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_SHADOWS
-            
+
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
 
@@ -279,7 +278,7 @@ Shader "HDRenderPipeline/ExperimentalHair"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
-        } 
+        }
     }
 
 	CustomEditor "Experimental.Rendering.HDPipeline.CharacterGUI"

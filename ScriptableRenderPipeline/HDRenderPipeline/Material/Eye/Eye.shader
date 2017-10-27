@@ -69,9 +69,8 @@ Shader "HDRenderPipeline/ExperimentalEye"
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        _TransparentDepthWritePrepassEnable("Alpha Cutoff Enable", Float) = 1.0
+        _TransparentDepthPrepassEnable("Alpha Cutoff Enable", Float) = 1.0
         _AlphaCutoffPrepass("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        _AlphaCutoffOpacityThreshold("Alpha Cutoff", Range(0.0, 1.0)) = 0.99     
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -141,7 +140,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
-	
+
 	#pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -222,8 +221,8 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
         Pass
         {
-            Name "ForwardOnlyOpaqueDepthOnly"
-            Tags{ "LightMode" = "ForwardOnlyOpaqueDepthOnly" }
+            Name "DepthForwardOnly"
+            Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
 
@@ -284,27 +283,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
             #include "../../ShaderVariables.hlsl"
 
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/EyeDepthPass.hlsl"
-            #include "EyeData.hlsl"
-            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "DepthOnly"
-            Tags{ "LightMode" = "DepthOnly" }
-
-            Cull[_CullMode]
-
-            ZWrite On
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/EyeDepthPass.hlsl"
             #include "EyeData.hlsl"

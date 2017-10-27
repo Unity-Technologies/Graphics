@@ -4,10 +4,10 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
     {
         Pass
         {
+            Cull   Off
+            ZTest  Always
             ZWrite Off
-            ZTest Always
-            Blend One Zero
-            Cull Off
+            Blend  Off
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -33,7 +33,6 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #endif
 
             float _Level;
-            float _LastLevel;
             float _InvOmegaP;
             float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
@@ -83,7 +82,6 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                                          V, N,
                                          roughness,
                                          _Level - 1,
-                                         _LastLevel,
                                          _InvOmegaP,
                                          sampleCount, // Must be a Fibonacci number
                                          true,

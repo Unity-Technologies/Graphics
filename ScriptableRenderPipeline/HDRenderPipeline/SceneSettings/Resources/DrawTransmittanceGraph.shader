@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
         Pass
         {
             Cull   Off
-            ZTest  Off
+            ZTest  Always
             ZWrite Off
             Blend  Off
 
