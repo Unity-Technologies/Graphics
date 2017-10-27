@@ -17,6 +17,15 @@
 
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#if HAS_REFRACTION
+# include "../../../Core/ShaderLibrary/Refraction.hlsl"
+
+# if defined(_REFRACTION_PLANE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Plane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# elif defined(_REFRACTION_SPHERE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Sphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# endif
+#endif
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -103,6 +112,33 @@ CBUFFER_END
 
 // General constant
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+
+//-----------------------------------------------------------------------------
+// Helper for cheap screen space raycasting
+//-----------------------------------------------------------------------------
+
+float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, float3 rayWS)
+{
+    // For all refraction approximation, to calculate the refracted point in world space,
+    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
+    //   (We avoid to raymarch the depth texture to get the refracted point.)
+
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionSS * (depthSize >> 2), 2).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float depthFromPositionInput = depth - posInputs.depthVS;
+
+    float offset = dot(-V, positionWS - posInputs.positionWS);
+    float depthFromPosition = depthFromPositionInput - offset;
+
+    float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
+
+    return positionWS + rayWS * hitDistanceFromPosition;
+}
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -1617,7 +1653,7 @@ IndirectLighting EvaluateBSDF_SSReflection(LightLoopContext lightLoopContext,
 }
 
 IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
-                                            float3 V, PositionInputs posInput,
+                                            float3 V, PositionInputs posInputs,
                                             PreLightData preLightData, BSDFData bsdfData,
                                             inout float hierarchyWeight)
 {
@@ -1632,84 +1668,19 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
-    float opticalDepth = 0.0;
+    RefractionModelResult refraction = REFRACTION_MODEL(V, posInputs, bsdfData);
 
-    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-
-    // For all refraction approximation, to calculate the refracted point in world space,
-    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
-    //   (We avoid to raymarch the depth texture to get the refracted point.)
-#if defined(_REFRACTION_PLANE)
-    // Plane shape model:
-    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
-    //  with a thickness {bsdfData.thickness}
-
-    // Refracted ray
-    float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float distFromP = depth - posInput.depthVS;
-
-    // Optical depth within the thin plane
-    opticalDepth = bsdfData.thickness / dot(R, -bsdfData.normalWS);
-
-    // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior)
-    float VoR = dot(-V, R);
-    float VoN = dot(V, bsdfData.normalWS);
-    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
-
-#elif defined(_REFRACTION_SPHERE)
-    // Sphere shape model:
-    //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
-    //  The sphere has a diameter of {bsdfData.thickness}
-    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
-    //
-    //  So the light is refracted twice: in and out of the tangent sphere
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float depthFromPosition = depth - posInput.depthVS;
-
-    // First refraction (tangent sphere in)
-    // Refracted ray
-    float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-    // Center of the tangent sphere
-    float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
-
-    // Second refraction (tangent sphere out)
-    float NoR1 = dot(bsdfData.normalWS, R1);
-    // Optical depth within the sphere
-    opticalDepth = -NoR1 * bsdfData.thickness;
-    // Out hit point in the tangent sphere
-    float3 P1 = posInput.positionWS + R1 * opticalDepth;
-    // Out normal
-    float3 N1 = normalize(C - P1);
-    // Out refracted ray
-    float3 R2 = refract(R1, N1, bsdfData.ior);
-    float N1oR2 = dot(N1, R2);
-    float VoR1 = dot(V, R1);
-
-    // Refracted source point
-    refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
-
-#endif
+    float3 refractedBackPointWS = EstimateRaycast(V, posInputs, refraction.positionWS, refraction.rayWS);
 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
     float2 refractedBackPointSS = ComputeScreenSpacePosition(refractedBackPointCS);
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
     float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
-    if (refractedBackPointDepth < posInput.depthVS
+    if (refractedBackPointDepth < posInputs.depthVS
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
@@ -1722,7 +1693,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
 
     // Beer-Lamber law for absorption
-    float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
+    float3 transmittance = exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth);
     lighting.specularTransmitted *= transmittance;
 
     float weight = 1.0;
@@ -1786,29 +1757,19 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblDirWS;
     float3 coatR = preLightData.coatIblDirWS;
+    float4 transmittance = float4(1.0, 1.0, 1.0, 1.0);
 
+#if defined(REFRACTION_MODEL)
+    RefractionModelResult refraction;
+    ZERO_INITIALIZE(RefractionModelResult, refraction);
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
-        // This is the same code than what is use in screen space refraction
-        // TODO: put this code into a function
-#if defined(_REFRACTION_PLANE)
-        R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-#elif defined(_REFRACTION_SPHERE)
-        float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-        // Center of the tangent sphere
-        float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
-        // Second refraction (tangent sphere out)
-        float NoR1 = dot(bsdfData.normalWS, R1);
-        // Optical depth within the sphere
-        float opticalDepth = -NoR1 * bsdfData.thickness;
-        // Out hit point in the tangent sphere
-        float3 P1 = posInput.positionWS + R1 * opticalDepth;
-        // Out normal
-        float3 N1 = normalize(C - P1);
-        // Out refracted ray
-        R = refract(R1, N1, bsdfData.ior);
-#endif
+        refraction = REFRACTION_MODEL(V, posInput, bsdfData);
+        positionWS = refraction.positionWS;
+        R = refraction.rayWS;
+        transmittance = float4(exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth), 1.0);
     }
+#endif
 
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
@@ -1887,7 +1848,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         F = Sqr(-F * bsdfData.coatCoverage + 1.0);
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel) * transmittance;
     envLighting += F * preLD.rgb * preLightData.specularFGD;
 
 #endif
