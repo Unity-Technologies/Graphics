@@ -68,9 +68,8 @@ Shader "HDRenderPipeline/ExperimentalFabric"
 
         [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 1.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        _TransparentDepthWritePrepassEnable("Alpha Cutoff Enable", Float) = 1.0
+        _TransparentDepthPrepassEnable("Alpha Cutoff Enable", Float) = 1.0
         _AlphaCutoffPrepass("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        _AlphaCutoffOpacityThreshold("Alpha Cutoff", Range(0.0, 1.0)) = 0.99     
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -144,7 +143,7 @@ Shader "HDRenderPipeline/ExperimentalFabric"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
-    
+
     #pragma shader_feature _FABRIC_SILK //Swap Fabric BRDFS
 	#pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
 
@@ -226,8 +225,8 @@ Shader "HDRenderPipeline/ExperimentalFabric"
 
         Pass
         {
-            Name "ForwardOnlyOpaqueDepthOnly"
-            Tags{ "LightMode" = "ForwardOnlyOpaqueDepthOnly" }
+            Name "DepthForwardOnly"
+            Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
 
@@ -298,27 +297,6 @@ Shader "HDRenderPipeline/ExperimentalFabric"
 
         Pass
         {
-            Name "DepthOnly"
-            Tags{ "LightMode" = "DepthOnly" }
-
-            Cull[_CullMode]
-
-            ZWrite On
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/FabricDepthPass.hlsl"
-            #include "FabricData.hlsl"
-            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
             Name "Motion Vectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
@@ -363,8 +341,8 @@ Shader "HDRenderPipeline/ExperimentalFabric"
 
         Pass
         {
-            Name "TransparentDepthWrite"
-            Tags{ "LightMode" = "TransparentDepthWrite" }
+            Name "TransparentDepthPrepass"
+            Tags{ "LightMode" = "TransparentDepthPrepass" }
 
             Cull[_CullMode]
 
@@ -381,7 +359,7 @@ Shader "HDRenderPipeline/ExperimentalFabric"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
-        }        
+        }
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.FabricGUI"

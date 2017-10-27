@@ -322,7 +322,6 @@ float GetSurfaceData(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceD
     #ifdef HAIR_SHADOW
     clip(alpha - _AlphaCutoffShadow); // Let artists make hair shadow thiner
     #elif defined(HAIR_TRANSPARENT_DEPTH_WRITE)
-    alpha = alpha > _AlphaCutoffOpacityThreshold ? 1.0 : alpha;
      //Dither
     //----------------------------------
     float a0 = round(alpha);
@@ -426,7 +425,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
-    
+
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);

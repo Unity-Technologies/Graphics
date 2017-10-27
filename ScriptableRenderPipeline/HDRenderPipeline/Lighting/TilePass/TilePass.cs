@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool useGlobalOverrides = true;
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides );
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
 
@@ -182,11 +182,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum LightFeatureFlags
         {
             // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
-            Punctual    = 1 << 8,
-            Area        = 1 << 9,
-            Directional = 1 << 10,
-            Env         = 1 << 11,
-            Sky         = 1 << 12  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
+            Punctual    = 1 << 12,
+            Area        = 1 << 13,
+            Directional = 1 << 14,
+            Env         = 1 << 15,
+            Sky         = 1 << 16,
+            SSRefraction = 1 << 17,
+            SSReflection = 1 << 18,
+            // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
         }
 
         [GenerateHLSL]
@@ -206,8 +209,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_NumFeatureVariants = 27;
 
             // Following define the maximum number of bits use in each feature category.
-            public static uint s_LightFeatureMaskFlags = 0xFF00;
-            public static uint s_MaterialFeatureMaskFlags = 0x00FF;   // don't use all bits just to be safe from signed and/or float conversions :/
+            public static uint s_LightFeatureMaskFlags = 0xFFF000;
+            public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
+            public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
+            public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
         }
 
         [GenerateHLSL]
@@ -803,11 +808,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 lightData.size = new Vector2(additionalLightData.shapeLength, additionalLightData.shapeWidth);
 
-                if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
+                if (lightData.lightType == GPULightType.ProjectorBox)
                 {
                     // Rescale for cookies and windowing.
-                    lightData.right *= 2 / additionalLightData.shapeLength;
-                    lightData.up    *= 2 / additionalLightData.shapeWidth;
+                    lightData.right *= 2.0f / additionalLightData.shapeLength;
+                    lightData.up    *= 2.0f / additionalLightData.shapeWidth;
+                }
+                else if (lightData.lightType == GPULightType.ProjectorPyramid)
+                {
+                    // Get width and height for the current frustum
+                    var spotAngle = light.spotAngle;
+
+                    float frustumHeight;
+                    float frustumWidth;
+                    if (additionalLightData.aspectRatio >= 1.0f)
+                    {
+                        frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumWidth = frustumHeight * additionalLightData.aspectRatio;
+                    }
+                    else
+                    {
+                        frustumWidth = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumHeight = frustumWidth / additionalLightData.aspectRatio;
+                    }
+
+                    lightData.size = new Vector2(frustumWidth, frustumHeight);
+
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2.0f / frustumWidth;
+                    lightData.up *= 2.0f / frustumHeight;
                 }
 
                 if (lightData.lightType == GPULightType.Spot)
@@ -1072,12 +1101,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
                 envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-                envLightData.envShapeType = EnvShapeType.None;
-
                 // TODO: Support sphere influence in UI
-                if (probe.boxProjection != 0)
+                if (probe.boxProjection == 0)
                 {
                     envLightData.envShapeType = EnvShapeType.Box;
+                    // If user request to have no projection, then setup a high number for minProjectionDistance
+                    // this will mimic infinite shape projection
+                    envLightData.minProjectionDistance = 65504.0f;
+                }
+                else
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    envLightData.minProjectionDistance = 0.0f;
                 }
 
                 // remove scale from the matrix (Scale in this matrix is use to scale the widget)
@@ -1180,6 +1215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
+                // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
                     // 0. deal with shadows
@@ -1570,7 +1606,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var invProjscr = projscr.inverse;
                 bool isOrthographic = camera.orthographic;
 
-                cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
+                cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
                 // generate screen-space AABBs (used for both fptl and clustered).
                 if (m_lightCount != 0)
@@ -1828,7 +1864,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, bool forceClustered = false)
             {
-                using (new ProfilingSample("Push Global Parameters", cmd))
+                using (new ProfilingSample(cmd, "Push Global Parameters"))
                 {
                     // Shadows
                     m_ShadowMgr.SyncData();
@@ -1869,7 +1905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
-                using (new ProfilingSample("Tiled Lighting Debug", cmd))
+                using (new ProfilingSample(cmd, "Tiled Lighting Debug"))
                 {
                     bool bUseClusteredForDeferred = !usingFptl;
 
@@ -1935,7 +1971,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentSunLight == null)
                     return;
 
-                using (new ProfilingSample("Deferred Directional", cmd))
+                using (new ProfilingSample(cmd, "Deferred Directional"))
                 {
                     hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
                     m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
@@ -1971,9 +2007,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string singlePassName = "SinglePass - Deferred Lighting Pass";
                 string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
-                using (new ProfilingSample(m_TileSettings.enableTileAndCluster ?
-                                                            (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
-                                                            (options.outputSplitLighting ? SinglePassMRTName : singlePassName), cmd))
+                using (new ProfilingSample(cmd, m_TileSettings.enableTileAndCluster ?
+                    (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
+                    (options.outputSplitLighting ? SinglePassMRTName : singlePassName)))
                 {
                     var camera = hdCamera.camera;
 
@@ -2040,7 +2076,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
                             Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
                             int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
-                            float ambientOcclusionDirectLightStrenght = Shader.GetGlobalFloat(HDShaderIDs._AmbientOcclusionDirectLightStrenght);
+                            Vector4 ambientOcclusionParam = Shader.GetGlobalVector(HDShaderIDs._AmbientOcclusionParam);
 
                             int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
                             int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
@@ -2052,6 +2088,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                             Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+                            float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
                             for (int variant = 0; variant < numVariants; variant++)
                             {
@@ -2114,9 +2151,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._CosTime, cosTime);
                                 cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs.unity_DeltaTime, unity_DeltaTime);
                                 cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._EnvLightSkyEnabled, envLightSkyEnabled);
-                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionDirectLightStrenght, ambientOcclusionDirectLightStrenght);
+                                cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
+                                cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                                 // Set SSS parameters.
                                 cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);
@@ -2188,7 +2226,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 if (!m_TileSettings.enableTileAndCluster)
                 {
-                    using (new ProfilingSample("Forward pass", cmd))
+                    using (new ProfilingSample(cmd, "Forward pass"))
                     {
                         cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2199,7 +2237,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Only opaques can use FPTL, transparent must use clustered!
                     bool useFptl = renderOpaque && usingFptl;
 
-                    using (new ProfilingSample(useFptl ? "Forward Tiled pass" : "Forward Clustered pass", cmd))
+                    using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass"))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2213,7 +2251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderDebugOverlay(Camera camera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                using (new ProfilingSample("Display Shadows", cmd))
+                using (new ProfilingSample(cmd, "Display Shadows"))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {

@@ -4,7 +4,7 @@
 // Computes a point using the Fibonacci sequence of length N.
 // Input: Fib[N - 1], Fib[N - 2], and the index 'i' of the point.
 // Ref: Efficient Quadrature Rules for Illumination Integrals
-float2 Fibonacci2dSeq(float fibN1, float fibN2, int i)
+float2 Fibonacci2dSeq(float fibN1, float fibN2, uint i)
 {
     // 3 cycles on GCN if 'fibN1' and 'fibN2' are known at compile time.
     // N.b.: According to Swinbank and Pusser [SP06], the uniformity of the distribution
@@ -12,7 +12,15 @@ float2 Fibonacci2dSeq(float fibN1, float fibN2, int i)
     return float2(i / fibN1 + (0.5f / fibN1), frac(i * (fibN2 / fibN1)));
 }
 
-static const int k_FibonacciSeq[] = {
+#define GOLDEN_RATIO 1.6180339887498948482
+
+// Replaces the Fibonacci sequence in Fibonacci2dSeq() with the Golden ratio.
+float2 Golden2dSeq(uint i, float n)
+{
+    return float2(i / n + (0.5f / n), frac(i * rcp(GOLDEN_RATIO)));
+}
+
+static const uint k_FibonacciSeq[] = {
     0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181
 };
 
@@ -240,11 +248,11 @@ float2 Fibonacci2d(uint i, uint sampleCount)
         case 89: return k_Fibonacci2dSeq89[i];
         default:
         {
-            int fibN1 = sampleCount;
-            int fibN2 = sampleCount;
+            uint fibN1 = sampleCount;
+            uint fibN2 = sampleCount;
 
             // These are all constants, so this loop will be optimized away.
-            for (int j = 1; j < 20; j++)
+            for (uint j = 1; j < 20; j++)
             {
                 if (k_FibonacciSeq[j] == fibN1)
                 {

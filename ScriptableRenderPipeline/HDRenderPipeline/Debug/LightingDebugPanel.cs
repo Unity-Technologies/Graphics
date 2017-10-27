@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 #if UNITY_EDITOR
@@ -18,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             m_Max = (uint)hdPipeline.GetShadowAtlasCount() - 1;
@@ -35,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        public override void ClampValues(Func<object> getter, Action<object> setter)
+        public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             m_Max = (uint)hdPipeline.GetCurrentShadowCount() - 1;
@@ -95,7 +93,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
 
-                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode).handler.OnEditorGUI();
+                var fullScreenDebugModeHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode);
+                fullScreenDebugModeHandler.handler.OnEditorGUI();
+
+                var fullScreenDebugMipHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMip);
+                var fullScreenDebugModeValue = (FullScreenDebugMode)fullScreenDebugModeHandler.GetValue();
+                switch (fullScreenDebugModeValue)
+                {
+                    case FullScreenDebugMode.PreRefractionColorPyramid:
+                    case FullScreenDebugMode.FinalColorPyramid:
+                    case FullScreenDebugMode.DepthPyramid:
+                    {
+                        EditorGUI.indentLevel++;
+                        fullScreenDebugMipHandler.handler.OnEditorGUI();
+                        EditorGUI.indentLevel--;
+                        break;
+                        }
+                    default:
+                        fullScreenDebugMipHandler.SetValue(0f);
+                        break;
+                }
+
 
                 m_DebugPanel.GetDebugItem(DebugDisplaySettings.kTileDebug).handler.OnEditorGUI();
 

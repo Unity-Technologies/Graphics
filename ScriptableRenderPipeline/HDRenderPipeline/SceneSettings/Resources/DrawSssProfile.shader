@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
         Pass
         {
             Cull   Off
-            ZTest  Off
+            ZTest  Always
             ZWrite Off
             Blend  Off
 
@@ -26,7 +26,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC
-            #include "../../Material/Lit/SubsurfaceScatteringProfile.cs.hlsl"
+            #include "../../Material/Lit/SubsurfaceScatteringSettings.cs.hlsl"
         #endif
 
             //-------------------------------------------------------------------------------------

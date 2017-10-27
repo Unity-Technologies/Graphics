@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -11,7 +10,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         None,
         DiffuseLighting,
         SpecularLighting,
-        VisualizeCascade
+        VisualizeCascade,
+        IndirectDiffuseOcclusionFromSsao,
+        IndirectDiffuseGtaoFromSsao,
+        IndirectSpecularOcclusionFromSsao,
+        IndirectSpecularGtaoFromSsao   
     }
 
     public class DebugDisplaySettings
@@ -28,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
         public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
         public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
+        public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
         public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
         public static string kTileDebug = "Tile Debug By Category";
@@ -35,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
+        public float fullscreenDebugMip = 0;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -144,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, int>(kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kFullScreenDebugMip, () => fullscreenDebugMip, value => fullscreenDebugMip = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0f, 1f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
@@ -154,6 +160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Atmospheric Scattering",() => renderingDebugSettings.enableAtmosphericScattering, (value) => renderingDebugSettings.enableAtmosphericScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => renderingDebugSettings.enableDistortion, (value) => renderingDebugSettings.enableDistortion = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSSAndTransmission, (value) => renderingDebugSettings.enableSSSAndTransmission = (bool)value);
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
@@ -229,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!isDebugViewMaterialInit)
             {
-                List<RenderPipelineMaterial> materialList = CoreUtils.GetRenderPipelineMaterialList();
+                List<RenderPipelineMaterial> materialList = HDUtils.GetRenderPipelineMaterialList();
 
                 // TODO: Share this code to retrieve deferred material with HDRenderPipeline
                 // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
@@ -377,8 +384,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None = 0,
             Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
-            PerPixelDisplacement,
+            PixelDisplacement,
             VertexDisplacement,
+            TessellationDisplacement,
             DepthOffset,
             Lightmap,
         }
@@ -468,7 +476,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
+        public bool enableGaussianPyramid = true;
         public bool enableSSSAndTransmission = true;
+        public bool enableAtmosphericScattering = true;
     }
 
     public enum ShadowMapDebugMode
@@ -485,8 +495,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Lighting
         MinLightingFullScreenDebug,
         SSAO,
-        SSAOBeforeFiltering,
         DeferredShadows,
+        PreRefractionColorPyramid,
+        DepthPyramid,
+        FinalColorPyramid,
         MaxLightingFullScreenDebug,
 
         // Rendering

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -13,13 +12,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Inputs";
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
-            public static GUIContent baseColorSmoothnessText = new GUIContent("Base Color + Smoothness", "Albedo (RGB) and Smoothness (A)");
 
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
+            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), D(B), S(A)", "Mask map");            
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
@@ -47,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+            public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
 
             // Subsurface
             public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
@@ -54,6 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Clear Coat
             public static GUIContent coatCoverageText = new GUIContent("Coat Coverage", "Percentage of clear coat coverage");
@@ -73,6 +74,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
 
             public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
+
+            // Transparency
+            public static string refractionModeText = "Refraction Mode";
+            public static GUIContent refractionIORText = new GUIContent("Indice of refraction", "Indice of refraction");
+            public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
+            public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier", "Thickness multiplier");
+            public static GUIContent refractionThicknessMapText = new GUIContent("Refraction Thickness Map (R)", "Thickness multiplier");
+            // Transparency absorption
+            public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Absorption color (RGB)");
+            public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Absorption distance reference");
+
+            public static GUIContent perPixelDisplacementDetailsWarning = new GUIContent("For pixel displacement to work correctly, details and base map must use same UV mapping");
         }
 
         // Lit shader is not layered but some layered materials inherit from it. In order to share code we need LitUI to account for this.
@@ -115,6 +128,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
         protected const string kTexWorldScale = "_TexWorldScale";
+        protected MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
+        protected const string kInvTilingScale = "_InvTilingScale";
         protected MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
         protected const string kUVMappingMask = "_UVMappingMask";
 
@@ -155,12 +170,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightMax = "_HeightMax";
 
+        protected MaterialProperty[] subsurfaceProfileID = new MaterialProperty[kMaxLayerCount];
+        protected const string kSubsurfaceProfileID = "_SubsurfaceProfile";
+        protected MaterialProperty[] subsurfaceRadius = new MaterialProperty[kMaxLayerCount];
+        protected const string kSubsurfaceRadius = "_SubsurfaceRadius";
+        protected MaterialProperty[] subsurfaceRadiusMap = new MaterialProperty[kMaxLayerCount];
+        protected const string kSubsurfaceRadiusMap = "_SubsurfaceRadiusMap";
+        protected MaterialProperty[] thickness = new MaterialProperty[kMaxLayerCount];
+        protected const string kThickness = "_Thickness";
+        protected MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];
+        protected const string kThicknessMap = "_ThicknessMap";
+        protected MaterialProperty[] thicknessRemap = new MaterialProperty[kMaxLayerCount];
+        protected const string kThicknessRemap = "_ThicknessRemap";
+
         protected MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty[] UVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailMap = "_DetailMap";
+        protected MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
+        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
         protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
         protected MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
@@ -182,18 +212,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
-        protected SubsurfaceScatteringProfile subsurfaceProfile = null;
-        protected MaterialProperty subsurfaceProfileID  = null;
-        protected const string     kSubsurfaceProfileID = "_SubsurfaceProfile";
-        protected MaterialProperty subsurfaceRadius     = null;
-        protected const string     kSubsurfaceRadius    = "_SubsurfaceRadius";
-        protected MaterialProperty subsurfaceRadiusMap  = null;
-        protected const string     kSubsurfaceRadiusMap = "_SubsurfaceRadiusMap";
-        protected MaterialProperty thickness            = null;
-        protected const string     kThickness           = "_Thickness";
-        protected MaterialProperty thicknessMap         = null;
-        protected const string     kThicknessMap        = "_ThicknessMap";
-
         protected MaterialProperty coatCoverage = null;
         protected const string kCoatCoverage = "_CoatCoverage";
         protected MaterialProperty coatIOR = null;
@@ -212,12 +230,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
+        // transparency params
+        protected MaterialProperty ior = null;
+        protected const string kIOR = "_IOR";
+        protected MaterialProperty transmittanceColor = null;
+        protected const string kTransmittanceColor = "_TransmittanceColor";
+        protected MaterialProperty atDistance = null;
+        protected const string kATDistance = "_ATDistance";
+        protected MaterialProperty thicknessMultiplier = null;
+        protected const string kThicknessMultiplier = "_ThicknessMultiplier";
+        protected MaterialProperty refractionMode = null;
+        protected const string kRefractionMode = "_RefractionMode";
+
+        protected override bool showBlendModePopup
+        {
+            get { return refractionMode == null || refractionMode.floatValue == 0f; }
+        }
+
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {
             for (int i = 0; i < m_LayerCount; ++i)
             {
                 UVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, m_PropertySuffixes[i]), props);
                 TexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, m_PropertySuffixes[i]), props);
+                InvTilingScale[i] = FindProperty(string.Format("{0}{1}", kInvTilingScale, m_PropertySuffixes[i]), props);
                 UVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, m_PropertySuffixes[i]), props);
 
                 baseColor[i] = FindProperty(string.Format("{0}{1}", kBaseColor, m_PropertySuffixes[i]), props);
@@ -239,9 +275,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 heightMax[i] = FindProperty(string.Format("{0}{1}", kHeightMax, m_PropertySuffixes[i]), props);
                 heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
 
+                // Sub surface
+                subsurfaceProfileID[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceProfileID, m_PropertySuffixes[i]), props);
+                subsurfaceRadius[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceRadius, m_PropertySuffixes[i]), props);
+                subsurfaceRadiusMap[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceRadiusMap, m_PropertySuffixes[i]), props);
+                thickness[i] = FindProperty(string.Format("{0}{1}", kThickness, m_PropertySuffixes[i]), props);
+                thicknessMap[i] = FindProperty(string.Format("{0}{1}", kThicknessMap, m_PropertySuffixes[i]), props);
+                thicknessRemap[i] = FindProperty(string.Format("{0}{1}", kThicknessRemap, m_PropertySuffixes[i]), props);
+
                 // Details
                 UVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, m_PropertySuffixes[i]), props);
                 UVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, m_PropertySuffixes[i]), props);
+                linkDetailsWithBase[i] = FindProperty(string.Format("{0}{1}", kLinkDetailsWithBase, m_PropertySuffixes[i]), props);
                 detailMap[i] = FindProperty(string.Format("{0}{1}", kDetailMap, m_PropertySuffixes[i]), props);
                 detailAlbedoScale[i] = FindProperty(string.Format("{0}{1}", kDetailAlbedoScale, m_PropertySuffixes[i]), props);
                 detailNormalScale[i] = FindProperty(string.Format("{0}{1}", kDetailNormalScale, m_PropertySuffixes[i]), props);
@@ -276,72 +321,84 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
-            // Sub surface
-            subsurfaceProfileID = FindProperty(kSubsurfaceProfileID, props);
-            subsurfaceRadius = FindProperty(kSubsurfaceRadius, props);
-            subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
-            thickness = FindProperty(kThickness, props);
-            thicknessMap = FindProperty(kThicknessMap, props);
-
             // clear coat
             coatCoverage = FindProperty(kCoatCoverage, props);
             coatIOR = FindProperty(kCoatIOR, props);
+
+            // Transparency
+            refractionMode = FindProperty(kRefractionMode, props, false);
+            transmittanceColor = FindProperty(kTransmittanceColor, props, false);
+            atDistance = FindProperty(kATDistance, props, false);
+            thicknessMultiplier = FindProperty(kThicknessMultiplier, props, false);
+            ior = FindProperty(kIOR, props, false);
+            // We reuse thickness from SSS
         }
 
-        protected void ShaderSSSInputGUI(Material material)
+        protected void ShaderSSSInputGUI(Material material, int layerIndex)
         {
-            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var sssSettings = hdPipeline.sssSettings;
 
-            if (subsurfaceProfile == null)
+            if (sssSettings == null)
             {
-                // Attempt to load the profile from the SSS Settings.
-                int profileID = (int)subsurfaceProfileID.floatValue;
-
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null)
-                {
-                    // This is a valid profile ID.
-                    subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
-
-                    // Refresh the ID of the profile.
-                    hdPipeline.sssSettings.OnValidate();
-                }
+                EditorGUILayout.HelpBox("No Subsurface Scattering Settings have been assigned to the render pipeline asset.", MessageType.Warning);
+                return;
             }
 
-            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, typeof(SubsurfaceScatteringProfile), false) as SubsurfaceScatteringProfile;
+            // TODO: Optimize me
+            var profiles = hdPipeline.sssSettings.profiles;
+            var names = new GUIContent[profiles.Length + 1];
+            names[0] = new GUIContent("None");
 
-            bool validProfile = false;
+            var values = new int[names.Length];
+            values[0] = SssConstants.SSS_NEUTRAL_PROFILE_ID;
 
-            // Set the profile ID.
-            if (subsurfaceProfile != null)
+            for (int i = 0; i < profiles.Length; i++)
             {
-                // Load the profile from the GUI field.
-                int profileID = subsurfaceProfile.settingsIndex;
-
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
-                    hdPipeline.sssSettings.profiles[profileID] != null &&
-                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
-                {
-                    validProfile = true;
-                    material.SetInt("_SubsurfaceProfile", profileID);
-                }
-                else
-                {
-                    subsurfaceProfile = null;
-                    Debug.LogError("The SSS Profile assigned to the material has an invalid index. First, add the Profile to the SSS Settings, and then reassign it to the material.");
-                }
+                names[i + 1] = new GUIContent(profiles[i].name);
+                values[i + 1] = i + 1;
             }
 
-            if (!validProfile)
+            using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
+                int profileID = (int)subsurfaceProfileID[layerIndex].floatValue;
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel(Styles.subsurfaceProfileText);
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        profileID = EditorGUILayout.IntPopup(profileID, names, values);
+
+                        if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
+                            Selection.activeObject = sssSettings;
+                    }
+                }
+
+                if (scope.changed)
+                    subsurfaceProfileID[layerIndex].floatValue = profileID;
             }
 
-            m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
-            m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap);
+            m_MaterialEditor.ShaderProperty(subsurfaceRadius[layerIndex], Styles.subsurfaceRadiusText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
+            if (thicknessMap[layerIndex].textureValue != null)
+            {
+                // Display the remap of texture values.
+                Vector2 remap = thicknessRemap[layerIndex].vectorValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    thicknessRemap[layerIndex].vectorValue = remap;
+                }
+            }
+            else
+            {
+                // Allow the user to set the constant value of thickness if no thickness map is provided.
+                m_MaterialEditor.ShaderProperty(thickness[layerIndex], Styles.thicknessText);
+            }
         }
 
         protected void ShaderClearCoatInputGUI()
@@ -372,8 +429,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-            if ( materialID == null || // Will be the case for Layered materials where we only support standard and the parameter does not exist
-                (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
+            if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
             {
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
@@ -396,7 +452,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine(((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
@@ -421,28 +477,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
             }
 
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
             if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
                 m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
                 m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
             }
-
-            if(materialID != null)
+            // Note: We should only enclose min/max property here for change detection. However heightAmplitude may not be correctly initialize if default value was not correct
+            // force a refresh when the user setup a heightmap, so we are sure it is correct
+            if (EditorGUI.EndChangeCheck())
             {
+                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+            }
+
             switch ((Lit.MaterialId)materialID.floatValue)
             {
                 case Lit.MaterialId.LitSSS:
-                    ShaderSSSInputGUI(material);
+                    ShaderSSSInputGUI(material, layerIndex);
                     break;
                 case Lit.MaterialId.LitStandard:
                     // Nothing
                     break;
+
+                // Following mode are not supported by layered lit and will not be call by it
+                // as the MaterialId enum don't define it
                 case Lit.MaterialId.LitAniso:
                     ShaderAnisoInputGUI();
                     break;
@@ -456,9 +519,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     Debug.Assert(false, "Encountered an unsupported MaterialID.");
                     break;
             }
-            }
 
             EditorGUILayout.Space();
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
 
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
@@ -470,11 +534,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
 
             UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
             }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Precompute.
+                InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
+                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                {
+                    InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                }
+            }
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -504,12 +578,66 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(linkDetailsWithBase[layerIndex], Styles.linkDetailsWithBaseText);
+            EditorGUI.indentLevel--;
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
+            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
+            {
+                if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
+                    EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
+            }
             m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
 
             EditorGUI.indentLevel--;
+
+            var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
+            if (surfaceTypeValue == SurfaceType.Transparent
+                && refractionMode != null)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
+                ++EditorGUI.indentLevel;
+
+                var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0;
+                if (refractionMode != null
+                    // Refraction is not available for pre-refraction objects
+                    && !isPrePass)
+                {
+                    m_MaterialEditor.ShaderProperty(refractionMode, Styles.refractionModeText);
+                    var mode = (Lit.RefractionMode)refractionMode.floatValue;
+                    if (mode != Lit.RefractionMode.None)
+                    {
+                        ++EditorGUI.indentLevel;
+
+                        m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
+
+                        blendMode.floatValue = (float)BlendMode.Alpha;
+
+                        if (thicknessMap[0].textureValue == null)
+                            m_MaterialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
+
+                        ++EditorGUI.indentLevel;
+                        m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                        --EditorGUI.indentLevel;
+
+                        m_MaterialEditor.ShaderProperty(transmittanceColor, Styles.transmittanceColorText);
+                        ++EditorGUI.indentLevel;
+                        m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
+                        --EditorGUI.indentLevel;
+
+                        --EditorGUI.indentLevel;
+                    }
+                }
+
+                DoDistortionInputsGUI();
+
+                --EditorGUI.indentLevel;
+            }
         }
 
         private void DoEmissiveGUI(Material material)
@@ -520,9 +648,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
-                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);                
+                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
             }
-            EditorGUI.indentLevel++;            
+            EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
@@ -610,6 +738,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
             SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
             SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
+
+            var refractionModeValue = (Lit.RefractionMode)material.GetFloat(kRefractionMode);
+            // We can't have refraction in pre-refraction queue
+            var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
+            SetKeyword(material, "_REFRACTION_PLANE", (refractionModeValue == Lit.RefractionMode.Plane) && canHaveRefraction);
+            SetKeyword(material, "_REFRACTION_SPHERE", (refractionModeValue == Lit.RefractionMode.Sphere) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor

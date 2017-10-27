@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 
@@ -49,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
             if(m_Setter != null)
             {
                 m_Setter(value);
-                m_Handler.ClampValues(m_Getter, m_Setter);
+                m_Handler.ValidateValues(m_Getter, m_Setter);
             }
 
             if (record && OnItemDirty != null)

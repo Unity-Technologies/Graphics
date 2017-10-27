@@ -73,10 +73,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightMap2("HeightMap2", 2D) = "black" {}
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
-        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 1
-        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 1
-        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 1
-        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 1
+        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
+        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
+        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
+        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
 
         _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
         _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
@@ -98,25 +99,55 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailMap2("DetailMap2", 2D) = "black" {}
         _DetailMap3("DetailMap3", 2D) = "black" {}
 
-        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(-2.0, 2.0)) = 1
-        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(-2.0, 2.0)) = 1
+        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(0.0, 2.0)) = 1
+        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(0.0, 2.0)) = 1
 
         _DetailNormalScale0("_DetailNormalScale0", Range(0.0, 2.0)) = 1
         _DetailNormalScale1("_DetailNormalScale1", Range(0.0, 2.0)) = 1
         _DetailNormalScale2("_DetailNormalScale2", Range(0.0, 2.0)) = 1
         _DetailNormalScale3("_DetailNormalScale3", Range(0.0, 2.0)) = 1
 
-        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(-2.0, 2.0)) = 1
-        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(-2.0, 2.0)) = 1
+        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(0.0, 2.0)) = 1
 
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
+
+        _SubsurfaceProfile0("Subsurface Profile0", Int) = 0
+        _SubsurfaceProfile1("Subsurface Profile1", Int) = 0
+        _SubsurfaceProfile2("Subsurface Profile2", Int) = 0
+        _SubsurfaceProfile3("Subsurface Profile3", Int) = 0
+
+        _SubsurfaceRadius0("Subsurface Radius0", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius1("Subsurface Radius1", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius2("Subsurface Radius2", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceRadius3("Subsurface Radius3", Range(0.0, 1.0)) = 1.0
+
+        _SubsurfaceRadiusMap0("Subsurface Radius Map0", 2D) = "white" {}
+        _SubsurfaceRadiusMap1("Subsurface Radius Map1", 2D) = "white" {}
+        _SubsurfaceRadiusMap2("Subsurface Radius Map2", 2D) = "white" {}
+        _SubsurfaceRadiusMap3("Subsurface Radius Map3", 2D) = "white" {}
+
+        _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness2("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness3("Thickness", Range(0.0, 1.0)) = 1.0
+
+        _ThicknessMap0("Thickness Map", 2D) = "white" {}
+        _ThicknessMap1("Thickness Map", 2D) = "white" {}
+        _ThicknessMap2("Thickness Map", 2D) = "white" {}
+        _ThicknessMap3("Thickness Map", 2D) = "white" {}
+
+        _ThicknessRemap0("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap1("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap2("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap3("Thickness Remap", Vector) = (0, 1, 0, 0)
 
         // All the following properties exist only in layered lit material
 
@@ -152,8 +183,6 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
         [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
-        _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
-
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
@@ -165,19 +194,12 @@ Shader "HDRenderPipeline/LayeredLit"
 
         // Following are builtin properties
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
-
-        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
-        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
@@ -195,22 +217,28 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
+        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
+        [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
+
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+
+        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
+        [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        [ToggleOff] _PerPixelDisplacementObjectScale("Per pixel displacement object scale", Float) = 1.0
+        _PPDPrimitiveLength("Primitive length for POM", Float) = 1
+        _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
+        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-
-        // Displacement map
-        [ToggleOff] _EnableVertexDisplacement("Enable vertex displacement", Float) = 0.0
-        [ToggleOff] _VertexDisplacementObjectScale("Vertex displacement object scale", Float) = 1.0
-        [ToggleOff] _VertexDisplacementTilingScale("Vertex displacement tiling height scale", Float) = 1.0
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -230,6 +258,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
+
+        [HideInInspector] _InvTilingScale0("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale1("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale2("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
+        [HideInInspector] _InvTilingScale3("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
@@ -251,11 +284,24 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
 
+        [ToggleOff] _LinkDetailsWithBase0("LinkDetailsWithBase0", Float) = 1.0
+        [ToggleOff] _LinkDetailsWithBase1("LinkDetailsWithBase1", Float) = 1.0
+        [ToggleOff] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
+        [ToggleOff] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
+
         [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
         [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
         [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
         [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
         [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
+
+        // Transparency
+        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
+
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -265,14 +311,12 @@ Shader "HDRenderPipeline/LayeredLit"
     // #pragma enable_d3d11_debug_symbols
 
     #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT_OBJECT_SCALE    
-    #pragma shader_feature _VERTEX_DISPLACEMENT    
-    #pragma shader_feature _VERTEX_DISPLACEMENT_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_DISPLACEMENT_TILING_SCALE
+    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
@@ -301,21 +345,39 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
     #pragma shader_feature _DETAIL_MAP0
     #pragma shader_feature _DETAIL_MAP1
     #pragma shader_feature _DETAIL_MAP2
     #pragma shader_feature _DETAIL_MAP3
+    #pragma shader_feature _HEIGHTMAP0
+    #pragma shader_feature _HEIGHTMAP1
+    #pragma shader_feature _HEIGHTMAP2
+    #pragma shader_feature _HEIGHTMAP3
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP0
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP1
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP2
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP3
+    #pragma shader_feature _THICKNESSMAP0
+    #pragma shader_feature _THICKNESSMAP1
+    #pragma shader_feature _THICKNESSMAP2
+    #pragma shader_feature _THICKNESSMAP3
+
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _ _BLENDMODE_LERP _BLENDMODE_ADD _BLENDMODE_SOFT_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+
+    // MaterialId are used as shader feature to allow compiler to optimize properly
+    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
+    #pragma shader_feature _ _MATID_SSS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -395,7 +457,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -420,11 +482,11 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define _BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -452,7 +514,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -477,7 +539,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -498,7 +560,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -522,7 +584,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -543,30 +605,8 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Distortion" // Name is not used
-            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
-
-            Blend One One
-            ZTest [_ZTestMode]
-            ZWrite off
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
-            #include "../Lit/LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }
@@ -590,7 +630,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
@@ -598,8 +638,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
         Pass
         {
-            Name "ForwardDisplayDebug" // Name is not used
-            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDebugDisplay" // Name is not used
+            Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -617,7 +657,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL

@@ -1,46 +1,40 @@
+﻿using System.IO;
 using UnityEngine;
-using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using System.IO;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+    using UnityObject = UnityEngine.Object;
+
     public class HDRenderPipelineMenuItems
     {
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
+        [MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
-            Light[] lights = GameObject.FindObjectsOfType(typeof(Light)) as Light[];
+            var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
 
-            foreach (Light light in lights)
+            foreach (var light in lights)
             {
                 // Do not add a component if there already is one.
                 if (light.GetComponent<HDAdditionalLightData>() == null)
-                {
                     light.gameObject.AddComponent<HDAdditionalLightData>();
-                }
 
                 if (light.GetComponent<AdditionalShadowData>() == null)
-                {
                     light.gameObject.AddComponent<AdditionalShadowData>();
-                }
             }
         }
 
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        [MenuItem("HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
-            Camera[] cameras = GameObject.FindObjectsOfType(typeof(Camera)) as Camera[];
+            var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
 
-            foreach (Camera camera in cameras)
+            foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
                 if (camera.GetComponent<HDAdditionalCameraData>() == null)
-                {
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
-                }
             }
         }
 
@@ -48,24 +42,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
-            Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
-            foreach (Object obj in materials)
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var mat in materials)
             {
-                Material mat = obj as Material;
                 if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
                     LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
-            }
-        }
-
-        static void RemoveMaterialKeywords(Material material)
-        {
-            string[] keywordsToRemove = material.shaderKeywords;
-            foreach (var keyword in keywordsToRemove)
-            {
-                material.DisableKeyword(keyword);
             }
         }
 
@@ -78,37 +63,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             try
             {
-                Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
+                var materials = Resources.FindObjectsOfTypeAll<Material>();
+
                 for (int i = 0, length = materials.Length; i < length; i++)
                 {
-                    Material mat = materials[i] as Material;
+                    EditorUtility.DisplayProgressBar(
+                        "Setup materials Keywords...",
+                        string.Format("{0} / {1} materials cleaned.", i, length),
+                        i / (float)(length - 1));
+
+                    HDEditorUtils.ResetMaterialKeywords(materials[i]);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        [MenuItem("HDRenderPipeline/Test/Reset all materials keywords in project")]
+        static void ResetAllMaterialKeywordsInProject()
+        {
+            try
+            {
+                var matIds = AssetDatabase.FindAssets("t:Material");
+
+                for (int i = 0, length = matIds.Length; i < length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                     EditorUtility.DisplayProgressBar(
                         "Setup materials Keywords...",
                         string.Format("{0} / {1} materials cleaned.", i, length),
                         i / (float)(length - 1));
 
-                    if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
-                    else if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        LitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
-                    else if (mat.shader.name == "HDRenderPipeline/Unlit")
-                    {
-                        // We remove all keyword already present
-                        RemoveMaterialKeywords(mat);
-                        UnlitGUI.SetupMaterialKeywordsAndPass(mat);
-                        EditorUtility.SetDirty(mat);
-                    }
+                    HDEditorUtils.ResetMaterialKeywords(mat);
                 }
             }
             finally
@@ -121,19 +111,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
-            Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
 
-            Shader litShader = Shader.Find("HDRenderPipeline/Lit");
-            Shader layeredLitShader = Shader.Find("HDRenderPipeline/LayeredLit");
+            var litShader = Shader.Find("HDRenderPipeline/Lit");
+            var layeredLitShader = Shader.Find("HDRenderPipeline/LayeredLit");
 
-            foreach (Object obj in materials)
+            foreach (var mat in materials)
             {
-                Material mat = obj as Material;
                 if (mat.shader.name == "HDRenderPipeline/LitTessellation")
                 {
                     mat.shader = litShader;
                     // We remove all keyword already present
-                    RemoveMaterialKeywords(mat);
+                    HDEditorUtils.RemoveMaterialKeywords(mat);
                     LitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -141,7 +130,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
-                    RemoveMaterialKeywords(mat);
+                    HDEditorUtils.RemoveMaterialKeywords(mat);
                     LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -151,23 +140,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("HDRenderPipeline/Export Sky to Image")]
         static void ExportSkyToImage()
         {
-            HDRenderPipeline renderpipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            if(renderpipeline == null)
+            var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (renderpipeline == null)
             {
                 Debug.LogError("HDRenderPipeline is not instantiated.");
                 return;
             }
 
-            Texture2D result = renderpipeline.ExportSkyToTexture();
-            if(result == null)
-            {
+            var result = renderpipeline.ExportSkyToTexture();
+            if (result == null)
                 return;
-            }
 
             // Encode texture into PNG
-            byte[] bytes = null;
-            bytes = result.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-            Object.DestroyImmediate(result);
+            byte[] bytes = result.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+            UnityObject.DestroyImmediate(result);
 
             string assetPath = EditorUtility.SaveFilePanel("Export Sky", "Assets", "SkyExport", "exr");
             if (!string.IsNullOrEmpty(assetPath))
@@ -180,64 +166,64 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("GameObject/HD Render Pipeline/Scene Settings", false, 10)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
-            GameObject sceneSettings = new GameObject("Scene Settings");
+            var sceneSettings = new GameObject("Scene Settings");
             GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
             sceneSettings.AddComponent<SceneSettings>();
         }
 
-        class DoCreateNewAsset<AssetType> : UnityEditor.ProjectWindowCallback.EndNameEditAction where AssetType : ScriptableObject
+        class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var newAsset  = ScriptableObject.CreateInstance<AssetType>();
-                newAsset.name = System.IO.Path.GetFileName(pathName);
+                var newAsset  = CreateInstance<TAssetType>();
+                newAsset.name = Path.GetFileName(pathName);
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
         }
 
-        class DoCreateNewAssetSSSProfile : DoCreateNewAsset<SubsurfaceScatteringProfile> {}
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
+        class DoCreateNewAssetBlacksmithSkySettings : DoCreateNewAsset<BlacksmithSkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
-        class DoCreateNewAssetSSAOSettings : DoCreateNewAsset<ScreenSpaceAmbientOcclusionSettings> {}
+        class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
-
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
-        static void MenuCreateSubsurfaceScatteringProfile()
-        {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSSProfile>(), "New SSS Profile.asset", icon, null);
-        }
-
-        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 677)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 700)]
         static void MenuCreateCommonSettings()
         {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 678)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 702)]
+        static void MenuCreateSubsurfaceScatteringProfile()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Profile.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 750)]
         static void MenuCreateHDRISkySettings()
         {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 679)]
+        [MenuItem("Assets/Create/HDRenderPipeline/BlacksmithSky Settings", priority = 751)]
+        static void MenuCreateBlacksmithSkySettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetBlacksmithSkySettings>(), "New BlacksmithSkySettings.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 752)]
         static void MenuCreateProceduralSkySettings()
         {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Ambient Occlusion Settings", priority = 680)]
-        static void MenuCreateSSAOSettings()
-        {
-            Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSSAOSettings>(), "New AmbientOcclusionSettings.asset", icon, null);
-        }
     }
 }

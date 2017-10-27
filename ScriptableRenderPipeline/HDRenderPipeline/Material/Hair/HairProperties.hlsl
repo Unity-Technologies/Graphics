@@ -11,7 +11,6 @@ float _Scatter;
 float _AlphaCutoff;
 float _AlphaCutoffShadow;
 float _AlphaCutoffPrepass;
-float _AlphaCutoffOpacityThreshold;
 
 float4 _DoubleSidedConstants;
 

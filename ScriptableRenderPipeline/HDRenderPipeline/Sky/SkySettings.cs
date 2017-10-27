@@ -1,12 +1,8 @@
-using System.Reflection;
-using System.Linq;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public abstract class SkySettings : ScriptableObject
     {
-        protected class Unhashed : System.Attribute {}
         [Range(0,360)]
         public float                    rotation = 0.0f;
         public float                    exposure = 0.0f;
@@ -16,28 +12,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                    updatePeriod = 0.0f;
         public Cubemap                  lightingOverride = null;
 
-        private FieldInfo[] m_Properties;
+        public AtmosphericScatteringSettings atmosphericScatteringSettings = new AtmosphericScatteringSettings();
 
-        protected void OnEnable()
-        {
-            // Enumerate properties in order to compute the hash more quickly later on.
-            m_Properties = GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.Instance)
-                .ToArray();
-        }
-
-        public int GetHash()
+        public override int GetHashCode()
         {
             unchecked
             {
                 int hash = 13;
-                foreach (var p in m_Properties)
-                {
-                    bool unhashedAttribute = p.GetCustomAttributes(typeof(Unhashed), true).Length != 0;
-                    object obj = p.GetValue(this);
-                    if (obj != null && !unhashedAttribute) // Sometimes it can be a null reference.
-                        hash = hash * 23 + obj.GetHashCode();
-                }
+                hash = hash * 23 + rotation.GetHashCode();
+                hash = hash * 23 + exposure.GetHashCode();
+                hash = hash * 23 + multiplier.GetHashCode();
+
+                // TODO: Fixme once we switch to .Net 4.6+
+                //>>>
+                hash = hash * 23 + ((int)resolution).GetHashCode(); // Enum.GetHashCode generates garbade on .NET 3.5... Wtf !?
+                hash = hash * 23 + ((int)updateMode).GetHashCode();
+                //<<<
+
+                hash = hash * 23 + updatePeriod.GetHashCode();
+                hash = lightingOverride != null ? hash * 23 + rotation.GetHashCode() : hash;
                 return hash;
             }
         }

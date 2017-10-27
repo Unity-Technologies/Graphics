@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: rcgRock012Material
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -29,6 +29,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
         m_Texture: {fileID: 2800000, guid: d734753529ca78148a43944515a64bc5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BentNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -136,11 +144,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _ATDistance: 1
+    - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _Anisotropy: 0
     - _BlendMode: 1
     - _BumpScale: 1
+    - _CoatCoverage: 1
+    - _CoatIOR: 0.5
     - _CullMode: 2
     - _Cutoff: 1
     - _CutoffEnable: 0
@@ -149,9 +161,22 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DisplacementLockObjectScale: 1
+    - _DisplacementLockTilingScale: 1
+    - _DisplacementMode: 0
+    - _DistortionBlendMode: 0
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 1
+    - _DistortionBlurRemapMax: 1
+    - _DistortionBlurRemapMin: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 0
+    - _DistortionDstBlend: 1
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DistortionScale: 1
+    - _DistortionSrcBlend: 1
     - _DoubleSided: 0
     - _DoubleSidedEnable: 0
     - _DoubleSidedLigthing: 0
@@ -163,7 +188,10 @@ Material:
     - _EmissiveColorMode: 1
     - _EmissiveColorUsage: 1
     - _EmissiveIntensity: 0
+    - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableFogOnTransparent: 1
     - _EnablePerPixelDisplacement: 0
+    - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -172,9 +200,14 @@ Material:
     - _HeightBias: 0
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
+    - _HeightMax: 1
+    - _HeightMin: -1
     - _HeightScale: -1.07
     - _HorizonFade: 1
+    - _IOR: 1
     - _InitialBend: 1
+    - _InvTilingScale: 1
+    - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metalic: 0
     - _Metallic: 0
@@ -186,10 +219,16 @@ Material:
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
+    - _PPDPrimitiveLength: 1
+    - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
+    - _PreRefractionPass: 0
+    - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.524
+    - _SmoothnessRemapMax: 1
+    - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -201,6 +240,7 @@ Material:
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _Thickness: 0.5
+    - _ThicknessMultiplier: 1
     - _UVBase: 0
     - _UVDetail: 0
     - _UVMappingPlanar: 0
@@ -213,6 +253,8 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

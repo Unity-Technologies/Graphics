@@ -1,4 +1,4 @@
-﻿#if SHADERPASS != SHADERPASS_FORWARD
+#if SHADERPASS != SHADERPASS_FORWARD
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -36,7 +36,7 @@ void Frag(PackedVaryingsToPS packedInput,
         #endif
 
           //out float4 outColor : SV_Target0
-// YIBING END		  
+// YIBING END
       #ifdef _DEPTHOFFSET_ON
           , out float outputDepth : SV_Depth
       #endif
@@ -64,23 +64,29 @@ void Frag(PackedVaryingsToPS packedInput,
     if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
 #endif
     {
-    uint featureFlags = 0xFFFFFFFF;
-    float3 diffuseLighting;
-    float3 specularLighting;
-    float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
-
-	// YIBING BEGIN
-#ifdef FORWARD_SPLIT_LIGHTING
-    outColor = float4(specularLighting, 1.0);
-    outDiffuse = float4(diffuseLighting, 1.0);
-    outGbuffer0 = EncodeSplitLightingGBuffer0(surfaceData);
-    outGbuffer2 = EncodeSplitLightingGBuffer1(surfaceData);
-#else	
-   outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+#ifdef _SURFACE_TYPE_TRANSPARENT
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+#else
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
-	// outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
-	// YIBING END    
+        float3 diffuseLighting;
+        float3 specularLighting;
+        float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
+        LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
+
+	    // YIBING BEGIN
+        // If we have split lighting it mean we are opaque (no SSS on transparent)
+    #ifdef FORWARD_SPLIT_LIGHTING
+        outColor = float4(specularLighting, 1.0);
+        outDiffuse = float4(diffuseLighting, 1.0);
+        outGbuffer0 = EncodeSplitLightingGBuffer0(surfaceData);
+        outGbuffer2 = EncodeSplitLightingGBuffer1(surfaceData);
+    #else
+        outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, outColor);
+    #endif
+	    // outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+	    // YIBING END
     }
 
 #ifdef _DEPTHOFFSET_ON
@@ -88,6 +94,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef DEBUG_DISPLAY
+    // Same code in ShaderPassForwardUnlit.shader
     if (_DebugViewMaterial != 0)
     {
         float3 result = float3(1.0, 0.0, 1.0);

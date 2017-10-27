@@ -1,27 +1,37 @@
-#if UNITY_EDITOR
-using System.IO;
-using UnityEditor;
-#endif
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDUtils
     {
-#if UNITY_EDITOR
-        public static string GetHDRenderPipelinePath()
-        {
-            // User can create their own directory for SRP, so we need to find the current path that they use.
-            // We know that DefaultHDMaterial exist and we know where it is, let's use that to find the current directory.
-            var guid = AssetDatabase.FindAssets("DefaultHDMaterial t:material");
-            string path = AssetDatabase.GUIDToAssetPath(guid[0]);
-            path = Path.GetDirectoryName(path); // Asset is in HDRenderPipeline/RenderPipelineResources/DefaultHDMaterial.mat
-            path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
-
-            return path;
-        }
-#endif
-
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
+
+        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
+        {
+            var baseType = typeof(RenderPipelineMaterial);
+            var assembly = baseType.Assembly;
+
+            var types = assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(baseType))
+                .Select(Activator.CreateInstance)
+                .Cast<RenderPipelineMaterial>()
+                .ToList();
+
+            // Note: If there is a need for an optimization in the future of this function, user can
+            // simply fill the materialList manually by commenting the code abode and returning a
+            // custom list of materials they use in their game.
+            //
+            // return new List<RenderPipelineMaterial>
+            // {
+            //    new Lit(),
+            //    new Unlit(),
+            //    ...
+            // };
+
+            return types;
+        }
 
         public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
         {
