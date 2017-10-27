@@ -73,8 +73,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphEditorView == null)
                 graphEditorView = new GraphEditorView(materialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
 
-            graphEditorView.previewSystem.HandleGraphChanges();
-            graphEditorView.previewSystem.RenderPreviews();
+            graphEditorView.previewManager.HandleGraphChanges();
+            graphEditorView.previewManager.RenderPreviews();
             graphEditorView.HandleGraphChanges();
             graphEditorView.inspectorView.HandleGraphChanges();
             graphObject.graph.ClearChanges();

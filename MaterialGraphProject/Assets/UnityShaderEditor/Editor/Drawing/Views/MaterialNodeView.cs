@@ -19,7 +19,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         VisualElement m_PreviewToggle;
         VisualElement m_ControlsContainer;
 
-        public MaterialNodeView(AbstractMaterialNode inNode, PreviewSystem previewSystem)
+        public MaterialNodeView(AbstractMaterialNode inNode, PreviewManager previewManager)
         {
             AddToClassList("MaterialNode");
 
@@ -50,7 +50,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 pickingMode = PickingMode.Ignore,
                 image = Texture2D.whiteTexture
             };
-            m_Preview = previewSystem.GetPreview(inNode);
+            m_Preview = previewManager.GetPreview(inNode);
             m_Preview.onPreviewChanged += UpdatePreviewTexture;
             UpdatePreviewTexture();
             leftContainer.Add(m_PreviewImage);

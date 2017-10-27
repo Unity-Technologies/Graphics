@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class PreviewSystem : IDisposable
+    public class PreviewManager : IDisposable
     {
         AbstractMaterialGraph m_Graph;
         Dictionary<Guid, PreviewData> m_Previews = new Dictionary<Guid, PreviewData>();
@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public PreviewRate previewRate { get; set; }
 
-        public PreviewSystem(AbstractMaterialGraph graph)
+        public PreviewManager(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -349,7 +349,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             GC.SuppressFinalize(this);
         }
 
-        ~PreviewSystem()
+        ~PreviewManager()
         {
             ReleaseUnmanagedResources();
         }
