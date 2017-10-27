@@ -42,7 +42,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     // Apply tiling options
     ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.fuzz).uv = TRANSFORM_TEX(0.2*uvDetails, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.fuzz).uv = TRANSFORM_TEX(0.1*uvDetails, ADD_IDX(_DetailMap));
 
     ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
@@ -154,7 +154,7 @@ float BayerDither4x4(float2 uv){
 // Return opacity
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS)
 {
-    float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a * ADD_IDX(_BaseColor).a;
+    float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.details)).a * ADD_IDX(_BaseColor).a;
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
 
@@ -181,7 +181,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     float a1 = 1 - a0;
     float ditherSample = BayerDither4x4(input.unPositionSS.xy);
     float ditherPattern = (abs(a0 - alpha) < ditherSample) ? a1 : a0;
-    alpha = alpha > ditherPattern ? 1.0 : alpha;
+    //alpha = alpha > ditherPattern ? 1.0 : alpha;
     //----------------------------------
     clip(alpha - _AlphaCutoff); // Let artists make prepass cutout thinner
 
@@ -219,7 +219,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #else
     surfaceData.ambientOcclusion = 1.0;
 #endif
-
+    
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
