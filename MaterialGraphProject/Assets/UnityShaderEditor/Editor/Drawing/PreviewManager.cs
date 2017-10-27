@@ -38,6 +38,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_ErrorTexture.SetPixel(0, 1, Color.black);
             m_ErrorTexture.SetPixel(1, 0, Color.black);
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
+            m_ErrorTexture.filterMode = FilterMode.Point;
             m_ErrorTexture.Apply();
 
             foreach (var node in m_Graph.GetNodes<INode>())
