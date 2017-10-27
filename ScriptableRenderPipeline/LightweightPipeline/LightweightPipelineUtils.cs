@@ -71,6 +71,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class LightweightUtils
     {
+        public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
+        {
+            cookieMatrix = Matrix4x4.Inverse(light.localToWorld);
+            float scale = 1.0f / light.light.cookieSize;
+
+            // apply cookie scale and offset by 0.5 to convert from [-0.5, 0.5] to texture space [0, 1]
+            Vector4 row0 = cookieMatrix.GetRow(0);
+            Vector4 row1 = cookieMatrix.GetRow(1);
+            cookieMatrix.SetRow(0, new Vector4(row0.x * scale, row0.y * scale, row0.z * scale, row0.w * scale + 0.5f));
+            cookieMatrix.SetRow(1, new Vector4(row1.x * scale, row1.y * scale, row1.z * scale, row1.w * scale + 0.5f));
+        }
+
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool enable)
         {
             if (enable)
@@ -82,6 +94,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool IsSupportedShadowType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
+        }
+
+        public static bool IsSupportedCookieType(LightType lightType)
+        {
+            return lightType == LightType.Directional;
         }
 
         public static bool PlatformSupportsMSAABackBuffer()

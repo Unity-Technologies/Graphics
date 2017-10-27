@@ -53,10 +53,12 @@ half4 unity_4LightIndices1;
 CBUFFER_END
 
 CBUFFER_START(_PerCamera)
+sampler2D _MainLightCookie;
 float4 _MainLightPosition;
 half4 _MainLightColor;
 float4 _MainLightAttenuationParams;
 half4 _MainLightSpotDir;
+float4x4 _WorldToLight;
 
 half4 _AdditionalLightCount;
 float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
@@ -275,6 +277,11 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, flo
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     // Light pos holds normalized light dir
     lightDirection = lightInput.pos;
+
+#ifdef _MAIN_LIGHT_COOKIE
+    float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
+    return tex2D(_MainLightCookie, cookieUV).a;
+#endif
     return 1.0;
 #else
     return ComputePixelLightAttenuation(lightInput, normal, worldPos, lightDirection);

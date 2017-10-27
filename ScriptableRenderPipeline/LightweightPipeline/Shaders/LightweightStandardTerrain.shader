@@ -42,6 +42,7 @@
             #pragma fragment SpatmapFragment
             #include "LightweightLighting.cginc"
 
+            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
@@ -180,7 +181,7 @@
 
                 half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);
                 half fogFactor = IN.fogFactorAndVertexLight.x;
-                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, fogFactor, indirectDiffuse, 
+                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, fogFactor, indirectDiffuse,
                     IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
                 return color;
             }
