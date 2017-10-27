@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
-        PreviewView m_Preview;
+        PreviewTextureView m_PreviewTextureView;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -90,8 +90,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     bottomContainer.Add(layersContainer);
                 }
 
-                m_Preview = new PreviewView {name = "preview", image = Texture2D.blackTexture};
-                bottomContainer.Add(m_Preview);
+                m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
+                bottomContainer.Add(m_PreviewTextureView);
 
                 m_PreviewMeshPicker = new Experimental.UIElements.ObjectField() { objectType = typeof(Mesh) };
                 bottomContainer.Add(m_PreviewMeshPicker);
@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_Preview.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
             m_PreviewHandle.mesh = m_PreviewMeshPicker.value as Mesh;
         }
 

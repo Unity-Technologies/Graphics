@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class PreviewView : VisualElement
+    public sealed class PreviewTextureView : VisualElement
     {
         Texture m_Image;
 
