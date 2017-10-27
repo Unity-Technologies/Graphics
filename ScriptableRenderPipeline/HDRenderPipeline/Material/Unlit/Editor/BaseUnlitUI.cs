@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
-
+        
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             preRefractionPass = FindProperty(kPreRefractionPass, props, false);
 
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
-            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);
+            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);            
         }
 
         void SurfaceTypePopup()
@@ -232,10 +232,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
                 }
-
                 EditorGUI.indentLevel--;
             }
-
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
                 m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
