@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.UI
 
             Button button = new Button(() => {Resync(); });
             button.text = "Refresh";
-            button.AddToClassList("toolbarButton");
+            button.AddToClassList("toolbarItem");
             toolbar.Add(button);
 
 
@@ -251,11 +251,12 @@ namespace UnityEditor.VFX.UI
             //toggle.AddToClassList("toolbarButton");
             toggle.text = "AutoCompile";
             toggle.on = true;
+            toggle.AddToClassList("toolbarItem");
             toolbar.Add(toggle);
 
             button = new Button(OnCompile);
             button.text = "Compile";
-            button.AddToClassList("toolbarButton");
+            button.AddToClassList("toolbarItem");
             toolbar.Add(button);
 
 
