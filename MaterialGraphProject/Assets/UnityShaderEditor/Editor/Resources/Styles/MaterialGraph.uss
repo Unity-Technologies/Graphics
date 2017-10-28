@@ -25,29 +25,70 @@ MaterialGraphView {
     background-color: rgb(20, 21, 21);
 }
 
-MaterialNodeView > .mainContainer > #left > #preview.active {
+MaterialNodeView > .mainContainer > #left > #previewContainer {
     width: 200;
 }
 
-MaterialNodeView > .mainContainer > #left > #preview.visible {
-	height: 200;
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.active,
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.visible {
+    width: 200;
+    height: 200;
 }
 
-MaterialNodeView > .mainContainer > #left > #toggle {
-    text-color: rgb(153, 153, 153);
-    text-alignment: middle-center;
-}
-
-MaterialNodeView > .mainContainer > #left > #toggle.inactive {
+MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #collapse {
     height: 0;
 }
 
-MaterialNodeView > .mainContainer > #left > #toggle:hover {
-	background-color: rgba(0, 0, 0, 0.33);
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse {
+    background-color: rgba(0, 0, 0, 0.5);
+    text-color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(255, 255, 255, 0.75);
+    border-radius: 2;
+    text-alignment: middle-center;
+    position-left: 87;
+    position-right: 87;
+    position-top: 5;
+    position-type: absolute;
+    height: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
 }
 
-MaterialNodeView > .mainContainer > #left > #toggle:active {
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded:hover > #collapse {
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    height: 26;
+}
+
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:hover {
+    background-color: rgba(0, 0, 0, 0.75);
+    text-color: rgba(255, 255, 255, 1);
+    border-color: rgba(255, 255, 255, 1);
+}
+
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:active {
 	background-color: rgba(0, 0, 0, 0.66);
+}
+
+MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #expand {
+    height: 0;
+}
+
+MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand {
+    text-alignment: middle-center;
+    text-color: rgb(153, 153, 153);
+    align-self: center;
+    width: 50;
+}
+
+MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+    text-color: rgba(255, 255, 255, 1);
+
 }
 
 MaterialNodeView > #resize {
@@ -65,6 +106,48 @@ MaterialNodeView > #resize:hover {
 
 MaterialNodeView > #resize:active {
     background-color: rgb(0, 225, 25);
+}
+
+.edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
+    edge-output-color: #8FC1DF;
+}
+.edge.toMatrix4, .edge.toMatrix3, .edge.toMatrix2 {
+    edge-input-color: #8FC1DF;
+}
+
+.edge.fromTexture2D {
+    edge-output-color: #FF8B8B;
+}
+.edge.toTexture2D {
+    edge-input-color: #FF8B8B;
+}
+
+.edge.fromVector4 {
+    edge-output-color: #FBCBF4;
+}
+.edge.toVector4 {
+    edge-input-color: #FBCBF4;
+}
+
+.edge.fromVector3 {
+    edge-output-color: #F6FF9A;
+}
+.edge.toVector3 {
+    edge-input-color: #F6FF9A;
+}
+
+.edge.fromVector2 {
+    edge-output-color: #9AEF92;
+}
+.edge.toVector2 {
+    edge-input-color: #9AEF92;
+}
+
+.edge.fromVector1 {
+    edge-output-color: #84E4E7;
+}
+.edge.toVector1 {
+    edge-input-color: #84E4E7;
 }
 
 GraphInspectorView {

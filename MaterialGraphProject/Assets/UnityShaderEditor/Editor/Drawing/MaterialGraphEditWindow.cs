@@ -8,12 +8,12 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class MaterialGraphEditWindow : EditorWindow
     {
@@ -72,8 +72,12 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
             if (graphEditorView == null)
                 graphEditorView = new GraphEditorView(materialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
-            if (graphEditorView != null)
-                graphEditorView.previewSystem.Update();
+
+            graphEditorView.previewManager.HandleGraphChanges();
+            graphEditorView.previewManager.RenderPreviews();
+            graphEditorView.HandleGraphChanges();
+            graphEditorView.inspectorView.HandleGraphChanges();
+            graphObject.graph.ClearChanges();
         }
 
         void OnDisable()
@@ -173,7 +177,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     return;
                 }
 
-                if (m_GraphObject.graph.GetType() == typeof(UnityEngine.MaterialGraph.MaterialGraph))
+                if (m_GraphObject.graph.GetType() == typeof(ShaderGraph.MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
                 if (m_GraphObject.graph.GetType() == typeof(LayeredShaderGraph))

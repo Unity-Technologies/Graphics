@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public interface IShaderGraph
     {

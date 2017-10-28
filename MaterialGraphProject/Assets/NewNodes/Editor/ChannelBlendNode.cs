@@ -1,8 +1,8 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Linq;
 using System.Collections;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /*  [Title("Art/ChannelBlend")]
       public class ChannelBlend : FunctionNInNOut, IGeneratesFunction

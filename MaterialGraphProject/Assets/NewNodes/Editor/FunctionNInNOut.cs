@@ -1,9 +1,9 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Linq;
 using System.Collections;
 using System;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /* public abstract class FunctionNInNOut : AbstractMaterialNode, IGeneratesBodyCode
      {

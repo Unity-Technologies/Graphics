@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public abstract class MaterialSlot : SerializableSlot
@@ -13,7 +14,7 @@ namespace UnityEngine.MaterialGraph
         ShaderStage m_ShaderStage;
 
         private bool m_HasError;
-        
+
         protected MaterialSlot() { }
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
@@ -58,9 +59,9 @@ namespace UnityEngine.MaterialGraph
 
         public string RawDisplayName()
         {
-            return displayName;
+            return base.displayName;
         }
-        
+
         public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
         {
             switch (type)

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public abstract class AbstractMaterialGraph : SerializableGraph, IGenerateProperties
@@ -14,9 +15,32 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
+        [NonSerialized]
+        List<IShaderProperty> m_AddedProperties = new List<IShaderProperty>();
+
+        [NonSerialized]
+        List<Guid> m_RemovedProperties = new List<Guid>();
+
         public IEnumerable<IShaderProperty> properties
         {
             get { return m_Properties; }
+        }
+
+        public IEnumerable<IShaderProperty> addedProperties
+        {
+            get { return m_AddedProperties; }
+        }
+
+        public IEnumerable<Guid> removedProperties
+        {
+            get { return m_RemovedProperties; }
+        }
+
+        public override void ClearChanges()
+        {
+            base.ClearChanges();
+            m_AddedProperties.Clear();
+            m_RemovedProperties.Clear();
         }
 
         public override void AddNode(INode node)
@@ -46,13 +70,13 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             m_Properties.Add(property);
-            NotifyChange(new ShaderPropertyAdded(property));
+            m_AddedProperties.Add(property);
         }
 
         public void RemoveShaderProperty(Guid guid)
         {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
-                NotifyChange(new ShaderPropertyRemoved(guid));
+                m_RemovedProperties.Add(guid);
         }
 
         public override Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
@@ -60,22 +84,19 @@ namespace UnityEngine.MaterialGraph
             var result = base.GetLegacyTypeRemapping();
             var viewNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.ViewDirectionNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.ViewDirectionNode"
             };
             result[viewNode] = SerializationHelper.GetTypeSerializableAsString(typeof(ViewDirectionNode));
 
             var normalNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.NormalNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.NormalNode"
             };
             result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {
-                fullName = "UnityEngine.MaterialGraph.WorldPosNode",
-                assemblyName = "Assembly-CSharp"
+                fullName = "UnityEngine.MaterialGraph.WorldPosNode"
             };
             result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(PositionNode));
 

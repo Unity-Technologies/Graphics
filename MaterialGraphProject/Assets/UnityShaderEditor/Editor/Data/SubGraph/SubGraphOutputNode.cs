@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.MaterialGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public class SubGraphOutputControlAttribute : Attribute, IControlAttribute
     {

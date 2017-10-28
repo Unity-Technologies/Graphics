@@ -1,6 +1,6 @@
 ﻿using UnityEngine.Experimental.UIElements;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class NodeEditorHeaderView : VisualElement
     {

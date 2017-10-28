@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
 // PROBABLY USEFUL, BUT BROKEN AT THE MOMENT
 //    [Title("Logic/If")]

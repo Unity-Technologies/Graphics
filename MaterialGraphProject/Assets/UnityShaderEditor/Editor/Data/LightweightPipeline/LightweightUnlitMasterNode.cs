@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master/Lightweight/Unlit")]

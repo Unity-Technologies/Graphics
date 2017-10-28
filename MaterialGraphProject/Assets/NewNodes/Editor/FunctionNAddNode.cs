@@ -1,8 +1,8 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Linq;
 using System.Collections;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /*  [Title("Math/Advanced/Adder")]
       public class AddManyNode : FunctionNInNOut, IGeneratesFunction

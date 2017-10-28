@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Controls
+namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class PropertyControlAttribute : Attribute, IControlAttribute

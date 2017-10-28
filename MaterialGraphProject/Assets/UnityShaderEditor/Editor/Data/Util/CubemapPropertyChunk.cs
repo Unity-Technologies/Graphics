@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
 /*    public class CubemapPropertyChunk : PropertyChunk
     {

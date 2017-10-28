@@ -3,23 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.MaterialGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialNodeView : Node
     {
         List<VisualElement> m_ControlViews;
-        PreviewData m_Preview;
-        PreviewView m_PreviewImage;
-        VisualElement m_PreviewToggle;
+        PreviewData m_PreviewData;
+        PreviewTextureView m_PreviewTextureView;
         VisualElement m_ControlsContainer;
+        VisualElement m_PreviewContainer;
 
-        public MaterialNodeView(AbstractMaterialNode inNode, PreviewSystem previewSystem)
+        public MaterialNodeView(AbstractMaterialNode inNode, PreviewManager previewManager)
         {
             AddToClassList("MaterialNode");
 
@@ -27,7 +26,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             node = inNode;
-            title = inNode.name;
+            UpdateTitle();
 
             m_ControlsContainer = new VisualElement
             {
@@ -35,25 +34,41 @@ namespace UnityEditor.MaterialGraph.Drawing
             };
             leftContainer.Add(m_ControlsContainer);
 
-            m_PreviewToggle = new VisualElement { name = "toggle", text = "" };
-            m_PreviewToggle.AddManipulator(new Clickable(() => previewExpanded = !previewExpanded));
             if (node.hasPreview)
-                m_PreviewToggle.RemoveFromClassList("inactive");
-            else
-                m_PreviewToggle.AddToClassList("inactive");
-            previewExpanded = node.previewExpanded;
-            leftContainer.Add(m_PreviewToggle);
-
-            m_PreviewImage = new PreviewView
             {
-                name = "preview",
-                pickingMode = PickingMode.Ignore,
-                image = Texture2D.whiteTexture
-            };
-            m_Preview = previewSystem.GetPreview(inNode);
-            m_Preview.onPreviewChanged += UpdatePreviewTexture;
-            UpdatePreviewTexture();
-            leftContainer.Add(m_PreviewImage);
+                m_PreviewContainer = new VisualElement { name = "previewContainer" };
+                m_PreviewContainer.AddToClassList("expanded");
+                {
+                    m_PreviewTextureView = new PreviewTextureView
+                    {
+                        name = "preview",
+                        pickingMode = PickingMode.Ignore,
+                        image = Texture2D.whiteTexture
+                    };
+                    m_PreviewData = previewManager.GetPreview(inNode);
+                    m_PreviewData.onPreviewChanged += UpdatePreviewTexture;
+                    UpdatePreviewTexture();
+                    m_PreviewContainer.Add(m_PreviewTextureView);
+
+                    var collapsePreviewButton = new VisualElement { name = "collapse", text = "▲" };
+                    collapsePreviewButton.AddManipulator(new Clickable(() =>
+                    {
+                        node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                        UpdatePreviewExpandedState(false);
+                    }));
+                    UpdatePreviewExpandedState(node.previewExpanded);
+                    m_PreviewContainer.Add(collapsePreviewButton);
+
+                    var expandPreviewButton = new VisualElement { name = "expand", text = "▼" };
+                    expandPreviewButton.AddManipulator(new Clickable(() =>
+                    {
+                        node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
+                        UpdatePreviewExpandedState(true);
+                    }));
+                    m_PreviewContainer.Add(expandPreviewButton);
+                }
+                leftContainer.Add(m_PreviewContainer);
+            }
 
             m_ControlViews = new List<VisualElement>();
             foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
@@ -99,18 +114,35 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        bool previewExpanded
+        void UpdatePreviewExpandedState(bool expanded)
         {
-            get { return node.previewExpanded; }
-            set
+            node.previewExpanded = expanded;
+            if (expanded)
             {
-                node.previewExpanded = value;
-                m_PreviewToggle.text = node.previewExpanded ? "▲" : "▼";
+                m_PreviewContainer.AddToClassList("expanded");
+                m_PreviewContainer.RemoveFromClassList("collapsed");
             }
+            else
+            {
+                m_PreviewContainer.RemoveFromClassList("expanded");
+                m_PreviewContainer.AddToClassList("collapsed");
+            }
+        }
+
+        void UpdateTitle()
+        {
+            var subGraphNode = node as SubGraphNode;
+            if (subGraphNode != null)
+                title = subGraphNode.subGraphAsset.name;
+            else
+                title = node.name;
         }
 
         public void OnModified(ModificationScope scope)
         {
+            UpdateTitle();
+            if (node.hasPreview)
+                UpdatePreviewExpandedState(node.previewExpanded);
             expanded = node.drawState.expanded;
 
             // Update slots to match node modification
@@ -163,7 +195,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         void OnResize(Vector2 deltaSize)
         {
             var updatedWidth = leftContainer.layout.width + deltaSize.x;
-            var updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
+            var updatedHeight = m_PreviewTextureView.layout.height + deltaSize.y;
 
             var previewNode = node as PreviewNode;
             if (previewNode != null)
@@ -175,19 +207,17 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         void UpdatePreviewTexture()
         {
-            if (m_Preview.texture == null || !node.previewExpanded)
+            if (m_PreviewData.texture == null || !node.previewExpanded)
             {
-                m_PreviewImage.visible = false;
-                m_PreviewImage.RemoveFromClassList("visible");
-                m_PreviewImage.AddToClassList("hidden");
-                m_PreviewImage.image = Texture2D.whiteTexture;
+                m_PreviewTextureView.visible = false;
+                m_PreviewTextureView.image = Texture2D.blackTexture;
             }
             else
             {
-                m_PreviewImage.visible = true;
-                m_PreviewImage.AddToClassList("visible");
-                m_PreviewImage.RemoveFromClassList("hidden");
-                m_PreviewImage.image = m_Preview.texture;
+                m_PreviewTextureView.visible = true;
+                m_PreviewTextureView.AddToClassList("visible");
+                m_PreviewTextureView.RemoveFromClassList("hidden");
+                m_PreviewTextureView.image = m_PreviewData.texture;
             }
             Dirty(ChangeType.Repaint);
         }
@@ -217,15 +247,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             var height = previewNode.height;
 
             leftContainer.style.width = width;
-            m_PreviewImage.style.height = height;
+            m_PreviewTextureView.style.height = height;
         }
 
         public void Dispose()
         {
-            if (m_Preview != null)
+            node = null;
+            if (m_PreviewData != null)
             {
-                m_Preview.onPreviewChanged -= UpdatePreviewTexture;
-                m_Preview = null;
+                m_PreviewData.onPreviewChanged -= UpdatePreviewTexture;
+                m_PreviewData = null;
             }
         }
     }

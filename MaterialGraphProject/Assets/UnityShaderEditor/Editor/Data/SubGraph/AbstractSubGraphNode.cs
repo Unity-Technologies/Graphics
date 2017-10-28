@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public abstract class AbstractSubGraphNode : AbstractMaterialNode
         , IGeneratesFunction
@@ -99,7 +100,7 @@ namespace UnityEngine.MaterialGraph
             {
                 foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
                 {
-                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.displayName, slot.shaderOutputName, SlotType.Output, Vector4.zero));
+                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero));
                     validNames.Add(slot.id);
                 }
             }

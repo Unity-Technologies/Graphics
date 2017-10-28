@@ -1,4 +1,4 @@
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
-using UnityEditor.MaterialGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing;
 using Object = UnityEngine.Object;
 
 class ShaderGraphImporter : ICustomShaderImporter

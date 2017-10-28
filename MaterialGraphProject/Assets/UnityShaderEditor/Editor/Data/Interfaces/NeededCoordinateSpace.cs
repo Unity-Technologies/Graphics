@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Flags]
     public enum NeededCoordinateSpace

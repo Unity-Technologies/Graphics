@@ -1,6 +1,6 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Matrix/MultiplyMatrix")]
     public class MatrixMultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction

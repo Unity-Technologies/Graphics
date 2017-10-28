@@ -1,4 +1,4 @@
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     interface IMayRequirePosition
     {
