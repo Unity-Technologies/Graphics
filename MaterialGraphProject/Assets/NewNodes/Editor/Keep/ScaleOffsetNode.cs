@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/ScaleOffset")]
+    [Title("OLD/ScaleOffset")]
     public class ScaleOffsetNode : CodeFunctionNode
     {
         protected override MethodInfo GetFunctionToConvert()

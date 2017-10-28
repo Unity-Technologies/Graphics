@@ -3,9 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/SphereWarpNode")]
+    [Title("UV/Spherize")]
     public class SphereWarpNode : CodeFunctionNode
     {
+        public SphereWarpNode()
+        {
+            name = "Spherize";
+        }
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_SphereWarp", BindingFlags.Static | BindingFlags.NonPublic);

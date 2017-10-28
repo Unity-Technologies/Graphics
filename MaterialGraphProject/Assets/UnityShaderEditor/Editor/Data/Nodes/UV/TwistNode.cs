@@ -4,12 +4,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Twist")]
+    [Title("UV/Twirl")]
     public class TwistNode : CodeFunctionNode
     {
         public TwistNode()
         {
-            name = "Twist";
+            name = "Twirl";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -18,19 +18,24 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Twist(
-            [Slot(0, Binding.None)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector1 twist,
-            [Slot(2, Binding.None)] out Vector2 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None, 1f, 1f, 1f, 1f)] Vector1 strength,
+            [Slot(2, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 center,
+            [Slot(3, Binding.None)] Vector2 offset,
+            [Slot(4, Binding.None)] out Vector2 result)
         {
             result = Vector2.zero;
 
             return
                 @"
 {
-    {precision} angle = twist * length(uv);
-    {precision} x = cos(angle) * uv.x - sin(angle) * uv.y;
-    {precision} y = sin(angle) * uv.x + cos(angle) * uv.y;
-    result = float2(x, y);
+
+
+    float2 delta = uv - center;
+    {precision} angle = strength * length(delta);
+    {precision} x = cos(angle) * delta.x - sin(angle) * delta.y;
+    {precision} y = sin(angle) * delta.x + cos(angle) * delta.y;
+    result = float2(x + center.x + offset.x, y + center.y + offset.y);
 }
 ";
         }

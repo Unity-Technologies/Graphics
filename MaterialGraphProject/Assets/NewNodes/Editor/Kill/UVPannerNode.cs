@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/UV Panner")]
+    [Title("OLD/UV Panner")]
     public class PannerNode : CodeFunctionNode
     {
         public PannerNode()
