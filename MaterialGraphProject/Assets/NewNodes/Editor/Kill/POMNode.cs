@@ -1,6 +1,7 @@
 using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("UV/ParallaxOcclusionMapping")]
     public class ParallaxOcclusionMappingNode : CodeFunctionNode

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public abstract class AbstractLightweightPBRMasterNode : AbstractLightweightMasterNode

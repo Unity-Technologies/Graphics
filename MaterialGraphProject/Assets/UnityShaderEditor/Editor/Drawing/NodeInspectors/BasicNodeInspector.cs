@@ -1,10 +1,10 @@
 using System.Linq;
-using UnityEditor.MaterialGraph.Drawing.Inspector;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public class BasicNodeInspector : AbstractNodeInspector
     {
@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var modified = false;
             foreach (var slot in node.GetSlots<MaterialSlot>())
                 modified |= IMGUISlotEditorView.SlotField(slot);
-                
+
             GUILayout.Space(10);
 
             return modified ? ModificationScope.Node : ModificationScope.Nothing;

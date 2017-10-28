@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Advanced/Fmod")]
     public class FmodNode : CodeFunctionNode

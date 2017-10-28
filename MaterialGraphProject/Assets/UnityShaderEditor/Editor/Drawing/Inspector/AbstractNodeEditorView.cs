@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public abstract class AbstractNodeEditorView : VisualElement, IDisposable
     {

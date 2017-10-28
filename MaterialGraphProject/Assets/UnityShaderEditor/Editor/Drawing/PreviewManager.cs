@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PreviewSystem : IDisposable
+    public class PreviewManager : IDisposable
     {
         AbstractMaterialGraph m_Graph;
         Dictionary<Guid, PreviewData> m_Previews = new Dictionary<Guid, PreviewData>();
@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public PreviewRate previewRate { get; set; }
 
-        public PreviewSystem(AbstractMaterialGraph graph)
+        public PreviewManager(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -38,35 +38,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_ErrorTexture.SetPixel(0, 1, Color.black);
             m_ErrorTexture.SetPixel(1, 0, Color.black);
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
+            m_ErrorTexture.filterMode = FilterMode.Point;
             m_ErrorTexture.Apply();
 
             foreach (var node in m_Graph.GetNodes<INode>())
                 AddPreview(node);
-            m_Graph.onChange += OnGraphChange;
         }
 
         public PreviewData GetPreview(INode node)
         {
             return m_Previews[node.guid];
-        }
-
-        void OnGraphChange(GraphChange change)
-        {
-            var nodeAdded = change as NodeAddedGraphChange;
-            if (nodeAdded != null)
-                AddPreview(nodeAdded.node);
-
-            var nodeRemoved = change as NodeRemovedGraphChange;
-            if (nodeRemoved != null)
-                RemovePreview(nodeRemoved.node);
-
-            var edgeAdded = change as EdgeAddedGraphChange;
-            if (edgeAdded != null)
-                m_DirtyShaders.Add(edgeAdded.edge.inputSlot.nodeGuid);
-
-            var edgeRemoved = change as EdgeRemovedGraphChange;
-            if (edgeRemoved != null)
-                m_DirtyShaders.Add(edgeRemoved.edge.inputSlot.nodeGuid);
         }
 
         void AddPreview(INode node)
@@ -142,7 +123,22 @@ namespace UnityEditor.MaterialGraph.Drawing
         HashSet<Guid> m_PropertyNodeGuids = new HashSet<Guid>();
         List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
 
-        public void Update()
+        public void HandleGraphChanges()
+        {
+            foreach (var node in m_Graph.removedNodes)
+                RemovePreview(node);
+
+            foreach (var node in m_Graph.addedNodes)
+                AddPreview(node);
+
+            foreach (var edge in m_Graph.removedEdges)
+                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+
+            foreach (var edge in m_Graph.addedEdges)
+                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+        }
+
+        public void RenderPreviews()
         {
             if (previewRate == PreviewRate.Off)
                 return;
@@ -236,7 +232,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
                 var node = m_Graph.GetNodeFromGuid(nodeGuid);
                 m_PreviewMaterial.shader = previewData.shader;
-                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
+                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.mesh, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
                 previewData.texture = previewData.renderTexture;
             }
 
@@ -354,7 +350,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             GC.SuppressFinalize(this);
         }
 
-        ~PreviewSystem()
+        ~PreviewManager()
         {
             ReleaseUnmanagedResources();
         }
@@ -365,6 +361,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     public class PreviewData
     {
         public Shader shader { get; set; }
+        public Mesh mesh { get; set; }
         public string shaderString { get; set; }
         public PreviewMode previewMode { get; set; }
         public RenderTexture renderTexture { get; set; }

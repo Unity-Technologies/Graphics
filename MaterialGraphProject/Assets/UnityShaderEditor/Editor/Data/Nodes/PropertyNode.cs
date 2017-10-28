@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Property Node")]
     public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IOnAssetEnabled

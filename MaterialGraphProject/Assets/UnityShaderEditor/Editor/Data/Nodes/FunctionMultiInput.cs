@@ -1,4 +1,4 @@
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /*public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
     {

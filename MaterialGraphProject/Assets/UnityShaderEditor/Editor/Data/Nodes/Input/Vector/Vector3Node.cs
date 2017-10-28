@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Vector/Vector 3")]
     public class Vector3Node : AbstractMaterialNode, IGeneratesBodyCode
@@ -60,7 +61,7 @@ namespace UnityEngine.MaterialGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value + ";", true);
+            visitor.AddShaderChunk(precision + "3 " + GetVariableNameForNode() + " = " + precision + "3" + m_Value + ";", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

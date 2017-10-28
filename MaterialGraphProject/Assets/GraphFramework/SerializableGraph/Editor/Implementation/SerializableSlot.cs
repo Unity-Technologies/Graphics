@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     [Serializable]
     public class SerializableSlot : ISlot

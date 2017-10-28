@@ -5,9 +5,9 @@ using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Controls
+namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class MultiFloatControlAttribute : Attribute, IControlAttribute

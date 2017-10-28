@@ -1,6 +1,7 @@
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Scene Data/Camera Position")]
     public class CamPosNode : AbstractMaterialNode

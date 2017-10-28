@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.MaterialGraph.Drawing
+﻿namespace UnityEditor.ShaderGraph.Drawing
 {
     public enum PreviewRate
     {
