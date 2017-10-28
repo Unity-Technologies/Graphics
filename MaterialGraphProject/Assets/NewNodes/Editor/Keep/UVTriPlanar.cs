@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
 
  /*
 
- namespace UnityEngine.MaterialGraph
+ namespace UnityEditor.ShaderGraph
  {
      [Title("UV/Tri-Planar Mapping")]
      public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition

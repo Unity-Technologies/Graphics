@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class Matrix2MaterialSlot : MaterialSlot
@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
             :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
-        
+
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             return precision + "2x2 (1,0,0,1)";
