@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector3>
@@ -11,7 +12,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector3 m_DefaultValue;
-        
+
         public Vector3MaterialSlot()
         {
         }
@@ -41,6 +42,7 @@ namespace UnityEngine.MaterialGraph
         {
             return precision + "3 (" + value.x + "," + value.y + "," + value.z + ")";
         }
+
         public override PreviewProperty GetPreviewProperty(string name)
         {
             var pp = new PreviewProperty

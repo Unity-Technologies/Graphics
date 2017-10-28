@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
                 defaultValue = new Vector4(defaultX, defaultY, defaultZ, defaultW);
             }
         }
-        
+
         protected abstract MethodInfo GetFunctionToConvert();
 
         private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
@@ -366,7 +366,7 @@ namespace UnityEditor.ShaderGraph
                 binding |= slot.RequiresNormal();
             return binding;
         }
-        
+
         public NeededCoordinateSpace RequiresViewDirection()
         {
             var binding = NeededCoordinateSpace.None;
@@ -401,7 +401,6 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            var binding = NeededCoordinateSpace.None;
             foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
             {
                 if (slot.RequiresMeshUV(channel))

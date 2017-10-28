@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class Vector2MaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector2>
@@ -11,10 +12,9 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector2 m_DefaultValue;
-        
+
         public Vector2MaterialSlot()
-        {
-        }
+        {}
 
         public Vector2MaterialSlot(
             int slotId,

@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class DynamicVectorMaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector4>
@@ -67,7 +68,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")"; 
+            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
         }
     }
 }

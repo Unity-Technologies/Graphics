@@ -1,7 +1,8 @@
 using System;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class PositionMaterialSlot : Vector3MaterialSlot, IMayRequirePosition
