@@ -457,6 +457,7 @@ struct GraphVertexInput
 
             finalShader.AddShaderChunk("CGINCLUDE", false);
             finalShader.AddShaderChunk("#include \"UnityCG.cginc\"", false);
+            finalShader.AddShaderChunk("#include \"//Assets/ShaderGraph.cginc\"", false);
             finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
             finalShader.AddShaderChunk(graphVertexInput, false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
