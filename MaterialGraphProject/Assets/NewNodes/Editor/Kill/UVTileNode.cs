@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/UV Tile")]
+    [Title("OLD/UV Tile")]
     public class UVTileNode : CodeFunctionNode
     {
         public UVTileNode()
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    result uv * tileFactor;
+    result = uv * tileFactor;
 }";
         }
     }

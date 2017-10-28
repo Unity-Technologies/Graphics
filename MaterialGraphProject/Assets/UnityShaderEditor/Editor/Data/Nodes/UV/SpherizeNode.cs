@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Spherize")]
+    [Title("OLD/SpherizeOLD")]
     public class SpherizeNode : CodeFunctionNode
     {
         public SpherizeNode()
         {
-            name = "Spherize";
+            name = "Spherizeold";
         }
 
         protected override MethodInfo GetFunctionToConvert()

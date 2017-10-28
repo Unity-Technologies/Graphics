@@ -1,16 +1,15 @@
-Shader "hidden/preview/Smoothstep_F2C698A4"
+Shader "hidden/preview/_D6313FDD"
 {
 	Properties
 	{
-				Float_BAE7EB71("Strength", Float) = 1
-				Float_21781ECA("Ref", Float) = 0
-				[HideInInspector] [NonModifiableTextureData] [NoScaleOffset] Texture_930E6693("9a61064b-169a-41ef-b682-771a60220772", 2D) = "white" {}
+				[HideInInspector] [NonModifiableTextureData] [NoScaleOffset] Texture_38F8F2CD("texture", 2D) = "white" {}
 	}
 	CGINCLUDE
 	#include "UnityCG.cginc"
-			void Unity_Smoothstep_float(float A, float B, float T, out float Out)
+			void Unity_ScaleAndOffset_float(float2 uv, float2 scale, float2 scaleCenter, float2 offset, out float2 result)
 			{
-			    Out = smoothstep(A, B, T);
+			    float4 xform = float4(scale, offset + scaleCenter - scaleCenter * scale);
+			    result = uv * xform.xy + xform.zw;
 			}
 	struct GraphVertexInput
 	{
@@ -23,30 +22,31 @@ Shader "hidden/preview/Smoothstep_F2C698A4"
 	     UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 			struct SurfaceInputs{
+				half4 uv0;
 			};
 			struct SurfaceDescription{
-				float _Smoothstep_F2C698A4_Out;
+				float2 __D6313FDD_result;
 			};
 			void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){
-				surface._Smoothstep_F2C698A4_Out = scale * surface._Smoothstep_F2C698A4_Out;
+				surface.__D6313FDD_result = scale * surface.__D6313FDD_result;
 			};
 			void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){
-				base._Smoothstep_F2C698A4_Out = base._Smoothstep_F2C698A4_Out + add._Smoothstep_F2C698A4_Out;
+				base.__D6313FDD_result = base.__D6313FDD_result + add.__D6313FDD_result;
 			};
-			float Float_BAE7EB71;
-			float Float_21781ECA;
-			UNITY_DECLARE_TEX2D(Texture_930E6693);
-			float _Smoothstep_F2C698A4_A;
-			float _Smoothstep_F2C698A4_B;
-			float _Smoothstep_F2C698A4_T;
+			UNITY_DECLARE_TEX2D(Texture_38F8F2CD);
+			float4 __D6313FDD_uv;
+			float4 __D6313FDD_scale;
+			float4 __D6313FDD_scaleCenter;
+			float4 __D6313FDD_offset;
 			GraphVertexInput PopulateVertexData(GraphVertexInput v){
 				return v;
 			}
 			SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
-				float _Smoothstep_F2C698A4_Out;
-				Unity_Smoothstep_float(_Smoothstep_F2C698A4_A, _Smoothstep_F2C698A4_B, _Smoothstep_F2C698A4_T, _Smoothstep_F2C698A4_Out);
+				half4 uv0 = IN.uv0;
+				float2 __D6313FDD_result;
+				Unity_ScaleAndOffset_float(uv0, __D6313FDD_scale, __D6313FDD_scaleCenter, __D6313FDD_offset, __D6313FDD_result);
 				SurfaceDescription surface = (SurfaceDescription)0;
-				surface._Smoothstep_F2C698A4_Out = _Smoothstep_F2C698A4_Out;
+				surface.__D6313FDD_result = __D6313FDD_result;
 				return surface;
 			}
 	ENDCG
@@ -63,23 +63,23 @@ Shader "hidden/preview/Smoothstep_F2C698A4"
 	        struct GraphVertexOutput
 	        {
 	            float4 position : POSITION;
-	            
+	            half4 uv0 : TEXCOORD;
 	        };
 	        GraphVertexOutput vert (GraphVertexInput v)
 	        {
 	            v = PopulateVertexData(v);
 	            GraphVertexOutput o;
 	            o.position = UnityObjectToClipPos(v.vertex);
-	            
+	            o.uv0 = v.texcoord0;
 	            return o;
 	        }
 	        fixed4 frag (GraphVertexOutput IN) : SV_Target
 	        {
-	            
+	            float4 uv0  = IN.uv0;
 	            SurfaceInputs surfaceInput = (SurfaceInputs)0;;
-	            
+	            surfaceInput.uv0  =uv0;
 	            SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-	            return half4(surf._Smoothstep_F2C698A4_Out, surf._Smoothstep_F2C698A4_Out, surf._Smoothstep_F2C698A4_Out, 1.0);
+	            return half4(surf.__D6313FDD_result.x, surf.__D6313FDD_result.y, 0.0, 1.0);
 	        }
 	        ENDCG
 	    }
