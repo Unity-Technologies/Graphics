@@ -41,8 +41,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, 0));
-            AddSlot(new Texture2DMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName, SlotType.Input));
-            AddSlot(new Vector2MaterialSlot(UVInput, kUVInputName, kUVInputName, SlotType.Input, Vector4.zero));
+            AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
+            AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.uv0));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
             RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput });
         }
@@ -50,22 +50,7 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            //Texture input slot
-            var textureSlot = FindInputSlot<MaterialSlot>(TextureInputId);
-            var edgesTexture = owner.GetEdges(textureSlot.slotReference);
-            // if no texture connected return nothing
-            if (!edgesTexture.Any())
-            {
-                visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotRGBAId) + " = " + precision + "4(0,0,0,0);", true);
-                return;
-            }
-
-            //UV input slot
-            var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
-            var uvName = string.Format("{0}.xy", UVChannel.uv0.GetUVName());
-            var edgesUV = owner.GetEdges(uvSlot.slotReference);
-            if (edgesUV.Any())
-                uvName = GetSlotValue(UVInput, generationMode);
+            var uvName = GetSlotValue(UVInput, generationMode);
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
@@ -104,17 +89,14 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            if (channel != UVChannel.uv0)
-            {
-                return false;
-            }
-
-            var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
+            var uvSlot = FindInputSlot<MaterialSlot>(UVInput) as UVMaterialSlot;
             if (uvSlot == null)
-                return true;
+                return false;
 
-            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
-            return edges.Count == 0;
+            if (uvSlot.isConnected)
+                return false;
+
+            return uvSlot.RequiresMeshUV(channel);
         }
     }
 }

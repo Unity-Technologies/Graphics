@@ -1,26 +1,17 @@
 using System;
-using UnityEditor.Graphing;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class BitangentMaterialSlot : Vector3MaterialSlot, IMayRequireBitangent
+    public class BitangentMaterialSlot : SpaceMaterialSlot, IMayRequireBitangent
     {
-        private CoordinateSpace m_Space = CoordinateSpace.World;
-
-        public CoordinateSpace space
-        {
-            get { return m_Space; }
-            set { m_Space = value; }
-        }
+        public BitangentMaterialSlot() : base()
+        {}
 
         public BitangentMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
             ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden)
-        {
-            this.space = space;
-        }
+            : base(slotId, displayName, shaderOutputName, space, shaderStage, hidden)
+        {}
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {

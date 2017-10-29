@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 using UnityEditor.Graphing;
+using UnityEditor.Graphs;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -133,9 +134,9 @@ namespace UnityEditor.ShaderGraph
                             prop.overrideReferenceName = fromNode.GetSlotValue(slot.id, generationMode);
                     }
                 }
-                else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
+                else if (inSlot is Texture2DInputMaterialSlot)
                 {
-                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName =  ((Texture2DInputMaterialSlot)inSlot).GetDefaultValue(generationMode);
                 }
                 else
                 {

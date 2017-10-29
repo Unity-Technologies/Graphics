@@ -117,6 +117,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePreviewExpandedState(bool expanded)
         {
             node.previewExpanded = expanded;
+            if (m_PreviewContainer == null)
+                return;
             if (expanded)
             {
                 m_PreviewContainer.AddToClassList("expanded");
@@ -132,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdateTitle()
         {
             var subGraphNode = node as SubGraphNode;
-            if (subGraphNode != null)
+            if (subGraphNode != null && subGraphNode.subGraphAsset != null)
                 title = subGraphNode.subGraphAsset.name;
             else
                 title = node.name;
