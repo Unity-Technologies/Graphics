@@ -7,21 +7,14 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Property Node")]
-    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IOnAssetEnabled
+    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
     {
         private Guid m_PropertyGuid;
 
-        [SerializeField] private string m_PropertyGuidSerialized;
+        [SerializeField]
+        private string m_PropertyGuidSerialized;
 
         public const int OutputSlotId = 0;
-
-        public const int ROutputSlotId = 1;
-        public const int GOutputSlotId = 2;
-        public const int BOutputSlotId = 3;
-        public const int AOutputSlotId = 4;
-        public const int TOutputSlotId = 5;
-
-        public const int UVInput = 6;
 
         public PropertyNode()
         {
@@ -63,14 +56,8 @@ namespace UnityEditor.ShaderGraph
             }
             else if (property is TextureShaderProperty)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, "RGBA", "RGBA", SlotType.Output, Vector4.zero));
-                AddSlot(new Vector1MaterialSlot(ROutputSlotId, "R", "R", SlotType.Output, 0));
-                AddSlot(new Vector1MaterialSlot(GOutputSlotId, "G", "G", SlotType.Output, 0));
-                AddSlot(new Vector1MaterialSlot(BOutputSlotId, "B", "B", SlotType.Output, 0));
-                AddSlot(new Vector1MaterialSlot(AOutputSlotId, "A", "A", SlotType.Output, 0));
-                AddSlot(new Texture2DMaterialSlot(TOutputSlotId, "T", "T", SlotType.Output));
-                AddSlot(new Vector2MaterialSlot(UVInput, "UV", "UV", SlotType.Input, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId, ROutputSlotId, GOutputSlotId, BOutputSlotId, AOutputSlotId, TOutputSlotId, UVInput});
+                AddSlot(new Texture2DMaterialSlot(OutputSlotId, "T", "T", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
         }
 
@@ -121,40 +108,6 @@ namespace UnityEditor.ShaderGraph
                     , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
-            else if (property is TextureShaderProperty)
-            {
-                //UV input slot
-                var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
-                var uvName = string.Format("{0}.xy", UVChannel.uv0.GetUVName());
-                var edgesUV = owner.GetEdges(uvSlot.slotReference);
-                if (edgesUV.Any())
-                    uvName = GetSlotValue(UVInput, generationMode);
-
-                //Sampler input slot
-                var result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
-                        , precision
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName
-                        , uvName);
-                visitor.AddShaderChunk(result, true);
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(ROutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.g;", precision, GetVariableNameForSlot(GOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.b;", precision, GetVariableNameForSlot(BOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.a;", precision, GetVariableNameForSlot(AOutputSlotId), GetVariableNameForSlot(OutputSlotId)), true);
-            }
-        }
-
-        public bool RequiresMeshUV(UVChannel channel)
-        {
-            if (channel != UVChannel.uv0)
-                return false;
-
-            var uvSlot = FindInputSlot<MaterialSlot>(UVInput);
-            if (uvSlot == null)
-                return true;
-
-            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
-            return edges.Count == 0;
         }
 
         [PropertyControl]
@@ -183,11 +136,12 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            if (slotId != TOutputSlotId)
-                return base.GetVariableNameForSlot(slotId);
-
             var graph = owner as AbstractMaterialGraph;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
+
+            if (!(property is TextureShaderProperty))
+                return base.GetVariableNameForSlot(slotId);
+
             return property.referenceName;
         }
 

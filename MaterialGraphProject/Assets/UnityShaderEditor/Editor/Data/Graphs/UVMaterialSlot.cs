@@ -15,6 +15,9 @@ namespace UnityEditor.ShaderGraph
             set { m_Channel = value; }
         }
 
+        public UVMaterialSlot()
+        {}
+
         public UVMaterialSlot(int slotId, string displayName, string shaderOutputName, UVChannel channel,
             ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector2.zero, shaderStage, hidden)
@@ -33,6 +36,13 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return m_Channel == channel;
+        }
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+            var slot = foundSlot as UVMaterialSlot;
+            if (slot != null)
+                channel = slot.channel;
         }
     }
 }

@@ -7,8 +7,7 @@ namespace UnityEditor.ShaderGraph
     public class Texture2DMaterialSlot : MaterialSlot
     {
         public Texture2DMaterialSlot()
-        {
-        }
+        {}
 
         public Texture2DMaterialSlot(
             int slotId,
@@ -17,13 +16,16 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
-        {
-        }
-
-        public static readonly string DefaultTextureName = "ShaderGraph_DefaultTexture";
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+        {}
 
         public override SlotValueType valueType { get { return SlotValueType.Texture2D; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture2D; } }
+
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {}
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {}
     }
 }

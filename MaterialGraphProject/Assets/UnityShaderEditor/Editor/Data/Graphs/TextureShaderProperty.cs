@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         [SerializeField]
-        private bool m_Modifiable;
+        private bool m_Modifiable = true;
 
         public TextureShaderProperty()
         {
@@ -36,7 +36,6 @@ namespace UnityEditor.ShaderGraph
             var result = new StringBuilder();
             if (!m_Modifiable)
             {
-                result.Append("[HideInInspector] ");
                 result.Append("[NonModifiableTextureData] ");
             }
             result.Append("[NoScaleOffset] ");

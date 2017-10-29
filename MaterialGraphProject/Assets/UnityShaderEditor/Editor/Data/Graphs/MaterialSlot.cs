@@ -75,7 +75,9 @@ namespace UnityEditor.ShaderGraph
                 case SlotValueType.Matrix2:
                     return new Matrix2MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Texture2D:
-                    return new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return slotType == SlotType.Input
+                        ? new Texture2DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
+                        : new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Dynamic:
                     return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector4:
@@ -167,9 +169,6 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if (concreteValueType == ConcreteSlotValueType.Texture2D)
-                return Texture2DMaterialSlot.DefaultTextureName;
-
             if (generationMode.IsPreview())
                 return matOwner.GetVariableNameForSlot(id);
 
@@ -181,53 +180,7 @@ namespace UnityEditor.ShaderGraph
             return "error";
         }
 
-        public void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
-        {
-            // share tex2d for all non connected slots :)
-            if (concreteValueType == ConcreteSlotValueType.Texture2D)
-            {
-                var prop = new TextureShaderProperty();
-                prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
-                prop.modifiable = false;
-                prop.generatePropertyBlock = true;
-                properties.AddShaderProperty(prop);
-                return;
-            }
-
-            if (concreteValueType == ConcreteSlotValueType.SamplerState)
-                return;
-
-            if (!generationMode.IsPreview())
-                return;
-
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
-                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
-
-            IShaderProperty property;
-            switch (concreteValueType)
-            {
-                case ConcreteSlotValueType.Vector4:
-                    property = new Vector4ShaderProperty();
-                    break;
-                case ConcreteSlotValueType.Vector3:
-                    property = new Vector3ShaderProperty();
-                    break;
-                case ConcreteSlotValueType.Vector2:
-                    property = new Vector2ShaderProperty();
-                    break;
-                case ConcreteSlotValueType.Vector1:
-                    property = new FloatShaderProperty();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
-            property.generatePropertyBlock = false;
-
-            properties.AddShaderProperty(property);
-        }
+        public abstract void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode);
 
         protected static PropertyType ConvertConcreteSlotValueTypeToPropertyType(ConcreteSlotValueType slotValue)
         {
@@ -260,5 +213,7 @@ namespace UnityEditor.ShaderGraph
         {
             return null;
         }
+
+        public abstract void CopyValuesFrom(MaterialSlot foundSlot);
     }
 }
