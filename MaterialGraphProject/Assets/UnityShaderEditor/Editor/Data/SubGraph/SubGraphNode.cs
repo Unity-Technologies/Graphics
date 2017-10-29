@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
     [Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : AbstractSubGraphNode
         , IGeneratesBodyCode
+        , IOnAssetEnabled
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -176,6 +177,11 @@ namespace UnityEditor.ShaderGraph
             outputString.AddShaderChunk("// Subgraph ends", false);
 
             shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        public void OnEnable()
+        {
+            UpdateSlots();
         }
     }
 }

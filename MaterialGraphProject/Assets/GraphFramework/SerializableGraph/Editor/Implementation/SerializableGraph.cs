@@ -293,9 +293,6 @@ namespace UnityEditor.Graphing
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
-
-            OnEnable();
-            ValidateGraph();
         }
 
         public virtual void ValidateGraph()

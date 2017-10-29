@@ -91,7 +91,16 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 var id = prop.guid.GetHashCode();
-                AddSlot(MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue));
+                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue);
+                // copy default for texture for niceness
+                if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture)
+                {
+                    var tSlot = slot as Texture2DInputMaterialSlot;
+                    var tProp = prop as TextureShaderProperty;
+                    if (tSlot != null && tProp != null)
+                        tSlot.texture = tProp.value.texture;
+                }
+                AddSlot(slot);
                 validNames.Add(id);
             }
 
