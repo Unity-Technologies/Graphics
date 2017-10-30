@@ -116,6 +116,7 @@ float _ThicknessMultiplier;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
+float4 _EmissiveColorMap_ST;
 
 float4 _InvPrimScale; // Only XY are used
 
