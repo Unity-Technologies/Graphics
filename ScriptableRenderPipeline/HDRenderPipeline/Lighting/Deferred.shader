@@ -114,12 +114,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
                 outputs.specularLighting = float4(specularLighting, 1.0);
-                outputs.diffuseLighting  = diffuseLighting;
-                // We SSSSS is enabled with use split lighting.
-                // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS
-                // A simpler solution is to add a slight contribution here that isn't visible (here we chose fp16 min (which is also fp11 and fp10 min).
-                // The SSSSS algorithm will check if diffuse lighting is black and discard the pixel if it is the case
-                outputs.diffuseLighting.r = max(outputs.diffuseLighting.r, HFLT_MIN);
+                outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif

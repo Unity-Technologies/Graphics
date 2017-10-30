@@ -80,7 +80,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {
         // Apply diffuseColor Boost from LightmapSettings.
         // put abs here to silent a warning, no cost, no impact as color is assume to be positive.
-        res.rgb = Clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
+        res.rgb = clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
     }
 
     if (unity_MetaFragmentControl.y)
