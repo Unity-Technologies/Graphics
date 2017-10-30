@@ -5,8 +5,8 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Sample 2D")]
-    public class Sample2DTexture : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    [Title("Input/Texture/Texture 2D")]
+    public class Texture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 4;
@@ -28,9 +28,9 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public Sample2DTexture()
+        public Texture2DNode()
         {
-            name = "Sample2DTexture";
+            name = "Texture 2D";
             UpdateNodeAfterDeserialization();
         }
 

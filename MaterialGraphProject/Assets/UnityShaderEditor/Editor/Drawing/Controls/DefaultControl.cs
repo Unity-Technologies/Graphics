@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 return new ColorControlView(null, node, propertyInfo);
             if (typeof(Enum).IsAssignableFrom(propertyInfo.PropertyType))
                 return new EnumControlView(null, node, propertyInfo);
+            if (propertyInfo.PropertyType == typeof(Texture2D))
+                return new TextureControlView(null, node, propertyInfo);
             if (propertyInfo.PropertyType == typeof(Gradient))
                 return new GradientControlView(null, node, propertyInfo);
             if (MultiFloatControlView.validTypes.Contains(propertyInfo.PropertyType))
