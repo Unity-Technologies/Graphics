@@ -16,9 +16,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         protected MaterialProperty color = null;
-        protected const string kColor = "_Color";
+        protected const string kColor = "_UnlitColor";
         protected MaterialProperty colorMap = null;
-        protected const string kColorMap = "_ColorMap";
+        protected const string kColorMap = "_UnlitColorMap";
         protected MaterialProperty emissiveColor = null;
         protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
