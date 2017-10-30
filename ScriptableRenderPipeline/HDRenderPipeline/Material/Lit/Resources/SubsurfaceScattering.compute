@@ -9,10 +9,10 @@
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER  1
 #define SSS_USE_LDS_CACHE     1
-#define SSS_ENABLE_NEAR_FIELD 0
-#define SSS_SAMPLE_TEST_HTILE 0
-#define SSS_USE_TANGENT_PLANE 0
-#define SSS_CLAMP_ARTIFACT    0
+#define SSS_ENABLE_NEAR_FIELD 0 // Greatly increases the number of samples. Comes at a high cost.
+#define SSS_SAMPLE_TEST_HTILE 0 // Potential optimization. YMMV.
+#define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
+#define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD         0
 #define SSS_DEBUG_NORMAL_VS   0
 
@@ -368,8 +368,9 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
 
 #if SSS_DEBUG_NORMAL_VS
-    // We expect the view-space normal to be front-facing.
-    if (normalVS.z >= 0)
+    // We expect the normal to be front-facing.
+    float3 viewDirVS = normalize(centerPosVS);
+    if (dot(normalVS, viewDirVS) >= 0)
     {
         _CameraFilteringTexture[pixelCoord] = float4(1, 1, 1, 1);
         return;
