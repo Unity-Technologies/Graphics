@@ -21,9 +21,9 @@
 # include "../../../Core/ShaderLibrary/Refraction.hlsl"
 
 # if defined(_REFRACTION_PLANE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Plane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # elif defined(_REFRACTION_SPHERE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Sphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # endif
 #endif
 
@@ -34,7 +34,7 @@
 #define GBufferType1 uint4
 
 // TODO: How to abstract that ? We would like to avoid this PS4 test here
-#ifdef SHADER_API_PS4
+#ifdef SHADER_API_PSSL
 // On PS4 we need to specify manually the format of the output render target, output type is not enough
 #pragma PSSL_target_output_format(target 0 FMT_UINT16_ABGR)
 #pragma PSSL_target_output_format(target 1 FMT_UINT16_ABGR)
@@ -93,7 +93,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 // Subsurface scattering constant
-#define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
+#define SSS_WRAP_ANGLE (PI/12)              // 15 degrees
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 CBUFFER_START(UnitySSSParameters)
@@ -328,10 +328,14 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
+
+    // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
+    bsdfData.fresnel0 = lerp(ConvertIORToFresnel0(ior).xxx, baseColor, metallic);
+
     // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
     bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
     bsdfData.transmittanceMask = transmittanceMask;
@@ -433,7 +437,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 #if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
     FillMaterialIdTransparencyData(
-        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
+        surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
         bsdfData);
 #endif
 
@@ -1166,7 +1170,22 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #elif LIT_DIFFUSE_GGX_BRDF
     float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.roughness);
 #else
-    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+    // A note on subsurface scattering.
+    // The correct way to handle SSS is to transmit light inside the surface, perform SSS,
+    // and then transmit it outside towards the viewer.
+    // Transmit(X) = F_Transm_Schlick(F0, F90, NdotX), where F0 = 0, F90 = 1.
+    // Therefore, the diffuse BSDF should be decomposed as follows:
+    // f_d = A / Pi * F_Transm_Schlick(0, 1, NdotL) * F_Transm_Schlick(0, 1, NdotV) + f_d_reflection,
+    // with F_Transm_Schlick(0, 1, NdotV) applied after the SSS pass.
+    // The alternative (artistic) formulation of Disney is to set F90 = 0.5:
+    // f_d = A / Pi * F_Transm_Schlick(0, 0.5, NdotL) * F_Transm_Schlick(0, 0.5, NdotV) + f_retro_reflection.
+    // That way, darkening at grading angles is reduced to 0.5.
+    // In practice, applying F_Transm_Schlick(F0, F90, NdotV) after the SSS pass is expensive,
+    // as it forces us to read the normal buffer at the end of the SSS pass.
+    // Separating f_retro_reflection also has a small cost (mostly due to energy compensation
+    // for multi-bounce GGX), and the visual difference is negligible.
+    // Therefore, we choose not to separate diffuse lighting into reflected and transmitted.
+    float diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 #endif
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1270,9 +1289,16 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for approximations within EvaluateTransmission().
-        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
+        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        illuminance  = Lambert() * wrappedNdotL;
+    #else
+        float tNdotL = saturate(-NdotL);
+        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+    #endif
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1404,9 +1430,16 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for approximations within EvaluateTransmission().
-        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
+        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        illuminance  = Lambert() * wrappedNdotL;
+    #else
+        float tNdotL = saturate(-NdotL);
+        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+    #endif
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1735,8 +1768,9 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     lighting.specularTransmitted *= preLightData.transmissionTransmittance;
 
     float weight = 1.0;
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hiearchy priority
-    lighting.specularTransmitted *= weight;
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+    // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
+    lighting.specularTransmitted *= (1.0 - preLightData.specularFGD) * weight;
 #else
     // No refraction, no need to go further
     hierarchyWeight = 1.0;
@@ -1885,11 +1919,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+    envLighting *= weight;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-        lighting.specularReflected = envLighting * preLightData.specularFGD * weight;
+        lighting.specularReflected = envLighting * preLightData.specularFGD;
     else
-        lighting.specularTransmitted = envLighting * preLightData.transmissionTransmittance * weight;
+        // specular transmisted lighting is the remaining of the reflection (let's use this approx)
+        lighting.specularTransmitted = (1.0 - preLightData.specularFGD) * envLighting * preLightData.transmissionTransmittance;
 
     return lighting;
 }
