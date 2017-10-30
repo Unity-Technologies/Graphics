@@ -1,4 +1,4 @@
-﻿Shader "LightweightPipeline/LightweightStandardParticles"
+﻿Shader "LightweightPipeline/Particles/Standard"
 {
     Properties
     {
@@ -52,12 +52,6 @@
         ZWrite[_ZWrite]
         Cull[_Cull]
 
-        GrabPass
-        {
-            Tags{"LightMode" = "Always"}
-            "_GrabTexture"
-        }
-
         Pass
         {
             Tags {"LightMode" = "LightweightForward"}
@@ -74,7 +68,6 @@
             #pragma shader_feature _EMISSION
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
-            #pragma shader_feature EFFECT_BUMP
 
             #define NO_LIGHTMAP
             #define NO_ADDITIONAL_LIGHTS
@@ -100,10 +93,7 @@
 #if defined(SOFTPARTICLES_ON) || defined(_FADING_ON)
                 float4 projectedPosition        : TEXCOORD5;
 #endif
-#if _DISTORTION_ON
-                float4 grabPassPosition         : TEXCOORD6;
-#endif
-                float4 posWS                    : TEXCOORD7; // xyz: position; w = fogFactor;
+                float4 posWS                    : TEXCOORD6; // xyz: position; w = fogFactor;
                 float4 clipPos                  : SV_POSITION;
             };
 
@@ -118,9 +108,8 @@
 #if defined(SOFTPARTICLES_ON) || defined(_FADING_ON)
                 input.projectedPosition = IN.projectedPosition;
 #endif
-#if _DISTORTION_ON
-                input.grabPassPosition = IN.grabPassPosition;
-#endif
+
+                // No distortion Support
                 surfaceData.Normal = half3(0, 0, 1);
                 surfaceData.Occlusion = 1.0;
                 surf(input, surfaceData);
@@ -141,7 +130,6 @@
                 o.posWS.w = ComputeFogFactor(clipPosition.z);
                 vertTexcoord(v, o);
                 vertFading(o);
-                vertDistortion(o);
                 o.clipPos = clipPosition;
                 return o;
             }
@@ -169,5 +157,6 @@
         }
     }
 
-    CustomEditor "StandardParticlesShaderGUI"
+    Fallback "LightweightPipeline/Unlit"
+    CustomEditor "LightweightStandardParticlesShaderGUI"
 }
