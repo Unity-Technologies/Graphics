@@ -69,7 +69,7 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
     // but last one is not used.
     // Clamp to edge of the "internal" texture, as R is from half texel to size of R texture minus half texel.
     // This avoid leaking
-    texCoord.x = Clamp(texCoord.x * 0.25, 0.5 * texelSizeX, 0.25 - 0.5 * texelSizeX);
+    texCoord.x = clamp(texCoord.x * 0.25, 0.5 * texelSizeX, 0.25 - 0.5 * texelSizeX);
 
     float4 shAr = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
     texCoord.x += 0.25;
