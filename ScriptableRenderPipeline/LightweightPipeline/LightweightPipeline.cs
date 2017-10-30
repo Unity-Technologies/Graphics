@@ -282,6 +282,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void RenderOpaques(ref ScriptableRenderContext context, RendererConfiguration settings)
         {
             var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
+            opaqueDrawSettings.SetShaderPassName(1, m_UnlitPassName);
             opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
             opaqueDrawSettings.rendererConfiguration = settings;
 
