@@ -5,16 +5,16 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Texture Asset")]
-    public class TextureAssetNode : AbstractMaterialNode
+    [Title("Input/Texture/Texture 2D Asset")]
+    public class Texture2DAssetNode : AbstractMaterialNode
     {
         public const int OutputSlotId = 0;
 
         const string kOutputSlotName = "Out";
 
-        public TextureAssetNode()
+        public Texture2DAssetNode()
         {
-            name = "Texture Asset";
+            name = "Texture 2D Asset";
             UpdateNodeAfterDeserialization();
         }
 
