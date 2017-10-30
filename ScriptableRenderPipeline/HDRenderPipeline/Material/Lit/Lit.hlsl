@@ -25,7 +25,7 @@
 #define GBufferType1 uint4
 
 // TODO: How to abstract that ? We would like to avoid this PS4 test here
-#ifdef SHADER_API_PS4
+#ifdef SHADER_API_PSSL
 // On PS4 we need to specify manually the format of the output render target, output type is not enough
 #pragma PSSL_target_output_format(target 0 FMT_UINT16_ABGR)
 #pragma PSSL_target_output_format(target 1 FMT_UINT16_ABGR)
