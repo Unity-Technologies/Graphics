@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static bool IsSupportedCookieType(LightType lightType)
         {
-            return lightType == LightType.Directional;
+            return lightType == LightType.Directional || lightType == LightType.Spot;
         }
 
         public static bool PlatformSupportsMSAABackBuffer()
