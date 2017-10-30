@@ -5,7 +5,6 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    /*
     [Title("Input/Texture/Sample 2D")]
     public class Sample2DTexture : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -99,5 +98,5 @@ namespace UnityEditor.ShaderGraph
 
             return uvSlot.RequiresMeshUV(channel);
         }
-    }*/
+    }
 }
