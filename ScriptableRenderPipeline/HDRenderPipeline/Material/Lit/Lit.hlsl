@@ -334,10 +334,9 @@ void FillMaterialIdTransparencyData(float3 baseColor, float metallic, float ior,
     bsdfData.ior = ior;
 
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
-    bsdfData.fresnel0 = lerp(ConvertIORToFresnel0(ior).xxx, baseColor, metallic);
+    bsdfData.fresnel0 = lerp(IORToFresnel0(ior).xxx, baseColor, metallic);
 
-    // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
-    bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption (transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
 }
@@ -782,7 +781,6 @@ struct PreLightData
     // Refraction
     float3 transmissionRefractV;            // refracted view vector after exiting the shape
     float3 transmissionPositionWS;          // start of the refracted ray after exiting the shape
-    float transmissionOpticalDepth;         // length of the transmission during refraction through the shape
     float3 transmissionTransmittance;       // transmittance due to absorption
     float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
 
@@ -791,7 +789,7 @@ struct PreLightData
 #endif
 };
 
-// This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
+// This is a refract - TODO: do we call original refract or this one, original maybe slightly more expensive, to check
 float3 ClearCoatTransform(float3 X, float3 N, float ieta)
 {
     float XdotN = saturate(dot(N, X));
@@ -990,13 +988,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transmissionRefractV = refraction.rayWS;
     preLightData.transmissionPositionWS = refraction.positionWS;
-    preLightData.transmissionOpticalDepth = refraction.opticalDepth;
-    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth);
-    preLightData.transmissionSSMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
+    // Empirical remap to try to match a bit the refractio probe blurring for the fallback
+    preLightData.transmissionSSMipLevel = sqrt(bsdfData.perceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
 #else
     preLightData.transmissionRefractV = -V;
     preLightData.transmissionPositionWS = posInput.positionWS;
-    preLightData.transmissionOpticalDepth = 0;
     preLightData.transmissionTransmittance = float3(1.0, 1.0, 1.0);
     preLightData.transmissionSSMipLevel = 0;
 #endif
