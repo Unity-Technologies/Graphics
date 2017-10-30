@@ -276,6 +276,14 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine();
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
+            // Per-block includes
+            var includes = Enumerable.Empty<string>();
+            foreach (var block in context.activeChildrenWithImplicit)
+                includes = includes.Concat(block.includes);
+            var uniqueIncludes = new HashSet<string>(includes);
+            foreach (var includePath in uniqueIncludes)
+                globalIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
+
             stringBuilder.Append(templateContent);
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
