@@ -222,7 +222,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     }
 }
 
-void WriteResult(uint2 pixelCoord, float3 irradiance)
+void StoreResult(uint2 pixelCoord, float3 irradiance)
 {
 #ifdef USE_INTERMEDIATE_BUFFER
     _CameraFilteringTexture[pixelCoord] = float4(irradiance, 1);
@@ -381,9 +381,9 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     [branch] if (distScale == 0 || maxDistInPixels < 1)
     {
         #if SSS_DEBUG_LOD
-            WriteResult(pixelCoord, float3(0, 0, 1));
+            StoreResult(pixelCoord, float3(0, 0, 1));
         #else
-            WriteResult(pixelCoord, albedo * centerIrradiance);
+            StoreResult(pixelCoord, albedo * centerIrradiance);
         #endif
             return;
     }
@@ -401,7 +401,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float3 viewDirVS = normalize(centerPosVS);
     if (dot(normalVS, viewDirVS) >= 0)
     {
-        WriteResult(pixelCoord, float3(1, 1, 1));
+        StoreResult(pixelCoord, float3(1, 1, 1));
         return;
     }
 #endif
@@ -410,7 +410,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_LOD_THRESHOLD;
 
 #if SSS_DEBUG_LOD
-    WriteResult(pixelCoord, useNearFieldKernel ? float3(1, 0, 0) : float3(0.5, 0.5, 0);
+    StoreResult(pixelCoord, useNearFieldKernel ? float3(1, 0, 0) : float3(0.5, 0.5, 0);
     return;
 #endif
 
@@ -440,7 +440,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     [branch] if (!useNearFieldKernel)
     {
-         WriteResult(pixelCoord, albedo * totalIrradiance / totalWeight);
+         StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
          return;
     }
 
@@ -454,5 +454,5 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                        totalIrradiance, totalWeight);
     }
 
-    WriteResult(pixelCoord, albedo * totalIrradiance / totalWeight);
+    StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
 }
