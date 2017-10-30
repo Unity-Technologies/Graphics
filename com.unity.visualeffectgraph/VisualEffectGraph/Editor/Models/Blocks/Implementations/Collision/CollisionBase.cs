@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.BlockLibrary
                 return @"
     float3 randomNormal = normalize(RAND3 * 2.0f - 1.0f);
     randomNormal = (dot(randomNormal, n) < 0.0f) ? -randomNormal : randomNormal;    // random normal on hemisphere, relative to the normal
-    n = normalize(lerp(n, randomNormal, Chaos));
+    n = normalize(lerp(n, randomNormal, Roughness));
 ";
             }
         }
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.BlockLibrary
         public class RoughnessProperties
         {
             [Range(0, 1), Tooltip("How much to randomly adjust the normal after a collision.")]
-            public float Chaos = 0.0f;
+            public float Roughness = 0.0f;
         }
     }
 }
