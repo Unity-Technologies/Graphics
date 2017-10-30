@@ -2,10 +2,9 @@
 
 #define INTRINSIC_BITFIELD_EXTRACT
 #define INTRINSIC_WAVEREADFIRSTLANE
-#define INTRINSIC_MAD24
 #define WaveReadFirstLane ReadFirstLane
+#define INTRINSIC_MAD24
 #define Mad24 mad24
-#define INTRINSIC_MED3
 #define INTRINSIC_MINMAX3
 #define Min3 min3
 #define Max3 max3

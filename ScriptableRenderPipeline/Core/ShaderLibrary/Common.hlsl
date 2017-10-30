@@ -123,12 +123,6 @@ uint WaveReadFirstLane(uint scalarValue)
 }
 #endif
 
-#ifndef INTRINSIC_CLAMP
-// TODO: should we force all clamp to be intrinsic by default ?
-// Some platform have one instruction clamp
-#define Clamp clamp
-#endif // INTRINSIC_CLAMP
-
 #ifndef INTRINSIC_MUL24
 int Mul24(int a, int b)
 {
@@ -152,13 +146,6 @@ uint Mad24(uint a, uint b, uint c)
     return a * b + c;
 }
 #endif // INTRINSIC_MAD24
-
-#ifndef INTRINSIC_MED3
-float Med3(float a, float b, float c)
-{
-    return Clamp(a, b, c);
-}
-#endif // INTRINSIC_MED3
 
 #ifndef INTRINSIC_MINMAX3
 float Min3(float a, float b, float c)
