@@ -509,7 +509,7 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
                 SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
 
-                var bufferDescs = new List<VFXBufferDesc>();
+                var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 

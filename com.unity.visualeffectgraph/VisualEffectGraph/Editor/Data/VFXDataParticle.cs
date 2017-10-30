@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         string GetCodeOffset(VFXAttribute attrib, string index);
         uint GetBufferSize(uint capacity);
 
-        VFXBufferDesc GetBufferDesc(uint capacity);
+        VFXGPUBufferDesc GetBufferDesc(uint capacity);
     }
 
     class StructureOfArrayProvider : ILayoutProvider
@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
             return (uint)m_BucketOffsets.LastOrDefault() + capacity * (uint)m_BucketSizes.LastOrDefault();
         }
 
-        public VFXBufferDesc GetBufferDesc(uint capacity)
+        public VFXGPUBufferDesc GetBufferDesc(uint capacity)
         {
             var layout = m_AttributeLayout.Select(o => new VFXLayoutElementDesc()
             {
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX
                     element = (uint)o.Value.offset
                 }
             });
-            return new VFXBufferDesc()
+            return new VFXGPUBufferDesc()
             {
                 type = ComputeBufferType.Raw,
                 sizeInUInt32 = GetBufferSize(capacity),
@@ -250,7 +250,7 @@ namespace UnityEditor.VFX
         }
 
         public void FillDescs(
-            List<VFXBufferDesc> outBufferDescs,
+            List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
@@ -287,11 +287,11 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc() { type = ComputeBufferType.Append, sizeInUInt32 = capacity });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, sizeInUInt32 = capacity });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc() { type = ComputeBufferType.Raw, sizeInUInt32 = 1 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, sizeInUInt32 = 1 });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
