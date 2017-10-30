@@ -422,7 +422,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
             // So we need a way to work around that before we activate this.
-            //SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor", material);
+            SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor", material);
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
