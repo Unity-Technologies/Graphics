@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Collision")]
     class CollisionCylinder : CollisionBase
