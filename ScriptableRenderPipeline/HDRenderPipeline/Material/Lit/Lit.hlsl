@@ -782,7 +782,6 @@ struct PreLightData
     // Refraction
     float3 transmissionRefractV;            // refracted view vector after exiting the shape
     float3 transmissionPositionWS;          // start of the refracted ray after exiting the shape
-    float transmissionOpticalDepth;         // length of the transmission during refraction through the shape
     float3 transmissionTransmittance;       // transmittance due to absorption
     float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
 
@@ -791,7 +790,7 @@ struct PreLightData
 #endif
 };
 
-// This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
+// This is a refract - TODO: do we call original refract or this one, original maybe slightly more expensive, to check
 float3 ClearCoatTransform(float3 X, float3 N, float ieta)
 {
     float XdotN = saturate(dot(N, X));
@@ -990,13 +989,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transmissionRefractV = refraction.rayWS;
     preLightData.transmissionPositionWS = refraction.positionWS;
-    preLightData.transmissionOpticalDepth = refraction.opticalDepth;
-    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.opticalDepth);
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
     preLightData.transmissionSSMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
 #else
     preLightData.transmissionRefractV = -V;
     preLightData.transmissionPositionWS = posInput.positionWS;
-    preLightData.transmissionOpticalDepth = 0;
     preLightData.transmissionTransmittance = float3(1.0, 1.0, 1.0);
     preLightData.transmissionSSMipLevel = 0;
 #endif
