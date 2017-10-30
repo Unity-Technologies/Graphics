@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Lit_UVChart_Planar_Detail 1
+  m_Name: Lit_UVChart_Planar_Detail
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DETAIL_MAP _MAPPING_PLANAR
     _NORMALMAP _NORMALMAP_TANGENT_SPACE

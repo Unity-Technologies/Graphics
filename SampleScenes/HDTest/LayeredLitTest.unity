@@ -804,6 +804,7 @@ GameObject:
   - component: {fileID: 112888600}
   - component: {fileID: 112888602}
   - component: {fileID: 112888601}
+  - component: {fileID: 112888603}
   m_Layer: 0
   m_Name: Point light
   m_TagString: Untagged
@@ -826,7 +827,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &112888601
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 112888599}
@@ -887,6 +888,37 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &112888603
+MonoBehaviour:
+  m_ObjectHideFlags: 2
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 112888599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  shadowFadeDistance: 10000
+  shadowCascadeCount: 4
+  shadowCascadeRatios:
+  - 0.05
+  - 0.2
+  - 0.3
+  shadowCascadeBorders:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
+  shadowAlgorithm: 0
+  shadowVariant: 0
+  shadowPrecision: 0
+  shadowData:
+    format: 0
+    data: 
+  shadowDatas: []
 --- !u!43 &113851196
 Mesh:
   m_ObjectHideFlags: 0
@@ -2227,6 +2259,10 @@ Prefab:
     - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
       propertyPath: m_Name
       value: Layered_BlendColor
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
@@ -3631,6 +3667,10 @@ Prefab:
     - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
       propertyPath: m_Name
       value: Layered_BlendMask
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
@@ -5756,6 +5796,10 @@ Prefab:
     - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
       propertyPath: m_Name
       value: Layered_HeightBased
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2da7c596c87cf074491ed3b335ed0316, type: 3}
