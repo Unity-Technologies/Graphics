@@ -8,6 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Size")]
     class SizeOverLife : VFXBlock
     {
+        [Tooltip("How the new computed size is composed to its previous value")]
         [VFXSetting]
         public AttributeCompositionMode composition;
 
@@ -48,7 +49,9 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
+            [Tooltip("The value of the size over the relative (0..1) lifetime of the particle")]
             public AnimationCurve curve;
+            [Tooltip("Size Blending factor")]
             [Range(0.0f, 1.0f)]
             public float Blend = 0.5f;
         }

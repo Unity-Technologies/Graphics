@@ -42,6 +42,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
+            [Tooltip("Force Vector applied to Particle Velocity (in squared units per second)")]
             public Vector3 Force = new Vector3(0.0f, -9.81f, 0.0f);
         }
 

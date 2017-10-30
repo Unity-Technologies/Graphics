@@ -10,9 +10,13 @@ namespace UnityEditor.VFX.Block
     {
         public class InputProperties
         {
+            [Tooltip("The vector field used as a force for particles")]
             public Texture3D VectorField;
+            [Tooltip("The position, rotation and scale of the vectorfield")]
             public Transform FieldTransform = Transform.defaultValue;
+            [Tooltip("Intensity of the motion vectors")]
             public float Intensity;
+            [Tooltip("The drag coefficient used to drive particles")]
             public float DragCoefficient;
         }
 

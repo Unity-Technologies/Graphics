@@ -8,10 +8,13 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Color")]
     class ColorOverLife : VFXBlock
     {
+        [Tooltip("Whether the color is applied to RGB, alpha or both")]
         [VFXSetting]
         public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
+        [Tooltip("How the new computed color is composed to its previous value")]
         [VFXSetting]
         public AttributeCompositionMode ColorComposition = AttributeCompositionMode.Scale;
+        [Tooltip("How the new computed alpha is composed to its previous value")]
         [VFXSetting]
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Scale;
 
@@ -55,9 +58,12 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
+            [Tooltip("The over-life Gradient")]
             public Gradient gradient;
+            [Tooltip("Color blending factor")]
             [Range(0.0f, 1.0f)]
             public float BlendColor = 0.5f;
+            [Tooltip("Alpha blending factor")]
             [Range(0.0f, 1.0f)]
             public float BlendAlpha = 0.5f;
         }
