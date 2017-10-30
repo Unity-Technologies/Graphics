@@ -9,51 +9,9 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXEdgeDrawer : VisualElement
+    class VFXContextEdgeDrawer : EdgeDrawer
     {
-        public GraphElement element
-        {
-            get; set;
-        }
-        public VFXEdgeDrawer()
-        {
-            pickingMode = PickingMode.Ignore;
-        }
-
-        public virtual bool EdgeIsInThisDrawer(VFXDataEdge edge)
-        {
-            return (edge.input != null && edge.input.node == element) ||
-                (edge.output != null && edge.output.node == element);
-        }
-
-        public override void DoRepaint()
-        {
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
-            GL.PushMatrix();
-            Matrix4x4 invTrans = worldTransform.inverse;
-            GL.modelview = GL.modelview * invTrans;
-
-            foreach (var dataEdge in view.GetAllDataEdges())
-            {
-                if (EdgeIsInThisDrawer(dataEdge))
-                {
-                    GL.PushMatrix();
-                    Matrix4x4 trans = dataEdge.edgeControl.worldTransform;
-                    GL.modelview = GL.modelview * trans;
-                    dataEdge.edgeControl.DoRepaint();
-                    GL.PopMatrix();
-                }
-            }
-
-            GL.PopMatrix();
-        }
-    }
-
-
-    class VFXContextEdgeDrawer : VFXEdgeDrawer
-    {
-        public override bool EdgeIsInThisDrawer(VFXDataEdge edge)
+        public override bool EdgeIsInThisDrawer(Edge edge)
         {
             VFXContextUI context = this.element as VFXContextUI;
             if ((edge.input != null && edge.input.node == context.ownData) ||

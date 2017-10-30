@@ -19,24 +19,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXDataEdge()
         {
-            layer = -1;
-        }
-
-        public override void OnDisplayChanged()
-        {
-            VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            if (view != null)
-            {
-                var nodes = view.GetAllNodes().Where(t => (output != null && t == output.node) || (input != null && t == input.node));
-
-                foreach (var node in nodes)
-                {
-                    if (node is VFXStandaloneSlotContainerUI)
-                        (node as VFXStandaloneSlotContainerUI).DirtyDrawer();
-                    else // node must be from a VFXBlockUI
-                        node.GetFirstAncestorOfType<VFXContextUI>().DirtyDrawer();
-                }
-            }
         }
 
         public override void OnDataChanged()
@@ -115,7 +97,6 @@ namespace UnityEditor.VFX.UI
             base.OnSelected();
             UpdateColor();
             DirtyAnchors();
-            layer = 10;
         }
 
         public override void OnUnselected()
@@ -123,7 +104,6 @@ namespace UnityEditor.VFX.UI
             base.OnUnselected();
             UpdateColor();
             DirtyAnchors();
-            layer = -1;
         }
 
         protected override EdgeControl CreateEdgeControl()

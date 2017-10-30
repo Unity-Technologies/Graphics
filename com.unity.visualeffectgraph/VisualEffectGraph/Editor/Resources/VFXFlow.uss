@@ -42,6 +42,7 @@ VFXFlowEdge.edge
 {
 	edge-width:4;
 	border-color : rgba(146,146,146,255);
+	layer:1;
 }
 
 VFXFlowEdge.edge.selected

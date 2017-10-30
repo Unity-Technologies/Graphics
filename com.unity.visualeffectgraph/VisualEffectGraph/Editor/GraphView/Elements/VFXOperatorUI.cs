@@ -40,27 +40,11 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
+    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
     {
         public VFXStandaloneSlotContainerUI()
         {
             this.AddManipulator(new Collapser());
-
-            m_EdgeDrawer = new VFXEdgeDrawer();
-            m_EdgeDrawer.style.positionType = PositionType.Absolute;
-            m_EdgeDrawer.style.positionLeft = 0;
-            m_EdgeDrawer.style.positionRight = 0;
-            m_EdgeDrawer.style.positionBottom = 0;
-            m_EdgeDrawer.style.positionTop = 0;
-            m_EdgeDrawer.element = this;
-            Add(m_EdgeDrawer);
-        }
-
-        VFXEdgeDrawer m_EdgeDrawer;
-
-        public void DirtyDrawer()
-        {
-            m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
     }
 
