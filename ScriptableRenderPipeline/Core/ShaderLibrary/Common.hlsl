@@ -115,6 +115,14 @@ bool IsBitSet(uint data, uint bitPos)
     return BitFieldExtract(data, 1u, bitPos) != 0;
 }
 
+#ifndef INTRINSIC_WAVEREADFIRSTLANE
+// Warning: for correctness, the value you pass to the function must be constant across the wave!
+uint WaveReadFirstLane(uint scalarValue)
+{
+    return scalarValue;
+}
+#endif
+
 #ifndef INTRINSIC_CLAMP
 // TODO: should we force all clamp to be intrinsic by default ?
 // Some platform have one instruction clamp
