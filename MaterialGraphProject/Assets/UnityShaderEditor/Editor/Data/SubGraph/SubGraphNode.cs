@@ -6,12 +6,14 @@ using UnityEngine;
 using UnityEditor;
 #endif
 using UnityEditor.Graphing;
+using UnityEditor.Graphs;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : AbstractSubGraphNode
         , IGeneratesBodyCode
+        , IOnAssetEnabled
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -133,9 +135,9 @@ namespace UnityEditor.ShaderGraph
                             prop.overrideReferenceName = fromNode.GetSlotValue(slot.id, generationMode);
                     }
                 }
-                else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
+                else if (inSlot is Texture2DInputMaterialSlot)
                 {
-                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName =  ((Texture2DInputMaterialSlot)inSlot).GetDefaultValue(generationMode);
                 }
                 else
                 {
@@ -175,6 +177,11 @@ namespace UnityEditor.ShaderGraph
             outputString.AddShaderChunk("// Subgraph ends", false);
 
             shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        public void OnEnable()
+        {
+            UpdateSlots();
         }
     }
 }

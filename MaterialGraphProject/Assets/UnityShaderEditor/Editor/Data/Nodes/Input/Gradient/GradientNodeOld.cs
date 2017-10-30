@@ -7,6 +7,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    /* 
     [Title("Input/Gradient/Gradient 2D")]
     public class GradientNode : AbstractMaterialNode, IGeneratesBodyCode
     {
@@ -213,4 +214,5 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.a;", precision, GetVariableNameForSlot(AOutputSlotId), rgbaOutputName), false);
         }
     }
+    */
 }
