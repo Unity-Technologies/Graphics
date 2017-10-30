@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Particle")]
+    [Title("Procedural/MakeSubgraph/Particle")]
     public class ParticleNode : CodeFunctionNode
     {
         public ParticleNode()
@@ -17,15 +17,16 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Particle(
-            [Slot(0, Binding.None)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector1 scaleFactor,
-            [Slot(2, Binding.None)] out Vector1 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
+            [Slot(2, Binding.None, 100f, 100f, 100f, 100f)] Vector1 Sharpness,
+            [Slot(4, Binding.None)] out Vector1 Out)
         {
             return
                 @"
 {
-    uv = uv * 2.0 - 1.0;;
-    result = abs(1.0/length(uv * scaleFactor));
+    UV *= 2.0 - 1.0;
+    Out = abs(1.0/length((UV-Center) * Sharpness));
 }
 ";
         }

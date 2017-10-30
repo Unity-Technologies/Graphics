@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Gradient Ramp")]
+    [Title("OLD/Gradient Ramp")]
     public class GradientRampNode : CodeFunctionNode
     {
         public GradientRampNode()

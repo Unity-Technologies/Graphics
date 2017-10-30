@@ -17,8 +17,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Noise(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None)] out Vector1 noise)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None,500f,500f,500f,500f)] Vector1 Scale,
+            [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
                 @"
@@ -28,9 +29,9 @@ namespace UnityEditor.ShaderGraph
     {
         float freq = pow(2.0, float(i));
         float amp = pow(0.5, float(3-i));
-        t += unity_valueNoise(float2(uv.x/freq, uv.y/freq))*amp;
+        t += unity_valueNoise(float2(UV.x*Scale/freq, UV.y*Scale/freq))*amp;
     }
-    noise = t;
+    Out = t;
 }
 ";
         }

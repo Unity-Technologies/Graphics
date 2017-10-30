@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Line")]
+    [Title("OLD/Line")]
     public class LineNode : CodeFunctionNode
     {
         public LineNode()
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
     {precision} t = dot(aTop, aTob) / dot(aTob, aTob);
     t = clamp(t, 0.0, 1.0);
     {precision} d = 1.0 / length(uv - (startPoint + aTob * t));
-    return clamp(d, 0.0, 1.0);
+    result = clamp(d, 0.0, 1.0);
 }";
         }
     }
