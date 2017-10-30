@@ -112,40 +112,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             try
             {
-                var materials = Resources.FindObjectsOfTypeAll<Material>();
+                var matIds = AssetDatabase.FindAssets("t:Material");
 
-                for (int i = 0, length = materials.Length; i < length; i++)
+                for (int i = 0, length = matIds.Length; i < length; i++)
                 {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
                     EditorUtility.DisplayProgressBar(
                         "Setup materials Keywords...",
                         string.Format("{0} / {1} materials SSS updated.", i, length),
                         i / (float)(length - 1));
 
-                    if (materials[i].shader.name == "HDRenderPipeline/LitTessellation" ||
-                        materials[i].shader.name == "HDRenderPipeline/Lit")
+                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
+                        mat.shader.name == "HDRenderPipeline/Lit")
                     {
-                        float fvalue = materials[i].GetFloat("_MaterialID");
+                        float fvalue = mat.GetFloat("_MaterialID");
                         if (fvalue == 0.0) // SSS
                         {
-                            int ivalue = materials[i].GetInt("_SubsurfaceProfile");
-                            materials[i].SetInt("_SubsurfaceProfile", ivalue + 1);
-                            EditorUtility.SetDirty(materials[i]);
+                            int ivalue = mat.GetInt("_SubsurfaceProfile");
+                            mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                            EditorUtility.SetDirty(mat);
                         }                        
                     }
-                    else if (   materials[i].shader.name == "HDRenderPipeline/LayeredLit" ||
-                                materials[i].shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    else if (   mat.shader.name == "HDRenderPipeline/LayeredLit" ||
+                                mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
-                        float fvalue = materials[i].GetFloat("_MaterialID");
+                        float fvalue = mat.GetFloat("_MaterialID");
                         if (fvalue == 0.0) // SSS
                         {
-                            int numLayer = (int)materials[i].GetFloat("_LayerCount");
+                            int numLayer = (int)mat.GetFloat("_LayerCount");
                             
                             for (int x = 0; x < numLayer; ++x)
                             {
-                                int ivalue = materials[i].GetInt("_SubsurfaceProfile" + x);
-                                materials[i].SetInt("_SubsurfaceProfile + x", ivalue + 1);
+                                int ivalue = mat.GetInt("_SubsurfaceProfile" + x);
+                                mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
                             }
-                            EditorUtility.SetDirty(materials[i]);
+                            EditorUtility.SetDirty(mat);
                         }
                     }
                 }
