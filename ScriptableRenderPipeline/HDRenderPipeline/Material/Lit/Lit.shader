@@ -83,6 +83,7 @@ Shader "HDRenderPipeline/Lit"
         _IOR("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
+        _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
         _ATDistance("Transmittance Absorption Distance", Float) = 1.0
         [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
@@ -186,6 +187,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
+    #pragma shader_feature _TRANSMITTANCECOLORMAP    
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

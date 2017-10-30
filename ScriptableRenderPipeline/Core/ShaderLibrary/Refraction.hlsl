@@ -1,4 +1,4 @@
-﻿#ifndef UNITY_REFRACTION_INCLUDED
+#ifndef UNITY_REFRACTION_INCLUDED
 #define UNITY_REFRACTION_INCLUDED
 
 //-----------------------------------------------------------------------------
@@ -12,7 +12,7 @@ struct RefractionModelResult
     float3      rayWS;          // out ray direction
 };
 
-RefractionModelResult RefractionModel_Sphere(float3 V, float3 positionWS, float3 normalWS, float ior, float thickness)
+RefractionModelResult RefractionModelSphere(float3 V, float3 positionWS, float3 normalWS, float ior, float thickness)
 {
     // Sphere shape model:
     //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
@@ -48,7 +48,7 @@ RefractionModelResult RefractionModel_Sphere(float3 V, float3 positionWS, float3
     return result;
 }
 
-RefractionModelResult RefractionModel_Plane(float3 V, float3 positionWS, float3 normalWS, float ior, float thickness)
+RefractionModelResult RefractionModelPlane(float3 V, float3 positionWS, float3 normalWS, float ior, float thickness)
 {
     // Plane shape model:
     //  We approximate locally the shape of the object as a plane with normal {normalWS} at {positionWS}
