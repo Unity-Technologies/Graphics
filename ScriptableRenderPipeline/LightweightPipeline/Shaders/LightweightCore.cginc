@@ -63,7 +63,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 
 #if DIRLIGHTMAP_COMBINED
     half4 bakedDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
-    bakedColor += DecodeDirectionalLightmap(bakedColor, bakedDirection, normalWS);
+    bakedColor = DecodeDirectionalLightmap(bakedColor, bakedDirection, normalWS);
 #endif
 
     return bakedColor;
