@@ -121,7 +121,7 @@
                 float4 clipPosition = UnityObjectToClipPos(v.vertex);
 
 #if _NORMALMAP
-                OutputTangentSpace(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
+                OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
                 o.normal = normalize(UnityObjectToWorldNormal(v.normal));
 #endif
