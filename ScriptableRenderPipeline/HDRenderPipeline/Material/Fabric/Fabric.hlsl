@@ -19,7 +19,7 @@ void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic
 	bsdfData.tangentWS = tangentWS;
 	bsdfData.bitangentWS = cross(normalWS, tangentWS);
 	ConvertAnisotropyToRoughness(roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
-	bsdfData.anisotropy = 1;
+	bsdfData.anisotropy = 0.75;
 }
 
 //-----------------------------------------------------------------------------
@@ -124,20 +124,18 @@ void BSDF_CottonWool(float3 V, float3 L, float3 positionWS, PreLightData preLigh
 	float3 F = F_Schlick(0.2, LdotH);
 
 	float Vis;
-	float D;
+	float D_Velvet;//Ready at dawn cloth
 	// TODO: this way of handling aniso may not be efficient, or maybe with material classification, need to check perf here
 	// Maybe always using aniso maybe a win ?
 	float3 H = (L + V) * invLenLV;
 	bsdfData.roughness = 1- ClampRoughnessForAnalyticalLights(bsdfData.roughness);
-	float roughnessSq = bsdfData.roughness*bsdfData.roughness;
-	float cnorm = 1.0 / (PI * (4.0 * roughnessSq + 1.0));
+	float roughnessSq = bsdfData.roughness*bsdfData.roughness;  
+	float N = 1.0 / (PI * (4.0 * roughnessSq + 1.0));  
 
 	float NdotH2 = NdotH*NdotH;
-	float cot2 = NdotH2 / (1.0 - NdotH2);
-	float sin2 = 1.0 - NdotH2;
-	float sin4 = sin2 * sin2;
-	float amp = 4.0;
-	D = cnorm * (1.0 + (amp * exp(-cot2 / roughnessSq) / sin4));
+	float cotNdotH2 = NdotH2 / (1.000001 - NdotH2);  
+	float sinNdotH2 = 1.0 - NdotH2;
+	D_Velvet = N * (1.0 + (4.0 * exp(-cotNdotH2 / roughnessSq) / max(sinNdotH2*sinNdotH2,1e-5)));
 
 	#ifdef LIT_USE_BSDF_PRE_LAMBDAV
 		Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
@@ -147,7 +145,7 @@ void BSDF_CottonWool(float3 V, float3 L, float3 positionWS, PreLightData preLigh
 
 	float NdotLwrap = sqrt(NdotL);
 
-	specularLighting = NdotLwrap*F *(Vis * D)*_FuzzTint;
+	specularLighting = NdotLwrap* F *Vis * D_Velvet *_FuzzTint;
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
