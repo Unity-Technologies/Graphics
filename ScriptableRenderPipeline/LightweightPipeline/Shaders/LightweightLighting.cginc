@@ -224,6 +224,22 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     return lightColor * specularReflection;
 }
 
+half CookieAttenuation(float3 worldPos)
+{
+#ifdef _MAIN_LIGHT_COOKIE
+    #ifdef _MAIN_DIRECTIONAL_LIGHT
+        float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
+        return tex2D(_MainLightCookie, cookieUV).a;
+    #elif defined(_MAIN_SPOT_LIGHT)
+        float3 projPos = mul(_WorldToLight, float4(worldPos, 1.0)).xyz;
+        float2 cookieUV = projPos.xy / projPos.w + 0.5;
+        return tex2D(_MainLightCookie, cookieUV).a;
+    #endif // POINT LIGHT cookie not supported
+#endif
+
+    return 1;
+}
+
 half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
 {
     // Spot Attenuation with a linear falloff can be defined as
@@ -272,20 +288,20 @@ inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, fl
     return lightAtten;
 }
 
-inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normalWS, float3 positionWS, out half3 lightDirection)
 {
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     // Light pos holds normalized light dir
     lightDirection = lightInput.pos;
-
-#ifdef _MAIN_LIGHT_COOKIE
-    float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
-    return tex2D(_MainLightCookie, cookieUV).a;
-#endif
-    return 1.0;
+    half attenuation = 1.0;
 #else
-    return ComputePixelLightAttenuation(lightInput, normal, worldPos, lightDirection);
+    half attenuation = ComputePixelLightAttenuation(lightInput, normalWS, positionWS, lightDirection);
 #endif
+
+    // Cookies and shadows are only computed for main light
+    attenuation *= CookieAttenuation(positionWS);
+    attenuation *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, lightDirection);
+    return attenuation;
 }
 
 half3 VertexLighting(float positionWS, half3 normalWS)
@@ -330,8 +346,6 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     LightInput light;
     INITIALIZE_MAIN_LIGHT(light);
     half lightAtten = ComputeMainLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalize(vertexNormal), _ShadowLightDirection.xyz);
-
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = light.color * (lightAtten * NdotL);
     color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
@@ -366,8 +380,6 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     LightInput mainLight;
     INITIALIZE_MAIN_LIGHT(mainLight);
     half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, _ShadowLightDirection.xyz);
-
     half3 lightColor = mainLight.color * lightAtten;
     diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
 
@@ -400,7 +412,6 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     LightInput mainLight;
     INITIALIZE_MAIN_LIGHT(mainLight);
     half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, _ShadowLightDirection.xyz);
 
     half3 lightColor = mainLight.color * lightAtten;
     diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
