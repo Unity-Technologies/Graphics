@@ -147,7 +147,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             CheckOutFile(VSCEnabled, mat);
                             int ivalue = mat.GetInt("_SubsurfaceProfile");
-                            mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                            if (ivalue == 15)
+                            {
+                                mat.SetInt("_SubsurfaceProfile", 0);
+                            }
+                            else
+                            {
+                                mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                            }
+
                             EditorUtility.SetDirty(mat);
                         }
                     }
@@ -163,6 +171,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             for (int x = 0; x < numLayer; ++x)
                             {
                                 int ivalue = mat.GetInt("_SubsurfaceProfile" + x);
+                                if (ivalue == 15)
+                                {
+                                    mat.SetInt("_SubsurfaceProfile" + x, 0);
+                                }
+                                else
+                                {
+                                    mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
+                                } 
                                 mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
                             }
                             EditorUtility.SetDirty(mat);
