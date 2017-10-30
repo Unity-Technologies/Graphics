@@ -191,7 +191,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 #if MAX_MSAA > 1
 	uint width, height, sampleCnt;
 	depthTex.GetDimensions( width, height, sampleCnt );
-	sampleCnt = Clamp( sampleCnt, 2, MAX_MSAA );
+	sampleCnt = clamp( sampleCnt, 2, MAX_MSAA );
 	float sampleCntRcp = 1.0 / sampleCnt;
 
 	// calculate weights based on sample positions
@@ -241,7 +241,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 						  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
 						  // The solver ShadowMoments_SolveMSM then ends up calculating infinities and nands, which produces different results
 						  // on different vendors' GPUs. So we're adding a small safety margin here.
-						  depth = Clamp( depth, 0.001, 0.999 );
+						  depth = clamp( depth, 0.001, 0.999 );
 #   endif
 					avgMoments += sampleWeights[is] * DepthToMoments( depth );
 				}
@@ -255,7 +255,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 					  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
 					  // The solver ShadowMoments_SolveMSM then ends up calculating infinities and nands, which produces different results
 					  // on different vendors' GPUs. So we're adding a small safety margin here.
-					  depth = Clamp( depth, 0.001, 0.999 );
+					  depth = clamp( depth, 0.001, 0.999 );
 #   endif
 				writeToShared( DepthToMoments( depth ), int2( ldsIdx.x, groupThreadId.y ), LDS_STRIDE );
 #endif

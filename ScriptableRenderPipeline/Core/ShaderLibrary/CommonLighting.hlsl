@@ -273,4 +273,10 @@ float3x3 GetLocalFrame(float3 localZ)
     return float3x3(localX, localY, localZ);
 }
 
+// ior is a value between 1.0 and 2.5
+float ConvertIORToFresnel0(float ior)
+{
+    return Sqr((ior - 1.0) / (ior + 1.0));
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
