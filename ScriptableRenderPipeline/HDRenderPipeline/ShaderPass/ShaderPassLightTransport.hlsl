@@ -42,6 +42,11 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.positionCS = float4(uv * 2.0 - 1.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
     output.vmesh.texCoord0  = inputMesh.uv0;
     output.vmesh.texCoord1  = inputMesh.uv1;
+    output.vmesh.texCoord2  = inputMesh.uv2;
+    output.vmesh.texCoord3  = inputMesh.uv3;
+
+    float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
+    output.vmesh.positionWS = positionWS;
 
 #if defined(VARYINGS_NEED_COLOR)
     output.vmesh.color = inputMesh.color;
@@ -56,6 +61,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     // No position and depth in case of light transport
     float3 V = float3(0.0, 0.0, 1.0); // No vector view in case of light transport
 
