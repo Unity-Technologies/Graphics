@@ -549,7 +549,7 @@ namespace UnityEditor.VFX.UI
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
-            Vector3 center = cylinder.position;
+            Vector3 center = cylinder.center;
             Vector3 normal = Vector3.up;
 
             Vector3 worldNormal = normal;
@@ -615,7 +615,7 @@ namespace UnityEditor.VFX.UI
                 Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
             }
 
-            if (PositionGizmo(component, cylinder.space, ref cylinder.position))
+            if (PositionGizmo(component, cylinder.space, ref cylinder.center))
             {
                 anchor.value = cylinder;
             }
