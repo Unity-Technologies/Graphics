@@ -24,6 +24,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Disk,
     };
 
+    // This is use to distinguish between reflection and refraction probe in LightLoop
+    [GenerateHLSL]
+    public enum GPUImageBasedLightingType
+    {
+        Reflection,
+        Refraction
+    };
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
     public struct DirectionalLightData

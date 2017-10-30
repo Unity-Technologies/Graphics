@@ -134,8 +134,10 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
+            float3 albedo = ApplyDiffuseTexturingMode(bsdfData);
+
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                bsdfData.diffuseColor = float3(1, 1, 1);
+                albedo = float3(1, 1, 1);
             #endif
 
                 // Take the first (central) sample.
@@ -154,7 +156,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                     #if SSS_DEBUG_LOD
                         return float4(0, 0, 1, 1);
                     #else
-                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                        return float4(albedo * sampleIrradiance, 1);
                     #endif
                 }
 
@@ -199,7 +201,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                     }
                 }
 
-                return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
+                return float4(albedo * totalIrradiance / totalWeight, 1);
             }
             ENDHLSL
         }

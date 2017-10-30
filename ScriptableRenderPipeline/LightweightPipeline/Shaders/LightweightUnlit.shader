@@ -1,4 +1,4 @@
-﻿Shader "ScriptableRenderPipeline/LightweightPipeline/Unlit"
+﻿Shader "LightweightPipeline/Unlit"
 {
     Properties
     {

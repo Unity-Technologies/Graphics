@@ -1,15 +1,6 @@
-
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-
-void DoAlphaTest(float alpha, float alphaCutoff)
-{
-    // Don't do the clip when rendering forward opaque (unlit). Forward opaque always have a prepass (with depth test on)
-#if !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT))
-    clip(alpha - alphaCutoff);
-#endif
-}
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {

@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
 
@@ -46,15 +47,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Only for Spotlight, should be hide for other light
         public SpotLightShape spotLightShape = SpotLightShape.Cone;
 
-        // Only for Rectangle/Line/projector lights
+        // Only for Rectangle/Line/box projector lights
         [Range(0.0f, 20.0f)]
         [FormerlySerializedAs("lightLength")]
         public float shapeLength = 0.5f;
 
-        // Only for Rectangle/projector lights
+        // Only for Rectangle/box projector lights
         [Range(0.0f, 20.0f)]
         [FormerlySerializedAs("lightWidth")]
         public float shapeWidth = 0.5f;
+
+        // Only for pyramid projector
+        public float aspectRatio = 1.0f;
 
         // Only for Sphere/Disc
         public float shapeRadius = 0.0f;
@@ -85,18 +89,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        EditorLightUtilities.DrawDirectionalLightGizmo(light);
+                        HDLightEditorUtilities.DrawDirectionalLightGizmo(light);
                         break;
                     case LightType.Point:
-                        EditorLightUtilities.DrawPointlightGizmo(light, selected);
+                        HDLightEditorUtilities.DrawPointlightGizmo(light, selected);
                         break;
                     case LightType.Spot:
                         if (spotLightShape == SpotLightShape.Cone)
-                            EditorLightUtilities.DrawSpotlightGizmo(light, selected);
+                            HDLightEditorUtilities.DrawSpotlightGizmo(light, selected);
                         else if (spotLightShape == SpotLightShape.Pyramid)
-                            EditorLightUtilities.DrawFrustumlightGizmo(light);
-                        else if (spotLightShape == SpotLightShape.Box) // TODO
-                            EditorLightUtilities.DrawFrustumlightGizmo(light);
+                            HDLightEditorUtilities.DrawFrustumlightGizmo(light);
+                        else if (spotLightShape == SpotLightShape.Box)
+                            HDLightEditorUtilities.DrawFrustumlightGizmo(light);
                         break;
                 }
             }
@@ -105,10 +109,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (lightTypeExtent)
                 {
                     case LightTypeExtent.Rectangle:
-                        EditorLightUtilities.DrawArealightGizmo(light);
+                        HDLightEditorUtilities.DrawArealightGizmo(light);
                         break;
                     case LightTypeExtent.Line:
-                        EditorLightUtilities.DrawArealightGizmo(light);
+                        HDLightEditorUtilities.DrawArealightGizmo(light);
                         break;
                 }
             }

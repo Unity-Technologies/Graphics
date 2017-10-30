@@ -153,8 +153,8 @@ float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
         {
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
 
-            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
-            acc += bsdfData.diffuseColor * LambertNoPI() * weightOverPdf * val.rgb;
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            acc += LambertNoPI() * weightOverPdf * val.rgb;
         }
     }
 
@@ -185,15 +185,14 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
 
         if (NdotL > 0.0)
         {
-            float3 H = normalize(L + V);
-            float LdotH = dot(L, H);
+            float LdotV = dot(L, V);
             // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
             // in weightOverPdf of ImportanceSampleLambert call.
-            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 
-            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
-            acc += bsdfData.diffuseColor * disneyDiffuse * weightOverPdf * val.rgb;
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            acc += disneyDiffuse * weightOverPdf * val.rgb;
         }
     }
 

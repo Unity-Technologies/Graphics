@@ -43,8 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shapeLengthLine = new GUIContent("Length", "Length of the line light");
             public readonly GUIContent shapeLengthRect = new GUIContent("Size X", "SizeX of the rectangle light");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size Y", "SizeY of the rectangle light");
-            public readonly GUIContent shapeLengthPyramid = new GUIContent("Size X", "");
-            public readonly GUIContent shapeWidthPyramid = new GUIContent("Size Y", "");
+            public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "");
             public readonly GUIContent shapeLengthBox = new GUIContent("Size X", "");
             public readonly GUIContent shapeWidthBox = new GUIContent("Size Y", "");
             public readonly GUIContent applyRangeAttenuation = new GUIContent("Apply Range Attenuation", "Allows disabling range attenuation. This is useful indoor (like a room) to avoid having to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
