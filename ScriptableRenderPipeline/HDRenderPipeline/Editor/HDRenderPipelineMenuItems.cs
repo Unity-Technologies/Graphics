@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -99,6 +99,55 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         i / (float)(length - 1));
 
                     HDEditorUtils.ResetMaterialKeywords(mat);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        [MenuItem("HDRenderPipeline/Update/Update SSS profile indices")]
+        static void UpdateSSSProfileIndices()
+        {
+            try
+            {
+                var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+                for (int i = 0, length = materials.Length; i < length; i++)
+                {
+                    EditorUtility.DisplayProgressBar(
+                        "Setup materials Keywords...",
+                        string.Format("{0} / {1} materials SSS updated.", i, length),
+                        i / (float)(length - 1));
+
+                    if (materials[i].shader.name == "HDRenderPipeline/LitTessellation" ||
+                        materials[i].shader.name == "HDRenderPipeline/Lit")
+                    {
+                        float fvalue = materials[i].GetFloat("_MaterialID");
+                        if (fvalue == 0.0) // SSS
+                        {
+                            int ivalue = materials[i].GetInt("_SubsurfaceProfile");
+                            materials[i].SetInt("_SubsurfaceProfile", ivalue + 1);
+                        }
+                        EditorUtility.SetDirty(materials[i]);
+                    }
+                    else if (   materials[i].shader.name == "HDRenderPipeline/LayeredLit" ||
+                                materials[i].shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    {
+                        float fvalue = materials[i].GetFloat("_MaterialID");
+                        if (fvalue == 0.0) // SSS
+                        {
+                            int numLayer = (int)materials[i].GetFloat("_LayerCount");
+                            
+                            for (int x = 0; x < numLayer; ++x)
+                            {
+                                int ivalue = materials[i].GetInt("_SubsurfaceProfile" + x);
+                                materials[i].SetInt("_SubsurfaceProfile + x", ivalue + 1);
+                            }
+                            EditorUtility.SetDirty(materials[i]);
+                        }
+                    }
                 }
             }
             finally
