@@ -51,7 +51,6 @@ float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near fi
 
 DECLARE_GBUFFER_TEXTURE(_GBufferTexture);           // Contains the albedo and SSS parameters
 TEXTURE2D(_DepthTexture);                           // Z-buffer
-TEXTURE2D(_StencilTexture);                         // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D(_HTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D(_IrradianceSource);                       // Includes transmitted light
 
@@ -76,7 +75,7 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
     bool passedStencilTest;
 
 #if SSS_SAMPLE_TEST_HTILE
-    int2 tileCoord = pixelCoord >> 3; // Divide by 8
+    int2 tileCoord = pixelCoord / 8;
 
     // Perform the stencil test (reject at the tile rate).
     passedStencilTest = stencilRef == LOAD_TEXTURE2D(_HTile, tileCoord).r;
@@ -90,7 +89,8 @@ bool StencilTest(int2 pixelCoord, float stencilRef)
     {
         // Unfortunately, our copy of HTile does not allow to accept at the tile rate.
         // Therefore, we have to additionally perform the stencil test at the pixel rate.
-        passedStencilTest = (uint)stencilRef == UnpackByte(LOAD_TEXTURE2D(_StencilTexture, pixelCoord).r);
+        // We check the tagged irradiance buffer to avoid an extra stencil texture fetch.
+        passedStencilTest = TestLightingForSSS(LOAD_TEXTURE2D(_IrradianceSource, pixelCoord).rgb);
     }
 
     return passedStencilTest;
@@ -197,18 +197,27 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
 
     float4 textureSample = LoadSample(position, cacheAnchor);
     float3 irradiance    = textureSample.rgb;
-    float  linearDepth   = textureSample.a;
 
     // Check the results of the stencil test.
-    if (linearDepth > 0)
+    if (TestLightingForSSS(irradiance))
     {
         // Apply bilateral weighting.
+        float  linearDepth = textureSample.a;
         float  z = linearDepth - centerPosVS.z;
         float  p = _FilterKernels[profileID][i][iP];
         float3 w = ComputeBilateralWeight(xy2, z, mmPerUnit, shapeParam, p);
 
         totalIrradiance += w * irradiance;
         totalWeight     += w;
+    }
+    else
+    {
+        // The irradiance is 0. This could happen for 2 reasons.
+        // Most likely, the surface fragment does not have an SSS material.
+        // Alternatively, our sample comes from a region without any geometry.
+        // Our blur is energy-preserving, so 'centerWeight' should be set to 0.
+        // We do not terminate the loop since we want to gather the contribution
+        // of the remaining samples (e.g. in case of hair covering skin).
     }
 }
 
@@ -260,7 +269,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     float3 centerIrradiance = 0;
     float  centerDepth      = 0;
-    float4 cachedValue      = float4(0, 0, 0, 0);
+    float4 cachedValue      = 0;
 
     bool passedStencilTest = StencilTest((int2)pixelCoord, stencilRef);
 
@@ -310,7 +319,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
         uint2  cacheCoord2  = 2 * (startQuad + quadCoord) + uint2(laneIndex & 1, (laneIndex >> 1) & 1);
         int2   pixelCoord2  = (int2)(tileAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
-        float4 cachedValue2 = float4(0, 0, 0, 0);
+        float4 cachedValue2 = 0;
 
         [branch] if (StencilTest(pixelCoord2, stencilRef))
         {
