@@ -27,7 +27,17 @@ namespace UnityEditor.ShaderGraph
             return precision + "2x2 (1,0,0,1)";
         }
 
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {}
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+
+        }
+
         public override SlotValueType valueType { get { return SlotValueType.Matrix2; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Matrix2; } }
+
+
     }
 }

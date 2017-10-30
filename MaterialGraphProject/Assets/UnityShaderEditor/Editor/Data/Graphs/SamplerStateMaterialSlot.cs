@@ -23,5 +23,13 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.SamplerState; } }
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {
+        }
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+
+        }
     }
 }

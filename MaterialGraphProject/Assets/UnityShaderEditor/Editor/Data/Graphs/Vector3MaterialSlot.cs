@@ -43,6 +43,24 @@ namespace UnityEditor.ShaderGraph
             return precision + "3 (" + value.x + "," + value.y + "," + value.z + ")";
         }
 
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            var property = new Vector3ShaderProperty()
+            {
+                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                generatePropertyBlock = false,
+                value = value
+            };
+            properties.AddShaderProperty(property);
+        }
+
         public override PreviewProperty GetPreviewProperty(string name)
         {
             var pp = new PreviewProperty
@@ -58,5 +76,12 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType { get { return SlotValueType.Vector3; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector3; } }
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+            var slot = foundSlot as Vector3MaterialSlot;
+            if (slot != null)
+                value = slot.value;
+        }
     }
 }

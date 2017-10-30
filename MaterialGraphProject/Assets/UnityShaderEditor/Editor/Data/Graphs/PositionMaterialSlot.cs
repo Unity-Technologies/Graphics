@@ -5,22 +5,15 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class PositionMaterialSlot : Vector3MaterialSlot, IMayRequirePosition
+    public class PositionMaterialSlot : SpaceMaterialSlot, IMayRequirePosition
     {
-        private CoordinateSpace m_Space = CoordinateSpace.World;
-
-        public CoordinateSpace space
-        {
-            get { return m_Space; }
-            set { m_Space = value; }
-        }
+        public PositionMaterialSlot()
+        {}
 
         public PositionMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
             ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden)
-        {
-            this.space = space;
-        }
+            : base(slotId, displayName, shaderOutputName, space, shaderStage, hidden)
+        {}
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {

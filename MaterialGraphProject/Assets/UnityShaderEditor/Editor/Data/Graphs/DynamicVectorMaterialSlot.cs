@@ -70,5 +70,45 @@ namespace UnityEditor.ShaderGraph
         {
             return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
         }
+
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            IShaderProperty property;
+            switch (concreteValueType)
+            {
+                case ConcreteSlotValueType.Vector4:
+                    property = new Vector4ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector3:
+                    property = new Vector3ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector2:
+                    property = new Vector2ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Vector1:
+                    property = new FloatShaderProperty();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            property.generatePropertyBlock = false;
+            properties.AddShaderProperty(property);
+        }
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+            var slot = foundSlot as DynamicVectorMaterialSlot;
+            if (slot != null)
+                value = slot.value;
+        }
     }
 }
