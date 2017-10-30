@@ -98,9 +98,6 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if (!generationMode.IsPreview())
-                return;
-
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
@@ -161,7 +158,7 @@ namespace UnityEditor.ShaderGraph
         private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
-         
+
             var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
             switch (inputTypesDistinct.Count)
             {
@@ -182,7 +179,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            var isInError = false; 
+            var isInError = false;
 
             // all children nodes needs to be updated first
             // so do that here
@@ -191,7 +188,7 @@ namespace UnityEditor.ShaderGraph
                 inputSlot.hasError = false;
 
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                foreach (var edge in edges) 
+                foreach (var edge in edges)
                 {
                     var fromSocketRef = edge.outputSlot;
                     var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
@@ -303,7 +300,7 @@ namespace UnityEditor.ShaderGraph
         {
             return false;
         }
-        
+
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)
         {
             switch (slotValue)
@@ -407,18 +404,8 @@ namespace UnityEditor.ShaderGraph
 
             if (foundSlot == null)
                 return;
-            
-            // now copy over values :)
-            if (addingSlot is DynamicVectorMaterialSlot && foundSlot is DynamicVectorMaterialSlot)
-                (addingSlot as DynamicVectorMaterialSlot).value = (foundSlot as DynamicVectorMaterialSlot).value;
-            if (addingSlot is Vector1MaterialSlot && foundSlot is Vector1MaterialSlot)
-                (addingSlot as Vector1MaterialSlot).value = (foundSlot as Vector1MaterialSlot).value;
-            if (addingSlot is Vector2MaterialSlot && foundSlot is Vector2MaterialSlot)
-                (addingSlot as Vector2MaterialSlot).value = (foundSlot as Vector2MaterialSlot).value;
-            if (addingSlot is Vector3MaterialSlot && foundSlot is Vector3MaterialSlot)
-                (addingSlot as Vector3MaterialSlot).value = (foundSlot as Vector3MaterialSlot).value;
-            if (addingSlot is Vector4MaterialSlot && foundSlot is Vector4MaterialSlot)
-                (addingSlot as Vector4MaterialSlot).value = (foundSlot as Vector4MaterialSlot).value;
+
+            addingSlot.CopyValuesFrom(foundSlot);
         }
     }
 }
