@@ -21,7 +21,16 @@ namespace UnityEditor.VFX.BlockLibrary
 
         public class InputProperties
         {
+            [Tooltip("Particle density, measured in kg/dm^3")]
             public float Density = 1.0f;
+        }
+
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                yield return new VFXNamedExpression(inputSlots[0].GetExpression() * VFXValue.Constant(1000.0f), "Density");
+            }
         }
 
         public override string source
