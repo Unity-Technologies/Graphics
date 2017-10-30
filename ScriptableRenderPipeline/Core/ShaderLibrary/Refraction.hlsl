@@ -7,7 +7,7 @@
 
 struct RefractionModelResult
 {
-    float       opticalDepth;
+    float       distance;       // length of the transmission during refraction through the shape
     float3      positionWS;     // out ray position
     float3      rayWS;          // out ray direction
 };
@@ -30,9 +30,9 @@ RefractionModelResult RefractionModelSphere(float3 V, float3 positionWS, float3 
     // Second refraction (tangent sphere out)
     float NoR1 = dot(normalWS, R1);
     // Optical depth within the sphere
-    float opticalDepth = -NoR1 * thickness;
+    float distance = -NoR1 * thickness;
     // Out hit point in the tangent sphere
-    float3 P1 = positionWS + R1 * opticalDepth;
+    float3 P1 = positionWS + R1 * distance;
     // Out normal
     float3 N1 = normalize(C - P1);
     // Out refracted ray
@@ -41,7 +41,7 @@ RefractionModelResult RefractionModelSphere(float3 V, float3 positionWS, float3 
     float VoR1 = dot(V, R1);
 
     RefractionModelResult result;
-    result.opticalDepth = opticalDepth;
+    result.distance = distance;
     result.positionWS = P1;
     result.rayWS = R2;
 
@@ -58,11 +58,11 @@ RefractionModelResult RefractionModelPlane(float3 V, float3 positionWS, float3 n
     float3 R = refract(-V, normalWS, 1.0 / ior);
 
     // Optical depth within the thin plane
-    float opticalDepth = thickness / dot(R, -normalWS);
+    float distance = thickness / dot(R, -normalWS);
 
     RefractionModelResult result;
-    result.opticalDepth = opticalDepth;
-    result.positionWS = positionWS + R * opticalDepth;
+    result.distance = distance;
+    result.positionWS = positionWS + R * distance;
     result.rayWS = -V;
 
     return result;
