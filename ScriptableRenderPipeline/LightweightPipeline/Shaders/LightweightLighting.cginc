@@ -331,8 +331,6 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    // TODO: When refactoring shadows remove dependency from vertex normal
-    half3 vertexNormal = normalWS;
     half3 reflectVec = reflect(-viewDirectionWS, normalWS);
     half roughness2 = brdfData.roughness * brdfData.roughness;
     indirectDiffuse *= occlusion;
