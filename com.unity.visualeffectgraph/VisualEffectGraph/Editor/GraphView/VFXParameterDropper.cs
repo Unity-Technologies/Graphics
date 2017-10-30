@@ -42,6 +42,8 @@ namespace UnityEditor.VFX.UI
 
             VFXParameterPresenter dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterPresenter;
 
+            if (dragData == null)
+                return;
 
             switch (evt.type)
             {

@@ -30,8 +30,8 @@ namespace UnityEditor.VFX
             {
                 const uint kThreadPerGroup = 64;
                 if (value > kThreadPerGroup)
-                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                m_Capacity = value;
+                    value = (value + kThreadPerGroup - 1u) & ~(kThreadPerGroup - 1u); // multiple of kThreadPerGroup
+                m_Capacity = (value + 3u) & ~3u;
             }
         }
 
