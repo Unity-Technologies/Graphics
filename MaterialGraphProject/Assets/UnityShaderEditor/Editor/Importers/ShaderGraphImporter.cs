@@ -3,7 +3,6 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Drawing;
@@ -17,6 +16,7 @@ class ShaderGraphImporter : ICustomShaderImporter
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = JsonUtility.FromJson<T>(textGraph);
+            graph.LoadedFromDisk();
 
             var name = Path.GetFileNameWithoutExtension(path);
 
@@ -44,7 +44,6 @@ class ShaderGraphImporter : ICustomShaderImporter
 
     public bool IsValidForPath(string path)
     {
-
         return
             path.EndsWith("LayeredShaderGraph", StringComparison.InvariantCultureIgnoreCase)
             || path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase);
