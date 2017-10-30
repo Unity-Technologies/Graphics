@@ -2,7 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     abstract class CollisionBase : VFXBlock
     {
