@@ -237,18 +237,26 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            Toggle toggleRenderBounds = new Toggle(OnShowBounds);
+            toggleRenderBounds.text = "Show Bounds";
+            toggleRenderBounds.on = VFXComponent.renderBounds;
+            toolbar.Add(toggleRenderBounds);
 
-            Toggle toggle = new Toggle(OnToggleCompile);
-            //toggle.AddToClassList("toolbarButton");
-            toggle.text = "AutoCompile";
-            toggle.on = true;
+            Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
+            toggleAutoCompile.text = "Auto Compile";
+            toggleAutoCompile.on = true;
+            toolbar.Add(toggleAutoCompile);
             toggle.AddToClassList("toolbarItem");
-            toolbar.Add(toggle);
 
             button = new Button(OnCompile);
             button.text = "Compile";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+        }
+
+        void OnShowBounds()
+        {
+            VFXComponent.renderBounds = !VFXComponent.renderBounds;
         }
 
         void OnToggleCompile()

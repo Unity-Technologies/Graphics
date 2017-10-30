@@ -54,11 +54,10 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 9
+    serializedVersion: 10
     m_Resolution: 2
     m_BakeResolution: 40
-    m_TextureWidth: 1024
-    m_TextureHeight: 1024
+    m_AtlasSize: 1024
     m_AO: 0
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
@@ -315,17 +314,16 @@ VFXComponent:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_BakedTexture: {fileID: 0}
 --- !u!4 &1510541626
 Transform:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1510541624}
-  m_LocalRotation: {x: -0.3634325, y: 0.87652886, z: -0.3152975, w: 0.01419586}
-  m_LocalPosition: {x: -0.494, y: 0, z: 0}
+  m_LocalRotation: {x: -0.28918386, y: -0.1712201, z: 0.45354787, w: 0.8254397}
+  m_LocalPosition: {x: 0.7404754, y: 0.4207601, z: 2.6576548}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 32.848003, y: -557.603, z: -50.267002}
+  m_LocalEulerAnglesHint: {x: -18.79, y: -35.146, z: 63.573}
