@@ -129,8 +129,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             int ivalue = materials[i].GetInt("_SubsurfaceProfile");
                             materials[i].SetInt("_SubsurfaceProfile", ivalue + 1);
-                        }
-                        EditorUtility.SetDirty(materials[i]);
+                            EditorUtility.SetDirty(materials[i]);
+                        }                        
                     }
                     else if (   materials[i].shader.name == "HDRenderPipeline/LayeredLit" ||
                                 materials[i].shader.name == "HDRenderPipeline/LayeredLitTessellation")
