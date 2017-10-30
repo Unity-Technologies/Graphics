@@ -31,8 +31,7 @@ namespace UnityEditor.VFX.Block
                 // Add statements such as the following example to access simulation attributes
                 // in your nodeblock source code. The following statement tells that we will need to
                 // read particle seed (for example if needing to use RAND functions). 
-
-                //yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
 
             }
         }
