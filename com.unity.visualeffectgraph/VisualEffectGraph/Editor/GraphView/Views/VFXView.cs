@@ -243,7 +243,7 @@ namespace UnityEditor.VFX.UI
             toolbar.Add(toggleRenderBounds);
 
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
-            toggleAutoCompile.text = "AutoCompile";
+            toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.on = true;
             toolbar.Add(toggleAutoCompile);
 
