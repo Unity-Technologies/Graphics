@@ -26,6 +26,11 @@
 #define TEXTURE_CACHE_BORDER  2
 #define TEXTURE_CACHE_SIZE_1D (GROUP_SIZE_1D + 2 * TEXTURE_CACHE_BORDER)
 
+// TODO: query the format support more precisely.
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE)
+#define TYPED_UAV_LOAD_FORMAT_R16G16B16A16_FLOAT
+#endif
+
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
@@ -44,12 +49,17 @@
 float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
 float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
-DECLARE_GBUFFER_TEXTURE(_GBufferTexture);      // Contains the albedo and SSS parameters
-TEXTURE2D(_DepthTexture);                      // Z-buffer
-TEXTURE2D(_StencilTexture);                    // DXGI_FORMAT_R8_UINT is not supported by Unity
-TEXTURE2D(_HTile);                             // DXGI_FORMAT_R8_UINT is not supported by Unity
-TEXTURE2D(_IrradianceSource);                  // Includes transmitted light
-RW_TEXTURE2D(float4, _CameraFilteringTexture); // Target texture
+DECLARE_GBUFFER_TEXTURE(_GBufferTexture);           // Contains the albedo and SSS parameters
+TEXTURE2D(_DepthTexture);                           // Z-buffer
+TEXTURE2D(_StencilTexture);                         // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D(_HTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D(_IrradianceSource);                       // Includes transmitted light
+
+#ifdef TYPED_UAV_LOAD_FORMAT_R16G16B16A16_FLOAT
+    RW_TEXTURE2D(float4, _CameraColorTexture);      // Target texture
+#else
+    RW_TEXTURE2D(float4, _CameraFilteringTexture);  // Target texture
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -202,6 +212,15 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     }
 }
 
+void WriteResult(uint2 pixelCoord, float3 irradiance)
+{
+#ifdef TYPED_UAV_LOAD_FORMAT_R16G16B16A16_FLOAT
+    _CameraColorTexture[pixelCoord]    += float4(irradiance, 0);
+#else
+    _CameraFilteringTexture[pixelCoord] = float4(irradiance, 1);
+#endif
+}
+
 #pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
@@ -352,9 +371,9 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     [branch] if (distScale == 0 || maxDistInPixels < 1)
     {
         #if SSS_DEBUG_LOD
-            _CameraFilteringTexture[pixelCoord] = float4(0, 0, 1, 1);
+            WriteResult(pixelCoord, float3(0, 0, 1));
         #else
-            _CameraFilteringTexture[pixelCoord] = float4(albedo * centerIrradiance, 1);
+            WriteResult(pixelCoord, albedo * centerIrradiance);
         #endif
             return;
     }
@@ -372,7 +391,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float3 viewDirVS = normalize(centerPosVS);
     if (dot(normalVS, viewDirVS) >= 0)
     {
-        _CameraFilteringTexture[pixelCoord] = float4(1, 1, 1, 1);
+        WriteResult(pixelCoord, float3(1, 1, 1));
         return;
     }
 #endif
@@ -381,7 +400,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_LOD_THRESHOLD;
 
 #if SSS_DEBUG_LOD
-    _CameraFilteringTexture[pixelCoord] = useNearFieldKernel ? float4(1, 0, 0, 1) : float4(0.5, 0.5, 0, 1);
+    WriteResult(pixelCoord, useNearFieldKernel ? float3(1, 0, 0) : float3(0.5, 0.5, 0);
     return;
 #endif
 
@@ -411,7 +430,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     [branch] if (!useNearFieldKernel)
     {
-         _CameraFilteringTexture[pixelCoord] = float4(albedo * totalIrradiance / totalWeight, 1);
+         WriteResult(pixelCoord, albedo * totalIrradiance / totalWeight);
          return;
     }
 
@@ -425,5 +444,5 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                        totalIrradiance, totalWeight);
     }
 
-    _CameraFilteringTexture[pixelCoord] = float4(albedo * totalIrradiance / totalWeight, 1);
+    WriteResult(pixelCoord, albedo * totalIrradiance / totalWeight);
 }
