@@ -144,6 +144,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _ThicknessMap2("Thickness Map", 2D) = "white" {}
         _ThicknessMap3("Thickness Map", 2D) = "white" {}
 
+        _ThicknessRemap0("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap1("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap2("Thickness Remap", Vector) = (0, 1, 0, 0)
+        _ThicknessRemap3("Thickness Remap", Vector) = (0, 1, 0, 0)
+
         // All the following properties exist only in layered lit material
 
         // Layer blending options
@@ -292,6 +297,11 @@ Shader "HDRenderPipeline/LayeredLit"
 
         // Transparency
         [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
+
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -447,7 +457,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -472,11 +482,11 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define _BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -504,7 +514,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -529,7 +539,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -550,7 +560,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -574,7 +584,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -595,7 +605,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -620,7 +630,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
@@ -647,7 +657,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
+            #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL

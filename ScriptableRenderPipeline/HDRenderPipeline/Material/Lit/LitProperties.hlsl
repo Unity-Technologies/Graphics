@@ -154,6 +154,7 @@ float _Anisotropy;
 int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
+float4 _ThicknessRemap;
 
 float _CoatCoverage;
 float _CoatIOR;
@@ -202,6 +203,7 @@ PROP_DECL(float, _HeightCenter);
 PROP_DECL(int, _SubsurfaceProfile);
 PROP_DECL(float, _SubsurfaceRadius);
 PROP_DECL(float, _Thickness);
+PROP_DECL(float4, _ThicknessRemap);
 
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;

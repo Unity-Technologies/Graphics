@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -32,8 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIContent("Thin Object",  "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface."),
                 new GUIContent("Regular",      "Choose this mode for moderately thick objects. For performance reasons, transmitted light ignores occlusion (shadows).")
             };
-            public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below (in millimeters).");
-            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
+            public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness (mm)", "Shows the values of the thickness remap below (in millimeters).");
+            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (mm)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
             public readonly GUIContent   profileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
             // Old SSS Model >>>
             public readonly GUIContent   profileScatterDistance1 = new GUIContent("Scattering Distance #1", "The radius (in centimeters) of the 1st Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");

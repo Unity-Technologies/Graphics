@@ -44,6 +44,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
+        _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
         _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
         _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5
@@ -63,7 +64,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 1.0
         [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
         [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
         [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
@@ -153,6 +154,11 @@ Shader "HDRenderPipeline/LitTessellation"
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
          // TODO: Handle culling mode for backface culling
+
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -298,7 +304,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define _BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"

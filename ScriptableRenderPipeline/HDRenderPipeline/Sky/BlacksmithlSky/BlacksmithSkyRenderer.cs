@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build()
         {
-            m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyProcedural");
+            m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyBlacksmith");
         }
 
         public override void Cleanup()

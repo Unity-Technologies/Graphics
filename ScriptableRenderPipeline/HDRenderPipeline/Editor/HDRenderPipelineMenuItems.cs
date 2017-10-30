@@ -201,7 +201,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Profile.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 750)]

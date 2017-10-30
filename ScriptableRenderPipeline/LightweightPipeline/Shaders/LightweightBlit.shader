@@ -1,4 +1,4 @@
-﻿Shader "Hidden/ScriptableRenderPipeline/LightweightPipeline/Blit"
+﻿Shader "Hidden/LightweightPipeline/Blit"
 {
     SubShader
     {

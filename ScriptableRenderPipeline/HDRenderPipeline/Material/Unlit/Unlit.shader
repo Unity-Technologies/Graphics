@@ -12,7 +12,7 @@ Shader "HDRenderPipeline/Unlit"
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 1.0
         [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
         [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
         [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
@@ -47,6 +47,11 @@ Shader "HDRenderPipeline/Unlit"
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
         // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
+        
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE

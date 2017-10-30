@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool useGlobalOverrides = true;
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides );
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
 
@@ -182,12 +182,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum LightFeatureFlags
         {
             // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
-            Punctual    = 1 << 8,
-            Area        = 1 << 9,
-            Directional = 1 << 10,
-            Env         = 1 << 11,
-            Sky         = 1 << 12,
-            SSL         = 1 << 13  // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
+            Punctual    = 1 << 12,
+            Area        = 1 << 13,
+            Directional = 1 << 14,
+            Env         = 1 << 15,
+            Sky         = 1 << 16,
+            SSRefraction = 1 << 17,
+            SSReflection = 1 << 18,
+            // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
         }
 
         [GenerateHLSL]
@@ -207,8 +209,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_NumFeatureVariants = 27;
 
             // Following define the maximum number of bits use in each feature category.
-            public static uint s_LightFeatureMaskFlags = 0xFF00;
-            public static uint s_MaterialFeatureMaskFlags = 0x00FF;   // don't use all bits just to be safe from signed and/or float conversions :/
+            public static uint s_LightFeatureMaskFlags = 0xFFF000;
+            public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
+            public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
+            public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
         }
 
         [GenerateHLSL]
@@ -804,11 +808,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 lightData.size = new Vector2(additionalLightData.shapeLength, additionalLightData.shapeWidth);
 
-                if (lightData.lightType == GPULightType.ProjectorBox || lightData.lightType == GPULightType.ProjectorPyramid)
+                if (lightData.lightType == GPULightType.ProjectorBox)
                 {
                     // Rescale for cookies and windowing.
-                    lightData.right *= 2 / additionalLightData.shapeLength;
-                    lightData.up    *= 2 / additionalLightData.shapeWidth;
+                    lightData.right *= 2.0f / additionalLightData.shapeLength;
+                    lightData.up    *= 2.0f / additionalLightData.shapeWidth;
+                }
+                else if (lightData.lightType == GPULightType.ProjectorPyramid)
+                {
+                    // Get width and height for the current frustum
+                    var spotAngle = light.spotAngle;
+
+                    float frustumHeight;
+                    float frustumWidth;
+                    if (additionalLightData.aspectRatio >= 1.0f)
+                    {
+                        frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumWidth = frustumHeight * additionalLightData.aspectRatio;
+                    }
+                    else
+                    {
+                        frustumWidth = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumHeight = frustumWidth / additionalLightData.aspectRatio;
+                    }
+
+                    lightData.size = new Vector2(frustumWidth, frustumHeight);
+
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2.0f / frustumWidth;
+                    lightData.up *= 2.0f / frustumHeight;
                 }
 
                 if (lightData.lightType == GPULightType.Spot)
@@ -1187,6 +1215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
+                // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
                     // 0. deal with shadows
