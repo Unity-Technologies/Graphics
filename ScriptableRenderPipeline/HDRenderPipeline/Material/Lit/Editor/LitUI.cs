@@ -652,6 +652,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+            m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
