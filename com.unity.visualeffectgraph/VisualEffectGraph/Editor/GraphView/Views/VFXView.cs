@@ -241,12 +241,13 @@ namespace UnityEditor.VFX.UI
             toggleRenderBounds.text = "Show Bounds";
             toggleRenderBounds.on = VFXComponent.renderBounds;
             toolbar.Add(toggleRenderBounds);
+            toggleRenderBounds.AddToClassList("toolbarItem");
 
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.on = true;
             toolbar.Add(toggleAutoCompile);
-            toggle.AddToClassList("toolbarItem");
+            toggleAutoCompile.AddToClassList("toolbarItem");
 
             button = new Button(OnCompile);
             button.text = "Compile";
