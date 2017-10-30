@@ -49,9 +49,10 @@ SRP depends on PostProcessing submodule. Perform the following instructions to g
 > git submodule update --init --recursive --remote   (This is to get the PostProcessing folder)
 ```
 7. Re-open the project
-8. Create a HDRenderPipelineAsset
-9. Assign the HDRenderPipelineResource (Already created) to HDRenderPipelineAsset
-8. In Graphic Settings, setup the new craeted HDRenderPipelineAsset
+8. In Graphic Settings, for render pipeline, setup the HDRenderPipelineAsset
+
+Advice: It is recommended to make a copy of HDRenderPipelineAsset outside of the ScriptableRenderPipeline, so settings are not lost when merging. And setup this new created HDRenderPipelineAsset in GraphicSettings
+
 
 ## For Unity 5.6 beta users
 
