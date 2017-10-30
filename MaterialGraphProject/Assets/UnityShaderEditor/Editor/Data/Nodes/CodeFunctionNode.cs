@@ -45,6 +45,9 @@ namespace UnityEditor.ShaderGraph
         protected struct DynamicDimensionVector
         {}
 
+        protected struct Gradient
+        {}
+
         protected enum Binding
         {
             None,
@@ -138,6 +141,10 @@ namespace UnityEditor.ShaderGraph
             if (t == typeof(SamplerState))
             {
                 return SlotValueType.SamplerState;
+            }
+            if (t == typeof(Gradient))
+            {
+                return SlotValueType.Gradient;
             }
             if (t == typeof(DynamicDimensionVector))
             {

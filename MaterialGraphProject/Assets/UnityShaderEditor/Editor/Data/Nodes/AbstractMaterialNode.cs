@@ -346,6 +346,8 @@ namespace UnityEditor.ShaderGraph
                     return "Matrix4x4";
                 case ConcreteSlotValueType.SamplerState:
                     return "SamplerState";
+                case ConcreteSlotValueType.Gradient:
+                    return "Gradient";
                 default:
                     return "Error";
             }

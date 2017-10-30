@@ -46,6 +46,8 @@ namespace UnityEditor.ShaderGraph
                     return "(SS)";
                 case ConcreteSlotValueType.Texture2D:
                     return "(T)";
+                case ConcreteSlotValueType.Gradient:
+                    return "(G)";
                 default:
                     return "(E)";
             }
@@ -66,6 +68,8 @@ namespace UnityEditor.ShaderGraph
         {
             switch (type)
             {
+                case SlotValueType.Gradient:
+                    return new GradientMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.SamplerState:
                     return new SamplerStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Matrix4:
@@ -119,6 +123,8 @@ namespace UnityEditor.ShaderGraph
         {
             switch (concreteValueType)
             {
+                case ConcreteSlotValueType.Gradient:
+                    return inputType == ConcreteSlotValueType.Gradient;
                 case ConcreteSlotValueType.SamplerState:
                     return inputType == ConcreteSlotValueType.SamplerState;
                 case ConcreteSlotValueType.Matrix4:
@@ -204,6 +210,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Matrix4;
                 case ConcreteSlotValueType.SamplerState:
                     return PropertyType.SamplerState;
+                case ConcreteSlotValueType.Gradient:
+                    return PropertyType.Gradient;
                 default:
                     return PropertyType.Vector4;
             }
