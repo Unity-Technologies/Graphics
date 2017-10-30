@@ -1,7 +1,9 @@
 // This file assume SHADER_API_D3D11 is defined
 
 #define INTRINSIC_BITFIELD_EXTRACT
+#define INTRINSIC_WAVEREADFIRSTLANE
 #define INTRINSIC_MAD24
+#define WaveReadFirstLane ReadFirstLane
 #define Mad24 mad24
 #define INTRINSIC_MED3
 #define INTRINSIC_MINMAX3
