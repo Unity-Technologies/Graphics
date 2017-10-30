@@ -679,8 +679,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
         {
-            Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
-
             Light light = shadowLight.light;
             float bias = light.shadowBias * 0.1f;
             float normalBias = light.shadowNormalBias;
@@ -703,7 +701,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_ShadowLightDirection", new Vector4(-shadowLightDir.x, -shadowLightDir.y, -shadowLightDir.z, 0.0f));
             cmd.SetGlobalVector("_ShadowData", new Vector4(0.0f, bias, normalBias, 0.0f));
             cmd.SetGlobalFloatArray("_PCFKernel", pcfKernel);
         }
