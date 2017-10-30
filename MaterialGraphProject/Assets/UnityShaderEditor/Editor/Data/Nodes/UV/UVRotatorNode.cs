@@ -48,20 +48,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_UVRotator_Radians(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector1 rotation,
-            [Slot(2, Binding.None)] out Vector2 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None)] Vector1 Rotation,
+            [Slot(2, Binding.None)] out Vector2 Out)
         {
-            result = Vector2.zero;
+            Out = Vector2.zero;
 
             
             return
                 @"
 {
     //rotation matrix
-    uv.xy -= 0.5;
-    {precision} s = sin(rotation);
-    {precision} c = cos(rotation);
+    UV.xy -= 0.5;
+    {precision} s = sin(Rotation);
+    {precision} c = cos(Rotation);
 
 
     //center rotation matrix
@@ -71,28 +71,27 @@ namespace UnityEditor.ShaderGraph
     rMatrix = rMatrix*2 - 1;
 
     //multiply the UVs by the rotation matrix
-    uv.xy = mul(uv.xy, rMatrix);
-    uv.xy += 0.5;
+    UV.xy = mul(UV.xy, rMatrix);
+    UV.xy += 0.5;
     
-    result = uv;
+    Out = UV;
 }";
         }
 
         static string Unity_UVRotator_Degrees(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector1 rotation,
-            [Slot(2, Binding.None)] out Vector2 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None)] Vector1 Rotation,
+            [Slot(2, Binding.None)] out Vector2 Out)
         {
-            result = Vector2.zero;
-            //Unity_UVRotator_Radians(uv, rotation, out result)
-            //rotation = rotation * (3.1415926f/180.0f)
+            Out = Vector2.zero;
+           
             return @"
 {
     //rotation matrix
-    rotation = rotation * (3.1415926f/180.0f);
-    uv.xy -= 0.5;
-    {precision} s = sin(rotation);
-    {precision} c = cos(rotation);
+    Rotation = Rotation * (3.1415926f/180.0f);
+    UV.xy -= 0.5;
+    {precision} s = sin(Rotation);
+    {precision} c = cos(Rotation);
 
 
     //center rotation matrix
@@ -102,10 +101,10 @@ namespace UnityEditor.ShaderGraph
     rMatrix = rMatrix*2 - 1;
 
     //multiply the UVs by the rotation matrix
-    uv.xy = mul(uv.xy, rMatrix);
-    uv.xy += 0.5;
+    UV.xy = mul(UV.xy, rMatrix);
+    UV.xy += 0.5;
     
-    result = uv;
+    Out = UV;
 }";
 
         }

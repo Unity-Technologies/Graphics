@@ -17,21 +17,21 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_CartesianToPolar(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 radialScale,
-            [Slot(2, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 lengthScale,
-            [Slot(3, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 center,
-            [Slot(4, Binding.None)] out Vector2 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 RadialScale,
+            [Slot(2, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 LengthScale,
+            [Slot(3, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
+            [Slot(4, Binding.None)] out Vector2 Out)
         {
-            result = Vector2.zero;
+            Out = Vector2.zero;
             return
                 @"
 {
 
-    float2 delta = uv - center;
-    {precision} radius = length(delta) * 2 * radialScale;
-    {precision} angle = atan2(delta.x, delta.y) * 1.0/6.28 * lengthScale;
-    result = float2(radius, angle);
+    float2 delta = UV - Center;
+    {precision} radius = length(delta) * 2 * RadialScale;
+    {precision} angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
+    Out = float2(radius, angle);
 }
 ";
         }
