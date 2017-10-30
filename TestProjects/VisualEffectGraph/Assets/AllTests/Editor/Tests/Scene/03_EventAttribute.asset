@@ -3733,13 +3733,13 @@ VFXAsset:
         bucket: 0
         structure: 8
         element: 0
-    - name: lifetime
+    - name: spawnCount
       type: 1
       offset:
         bucket: 0
         structure: 8
         element: 3
-    - name: spawnCount
+    - name: lifetime
       type: 1
       offset:
         bucket: 0

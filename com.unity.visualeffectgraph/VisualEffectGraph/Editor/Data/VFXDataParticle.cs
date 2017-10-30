@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public uint spawnerLinkedCount
+        public override uint sourceCount
         {
             get
             {
@@ -192,10 +192,8 @@ namespace UnityEditor.VFX
         public override void GenerateAttributeLayout()
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
-
             var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
-            readSourceAttribute.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat), (int)VFXAttributeMode.ReadSource);
-            m_layoutAttributeSource.GenerateAttributeLayout(spawnerLinkedCount, readSourceAttribute);
+            m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
         }
 
         public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
@@ -235,8 +233,8 @@ namespace UnityEditor.VFX
             if (location == VFXAttributeLocation.Current && !m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            /*if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
-                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name)); TODOPAUL */
+            if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
             return string.Format("{0}({3}.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), attributeStore.GetCodeOffset(attrib, index), attributeBuffer);
         }
@@ -273,10 +271,10 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
             }
 
-            if (m_layoutAttributeSource.GetBufferSize(spawnerLinkedCount) > 0u)
+            if (m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
             {
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(spawnerLinkedCount);
+                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
                 outBufferDescs.Add(bufferDesc);
                 systemBufferMappings.Add(new VFXBufferMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
             }

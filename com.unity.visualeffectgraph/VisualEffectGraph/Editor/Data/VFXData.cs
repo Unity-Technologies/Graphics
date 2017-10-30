@@ -10,6 +10,14 @@ namespace UnityEditor.VFX
     {
         public abstract VFXDataType type { get; }
 
+        public virtual uint sourceCount
+        {
+            get
+            {
+                return 0u;
+            }
+        }
+
         public IEnumerable<VFXContext> owners
         {
             get { return m_Owners; }
@@ -180,6 +188,11 @@ namespace UnityEditor.VFX
         {
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
+            m_ReadSourceAttributes.Clear();
+            if (type == VFXDataType.kParticle)
+            {
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat));
+            }
 
             int nbOwners = m_Owners.Count;
             if (nbOwners > 16)

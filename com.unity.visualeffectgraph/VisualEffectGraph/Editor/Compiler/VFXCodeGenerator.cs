@@ -196,6 +196,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
+        {
+            var r = new VFXShaderWriter();
+            var spawnLinkCount = context.GetData().sourceCount;
+            r.WriteLine("uint currentSumSpawnCount = 0u;");
+            r.WriteLine("int sourceIndex;");
+            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; ++sourceIndex)", spawnLinkCount);
+            r.EnterScope();
+            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
+            r.WriteLine("if (id.x < currentSumSpawnCount)");
+            r.EnterScope();
+            r.WriteLine("break;");
+            r.ExitScope();
+            r.ExitScope();
+            return r;
+        }
+
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
             var dependencies = new HashSet<Object>();
@@ -305,22 +322,10 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, match, loadParameters.builder);
             }
 
-            //< Compute sourceIndex TODOPAUL : Clean and doesn't cast to VFXDataParticle
+            //< Compute sourceIndex
             if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))
             {
-                var r = new VFXShaderWriter();
-                r.WriteLine("int sourceIndex = id.x % 2 == 0 ? 0 : 1;");
-                var spawnLinkCount = (context.GetData() as VFXDataParticle).spawnerLinkedCount;
-                r.WriteLine("uint currentSumSpawnCount = 0u;");
-                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; ++sourceIndex)", spawnLinkCount);
-                r.EnterScope();
-                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
-                r.WriteLine("if (id.x < currentSumSpawnCount)");
-                r.EnterScope();
-                r.WriteLine("break;");
-                r.ExitScope();
-                r.ExitScope();
-
+                var r = GenerateComputeSourceIndex(context);
                 ReplaceMultiline(stringBuilder, "${VFXComputeSourceIndex}", r.builder);
             }
 
