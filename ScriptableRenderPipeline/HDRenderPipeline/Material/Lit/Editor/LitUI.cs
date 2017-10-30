@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             public static string refractionModeText = "Refraction Mode";
-            public static GUIContent refractionIORText = new GUIContent("Indice of refraction", "Indice of refraction");
+            public static GUIContent refractionIORText = new GUIContent("Index of refraction", "Index of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
             public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier", "Thickness multiplier");
             public static GUIContent refractionThicknessMapText = new GUIContent("Refraction Thickness Map (R)", "Thickness multiplier");

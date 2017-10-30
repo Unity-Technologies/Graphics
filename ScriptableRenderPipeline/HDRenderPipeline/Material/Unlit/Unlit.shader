@@ -2,8 +2,9 @@ Shader "HDRenderPipeline/Unlit"
 {
     Properties
     {
-        _Color("Color", Color) = (1,1,1,1)
-        _ColorMap("ColorMap", 2D) = "white" {}
+        // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
+        _UnlitColor("Color", Color) = (1,1,1,1)
+        _UnlitColorMap("ColorMap", 2D) = "white" {}
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}

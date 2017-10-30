@@ -7,7 +7,7 @@ with any public Unity version, and things in it might and will be broken.
 new modern built-in rendering pipeline with it. For now you can look around if you're _really_ curious, but like said above, this is
 not useful for any public Unity version yet.
 
-There's a more detailed overview document here: [ScriptableRenderLoop google doc](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
+There's a more detailed overview document here: [ScriptableRenderPipeline google doc](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
 
 Did we mention it's a very WIP, no promises, may or might not ship feature, anything and everything in it can change? It totally is.
 
@@ -20,19 +20,38 @@ Unity project. Make sure that your project uses linear color space
 Perform the following instructions to get a working copy of SRP:
 ```
 > cd <Path to your Unity project>/Assets
-> git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
-> cd ScriptableRenderLoop
+> git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
+> cd ScriptableRenderPipeline
 > git submodule update --init --recursive --remote
 ```
 
-## For Unity 2017.1 beta users
+## For Unity above 2017.1 beta users
 SRP depends on PostProcessing submodule. Perform the following instructions to get a working copy of SRP:
 ```
-> git clone https://github.com/Unity-Technologies/ScriptableRenderLoop
-> cd ScriptableRenderLoop
+> git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
+> cd ScriptableRenderPipeline
 > git checkout unity-2017.1b5 (or the latest tag)
 > git submodule update --init --recursive --remote
 ```
+
+## For HDRenderPipeline:
+
+1. Download Unity version compatible with Github release (https://github.com/Unity-Technologies/ScriptableRenderPipeline/releases)
+2. Launch
+3. Create a new Unity project
+4. Set `Color Space` to `Linear` in Player settings, Set Antialiasing to disable in Quality settings for all configuration (Fantastic and High), Set Anisotropic Textures to "Per Textures"
+5. Close Unity
+6. Execute the following commands (or use GitHub interface (ask us)):
+```
+> cd <Path to your Unity project>/Assets
+> git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
+> cd ScriptableRenderPipeline
+> git submodule update --init --recursive --remote   (This is to get the PostProcessing folder)
+```
+7. Re-open the project
+8. Create a HDRenderPipelineAsset
+9. Assign the HDRenderPipelineResource (Already created) to HDRenderPipelineAsset
+8. In Graphic Settings, setup the new craeted HDRenderPipelineAsset
 
 ## For Unity 5.6 beta users
 
