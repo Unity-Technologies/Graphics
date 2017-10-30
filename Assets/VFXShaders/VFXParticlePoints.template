@@ -1,117 +1,152 @@
 Shader "Hidden/VFX/ParticlePoints"
 {
 	SubShader
-	{
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+	{	
+		Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Opaque" }
+		
+		CGINCLUDE
+		#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
+		#define VFX_LOCAL_SPACE 1
+		#endif
+		
+		#include "UnityCG.cginc"
+		${VFXGlobalInclude}
+		${VFXGlobalDeclaration}
+		${VFXGeneratedBlockFunction}
+		
+		#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
+		
+		ByteAddressBuffer attributeBuffer;		
+		float nbMax;	
+		
+		#if USE_SOFT_PARTICLE
+		sampler2D_float _CameraDepthTexture;
+		#endif
+
+		struct ps_input
+		{
+			float4 pos : SV_POSITION;
+			#if VFX_NEEDS_COLOR_INTERPOLATOR
+			nointerpolation float4 color : COLOR0;
+			#endif
+			#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+			nointerpolation float2 builtInInterpolants : TEXCOORD0;
+			#endif
+			#if USE_SOFT_PARTICLE
+			float4 projPos : TEXCOORD1;		
+			#endif					
+		};
+		
+		struct ps_output
+		{
+			float4 color : SV_Target0;
+		};
+		
+		struct ps_outputMV
+		{
+			float2 motion : SV_Target0;
+		};
+		
+		ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+		{
+			uint index = id;
+			ps_input o = (ps_input)0;
+			o.pos = -1;
+			if (index < asuint(nbMax))
+			{
+				${VFXLoadAttributes:{alive}}
+				if (alive)
+				{
+					${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+					${VFXProcessBlocks}
+						
+					o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
+
+					#if VFX_NEEDS_COLOR_INTERPOLATOR
+					o.color = (float4)1.0f;
+					#if VFX_USE_COLOR_CURRENT
+					o.color.rgb = color;
+					#endif
+					#if VFX_USE_ALPHA_CURRENT
+					o.color.a = alpha;
+					#endif
+					#endif
+
+					#if USE_SOFT_PARTICLE		
+					${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+					o.builtInInterpolants.x = invSoftParticlesFadeDistance;
+					o.projPos = ComputeScreenPos(o.pos);
+					#endif
+					#if USE_ALPHA_TEST
+					${VFXLoadParameter:{alphaThreshold}}
+					o.builtInInterpolants.y = alphaThreshold;
+					#endif
+				}
+			}
+			return o;
+		}
+
+		float4 ModulateColor(float4 color,ps_input i)
+		{
+			#if VFX_NEEDS_COLOR_INTERPOLATOR
+			color *= i.color;
+			#endif
+	
+			#if USE_SOFT_PARTICLE
+			float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
+			float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
+			fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
+			color.a *= fade;
+			#endif
+			#if USE_ALPHA_TEST
+			clip(color.a - i.builtInInterpolants.y);
+			#endif
+			
+			return color;
+		}
+		ENDCG
+		
+		// Forward pass
+		Pass
+		{		
+			Tags { "LightMode"="ForwardBase" }
+		
+			CGPROGRAM
+			#pragma target 4.5
+			#pragma vertex vert
+			#pragma fragment frag
+				
+			ps_output frag(ps_input i)
+			{
+				ps_output o = (ps_output)0;	
+				o.color = ModulateColor((float4)1.0f,i);
+				return o;
+			}
+			ENDCG
+		}
+		
+		// Motion Vectors
 		Pass
 		{
-			${VFXOutputRenderState}
-			Cull Off
-				
+			Name "MOTIONVECTORS"
+			Tags { "LightMode"="MotionVectors" }
+			
+			ZWrite Off
+			
 			CGPROGRAM
-				#pragma target 4.5
-				#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
-				#define VFX_LOCAL_SPACE 1
-				#endif
-				
-				#include "UnityCG.cginc"
-				${VFXGlobalInclude}
-				${VFXGlobalDeclaration}
-				${VFXGeneratedBlockFunction}
-				
-				#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
-				
-				ByteAddressBuffer attributeBuffer;
-				
-				float nbMax;
-				
-				#pragma vertex vert
-				#pragma fragment frag
-				
-#if USE_SOFT_PARTICLE
-				sampler2D_float _CameraDepthTexture;
-#endif
-				
-				struct ps_input
-				{
-					float4 pos : SV_POSITION;
-#if VFX_NEEDS_COLOR_INTERPOLATOR
-					nointerpolation float4 color : COLOR0;
-#endif
-#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
-					nointerpolation float2 builtInInterpolants : TEXCOORD0;
-#endif
-#if USE_SOFT_PARTICLE
-					float4 projPos : TEXCOORD1;		
-#endif					
-				};
-				
-				struct ps_output
-				{
-					float4 color : SV_Target0;
-				};
-				
-				ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
-				{
-					uint index = id;
-					ps_input o = (ps_input)0;
-					if (index < asuint(nbMax))
-					{
-						${VFXLoadAttributes:{alive}}
-						if (alive)
-						{
-							${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-							${VFXProcessBlocks}
-								
-							o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
-
-#if VFX_NEEDS_COLOR_INTERPOLATOR
-							o.color = (float4)1.0f;
-#if VFX_USE_COLOR_CURRENT
-							o.color.rgb = color;
-#endif
-#if VFX_USE_ALPHA_CURRENT
-							o.color.a = alpha;
-#endif
-#endif
-
-#if USE_SOFT_PARTICLE		
-							${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-							o.builtInInterpolants.x = invSoftParticlesFadeDistance;
-							o.projPos = ComputeScreenPos(o.pos);
-#endif
-#if USE_ALPHA_TEST
-							${VFXLoadParameter:{alphaThreshold}}
-							o.builtInInterpolants.y = alphaThreshold;
-#endif
-						}
-					}
-					return o;
-				}
-				
-				ps_output frag(ps_input i)
-				{
-					ps_output o = (ps_output)0;
-					
-					o.color = 1.0f;
-#if VFX_NEEDS_COLOR_INTERPOLATOR
-					o.color *= i.color;
-#endif
-
-#if USE_SOFT_PARTICLE
-					float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
-					float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
-					fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
-					o.color.a *= fade;
-#endif
-#if USE_ALPHA_TEST
-					clip(o.color.a - i.builtInInterpolants.y);
-#endif
-
-					return o;
-				}
+			#pragma target 4.5
+			#pragma vertex vert
+			#pragma fragment fragMV
+			
+			ps_outputMV fragMV(ps_input i)
+			{
+				ps_outputMV o = (ps_outputMV)0;			
+				ModulateColor((float4)1.0f,i); // just for the alpha clipping
+				o.motion = float2(0.1f,0.1f);				
+				return o;
+			}
 			ENDCG
 		}
 	}
-	Fallback "Diffuse"
+	//Fallback "Diffuse"
 }
