@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Collision")]
     class CollisionPlane : CollisionBase

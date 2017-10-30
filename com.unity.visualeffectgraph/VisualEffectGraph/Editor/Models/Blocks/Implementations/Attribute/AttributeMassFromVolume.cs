@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Attribute")]
     class AttributeMassFromVolume : VFXBlock
