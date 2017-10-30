@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Repeating Dot")]
+    [Title("Procedural/MakeSubgraph/Repeating Dot")]
     public class RepeatingDotNode : CodeFunctionNode
     {
         public RepeatingDotNode()
         {
-            name = "RepeatingDot";
+            name = "Repeating Dot";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -17,16 +17,17 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Repreatingdot(
-            [Slot(0, Binding.None)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector1 count,
-            [Slot(2, Binding.None)] out Vector1 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None, 4.0f, 4.0f, 4.0f, 4.0f)] Vector1 Count,
+            [Slot(2, Binding.None, 0.5f,0.5f,0.5f,0.5f)] Vector1 Radius,
+            [Slot(4, Binding.None)] out Vector1 Out)
         {
             return
                 @"
 {
-    uv *= 2.0 - 1.0;
-    uv = fmod(uv * count, 1.0) * 2.0 - 1.0;
-    result = length(uv);
+    UV *= 2.0 - 1.0;
+    UV = fmod(UV * Count, 1.0) * 2.0 - 1.0;
+    Out = step(length(UV),Radius);
 }";
         }
     }

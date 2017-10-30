@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Pulse")]
+    [Title("OLD/Pulse")]
     public class PulseNode : CodeFunctionNode
     {
         public PulseNode()
