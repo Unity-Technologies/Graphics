@@ -68,6 +68,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // The engine fills in the lights indices per-object in unity4_LightIndices0 and unity_4LightIndices1
         private static readonly int kMaxPerObjectAdditionalLights = 8;
 
+        private bool m_IsOffscreenCamera;
+
         private Vector4[] m_LightPositions = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightColors = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightAttenuations = new Vector4[kMaxVisibleAdditionalLights];
@@ -193,6 +195,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (Camera camera in cameras)
             {
                 m_CurrCamera = camera;
+                m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
@@ -306,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // When soft particles are enabled we have to copy depth to another RT so we can read and write to depth
             if (m_Asset.SupportsSoftParticles)
             {
-                RenderTargetIdentifier colorRT = (m_CurrCamera.targetTexture != null) ? BuiltinRenderTextureType.CameraTarget : m_CameraColorRT;
+                RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? m_CurrCamera.targetTexture : m_CameraColorRT;
                 CopyTexture(cmd, m_CameraDepthRT, m_CameraCopyDepthTexture);
                 SetupRenderTargets(cmd, colorRT, m_CameraCopyDepthRT);
             }
@@ -431,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                     cmd.GetTemporaryRT(m_CameraColorTexture, rtDesc, FilterMode.Bilinear);
                 }
-                else if (m_CurrCamera.targetTexture == null)
+                else if (!m_IsOffscreenCamera)
                 {
                     cmd.GetTemporaryRT(m_CameraColorTexture, rtWidth, rtHeight, kCameraDepthBufferBits,
                         FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
@@ -870,7 +873,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void BeginForwardRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfig)
         {
-            RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
+            RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? new RenderTargetIdentifier(m_CurrCamera.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
@@ -879,7 +882,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
-                if (m_CurrCamera.targetTexture == null || m_CurrCamera.cameraType == CameraType.SceneView)
+                if (!m_IsOffscreenCamera)
                     colorRT = m_CameraColorRT;
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
@@ -903,8 +906,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void EndForwardRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfig)
         {
-            // No additional rendering needs to be done if this is an offscren rendering camera (unless camera is scene view)
-            if (m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView)
+            // No additional rendering needs to be done if this is an off screen rendering camera
+            if (m_IsOffscreenCamera)
                 return;
 
             var cmd = CommandBufferPool.Get("Blit");
@@ -944,9 +947,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
             if (depthRT != BuiltinRenderTextureType.None)
-                cmd.SetRenderTarget(colorRT, depthRT, 0, CubemapFace.Unknown, depthSlice);
+                cmd.SetRenderTarget(colorRT, depthRT/*, 0, CubemapFace.Unknown, depthSlice*/);
             else
-                cmd.SetRenderTarget(colorRT, 0, CubemapFace.Unknown, depthSlice);
+                cmd.SetRenderTarget(colorRT/*, 0, CubemapFace.Unknown, depthSlice*/);
         }
 
         private void RenderPostProcess(CommandBuffer cmd, bool opaqueOnly)
