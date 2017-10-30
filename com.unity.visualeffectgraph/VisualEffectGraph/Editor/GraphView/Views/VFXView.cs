@@ -229,7 +229,7 @@ namespace UnityEditor.VFX.UI
 
             Button button = new Button(() => {Resync(); });
             button.text = "Refresh";
-            button.AddToClassList("toolbarButton");
+            button.AddToClassList("toolbarItem");
             toolbar.Add(button);
 
 
@@ -237,17 +237,27 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            Toggle toggleRenderBounds = new Toggle(OnShowBounds);
+            toggleRenderBounds.text = "Show Bounds";
+            toggleRenderBounds.on = VFXComponent.renderBounds;
+            toolbar.Add(toggleRenderBounds);
+            toggleRenderBounds.AddToClassList("toolbarItem");
 
-            Toggle toggle = new Toggle(OnToggleCompile);
-            //toggle.AddToClassList("toolbarButton");
-            toggle.text = "AutoCompile";
-            toggle.on = true;
-            toolbar.Add(toggle);
+            Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
+            toggleAutoCompile.text = "Auto Compile";
+            toggleAutoCompile.on = true;
+            toolbar.Add(toggleAutoCompile);
+            toggleAutoCompile.AddToClassList("toolbarItem");
 
             button = new Button(OnCompile);
             button.text = "Compile";
-            button.AddToClassList("toolbarButton");
+            button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+        }
+
+        void OnShowBounds()
+        {
+            VFXComponent.renderBounds = !VFXComponent.renderBounds;
         }
 
         void OnToggleCompile()

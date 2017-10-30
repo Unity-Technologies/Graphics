@@ -132,22 +132,14 @@ namespace UnityEditor.VFX.UIElements
         void Setup()
         {
             m_NameContainer = new VisualElement();
-            m_NameContainer.style.flex = 1;
+            m_NameContainer.name = "name";
 
             m_IconContainer = new VisualElement();
-            m_IconContainer.style.width = 13;
             m_IconContainer.name = "icon";
 
 
             m_SelectContainer = new VisualElement();
-
-            style.sliceLeft = 4;
-            style.sliceRight = 23;
-            style.sliceTop = 4;
-            style.sliceBottom = 4;
-
-            m_SelectContainer.style.width = style.sliceRight.value;
-
+            m_SelectContainer.name = "select";
             Add(m_IconContainer);
             Add(m_NameContainer);
             Add(m_SelectContainer);
@@ -167,7 +159,6 @@ namespace UnityEditor.VFX.UIElements
             m_Reciever.hideFlags = HideFlags.HideAndDontSave;
             m_Reciever.m_ObjectField = this;
 
-            style.flexDirection = FlexDirection.Row;
             focusIndex = 0;
         }
 

@@ -115,6 +115,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,6 +193,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114069458236294264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1403,6 +1407,8 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  flipBook: 0
+  frameInterpolationMode: 0
 --- !u!114 &114809451265799136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1843,7 +1849,8 @@ MonoBehaviour:
   - {fileID: 114225129308190612}
   m_UIPosition: {x: -174.76035, y: -460.0628}
   m_UICollapsed: 0
-  m_InputSlots: []
+  m_InputSlots:
+  - {fileID: 0}
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_Space: 0
@@ -1898,25 +1905,25 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 10
+      data[3]: 1
     - op: 0
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
-    - op: 38
-      valueIndex: 2
-      data[0]: 0
-      data[1]: -1
-      data[2]: -1
-      data[3]: 0
+      data[3]: 10
     - op: 0
-      valueIndex: 6
+      valueIndex: 2
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
+    - op: 38
+      valueIndex: 3
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 0
     - op: 0
       valueIndex: 7
       data[0]: -1
@@ -1959,56 +1966,106 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 0
       valueIndex: 14
-      data[0]: 7
-      data[1]: 6
-      data[2]: 10
-      data[3]: -1
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 15
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 16
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 0
       valueIndex: 17
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 7
-    - op: 2
-      valueIndex: 19
-      data[0]: 9
-      data[1]: 5
-      data[2]: 8
-      data[3]: -1
+      data[3]: 1
     - op: 0
-      valueIndex: 22
+      valueIndex: 18
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
+    - op: 0
+      valueIndex: 19
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 2
+      valueIndex: 20
+      data[0]: 9
+      data[1]: 10
+      data[2]: 8
+      data[3]: -1
     - op: 0
       valueIndex: 23
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
+      data[3]: 7
+    - op: 2
+      valueIndex: 25
+      data[0]: 15
+      data[1]: 14
+      data[2]: 13
+      data[3]: -1
     - op: 0
-      valueIndex: 24
+      valueIndex: 28
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
     - op: 0
-      valueIndex: 26
+      valueIndex: 30
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 31
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 2
+      valueIndex: 32
+      data[0]: 7
+      data[1]: 6
+      data[2]: 5
+      data[3]: -1
+    - op: 2
+      valueIndex: 35
+      data[0]: 11
+      data[1]: 12
+      data[2]: 16
+      data[3]: -1
+    - op: 0
+      valueIndex: 38
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
     - op: 13
-      valueIndex: 28
+      valueIndex: 40
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
     m_SemanticToExpressionIndex:
-      2877026414: 15
+      380311639: 24
+      3624254976: 19
+      2877026414: 21
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
@@ -2018,28 +2075,40 @@ VFXAsset:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_ExpressionIndex: 1
+      - m_ExpressionIndex: 0
         m_Value: 1
-      - m_ExpressionIndex: 3
+      - m_ExpressionIndex: 2
         m_Value: 0.15
       - m_ExpressionIndex: 4
         m_Value: 0.15
       - m_ExpressionIndex: 5
-        m_Value: 0.2
+        m_Value: 0
       - m_ExpressionIndex: 6
-        m_Value: 0
+        m_Value: 0.2
       - m_ExpressionIndex: 7
-        m_Value: 1
+        m_Value: 0
       - m_ExpressionIndex: 8
-        m_Value: 0
-      - m_ExpressionIndex: 9
-        m_Value: 0
-      - m_ExpressionIndex: 10
         m_Value: 1
+      - m_ExpressionIndex: 9
+        m_Value: 1
+      - m_ExpressionIndex: 10
+        m_Value: 0
+      - m_ExpressionIndex: 11
+        m_Value: 1
+      - m_ExpressionIndex: 12
+        m_Value: 1
+      - m_ExpressionIndex: 13
+        m_Value: 0
       - m_ExpressionIndex: 14
-        m_Value: 2.5
+        m_Value: 0
       - m_ExpressionIndex: 15
+        m_Value: 0
+      - m_ExpressionIndex: 16
+        m_Value: 1
+      - m_ExpressionIndex: 21
         m_Value: 2
+      - m_ExpressionIndex: 22
+        m_Value: 2.5
     m_Vector2f:
       m_Array: []
     m_Vector3f:
@@ -2054,7 +2123,7 @@ VFXAsset:
       m_Array: []
     m_AnimationCurve:
       m_Array:
-      - m_ExpressionIndex: 0
+      - m_ExpressionIndex: 1
         m_Value:
           serializedVersion: 2
           m_Curve:
@@ -2089,11 +2158,11 @@ VFXAsset:
       m_Array: []
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 12
+      - m_ExpressionIndex: 18
         m_Value: {fileID: 0}
-      - m_ExpressionIndex: 16
+      - m_ExpressionIndex: 20
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
-      - m_ExpressionIndex: 17
+      - m_ExpressionIndex: 25
         m_Value: {fileID: 2800000, guid: 04a1a4f71875d89468defb5128b274bd, type: 3}
     m_Bool:
       m_Array: []
@@ -2124,7 +2193,7 @@ VFXAsset:
     - type: 268435457
       buffers: []
       values:
-      - expressionIndex: 15
+      - expressionIndex: 21
         nameId: Rate
       processor: {fileID: 0}
   - type: 1
@@ -2150,11 +2219,11 @@ VFXAsset:
       - bufferIndex: 2
         nameId: deadListCount
       values:
-      - expressionIndex: 14
+      - expressionIndex: 22
         nameId: uniform_Lifetime_b
-      - expressionIndex: 13
+      - expressionIndex: 23
         nameId: uniform_Velocity_c
-      processor: {fileID: 7200000, guid: 51c97b46353369b469f168b5b0d8d4fa, type: 3}
+      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -2162,43 +2231,43 @@ VFXAsset:
       - bufferIndex: 1
         nameId: deadListOut
       values:
-      - expressionIndex: 2
+      - expressionIndex: 3
         nameId: uniform_b
-      - expressionIndex: 1
+      - expressionIndex: 0
         nameId: uniform_c
-      - expressionIndex: 18
+      - expressionIndex: 26
         nameId: uniform_deltaTime_c
-      processor: {fileID: 7200000, guid: d32aac3e1196b3243a9f4a0ef89c975b, type: 3}
+      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
+    - type: 1073741826
+      buffers:
+      - bufferIndex: 0
+        nameId: attributeBuffer
+      values:
+      - expressionIndex: 25
+        nameId: texture_texture
+      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
+    - type: 1073741826
+      buffers:
+      - bufferIndex: 0
+        nameId: attributeBuffer
+      values:
+      - expressionIndex: 4
+        nameId: uniform_b
+      - expressionIndex: 20
+        nameId: texture_texture
+      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
       values:
       - expressionIndex: 17
-        nameId: texture_texture
-      processor: {fileID: 4800000, guid: e5631421d904c1c42949ba8f653ede0e, type: 3}
-    - type: 1073741826
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
-      values:
-      - expressionIndex: 3
-        nameId: uniform_b
-      - expressionIndex: 16
-        nameId: texture_texture
-      processor: {fileID: 4800000, guid: a23330f3d03f8bf4e8ff3a504415de7d, type: 3}
-    - type: 1073741826
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
-      values:
-      - expressionIndex: 11
         nameId: uniform_Color_b
-      - expressionIndex: 4
+      - expressionIndex: 2
         nameId: uniform_c
-      - expressionIndex: 12
+      - expressionIndex: 18
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 58c16bb59ff2fc64dbd13c8d2d14f0c4, type: 3}
+      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
