@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18298817, g: 0.22867951, b: 0.3068247, a: 1}
+  m_IndirectSpecularColor: {r: 0.18297595, g: 0.22866462, b: 0.30681777, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -75,15 +75,15 @@ LightmapSettings:
     m_BakeBackend: 1
     m_PVRSampling: 1
     m_PVRDirectSampleCount: 64
-    m_PVRSampleCount: 500
+    m_PVRSampleCount: 256
     m_PVRBounces: 2
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
     m_PVRFilteringMode: 2
     m_PVRCulling: 1
-    m_PVRFilteringGaussRadiusDirect: 0
-    m_PVRFilteringGaussRadiusIndirect: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 2
     m_PVRFilteringGaussRadiusAO: 2
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
@@ -141,7 +141,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 127406269}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &127406271
 Behaviour:
   m_ObjectHideFlags: 0
@@ -194,14 +193,13 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 0
+  m_HDR: 1
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &127406274
 Transform:
   m_ObjectHideFlags: 0
@@ -234,32 +232,16 @@ MonoBehaviour:
   antialiasingMode: 0
   temporalAntialiasing:
     jitterSpread: 0.75
-    sharpen: 0.25
+    sharpness: 0.25
     stationaryBlending: 0.95
     motionBlending: 0.85
   fastApproximateAntialiasing:
     mobileOptimized: 0
     keepAlpha: 0
-  ambientOcclusion:
-    enabled: 0
-    mode: 1
-    ambientOnly: 0
-    scalableAO:
-      intensity: 0.5
-      radius: 0.25
-      quality: 2
-      color: {r: 0, g: 0, b: 0, a: 1}
-    multiScaleVO:
-      noiseFilterTolerance: 0
-      blurTolerance: -4.6
-      upsampleTolerance: -12
-      thicknessModifier: 1
-      intensity: 1
-      color: {r: 0, g: 0, b: 0, a: 1}
   fog:
     enabled: 1
     excludeSkybox: 1
-  monitors:
+  debugLayer:
     lightMeter:
       width: 512
       height: 256
@@ -274,12 +256,18 @@ MonoBehaviour:
     vectorscope:
       size: 256
       exposure: 0.12
+    overlaySettings:
+      motionColorIntensity: 4
+      motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
-  m_ShowRenderingFeatures: 0
   m_ShowToolkit: 0
   m_ShowCustomSorter: 0
   breakBeforeColorGrading: 0
-  m_BeforeTransparentBundles: []
+  m_BeforeTransparentBundles:
+  - assemblyQualifiedName: InvertOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   m_BeforeStackBundles:
   - assemblyQualifiedName: HalfToneOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
@@ -298,6 +286,7 @@ MonoBehaviour:
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 127406273}
   hdr: 0
+  msaaSamples: 4
   width: 1280
   height: 720
 --- !u!1 &203150636
@@ -3514,6 +3503,7 @@ ParticleSystem:
     sizeAffectsLifetime: 0
     inheritParticleColor: 1
     generateLightingData: 0
+    splitSubEmitterRibbons: 0
     colorOverLifetime:
       serializedVersion: 2
       minMaxState: 0
@@ -7056,6 +7046,7 @@ ParticleSystem:
     sizeAffectsLifetime: 0
     inheritParticleColor: 1
     generateLightingData: 0
+    splitSubEmitterRibbons: 0
     colorOverLifetime:
       serializedVersion: 2
       minMaxState: 0
@@ -7732,7 +7723,7 @@ MeshRenderer:
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
+  m_ScaleInLightmap: 2
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0

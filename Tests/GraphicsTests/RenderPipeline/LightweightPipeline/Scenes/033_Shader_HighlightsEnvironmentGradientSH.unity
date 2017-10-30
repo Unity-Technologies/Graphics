@@ -43,7 +43,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -51,7 +51,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
+    m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 9
@@ -88,7 +88,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
-  m_LightingDataAsset: {fileID: 112000002, guid: 91774d6a1606f49de8ad2f45b98a0255,
+  m_LightingDataAsset: {fileID: 112000002, guid: 4b8770423f3cd41d88a12f7bfc8e2dc3,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -793,7 +793,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1751559073}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &1751559075
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1073,6 +1072,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!1 &2013344391
 GameObject:
