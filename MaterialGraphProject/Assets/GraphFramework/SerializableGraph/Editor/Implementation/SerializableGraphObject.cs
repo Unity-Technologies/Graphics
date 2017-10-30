@@ -45,8 +45,20 @@ namespace UnityEditor.Graphing
                 m_DeserializedGraph = deserializedGraph; // graph.ReplaceWith(m_DeserializedGraph);
         }
 
+        void Validate()
+        {
+
+            if (graph != null)
+            {
+                graph.OnEnable();
+                graph.ValidateGraph();
+            }
+        }
+
         void OnEnable()
         {
+            Validate();
+
             Undo.undoRedoPerformed += UndoRedoPerformed;
             UndoRedoPerformed();
         }
