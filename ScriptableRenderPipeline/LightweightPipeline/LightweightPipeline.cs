@@ -879,7 +879,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
-                if (m_CurrCamera.targetTexture == null)
+                if (m_CurrCamera.targetTexture == null || m_CurrCamera.cameraType == CameraType.SceneView)
                     colorRT = m_CameraColorRT;
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
