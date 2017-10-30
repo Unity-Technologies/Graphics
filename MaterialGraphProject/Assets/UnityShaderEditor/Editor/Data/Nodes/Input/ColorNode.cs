@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Color m_Color;
 
-        private const int kOutputSlotId = 0;
+        public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Color";
 
         public ColorNode()
@@ -22,8 +22,8 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [ColorControl("")]

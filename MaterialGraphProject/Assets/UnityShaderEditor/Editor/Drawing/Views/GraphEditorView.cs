@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
 
+        ToolbarButtonView m_InlineSelectedProperties;
+
         PreviewManager m_PreviewManager;
 
         public Action onUpdateAssetClick { get; set; }
@@ -132,7 +134,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 ));
 
+                m_InlineSelectedProperties = new ToolbarButtonView() { text = "Inline Property Node" };
+                m_InlineSelectedProperties.AddManipulator(new Clickable(() =>
+                    {
+
+                        var slected = graphView.selection.OfType<MaterialNodeView>()
+                            .Select(x => x.node)
+                            .OfType<PropertyNode>();
+
+                        foreach (var propNode in slected)
+                            propNode.ReplaceWithConcreteNode();
+                    }
+                ));
+
                 m_ToolbarView.Add(m_CopyToClipboardButton);
+                m_ToolbarView.Add(m_InlineSelectedProperties);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
             }
