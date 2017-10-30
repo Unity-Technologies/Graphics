@@ -21,9 +21,9 @@
 # include "../../../Core/ShaderLibrary/Refraction.hlsl"
 
 # if defined(_REFRACTION_PLANE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Plane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # elif defined(_REFRACTION_SPHERE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModel_Sphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # endif
 #endif
 
@@ -328,10 +328,14 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
+
+    // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
+    bsdfData.fresnel0 = lerp(ConvertIORToFresnel0(ior).xxx, baseColor, metallic);
+
     // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
     bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
     bsdfData.transmittanceMask = transmittanceMask;
@@ -433,7 +437,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 #if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
     FillMaterialIdTransparencyData(
-        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
+        surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
         bsdfData);
 #endif
 
@@ -1764,8 +1768,9 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     lighting.specularTransmitted *= preLightData.transmissionTransmittance;
 
     float weight = 1.0;
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hiearchy priority
-    lighting.specularTransmitted *= weight;
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+    // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
+    lighting.specularTransmitted *= (1.0 - preLightData.specularFGD) * weight;
 #else
     // No refraction, no need to go further
     hierarchyWeight = 1.0;
@@ -1914,11 +1919,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+    envLighting *= weight;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-        lighting.specularReflected = envLighting * preLightData.specularFGD * weight;
+        lighting.specularReflected = envLighting * preLightData.specularFGD;
     else
-        lighting.specularTransmitted = envLighting * preLightData.transmissionTransmittance * weight;
+        // specular transmisted lighting is the remaining of the reflection (let's use this approx)
+        lighting.specularTransmitted = (1.0 - preLightData.specularFGD) * envLighting * preLightData.transmissionTransmittance;
 
     return lighting;
 }
