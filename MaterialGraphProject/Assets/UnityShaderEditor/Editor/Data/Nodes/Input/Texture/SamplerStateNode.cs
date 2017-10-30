@@ -50,14 +50,14 @@ namespace UnityEditor.ShaderGraph
 
         public SamplerStateNode()
         {
-            name = "SamplerState";
+            name = "Sampler State";
             UpdateNodeAfterDeserialization();
         }
 
         public override bool hasPreview { get { return false; } }
 
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Sampler Output";
+        private const string kOutputSlotName = "Out";
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -76,6 +76,7 @@ namespace UnityEditor.ShaderGraph
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
+                
                 value = new TextureSamplerState()
                 {
                     filter = m_filter,
@@ -87,8 +88,8 @@ namespace UnityEditor.ShaderGraph
         public override string GetVariableNameForNode()
         {
             string ss = name + "_"
-                        + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
-                        + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler;";
+                + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
+                + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler";
             return ss;
         }
     }
