@@ -4,19 +4,19 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV/Polar Coordinates")]
-    public class CartesianToPolarNode : CodeFunctionNode
+    public class PolarCoordinatesNode : CodeFunctionNode
     {
-        public CartesianToPolarNode()
+        public PolarCoordinatesNode()
         {
             name = "Polar Coordinates";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_CartesianToPolar", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_PolarCoordinates", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_CartesianToPolar(
+        static string Unity_PolarCoordinates(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
             [Slot(2, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 RadialScale,
@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-
     float2 delta = UV - Center;
     {precision} radius = length(delta) * 2 * RadialScale;
     {precision} angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;

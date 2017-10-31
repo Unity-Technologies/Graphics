@@ -3,19 +3,19 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Tiling Offset")]
-    public class ScaleOffsetNode : CodeFunctionNode
+    [Title("UV/Tiling And Offset")]
+    public class TilingAndOffsetNode : CodeFunctionNode
     {
-        public ScaleOffsetNode()
+        public TilingAndOffsetNode()
         {
-            name = "Tiling Offset";
+            name = "Tiling And Offset";
         }
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ScaleAndOffset", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_TilingAndOffset", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ScaleAndOffset(
+        static string Unity_TilingAndOffset(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 1f, 1f, 1f, 1f)] Vector2 Tiling,
             [Slot(2, Binding.None, 0f, 0f, 0f, 0f)] Vector2 Offset,
@@ -25,8 +25,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    float4 xform = float4(Tiling, Offset);
-    Out = UV * xform.xy + xform.zw;
+    Out = UV * Tiling + Offset;
 }
 ";
         }

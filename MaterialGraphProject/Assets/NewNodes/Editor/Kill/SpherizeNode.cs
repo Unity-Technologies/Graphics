@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    /*
     [Title("OLD/SpherizeOLD")]
     public class SpherizeNode : CodeFunctionNode
     {
@@ -33,4 +34,5 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
+    */
 }
