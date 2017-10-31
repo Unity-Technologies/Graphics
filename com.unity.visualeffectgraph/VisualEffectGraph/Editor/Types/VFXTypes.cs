@@ -114,8 +114,7 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         [Tooltip("The position of the plane.")]
         public Vector3 position;
-        [Tooltip("The direction of the plane.")]
-        [Normalize]
+        [Normalize, Tooltip("The direction of the plane.")]
         public Vector3 normal;
     }
 
@@ -125,8 +124,8 @@ namespace UnityEditor.VFX
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
-        [Tooltip("The position of the cylinder.")]
-        public Vector3 position;
+        [Tooltip("The center of the cylinder.")]
+        public Vector3 center;
         [Tooltip("The radius of the cylinder.")]
         public float radius;
         [Tooltip("The height of the cylinder.")]

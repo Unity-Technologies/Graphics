@@ -220,6 +220,22 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
+            if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
+            {
+                var mapper = contextToCompiledData[owners.First()].cpuMapper;
+
+                var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
+                var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
+
+                int boundsCenterIndex = boundsCenterExp != null ? expressionGraph.GetFlattenedIndex(boundsCenterExp) : -1;
+                int boundsSizeIndex = boundsSizeExp != null ? expressionGraph.GetFlattenedIndex(boundsSizeExp) : -1;
+
+                if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
+                {
+                    systemValueMappings.Add(new VFXValueMapping(boundsCenterIndex, "bounds_center"));
+                    systemValueMappings.Add(new VFXValueMapping(boundsSizeIndex, "bounds_size"));
+                }
+            }
 
             var taskDescs = new List<VFXTaskDesc>();
             var bufferMappings = new List<VFXBufferMapping>();
