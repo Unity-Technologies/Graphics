@@ -78,9 +78,9 @@
 
             struct VertexOutput
             {
-                float4 uvSplat01                : TEXCOORD0;
-                float4 uvSplat23                : TEXCOORD1;
-                float2 uvControl                : TEXCOORD2;
+                float4 uvSplat01                : TEXCOORD0; // xy: splat0, zw: splat1
+                float4 uvSplat23                : TEXCOORD1; // xy: splat2, zw: splat3
+                float4 uvControlAndLM           : TEXCOORD2; // xy: control, zw: lightmap
 
 #if _TERRAIN_NORMAL_MAP
                 half3 tangent                   : TEXCOORD3;
@@ -96,7 +96,7 @@
 
             void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out fixed4 mixedDiffuse, inout fixed3 mixedNormal)
             {
-                splat_control = tex2D(_Control, IN.uvControl);
+                splat_control = tex2D(_Control, IN.uvControlAndLM.xy);
                 weight = dot(splat_control, half4(1, 1, 1, 1));
 
 #if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
@@ -133,11 +133,12 @@
                 float4 clipPos = UnityObjectToClipPos(v.vertex);
                 float3 positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-                o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord,  _Splat0);
-                o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord1, _Splat1);
-                o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord2, _Splat2);
-                o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord3, _Splat3);
-                o.uvControl = TRANSFORM_TEX(v.texcoord, _Control);
+                o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
+                o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
+                o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
+                o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
+                o.uvControlAndLM.xy = TRANSFORM_TEX(v.texcoord, _Control);
+                o.uvControlAndLM.zw = v.texcoord1 * unity_LightmapST.xy + unity_LightmapST.zw;
 
 #ifdef _TERRAIN_NORMAL_MAP
                 float4 vertexTangent = float4(cross(v.normal, float3(0, 0, 1)), -1.0);
@@ -175,7 +176,7 @@
 
                 half3 indirectDiffuse = half3(0, 0, 0);
 #if LIGHTMAP_ON
-                float2 lightmapUV = IN.uv01.zw;
+                float2 lightmapUV = IN.uvControlAndLM.zw;
                 half3 indirectDiffuse = SampleLightmap(lightmapUV, normalWS);
 #endif
 
